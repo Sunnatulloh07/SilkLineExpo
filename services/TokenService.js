@@ -1,0 +1,473 @@
+/**
+ * SLEX Token Service - JWT Token Management
+ * Professional JWT-based authentication with access and refresh tokens
+ * Secure cookie handling and token validation
+ */
+
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+
+class TokenService {
+    constructor() {
+        // JWT Secrets from environment variables
+        this.accessTokenSecret = process.env.JWT_ACCESS_SECRET || this.generateSecureSecret();
+        this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || this.generateSecureSecret();
+        
+        // Token expiration times
+        this.accessTokenExpiry = process.env.JWT_ACCESS_EXPIRY || '15m'; // 15 minutes
+        this.refreshTokenExpiry = process.env.JWT_REFRESH_EXPIRY || '7d'; // 7 days
+        
+        // Cookie settings
+        this.cookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            path: '/'
+        };
+        
+        // Token blacklist for logout (in production use Redis)
+        this.tokenBlacklist = new Set();
+        
+        // Rate limiting for token generation
+        this.tokenGenerationAttempts = new Map();
+        this.maxTokenAttempts = 5;
+        this.tokenAttemptWindow = 15 * 60 * 1000; // 15 minutes
+    }
+
+    /**
+     * Generate secure random secret
+     */
+    generateSecureSecret() {
+        return crypto.randomBytes(64).toString('hex');
+    }
+
+    /**
+     * Generate access token
+     */
+    generateAccessToken(payload) {
+        try {
+            // Validate payload
+            if (!payload || !payload.userId || !payload.userType) {
+                throw new Error('Invalid token payload');
+            }
+
+            // Check rate limiting
+            this.checkTokenGenerationRateLimit(payload.userId);
+
+            // Create access token payload
+            const accessPayload = {
+                userId: payload.userId,
+                userType: payload.userType, // 'admin' or 'user'
+                role: payload.role,
+                email: payload.email,
+                name: payload.name,
+                permissions: payload.permissions || [],
+                sessionId: this.generateSessionId(),
+                iat: Math.floor(Date.now() / 1000),
+                tokenType: 'access'
+            };
+
+            // Generate token
+            const token = jwt.sign(accessPayload, this.accessTokenSecret, {
+                expiresIn: this.accessTokenExpiry,
+                issuer: 'slex-platform',
+                audience: 'slex-users'
+            });
+
+            return {
+                token,
+                expiresIn: this.accessTokenExpiry,
+                sessionId: accessPayload.sessionId
+            };
+        } catch (error) {
+            throw new Error(`Access token generation failed: ${error.message}`);
+        }
+    }
+
+    /**
+     * Generate refresh token
+     */
+    generateRefreshToken(payload) {
+        try {
+            // Validate payload
+            if (!payload || !payload.userId || !payload.userType) {
+                throw new Error('Invalid token payload');
+            }
+
+            // Create refresh token payload
+            const refreshPayload = {
+                userId: payload.userId,
+                userType: payload.userType,
+                sessionId: payload.sessionId || this.generateSessionId(),
+                iat: Math.floor(Date.now() / 1000),
+                tokenType: 'refresh',
+                tokenVersion: payload.tokenVersion || 1 // For token invalidation
+            };
+
+            // Generate token
+            const token = jwt.sign(refreshPayload, this.refreshTokenSecret, {
+                expiresIn: this.refreshTokenExpiry,
+                issuer: 'slex-platform',
+                audience: 'slex-users'
+            });
+
+            return {
+                token,
+                expiresIn: this.refreshTokenExpiry,
+                sessionId: refreshPayload.sessionId
+            };
+        } catch (error) {
+            throw new Error(`Refresh token generation failed: ${error.message}`);
+        }
+    }
+
+    /**
+     * Generate both access and refresh tokens
+     */
+    generateTokenPair(payload) {
+        try {
+            const sessionId = this.generateSessionId();
+            const tokenPayload = { ...payload, sessionId };
+
+            const accessToken = this.generateAccessToken(tokenPayload);
+            const refreshToken = this.generateRefreshToken({
+                ...tokenPayload,
+                sessionId: accessToken.sessionId
+            });
+
+            return {
+                accessToken: accessToken.token,
+                refreshToken: refreshToken.token,
+                sessionId: accessToken.sessionId,
+                expiresIn: {
+                    access: this.accessTokenExpiry,
+                    refresh: this.refreshTokenExpiry
+                }
+            };
+        } catch (error) {
+            throw new Error(`Token pair generation failed: ${error.message}`);
+        }
+    }
+
+    /**
+     * Verify access token
+     */
+    verifyAccessToken(token) {
+        try {
+            if (!token) {
+                throw new Error('Token is required');
+            }
+
+            // Check if token is blacklisted
+            if (this.isTokenBlacklisted(token)) {
+                throw new Error('Token has been invalidated');
+            }
+
+            // Verify token
+            const decoded = jwt.verify(token, this.accessTokenSecret, {
+                issuer: 'slex-platform',
+                audience: 'slex-users'
+            });
+
+            // Validate token type
+            if (decoded.tokenType !== 'access') {
+                throw new Error('Invalid token type');
+            }
+
+            return {
+                valid: true,
+                payload: decoded,
+                expired: false
+            };
+        } catch (error) {
+            if (error.name === 'TokenExpiredError') {
+                return {
+                    valid: false,
+                    payload: null,
+                    expired: true,
+                    error: 'Token expired'
+                };
+            }
+
+            return {
+                valid: false,
+                payload: null,
+                expired: false,
+                error: error.message
+            };
+        }
+    }
+
+    /**
+     * Verify refresh token
+     */
+    verifyRefreshToken(token) {
+        try {
+            if (!token) {
+                throw new Error('Refresh token is required');
+            }
+
+            // Check if token is blacklisted
+            if (this.isTokenBlacklisted(token)) {
+                throw new Error('Refresh token has been invalidated');
+            }
+
+            // Verify token
+            const decoded = jwt.verify(token, this.refreshTokenSecret, {
+                issuer: 'slex-platform',
+                audience: 'slex-users'
+            });
+
+            // Validate token type
+            if (decoded.tokenType !== 'refresh') {
+                throw new Error('Invalid token type');
+            }
+
+            return {
+                valid: true,
+                payload: decoded,
+                expired: false
+            };
+        } catch (error) {
+            if (error.name === 'TokenExpiredError') {
+                return {
+                    valid: false,
+                    payload: null,
+                    expired: true,
+                    error: 'Refresh token expired'
+                };
+            }
+
+            return {
+                valid: false,
+                payload: null,
+                expired: false,
+                error: error.message
+            };
+        }
+    }
+
+    /**
+     * Refresh access token using refresh token
+     */
+    async refreshAccessToken(refreshToken, userModel) {
+        try {
+            // Verify refresh token
+            const refreshResult = this.verifyRefreshToken(refreshToken);
+            
+            if (!refreshResult.valid) {
+                throw new Error(`Invalid refresh token: ${refreshResult.error}`);
+            }
+
+            const { payload } = refreshResult;
+
+            // Get fresh user data from database
+            let userData;
+            if (payload.userType === 'admin') {
+                userData = await userModel.Admin.findById(payload.userId).select('-password');
+            } else {
+                userData = await userModel.User.findById(payload.userId).select('-password');
+            }
+
+            if (!userData) {
+                throw new Error('User not found');
+            }
+
+            // Check if user is still active
+            if (userData.accountStatus !== 'active') {
+                throw new Error('User account is not active');
+            }
+
+            // Generate new token pair
+            const newTokens = this.generateTokenPair({
+                userId: userData._id,
+                userType: payload.userType,
+                role: userData.role,
+                email: userData.email,
+                name: userData.name,
+                permissions: userData.permissions || []
+            });
+
+            // Blacklist old refresh token
+            this.blacklistToken(refreshToken);
+
+            return {
+                success: true,
+                tokens: newTokens,
+                user: userData
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    /**
+     * Set authentication cookies
+     */
+    setAuthCookies(res, tokens) {
+        try {
+            // Access token cookie (shorter expiry)
+            res.cookie('accessToken', tokens.accessToken, {
+                ...this.cookieOptions,
+                maxAge: 15 * 60 * 1000 // 15 minutes
+            });
+
+            // Refresh token cookie (longer expiry)
+            res.cookie('refreshToken', tokens.refreshToken, {
+                ...this.cookieOptions,
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            });
+
+            // Session ID cookie (for additional security)
+            res.cookie('sessionId', tokens.sessionId, {
+                ...this.cookieOptions,
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            });
+
+            return true;
+        } catch (error) {
+            throw new Error(`Failed to set auth cookies: ${error.message}`);
+        }
+    }
+
+    /**
+     * Clear authentication cookies
+     */
+    clearAuthCookies(res) {
+        try {
+            res.clearCookie('accessToken', this.cookieOptions);
+            res.clearCookie('refreshToken', this.cookieOptions);
+            res.clearCookie('sessionId', this.cookieOptions);
+            return true;
+        } catch (error) {
+            throw new Error(`Failed to clear auth cookies: ${error.message}`);
+        }
+    }
+
+    /**
+     * Extract tokens from request
+     */
+    extractTokensFromRequest(req) {
+        return {
+            accessToken: req.cookies?.accessToken || 
+                        req.headers.authorization?.replace('Bearer ', ''),
+            refreshToken: req.cookies?.refreshToken,
+            sessionId: req.cookies?.sessionId
+        };
+    }
+
+    /**
+     * Blacklist token (for logout)
+     */
+    blacklistToken(token) {
+        try {
+            // In production, use Redis for token blacklisting
+            this.tokenBlacklist.add(token);
+            
+            // Auto-cleanup after token expiry (7 days for refresh tokens)
+            setTimeout(() => {
+                this.tokenBlacklist.delete(token);
+            }, 7 * 24 * 60 * 60 * 1000);
+            
+            return true;
+        } catch (error) {
+            throw new Error(`Failed to blacklist token: ${error.message}`);
+        }
+    }
+
+    /**
+     * Check if token is blacklisted
+     */
+    isTokenBlacklisted(token) {
+        return this.tokenBlacklist.has(token);
+    }
+
+    /**
+     * Generate unique session ID
+     */
+    generateSessionId() {
+        return crypto.randomBytes(32).toString('hex');
+    }
+
+    /**
+     * Check rate limiting for token generation
+     */
+    checkTokenGenerationRateLimit(userId) {
+        const now = Date.now();
+        const attempts = this.tokenGenerationAttempts.get(userId) || [];
+        
+        // Remove old attempts
+        const recentAttempts = attempts.filter(time => now - time < this.tokenAttemptWindow);
+        
+        if (recentAttempts.length >= this.maxTokenAttempts) {
+            throw new Error('Too many token generation attempts. Please try again later.');
+        }
+        
+        // Add current attempt
+        recentAttempts.push(now);
+        this.tokenGenerationAttempts.set(userId, recentAttempts);
+    }
+
+    /**
+     * Validate token payload structure
+     */
+    validateTokenPayload(payload) {
+        const requiredFields = ['userId', 'userType'];
+        const validUserTypes = ['admin', 'user'];
+        
+        for (const field of requiredFields) {
+            if (!payload[field]) {
+                throw new Error(`Missing required field: ${field}`);
+            }
+        }
+        
+        if (!validUserTypes.includes(payload.userType)) {
+            throw new Error(`Invalid user type: ${payload.userType}`);
+        }
+        
+        return true;
+    }
+
+    /**
+     * Get token information without verification
+     */
+    decodeToken(token) {
+        try {
+            return jwt.decode(token);
+        } catch (error) {
+            return null;
+        }
+    }
+
+    /**
+     * Clean up expired token attempts
+     */
+    cleanupTokenAttempts() {
+        const now = Date.now();
+        
+        for (const [userId, attempts] of this.tokenGenerationAttempts.entries()) {
+            const recentAttempts = attempts.filter(time => now - time < this.tokenAttemptWindow);
+            
+            if (recentAttempts.length === 0) {
+                this.tokenGenerationAttempts.delete(userId);
+            } else {
+                this.tokenGenerationAttempts.set(userId, recentAttempts);
+            }
+        }
+    }
+
+    /**
+     * Initialize periodic cleanup
+     */
+    startCleanupInterval() {
+        // Cleanup every 15 minutes
+        setInterval(() => {
+            this.cleanupTokenAttempts();
+        }, 15 * 60 * 1000);
+    }
+}
+
+module.exports = new TokenService();

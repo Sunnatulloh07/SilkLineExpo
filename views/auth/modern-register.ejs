@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="<%= currentLang || 'uz' %>" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Create Account' %> - SLEX Platform</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Core CSS -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/line-awesome.min.css" rel="stylesheet">
+    <link href="/auth/css/auth-theme.css" rel="stylesheet">
+    <link href="/auth/css/register-theme.css" rel="stylesheet">
+    
+    <!-- Security -->
+    <meta name="csrf-token" content="<%= csrfToken %>">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+</head>
+<body class="auth-layout">
+    <!-- Background Elements -->
+    <div class="auth-background">
+        <div class="bg-shape shape-1"></div>
+        <div class="bg-shape shape-2"></div>
+        <div class="bg-shape shape-3"></div>
+        <div class="bg-particles" id="particles"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="auth-container">
+        <!-- Header -->
+        <header class="auth-header">
+            <div class="auth-header-content">
+                <!-- Logo -->
+                <div class="auth-logo">
+                    <img src="/assets/images/logo/logo.png" alt="SLEX" class="logo-img">
+                    <span class="logo-text">SLEX</span>
+                </div>
+
+                <!-- Language Selector -->
+                <div class="auth-language">
+                    <div class="language-dropdown" id="languageDropdown">
+                        <button class="language-btn" id="languageToggle">
+                            <% 
+                            const flags = {
+                                'uz': '🇺🇿',
+                                'en': '🇺🇸', 
+                                'ru': '🇷🇺',
+                                'tr': '🇹🇷',
+                                'fa': '🇮🇷',
+                                'zh': '🇨🇳'
+                            };
+                            const currentFlag = flags[currentLang] || '🇺🇿';
+                            %>
+                            <span class="language-flag"><%= currentFlag %></span>
+                            <span class="language-code"><%= (currentLang || 'uz').toUpperCase() %></span>
+                            <i class="las la-angle-down"></i>
+                        </button>
+                        <div class="language-panel" id="languagePanel">
+                            <% languages.forEach(lang => { %>
+                                <a href="/language/<%= lang.code %>" class="language-option <%= currentLang === lang.code ? 'active' : '' %>">
+                                    <span class="language-flag"><%= lang.flag %></span>
+                                    <span class="language-name"><%= lang.name %></span>
+                                    <% if (currentLang === lang.code) { %>
+                                        <i class="las la-check"></i>
+                                    <% } %>
+                                </a>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme Toggle -->
+                <div class="auth-theme">
+                    <button class="theme-toggle-btn" id="themeToggle" data-bs-toggle="tooltip" title="Toggle theme">
+                        <i class="las la-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Registration Form Container -->
+        <div class="auth-content">
+            <div class="register-container">
+                <!-- Registration Card -->
+                <div class="register-card">
+                    <!-- Registration Header -->
+                    <div class="register-header">
+                        <h1 class="register-title">Create Your Account</h1>
+                        <p class="register-subtitle">Join SLEX platform to connect with global business opportunities</p>
+                    </div>
+
+                    <!-- Multi-step Progress -->
+                    <div class="step-progress" id="stepProgress">
+                        <div class="progress-steps">
+                            <div class="progress-step active" data-step="1">
+                                <div class="step-circle">
+                                    <i class="las la-building"></i>
+                                </div>
+                                <div class="step-content">
+                                    <span class="step-title">Company Info</span>
+                                    <span class="step-description">Basic company details</span>
+                                </div>
+                            </div>
+                            <div class="progress-step" data-step="2">
+                                <div class="step-circle">
+                                    <i class="las la-map-marker"></i>
+                                </div>
+                                <div class="step-content">
+                                    <span class="step-title">Location</span>
+                                    <span class="step-description">Address & contact</span>
+                                </div>
+                            </div>
+                            <div class="progress-step" data-step="3">
+                                <div class="step-circle">
+                                    <i class="las la-user-shield"></i>
+                                </div>
+                                <div class="step-content">
+                                    <span class="step-title">Security</span>
+                                    <span class="step-description">Password & verification</span>
+                                </div>
+                            </div>
+                            <div class="progress-step" data-step="4">
+                                <div class="step-circle">
+                                    <i class="las la-check"></i>
+                                </div>
+                                <div class="step-content">
+                                    <span class="step-title">Review</span>
+                                    <span class="step-description">Confirm details</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+
+                    <!-- Alert Messages -->
+                    <div class="alert-container" id="alertContainer">
+                        <% if (typeof message !== 'undefined' && message) { %>
+                            <div class="alert alert-info alert-dismissible">
+                                <i class="las la-info-circle"></i>
+                                <span><%= message %></span>
+                                <button type="button" class="alert-close" onclick="this.parentElement.remove()">
+                                    <i class="las la-times"></i>
+                                </button>
+                            </div>
+                        <% } %>
+                        
+                        <% if (typeof error !== 'undefined' && error) { %>
+                            <div class="alert alert-danger alert-dismissible">
+                                <i class="las la-exclamation-triangle"></i>
+                                <span><%= error %></span>
+                                <button type="button" class="alert-close" onclick="this.parentElement.remove()">
+                                    <i class="las la-times"></i>
+                                </button>
+                            </div>
+                        <% } %>
+                    </div>
+
+                    <!-- Registration Form -->
+                    <form id="registrationForm" class="registration-form" enctype="multipart/form-data" novalidate>
+                        <!-- CSRF Token -->
+                        <input type="hidden" name="csrfToken" value="<%= csrfToken %>">
+                        
+                        <!-- Step 1: Company Information -->
+                        <div class="form-step active" data-step="1">
+                            <div class="step-header">
+                                <h3 class="step-title">Company Information</h3>
+                                <p class="step-subtitle">Tell us about your business</p>
+                            </div>
+                            
+                            <div class="form-grid">
+                                <!-- Company Name -->
+                                <div class="form-group">
+                                    <label for="companyName" class="form-label">
+                                        <i class="las la-building"></i>
+                                        Company Name
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <input 
+                                            type="text" 
+                                            id="companyName" 
+                                            name="companyName" 
+                                            class="form-input" 
+                                            placeholder="Enter your company name"
+                                            maxlength="200"
+                                            required
+                                        >
+                                        <div class="input-feedback" id="companyNameFeedback"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Email -->
+                                <div class="form-group">
+                                    <label for="email" class="form-label">
+                                        <i class="las la-envelope"></i>
+                                        Business Email
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <input 
+                                            type="email" 
+                                            id="email" 
+                                            name="email" 
+                                            class="form-input" 
+                                            placeholder="info@company.com"
+                                            required
+                                        >
+                                        <div class="input-feedback" id="emailFeedback"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Phone -->
+                                <div class="form-group">
+                                    <label for="phone" class="form-label">
+                                        <i class="las la-phone"></i>
+                                        Phone Number
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <input 
+                                            type="tel" 
+                                            id="phone" 
+                                            name="phone" 
+                                            class="form-input" 
+                                            placeholder="+998901234567"
+                                            required
+                                        >
+                                        <div class="input-feedback" id="phoneFeedback"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Tax Number -->
+                                <div class="form-group">
+                                    <label for="taxNumber" class="form-label">
+                                        <i class="las la-file-invoice"></i>
+                                        Tax Number (STIR/INN)
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <input 
+                                            type="text" 
+                                            id="taxNumber" 
+                                            name="taxNumber" 
+                                            class="form-input" 
+                                            placeholder="Enter tax identification number"
+                                            minlength="6"
+                                            maxlength="20"
+                                            required
+                                        >
+                                        <div class="input-feedback" id="taxNumberFeedback"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Activity Type -->
+                                <div class="form-group form-group-full">
+                                    <label for="activityType" class="form-label">
+                                        <i class="las la-industry"></i>
+                                        Business Activity
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <select id="activityType" name="activityType" class="form-select" required>
+                                            <option value="">Select your business activity</option>
+                                            <option value="food_beverages">Food & Beverages</option>
+                                            <option value="textiles_clothing">Textiles & Clothing</option>
+                                            <option value="electronics">Electronics</option>
+                                            <option value="machinery_equipment">Machinery & Equipment</option>
+                                            <option value="chemicals">Chemicals</option>
+                                            <option value="agriculture">Agriculture</option>
+                                            <option value="construction_materials">Construction Materials</option>
+                                            <option value="automotive">Automotive</option>
+                                            <option value="pharmaceuticals">Pharmaceuticals</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                        <div class="input-feedback" id="activityTypeFeedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Location Information -->
+                        <div class="form-step" data-step="2">
+                            <div class="step-header">
+                                <h3 class="step-title">Location & Contact</h3>
+                                <p class="step-subtitle">Where is your business located?</p>
+                            </div>
+                            
+                            <div class="form-grid">
+                                <!-- Country -->
+                                <div class="form-group">
+                                    <label for="country" class="form-label">
+                                        <i class="las la-globe"></i>
+                                        Country
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <select id="country" name="country" class="form-select" required>
+                                            <option value="">Select country</option>
+                                            <option value="Uzbekistan">🇺🇿 Uzbekistan</option>
+                                            <option value="Kazakhstan">🇰🇿 Kazakhstan</option>
+                                            <option value="China">🇨🇳 China</option>
+                                            <option value="Tajikistan">🇹🇯 Tajikistan</option>
+                                            <option value="Turkmenistan">🇹🇲 Turkmenistan</option>
+                                            <option value="Afghanistan">🇦🇫 Afghanistan</option>
+                                            <option value="Kyrgyzstan">🇰🇬 Kyrgyzstan</option>
+                                        </select>
+                                        <div class="input-feedback" id="countryFeedback"></div>
+                                    </div>
+                                </div>
+
+                                <!-- City -->
+                                <div class="form-group">
+                                    <label for="city" class="form-label">
+                                        <i class="las la-map-marker"></i>
+                                        City
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <input 
+                                            type="text" 
+                                            id="city" 
+                                            name="city" 
+                                            class="form-input" 
+                                            placeholder="Enter city name"
+                                            maxlength="100"
+                                            required
+                                        >
+                                        <div class="input-feedback" id="cityFeedback"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Address -->
+                                <div class="form-group form-group-full">
+                                    <label for="address" class="form-label">
+                                        <i class="las la-map"></i>
+                                        Business Address
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <textarea 
+                                            id="address" 
+                                            name="address" 
+                                            class="form-textarea" 
+                                            rows="3"
+                                            placeholder="Enter your business address"
+                                            maxlength="500"
+                                            required
+                                        ></textarea>
+                                        <div class="input-feedback" id="addressFeedback"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Company Logo -->
+                                <div class="form-group form-group-full">
+                                    <label for="companyLogo" class="form-label">
+                                        <i class="las la-image"></i>
+                                        Company Logo (Optional)
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <div class="file-upload-area" id="fileUploadArea">
+                                            <input 
+                                                type="file" 
+                                                id="companyLogo" 
+                                                name="companyLogo" 
+                                                class="file-input"
+                                                accept="image/jpeg,image/png,image/jpg"
+                                                hidden
+                                            >
+                                            <div class="upload-content">
+                                                <i class="las la-cloud-upload-alt"></i>
+                                                <span class="upload-text">Click to upload or drag and drop</span>
+                                                <span class="upload-hint">PNG, JPG up to 2MB</span>
+                                            </div>
+                                            <div class="upload-preview" id="uploadPreview" style="display: none;">
+                                                <img id="previewImage" src="" alt="Logo Preview">
+                                                <button type="button" class="remove-upload" id="removeUpload">
+                                                    <i class="las la-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="input-feedback" id="logoFeedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Security -->
+                        <div class="form-step" data-step="3">
+                            <div class="step-header">
+                                <h3 class="step-title">Account Security</h3>
+                                <p class="step-subtitle">Create a secure password for your account</p>
+                            </div>
+                            
+                            <div class="form-grid">
+                                <!-- Password -->
+                                <div class="form-group form-group-full">
+                                    <label for="password" class="form-label">
+                                        <i class="las la-lock"></i>
+                                        Password
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <input 
+                                            type="password" 
+                                            id="password" 
+                                            name="password" 
+                                            class="form-input" 
+                                            placeholder="Create a strong password"
+                                            minlength="8"
+                                            required
+                                        >
+                                        <button type="button" class="password-toggle" id="passwordToggle">
+                                            <i class="las la-eye"></i>
+                                        </button>
+                                        <div class="input-feedback" id="passwordFeedback"></div>
+                                    </div>
+                                    
+                                    <!-- Password Strength -->
+                                    <div class="password-strength">
+                                        <div class="strength-bar">
+                                            <div class="strength-fill" id="strengthFill"></div>
+                                        </div>
+                                        <span class="strength-text" id="strengthText">Password strength</span>
+                                    </div>
+                                </div>
+
+                                <!-- Confirm Password -->
+                                <div class="form-group form-group-full">
+                                    <label for="confirmPassword" class="form-label">
+                                        <i class="las la-lock"></i>
+                                        Confirm Password
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <input 
+                                            type="password" 
+                                            id="confirmPassword" 
+                                            name="confirmPassword" 
+                                            class="form-input" 
+                                            placeholder="Confirm your password"
+                                            minlength="8"
+                                            required
+                                        >
+                                        <button type="button" class="password-toggle" id="confirmPasswordToggle">
+                                            <i class="las la-eye"></i>
+                                        </button>
+                                        <div class="input-feedback" id="confirmPasswordFeedback"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Password Requirements -->
+                                <div class="form-group form-group-full">
+                                    <div class="password-requirements">
+                                        <h6 class="requirements-title">Password must contain:</h6>
+                                        <ul class="requirements-list">
+                                            <li class="requirement" data-requirement="length">
+                                                <i class="las la-times"></i>
+                                                <span>At least 8 characters</span>
+                                            </li>
+                                            <li class="requirement" data-requirement="lowercase">
+                                                <i class="las la-times"></i>
+                                                <span>One lowercase letter</span>
+                                            </li>
+                                            <li class="requirement" data-requirement="uppercase">
+                                                <i class="las la-times"></i>
+                                                <span>One uppercase letter</span>
+                                            </li>
+                                            <li class="requirement" data-requirement="number">
+                                                <i class="las la-times"></i>
+                                                <span>One number</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Review & Submit -->
+                        <div class="form-step" data-step="4">
+                            <div class="step-header">
+                                <h3 class="step-title">Review Your Information</h3>
+                                <p class="step-subtitle">Please review all details before submitting</p>
+                            </div>
+                            
+                            <div class="review-container">
+                                <!-- Summary Cards -->
+                                <div class="summary-cards">
+                                    <div class="summary-card">
+                                        <div class="summary-header">
+                                            <i class="las la-building"></i>
+                                            <h6>Company Information</h6>
+                                        </div>
+                                        <div class="summary-content">
+                                            <div class="summary-item">
+                                                <span class="item-label">Company Name:</span>
+                                                <span class="item-value" id="summaryCompanyName">-</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="item-label">Email:</span>
+                                                <span class="item-value" id="summaryEmail">-</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="item-label">Phone:</span>
+                                                <span class="item-value" id="summaryPhone">-</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="item-label">Tax Number:</span>
+                                                <span class="item-value" id="summaryTaxNumber">-</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="item-label">Activity:</span>
+                                                <span class="item-value" id="summaryActivity">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="summary-card">
+                                        <div class="summary-header">
+                                            <i class="las la-map-marker"></i>
+                                            <h6>Location Information</h6>
+                                        </div>
+                                        <div class="summary-content">
+                                            <div class="summary-item">
+                                                <span class="item-label">Country:</span>
+                                                <span class="item-value" id="summaryCountry">-</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="item-label">City:</span>
+                                                <span class="item-value" id="summaryCity">-</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="item-label">Address:</span>
+                                                <span class="item-value" id="summaryAddress">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Terms and Conditions -->
+                                <div class="terms-section">
+                                    <div class="form-group">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="agreeTerms" name="agreeTerms" class="checkbox-input" required>
+                                            <span class="checkbox-custom"></span>
+                                            <span class="checkbox-text">
+                                                I agree to the 
+                                                <a href="/terms" target="_blank" class="terms-link">Terms of Service</a> 
+                                                and 
+                                                <a href="/privacy" target="_blank" class="terms-link">Privacy Policy</a>
+                                            </span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="agreeMarketing" name="agreeMarketing" class="checkbox-input">
+                                            <span class="checkbox-custom"></span>
+                                            <span class="checkbox-text">
+                                                I agree to receive marketing communications and updates from SLEX
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Important Notice -->
+                                <div class="notice-section">
+                                    <div class="notice-card">
+                                        <div class="notice-icon">
+                                            <i class="las la-info-circle"></i>
+                                        </div>
+                                        <div class="notice-content">
+                                            <h6>Account Review Process</h6>
+                                            <p>Your account will be reviewed by our team within 24-48 hours. You'll receive an email notification once approved.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Navigation -->
+                        <div class="form-navigation">
+                            <button type="button" class="nav-btn nav-btn-prev" id="prevBtn" style="display: none;">
+                                <i class="las la-arrow-left"></i>
+                                <span>Previous</span>
+                            </button>
+                            
+                            <div class="nav-btn-group">
+                                <button type="button" class="nav-btn nav-btn-next" id="nextBtn">
+                                    <span>Next</span>
+                                    <i class="las la-arrow-right"></i>
+                                </button>
+                                
+                                <button type="submit" class="nav-btn nav-btn-submit" id="submitBtn" style="display: none;">
+                                    <span class="btn-text">
+                                        <i class="las la-check"></i>
+                                        <span>Create Account</span>
+                                    </span>
+                                    <span class="btn-loader" style="display: none;">
+                                        <i class="las la-spinner la-spin"></i>
+                                        <span>Creating Account...</span>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Login Link -->
+                    <div class="login-link">
+                        <p>Already have an account? <a href="/auth/login">Sign in here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="auth-footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="/terms" class="footer-link">Terms of Service</a>
+                    <a href="/privacy" class="footer-link">Privacy Policy</a>
+                    <a href="/security" class="footer-link">Security</a>
+                    <a href="/contact" class="footer-link">Contact Support</a>
+                </div>
+                <div class="footer-copyright">
+                    <span>&copy; <%= new Date().getFullYear() %> SLEX Platform. All rights reserved.</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/auth/js/auth-theme.js"></script>
+    <script src="/auth/js/modern-register.js"></script>
+    
+    <!-- Background Animation -->
+    <script>
+        // Simple particle animation
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // Initialize particles when page loads
+        document.addEventListener('DOMContentLoaded', createParticles);
+    </script>
+</body>
+</html>

@@ -1,0 +1,532 @@
+<%- include('../partials/header') %>
+<!-- Loader Fix CSS -->
+<link rel="stylesheet" href="/css/loader-fix.css">
+<!-- Login Button Fix CSS -->
+<link rel="stylesheet" href="/css/login-button-fix.css">
+<!-- Multi-step Registration CSS -->
+<link rel="stylesheet" href="/css/multi-step-registration.css">
+<!-- Professional Enhancement CSS -->
+<link rel="stylesheet" href="/css/professional-register-enhancement.css">
+
+<body>
+  <!--==================== Preloader Start ====================-->
+  <div class="loader-mask">
+    <div class="loader">
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+  <!--==================== Preloader End ====================-->
+
+  <!--==================== Overlay Start ====================-->
+  <div class="overlay"></div>
+  <!--==================== Overlay End ====================-->
+
+  <!--==================== Sidebar Overlay End ====================-->
+  <div class="side-overlay"></div>
+  <!--==================== Sidebar Overlay End ====================-->
+
+  <!-- ==================== Scroll to Top End Here ==================== -->
+  <div class="progress-wrap">
+    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+      <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+    </svg>
+  </div>
+  <!-- ==================== Scroll to Top End Here ==================== -->
+
+    <!-- ==================== Mobile Menu Start Here ==================== -->
+    <div class="mobile-menu d-lg-none d-block">
+      <button type="button" class="close-button"> <i class="las la-times"></i> </button>
+      <div class="mobile-menu__inner">
+        <a href="/" class="mobile-menu__logo">
+          <img src="/assets/images/logo/logo.png" alt="<%= t('common.logoAlt') %>" class="white-version">
+          <img src="/assets/images/logo/white-logo-two.png" alt="<%= t('common.logoAlt') %>" class="dark-version">
+        </a>
+        <div class="mobile-menu__menu">
+
+          <ul class="nav-menu flx-align nav-menu--mobile">
+            <li class="nav-menu__item">
+              <a href="/" class="nav-menu__link"><%= t('nav.home') %></a>
+            </li>
+            <li class="nav-menu__item">
+              <a href="/all-product" class="nav-menu__link"><%= t('nav.allProducts') %></a>
+            </li>
+            <li class="nav-menu__item">
+              <a href="/blog" class="nav-menu__link"><%= t('nav.news') %></a>
+            </li>
+            <li class="nav-menu__item">
+              <a href="/contact" class="nav-menu__link"><%= t('nav.contact') %></a>
+            </li>
+            <li class="nav-menu__item">
+              <a href="/partner-countries" class="nav-menu__link"><%= t('nav.partnersCountries') %></a>
+            </li>
+            <li class="nav-menu__item">
+              <a href="/partners-agents" class="nav-menu__link"><%= t('nav.partnersAgents') %></a>
+            </li>
+          </ul>
+          <div class="header-right__inner d-lg-none my-3 gap-1 d-flex flx-align">
+
+            <a href="/login" class="btn btn-main pill">
+              <span class="icon-left icon">
+                <img src="/assets/images/icons/user.svg" alt="<%= t('common.userIconAlt') %>">
+              </span><%= t('nav.login') %>
+            </a>
+            <!-- Custom Language Selector - Register Mobile -->
+            <div class="custom-lang-selector" data-type="register-mobile">
+              <div class="lang-btn">
+                <img src="/assets/images/icons/globe.svg" alt="" class="globe-icon white-version">
+                <img src="/assets/images/icons/globe-white.svg" alt="" class="globe-icon dark-version">
+                <span class="current-lang-text"><%= lng.toUpperCase() %></span>
+                <i class="las la-angle-down lang-arrow"></i>
+              </div>
+              <div class="lang-dropdown">
+                <a href="/language/en" class="lang-option <%= lng === 'en' ? 'active' : '' %>" data-lang="en">
+                  <span>English</span>
+                </a>
+                <a href="/language/uz" class="lang-option <%= lng === 'uz' ? 'active' : '' %>" data-lang="uz">
+                  <span>O'zbekcha</span>
+                </a>
+                <a href="/language/ru" class="lang-option <%= lng === 'ru' ? 'active' : '' %>" data-lang="ru">
+                  <span>Русский</span>
+                </a>
+                <a href="/language/tr" class="lang-option <%= lng === 'tr' ? 'active' : '' %>" data-lang="tr">
+                  <span>Türkçe</span>
+                </a>
+                <a href="/language/fa" class="lang-option <%= lng === 'fa' ? 'active' : '' %>" data-lang="fa">
+                  <span>فارسی</span>
+                </a>
+                <a href="/language/zh" class="lang-option <%= lng === 'zh' ? 'active' : '' %>" data-lang="zh">
+                  <span>中文</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ==================== Mobile Menu End Here ==================== -->
+
+    <!-- ================================== Account Page Start =========================== -->
+    <section class="account d-flex">
+      <img src="/assets/images/thumbs/account-img.png" alt="" class="account__img">
+      <div class="account__left d-md-flex d-none flx-align section-bg position-relative z-index-1 overflow-hidden">
+        <img src="/assets/images/shapes/pattern-curve-seven.png" alt=""
+          class="position-absolute end-0 top-0 z-index--1 h-100">
+        <div class="account-thumb">
+          <img src="/assets/images/thumbs/banner-img.png" alt="">
+        </div>
+      </div>
+      <div class="account__right padding-y-120 flx-align">
+
+        <div class="dark-light-mode">
+          <!-- Light Dark Mode -->
+          <div class="theme-switch-wrapper position-relative">
+            <label class="theme-switch" for="checkbox">
+              <input type="checkbox" class="d-none" id="checkbox">
+              <span class="slider text-black header-right__button white-version">
+                <img src="/assets/images/icons/sun.svg" alt="<%= t('common.sunIconAlt') %>">
+              </span>
+              <span class="slider text-black header-right__button dark-version">
+                <img src="/assets/images/icons/moon.svg" alt="<%= t('common.moonIconAlt') %>">
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="account-content">
+          <a href="/" class="logo mb-32">
+            <img src="/assets/images/logo/logo.png" alt="<%= t('common.logoAlt') %>" class="white-version">
+            <img src="/assets/images/logo/white-logo-two.png" alt="<%= t('common.logoAlt') %>" class="dark-version">
+          </a>
+          
+          <!-- Multi-step Progress Bar -->
+          <div class="step-progress mb-32">
+            <div class="step-progress__header">
+              <h4 class="account-content__title mb-16 text-capitalize"><%= t('auth.createAccount') %></h4>
+              <p class="step-description text-muted mb-24"></p>
+            </div>
+            <div class="step-progress__bar">
+              <div class="step-item active" data-step="1">
+                <div class="step-circle">
+                  <i class="las la-building"></i>
+                </div>
+                <span class="step-label"><%= t('register.steps.companyInfo') %></span>
+              </div>
+              <div class="step-item" data-step="2">
+                <div class="step-circle">
+                  <i class="las la-map-marker"></i>
+                </div>
+                <span class="step-label"><%= t('register.steps.locationInfo') %></span>
+              </div>
+              <div class="step-item" data-step="3">
+                <div class="step-circle">
+                  <i class="las la-user-shield"></i>
+                </div>
+                <span class="step-label"><%= t('register.steps.security') %></span>
+              </div>
+              <div class="step-item" data-step="4">
+                <div class="step-circle">
+                  <i class="las la-check"></i>
+                </div>
+                <span class="step-label"><%= t('register.steps.confirmation') %></span>
+              </div>
+            </div>
+          </div>
+
+          <form action="/auth/register" method="POST" enctype="multipart/form-data" id="multiStepForm">
+            
+            <!-- Step 1: Company Information -->
+            <div class="form-step active" data-step="1">
+              <div class="row gy-4">
+                <!-- Company Name -->
+                <div class="col-12">
+                  <label for="companyName" class="form-label mb-2 font-18 font-heading fw-600">
+                    <%= t('register.companyName') %> <span class="text-danger">*</span>
+                  </label>
+                  <div class="position-relative">
+                    <input type="text" class="common-input common-input--bg common-input--withIcon" 
+                           id="companyName" name="companyName" 
+                           placeholder="<%= t('register.companyNamePlaceholder') %>" 
+                           required maxlength="200">
+                    <span class="input-icon"><i class="las la-building"></i></span>
+                  </div>
+                </div>
+
+                <!-- Email -->
+                <div class="col-12">
+                  <label for="email" class="form-label mb-2 font-18 font-heading fw-600">
+                    <%= t('auth.email') %> <span class="text-danger">*</span>
+                  </label>
+                  <div class="position-relative">
+                    <input type="email" class="common-input common-input--bg common-input--withIcon" 
+                           id="email" name="email" 
+                           placeholder="info@company.com" 
+                           required>
+                    <span class="input-icon"><img src="/assets/images/icons/envelope-icon.svg" alt=""></span>
+                  </div>
+                </div>
+
+                <!-- Phone -->
+                <div class="col-12">
+                  <label for="phone" class="form-label mb-2 font-18 font-heading fw-600">
+                    <%= t('register.phone') %> <span class="text-danger">*</span>
+                  </label>
+                  <div class="position-relative">
+                    <input type="tel" class="common-input common-input--bg common-input--withIcon" 
+                           id="phone" name="phone" 
+                           placeholder="+998901234567" 
+                           required>
+                    <span class="input-icon"><i class="las la-phone"></i></span>
+                  </div>
+                </div>
+
+                <!-- STIR/INN -->
+                <div class="col-12">
+                  <label for="taxNumber" class="form-label mb-2 font-18 font-heading fw-600">
+                    <%= t('register.taxNumber') %> <span class="text-danger">*</span>
+                  </label>
+                  <div class="position-relative">
+                    <input type="text" class="common-input common-input--bg common-input--withIcon" 
+                           id="taxNumber" name="taxNumber" 
+                           placeholder="<%= t('register.taxNumberPlaceholder') %>" 
+                           required minlength="6" maxlength="20">
+                    <span class="input-icon"><i class="las la-file-invoice"></i></span>
+                  </div>
+                </div>
+
+                <!-- Activity Type -->
+                <div class="col-12">
+                  <label for="activityType" class="form-label mb-2 font-18 font-heading fw-600">
+                    <%= t('register.activityType') %> <span class="text-danger">*</span>
+                  </label>
+                  <div class="position-relative">
+                    <select class="common-input common-input--bg" id="activityType" name="activityType" required>
+                      <option value=""><%= t('register.selectActivity') %></option>
+                      <option value="food_beverages"><%= t('register.activities.foodBeverages') %></option>
+                      <option value="textiles_clothing"><%= t('register.activities.textilesClothing') %></option>
+                      <option value="electronics"><%= t('register.activities.electronics') %></option>
+                      <option value="machinery_equipment"><%= t('register.activities.machineryEquipment') %></option>
+                      <option value="chemicals"><%= t('register.activities.chemicals') %></option>
+                      <option value="agriculture"><%= t('register.activities.agriculture') %></option>
+                      <option value="construction_materials"><%= t('register.activities.constructionMaterials') %></option>
+                      <option value="automotive"><%= t('register.activities.automotive') %></option>
+                      <option value="pharmaceuticals"><%= t('register.activities.pharmaceuticals') %></option>
+                      <option value="other"><%= t('register.activities.other') %></option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2: Location Information -->
+            <div class="form-step" data-step="2">
+              <div class="row gy-4">
+                <!-- Country -->
+                <div class="col-12">
+                  <label for="country" class="form-label mb-2 font-18 font-heading fw-600">
+                    <%= t('register.country') %> <span class="text-danger">*</span>
+                  </label>
+                  <div class="position-relative">
+                    <select class="common-input common-input--bg" id="country" name="country" required>
+                      <option value=""><%= t('register.selectCountry') %></option>
+                      <option value="Uzbekistan"><%= t('countries.uzbekistan') %></option>
+                      <option value="Kazakhstan"><%= t('countries.kazakhstan') %></option>
+                      <option value="China"><%= t('countries.china') %></option>
+                      <option value="Tajikistan"><%= t('countries.tajikistan') %></option>
+                      <option value="Turkmenistan"><%= t('countries.turkmenistan') %></option>
+                      <option value="Afghanistan"><%= t('countries.afghanistan') %></option>
+                      <option value="Kyrgyzstan"><%= t('countries.kyrgyzstan') %></option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- City -->
+                <div class="col-12">
+                  <label for="city" class="form-label mb-2 font-18 font-heading fw-600">
+                    <%= t('register.city') %> <span class="text-danger">*</span>
+                  </label>
+                  <div class="position-relative">
+                    <input type="text" class="common-input common-input--bg common-input--withIcon" 
+                           id="city" name="city" 
+                           placeholder="<%= t('register.cityPlaceholder') %>" 
+                           required maxlength="100">
+                    <span class="input-icon"><i class="las la-map-marker"></i></span>
+                  </div>
+                </div>
+
+                <!-- Address -->
+                <div class="col-12">
+                  <label for="address" class="form-label mb-2 font-18 font-heading fw-600">
+                    <%= t('register.address') %> <span class="text-danger">*</span>
+                  </label>
+                  <div class="position-relative">
+                    <textarea class="common-input common-input--bg" id="address" name="address" rows="4"
+                              placeholder="<%= t('register.addressPlaceholder') %>" 
+                              required maxlength="500"></textarea>
+                  </div>
+                </div>
+
+                <!-- Company Logo -->
+                <div class="col-12">
+                  <label for="companyLogo" class="form-label mb-2 font-18 font-heading fw-600">
+                    <%= t('register.companyLogo') %>
+                  </label>
+                  <div class="position-relative">
+                    <input type="file" class="common-input common-input--bg" 
+                           id="companyLogo" name="companyLogo"
+                           accept="image/jpeg,image/png,image/jpg">
+                    <small class="form-text text-muted"><%= t('register.logoNote') %></small>
+                  </div>
+                  <div class="logo-preview mt-3" id="logoPreview" style="display: none;">
+                    <img id="logoPreviewImage" src="" alt="Logo Preview" style="max-width: 150px; max-height: 150px; border-radius: 8px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3: Security -->  
+            <div class="form-step" data-step="3">
+              <div class="row gy-4">
+                <!-- Password -->
+                <div class="col-12">
+                  <label for="password" class="form-label mb-2 font-18 font-heading fw-600">
+                    <%= t('auth.password') %> <span class="text-danger">*</span>
+                  </label>
+                  <div class="position-relative">
+                    <input type="password" class="common-input common-input--bg common-input--withIcon" 
+                           id="password" name="password"
+                           placeholder="<%= t('auth.passwordPlaceholder') %>" 
+                           required minlength="6">
+                    <span class="input-icon toggle-password cursor-pointer" data-target="password">
+                      <img src="/assets/images/icons/lock-icon.svg" alt="">
+                    </span>
+                  </div>
+                  <div class="password-strength mt-2">
+                    <div class="strength-bar">
+                      <div class="strength-fill"></div>
+                    </div>
+                    <small class="strength-text text-muted"><%= t('register.passwordStrength') %></small>
+                  </div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="col-12">
+                  <label for="confirmPassword" class="form-label mb-2 font-18 font-heading fw-600">
+                    <%= t('register.confirmPassword') %> <span class="text-danger">*</span>
+                  </label>  
+                  <div class="position-relative">
+                    <input type="password" class="common-input common-input--bg common-input--withIcon" 
+                           id="confirmPassword" name="confirmPassword"
+                           placeholder="<%= t('register.confirmPasswordPlaceholder') %>" 
+                           required minlength="6">
+                    <span class="input-icon toggle-password cursor-pointer" data-target="confirmPassword">
+                      <img src="/assets/images/icons/lock-icon.svg" alt="">
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Password Requirements -->
+                <div class="col-12">
+                  <div class="password-requirements">
+                    <h6 class="mb-2"><%= t('register.passwordRequirements') %></h6>
+                    <ul class="requirements-list">
+                      <li class="requirement" data-requirement="length">
+                        <i class="las la-times text-danger"></i>
+                        <span><%= t('register.requirements.minLength') %></span>
+                      </li>
+                      <li class="requirement" data-requirement="lowercase">
+                        <i class="las la-times text-danger"></i>
+                        <span><%= t('register.requirements.lowercase') %></span>
+                      </li>
+                      <li class="requirement" data-requirement="uppercase">
+                        <i class="las la-times text-danger"></i>
+                        <span><%= t('register.requirements.uppercase') %></span>
+                      </li>
+                      <li class="requirement" data-requirement="number">
+                        <i class="las la-times text-danger"></i>
+                        <span><%= t('register.requirements.number') %></span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 4: Confirmation -->
+            <div class="form-step" data-step="4">
+              <div class="row gy-4">
+                <!-- Summary -->
+                <div class="col-12">
+                  <div class="registration-summary">
+                    <h5 class="mb-3"><%= t('register.reviewInformation') %></h5>
+                    <div class="summary-grid">
+                      <div class="summary-item">
+                        <strong><%= t('register.companyName') %>:</strong>
+                        <span id="summaryCompanyName">-</span>
+                      </div>
+                      <div class="summary-item">
+                        <strong><%= t('auth.email') %>:</strong>
+                        <span id="summaryEmail">-</span>
+                      </div>
+                      <div class="summary-item">
+                        <strong><%= t('register.phone') %>:</strong>
+                        <span id="summaryPhone">-</span>
+                      </div>
+                      <div class="summary-item">
+                        <strong><%= t('register.taxNumber') %>:</strong>
+                        <span id="summaryTaxNumber">-</span>
+                      </div>
+                      <div class="summary-item">
+                        <strong><%= t('register.activityType') %>:</strong>
+                        <span id="summaryActivityType">-</span>
+                      </div>
+                      <div class="summary-item">
+                        <strong><%= t('register.country') %>:</strong>
+                        <span id="summaryCountry">-</span>
+                      </div>
+                      <div class="summary-item">
+                        <strong><%= t('register.city') %>:</strong>
+                        <span id="summaryCity">-</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Terms and Privacy -->
+                <div class="col-12">
+                  <div class="common-check my-3">
+                    <input class="form-check-input" type="checkbox" name="agreeTerms" id="agreeTerms" required>
+                    <label class="form-check-label mb-0 fw-400 font-14 text-body" for="agreeTerms">
+                      <%= t('register.agreeTerms') %> 
+                      <a href="/terms" class="text-main text-decoration-underline" target="_blank"><%= t('register.termsOfService') %></a> 
+                      <%= t('register.and') %> 
+                      <a href="/privacy" class="text-main text-decoration-underline" target="_blank"><%= t('register.privacyPolicy') %></a>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Important Notice -->
+                <div class="col-12">
+                  <div class="alert alert-info">
+                    <i class="las la-info-circle"></i>
+                    <div>
+                      <strong><%= t('register.importantNotice') %></strong>
+                      <p class="mb-0 mt-1"><%= t('register.approvalRequired') %></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="form-navigation mt-4">
+              <div class="row">
+                <div class="col-6">
+                  <button type="button" class="btn btn-outline-secondary btn-lg w-100 pill" id="prevBtn" style="display: none;">
+                    <i class="las la-arrow-left me-2"></i>
+                    <%= t('register.previous') %>
+                  </button>
+                </div>
+                <div class="col-6">
+                  <button type="button" class="btn btn-main btn-lg w-100 pill" id="nextBtn">
+                    <%= t('register.next') %>
+                    <i class="las la-arrow-right ms-2"></i>
+                  </button>
+                  <button type="submit" class="btn btn-main btn-lg w-100 pill" id="submitBtn" style="display: none;">
+                    <span class="btn-text">
+                      <i class="las la-check me-2"></i>
+                      <%= t('register.createAccount') %>
+                    </span>
+                    <span class="btn-loading d-none">
+                      <i class="las la-spinner la-spin"></i> <%= t('register.processing') %>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Already have account -->
+            <div class="col-sm-12 mb-0 mt-3">
+              <div class="have-account text-center">
+                <p class="text font-14"><%= t('register.alreadyHaveAccount') %> 
+                  <a class="link text-main text-decoration-underline fw-500" href="/login"><%= t('auth.signIn') %></a>
+                </p>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+    <!-- ================================== Account Page End =========================== -->
+  </div>
+  
+  <!-- jQuery library js -->
+  <script src="/assets/js/jquery-3.7.1.min.js"></script>
+  <!-- Bootstrap js -->
+  <script src="/assets/js/boostrap.bundle.min.js"></script>
+  <!-- Slick js -->
+  <script src="/assets/js/slick.min.js"></script>
+  <!-- magnific popup -->
+  <script src="/assets/js/jquery.magnific-popup.js"></script>
+  <!-- Marquee js -->
+  <script src="/assets/js/marquee.min.js"></script>
+  <!-- Countdown js -->
+  <script src="/assets/js/countdown.js"></script>
+  <!-- CounterUp -->
+  <script src="/assets/js/counterup.min.js"></script>
+  <!-- ApexChart js -->
+  <script src="/assets/js/apexchart.js"></script>
+  <!-- Login Loader Fix - Load First -->
+  <script src="/js/login-loader-fix.js"></script>
+  
+  <!-- Main js -->
+  <script src="/assets/js/main.js"></script>
+  
+  <!-- Custom Language Selector JavaScript -->
+  <script src="/js/custom-lang-selector.js"></script>
+  
+  <!-- Enhanced Multi-step Registration JavaScript -->
+  <script src="/js/enhanced-multi-step-registration.js"></script>
+
+</body>
+</html>

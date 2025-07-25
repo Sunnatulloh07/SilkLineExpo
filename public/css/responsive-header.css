@@ -1,0 +1,332 @@
+/* Professional Responsive Header Solution */
+
+/* Base Header Layout */
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 80px;
+  gap: 20px;
+  flex-wrap: nowrap; /* Prevent wrapping by default */
+}
+
+/* Logo - Fixed width */
+.logo {
+  flex-shrink: 0;
+  width: auto;
+  min-width: 120px;
+}
+
+.logo img {
+  max-height: 45px;
+  width: auto;
+}
+
+/* Header Menu - Flexible */
+.header-menu {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: none;
+  overflow: visible;
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0; /* Remove gap, use padding instead */
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.nav-menu__item {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0 8px; /* Reduced padding */
+}
+
+.nav-menu__link {
+  display: block;
+  padding: 12px 8px; /* Reduced horizontal padding */
+  font-size: 14px; /* Slightly smaller font */
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+/* Header Right - Fixed width */
+.header-right {
+  flex-shrink: 0;
+  min-width: 200px;
+}
+
+.header-right__inner {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Reduced gap */
+  flex-wrap: nowrap;
+}
+
+/* Theme Switch - Compact */
+.theme-switch-wrapper {
+  flex-shrink: 0;
+}
+
+/* Login Button - Compact */
+.btn.btn-main.pill {
+  padding: 8px 16px; /* Reduced padding */
+  font-size: 13px; /* Smaller font */
+  white-space: nowrap;
+}
+
+.btn .icon-left {
+  margin-right: 6px; /* Reduced margin */
+}
+
+.btn .icon-left img {
+  width: 14px; /* Smaller icon */
+  height: 14px;
+}
+
+/* Language Selector - Compact */
+.custom-lang-selector {
+  flex-shrink: 0;
+  min-width: 70px;
+}
+
+.custom-lang-selector .lang-btn {
+  padding: 6px 10px; /* Reduced padding */
+  min-width: 65px; /* Smaller min-width */
+  gap: 6px; /* Reduced gap */
+}
+
+.custom-lang-selector .current-lang-text {
+  font-size: 12px; /* Smaller font */
+}
+
+.custom-lang-selector .globe-icon {
+  width: 14px; /* Smaller icon */
+  height: 14px;
+}
+
+/* Responsive Breakpoints */
+
+/* Large screens (1400px+) - Normal spacing */
+@media (min-width: 1400px) {
+  .nav-menu__item {
+    padding: 0 12px;
+  }
+  
+  .nav-menu__link {
+    padding: 12px 10px;
+    font-size: 15px;
+  }
+  
+  .header-right__inner {
+    gap: 16px;
+  }
+  
+  .btn.btn-main.pill {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+  
+  .custom-lang-selector .lang-btn {
+    padding: 8px 12px;
+    min-width: 75px;
+  }
+  
+  .custom-lang-selector .current-lang-text {
+    font-size: 13px;
+  }
+}
+
+/* Medium-Large screens (1200px-1399px) - Compact */
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .header-inner {
+    gap: 15px;
+  }
+  
+  .nav-menu__item {
+    padding: 0 6px;
+  }
+  
+  .nav-menu__link {
+    padding: 12px 6px;
+    font-size: 13px;
+  }
+  
+  .header-right__inner {
+    gap: 10px;
+  }
+  
+  .btn.btn-main.pill {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+  
+  .custom-lang-selector .lang-btn {
+    padding: 6px 8px;
+    min-width: 60px;
+  }
+  
+  .custom-lang-selector .current-lang-text {
+    font-size: 11px;
+  }
+}
+
+/* Tablet screens (992px-1199px) - Very compact before mobile */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .header-inner {
+    gap: 10px;
+  }
+  
+  .logo {
+    min-width: 100px;
+  }
+  
+  .logo img {
+    max-height: 40px;
+  }
+  
+  .nav-menu__item {
+    padding: 0 4px;
+  }
+  
+  .nav-menu__link {
+    padding: 10px 4px;
+    font-size: 12px;
+  }
+  
+  .header-right {
+    min-width: 160px;
+  }
+  
+  .header-right__inner {
+    gap: 8px;
+  }
+  
+  .btn.btn-main.pill {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+  
+  .btn .icon-left img {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .custom-lang-selector .lang-btn {
+    padding: 5px 6px;
+    min-width: 50px;
+    gap: 4px;
+  }
+  
+  .custom-lang-selector .current-lang-text {
+    font-size: 10px;
+  }
+  
+  .custom-lang-selector .globe-icon {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Mobile breakpoint (below 992px) - Hide desktop menu */
+@media (max-width: 991.98px) {
+  .header-menu {
+    display: none !important;
+  }
+  
+  .header-right__inner {
+    display: none !important;
+  }
+  
+  .header-inner {
+    justify-content: space-between;
+  }
+}
+
+/* Ultra-wide screens (1600px+) - Extra spacing */
+@media (min-width: 1600px) {
+  .nav-menu__item {
+    padding: 0 15px;
+  }
+  
+  .nav-menu__link {
+    padding: 14px 12px;
+    font-size: 16px;
+  }
+  
+  .header-right__inner {
+    gap: 20px;
+  }
+  
+  .btn.btn-main.pill {
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+  
+  .custom-lang-selector .lang-btn {
+    padding: 10px 14px;
+    min-width: 85px;
+  }
+  
+  .custom-lang-selector .current-lang-text {
+    font-size: 14px;
+  }
+}
+
+/* Fix for container constraints */
+.container.container-full {
+  max-width: 100%;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* Ensure header never wraps */
+.header-inner {
+  overflow: hidden;
+}
+
+.header-inner > * {
+  flex-shrink: 1;
+}
+
+.header-inner .logo {
+  flex-shrink: 0; /* Logo should never shrink */
+}
+
+/* Advanced: Dynamic font scaling for navigation */
+@media (min-width: 992px) {
+  .nav-menu__link {
+    font-size: calc(12px + 0.25vw);
+    font-size: min(16px, max(12px, calc(12px + 0.25vw)));
+  }
+}
+
+/* Ensure consistent alignment */
+.flx-align {
+  display: flex;
+  align-items: center;
+}
+
+.flx-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Language dropdown positioning fix for smaller screens */
+@media (max-width: 1199px) {
+  .custom-lang-selector .lang-dropdown {
+    right: 0;
+    left: auto;
+    min-width: 130px;
+  }
+}

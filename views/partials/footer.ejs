@@ -1,0 +1,132 @@
+<!-- ==================== Footer Start Here ==================== -->
+<footer class="footer-section section-bg">
+  <img src="/assets/images/shapes/pattern.png" alt="<%= t('common.patternAlt') %>" class="bg-pattern">
+  <img src="/assets/images/gradients/footer-gradient.png" alt="<%= t('common.gradientAlt') %>" class="bg--gradient">
+
+  <div class="container container-full">
+    <div class="row gy-5">
+      <div class="col-xl-3 col-sm-6">
+        <div class="footer-widget">
+          <div class="footer-widget__logo">
+            <a href="/"> <img src="/assets/images/logo/white-logo.png" alt="<%= t('common.logoAlt') %>"></a>
+          </div>
+          <p class="footer-widget__desc"><%= t('footer.aboutDescription') %></p>
+          <div class="footer-widget__social">
+            <ul class="social-icon-list">
+              <li class="social-icon-list__item">
+                <a target="_blank" href="https://www.facebook.com" class="social-icon-list__link flx-center"><i
+                    class="fab fa-facebook-f" title="<%= t('footer.social.facebook') %>"></i></a>
+              </li>
+              <li class="social-icon-list__item">
+                <a target="_blank" href="https://www.telegram.org" class="social-icon-list__link flx-center"> <i
+                    class="fab fa-telegram" title="<%= t('footer.social.telegram') %>"></i></a>
+              </li>
+              <li class="social-icon-list__item">
+                <a target="_blank" href="https://www.linkedin.com" class="social-icon-list__link flx-center"> <i
+                    class="fab fa-linkedin-in" title="<%= t('footer.social.linkedin') %>"></i></a>
+              </li>
+              <li class="social-icon-list__item">
+                <a target="_blank" href="https://www.instagram.com" class="social-icon-list__link flx-center"> <i
+                    class="fab fa-instagram" title="<%= t('footer.social.instagram') %>"></i></a>
+              </li>
+              <li class="social-icon-list__item">
+                <a target="_blank" href="https://www.pinterest.com" class="social-icon-list__link flx-center"> <i
+                    class="fab fa-youtube" title="<%= t('footer.social.youtube') %>"></i></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-2 col-sm-6 col-xs-6 ps-xl-5">
+        <div class="footer-widget">
+          <h5 class="footer-widget__title text-white"><%= t('footer.quickLinks') %></h5>
+          <ul class="footer-lists">
+            <li class="footer-lists__item"><a href="/" class="footer-lists__link"><%= t('nav.home') %></a></li>
+            <li class="footer-lists__item"><a href="/partner-countries" class="footer-lists__link"><%= t('nav.partnersCountries') %></a></li>
+            <li class="footer-lists__item"><a href="/all-product" class="footer-lists__link"><%= t('nav.allProducts') %></a></li>
+            <li class="footer-lists__item"><a href="/blog" class="footer-lists__link"><%= t('nav.news') %></a></li>
+            <li class="footer-lists__item"><a href="/contact" class="footer-lists__link"><%= t('nav.contact') %></a></li>
+            <li class="footer-lists__item"><a href="/login" class="footer-lists__link"><%= t('nav.login') %></a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-xl-3 col-sm-6">
+        <div class="footer-widget">
+          <h5 class="footer-widget__title text-white"><%= t('footer.newsletter') %></h5>
+          <p class="footer-widget__desc"><%= t('footer.subscribeNewsletter') %></p>
+          <form action="#" class="mt-4 subscribe-box d-flex align-items-center flex-column gap-2">
+            <input type="text" class="form-control common-input pill text-white" placeholder="<%= t('footer.enterEmail') %>">
+            <button type="submit" class="btn btn-main btn-lg w-100 pill"><%= t('footer.subscribe') %></button>
+          </form>
+        </div>
+      </div>
+      <div class="col-xl-4 col-sm-6 col-xs-6">
+        <h5 class="footer-widget__title text-white"><%= t('footer.map') %></h5>
+        <div class="d-flex align-items-center gap-2 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-geo-alt"
+            viewBox="0 0 16 16">
+            <path
+              d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10"
+              stroke="#fff" />
+            <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4m0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6" stroke="#fff" />
+          </svg>
+          <p class="footer-widget__desc"><%= t('footer.address') %></p>
+        </div>
+        <iframe class="footer-map"
+          src="https://maps.google.com/maps?q=Airitom%20Free%20Zone&t=m&z=10&output=embed&iwloc=near"
+          title="<%= t('footer.mapTitle') %>" frameborder="0" aria-label="<%= t('footer.mapTitle') %>" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- bottom Footer -->
+<div class="bottom-footer">
+  <div class="container container-full">
+    <div class="bottom-footer__inner text-center">
+      <p class="bottom-footer__text font-14"> <%= t('footer.copyright', { year: new Date().getFullYear() }) %></p>
+    </div>
+  </div>
+</div>
+<!-- ==================== Footer End Here ==================== -->
+
+<!-- jQuery library js -->
+<script src="/assets/js/jquery-3.7.1.min.js"></script>
+<!-- Bootstrap js -->
+<script src="/assets/js/boostrap.bundle.min.js"></script>
+<!-- Slick js -->
+<script src="/assets/js/slick.min.js"></script>
+<!-- magnific popup -->
+<script src="/assets/js/jquery.magnific-popup.js"></script>
+<!-- Marquee js -->
+<script src="/assets/js/marquee.min.js"></script>
+<!-- Countdown js -->
+<script src="/assets/js/countdown.js"></script>
+<!-- CounterUp -->
+<script src="/assets/js/counterup.min.js"></script>
+<!-- ApexChart js -->
+<script src="/assets/js/apexchart.js"></script>
+<!-- Main js -->
+<script src="/assets/js/main.js"></script>
+<!-- Countries js -->
+<script src="/assets/js/countries.js"></script>
+<!-- Products js -->
+<script src="/assets/js/products.js"></script>
+<!-- Country company js -->
+<script src="/assets/js/country-company.js"></script>
+<!-- All products js -->
+<script src="/assets/js/all-procuts.js"></script>
+<!-- About company js -->
+<script src="/assets/js/about-company.js"></script>
+<!-- Product details js -->
+<script src="/assets/js/product-details.js"></script>
+
+<!-- Custom Language Selector JavaScript -->
+<script src="/js/custom-lang-selector.js"></script>
+<!-- Adaptive Header JavaScript -->
+<script src="/js/adaptive-header.js"></script>
+
+<!-- Google Translate removed - using i18next instead -->
+
+</body>
+</html>

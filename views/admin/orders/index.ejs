@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="<%= currentLang || 'uz' %>" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management - SLEX Admin</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/line-awesome.min.css" rel="stylesheet">
+    <link href="/admin/css/admin-theme.css" rel="stylesheet">
+    <link href="/admin/css/admin-components.css" rel="stylesheet">
+    <link href="/admin/css/admin-responsive.css" rel="stylesheet">
+</head>
+<body class="admin-layout">
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <%- include('../partials/sidebar', { currentPage: 'orders', user: user }) %>
+        
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Header -->
+            <%- include('../partials/header', { 
+                user: user, 
+                title: 'Order Management',
+                breadcrumb: [
+                    { title: 'Management', url: '/admin' },
+                    { title: 'Orders' }
+                ],
+                currentLang: typeof currentLang !== 'undefined' ? currentLang : 'uz'
+            }) %>
+            
+            <!-- Content -->
+            <div class="admin-content">
+                <div class="container-fluid">
+                    <!-- Page Title and Actions -->
+                    <div class="page-header mb-4">
+                        <div class="page-header-content">
+                            <div class="page-title-section">
+                                <h1 class="page-title">
+                                    <i class="las la-shopping-cart"></i>
+                                    Order Management
+                                </h1>
+                                <p class="page-subtitle">Monitor orders, track payments, and manage logistics coordination</p>
+                            </div>
+                            
+                            <div class="page-actions">
+                                <button class="btn btn-outline-primary" onclick="exportOrders()">
+                                    <i class="las la-download"></i>
+                                    Export Orders
+                                </button>
+                                <button class="btn btn-primary" onclick="createOrder()">
+                                    <i class="las la-plus"></i>
+                                    Create Order
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Statistics -->
+                    <div class="metrics-grid mb-4">
+                        <div class="metric-card metric-primary">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-shopping-cart"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">1,847</h3>
+                                    <p class="metric-label">Total Orders</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-up"></i>
+                                        +8.2% this month
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-success">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-check-circle"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">1,423</h3>
+                                    <p class="metric-label">Completed Orders</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-up"></i>
+                                        +12.5% this month
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-warning">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-clock"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">234</h3>
+                                    <p class="metric-label">Pending Orders</p>
+                                    <span class="metric-trend neutral">
+                                        <i class="las la-minus"></i>
+                                        Same as yesterday
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-purple">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-dollar-sign"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">$89.4K</h3>
+                                    <p class="metric-label">Monthly Revenue</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-up"></i>
+                                        +18.7% this month
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Management Dashboard -->
+                    <div class="dashboard-card">
+                        <div class="card-body text-center py-5">
+                            <i class="las la-shopping-cart" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                            <h4>Order Management System</h4>
+                            <p class="text-muted">Comprehensive order tracking and logistics management will be implemented here.</p>
+                            <div class="mt-4">
+                                <button class="btn btn-primary me-2" onclick="createOrder()">
+                                    <i class="las la-plus"></i>
+                                    Create New Order
+                                </button>
+                                <button class="btn btn-outline-secondary me-2" onclick="trackOrders()">
+                                    <i class="las la-search"></i>
+                                    Track Orders
+                                </button>
+                                <button class="btn btn-outline-info" onclick="manageShipping()">
+                                    <i class="las la-shipping-fast"></i>
+                                    Manage Shipping
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/admin/js/admin-theme.js"></script>
+
+    <script>
+    window.exportOrders = () => {
+        console.log('Export orders functionality will be implemented');
+    };
+
+    window.createOrder = () => {
+        console.log('Create order functionality will be implemented');
+    };
+
+    window.trackOrders = () => {
+        console.log('Order tracking functionality will be implemented');
+    };
+
+    window.manageShipping = () => {
+        console.log('Shipping management functionality will be implemented');
+    };
+    </script>
+</body>
+</html>

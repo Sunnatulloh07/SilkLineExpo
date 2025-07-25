@@ -1,0 +1,187 @@
+<!-- Admin Header -->
+<div class="admin-header">
+    <div class="header-left">
+        <!-- Mobile Sidebar Toggle -->
+        <button class="sidebar-toggle-btn d-lg-none" id="mobileSidebarToggle">
+            <i class="las la-bars"></i>
+        </button>
+
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb-nav">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="/admin/dashboard">
+                        <i class="las la-home"></i>
+                        Admin
+                    </a>
+                </li>
+                <% if (typeof breadcrumb !== 'undefined' && breadcrumb.length > 0) { %>
+                    <% breadcrumb.forEach((item, index) => { %>
+                        <li class="breadcrumb-item <%= index === breadcrumb.length - 1 ? 'active' : '' %>">
+                            <% if (item.url && index !== breadcrumb.length - 1) { %>
+                                <a href="<%= item.url %>"><%= item.title %></a>
+                            <% } else { %>
+                                <%= item.title %>
+                            <% } %>
+                        </li>
+                    <% }) %>
+                <% } %>
+            </ol>
+        </nav>
+
+        <!-- Page Title -->
+        <div class="page-title-section">
+            <h1 class="page-title"><%= title || 'Admin Panel' %></h1>
+            <% if (typeof subtitle !== 'undefined') { %>
+                <p class="page-subtitle"><%= subtitle %></p>
+            <% } %>
+        </div>
+    </div>
+
+    <div class="header-right">
+        <!-- Search -->
+        <div class="header-search">
+            <div class="search-input-group">
+                <input type="text" class="search-input" placeholder="Search companies, users..." id="globalSearch">
+                <button class="search-btn">
+                    <i class="las la-search"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="header-notifications">
+            <div class="notification-dropdown">
+                <button class="notification-btn" id="notificationToggle">
+                    <i class="las la-bell"></i>
+                    <span class="notification-badge" id="notificationCount">3</span>
+                </button>
+                <div class="notification-menu" id="notificationMenu">
+                    <div class="notification-header">
+                        <h6>Notifications</h6>
+                        <button class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list">
+                        <div class="notification-item unread">
+                            <div class="notification-icon bg-warning">
+                                <i class="las la-user-plus"></i>
+                            </div>
+                            <div class="notification-content">
+                                <p class="notification-text">New company registration from <strong>Silk Road LLC</strong></p>
+                                <span class="notification-time">5 minutes ago</span>
+                            </div>
+                        </div>
+                        <div class="notification-item unread">
+                            <div class="notification-icon bg-info">
+                                <i class="las la-envelope"></i>
+                            </div>
+                            <div class="notification-content">
+                                <p class="notification-text">Support ticket #1234 requires attention</p>
+                                <span class="notification-time">1 hour ago</span>
+                            </div>
+                        </div>
+                        <div class="notification-item">
+                            <div class="notification-icon bg-success">
+                                <i class="las la-check-circle"></i>
+                            </div>
+                            <div class="notification-content">
+                                <p class="notification-text">System backup completed successfully</p>
+                                <span class="notification-time">2 hours ago</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notification-footer">
+                        <a href="/admin/notifications" class="view-all-link">View all notifications</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Language Selector -->
+        <div class="header-language">
+            <div class="language-dropdown">
+                <button class="language-btn" id="languageToggle">
+                    <i class="las la-globe"></i>
+                    <span class="current-language"><%= (currentLang || 'uz').toUpperCase() %></span>
+                    <i class="las la-angle-down"></i>
+                </button>
+                <div class="language-menu" id="languageMenu">
+                    <a href="/language/uz" class="language-option <%= (currentLang || 'uz') === 'uz' ? 'active' : '' %>">
+                        <span class="lang-flag">🇺🇿</span>
+                        O'zbekcha
+                    </a>
+                    <a href="/language/en" class="language-option <%= currentLang === 'en' ? 'active' : '' %>">
+                        <span class="lang-flag">🇺🇸</span>
+                        English
+                    </a>
+                    <a href="/language/ru" class="language-option <%= currentLang === 'ru' ? 'active' : '' %>">
+                        <span class="lang-flag">🇷🇺</span>
+                        Русский
+                    </a>
+                    <a href="/language/tr" class="language-option <%= currentLang === 'tr' ? 'active' : '' %>">
+                        <span class="lang-flag">🇹🇷</span>
+                        Türkçe
+                    </a>
+                    <a href="/language/fa" class="language-option <%= currentLang === 'fa' ? 'active' : '' %>">
+                        <span class="lang-flag">🇮🇷</span>
+                        فارسی
+                    </a>
+                    <a href="/language/zh" class="language-option <%= currentLang === 'zh' ? 'active' : '' %>">
+                        <span class="lang-flag">🇨🇳</span>
+                        中文
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Menu -->
+        <div class="header-user">
+            <div class="user-dropdown">
+                <button class="user-btn" id="userMenuToggle">
+                    <div class="user-avatar">
+                        <div class="avatar-placeholder">
+                            <%= user.name ? user.name.charAt(0).toUpperCase() : 'A' %>
+                        </div>
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name"><%= user.name || 'Admin' %></span>
+                        <span class="user-role"><%= user.role === 'super_admin' ? 'Super Admin' : user.role === 'admin' ? 'Admin' : 'Moderator' %></span>
+                    </div>
+                    <i class="las la-angle-down"></i>
+                </button>
+                <div class="user-menu" id="userMenu">
+                    <div class="user-menu-header">
+                        <div class="user-avatar-large">
+                            <div class="avatar-placeholder">
+                                <%= user.name ? user.name.charAt(0).toUpperCase() : 'A' %>
+                            </div>
+                        </div>
+                        <div class="user-details">
+                            <h6><%= user.name || 'Admin' %></h6>
+                            <p><%= user.email || 'admin@slex.uz' %></p>
+                        </div>
+                    </div>
+                    <div class="user-menu-body">
+                        <a href="/admin/profile" class="user-menu-item">
+                            <i class="las la-user"></i>
+                            My Profile
+                        </a>
+                        <a href="/admin/settings" class="user-menu-item">
+                            <i class="las la-cog"></i>
+                            Settings
+                        </a>
+                        <a href="/admin/help" class="user-menu-item">
+                            <i class="las la-question-circle"></i>
+                            Help & Support
+                        </a>
+                        <div class="user-menu-divider"></div>
+                        <a href="/auth/logout" class="user-menu-item text-danger" onclick="return confirm('Are you sure you want to logout?')">
+                            <i class="las la-sign-out-alt"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

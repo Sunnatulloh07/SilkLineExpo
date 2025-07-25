@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="<%= currentLang || 'uz' %>" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Settings - SLEX Admin</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/line-awesome.min.css" rel="stylesheet">
+    <link href="/admin/css/admin-theme.css" rel="stylesheet">
+    <link href="/admin/css/admin-components.css" rel="stylesheet">
+    <link href="/admin/css/admin-responsive.css" rel="stylesheet">
+</head>
+<body class="admin-layout">
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <%- include('../partials/sidebar', { currentPage: 'settings', user: user }) %>
+        
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Header -->
+            <%- include('../partials/header', { 
+                user: user, 
+                title: 'System Settings',
+                breadcrumb: [
+                    { title: 'System', url: '/admin' },
+                    { title: 'Settings' }
+                ],
+                currentLang: typeof currentLang !== 'undefined' ? currentLang : 'uz'
+            }) %>
+            
+            <!-- Content -->
+            <div class="admin-content">
+                <div class="container-fluid">
+                    <!-- Page Title and Actions -->
+                    <div class="page-header mb-4">
+                        <div class="page-header-content">
+                            <div class="page-title-section">
+                                <h1 class="page-title">
+                                    <i class="las la-cog"></i>
+                                    System Settings
+                                </h1>
+                                <p class="page-subtitle">Configure platform settings, features, and system parameters</p>
+                            </div>
+                            
+                            <div class="page-actions">
+                                <button class="btn btn-outline-primary" onclick="exportConfig()">
+                                    <i class="las la-download"></i>
+                                    Export Config
+                                </button>
+                                <button class="btn btn-primary" onclick="saveSettings()">
+                                    <i class="las la-save"></i>
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Navigation Tabs -->
+                    <div class="settings-tabs mb-4">
+                        <nav>
+                            <div class="nav nav-tabs" id="settingsTab" role="tablist">
+                                <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">
+                                    <i class="las la-cog"></i>
+                                    General
+                                </button>
+                                <button class="nav-link" id="platform-tab" data-bs-toggle="tab" data-bs-target="#platform" type="button" role="tab">
+                                    <i class="las la-globe"></i>
+                                    Platform
+                                </button>
+                                <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab">
+                                    <i class="las la-bell"></i>
+                                    Notifications
+                                </button>
+                                <button class="nav-link" id="integrations-tab" data-bs-toggle="tab" data-bs-target="#integrations" type="button" role="tab">
+                                    <i class="las la-plug"></i>
+                                    Integrations
+                                </button>
+                                <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced" type="button" role="tab">
+                                    <i class="las la-tools"></i>
+                                    Advanced
+                                </button>
+                            </div>
+                        </nav>
+                    </div>
+
+                    <!-- Settings Tab Content -->
+                    <div class="tab-content" id="settingsTabContent">
+                        <!-- General Settings -->
+                        <div class="tab-pane fade show active" id="general" role="tabpanel">
+                            <div class="dashboard-card">
+                                <div class="card-header">
+                                    <div class="card-title-section">
+                                        <h3 class="card-title">
+                                            <i class="las la-cog"></i>
+                                            General Settings
+                                        </h3>
+                                        <p class="card-subtitle">Basic platform configuration and settings</p>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Platform Name</label>
+                                                <input type="text" class="form-control" value="SLEX - Silk Road Express">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Default Language</label>
+                                                <select class="form-select">
+                                                    <option value="uz" selected>Uzbek</option>
+                                                    <option value="ru">Russian</option>
+                                                    <option value="en">English</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Time Zone</label>
+                                                <select class="form-select">
+                                                    <option value="Asia/Tashkent" selected>Asia/Tashkent (UTC+5)</option>
+                                                    <option value="Asia/Almaty">Asia/Almaty (UTC+6)</option>
+                                                    <option value="Asia/Bishkek">Asia/Bishkek (UTC+6)</option>
+                                                    <option value="Asia/Dushanbe">Asia/Dushanbe (UTC+5)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Currency</label>
+                                                <select class="form-select">
+                                                    <option value="UZS" selected>Uzbek Sum (UZS)</option>
+                                                    <option value="USD">US Dollar (USD)</option>
+                                                    <option value="EUR">Euro (EUR)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Platform Settings -->
+                        <div class="tab-pane fade" id="platform" role="tabpanel">
+                            <div class="dashboard-card">
+                                <div class="card-body text-center py-5">
+                                    <i class="las la-globe" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                                    <h4>Platform Settings</h4>
+                                    <p class="text-muted">Platform-specific configuration options will be implemented here.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notifications Settings -->
+                        <div class="tab-pane fade" id="notifications" role="tabpanel">
+                            <div class="dashboard-card">
+                                <div class="card-body text-center py-5">
+                                    <i class="las la-bell" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                                    <h4>Notification Settings</h4>
+                                    <p class="text-muted">Email, SMS, and push notification settings will be implemented here.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Integrations Settings -->
+                        <div class="tab-pane fade" id="integrations" role="tabpanel">
+                            <div class="dashboard-card">
+                                <div class="card-body text-center py-5">
+                                    <i class="las la-plug" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                                    <h4>Integration Settings</h4>
+                                    <p class="text-muted">Third-party integration configuration will be implemented here.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Settings -->
+                        <div class="tab-pane fade" id="advanced" role="tabpanel">
+                            <div class="dashboard-card">
+                                <div class="card-body text-center py-5">
+                                    <i class="las la-tools" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                                    <h4>Advanced Settings</h4>
+                                    <p class="text-muted">Advanced system configuration options will be implemented here.</p>
+                                    <div class="mt-4">
+                                        <button class="btn btn-primary me-2" onclick="configureGeneral()">
+                                            <i class="las la-sliders-h"></i>
+                                            General Settings
+                                        </button>
+                                        <button class="btn btn-outline-secondary" onclick="configureAdvanced()">
+                                            <i class="las la-tools"></i>
+                                            Advanced Settings
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/admin/js/admin-theme.js"></script>
+
+    <script>
+    window.exportConfig = () => {
+        console.log('Export config functionality will be implemented');
+    };
+
+    window.saveSettings = () => {
+        console.log('Save settings functionality will be implemented');
+    };
+
+    window.configureGeneral = () => {
+        console.log('General settings functionality will be implemented');
+    };
+
+    window.configureAdvanced = () => {
+        console.log('Advanced settings functionality will be implemented');
+    };
+
+    // Initialize tabs
+    document.addEventListener('DOMContentLoaded', function() {
+        // Bootstrap tab initialization is handled automatically
+        console.log('Settings tabs initialized');
+    });
+    </script>
+</body>
+</html>

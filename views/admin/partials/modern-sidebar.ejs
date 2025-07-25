@@ -1,0 +1,244 @@
+<!-- Modern Admin Sidebar -->
+<div class="modern-sidebar" id="modernSidebar">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+        <div class="sidebar-brand">
+            <div class="brand-logo">
+                <img src="/assets/images/logo/logo.png" alt="SLEX" class="logo-img">
+                <div class="logo-gradient"></div>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">SLEX</span>
+                <span class="brand-subtitle">Super Admin</span>
+            </div>
+        </div>
+        <button class="sidebar-collapse-btn" id="sidebarCollapseBtn">
+            <i class="las la-angle-left"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar Search -->
+    <div class="sidebar-search">
+        <div class="search-wrapper">
+            <i class="las la-search search-icon"></i>
+            <input type="text" class="search-input" placeholder="Search menu..." id="sidebarSearch">
+        </div>
+    </div>
+
+    <!-- Sidebar Content -->
+    <div class="sidebar-content">
+        <!-- User Profile Section -->
+        <div class="sidebar-profile">
+            <div class="profile-card">
+                <div class="profile-avatar">
+                    <div class="avatar-wrapper">
+                        <div class="avatar-placeholder">
+                            <%= user.name ? user.name.charAt(0).toUpperCase() : 'A' %>
+                        </div>
+                        <div class="avatar-status status-online"></div>
+                    </div>
+                </div>
+                <div class="profile-info">
+                    <h6 class="profile-name"><%= user.name || 'Super Admin' %></h6>
+                    <span class="profile-role">
+                        <% if (user.role === 'super_admin') { %>
+                            <i class="las la-crown"></i> Super Admin
+                        <% } else if (user.role === 'admin') { %>
+                            <i class="las la-shield-alt"></i> Admin
+                        <% } else { %>
+                            <i class="las la-user-check"></i> Moderator
+                        <% } %>
+                    </span>
+                </div>
+                <div class="profile-actions">
+                    <button class="profile-action-btn" data-bs-toggle="tooltip" title="Settings">
+                        <i class="las la-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h6 class="nav-section-title">
+                    <i class="las la-chart-line"></i>
+                    Overview
+                </h6>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="/admin/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
+                            <div class="nav-link-icon">
+                                <i class="las la-tachometer-alt"></i>
+                            </div>
+                            <span class="nav-link-text">Dashboard</span>
+                            <div class="nav-link-indicator"></div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/analytics" class="nav-link <%= currentPage === 'analytics' ? 'active' : '' %>">
+                            <div class="nav-link-icon">
+                                <i class="las la-chart-bar"></i>
+                            </div>
+                            <span class="nav-link-text">Analytics</span>
+                            <div class="nav-link-indicator"></div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h6 class="nav-section-title">
+                    <i class="las la-users"></i>
+                    Management
+                </h6>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="/admin/companies" class="nav-link <%= currentPage === 'companies' ? 'active' : '' %>">
+                            <div class="nav-link-icon">
+                                <i class="las la-building"></i>
+                            </div>
+                            <span class="nav-link-text">Companies</span>
+                            <% if (typeof pendingApprovals !== 'undefined' && pendingApprovals > 0) { %>
+                                <span class="nav-badge pulse">
+                                    <%= pendingApprovals %>
+                                </span>
+                            <% } %>
+                            <div class="nav-link-indicator"></div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/users" class="nav-link <%= currentPage === 'users' ? 'active' : '' %>">
+                            <div class="nav-link-icon">
+                                <i class="las la-users"></i>
+                            </div>
+                            <span class="nav-link-text">Users</span>
+                            <div class="nav-link-indicator"></div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/products" class="nav-link <%= currentPage === 'products' ? 'active' : '' %>">
+                            <div class="nav-link-icon">
+                                <i class="las la-box"></i>
+                            </div>
+                            <span class="nav-link-text">Products</span>
+                            <div class="nav-link-indicator"></div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/orders" class="nav-link <%= currentPage === 'orders' ? 'active' : '' %>">
+                            <div class="nav-link-icon">
+                                <i class="las la-shopping-cart"></i>
+                            </div>
+                            <span class="nav-link-text">Orders</span>
+                            <div class="nav-link-indicator"></div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h6 class="nav-section-title">
+                    <i class="las la-headset"></i>
+                    Support & Tools
+                </h6>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="/admin/support/tickets" class="nav-link <%= currentPage === 'support' ? 'active' : '' %>">
+                            <div class="nav-link-icon">
+                                <i class="las la-headset"></i>
+                            </div>
+                            <span class="nav-link-text">Support Tickets</span>
+                            <span class="nav-badge">3</span>
+                            <div class="nav-link-indicator"></div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/reports" class="nav-link <%= currentPage === 'reports' ? 'active' : '' %>">
+                            <div class="nav-link-icon">
+                                <i class="las la-file-alt"></i>
+                            </div>
+                            <span class="nav-link-text">Reports</span>
+                            <div class="nav-link-indicator"></div>
+                        </a>
+                    </li>
+                    <li class="nav-item has-submenu <%= ['logs', 'security', 'settings'].includes(currentPage) ? 'active' : '' %>">
+                        <a href="#" class="nav-link submenu-toggle">
+                            <div class="nav-link-icon">
+                                <i class="las la-cog"></i>
+                            </div>
+                            <span class="nav-link-text">System</span>
+                            <i class="las la-angle-right submenu-arrow"></i>
+                            <div class="nav-link-indicator"></div>
+                        </a>
+                        <ul class="nav-submenu">
+                            <li class="nav-submenu-item">
+                                <a href="/admin/system/logs" class="nav-submenu-link <%= currentPage === 'logs' ? 'active' : '' %>">
+                                    <i class="las la-file-alt"></i>
+                                    <span>System Logs</span>
+                                </a>
+                            </li>
+                            <li class="nav-submenu-item">
+                                <a href="/admin/system/security" class="nav-submenu-link <%= currentPage === 'security' ? 'active' : '' %>">
+                                    <i class="las la-shield-alt"></i>
+                                    <span>Security</span>
+                                </a>
+                            </li>
+                            <li class="nav-submenu-item">
+                                <a href="/admin/system/settings" class="nav-submenu-link <%= currentPage === 'settings' ? 'active' : '' %>">
+                                    <i class="las la-sliders-h"></i>
+                                    <span>Settings</span>
+                                </a>
+                            </li>
+                            <li class="nav-submenu-item">
+                                <a href="/admin/system/backup" class="nav-submenu-link">
+                                    <i class="las la-database"></i>
+                                    <span>Backup</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+        <div class="footer-stats">
+            <div class="stat-item">
+                <div class="stat-icon">
+                    <i class="las la-server"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Uptime</span>
+                    <span class="stat-value">99.9%</span>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">
+                    <i class="las la-code-branch"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Version</span>
+                    <span class="stat-value">v2.1.0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-actions">
+            <button class="footer-action-btn" data-bs-toggle="tooltip" title="Dark Mode" id="themeToggle">
+                <i class="las la-moon"></i>
+            </button>
+            <button class="footer-action-btn" data-bs-toggle="tooltip" title="Help">
+                <i class="las la-question-circle"></i>
+            </button>
+            <button class="footer-action-btn" data-bs-toggle="tooltip" title="Support">
+                <i class="las la-life-ring"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>

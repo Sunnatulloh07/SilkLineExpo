@@ -1,0 +1,96 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navigation') %>
+
+    <!-- ======================== Breadcrumb Two Section Start ===================== -->
+    <section class="breadcrumb border-bottom p-0 d-block section-bg position-relative z-index-1">
+
+      <div class="breadcrumb-two">
+        <img src="/assets/images/gradients/breadcrumb-gradient-bg.png" alt="" class="bg--gradient">
+        <div class="container container-two">
+          <div class="row justify-content-center">
+            <div class="col-lg-12">
+              <div class="breadcrumb-two-content">
+                <ul class="breadcrumb-list flx-align gap-2 mb-2">
+                  <li class="breadcrumb-list__item font-14 text-body">
+                    <a href="/" class="breadcrumb-list__link text-body hover-text-main"><%= t('nav.home') %></a>
+                  </li>
+                  <li class="breadcrumb-list__item font-14 text-body">
+                    <span class="breadcrumb-list__icon font-10"><i class="fas fa-chevron-right"></i></span>
+                  </li>
+                  <li class="breadcrumb-list__item font-14 text-body">
+                    <a href="/all-product" class="breadcrumb-list__link text-body hover-text-main"><%= t('products.products') %></a>
+                  </li>
+                  <li class="breadcrumb-list__item font-14 text-body">
+                    <span class="breadcrumb-list__icon font-10"><i class="fas fa-chevron-right"></i></span>
+                  </li>
+                  <li class="breadcrumb-list__item font-14 text-body">
+                    <span class="breadcrumb-list__text"><%= t('products.productDetails') %></span>
+                  </li>
+                </ul>
+
+                <h3 id="product-title" class="breadcrumb-two-content__title mb-3 text-capitalize">mahsulot nomi</h3>
+
+                <div class="breadcrumb-content flx-align gap-3">
+                  <div class="breadcrumb-content__item" id="product-company"></div>
+                  <div class="breadcrumb-content__item" id="product-sales"></div>
+                  <div class="breadcrumb-content__item">
+                    <!-- update va documentation doimiy qoladi -->
+                    <span class="icon">
+                      <img src="/assets/images/icons/check-icon.svg" alt="" class="white-version">
+                      <img src="/assets/images/icons/check-icon-white.svg" alt="" class="dark-version">
+                    </span>
+                    <span class="text">Recently Updated</span>
+                  </div>
+                  <div class="breadcrumb-content__item">
+                    <span class="icon">
+                      <img src="/assets/images/icons/check-icon.svg" alt="" class="white-version">
+                      <img src="/assets/images/icons/check-icon-white.svg" alt="" class="dark-version">
+                    </span>
+                    <span class="text">Well Documented</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+    <!-- ======================== Breadcrumb Two Section End ===================== -->
+
+    <!-- ======================= Product Details Section Start ==================== -->
+    <div class="product-details-wrapper mt-32 padding-b-120">
+      <div class="container container-two">
+        <div class="row gy-4">
+          <div class="col-12">
+            <!-- Product Details Content Start -->
+            <div class="product-details" id="product-details">
+              <div class="product-details__thumb" id="product-details__thumb">
+                <!-- product img -->
+                <img id="product-image" src="/assets/images/thumbs/product-details.png" alt="">
+              </div>
+
+              <!-- product information -->
+              <p id="product-description" class="product-details__desc">
+                <!-- description bu yerga yoziladi -->
+              </p>
+            </div>
+            <!-- Product Details Content End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ======================= Product Details Section End ==================== -->
+
+    <!-- ======================== Brand Section Start ========================= -->
+    <div class="brand ">
+      <div class="container container">
+        <div id="partners-slider">
+          <div class="brand-slider"></div>
+        </div>
+      </div>
+    </div>
+    <!-- ======================== Brand Section End ========================= -->
+
+<%- include('../partials/footer') %>

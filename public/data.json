@@ -1,0 +1,40 @@
+{
+  "companies": [
+    {
+      "id": 1,
+      "name": "Almas",
+      "logo": "/img/company-logo/Almas-K.jpg",
+      "description": "High-quality crystal and glass products manufacturer"
+    },
+    {
+      "id": 2,
+      "name": "Artel",
+      "logo": "/img/company-logo/Artel.png",
+      "description": "Leading electronics and home appliances manufacturer"
+    },
+    {
+      "id": 3,
+      "name": "Belfood",
+      "logo": "/img/company-logo/Belfood.jpg",
+      "description": "Premium food and beverage production company"
+    },
+    {
+      "id": 4,
+      "name": "Aqua",
+      "logo": "/img/company-logo/aqua.png",
+      "description": "Natural mineral water and beverages"
+    },
+    {
+      "id": 5,
+      "name": "Raxat",
+      "logo": "/img/company-logo/raxat.png",
+      "description": "Confectionery and sweets manufacturer"
+    },
+    {
+      "id": 6,
+      "name": "Sany",
+      "logo": "/img/company-logo/sany.png",
+      "description": "Construction equipment and machinery"
+    }
+  ]
+}

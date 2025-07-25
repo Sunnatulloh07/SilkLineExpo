@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="<%= currentLang || 'uz' %>" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Logs - SLEX Admin</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/line-awesome.min.css" rel="stylesheet">
+    <link href="/admin/css/admin-theme.css" rel="stylesheet">
+    <link href="/admin/css/admin-components.css" rel="stylesheet">
+    <link href="/admin/css/admin-responsive.css" rel="stylesheet">
+</head>
+<body class="admin-layout">
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <%- include('../partials/sidebar', { currentPage: 'logs', user: user }) %>
+        
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Header -->
+            <%- include('../partials/header', { 
+                user: user, 
+                title: 'System Logs',
+                breadcrumb: [
+                    { title: 'System', url: '/admin' },
+                    { title: 'Logs' }
+                ],
+                currentLang: typeof currentLang !== 'undefined' ? currentLang : 'uz'
+            }) %>
+            
+            <!-- Content -->
+            <div class="admin-content">
+                <div class="container-fluid">
+                    <!-- Page Title and Actions -->
+                    <div class="page-header mb-4">
+                        <div class="page-header-content">
+                            <div class="page-title-section">
+                                <h1 class="page-title">
+                                    <i class="las la-file-alt"></i>
+                                    System Logs
+                                </h1>
+                                <p class="page-subtitle">View system logs, error reports, and application activity</p>
+                            </div>
+                            
+                            <div class="page-actions">
+                                <button class="btn btn-outline-primary" onclick="downloadLogs()">
+                                    <i class="las la-download"></i>
+                                    Download Logs
+                                </button>
+                                <button class="btn btn-primary" onclick="refreshLogs()">
+                                    <i class="las la-sync-alt"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Log Statistics -->
+                    <div class="metrics-grid mb-4">
+                        <div class="metric-card metric-info">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-file-alt"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">45,231</h3>
+                                    <p class="metric-label">Total Log Entries</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-up"></i>
+                                        +1,234 today
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-danger">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-exclamation-circle"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">23</h3>
+                                    <p class="metric-label">Error Logs</p>
+                                    <span class="metric-trend negative">
+                                        <i class="las la-arrow-down"></i>
+                                        -7 from yesterday
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-warning">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-exclamation-triangle"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">89</h3>
+                                    <p class="metric-label">Warning Logs</p>
+                                    <span class="metric-trend neutral">
+                                        <i class="las la-minus"></i>
+                                        Same as yesterday
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-success">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-check-circle"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">99.2%</h3>
+                                    <p class="metric-label">System Uptime</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-up"></i>
+                                        +0.1% this week
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Log Filters -->
+                    <div class="log-filters mb-4">
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <div class="card-title-section">
+                                    <h3 class="card-title">
+                                        <i class="las la-filter"></i>
+                                        Log Filters
+                                    </h3>
+                                    <p class="card-subtitle">Filter logs by type, date range, and severity</p>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Log Level</label>
+                                        <select class="form-select" id="logLevel" onchange="filterLogs()">
+                                            <option value="all">All Levels</option>
+                                            <option value="error">Error</option>
+                                            <option value="warning">Warning</option>
+                                            <option value="info">Info</option>
+                                            <option value="debug">Debug</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Date From</label>
+                                        <input type="date" class="form-control" id="dateFrom" onchange="filterLogs()">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Date To</label>
+                                        <input type="date" class="form-control" id="dateTo" onchange="filterLogs()">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Search</label>
+                                        <input type="text" class="form-control" id="logSearch" placeholder="Search logs..." onkeyup="searchLogs()">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Logs Dashboard -->
+                    <div class="dashboard-card">
+                        <div class="card-body text-center py-5">
+                            <i class="las la-file-alt" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                            <h4>System Logs</h4>
+                            <p class="text-muted">System logging and monitoring features will be implemented here.</p>
+                            <div class="mt-4">
+                                <button class="btn btn-primary me-2" onclick="viewErrorLogs()">
+                                    <i class="las la-exclamation-triangle"></i>
+                                    View Error Logs
+                                </button>
+                                <button class="btn btn-outline-secondary me-2" onclick="viewAccessLogs()">
+                                    <i class="las la-eye"></i>
+                                    View Access Logs
+                                </button>
+                                <button class="btn btn-outline-info" onclick="viewSystemLogs()">
+                                    <i class="las la-server"></i>
+                                    View System Logs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/admin/js/admin-theme.js"></script>
+
+    <script>
+    window.downloadLogs = () => {
+        console.log('Download logs functionality will be implemented');
+    };
+
+    window.refreshLogs = () => {
+        console.log('Refresh logs functionality will be implemented');
+    };
+
+    window.viewErrorLogs = () => {
+        console.log('Error logs functionality will be implemented');
+    };
+
+    window.viewAccessLogs = () => {
+        console.log('Access logs functionality will be implemented');
+    };
+
+    window.viewSystemLogs = () => {
+        console.log('System logs functionality will be implemented');
+    };
+
+    window.filterLogs = () => {
+        const level = document.getElementById('logLevel').value;
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        console.log('Filter logs:', { level, dateFrom, dateTo });
+    };
+
+    window.searchLogs = () => {
+        const searchTerm = document.getElementById('logSearch').value;
+        console.log('Search logs:', searchTerm);
+    };
+
+    // Set default date range (last 7 days)
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date();
+        const lastWeek = new Date(today);
+        lastWeek.setDate(lastWeek.getDate() - 7);
+        
+        document.getElementById('dateFrom').value = lastWeek.toISOString().split('T')[0];
+        document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+    });
+    </script>
+</body>
+</html>

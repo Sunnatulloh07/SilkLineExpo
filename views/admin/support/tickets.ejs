@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="<%= currentLang || 'uz' %>" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Tickets - SLEX Admin</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/line-awesome.min.css" rel="stylesheet">
+    <link href="/admin/css/admin-theme.css" rel="stylesheet">
+    <link href="/admin/css/admin-components.css" rel="stylesheet">
+    <link href="/admin/css/admin-responsive.css" rel="stylesheet">
+</head>
+<body class="admin-layout">
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <%- include('../partials/sidebar', { currentPage: 'support', user: user }) %>
+        
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Header -->
+            <%- include('../partials/header', { 
+                user: user, 
+                title: 'Support Tickets',
+                breadcrumb: [
+                    { title: 'Support', url: '/admin' },
+                    { title: 'Tickets' }
+                ],
+                currentLang: typeof currentLang !== 'undefined' ? currentLang : 'uz'
+            }) %>
+            
+            <!-- Content -->
+            <div class="admin-content">
+                <div class="container-fluid">
+                    <!-- Page Title and Actions -->
+                    <div class="page-header mb-4">
+                        <div class="page-header-content">
+                            <div class="page-title-section">
+                                <h1 class="page-title">
+                                    <i class="las la-headset"></i>
+                                    Support Tickets
+                                </h1>
+                                <p class="page-subtitle">Manage customer support tickets, declarations, and logistics assistance</p>
+                            </div>
+                            
+                            <div class="page-actions">
+                                <button class="btn btn-outline-primary" onclick="exportTickets()">
+                                    <i class="las la-download"></i>
+                                    Export Tickets
+                                </button>
+                                <button class="btn btn-primary" onclick="createTicket()">
+                                    <i class="las la-plus"></i>
+                                    Create Ticket
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ticket Statistics -->
+                    <div class="metrics-grid mb-4">
+                        <div class="metric-card metric-info">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-ticket-alt"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">342</h3>
+                                    <p class="metric-label">Total Tickets</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-up"></i>
+                                        +23 this week
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-warning">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-clock"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">56</h3>
+                                    <p class="metric-label">Pending Tickets</p>
+                                    <span class="metric-trend negative">
+                                        <i class="las la-arrow-down"></i>
+                                        -12 from yesterday
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-success">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-check-circle"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">267</h3>
+                                    <p class="metric-label">Resolved Tickets</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-up"></i>
+                                        +35 this week
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-primary">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-user-clock"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">2.4h</h3>
+                                    <p class="metric-label">Avg Response Time</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-down"></i>
+                                        -0.6h this week
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ticket Filters -->
+                    <div class="ticket-filters mb-4">
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <div class="card-title-section">
+                                    <h3 class="card-title">
+                                        <i class="las la-filter"></i>
+                                        Ticket Filters
+                                    </h3>
+                                    <p class="card-subtitle">Filter tickets by status, priority, and category</p>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Status</label>
+                                        <select class="form-select" id="ticketStatus" onchange="filterTickets()">
+                                            <option value="all">All Status</option>
+                                            <option value="open">Open</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="resolved">Resolved</option>
+                                            <option value="closed">Closed</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Priority</label>
+                                        <select class="form-select" id="ticketPriority" onchange="filterTickets()">
+                                            <option value="all">All Priorities</option>
+                                            <option value="high">High</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="low">Low</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Category</label>
+                                        <select class="form-select" id="ticketCategory" onchange="filterTickets()">
+                                            <option value="all">All Categories</option>
+                                            <option value="logistics">Logistics</option>
+                                            <option value="declarations">Declarations</option>
+                                            <option value="technical">Technical</option>
+                                            <option value="billing">Billing</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Search</label>
+                                        <input type="text" class="form-control" id="ticketSearch" placeholder="Search tickets..." onkeyup="searchTickets()">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Priority Tickets Panel -->
+                    <div class="priority-tickets mb-4">
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <div class="card-title-section">
+                                    <h3 class="card-title">
+                                        <i class="las la-exclamation-triangle text-danger"></i>
+                                        High Priority Tickets
+                                    </h3>
+                                    <p class="card-subtitle">Urgent tickets requiring immediate attention</p>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="priority-ticket-item">
+                                    <div class="ticket-info">
+                                        <div class="ticket-id">#TKT-2024-001</div>
+                                        <div class="ticket-title">Customs Declaration Issue - Delayed Shipment</div>
+                                        <div class="ticket-meta">
+                                            <span class="ticket-customer">Silk Road Textiles LLC</span>
+                                            <span class="ticket-time">2 hours ago</span>
+                                        </div>
+                                    </div>
+                                    <div class="ticket-actions">
+                                        <button class="btn btn-sm btn-primary" onclick="viewTicket('TKT-2024-001')">
+                                            <i class="las la-eye"></i>
+                                            View
+                                        </button>
+                                        <button class="btn btn-sm btn-success" onclick="assignTicket('TKT-2024-001')">
+                                            <i class="las la-user-check"></i>
+                                            Assign
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="priority-ticket-item">
+                                    <div class="ticket-info">
+                                        <div class="ticket-id">#TKT-2024-002</div>
+                                        <div class="ticket-title">Payment Processing Error</div>
+                                        <div class="ticket-meta">
+                                            <span class="ticket-customer">Central Asia Trading</span>
+                                            <span class="ticket-time">4 hours ago</span>
+                                        </div>
+                                    </div>
+                                    <div class="ticket-actions">
+                                        <button class="btn btn-sm btn-primary" onclick="viewTicket('TKT-2024-002')">
+                                            <i class="las la-eye"></i>
+                                            View
+                                        </button>
+                                        <button class="btn btn-sm btn-success" onclick="assignTicket('TKT-2024-002')">
+                                            <i class="las la-user-check"></i>
+                                            Assign
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Support Ticket Management Dashboard -->
+                    <div class="dashboard-card">
+                        <div class="card-body text-center py-5">
+                            <i class="las la-headset" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                            <h4>Support Ticket Management</h4>
+                            <p class="text-muted">Support ticket management features will be implemented here.</p>
+                            <div class="mt-4">
+                                <button class="btn btn-primary me-2" onclick="createTicket()">
+                                    <i class="las la-plus"></i>
+                                    Create New Ticket
+                                </button>
+                                <button class="btn btn-outline-secondary me-2" onclick="viewTickets()">
+                                    <i class="las la-list"></i>
+                                    View All Tickets
+                                </button>
+                                <button class="btn btn-outline-info" onclick="manageAgents()">
+                                    <i class="las la-users"></i>
+                                    Manage Agents
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/admin/js/admin-theme.js"></script>
+
+    <script>
+    window.exportTickets = () => {
+        console.log('Export tickets functionality will be implemented');
+    };
+
+    window.createTicket = () => {
+        console.log('Create ticket functionality will be implemented');
+    };
+
+    window.viewTickets = () => {
+        console.log('View tickets functionality will be implemented');
+    };
+
+    window.manageAgents = () => {
+        console.log('Manage agents functionality will be implemented');
+    };
+
+    window.viewTicket = (ticketId) => {
+        console.log('View ticket:', ticketId);
+    };
+
+    window.assignTicket = (ticketId) => {
+        console.log('Assign ticket:', ticketId);
+    };
+
+    window.filterTickets = () => {
+        const status = document.getElementById('ticketStatus').value;
+        const priority = document.getElementById('ticketPriority').value;
+        const category = document.getElementById('ticketCategory').value;
+        console.log('Filter tickets:', { status, priority, category });
+    };
+
+    window.searchTickets = () => {
+        const searchTerm = document.getElementById('ticketSearch').value;
+        console.log('Search tickets:', searchTerm);
+    };
+    </script>
+</body>
+</html>

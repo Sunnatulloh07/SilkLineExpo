@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="<%= currentLang || 'uz' %>" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management - SLEX Admin</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/line-awesome.min.css" rel="stylesheet">
+    <link href="/admin/css/admin-theme.css" rel="stylesheet">
+    <link href="/admin/css/admin-components.css" rel="stylesheet">
+    <link href="/admin/css/admin-responsive.css" rel="stylesheet">
+</head>
+<body class="admin-layout">
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <%- include('../partials/sidebar', { currentPage: 'products', user: user }) %>
+        
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Header -->
+            <%- include('../partials/header', { 
+                user: user, 
+                title: 'Product Management',
+                breadcrumb: [
+                    { title: 'Management', url: '/admin' },
+                    { title: 'Products' }
+                ],
+                currentLang: typeof currentLang !== 'undefined' ? currentLang : 'uz'
+            }) %>
+            
+            <!-- Content -->
+            <div class="admin-content">
+                <div class="container-fluid">
+                    <!-- Page Title and Actions -->
+                    <div class="page-header mb-4">
+                        <div class="page-header-content">
+                            <div class="page-title-section">
+                                <h1 class="page-title">
+                                    <i class="las la-box"></i>
+                                    Product Management
+                                </h1>
+                                <p class="page-subtitle">Manage product catalog, moderate listings, and monitor product quality</p>
+                            </div>
+                            
+                            <div class="page-actions">
+                                <button class="btn btn-outline-primary" onclick="exportProducts()">
+                                    <i class="las la-download"></i>
+                                    Export Products
+                                </button>
+                                <button class="btn btn-primary" onclick="addProduct()">
+                                    <i class="las la-plus"></i>
+                                    Add Product
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Management Dashboard -->
+                    <div class="dashboard-card">
+                        <div class="card-body text-center py-5">
+                            <i class="las la-box" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                            <h4>Product Management</h4>
+                            <p class="text-muted">Advanced product management features will be implemented here.</p>
+                            <div class="mt-4">
+                                <button class="btn btn-primary me-2" onclick="addProduct()">
+                                    <i class="las la-plus"></i>
+                                    Add New Product
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="importProducts()">
+                                    <i class="las la-upload"></i>
+                                    Import Products
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/admin/js/admin-theme.js"></script>
+
+    <script>
+    window.exportProducts = () => {
+        console.log('Export products functionality will be implemented');
+    };
+
+    window.addProduct = () => {
+        console.log('Add product functionality will be implemented');
+    };
+
+    window.importProducts = () => {
+        console.log('Import products functionality will be implemented');
+    };
+    </script>
+</body>
+</html>

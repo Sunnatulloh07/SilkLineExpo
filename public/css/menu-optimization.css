@@ -1,0 +1,226 @@
+/* Advanced Menu Optimization */
+
+/* Override existing menu styles for better responsiveness */
+.nav-menu.flx-align {
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-wrap: nowrap !important;
+  overflow: visible !important;
+}
+
+/* Menu item optimizations */
+.nav-menu__item {
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-shrink: 1 !important;
+  min-width: 0 !important;
+}
+
+/* Menu link optimizations - crucial for preventing overflow */
+.nav-menu__link {
+  display: block !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  padding: 12px 6px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  text-decoration: none !important;
+  line-height: 1.2 !important;
+  min-width: 0 !important;
+}
+
+/* Responsive menu link sizing */
+@media (min-width: 1600px) {
+  .nav-menu__link {
+    padding: 14px 12px !important;
+    font-size: 15px !important;
+  }
+}
+
+@media (min-width: 1400px) and (max-width: 1599px) {
+  .nav-menu__link {
+    padding: 12px 8px !important;
+    font-size: 14px !important;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .nav-menu__link {
+    padding: 12px 6px !important;
+    font-size: 13px !important;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .nav-menu__link {
+    padding: 10px 4px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* Header inner spacing optimization */
+.header-inner.flx-between {
+  gap: 15px !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: nowrap !important;
+  min-height: 70px !important;
+}
+
+/* Header menu container optimization */
+.header-menu.d-lg-block {
+  flex: 1 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  max-width: none !important;
+  overflow: visible !important;
+}
+
+/* Header right optimization */
+.header-right.flx-align {
+  flex-shrink: 0 !important;
+  align-items: center !important;
+}
+
+.header-right__inner.gap-3.flx-align {
+  gap: 10px !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+}
+
+/* Button optimization */
+.btn.btn-main.pill {
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.btn .icon-left {
+  margin-right: 4px !important;
+}
+
+.btn .icon-left img {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+/* Logo optimization */
+.logo {
+  flex-shrink: 0 !important;
+  min-width: 100px !important;
+}
+
+.logo img {
+  max-height: 40px !important;
+  width: auto !important;
+}
+
+/* Container fluid optimization */
+.container-fluid.px-3 {
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  max-width: 100% !important;
+}
+
+/* Theme switch optimization */
+.theme-switch-wrapper {
+  flex-shrink: 0 !important;
+}
+
+/* Critical: Prevent any element from causing overflow */
+.header * {
+  box-sizing: border-box !important;
+}
+
+.header {
+  overflow: hidden !important;
+}
+
+/* Advanced: Dynamic adjustment based on content */
+@media (min-width: 992px) {
+  /* Calculate available space for menu */
+  .header-menu {
+    min-width: 0;
+    flex: 1;
+  }
+  
+  /* Ensure menu items share space equally */
+  .nav-menu__item {
+    flex: 1;
+    text-align: center;
+  }
+  
+  /* Responsive font sizing based on viewport */
+  .nav-menu__link {
+    font-size: clamp(11px, 1.2vw, 16px) !important;
+  }
+}
+
+/* Ultra-compact mode for very tight spaces */
+@media (min-width: 992px) and (max-width: 1100px) {
+  .nav-menu__link {
+    padding: 8px 2px !important;
+    font-size: 11px !important;
+  }
+  
+  .header-right__inner {
+    gap: 8px !important;
+  }
+  
+  .btn.btn-main.pill {
+    padding: 6px 8px !important;
+    font-size: 10px !important;
+  }
+  
+  .custom-lang-selector .lang-btn {
+    padding: 4px 6px !important;
+    min-width: 45px !important;
+  }
+  
+  .custom-lang-selector .current-lang-text {
+    font-size: 9px !important;
+  }
+}
+
+/* Emergency fallback - hide less important menu items on very small screens */
+@media (min-width: 992px) and (max-width: 1000px) {
+  .nav-menu__item:nth-child(n+5) {
+    display: none;
+  }
+}
+
+/* Ensure proper text rendering */
+.nav-menu__link {
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Fix for language switching text changes */
+.nav-menu__link[data-long-text] {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Add hover effects that don't affect layout */
+.nav-menu__link:hover {
+  transform: translateY(-1px) !important;
+  text-decoration: none !important;
+}
+
+/* Prevent layout shifts on hover */
+.nav-menu__item:hover {
+  z-index: 10;
+}
+
+/* Language dropdown positioning override */
+.custom-lang-selector .lang-dropdown {
+  right: -10px !important;
+  left: auto !important;
+}

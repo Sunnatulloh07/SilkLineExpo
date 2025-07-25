@@ -1,0 +1,1179 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navigation') %>
+
+    <main class="main-wrapper index-three-wrapper position-relative z-index-1">
+
+      <img src="/assets/images/shapes/border-box.png" alt="" class="border-box">
+
+      <!--========================== Banner-three Section Start ==========================-->
+      <section class="banner-three">
+        <div class="container container-full">
+          <div class="banner-three__wrapper section-bg position-relative z-index-1">
+
+            <img src="/assets/images/gradients/banner-gradient-two.png" alt="" class="bg--gradient">
+            <img src="/assets/images/shapes/line-curve1.png" alt="" class="line-curve one">
+            <img src="/assets/images/shapes/line-curve2.png" alt="" class="line-curve two">
+
+            <div class="banner-three__inner">
+              <div class="banner-three-content">
+                <span class="banner-three-content__subtitle text-main fw-700 font-heading font-20">
+                  <%= t('homepage.welcome') %>
+                </span>
+                <h1 class="banner-three-content__title my-3 text-capitalize">
+                  <%= t('homepage.connect') %>
+                </h1>
+                <p class="banner-three-content__desc font-18">
+                  <%= t('homepage.description') %>
+                </p>
+
+                <div class="buttons flx-align gap-sm-3 gap-2 mt-40">
+                  <a href="#service" class="btn btn-black btn-lg-icon">
+                    <span class="d-sm-flex d-none me-1"><%= t('homepage.ourBest') %> </span> 
+                    <span><%= t('homepage.services') %></span>
+                    <span class="icon-right icon">
+                      <img src="/assets/images/icons/arrow-right-white.svg" alt="">
+                    </span>
+                  </a>
+                  <a href="#about-us" class="btn btn-outline-black btn-lg fw-500">
+                    <%= t('homepage.aboutUs') %>
+                  </a>
+                </div>
+
+                <div class="statistics-three-wrapper flx-align mt-64 position-relative d-inline-flex">
+                  <div class="statistics-three">
+                    <h4 class="statistics-three__amount text-heading mb-0">110+</h4>
+                    <span class="statistics-three__text font-18 text-heading fw-500">
+                      <%= t('homepage.manufacturers') %>
+                    </span>
+                  </div>
+                  <div class="statistics-three">
+                    <h4 class="statistics-three__amount text-heading mb-0">280+</h4>
+                    <span class="statistics-three__text font-18 text-heading fw-500">
+                      <%= t('homepage.customers') %>
+                    </span>
+                  </div>
+                  <img src="/assets/images/icons/curve-arrow.png" alt="" class="curve-arrow">
+                </div>
+
+              </div>
+
+              <!-- Banner-three Right Start -->
+              <div class="banner-three__right">
+                <div class="banner-three-thumb position-relative">
+                  <img src="/assets/images/thumbs/banner-thumb.png" alt="">
+
+                  <div class="statistics-three-box bg-white text-center">
+                    <h5 class="statistics-three-box__amount text-heading">6k</h5>
+                    <span class="statistics-three-box__text text-heading font-14"><%= t('product.products') %></span>
+                  </div>
+
+                  <!-- Happy Client Start -->
+                  <div class="happy-client-three flx-align">
+                    <div class="happy-client-three__thumbs">
+                      <img src="/assets/images/thumbs/happy-client1.png" alt="Client" class="happy-client-three__img">
+                      <img src="/assets/images/thumbs/happy-client2.png" alt="Client" class="happy-client-three__img">
+                      <img src="/assets/images/thumbs/happy-client3.png" alt="Client" class="happy-client-three__img">
+                      <img src="/assets/images/thumbs/happy-client4.png" alt="Client" class="happy-client-three__img">
+                    </div>
+                    <span class="happy-client-three__text text-heading fw-500 text-center">2k
+                      <%= t('homepage.happyClients') %></span>
+                  </div>
+                  <!-- Happy Client End -->
+
+                </div>
+              </div>
+              <!-- Banner-three Right End -->
+            </div>
+          </div>
+        </div>
+      </section>
+      <!--========================== Banner-three Section End ==========================-->
+
+      <!-- ======================== About Section Start ========================== -->
+      <section class="about-three padding-y-120 position-relative z-index-1 overflow-hidden" id="about-us">
+        <div class="container container-two">
+          <div class="row gy-sm-5 gy-4 flex-wrap-reverse">
+            <div class="col-lg-6">
+              <div class="about-three-thumb position-relative">
+                <div class="about-three-thumb__img one">
+                  <img src="/assets/images/thumbs/about-img1.png" alt="">
+                </div>
+                <div class="about-three-thumb__img two text-end">
+                  <img src="/assets/images/thumbs/about-img2.png" alt="">
+                </div>
+                <div class="experience-content">
+                  <span class="experience-content__text fw-700 text-white">2+ <%= t('experience.yearsExperience') %></span>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="about-three-content">
+                <div class="section-heading style-three style-left">
+                  <span class="section-heading__subtitle section-bg"><%= t('homepage.aboutUs') %></span>
+                  <h3 class="section-heading__title"><%= t('services.coreServices') %></h3>
+                  <p class="section-heading__desc"><%= t('services.servicesDescription') %></p>
+                </div>
+
+                <div class="about-three-content__item-wrapper">
+                  <div class="about-three-content__item d-flex align-items-start gap-sm-3 gap-2">
+                    <span class="about-three-content__icon flx-center flex-shrink-0"><i class="las la-check"></i></span>
+                    <div class="flex-grow-1">
+                      <h5 class="about-three-content__title mb-3"><%= t('services.centralizedMarketplace') %></h5>
+                      <p class="about-three-content__desc"><%= t('services.centralizedDescription') %></p>
+                    </div>
+                  </div>
+                  <div class="about-three-content__item d-flex align-items-start gap-sm-3 gap-2">
+                    <span class="about-three-content__icon flx-center flex-shrink-0"><i class="las la-check"></i></span>
+                    <div class="flex-grow-1">
+                      <h5 class="about-three-content__title mb-3"><%= t('services.crmSystem') %></h5>
+                      <p class="about-three-content__desc"><%= t('services.crmDescription') %></p>
+                    </div>
+                  </div>
+                </div>
+                <a href="#!" class="mt-48 btn btn-black btn-lg"><%= t('buttons.moreAboutUs') %></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ======================== About Section End ========================== -->
+
+      <!-- ======================= Services Section Start ===================== -->
+      <section class="service padding-y-120 position-relative z-index-1 overflow-hidden" id="service">
+        <img src="" alt="" class="position-absolute end-0 top-0 z-index--1">
+        <div class="container container-two">
+          <div class="section-heading style-left style-flex flx-between align-items-end gap-3">
+            <div class="section-heading__inner w-lg">
+              <h3 class="section-heading__title"><%= t('services.bestServicesTitle') %></h3>
+              <p class="section-heading__desc"><%= t('services.servicesIntro') %></p>
+            </div>
+            <a href="#" class="btn btn-main btn-lg pill"><%= t('buttons.seeAllServices') %></a>
+          </div>
+          <div class="row gy-4">
+            <div class="col-lg-4 col-sm-12 col-xs-12">
+              <div class="service-item hover-bg-main">
+                <img src="/assets/images/gradients/service-hover-bg.png" alt="" class="hover-bg white-version">
+                <img src="/assets/images/gradients/service-hover-bg-dark.png" alt="" class="hover-bg dark-version">
+                <span class="service-item__icon">
+                  <img src="/assets/images/icons/service-icon1.svg" alt="">
+                </span>
+                <h5 class="service-item__title my-3"><%= t('services.crmTitle') %></h5>
+                <p class="service-item__desc"><%= t('services.crmDescription') %></p>
+                <a href="#" class="btn-simple"><%= t('services.readMore') %> <span class="icon"><i class="las la-arrow-right"></i></span></a>
+              </div>
+            </div>
+            <div class="col-lg-4 col-sm-12 col-xs-12">
+              <div class="service-item hover-bg-main">
+                <img src="/assets/images/gradients/service-hover-bg.png" alt="" class="hover-bg white-version">
+                <img src="/assets/images/gradients/service-hover-bg-dark.png" alt="" class="hover-bg dark-version">
+                <span class="service-item__icon">
+                  <img src="/assets/images/icons/service-icon2.svg" alt="">
+                </span>
+                <h5 class="service-item__title my-3"><%= t('services.declarationServices') %></h5>
+                <p class="service-item__desc"><%= t('sections.declarationDescription') %></p>
+                <a href="#" class="btn-simple"><%= t('services.readMore') %> <span class="icon"><i class="las la-arrow-right"></i></span></a>
+              </div>
+            </div>
+            <div class="col-lg-4 col-sm-12 col-xs-12">
+              <div class="service-item hover-bg-main">
+                <img src="/assets/images/gradients/service-hover-bg.png" alt="" class="hover-bg white-version">
+                <img src="/assets/images/gradients/service-hover-bg-dark.png" alt="" class="hover-bg dark-version">
+                <span class="service-item__icon">
+                  <img src="/assets/images/icons/service-icon6.svg" alt="">
+                </span>
+                <h5 class="service-item__title my-3"><%= t('services.logisticsIntegration') %></h5>
+                <p class="service-item__desc"><%= t('sections.logisticsDescription') %></p>
+                <a href="#" class="btn-simple"><%= t('services.readMore') %> <span class="icon"><i class="las la-arrow-right"></i></span></a>
+              </div>
+            </div>
+            <div class="col-lg-4 col-sm-12 col-xs-12">
+              <div class="service-item hover-bg-main">
+                <img src="/assets/images/gradients/service-hover-bg.png" alt="" class="hover-bg white-version">
+                <img src="/assets/images/gradients/service-hover-bg-dark.png" alt="" class="hover-bg dark-version">
+                <span class="service-item__icon">
+                  <img src="/assets/images/icons/service-icon4.svg" alt="">
+                </span>
+                <h5 class="service-item__title my-3"><%= t('services.smartPromotion') %></h5>
+                <p class="service-item__desc"><%= t('sections.promotionDescription') %></p>
+                <a href="#" class="btn-simple"><%= t('services.readMore') %> <span class="icon"><i class="las la-arrow-right"></i></span></a>
+              </div>
+            </div>
+            <div class="col-lg-4 col-sm-12 col-xs-12">
+              <div class="service-item hover-bg-main">
+                <img src="/assets/images/gradients/service-hover-bg.png" alt="" class="hover-bg white-version">
+                <img src="/assets/images/gradients/service-hover-bg-dark.png" alt="" class="hover-bg dark-version">
+                <span class="service-item__icon">
+                  <img src="/assets/images/icons/service-icon5.svg" alt="">
+                </span>
+                <h5 class="service-item__title my-3"><%= t('services.aiChatbot') %></h5>
+                <p class="service-item__desc"><%= t('sections.aiChatbotDescription') %></p>
+                <a href="#" class="btn-simple"><%= t('services.readMore') %> <span class="icon"><i class="las la-arrow-right"></i></span></a>
+              </div>
+            </div>
+            <div class="col-lg-4 col-sm-12 col-xs-12">
+              <div class="service-item hover-bg-main">
+                <img src="/assets/images/gradients/service-hover-bg.png" alt="" class="hover-bg white-version">
+                <img src="/assets/images/gradients/service-hover-bg-dark.png" alt="" class="hover-bg dark-version">
+                <span class="service-item__icon">
+                  <img src="/assets/images/icons/service-icon3.svg" alt="">
+                </span>
+                <h5 class="service-item__title my-3"><%= t('services.paymentIntegration') %></h5>
+                <p class="service-item__desc"><%= t('sections.paymentDescription') %></p>
+                <a href="#" class="btn-simple"><%= t('services.readMore') %> <span class="icon"><i class="las la-arrow-right"></i></span></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ======================= Services Section End ===================== -->
+
+      <!-- =========================== Arrival Product Section Start ========================== -->
+      <section class="arrival-product padding-y-120 section-bg position-relative z-index-1">
+        <img src="/assets/images/gradients/product-gradient.png" alt="" class="bg--gradient white-version">
+        <div class="container container-two">
+          <div class="section-heading">
+            <h3 class="section-heading__title"><%= t('product.ourProducts') %></h3>
+          </div>
+
+          <ul class="nav common-tab justify-content-center nav-pills mb-48" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="pills-all-tab" data-bs-toggle="pill" data-bs-target="#pills-all"
+                type="button" role="tab" aria-controls="pills-all" aria-selected="true"><%= t('product.allProducts') %></button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="pills-drinks-tab" data-bs-toggle="pill" data-bs-target="#pills-drinks"
+                type="button" role="tab" aria-controls="pills-drinks" aria-selected="false"><%= t('categories.drinks') %></button>
+            </li>
+          </ul>
+          <div class="tab-content" id="pills-tabContent">
+            <div class="tab-pane fade show active" id="pills-all" role="tabpanel" aria-labelledby="pills-all-tab"
+              tabindex="0">
+            </div>
+          </div>
+
+          <div class="text-center mt-64">
+            <a href="/all-product" class="btn btn-main btn-lg pill fw-300">
+              <%= t('buttons.viewAllProducts') %>
+            </a>
+          </div>
+        </div>
+      </section>
+      <!-- =========================== Arrival Product Section End ========================== -->
+
+      <!-- ============================= Working Process Start ============================ -->
+      <section class="working-process">
+        <div class="container container-full">
+          <div class="working-process-wrapper padding-y-120 position-relative z-index-1 overflow-hidden">
+            <img src="/assets/images/gradients/working-process-gradient.png" alt="" class="bg--gradient">
+
+            <div class="section-heading">
+              <h3 class="section-heading__title text-white"><%= t('process.workingProcess') %></h3>
+              <p class="section-heading__desc text-white fw-200"></p>
+            </div>
+
+            <div class="container container-two">
+              <div class="row gy-4 working-process-item-wrapper">
+                <div class="col-xl-3 col-sm-6 col-xs-6">
+                  <div class="working-process-item text-center">
+                    <img src="/assets/images/shapes/arrow-curve-right.png" alt="" class="working-process-item__arrow">
+                    <span class="working-process-item__number font-heading fw-700 mb-32">1</span>
+                    <h5 class="working-process-item__title mb-3 text-white"><%= t('process.signUp') %></h5>
+                    <p class="working-process-item__desc text-white fw-200"><%= t('process.signUpDesc') %></p>
+                  </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 col-xs-6">
+                  <div class="working-process-item text-center">
+                    <img src="/assets/images/shapes/arrow-curve-right.png" alt="" class="working-process-item__arrow">
+                    <span class="working-process-item__number font-heading fw-700 mb-32">2</span>
+                    <h5 class="working-process-item__title mb-3 text-white"><%= t('process.listProducts') %></h5>
+                    <p class="working-process-item__desc text-white fw-200"><%= t('process.listProductsDesc') %></p>
+                  </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 col-xs-6">
+                  <div class="working-process-item text-center">
+                    <img src="/assets/images/shapes/arrow-curve-right.png" alt="" class="working-process-item__arrow">
+                    <span class="working-process-item__number font-heading fw-700 mb-32">3</span>
+                    <h5 class="working-process-item__title mb-3 text-white"><%= t('process.manageCommunicate') %></h5>
+                    <p class="working-process-item__desc text-white fw-200"><%= t('process.manageCommunicateDesc') %></p>
+                  </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 col-xs-6">
+                  <div class="working-process-item text-center">
+                    <img src="/assets/images/shapes/arrow-curve-right.png" alt="" class="working-process-item__arrow">
+                    <span class="working-process-item__number font-heading fw-700 mb-32">4</span>
+                    <h5 class="working-process-item__title mb-3 text-white"><%= t('process.completeDeals') %></h5>
+                    <p class="working-process-item__desc text-white fw-200"><%= t('process.completeDealsDesc') %></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ============================= Working Process End ============================ -->
+
+      <!-- ======================= Featured Products Start =============================== -->
+      <section class="top-author padding-y-120 section-bg position-relative z-index-1">
+        <img src="/assets/images/gradients/featured-gradient.png" alt="" class="bg--gradient white-version">
+        <img src="/assets/images/shapes/" alt=""
+          class="spider-net position-absolute top-0 start-0 z-index--1 white-version">
+        <img src="/assets/images/shapes/spider-net-white2.png" alt=""
+          class="spider-net position-absolute top-0 start-0 z-index--1 dark-version">
+        <img src="/assets/images/shapes/" alt="" class="position-absolute top-0 end-0 z-index--1">
+
+        <img src="/assets/images/shapes/" alt="" class="element two">
+
+        <div class="container container-two">
+          <div class="row gy-4 align-items-center">
+            <div class="col-xl-5">
+              <div class="section-content">
+                <div class="section-heading style-left">
+                  <h3 class="section-heading__title"><%= t('manufacturers.topManufacturers') %></h3>
+                  <p class="section-heading__desc font-18 w-sm"><%= t('manufacturers.raxatCompanyDescription') %></p>
+                </div>
+                <div class="author-info d-flex align-items-center gap-3">
+                  <div class="author-info__thumb">
+                    <img src="/img/company-logo/raxat.png" alt="">
+                  </div>
+                  <div class="author-info__content">
+                    <h4 class="author-info__name mb-1" translate="no">Raxat</h4>
+                    <span class="author-info__text"><%= t('manufacturers.memberSince') %> 2024</span>
+                  </div>
+                </div>
+                <div class="flx-align gap-2 mt-48">
+                  <a href="#!" class="btn btn-main btn-lg pill fw-300"><%= t('buttons.viewProfile') %></a>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-6">
+              <div class="circle-content position-relative">
+                <div class="row gy-4 card-wrapper">
+                  <div class="col-sm-6">
+                    <div class="product-item box-shadow">
+                      <div class="product-item__thumb d-flex">
+                        <a href="/product-details" class="link w-100">
+                          <img src="/img/product-logo/raxat-candies.jpg" alt="" class="cover-img">
+                        </a>
+                      </div>
+                      <div class="product-item__content">
+                        <h6 class="product-item__title">
+                          <a href="/product-details" class="link">Candy Almatiniskiy suviner</a>
+                        </h6>
+                        <div class="product-item__info flx-between gap-2">
+                          <span class="product-item__author">
+                            by
+                            <a href="#!" class="link hover-text-decoration-underline" translate="no"> Raxat</a>
+                          </span>
+                          <div class="flx-align gap-2">
+                            <h6 class="product-item__price mb-0">$7</h6>
+                          </div>
+                        </div>
+                        <div class="product-item__bottom flx-between gap-2">
+                          <div>
+                            <span class="product-item__sales font-14 mb-2">120k+ <%= t('product.sales') %></span>
+                            <div class="d-flex align-items-center gap-1">
+                              <ul class="star-rating">
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                              </ul>
+                              <span class="star-rating__text text-heading fw-500 font-14"> (1k+)</span>
+                            </div>
+                          </div>
+                          <a href="/product-details" class="btn btn-outline-light btn-sm pill"><%= t('common.view') %></a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-sm-6">
+                    <div class="product-item box-shadow">
+                      <div class="product-item__thumb d-flex">
+                        <a href="/product-details" class="link w-100">
+                          <img src="/img/product-logo/raxat-choco.jpg" alt="" class="cover-img">
+                        </a>
+                      </div>
+                      <div class="product-item__content">
+                        <h6 class="product-item__title">
+                          <a href="/product-details" class="link">Set of chocolates raxat</a>
+                        </h6>
+                        <div class="product-item__info flx-between gap-2">
+                          <span class="product-item__author">
+                            by
+                            <a href="#!" class="link hover-text-decoration-underline" translate="no"> Raxat</a>
+                          </span>
+                          <div class="flx-align gap-2">
+                            <h6 class="product-item__price mb-0">$8</h6>
+                          </div>
+                        </div>
+                        <div class="product-item__bottom flx-between gap-2">
+                          <div>
+                            <span class="product-item__sales font-14 mb-2">100k+ <%= t('product.sales') %></span>
+                            <div class="d-flex align-items-center gap-1">
+                              <ul class="star-rating">
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                              </ul>
+                              <span class="star-rating__text text-heading fw-500 font-14"> (1k+)</span>
+                            </div>
+                          </div>
+                          <a href="/product-details" class="btn btn-outline-light btn-sm pill"><%= t('common.view') %></a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-sm-6">
+                    <div class="product-item box-shadow">
+                      <div class="product-item__thumb d-flex">
+                        <a href="/product-details" class="link w-100">
+                          <img src="/img/product-logo/raxat-des.jpg" alt="" class="cover-img">
+                        </a>
+                      </div>
+                      <div class="product-item__content">
+                        <h6 class="product-item__title">
+                          <a href="/product-details" class="link">Raxat desertnye</a>
+                        </h6>
+                        <div class="product-item__info flx-between gap-2">
+                          <span class="product-item__author">
+                            by
+                            <a href="#!" class="link hover-text-decoration-underline" translate="no"> Raxat</a>
+                          </span>
+                          <div class="flx-align gap-2">
+                            <h6 class="product-item__price mb-0">$3</h6>
+                          </div>
+                        </div>
+                        <div class="product-item__bottom flx-between gap-2">
+                          <div>
+                            <span class="product-item__sales font-14 mb-2">90k+ <%= t('product.sales') %></span>
+                            <div class="d-flex align-items-center gap-1">
+                              <ul class="star-rating">
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                              </ul>
+                              <span class="star-rating__text text-heading fw-500 font-14"> (1k+)</span>
+                            </div>
+                          </div>
+                          <a href="/product-details" class="btn btn-outline-light btn-sm pill"><%= t('common.view') %></a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-sm-6">
+                    <div class="product-item box-shadow">
+                      <div class="product-item__thumb d-flex">
+                        <a href="/product-details" class="link w-100">
+                          <img src="/img/product-logo/raxat-zef.jpg" alt="" class="cover-img">
+                        </a>
+                      </div>
+                      <div class="product-item__content">
+                        <h6 class="product-item__title">
+                          <a href="/product-details" class="link">Zephir glazirovanniy</a>
+                        </h6>
+                        <div class="product-item__info flx-between gap-2">
+                          <span class="product-item__author">
+                            by
+                            <a href="#!" class="link hover-text-decoration-underline" translate="no"> Raxat</a>
+                          </span>
+                          <div class="flx-align gap-2">
+                            <h6 class="product-item__price mb-0">$6</h6>
+                          </div>
+                        </div>
+                        <div class="product-item__bottom flx-between gap-2">
+                          <div>
+                            <span class="product-item__sales font-14 mb-2">122k+ <%= t('product.sales') %></span>
+                            <div class="d-flex align-items-center gap-1">
+                              <ul class="star-rating">
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                              </ul>
+                              <span class="star-rating__text text-heading fw-500 font-14"> (2k)</span>
+                            </div>
+                          </div>
+                          <a href="/product-details" class="btn btn-outline-light btn-sm pill"><%= t('common.view') %></a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ======================= Featured Products End =============================== -->
+
+      <!-- ========================= Team Section Start ======================= -->
+      <section class="team padding-y-120 position-relative z-index-1 overflow-hidden">
+        <img src="/assets/images/shapes/full-line.png" alt=""
+          class="full-line position-absolute start-0 top-0 w-100 h-100 z-index--1">
+        <img src="/assets/images/shapes/" alt="" class="element two top-50">
+
+        <div class="container container-two">
+          <div class="section-heading style-left flx-between max-w-unset gap-4">
+            <div>
+              <h3 class="section-heading__title"><%= t('team.meetOurTeam') %></h3>
+              <p class="section-heading__desc font-18"><%= t('team.teamDescription') %></p>
+            </div>
+            <a href="#!" class="btn btn-main btn-lg fw-300">
+              <%= t('buttons.viewAllMembers') %>
+            </a>
+          </div>
+
+          <div class="team-item-slider">
+            <div class="team-item shadow-sm mb-2">
+              <div class="team-item__thumb">
+                <img src="/assets/images/thumbs/team1.png" alt="" class="cover-img">
+              </div>
+              <div class="team-item__content">
+                <a href="tel:975505052" class="btn btn-black btn-icon btn-icon--sm ms-auto"> <i
+                    class="las la-phone"></i>
+                </a>
+                <h6 class="team-item__name mb-2"><a href="#" class="link hover-text-main" translate="no">Jasur Qurbonov</a></h6>
+                <span class="team-item__designation text-heading fw-500"><%= t('team.positions.ceo') %></span>
+              </div>
+            </div>
+            <div class="team-item shadow-sm mb-2">
+              <div class="team-item__thumb">
+                <img src="/assets/images/thumbs/team2.png" alt="" class="cover-img">
+              </div>
+              <div class="team-item__content">
+                <a href="tel:975505052" class="btn btn-black btn-icon btn-icon--sm ms-auto"> <i
+                    class="las la-phone"></i>
+                </a>
+                <h6 class="team-item__name mb-2"><a href="#" class="link hover-text-main" translate="no">Abduxalim Toxtayev</a></h6>
+                <span class="team-item__designation text-heading fw-500"><%= t('team.positions.cto') %></span>
+              </div>
+            </div>
+            <div class="team-item shadow-sm mb-2">
+              <div class="team-item__thumb">
+                <img src="/assets/images/thumbs/team3.png" alt="" class="cover-img">
+              </div>
+              <div class="team-item__content">
+                <a href="tel:975505052" class="btn btn-black btn-icon btn-icon--sm ms-auto"> <i
+                    class="las la-phone"></i>
+                </a>
+                <h6 class="team-item__name mb-2"><a href="#" class="link hover-text-main" translate="no">Jasur Akhmedov</a></h6>
+                <span class="team-item__designation text-heading fw-500"><%= t('team.positions.cmo') %></span>
+              </div>
+            </div>
+            <div class="team-item shadow-sm mb-2">
+              <div class="team-item__thumb">
+                <img src="/assets/images/thumbs/team4.png" alt="" class="cover-img">
+              </div>
+              <div class="team-item__content">
+                <a href="tel:975505052" class="btn btn-black btn-icon btn-icon--sm ms-auto"> <i
+                    class="las la-phone"></i>
+                </a>
+                <h6 class="team-item__name mb-2"><a href="#" class="link hover-text-main" translate="no">Bashir Muhammadi</a></h6>
+                <span class="team-item__designation text-heading fw-500"><%= t('team.positions.cmoAfghan') %></span>
+              </div>
+            </div>
+            <div class="team-item shadow-sm mb-2">
+              <div class="team-item__thumb">
+                <img src="/assets/images/thumbs/team5.png" alt="" class="cover-img">
+              </div>
+              <div class="team-item__content">
+                <a href="tel:975505052" class="btn btn-black btn-icon btn-icon--sm ms-auto"> <i
+                    class="las la-phone"></i>
+                </a>
+                <h6 class="team-item__name mb-2"><a href="#" class="link hover-text-main" translate="no">Muhammadali Mamataliyev </a>
+                </h6>
+                <span class="team-item__designation text-heading fw-500"><%= t('team.positions.declaringAgent') %></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ========================= Team Section End ======================= -->
+
+      <!-- ======================== Brand Section Start ========================= -->
+      <div class="brand mt-0">
+        <div class="container container">
+          <div id="partners-slider">
+            <div class="brand-slider"></div>
+          </div>
+        </div>
+      </div>
+      <!-- ======================== Brand Section End ========================= -->
+
+      <!-- ============================ Testimonial Section Start ======================= -->
+      <section class="testimonial padding-y-120 position-relative section-bg overflow-hidden">
+        <img src="/assets/images/shapes/brush.png" alt="" class="element-brush">
+
+        <div class="container container-two">
+          <div class="section-heading style-left style-flex flx-between align-items-end gap-3">
+            <div class="section-heading__inner w-lg">
+              <h3 class="section-heading__title"><%= t('testimonials.clientsFeedback') %></h3>
+            </div>
+            <a href="#" class="btn btn-main btn-lg pill"><%= t('buttons.moreFeedback') %></a>
+          </div>
+          <div class="testimonial-slider">
+            <div class="testimonial-item hover-bg-main">
+              <img src="/assets/images/gradients/testimonial-bg.png" alt="" class="hover-bg white-version">
+              <img src="/assets/images/gradients/testimonial-bg.png" alt="" class="hover-bg dark-version">
+              <div class="testimonial-item__rating mb-3">
+                <ul class="star-rating">
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                </ul>
+              </div>
+              <p class="testimonial-item__desc">"<%= t('testimonials.testimonial1Text') %>"</p>
+              <div class="testimonial-item__quote">
+                <img src="/assets/images/icons/quote.svg" alt="" class="quote quote-white">
+                <img src="/assets/images/icons/quote-dark.svg" alt="" class="quote quote-dark">
+              </div>
+              <div class="client-info d-flex align-items-center gap-3">
+                <div class="client-info__thumb">
+                  <img src="/assets/images/thumbs/client1.png" alt="">
+                </div>
+                <div class="client-info__content">
+                  <h5 class="client-info__name mb-2">Murod S.</h5>
+                  <span class="client-info__designation text-heading fw-500"><%= t('team.designations.marketExpert') %></span>
+                </div>
+              </div>
+            </div>
+            <div class="testimonial-item hover-bg-main">
+              <img src="/assets/images/gradients/testimonial-bg.png" alt="" class="hover-bg white-version">
+              <img src="/assets/images/gradients/testimonial-bg.png" alt="" class="hover-bg dark-version">
+              <div class="testimonial-item__rating mb-3">
+                <ul class="star-rating">
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                </ul>
+              </div>
+              <p class="testimonial-item__desc">"<%= t('testimonials.testimonial2Text') %>"</p>
+              <div class="testimonial-item__quote">
+                <img src="/assets/images/icons/quote.svg" alt="" class="quote quote-white">
+                <img src="/assets/images/icons/quote-dark.svg" alt="" class="quote quote-dark">
+              </div>
+              <div class="client-info d-flex align-items-center gap-3">
+                <div class="client-info__thumb">
+                  <img src="/assets/images/thumbs/client2.png" alt="">
+                </div>
+                <div class="client-info__content">
+                  <h5 class="client-info__name mb-2">Ralph Edwards</h5>
+                  <span class="client-info__designation text-heading fw-500"><%= t('team.designations.analytis') %></span>
+                </div>
+              </div>
+            </div>
+            <div class="testimonial-item hover-bg-main">
+              <img src="/assets/images/gradients/testimonial-bg.png" alt="" class="hover-bg white-version">
+              <img src="/assets/images/gradients/testimonial-bg.png" alt="" class="hover-bg dark-version">
+              <div class="testimonial-item__rating mb-3">
+                <ul class="star-rating">
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                  <li class="star-rating__item"><i class="fas fa-star"></i></li>
+                </ul>
+              </div>
+              <p class="testimonial-item__desc">"<%= t('testimonials.testimonial3Text') %>"</p>
+              <div class="testimonial-item__quote">
+                <img src="/assets/images/icons/quote.svg" alt="" class="quote quote-white">
+                <img src="/assets/images/icons/quote-dark.svg" alt="" class="quote quote-dark">
+              </div>
+              <div class="client-info d-flex align-items-center gap-3">
+                <div class="client-info__thumb">
+                  <img src="/assets/images/thumbs/client3.png" alt="">
+                </div>
+                <div class="client-info__content">
+                  <h5 class="client-info__name mb-2">Jacob Jones</h5>
+                  <span class="client-info__designation text-heading fw-500"><%= t('team.designations.marketExpert') %></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ============================ Testimonial Section End ======================= -->
+
+      <!-- ========================= Pricing Plan Section Start ============================ -->
+      <section class="pricing padding-y-120 position-relative z-index-1">
+        <img src="/assets/images/gradients/pricing-gradient-bg.png" alt="" class="bg--gradient">
+
+        <div class="container container-two">
+          <div class="section-heading style-left style-flex flx-between align-items-end gap-3">
+            <div class="section-heading__inner w-lg">
+              <h3 class="section-heading__title"><%= t('pricing.bestPricingPlan') %></h3>
+              <p class="section-heading__desc"><%= t('pricing.bestPricingPlanDesc') %></p>
+            </div>
+            <div class="pricing-tabs">
+              <ul class="nav tab-gradient nav-pills mb-0" id="pills-tab-pricing" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link pill active" id="pills-monthly-tab" data-bs-toggle="pill"
+                    data-bs-target="#pills-monthly" type="button" role="tab" aria-controls="pills-monthly"
+                    aria-selected="true"><%= t('pricing.monthly') %></button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link pill" id="pills-yearly-tab" data-bs-toggle="pill"
+                    data-bs-target="#pills-yearly" type="button" role="tab" aria-controls="pills-yearly"
+                    aria-selected="false"><%= t('pricing.yearly') %></button>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="tab-content" id="pills-tab-pricingContent">
+            <div class="tab-pane fade show active" id="pills-monthly" role="tabpanel"
+              aria-labelledby="pills-monthly-tab" tabindex="0">
+              <div class="row gy-4">
+                <div class="col-lg-4 col-sm-6">
+                  <div class="pricing-item box-shadow-lg hover-bg-main">
+                    <img src="/assets/images/gradients/price-hover-bg.png" alt="" class="hover-bg">
+                    <div class="pricing-item__top">
+                      <div class="flx-between flex-nowrap">
+                        <span class="pricing-item__icon">
+                          <img src="/assets/images/icons/price-icon1.svg" alt="">
+                        </span>
+                        <span class="popular-badge d-none"></span>
+                      </div>
+                      <h5 class="pricing-item__title mb-0 mt-2"><%= t('pricing.basicPlan') %></h5>
+                    </div>
+                    <div class="pricing-item__content">
+                      <h3 class="pricing-item__price mb-2"> $50 <span
+                          class="text font-14 text-body font-body fw-400">/<%= t('pricing.perMonth') %></span> </h3>
+                      <p class="pricing-item__desc"><%= t('pricing.basicPlanDesc') %></p>
+                      <a href="#" class="btn btn-outline-light btn-lg pill w-100"><%= t('pricing.getStarted') %></a>
+                    </div>
+                    <div class="pricing-item__lists">
+                      <ul class="text-list">
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.coreMarketplace') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.addProducts10') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.basicCRM') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.promotionalTools') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.paymentSystem') %>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-4 col-sm-6">
+                  <div class="pricing-item box-shadow-lg hover-bg-main">
+                    <img src="/assets/images/gradients/price-hover-bg.png" alt="" class="hover-bg">
+                    <div class="pricing-item__top">
+                      <div class="flx-between flex-nowrap">
+                        <span class="pricing-item__icon">
+                          <img src="/assets/images/icons/price-icon2.svg" alt="">
+                        </span>
+                      </div>
+                      <h5 class="pricing-item__title mb-0 mt-2"><%= t('pricing.standardPlan') %></h5>
+                    </div>
+                    <div class="pricing-item__content">
+                      <h3 class="pricing-item__price mb-2"> $80 <span
+                          class="text font-14 text-body font-body fw-400">/<%= t('pricing.perMonth') %></span> </h3>
+                      <p class="pricing-item__desc"><%= t('pricing.standardPlanDesc') %></p>
+                      <a href="#" class="btn btn-outline-light btn-lg pill w-100"><%= t('pricing.getStarted') %></a>
+                    </div>
+                    <div class="pricing-item__lists">
+                      <ul class="text-list">
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.addProducts50') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.fullCRM') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.logisticsIntegration') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.declarationService') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.teamMembers5') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.projectManagement') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.standardCarousel') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.warehouseStorage1Month') %>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-4 col-sm-6">
+                  <div class="pricing-item box-shadow-lg hover-bg-main">
+                    <img src="/assets/images/gradients/price-hover-bg.png" alt="" class="hover-bg">
+                    <div class="pricing-item__top">
+                      <div class="flx-between flex-nowrap">
+                        <span class="pricing-item__icon">
+                          <img src="/assets/images/icons/price-icon3.svg" alt="">
+                        </span>
+                        <span class="popular-badge d-none"></span>
+                      </div>
+                      <h5 class="pricing-item__title mb-0 mt-2"><%= t('pricing.premiumPlan') %></h5>
+                    </div>
+                    <div class="pricing-item__content">
+                      <h3 class="pricing-item__price mb-2"> $150 <span
+                          class="text font-14 text-body font-body fw-400">/<%= t('pricing.perMonth') %></span> </h3>
+                      <p class="pricing-item__desc"><%= t('pricing.premiumPlanDesc') %></p>
+                      <a href="#" class="btn btn-outline-light btn-lg pill w-100"><%= t('pricing.getStarted') %></a>
+                    </div>
+                    <div class="pricing-item__lists">
+                      <ul class="text-list">
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.unlimitedProducts') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.customCategories') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.priorityAccess') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.teamMembers20') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.topCarousel') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.outletListing') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.buyerInsights') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.accountManager') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.warehouseStorage1Month') %>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="pills-yearly" role="tabpanel" aria-labelledby="pills-yearly-tab"
+              tabindex="0">
+              <div class="row gy-4">
+                <div class="col-lg-4 col-sm-6">
+                  <div class="pricing-item box-shadow-lg hover-bg-main">
+                    <img src="/assets/images/gradients/price-hover-bg.png" alt="" class="hover-bg">
+                    <div class="pricing-item__top">
+                      <div class="flx-between flex-nowrap">
+                        <span class="pricing-item__icon">
+                          <img src="/assets/images/icons/price-icon1.svg" alt="">
+                        </span>
+                        <span class="popular-badge d-none"></span>
+                      </div>
+                      <h5 class="pricing-item__title mb-0 mt-2"><%= t('pricing.basicPlan') %></h5>
+                    </div>
+                    <div class="pricing-item__content">
+                      <h3 class="pricing-item__price mb-2"> $400 <span
+                          class="text font-14 text-body font-body fw-400">/<%= t('pricing.perYear') %></span> </h3>
+                      <p class="pricing-item__desc"><%= t('pricing.basicPlanDesc') %></p>
+                      <a href="#" class="btn btn-outline-light btn-lg pill w-100"><%= t('pricing.getStarted') %></a>
+                    </div>
+                    <div class="pricing-item__lists">
+                      <ul class="text-list">
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.coreMarketplace') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.addProducts10') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.basicCRM') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.promotionalTools') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.paymentSystem') %>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-4 col-sm-6">
+                  <div class="pricing-item box-shadow-lg hover-bg-main">
+                    <img src="/assets/images/gradients/price-hover-bg.png" alt="" class="hover-bg">
+                    <div class="pricing-item__top">
+                      <div class="flx-between flex-nowrap">
+                        <span class="pricing-item__icon">
+                          <img src="/assets/images/icons/price-icon2.svg" alt="">
+                        </span>
+                      </div>
+                      <h5 class="pricing-item__title mb-0 mt-2"><%= t('pricing.standardPlan') %></h5>
+                    </div>
+                    <div class="pricing-item__content">
+                      <h3 class="pricing-item__price mb-2"> $600 <span
+                          class="text font-14 text-body font-body fw-400">/<%= t('pricing.perYear') %></span> </h3>
+                      <p class="pricing-item__desc"><%= t('pricing.standardPlanDesc') %></p>
+                      <a href="#" class="btn btn-outline-light btn-lg pill w-100"><%= t('pricing.getStarted') %></a>
+                    </div>
+                    <div class="pricing-item__lists">
+                      <ul class="text-list">
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.addProducts50') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.fullCRM') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.logisticsIntegration') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.declarationService') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.teamMembers5') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.projectManagement') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.standardCarousel') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.warehouseStorage1Month') %>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-4 col-sm-6">
+                  <div class="pricing-item box-shadow-lg hover-bg-main">
+                    <img src="/assets/images/gradients/price-hover-bg.png" alt="" class="hover-bg">
+                    <div class="pricing-item__top">
+                      <div class="flx-between flex-nowrap">
+                        <span class="pricing-item__icon">
+                          <img src="/assets/images/icons/price-icon3.svg" alt="">
+                        </span>
+                        <span class="popular-badge d-none"></span>
+                      </div>
+                      <h5 class="pricing-item__title mb-0 mt-2"><%= t('pricing.premiumPlan') %></h5>
+                    </div>
+                    <div class="pricing-item__content">
+                      <h3 class="pricing-item__price mb-2"> $1,200 <span
+                          class="text font-14 text-body font-body fw-400">/<%= t('pricing.perYear') %></span> </h3>
+                      <p class="pricing-item__desc"><%= t('pricing.premiumPlanDesc') %></p>
+                      <a href="#" class="btn btn-outline-light btn-lg pill w-100"><%= t('pricing.getStarted') %></a>
+                    </div>
+                    <div class="pricing-item__lists">
+                      <ul class="text-list">
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.unlimitedProducts') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.customCategories') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.priorityAccess') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.teamMembers20') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.topCarousel') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.outletListing') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.buyerInsights') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.accountManager') %>
+                        </li>
+                        <li class="text-list__item text-heading">
+                          <span class="icon"><i class="fas fa-check"></i></span>
+                          <%= t('pricing.features.warehouseStorage1Month') %>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ========================= Pricing Plan Section End ============================ -->
+
+      <!-- =========================== Blog Section Start ========================== -->
+      <section class="blog blog-index section-bg position-relative z-index-1 overflow-hidden">
+        <img src="/assets/images/shapes/pattern-five.png" class="position-absolute end-0 top-0 z-index--1" alt="">
+        <div class="container container-two">
+          <div class="section-heading style-left style-flex flx-between align-items-end gap-3">
+            <div class="section-heading__inner">
+              <h3 class="section-heading__title"><%= t('blog.browseLatest') %></h3>
+            </div>
+            <a href="/blog" class="btn btn-main btn-lg pill"><%= t('buttons.browseAllArticles') %></a>
+          </div>
+          <div class="row gy-4">
+            <div class="col-lg-4 col-sm-6">
+              <div class="post-item">
+                <div class="post-item__thumb">
+                  <a href="/blog-details" class="link">
+                    <img src="/assets/images/thumbs/blog-details-thumb1.png" class="cover-img" alt="">
+                  </a>
+                </div>
+                <div class="post-item__content">
+                  <div class="post-item__top flx-align">
+                    <a href="/blog"
+                      class="post-item__tag pill font-14 text-heading fw-500 hover-text-main"><%= t('blog.cooperation') %></a>
+                    <div class="post-item__date font-14 flx-align gap-2 font-14 text-heading fw-500">
+                      <span class="icon">
+                        <img src="/assets/images/icons/calendar.svg" alt="" class="white-version">
+                        <img src="/assets/images/icons/calendar-white.svg" alt="" class="dark-version">
+                      </span>
+                      <span class="text">March 25, 2025</span>
+                    </div>
+                  </div>
+                  <h5 class="post-item__title">
+                    <a href="/blog-details" class="link"><%= t('blog.articles.b2bTradingUzbekistan') %></a>
+                  </h5>
+                  <a href="/blog-details" class="btn btn-outline-light pill fw-600"><%= t('blog.readMore') %></a>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-sm-6">
+              <div class="post-item">
+                <div class="post-item__thumb">
+                  <a href="/blog-details" class="link">
+                    <img src="/assets/images/thumbs/blog1.png" class="cover-img" alt="">
+                  </a>
+                </div>
+                <div class="post-item__content">
+                  <div class="post-item__top flx-align">
+                    <a href="/blog"
+                      class="post-item__tag pill font-14 text-heading fw-500 hover-text-main"><%= t('blog.workshop') %></a>
+                    <div class="post-item__date font-14 flx-align gap-2 font-14 text-heading fw-500">
+                      <span class="icon">
+                        <img src="/assets/images/icons/calendar.svg" alt="" class="white-version">
+                        <img src="/assets/images/icons/calendar-white.svg" alt="" class="dark-version">
+                      </span>
+                      <span class="text">Feb 12, 2025</span>
+                    </div>
+                  </div>
+                  <h5 class="post-item__title">
+                    <a href="/blog-details" class="link"><%= t('blog.articles.wholesaleMarketplaces') %></a>
+                  </h5>
+                  <a href="/blog-details" class="btn btn-outline-light pill fw-600"><%= t('blog.readMore') %></a>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-sm-6">
+              <div class="post-item">
+                <div class="post-item__thumb">
+                  <a href="/blog-details" class="link">
+                    <img src="/assets/images/thumbs/blog-details-thumb2.jpg" class="cover-img" alt="">
+                  </a>
+                </div>
+                <div class="post-item__content">
+                  <div class="post-item__top flx-align">
+                    <a href="/blog"
+                      class="post-item__tag pill font-14 text-heading fw-500 hover-text-main"><%= t('blog.challenges') %></a>
+                    <div class="post-item__date font-14 flx-align gap-2 font-14 text-heading fw-500">
+                      <span class="icon">
+                        <img src="/assets/images/icons/calendar.svg" alt="" class="white-version">
+                        <img src="/assets/images/icons/calendar-white.svg" alt="" class="dark-version">
+                      </span>
+                      <span class="text">Jan 17, 2025</span>
+                    </div>
+                  </div>
+                  <h5 class="post-item__title">
+                    <a href="/blog-details" class="link"><%= t('blog.articles.logisticChallenges') %></a>
+                  </h5>
+                  <a href="/blog-details" class="btn btn-outline-light pill fw-600"><%= t('blog.readMore') %></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- =========================== Blog Section End ========================== -->
+
+      <!-- AIRITOM Free Zone virtual tour embed -->
+      <div class="center-wrapper airitom-back mb-0 pb-0">
+        <div class="center-content">
+          <div class="airitom">
+            <a target="_blank" href="https://uzbekistan360.uz/en/location/airitom-free-zoneipn">
+              <img src="/assets/images/icons/dron.webp" alt="Dron icon" />
+            </a>
+          </div>
+          <div>
+            <a href="https://uzbekistan360.uz/en/location/airitom-free-zoneipn" class="btn btn-main btn-lg fw-300">
+              <%= t('virtual.virtualTourText') %>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+<%- include('../partials/footer') %>

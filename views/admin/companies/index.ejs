@@ -1,0 +1,1247 @@
+<%- 
+  layout = '../layout'
+  title = 'Company Management'
+  subtitle = 'Review company applications, manage approvals, and monitor business activities'
+  page = 'companies'
+  pageIcon = 'las la-building'
+  breadcrumb = [
+    { title: 'Management', url: '/admin' },
+    { title: 'Companies' }
+  ]
+  pageActions = `
+    <button class="btn btn-outline-primary" onclick="exportCompanies()">
+      <i class="las la-download"></i>
+      Export Data
+    </button>
+    ${typeof pendingApprovals !== 'undefined' && pendingApprovals > 0 ? `
+    <button class="btn btn-warning" onclick="showPendingApprovals()">
+      <i class="las la-clock"></i>
+      Review Pending (${pendingApprovals})
+    </button>
+    ` : ''}
+  `
+%>
+
+<!-- Enhanced Stats Cards -->
+<div class="metrics-grid mb-4">
+    <div class="metric-card metric-success">
+        <div class="metric-content">
+            <div class="metric-icon">
+                <i class="las la-building"></i>
+            </div>
+            <div class="metric-details">
+                <h3 class="metric-value" data-metric="activeCompanies"><%= typeof activeCompanies !== 'undefined' ? activeCompanies : 0 %></h3>
+                <p class="metric-label">Active Companies</p>
+                <span class="metric-trend positive">
+                    <i class="las la-arrow-up"></i>
+                    +8%
+                </span>
+            </div>
+        </div>
+        <div class="metric-chart">
+            <canvas id="activeCompaniesChart" width="60" height="30"></canvas>
+        </div>
+    </div>
+    
+    <div class="metric-card metric-warning">
+        <div class="metric-content">
+            <div class="metric-icon">
+                <i class="las la-clock"></i>
+            </div>
+            <div class="metric-details">
+                <h3 class="metric-value" data-metric="pendingApprovals"><%= typeof pendingApprovals !== 'undefined' ? pendingApprovals : 0 %></h3>
+                <p class="metric-label">Pending Approval</p>
+                <span class="metric-trend neutral">
+                    <i class="las la-minus"></i>
+                    0%
+                </span>
+            </div>
+        </div>
+        <div class="metric-chart">
+            <canvas id="pendingApprovalsChart" width="60" height="30"></canvas>
+        </div>
+    </div>
+    
+    <div class="metric-card metric-primary">
+        <div class="metric-content">
+            <div class="metric-icon">
+                <i class="las la-industry"></i>
+            </div>
+            <div class="metric-details">
+                <h3 class="metric-value" data-metric="manufacturers">0</h3>
+                <p class="metric-label">Manufacturers</p>
+                <span class="metric-trend positive">
+                    <i class="las la-arrow-up"></i>
+                    +12%
+                </span>
+            </div>
+        </div>
+        <div class="metric-chart">
+            <canvas id="manufacturersChart" width="60" height="30"></canvas>
+        </div>
+    </div>
+    
+    <div class="metric-card metric-purple">
+        <div class="metric-content">
+            <div class="metric-icon">
+                <i class="las la-store"></i>
+            </div>
+            <div class="metric-details">
+                <h3 class="metric-value" data-metric="distributors">0</h3>
+                <p class="metric-label">Distributors</p>
+                <span class="metric-trend positive">
+                    <i class="las la-arrow-up"></i>
+                    +5%
+                </span>
+            </div>
+        </div>
+        <div class="metric-chart">
+            <canvas id="distributorsChart" width="60" height="30"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Company Management Interface -->
+<div class="dashboard-card">
+    <div class="card-header">
+        <div class="card-title-section">
+            <h3 class="card-title">
+                <i class="las la-building"></i>
+                Company Directory
+            </h3>
+            <p class="card-subtitle">Comprehensive company management with approval workflow</p>
+        </div>
+        
+        <!-- Enhanced Tab Navigation -->
+        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#all-companies" type="button" role="tab">
+                    <i class="las la-list"></i>
+                    All Companies
+                    <span class="tab-count">0</span>
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#pending-approval" type="button" role="tab">
+                    <i class="las la-clock"></i>
+                    Pending Approval
+                    <% if (typeof pendingApprovals !== 'undefined' && pendingApprovals > 0) { %>
+                        <span class="badge bg-warning ms-1"><%= pendingApprovals %></span>
+                    <% } else { %>
+                        <span class="tab-count">0</span>
+                    <% } %>
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#manufacturers" type="button" role="tab">
+                    <i class="las la-industry"></i>
+                    Manufacturers
+                    <span class="tab-count">0</span>
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#distributors" type="button" role="tab">
+                    <i class="las la-store"></i>
+                    Distributors
+                    <span class="tab-count">0</span>
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
+                    <i class="las la-chart-bar"></i>
+                    Analytics
+                </button>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="card-body">
+        <div class="tab-content">
+            <!-- All Companies Tab -->
+            <div class="tab-pane fade show active" id="all-companies" role="tabpanel">
+                <!-- Advanced Filters -->
+                <div class="filters-section mb-4">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-4">
+                            <label class="form-label">Search Companies</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search by name, industry..." id="companySearch">
+                                <button class="btn btn-outline-secondary" type="button" onclick="performCompanySearch()">
+                                    <i class="las la-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <label class="form-label">Company Type</label>
+                            <select class="form-select" id="companyTypeFilter">
+                                <option value="">All Types</option>
+                                <option value="manufacturer">Manufacturer</option>
+                                <option value="distributor">Distributor</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="companyStatusFilter">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <label class="form-label">Country</label>
+                            <select class="form-select" id="countryFilter">
+                                <option value="">All Countries</option>
+                                <option value="uzbekistan">Uzbekistan</option>
+                                <option value="kazakhstan">Kazakhstan</option>
+                                <option value="tajikistan">Tajikistan</option>
+                                <option value="kyrgyzstan">Kyrgyzstan</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <label class="form-label">Date Range</label>
+                            <select class="form-select" id="dateRangeFilter">
+                                <option value="">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="quarter">This Quarter</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-1 col-md-4 col-sm-6">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary w-100" onclick="applyCompanyFilters()">
+                                <i class="las la-filter"></i>
+                                Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Companies Table -->
+                <div class="table-section">
+                    <div class="table-header mb-3">
+                        <div class="table-actions">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-secondary active" data-view="table" onclick="switchCompanyView('table')">
+                                    <i class="las la-list"></i>
+                                    Table
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" data-view="grid" onclick="switchCompanyView('grid')">
+                                    <i class="las la-th"></i>
+                                    Grid
+                                </button>
+                            </div>
+                            
+                            <div class="bulk-actions">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="bulkApproveCompanies()">
+                                    <i class="las la-check"></i>
+                                    Bulk Approve
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="bulkRejectCompanies()">
+                                    <i class="las la-times"></i>
+                                    Bulk Reject
+                                </button>
+                                <div class="dropdown d-inline">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="las la-cog"></i>
+                                        Actions
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="exportSelectedCompanies()">
+                                            <i class="las la-download"></i> Export Selected
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="sendBulkNotifications()">
+                                            <i class="las la-envelope"></i> Send Notifications
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="bulkSuspendCompanies()">
+                                            <i class="las la-ban"></i> Bulk Suspend
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="companiesTableView">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-modern">
+                                <thead>
+                                    <tr>
+                                        <th width="40">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" id="selectAllCompanies">
+                                            </div>
+                                        </th>
+                                        <th>Company</th>
+                                        <th>Type</th>
+                                        <th>Industry</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                        <th>Registration</th>
+                                        <th width="120">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="companiesTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center py-5">
+                                            <div class="empty-state">
+                                                <i class="las la-building empty-state-icon"></i>
+                                                <h5 class="empty-state-title">No Companies Found</h5>
+                                                <p class="empty-state-text">No companies match your current filters.</p>
+                                                <button class="btn btn-primary" onclick="resetCompanyFilters()">
+                                                    <i class="las la-redo"></i>
+                                                    Reset Filters
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="companiesGridView" style="display: none;">
+                        <div class="row g-4" id="companiesGridContainer">
+                            <!-- Grid items will be populated via JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pending Approval Tab -->
+            <div class="tab-pane fade" id="pending-approval" role="tabpanel">
+                <div class="approval-workflow">
+                    <div class="workflow-header mb-4">
+                        <div class="workflow-stats">
+                            <div class="stat-item">
+                                <i class="las la-clock stat-icon"></i>
+                                <div class="stat-content">
+                                    <h6>Pending Reviews</h6>
+                                    <span class="stat-value"><%= typeof pendingApprovals !== 'undefined' ? pendingApprovals : 0 %></span>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i class="las la-calendar-alt stat-icon"></i>
+                                <div class="stat-content">
+                                    <h6>Avg. Processing Time</h6>
+                                    <span class="stat-value">2.3 days</span>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i class="las la-percentage stat-icon"></i>
+                                <div class="stat-content">
+                                    <h6>Approval Rate</h6>
+                                    <span class="stat-value">89%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="workflow-actions">
+                            <button class="btn btn-success" onclick="bulkApproveAll()" title="Approve All">
+                                <i class="las la-check-double"></i>
+                                Approve All
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="exportPendingList()" title="Export List">
+                                <i class="las la-download"></i>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="approval-queue">
+                        <div id="pendingCompaniesContainer">
+                            <!-- Mock pending company -->
+                            <div class="approval-item">
+                                <div class="approval-company-info">
+                                    <div class="company-avatar">
+                                        <img src="/assets/img/company-placeholder.png" alt="Company Logo">
+                                    </div>
+                                    <div class="company-details">
+                                        <h6>Sample Manufacturing LLC</h6>
+                                        <p class="company-type">
+                                            <i class="las la-industry"></i>
+                                            Manufacturer • Textiles & Apparel
+                                        </p>
+                                        <p class="company-location">
+                                            <i class="las la-map-marker-alt"></i>
+                                            Tashkent, Uzbekistan
+                                        </p>
+                                        <div class="company-meta">
+                                            <span class="meta-item">
+                                                <i class="las la-calendar"></i>
+                                                Applied 2 days ago
+                                            </span>
+                                            <span class="meta-item text-success">
+                                                <i class="las la-file-check"></i>
+                                                Documents: Complete
+                                            </span>
+                                            <span class="meta-item">
+                                                <i class="las la-user"></i>
+                                                Contact: +998 90 123 45 67
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="approval-actions">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewCompanyDetails('sample_id')" title="View Details">
+                                        <i class="las la-eye"></i>
+                                        Review
+                                    </button>
+                                    <button class="btn btn-sm btn-success" onclick="approveCompany('sample_id')" title="Approve Company">
+                                        <i class="las la-check"></i>
+                                        Approve
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="rejectCompany('sample_id')" title="Reject Company">
+                                        <i class="las la-times"></i>
+                                        Reject
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="empty-pending text-center py-5" style="display: none;">
+                            <div class="empty-state">
+                                <i class="las la-check-circle empty-state-icon text-success"></i>
+                                <h5 class="empty-state-title">All Caught Up!</h5>
+                                <p class="empty-state-text">No pending approvals at the moment. Great work!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Manufacturers Tab -->
+            <div class="tab-pane fade" id="manufacturers" role="tabpanel">
+                <div class="manufacturers-section">
+                    <div class="section-header mb-4">
+                        <div class="industry-filter">
+                            <label class="form-label">Filter by Industry</label>
+                            <select class="form-select" id="industryFilter">
+                                <option value="">All Industries</option>
+                                <option value="textiles">Textiles & Apparel</option>
+                                <option value="food">Food & Beverages</option>
+                                <option value="electronics">Electronics</option>
+                                <option value="automotive">Automotive</option>
+                                <option value="chemicals">Chemicals</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="manufacturersContent">
+                        <div class="empty-state text-center py-5">
+                            <i class="las la-industry empty-state-icon"></i>
+                            <h5 class="empty-state-title">No Manufacturers Yet</h5>
+                            <p class="empty-state-text">No manufacturers have registered on the platform yet.</p>
+                            <button class="btn btn-primary" onclick="inviteManufacturers()">
+                                <i class="las la-envelope"></i>
+                                Invite Manufacturers
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Distributors Tab -->
+            <div class="tab-pane fade" id="distributors" role="tabpanel">
+                <div class="distributors-section">
+                    <div class="section-header mb-4">
+                        <div class="region-filter">
+                            <label class="form-label">Filter by Region</label>
+                            <select class="form-select" id="regionFilter">
+                                <option value="">All Regions</option>
+                                <option value="central-asia">Central Asia</option>
+                                <option value="middle-east">Middle East</option>
+                                <option value="south-asia">South Asia</option>
+                                <option value="europe">Europe</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="distributorsContent">
+                        <div class="empty-state text-center py-5">
+                            <i class="las la-store empty-state-icon"></i>
+                            <h5 class="empty-state-title">No Distributors Yet</h5>
+                            <p class="empty-state-text">No distributors have registered on the platform yet.</p>
+                            <button class="btn btn-primary" onclick="inviteDistributors()">
+                                <i class="las la-envelope"></i>
+                                Invite Distributors
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Analytics Tab -->
+            <div class="tab-pane fade" id="analytics" role="tabpanel">
+                <div class="analytics-dashboard">
+                    <div class="row g-4">
+                        <div class="col-lg-8">
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h5>Company Registration Trends</h5>
+                                    <div class="chart-controls">
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-secondary active" data-period="7d">7D</button>
+                                            <button class="btn btn-sm btn-outline-secondary" data-period="30d">30D</button>
+                                            <button class="btn btn-sm btn-outline-secondary" data-period="90d">90D</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="chart-body">
+                                    <canvas id="companyTrendsChart" height="300"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h5>Company Distribution</h5>
+                                </div>
+                                <div class="chart-body">
+                                    <canvas id="companyDistributionChart" height="300"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h5>Geographic Distribution</h5>
+                                </div>
+                                <div class="chart-body">
+                                    <canvas id="geographicChart" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Enhanced Pagination -->
+        <nav aria-label="Companies pagination" class="mt-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="pagination-info">
+                    <span class="text-muted">Showing <strong>0-0</strong> of <strong>0</strong> companies</span>
+                </div>
+                <ul class="pagination mb-0">
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="las la-angle-left"></i>
+                            Previous
+                        </span>
+                    </li>
+                    <li class="page-item active">
+                        <span class="page-link">1</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Next
+                            <i class="las la-angle-right"></i>
+                        </span>
+                    </li>
+                </ul>
+                <div class="page-size-selector">
+                    <select class="form-select form-select-sm" style="width: auto;">
+                        <option value="10">10 per page</option>
+                        <option value="25" selected>25 per page</option>
+                        <option value="50">50 per page</option>
+                    </select>
+                </div>
+            </div>
+        </nav>
+    </div>
+</div>
+
+<style>
+/* Enhanced Tab Styling */
+.nav-tabs {
+    border: none;
+    margin-bottom: 0;
+}
+
+.nav-tabs .nav-link {
+    color: var(--text-secondary);
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 1rem 1.5rem;
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--primary);
+    border-bottom-color: rgba(59, 130, 246, 0.3);
+    background-color: rgba(59, 130, 246, 0.02);
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--primary);
+    background: none;
+    border-bottom-color: var(--primary);
+    font-weight: 600;
+}
+
+.tab-count {
+    background: var(--surface);
+    color: var(--text-secondary);
+    padding: 0.125rem 0.5rem;
+    border-radius: 50px;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active .tab-count {
+    background: var(--primary);
+    color: white;
+}
+
+/* Filters Section */
+.filters-section {
+    background: var(--surface);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+}
+
+/* Table Section */
+.table-section {
+    background: var(--surface);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+}
+
+.table-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.table-actions,
+.bulk-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Enhanced Approval Queue */
+.approval-workflow {
+    background: var(--surface);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+}
+
+.workflow-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.workflow-stats {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.stat-icon {
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
+.stat-content h6 {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.workflow-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.approval-queue {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.approval-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius);
+    transition: all 0.2s ease;
+    background: var(--background);
+}
+
+.approval-item:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+}
+
+.approval-company-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.company-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid var(--border);
+}
+
+.company-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.company-details h6 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.company-details p {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.company-details p i {
+    width: 16px;
+    font-size: var(--font-size-sm);
+}
+
+.company-meta {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.meta-item i {
+    width: 14px;
+}
+
+.approval-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Chart Containers */
+.chart-container {
+    background: var(--surface);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    height: 100%;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.chart-header h5 {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin: 0;
+    font-size: var(--font-size-md);
+}
+
+.chart-controls .btn-group .btn {
+    font-size: var(--font-size-xs);
+    padding: 0.25rem 0.75rem;
+}
+
+.chart-body {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Section Headers */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* Enhanced Empty States */
+.empty-state {
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    opacity: 0.6;
+}
+
+.empty-state-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: var(--font-size-lg);
+}
+
+.empty-state-text {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .nav-tabs .nav-link {
+        padding: 0.75rem 1rem;
+        font-size: var(--font-size-sm);
+    }
+    
+    .workflow-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .workflow-stats {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .approval-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .approval-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .company-meta {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .table-actions,
+    .bulk-actions {
+        justify-content: center;
+    }
+}
+
+/* Company Status Badges */
+.company-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.company-status.pending {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.company-status.approved {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.company-status.rejected {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+.company-status.suspended {
+    background-color: rgba(107, 114, 128, 0.1);
+    color: var(--text-muted);
+}
+</style>
+
+<script>
+// Enhanced Company Management JavaScript
+class CompanyManager {
+    constructor() {
+        this.currentView = 'table';
+        this.currentTab = 'all-companies';
+        this.selectedCompanies = new Set();
+        this.init();
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.loadCompanies();
+        this.initializeCharts();
+    }
+
+    setupEventListeners() {
+        // Filter event listeners
+        ['companyTypeFilter', 'companyStatusFilter', 'countryFilter', 'dateRangeFilter'].forEach(filterId => {
+            document.getElementById(filterId)?.addEventListener('change', () => this.applyCompanyFilters());
+        });
+
+        // Search input
+        const searchInput = document.getElementById('companySearch');
+        if (searchInput) {
+            let searchTimeout;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => this.performCompanySearch(e.target.value), 500);
+            });
+        }
+
+        // Tab switching
+        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', (e) => {
+                this.currentTab = e.target.getAttribute('data-bs-target').substring(1);
+                this.loadTabContent();
+            });
+        });
+
+        // Select all checkbox
+        const selectAllCheckbox = document.getElementById('selectAllCompanies');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', (e) => this.toggleSelectAll(e.target.checked));
+        }
+    }
+
+    async loadCompanies() {
+        try {
+            // Simulate API call - replace with actual implementation
+            const companies = this.getMockCompanies();
+            this.renderCompanies(companies);
+        } catch (error) {
+            console.error('Failed to load companies:', error);
+        }
+    }
+
+    getMockCompanies() {
+        return [
+            {
+                id: 1,
+                name: 'Silk Road Textiles',
+                type: 'manufacturer',
+                industry: 'Textiles & Apparel',
+                country: 'uzbekistan',
+                city: 'Tashkent',
+                status: 'approved',
+                registrationDate: '2024-01-10',
+                logo: '/assets/img/company-placeholder.png'
+            },
+            {
+                id: 2,
+                name: 'Central Asia Distribution',
+                type: 'distributor',
+                industry: 'General Trade',
+                country: 'kazakhstan',
+                city: 'Almaty',
+                status: 'pending',
+                registrationDate: '2024-01-15',
+                logo: '/assets/img/company-placeholder.png'
+            }
+        ];
+    }
+
+    renderCompanies(companies) {
+        const tbody = document.getElementById('companiesTableBody');
+        if (!tbody) return;
+
+        if (companies.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-5">
+                        <div class="empty-state">
+                            <i class="las la-building empty-state-icon"></i>
+                            <h5 class="empty-state-title">No Companies Found</h5>
+                            <p class="empty-state-text">No companies match your current filters.</p>
+                            <button class="btn btn-primary" onclick="window.companyManager.resetCompanyFilters()">
+                                <i class="las la-redo"></i>
+                                Reset Filters
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = companies.map(company => `
+            <tr>
+                <td>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input company-checkbox" 
+                               value="${company.id}" onchange="window.companyManager.toggleCompanySelection(${company.id}, this.checked)">
+                    </div>
+                </td>
+                <td>
+                    <div class="company-info">
+                        <div class="company-avatar-sm">
+                            <img src="${company.logo}" alt="${company.name}" class="avatar">
+                        </div>
+                        <div class="company-details-sm">
+                            <div class="company-name">${company.name}</div>
+                            <div class="company-id">ID: ${company.id}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="company-type-badge type-${company.type}">
+                        ${company.type.charAt(0).toUpperCase() + company.type.slice(1)}
+                    </span>
+                </td>
+                <td>${company.industry}</td>
+                <td>
+                    <div class="location-info">
+                        <img src="/assets/img/flags/${company.country}.svg" alt="${company.country}" class="country-flag">
+                        ${company.city}, ${company.country.charAt(0).toUpperCase() + company.country.slice(1)}
+                    </div>
+                </td>
+                <td>
+                    <span class="company-status ${company.status}">${company.status.charAt(0).toUpperCase() + company.status.slice(1)}</span>
+                </td>
+                <td>${this.formatDate(company.registrationDate)}</td>
+                <td>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-primary" onclick="window.companyManager.viewCompany(${company.id})" title="View Details">
+                            <i class="las la-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="window.companyManager.editCompany(${company.id})" title="Edit">
+                            <i class="las la-edit"></i>
+                        </button>
+                        ${company.status === 'pending' ? `
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="las la-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item text-success" href="#" onclick="window.companyManager.approveCompany(${company.id})">
+                                    <i class="las la-check"></i> Approve
+                                </a></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="window.companyManager.rejectCompany(${company.id})">
+                                    <i class="las la-times"></i> Reject
+                                </a></li>
+                            </ul>
+                        </div>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    formatDate(dateString) {
+        return new Date(dateString).toLocaleDateString();
+    }
+
+    loadTabContent() {
+        switch (this.currentTab) {
+            case 'pending-approval':
+                this.loadPendingApprovals();
+                break;
+            case 'manufacturers':
+                this.loadManufacturers();
+                break;
+            case 'distributors':
+                this.loadDistributors();
+                break;
+            case 'analytics':
+                this.loadAnalytics();
+                break;
+        }
+    }
+
+    initializeCharts() {
+        // Initialize metric charts
+        ['activeCompaniesChart', 'pendingApprovalsChart', 'manufacturersChart', 'distributorsChart'].forEach(chartId => {
+            const canvas = document.getElementById(chartId);
+            if (canvas && window.AdminCharts) {
+                window.AdminCharts.createMiniChart(canvas);
+            }
+        });
+    }
+
+    // Additional methods would be implemented here...
+    applyCompanyFilters() {
+        console.log('Applying company filters...');
+        this.loadCompanies();
+    }
+
+    resetCompanyFilters() {
+        ['companySearch', 'companyTypeFilter', 'companyStatusFilter', 'countryFilter', 'dateRangeFilter'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.value = '';
+        });
+        this.loadCompanies();
+    }
+
+    performCompanySearch(query) {
+        console.log('Searching companies for:', query);
+        this.loadCompanies();
+    }
+
+    toggleSelectAll(checked) {
+        document.querySelectorAll('.company-checkbox').forEach(checkbox => {
+            checkbox.checked = checked;
+            this.toggleCompanySelection(parseInt(checkbox.value), checked);
+        });
+    }
+
+    toggleCompanySelection(companyId, selected) {
+        if (selected) {
+            this.selectedCompanies.add(companyId);
+        } else {
+            this.selectedCompanies.delete(companyId);
+        }
+    }
+
+    viewCompany(companyId) {
+        console.log('Viewing company:', companyId);
+    }
+
+    editCompany(companyId) {
+        console.log('Editing company:', companyId);
+    }
+
+    approveCompany(companyId) {
+        console.log('Approving company:', companyId);
+    }
+
+    rejectCompany(companyId) {
+        console.log('Rejecting company:', companyId);
+    }
+
+    loadPendingApprovals() {
+        console.log('Loading pending approvals...');
+    }
+
+    loadManufacturers() {
+        console.log('Loading manufacturers...');
+    }
+
+    loadDistributors() {
+        console.log('Loading distributors...');
+    }
+
+    loadAnalytics() {
+        console.log('Loading analytics...');
+    }
+}
+
+// Global functions for backward compatibility
+window.exportCompanies = () => {
+    if (window.AdminLayout?.showToast) {
+        window.AdminLayout.showToast('Export functionality will be implemented', 'info');
+    }
+};
+
+window.showPendingApprovals = () => {
+    const pendingTab = document.querySelector('[data-bs-target="#pending-approval"]');
+    if (pendingTab) {
+        pendingTab.click();
+    }
+};
+
+window.applyCompanyFilters = () => {
+    if (window.companyManager) {
+        window.companyManager.applyCompanyFilters();
+    }
+};
+
+window.switchCompanyView = (view) => {
+    ['table', 'grid'].forEach(v => {
+        document.getElementById(`companies${v.charAt(0).toUpperCase() + v.slice(1)}View`)?.style.setProperty('display', v === view ? 'block' : 'none');
+        document.querySelector(`[data-view="${v}"]`)?.classList.toggle('active', v === view);
+    });
+};
+
+window.viewCompanyDetails = (companyId) => {
+    if (window.AdminLayout?.showToast) {
+        window.AdminLayout.showToast('Company details view will be implemented', 'info');
+    }
+};
+
+// Additional global functions...
+window.bulkApproveCompanies = () => {
+    if (window.AdminLayout?.showToast) {
+        window.AdminLayout.showToast('Bulk approve functionality will be implemented', 'info');
+    }
+};
+
+window.bulkRejectCompanies = () => {
+    if (window.AdminLayout?.showToast) {
+        window.AdminLayout.showToast('Bulk reject functionality will be implemented', 'info');
+    }
+};
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.companyManager = new CompanyManager();
+});
+</script>

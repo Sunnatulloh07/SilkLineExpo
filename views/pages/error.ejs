@@ -1,0 +1,29 @@
+<%- include('../partials/header', {title: 'Xatolik - Silk Line Expo'}) %>
+<%- include('../partials/navigation') %>
+
+    <main class="main-wrapper">
+      <section class="error-section padding-y-120">
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-lg-6">
+              <div class="error-content text-center">
+                <h1 class="error-title mb-4">500</h1>
+                <h3 class="error-subtitle mb-3">Server xatosi</h3>
+                <p class="error-desc mb-4">Kechirasiz, serverda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.</p>
+                <a href="/" class="btn btn-main btn-lg">Bosh sahifaga qaytish</a>
+                <% if (error && process.env.NODE_ENV === 'development') { %>
+                  <div class="mt-4">
+                    <details>
+                      <summary>Xatolik tafsilotlari (development)</summary>
+                      <pre><%= error.stack %></pre>
+                    </details>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+<%- include('../partials/footer') %>

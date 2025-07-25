@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="<%= currentLang || 'uz' %>" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLEX Super Admin Dashboard</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Core CSS -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/line-awesome.min.css" rel="stylesheet">
+    <link href="/admin/css/modern-theme.css" rel="stylesheet">
+    <link href="/admin/css/modern-components.css" rel="stylesheet">
+    <link href="/admin/css/modern-dashboard.css" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+</head>
+<body class="modern-admin-layout">
+    <div class="admin-wrapper">
+        <!-- Modern Sidebar -->
+        <%- include('../partials/modern-sidebar', { currentPage: 'dashboard', user: user }) %>
+        
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Modern Header -->
+            <%- include('../partials/modern-header', { 
+                user: user, 
+                title: 'Dashboard Overview',
+                subtitle: 'Monitor your platform performance and key metrics',
+                breadcrumb: [
+                    { title: 'Dashboard' }
+                ],
+                currentLang: typeof currentLang !== 'undefined' ? currentLang : 'uz'
+            }) %>
+            
+            <!-- Dashboard Content -->
+            <div class="admin-content">
+                <div class="container-fluid">
+                    
+                    <!-- Welcome Hero Section -->
+                    <div class="hero-section">
+                        <div class="hero-card">
+                            <div class="hero-background">
+                                <div class="hero-shape shape-1"></div>
+                                <div class="hero-shape shape-2"></div>
+                                <div class="hero-shape shape-3"></div>
+                            </div>
+                            <div class="hero-content">
+                                <div class="hero-text">
+                                    <h1 class="hero-title">Welcome back, <span class="text-primary"><%= user.name || 'Admin' %></span>!</h1>
+                                    <p class="hero-subtitle">Here's what's happening with your SLEX platform today. Monitor key metrics and manage your B2B marketplace efficiently.</p>
+                                </div>
+                                <div class="hero-stats">
+                                    <div class="hero-stat">
+                                        <div class="stat-icon bg-primary">
+                                            <i class="las la-arrow-up"></i>
+                                        </div>
+                                        <div class="stat-content">
+                                            <span class="stat-number" id="heroGrowth">+12.5%</span>
+                                            <span class="stat-label">Monthly Growth</span>
+                                        </div>
+                                    </div>
+                                    <div class="hero-stat">
+                                        <div class="stat-icon bg-success">
+                                            <i class="las la-check-circle"></i>
+                                        </div>
+                                        <div class="stat-content">
+                                            <span class="stat-number" id="heroUptime">99.9%</span>
+                                            <span class="stat-label">System Uptime</span>
+                                        </div>
+                                    </div>
+                                    <div class="hero-stat">
+                                        <div class="stat-icon bg-warning">
+                                            <i class="las la-clock"></i>
+                                        </div>
+                                        <div class="stat-content">
+                                            <span class="stat-number" id="heroPending">8</span>
+                                            <span class="stat-label">Pending Approvals</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Metrics Grid -->
+                    <div class="metrics-grid">
+                        <div class="metric-card metric-primary" data-aos="fade-up" data-aos-delay="100">
+                            <div class="metric-header">
+                                <div class="metric-icon">
+                                    <i class="las la-building"></i>
+                                </div>
+                                <div class="metric-menu">
+                                    <button class="metric-menu-btn">
+                                        <i class="las la-ellipsis-v"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="metric-content">
+                                <h3 class="metric-value" id="totalCompanies">247</h3>
+                                <p class="metric-label">Total Companies</p>
+                                <div class="metric-trend">
+                                    <span class="trend-indicator positive">
+                                        <i class="las la-arrow-up"></i>
+                                        <span id="companiesGrowth">+8.2%</span>
+                                    </span>
+                                    <span class="trend-period">vs last month</span>
+                                </div>
+                            </div>
+                            <div class="metric-chart">
+                                <canvas id="companiesChart" width="100" height="40"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-success" data-aos="fade-up" data-aos-delay="200">
+                            <div class="metric-header">
+                                <div class="metric-icon">
+                                    <i class="las la-check-circle"></i>
+                                </div>
+                                <div class="metric-menu">
+                                    <button class="metric-menu-btn">
+                                        <i class="las la-ellipsis-v"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="metric-content">
+                                <h3 class="metric-value" id="activeCompanies">189</h3>
+                                <p class="metric-label">Active Companies</p>
+                                <div class="metric-trend">
+                                    <span class="trend-indicator positive">
+                                        <i class="las la-arrow-up"></i>
+                                        <span id="activeGrowth">+12.3%</span>
+                                    </span>
+                                    <span class="trend-period">vs last month</span>
+                                </div>
+                            </div>
+                            <div class="metric-chart">
+                                <canvas id="activeChart" width="100" height="40"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-warning" data-aos="fade-up" data-aos-delay="300">
+                            <div class="metric-header">
+                                <div class="metric-icon">
+                                    <i class="las la-clock"></i>
+                                </div>
+                                <div class="metric-menu">
+                                    <button class="metric-menu-btn">
+                                        <i class="las la-ellipsis-v"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="metric-content">
+                                <h3 class="metric-value" id="pendingCompanies">18</h3>
+                                <p class="metric-label">Pending Approval</p>
+                                <div class="metric-trend">
+                                    <span class="trend-indicator negative">
+                                        <i class="las la-arrow-down"></i>
+                                        <span id="pendingChange">-2.1%</span>
+                                    </span>
+                                    <span class="trend-period">vs last week</span>
+                                </div>
+                            </div>
+                            <div class="metric-chart">
+                                <canvas id="pendingChart" width="100" height="40"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-info" data-aos="fade-up" data-aos-delay="400">
+                            <div class="metric-header">
+                                <div class="metric-icon">
+                                    <i class="las la-box"></i>
+                                </div>
+                                <div class="metric-menu">
+                                    <button class="metric-menu-btn">
+                                        <i class="las la-ellipsis-v"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="metric-content">
+                                <h3 class="metric-value" id="totalProducts">1,456</h3>
+                                <p class="metric-label">Total Products</p>
+                                <div class="metric-trend">
+                                    <span class="trend-indicator positive">
+                                        <i class="las la-arrow-up"></i>
+                                        <span id="productsGrowth">+15.7%</span>
+                                    </span>
+                                    <span class="trend-period">vs last month</span>
+                                </div>
+                            </div>
+                            <div class="metric-chart">
+                                <canvas id="productsChart" width="100" height="40"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Dashboard Grid -->
+                    <div class="dashboard-grid">
+                        <!-- Analytics Chart -->
+                        <div class="dashboard-card card-large" data-aos="fade-up" data-aos-delay="500">
+                            <div class="card-header">
+                                <div class="card-header-content">
+                                    <h3 class="card-title">
+                                        <i class="las la-chart-line"></i>
+                                        Platform Analytics
+                                    </h3>
+                                    <p class="card-subtitle">Registration trends and platform growth over time</p>
+                                </div>
+                                <div class="card-actions">
+                                    <div class="btn-group chart-period-selector" role="group">
+                                        <button class="btn btn-sm btn-outline-primary active" data-period="7d" onclick="updateAnalyticsChart('7d')">7D</button>
+                                        <button class="btn btn-sm btn-outline-primary" data-period="30d" onclick="updateAnalyticsChart('30d')">30D</button>
+                                        <button class="btn btn-sm btn-outline-primary" data-period="90d" onclick="updateAnalyticsChart('90d')">90D</button>
+                                        <button class="btn btn-sm btn-outline-primary" data-period="1y" onclick="updateAnalyticsChart('1y')">1Y</button>
+                                    </div>
+                                    <div class="card-menu">
+                                        <button class="card-menu-btn">
+                                            <i class="las la-ellipsis-v"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="analyticsChart" height="300"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="dashboard-card" data-aos="fade-up" data-aos-delay="600">
+                            <div class="card-header">
+                                <div class="card-header-content">
+                                    <h3 class="card-title">
+                                        <i class="las la-bolt"></i>
+                                        Quick Actions
+                                    </h3>
+                                    <p class="card-subtitle">Common administrative tasks</p>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="quick-actions">
+                                    <a href="/admin/pending-approvals" class="quick-action-item">
+                                        <div class="action-icon bg-warning">
+                                            <i class="las la-user-check"></i>
+                                        </div>
+                                        <div class="action-content">
+                                            <h6 class="action-title">Review Pending</h6>
+                                            <p class="action-desc"><span id="quickPendingCount">18</span> companies awaiting approval</p>
+                                            <span class="action-badge">Urgent</span>
+                                        </div>
+                                        <div class="action-arrow">
+                                            <i class="las la-arrow-right"></i>
+                                        </div>
+                                    </a>
+                                    
+                                    <a href="/admin/users" class="quick-action-item">
+                                        <div class="action-icon bg-primary">
+                                            <i class="las la-users"></i>
+                                        </div>
+                                        <div class="action-content">
+                                            <h6 class="action-title">Manage Users</h6>
+                                            <p class="action-desc">View and manage all registered companies</p>
+                                        </div>
+                                        <div class="action-arrow">
+                                            <i class="las la-arrow-right"></i>
+                                        </div>
+                                    </a>
+                                    
+                                    <a href="/admin/products" class="quick-action-item">
+                                        <div class="action-icon bg-success">
+                                            <i class="las la-box"></i>
+                                        </div>
+                                        <div class="action-content">
+                                            <h6 class="action-title">Product Moderation</h6>
+                                            <p class="action-desc">Review and moderate product listings</p>
+                                        </div>
+                                        <div class="action-arrow">
+                                            <i class="las la-arrow-right"></i>
+                                        </div>
+                                    </a>
+                                    
+                                    <a href="/admin/system/logs" class="quick-action-item">
+                                        <div class="action-icon bg-info">
+                                            <i class="las la-file-alt"></i>
+                                        </div>
+                                        <div class="action-content">
+                                            <h6 class="action-title">System Logs</h6>
+                                            <p class="action-desc">Monitor system activity and errors</p>
+                                        </div>
+                                        <div class="action-arrow">
+                                            <i class="las la-arrow-right"></i>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="dashboard-card" data-aos="fade-up" data-aos-delay="700">
+                            <div class="card-header">
+                                <div class="card-header-content">
+                                    <h3 class="card-title">
+                                        <i class="las la-history"></i>
+                                        Recent Activity
+                                    </h3>
+                                    <p class="card-subtitle">Latest platform activities and updates</p>
+                                </div>
+                                <div class="card-actions">
+                                    <a href="/admin/activity-log" class="btn btn-sm btn-outline-primary">
+                                        View All
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="activity-timeline" id="recentActivity">
+                                    <div class="activity-item">
+                                        <div class="activity-icon bg-success">
+                                            <i class="las la-user-plus"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <h6 class="activity-title">New Company Registration</h6>
+                                            <p class="activity-desc"><strong>Silk Road Textiles LLC</strong> from Uzbekistan submitted registration</p>
+                                            <span class="activity-time">5 minutes ago</span>
+                                        </div>
+                                        <div class="activity-actions">
+                                            <button class="btn btn-sm btn-outline-primary">Review</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="activity-item">
+                                        <div class="activity-icon bg-primary">
+                                            <i class="las la-check-circle"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <h6 class="activity-title">Company Approved</h6>
+                                            <p class="activity-desc"><strong>Central Asia Foods</strong> has been approved by Admin</p>
+                                            <span class="activity-time">15 minutes ago</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="activity-item">
+                                        <div class="activity-icon bg-info">
+                                            <i class="las la-box"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <h6 class="activity-title">New Product Added</h6>
+                                            <p class="activity-desc"><strong>Beijing Electronics Co</strong> added 5 new products</p>
+                                            <span class="activity-time">1 hour ago</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="activity-item">
+                                        <div class="activity-icon bg-warning">
+                                            <i class="las la-exclamation-triangle"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <h6 class="activity-title">Support Ticket Created</h6>
+                                            <p class="activity-desc">Ticket #1247 requires admin attention</p>
+                                            <span class="activity-time">2 hours ago</span>
+                                        </div>
+                                        <div class="activity-actions">
+                                            <button class="btn btn-sm btn-outline-warning">Review</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Status -->
+                        <div class="dashboard-card" data-aos="fade-up" data-aos-delay="800">
+                            <div class="card-header">
+                                <div class="card-header-content">
+                                    <h3 class="card-title">
+                                        <i class="las la-server"></i>
+                                        System Health
+                                    </h3>
+                                    <p class="card-subtitle">Platform performance and system status</p>
+                                </div>
+                                <div class="card-actions">
+                                    <span class="status-badge status-online">All Systems Operational</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="system-status">
+                                    <div class="status-item">
+                                        <div class="status-indicator">
+                                            <div class="status-dot status-online"></div>
+                                            <span class="status-label">API Services</span>
+                                        </div>
+                                        <div class="status-details">
+                                            <span class="status-value">Operational</span>
+                                            <span class="status-time">99.9% uptime</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="status-item">
+                                        <div class="status-indicator">
+                                            <div class="status-dot status-online"></div>
+                                            <span class="status-label">Database</span>
+                                        </div>
+                                        <div class="status-details">
+                                            <span class="status-value">Healthy</span>
+                                            <span class="status-time">Response: 45ms</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="status-item">
+                                        <div class="status-indicator">
+                                            <div class="status-dot status-warning"></div>
+                                            <span class="status-label">Email Service</span>
+                                        </div>
+                                        <div class="status-details">
+                                            <span class="status-value">Degraded</span>
+                                            <span class="status-time">Queue: 12 emails</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="status-item">
+                                        <div class="status-indicator">
+                                            <div class="status-dot status-online"></div>
+                                            <span class="status-label">File Storage</span>
+                                        </div>
+                                        <div class="status-details">
+                                            <span class="status-value">Available</span>
+                                            <span class="status-time">78% capacity</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="system-metrics">
+                                    <div class="metric-row">
+                                        <span class="metric-label">Server Uptime</span>
+                                        <span class="metric-value">15d 7h 23m</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">Active Sessions</span>
+                                        <span class="metric-value" id="activeSessions">127</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">Memory Usage</span>
+                                        <span class="metric-value">68% (2.1GB)</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">CPU Load</span>
+                                        <span class="metric-value">34%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Geographic Distribution -->
+                        <div class="dashboard-card" data-aos="fade-up" data-aos-delay="900">
+                            <div class="card-header">
+                                <div class="card-header-content">
+                                    <h3 class="card-title">
+                                        <i class="las la-globe"></i>
+                                        Geographic Distribution
+                                    </h3>
+                                    <p class="card-subtitle">Companies by region and country</p>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="geoChart" height="250"></canvas>
+                                </div>
+                                <div class="geo-stats">
+                                    <div class="geo-stat-item">
+                                        <div class="geo-flag">🇺🇿</div>
+                                        <div class="geo-content">
+                                            <span class="geo-country">Uzbekistan</span>
+                                            <span class="geo-count">89 companies</span>
+                                        </div>
+                                        <div class="geo-percentage">36%</div>
+                                    </div>
+                                    <div class="geo-stat-item">
+                                        <div class="geo-flag">🇰🇿</div>
+                                        <div class="geo-content">
+                                            <span class="geo-country">Kazakhstan</span>
+                                            <span class="geo-count">64 companies</span>
+                                        </div>
+                                        <div class="geo-percentage">26%</div>
+                                    </div>
+                                    <div class="geo-stat-item">
+                                        <div class="geo-flag">🇨🇳</div>
+                                        <div class="geo-content">
+                                            <span class="geo-country">China</span>
+                                            <span class="geo-count">52 companies</span>
+                                        </div>
+                                        <div class="geo-percentage">21%</div>
+                                    </div>
+                                    <div class="geo-stat-item">
+                                        <div class="geo-flag">🇹🇯</div>
+                                        <div class="geo-content">
+                                            <span class="geo-country">Tajikistan</span>
+                                            <span class="geo-count">28 companies</span>
+                                        </div>
+                                        <div class="geo-percentage">11%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/admin/js/modern-theme.js"></script>
+    <script src="/admin/js/modern-dashboard.js"></script>
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 600,
+            easing: 'ease-out-cubic',
+            once: true
+        });
+    </script>
+</body>
+</html>

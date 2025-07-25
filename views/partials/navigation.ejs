@@ -1,0 +1,182 @@
+<!--==================== Sidebar Overlay End ====================-->
+<div class="side-overlay"></div>
+<!--==================== Sidebar Overlay End ====================-->
+
+<!-- ==================== Scroll to Top End Here ==================== -->
+<div class="progress-wrap">
+  <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+    <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+  </svg>
+</div>
+<!-- ==================== Scroll to Top End Here ==================== -->
+
+  <!-- ==================== Mobile Menu Start Here ==================== -->
+  <div class="mobile-menu d-lg-none d-block">
+    <button type="button" class="close-button"> <i class="las la-times"></i> </button>
+    <div class="mobile-menu__inner">
+      <a href="/" class="mobile-menu__logo">
+        <img src="/assets/images/logo/logo.png" alt="<%= t('common.logoAlt') %>" class="white-version">
+        <img src="/assets/images/logo/white-logo-two.png" alt="<%= t('common.logoAlt') %>" class="dark-version">
+      </a>
+      <div class="mobile-menu__menu">
+
+        <ul class="nav-menu flx-align nav-menu--mobile">
+          <li class="nav-menu__item">
+            <a href="/" class="nav-menu__link"><%= t('nav.home') %></a>
+          </li>
+          <li class="nav-menu__item">
+            <a href="/all-product" class="nav-menu__link"><%= t('nav.allProducts') %></a>
+          </li>
+          <li class="nav-menu__item">
+            <a href="/blog" class="nav-menu__link"><%= t('nav.news') %></a>
+          </li>
+          <li class="nav-menu__item">
+            <a href="/contact" class="nav-menu__link"><%= t('nav.contact') %></a>
+          </li>
+          <li class="nav-menu__item">
+            <a href="/partner-countries" class="nav-menu__link"><%= t('nav.partnersCountries') %></a>
+          </li>
+          <li class="nav-menu__item">
+            <a href="/partners-agents" class="nav-menu__link"><%= t('nav.partnersAgents') %></a>
+          </li>
+        </ul>
+        <div class="header-right__inner d-lg-none my-3 gap-1 d-flex flx-align">
+
+          <a href="/login" class="btn btn-main pill">
+            <span class="icon-left icon">
+              <img src="/assets/images/icons/user.svg" alt="<%= t('common.userIconAlt') %>">
+            </span><%= t('nav.createAccount') %>
+          </a>
+          <!-- Custom Language Selector - Mobile -->
+          <div class="custom-lang-selector" data-type="mobile">
+            <div class="lang-btn">
+              <img src="/assets/images/icons/globe.svg" alt="" class="globe-icon white-version">
+              <img src="/assets/images/icons/globe-white.svg" alt="" class="globe-icon dark-version">
+              <span class="current-lang-text"><%= lng.toUpperCase() %></span>
+              <i class="las la-angle-down lang-arrow"></i>
+            </div>
+            <div class="lang-dropdown">
+              <a href="/language/en" class="lang-option <%= lng === 'en' ? 'active' : '' %>" data-lang="en">
+                <span>English</span>
+              </a>
+              <a href="/language/uz" class="lang-option <%= lng === 'uz' ? 'active' : '' %>" data-lang="uz">
+                <span>O'zbekcha</span>
+              </a>
+              <a href="/language/ru" class="lang-option <%= lng === 'ru' ? 'active' : '' %>" data-lang="ru">
+                <span>Русский</span>
+              </a>
+              <a href="/language/tr" class="lang-option <%= lng === 'tr' ? 'active' : '' %>" data-lang="tr">
+                <span>Türkçe</span>
+              </a>
+              <a href="/language/fa" class="lang-option <%= lng === 'fa' ? 'active' : '' %>" data-lang="fa">
+                <span>فارسی</span>
+              </a>
+              <a href="/language/zh" class="lang-option <%= lng === 'zh' ? 'active' : '' %>" data-lang="zh">
+                <span>中文</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ==================== Mobile Menu End Here ==================== -->
+
+    <!-- ==================== Header Start Here ==================== -->
+    <header class="header bg-transparent">
+      <div class="container-fluid px-3">
+        <nav class="header-inner flx-between">
+          <!-- Logo Start -->
+          <div class="logo">
+            <a href="/" class="link white-version">
+              <img src="/assets/images/logo/logo-two.png" alt="<%= t('common.logoAlt') %>">
+            </a>
+            <a href="/" class="link dark-version">
+              <img src="/assets/images/logo/white-logo.png" alt="<%= t('common.logoAlt') %>">
+            </a>
+          </div>
+          <!-- Logo End  -->
+
+          <!-- Menu Start  -->
+          <div class="header-menu d-lg-block d-none">
+
+            <ul class="nav-menu flx-align ">
+              <li class="nav-menu__item">
+                <a href="/" class="nav-menu__link"><%= t('nav.home') %></a>
+              </li>
+              <li class="nav-menu__item">
+                <a href="/all-product" class="nav-menu__link"><%= t('nav.allProducts') %></a>
+              </li>
+              <li class="nav-menu__item">
+                <a href="/blog" class="nav-menu__link"><%= t('nav.news') %></a>
+              </li>
+              <li class="nav-menu__item">
+                <a href="/contact" class="nav-menu__link"><%= t('nav.contact') %></a>
+              </li>
+              <li class="nav-menu__item">
+                <a href="/partner-countries" class="nav-menu__link"><%= t('nav.partnersCountries') %></a>
+              </li>
+              <li class="nav-menu__item">
+                <a href="/partners-agents" class="nav-menu__link"><%= t('nav.partnersAgents') %></a>
+              </li>
+            </ul>
+          </div>
+          <!-- Menu End  -->
+
+          <!-- Header Right start -->
+          <div class="header-right flx-align">
+
+            <div class="header-right__inner gap-3 flx-align d-lg-flex d-none">
+              <div class="theme-switch-wrapper position-relative">
+                <label class="theme-switch" for="checkbox">
+                  <input type="checkbox" class="d-none" id="checkbox">
+                  <div class="slider round">
+                    <img src="/assets/images/icons/sun.svg" alt="<%= t('common.sunIconAlt') %>" class="image-sun">
+                    <img src="/assets/images/icons/moon.svg" alt="<%= t('common.moonIconAlt') %>" class="image-moon">
+                  </div>
+                </label>
+              </div>
+              <a href="/login" class="btn btn-main pill">
+                <span class="icon-left icon">
+                  <img src="/assets/images/icons/user.svg" alt="<%= t('common.userIconAlt') %>">
+                </span><%= t('nav.createAccount') %>
+              </a>
+              <!-- Custom Language Selector - Desktop -->
+              <div class="custom-lang-selector" data-type="desktop">
+                <div class="lang-btn">
+                  <img src="/assets/images/icons/globe.svg" alt="" class="globe-icon">
+                  <span class="current-lang-text"><%= lng.toUpperCase() %></span>
+                  <i class="las la-angle-down lang-arrow"></i>
+                </div>
+                <div class="lang-dropdown">
+                  <a href="/language/en" class="lang-option <%= lng === 'en' ? 'active' : '' %>" data-lang="en">
+                    <span>English</span>
+                  </a>
+                  <a href="/language/uz" class="lang-option <%= lng === 'uz' ? 'active' : '' %>" data-lang="uz">
+                    <span>O'zbekcha</span>
+                  </a>
+                  <a href="/language/ru" class="lang-option <%= lng === 'ru' ? 'active' : '' %>" data-lang="ru">
+                    <span>Русский</span>
+                  </a>
+                  <a href="/language/tr" class="lang-option <%= lng === 'tr' ? 'active' : '' %>" data-lang="tr">
+                    <span>Türkçe</span>
+                  </a>
+                  <a href="/language/fa" class="lang-option <%= lng === 'fa' ? 'active' : '' %>" data-lang="fa">
+                    <span>فارسی</span>
+                  </a>
+                  <a href="/language/zh" class="lang-option <%= lng === 'zh' ? 'active' : '' %>" data-lang="zh">
+                    <span>中文</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="toggle-mobileMenu d-lg-none ms-3n">
+              <i class="las la-bars"></i>
+            </button>
+          </div>
+          <!-- Header Right End  -->
+        </nav>
+      </div>
+    </header>
+    <!-- ==================== Header End Here ==================== -->

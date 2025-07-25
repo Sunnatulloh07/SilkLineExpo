@@ -1,0 +1,50 @@
+{
+  "name": "silkline-express",
+  "version": "1.0.0",
+  "description": "SLEX - Silk Line Expo B2B Platform with Express.js and EJS",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "create-admin": "node scripts/create-admin.js",
+    "seed": "node scripts/comprehensive-seeder.js",
+    "seed:dev": "MONGODB_URI=mongodb://localhost:27017/slex-dev node scripts/comprehensive-seeder.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "b2b",
+    "marketplace",
+    "silkroad",
+    "express",
+    "ejs"
+  ],
+  "author": "SLEX Team",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "csurf": "^1.11.0",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.0.1",
+    "express-session": "^1.17.3",
+    "helmet": "^7.1.0",
+    "i18next": "^23.7.16",
+    "i18next-fs-backend": "^2.3.1",
+    "i18next-http-middleware": "^3.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

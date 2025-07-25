@@ -1,0 +1,849 @@
+{
+  "countries": [
+    {
+      "name": "Uzbekistan",
+      "flag": "./assets/images/thumbs/uzb-flag.png",
+      "companies": [
+        {
+          "name": "Artel",
+          "dateAdded": "01.03.2025",
+          "img": "./img/company-logo/Artel.png",
+          "company-info": "Artel Electronics Markaziy Osiyo mintaqasida maishiy texnika va elektronika ishlab chiqarish bo‘yicha yetakchi hisoblanadi.",
+          "products": [
+            {
+              "id": 1,
+              "title": "Washing machine Artel 7 kg",
+              "type": "House electrical products",
+              "price": 400,
+              "image": "./img/product-logo/mashinka.png",
+              "sales": "120+"
+            },
+             {
+              "id": 2,
+              "title": "Changyutkich Artel B2700 400 аVt",
+              "type": "House electrical products",
+              "price": 250,
+              "image": "./img/product-logo/artel1.webp",
+               "sales": "120+"
+            },
+             {
+              "id": 3,
+              "title": "Changyutkich Artel 430 аVt",
+              "type": "House electrical products",
+              "price": 280,
+              "image": "./img/product-logo/artel2.webp",
+               "sales": "120+"
+            }
+          ]
+        },
+        {
+          "name": "HamroH",
+          "dateAdded": "01.03.2025",
+          "img": "./img/company-logo/hamroh.jpeg",
+          "company-info": "Hamroh pistalari hamisha hamrohingiz bo'lsin",
+          "products": [
+            {
+              "id": 1,
+              "title": "Hamroh Saltless 2kg",
+              "type": "Food",
+              "price": 1,
+              "image": "./img/product-logo/hamroh1.jpg"
+            },
+            {
+              "id": 2,
+              "title": "Hamroh Salt 2kg",
+              "type": "Food",
+              "price": 1,
+              "image": "./img/product-logo/hamroh2.jpg"
+            },
+            {
+              "id": 3,
+              "title": "Hamroh Salt 1.6kg",
+              "type": "Food",
+              "price": 0.8,
+              "image": "./img/product-logo/hamroh3.jpg"
+            },
+            {
+              "id": 4,
+              "title": "Hamroh Saltless 1.6kg",
+              "type": "Food",
+              "price": 0.8,
+              "image": "./img/product-logo/hamroh4.jpg"
+            },
+            {
+              "id": 5,
+              "title": "Hamroh 0.7kg",
+              "type": "Food",
+              "price": 0.6,
+              "image": "./img/product-logo/hamroh5.jpg"
+            },
+            {
+              "id": 6,
+              "title": "Hamroh prickly 0.7kg",
+              "type": "Food",
+              "price": 0.7,
+              "image": "./img/product-logo/hamroh6.jpg"
+            },
+            {
+              "id": 7,
+              "title": "Hamroh black 0.7kg",
+              "type": "Food",
+              "price": 0.5,
+              "image": "./img/product-logo/hamroh7.jpg"
+            },
+            {
+              "id": 8,
+              "title": "Hamroh Salt 2kg",
+              "type": "Food",
+              "price": 1,
+              "image": "./img/product-logo/hamroh8.jpg"
+            },
+            {
+              "id": 9,
+              "title": "Hamroh Saltless 2kg",
+              "type": "Food",
+              "price": 1,
+              "image": "./img/product-logo/hamroh9.jpg"
+            },
+            {
+              "id": 10,
+              "title": "Hamroh Peanut 2kg",
+              "type": "Food",
+              "price": 1,
+              "image": "./img/product-logo/hamroh10.jpg"
+            },
+            {
+              "id": 11,
+              "title": "Hamroh Grain worms",
+              "type": "Food",
+              "price": 1,
+              "image": "./img/product-logo/hamroh12.jpg"
+            },
+            {
+              "id": 12,
+              "title": "Hamroh Grain worms",
+              "type": "Food",
+              "price": 1,
+              "image": "./img/product-logo/hamroh13.jpg"
+            },
+            {
+              "id": 13,
+              "title": "Hamroh Grain worms",
+              "type": "Food",
+              "price": 0.5,
+              "image": "./img/product-logo/hamroh14.jpg"
+            }
+          ]
+        }
+      ]
+    },
+
+
+    {
+      "name": "Kazakhstan",
+      "flag": "./assets/images/thumbs/kaz-flag.png",
+      "companies": [
+        {
+          "name": "AYU",
+          "dateAdded": "01.03.2025",
+          "img": "./img/company-logo/ayu.png",
+          "company-info": "AYU a powerful boost of energy",
+          "products": [
+            {
+              "id": 1,
+              "title": "Mango Coconut 0.45l",
+              "type": "Drinks",
+              "price": 0.05,
+              "image": "./img/product-logo/Coconut.webp"
+            },
+            {
+              "id": 2,
+              "title": "Positive energy 0.45l",
+              "type": "Drinks",
+              "price": 0.05,
+              "image": "./img/product-logo/positive.webp"
+            },
+            {
+              "id": 3,
+              "title": "Strength energy 0.45l",
+              "type": "Drinks",
+              "price": 0.05,
+              "image": "./img/product-logo/sila.webp"
+            }
+          ]
+        },
+        {
+          "name": "NI",
+          "dateAdded": "01.03.2025",
+          "img": "./img/company-logo/ni.png",
+          "company-info": "NI Drinks made from quality exotic fruits",
+          "products": [
+            {
+              "id": 1,
+              "title": "NI Mango Coconut 0.45l",
+              "type": "Drinks",
+              "price": 0.05,
+              "image": "./img/product-logo/ni-mango.webp"
+            },
+            {
+              "id": 2,
+              "title": "NI Pomegranate 0.45l",
+              "type": "Drinks",
+              "price": 0.05,
+              "image": "./img/product-logo/anar.webp"
+            },
+            {
+              "id": 3,
+              "title": "NI Mojito 0.45l",
+              "type": "Drinks",
+              "price": 0.05,
+              "image": "./img/product-logo/ni-mojito.webp"
+            },
+            {
+              "id": 4,
+              "title": "NI Mojito Strawbery 0.45l",
+              "type": "Drinks",
+              "price": 0.05,
+              "image": "./img/product-logo/strawb.webp"
+            },
+            {
+              "id": 5,
+              "title": "NI Still drink 0.5l",
+              "type": "Drinks",
+              "price": 0.05,
+              "image": "./img/product-logo/barber.jpg"
+            },
+            {
+              "id": 6,
+              "title": "NI Relax mixed 0.45l",
+              "type": "Drinks",
+              "price": 0.05,
+              "image": "./img/product-logo/relex.webp"
+            },
+            {
+              "id": 7,
+              "title": "NI Lemonade 0.45l",
+              "type": "Drinks",
+              "price": 0.05,
+              "image": "./img/product-logo/lemon.webp"
+            }
+          ]
+        },
+        {
+          "name": "Suntik",
+          "dateAdded": "01.03.2025",
+          "img": "./img/company-logo/suntik.png",
+          "company-info": "Suntik Natural nutrition for children and adults",
+          "products": [
+            {
+              "id": 1,
+              "title": "Suntik fruits 500gr",
+              "type": "Nutrition",
+              "price": 0.5,
+              "image": "./img/product-logo/suntik1.jpg",
+              "sales": "110k+",
+              "description": "Suntik 500 gram apple and tropical fruit puree is a quality product made from fresh apples and exotic tropical fruits. The puree has a rich taste and aroma, making it ideal for use as an ingredient in confectionery, cocktails and desserts. It can also be a great addition to the children's menu, as it does not contain artificial colors and preservatives. The 500 gram package is convenient for resale and is suitable for various retail formats, including supermarkets and specialty stores. The puree is easy to transport and store, making it a great addition to your assortment."
+            },
+            {
+              "id": 2,
+              "title": "Suntik fruits 100gr",
+              "type": "Nutrition",
+              "price": 0.5,
+              "image": "./img/product-logo/suntik2.png",
+              "sales": "110k+",
+              "description": "Suntik 100 gram apple and tropical fruit puree is a quality product made from fresh apples and exotic tropical fruits. The puree has a rich taste and aroma, making it ideal for use as an ingredient in confectionery, cocktails and desserts. It can also be a great addition to the children's menu, as it does not contain artificial colors and preservatives. The 100 gram package is convenient for resale and is suitable for various retail formats, including supermarkets and specialty stores. The puree is easy to transport and store, making it a great addition to your assortment."
+            },
+            {
+              "id": 3,
+              "title": "Suntik fruits 100gr",
+              "type": "Nutrition",
+              "price": 0.5,
+              "image": "./img/product-logo/suntik3.png",
+              "sales": "110k+",
+              "description": "Suntik 100 gram apple and tropical fruit puree is a quality product made from fresh apples and exotic tropical fruits. The puree has a rich taste and aroma, making it ideal for use as an ingredient in confectionery, cocktails and desserts. It can also be a great addition to the children's menu, as it does not contain artificial colors and preservatives. The 100 gram package is convenient for resale and is suitable for various retail formats, including supermarkets and specialty stores. The puree is easy to transport and store, making it a great addition to your assortment."
+            },
+            {
+              "id": 4,
+              "title": "Suntik fruits 100gr",
+              "type": "Nutrition",
+              "price": 0.5,
+              "image": "./img/product-logo/suntik4.png",
+              "sales": "110k+",
+              "description": "Suntik 100 gram apple and tropical fruit puree is a quality product made from fresh apples and exotic tropical fruits. The puree has a rich taste and aroma, making it ideal for use as an ingredient in confectionery, cocktails and desserts. It can also be a great addition to the children's menu, as it does not contain artificial colors and preservatives. The 100 gram package is convenient for resale and is suitable for various retail formats, including supermarkets and specialty stores. The puree is easy to transport and store, making it a great addition to your assortment."
+            },
+            {
+              "id": 5,
+              "title": "Suntik fruits 500gr",
+              "type": "Nutrition",
+              "price": 0.5,
+              "image": "./img/product-logo/suntik5.png",
+              "sales": "110k+",
+              "description": "Suntik 500 gram apple and tropical fruit puree is a quality product made from fresh apples and exotic tropical fruits. The puree has a rich taste and aroma, making it ideal for use as an ingredient in confectionery, cocktails and desserts. It can also be a great addition to the children's menu, as it does not contain artificial colors and preservatives. The 500 gram package is convenient for resale and is suitable for various retail formats, including supermarkets and specialty stores. The puree is easy to transport and store, making it a great addition to your assortment."
+            },
+            {
+              "id": 6,
+              "title": "Suntik fruits 500gr",
+              "type": "Nutrition",
+              "price": 0.5,
+              "image": "./img/product-logo/suntik6.png",
+              "sales": "110k+",
+              "description": "Suntik 500 gram apple and tropical fruit puree is a quality product made from fresh apples and exotic tropical fruits. The puree has a rich taste and aroma, making it ideal for use as an ingredient in confectionery, cocktails and desserts. It can also be a great addition to the children's menu, as it does not contain artificial colors and preservatives. The 500 gram package is convenient for resale and is suitable for various retail formats, including supermarkets and specialty stores. The puree is easy to transport and store, making it a great addition to your assortment."
+            },
+            {
+              "id": 7,
+              "title": "Suntik Apple Nectar 200ml",
+              "type": "Drinks",
+              "price": 0.2,
+              "image": "./img/product-logo/suntik7.jpg",
+              "sales": "110k+",
+              "description": "Suntik Apple Nectar 200 ml is a high-quality product with at least 50% natural apple juice content. It consists of concentrated apple juice, water, sugar, citric acid and natural flavoring. The nectar has a pleasant apple taste and is low in calories: only 41 kilocalories per 100 grams. This product is ideal for resale, as it does not contain artificial additives, genetically modified organisms, preservatives and dyes, which makes it attractive to health-conscious buyers. When stored in a dry and cool place, at a temperature of 0 C to 25 C, it retains its qualities and taste for a long time. Each package contains information about the production date and expiration date. It is recommended to shake the contents before use. An open package must be stored in the refrigerator and consumed within three days. Suntik apple nectar is an excellent choice for restaurants, cafes and shops that want to offer their customers natural and tasty drinks."
+            },
+            {
+              "id": 8,
+              "title": "Suntik Apple Nectar 200ml",
+              "type": "Drinks",
+              "price": 0.2,
+              "image": "./img/product-logo/suntik8.png",
+              "sales": "110k+",
+              "description": "Suntik Apple Nectar 200 ml is a high-quality product with at least 50% natural apple juice content. It consists of concentrated apple juice, water, sugar, citric acid and natural flavoring. The nectar has a pleasant apple taste and is low in calories: only 41 kilocalories per 100 grams. This product is ideal for resale, as it does not contain artificial additives, genetically modified organisms, preservatives and dyes, which makes it attractive to health-conscious buyers. When stored in a dry and cool place, at a temperature of 0 C to 25 C, it retains its qualities and taste for a long time. Each package contains information about the production date and expiration date. It is recommended to shake the contents before use. An open package must be stored in the refrigerator and consumed within three days. Suntik apple nectar is an excellent choice for restaurants, cafes and shops that want to offer their customers natural and tasty drinks."
+            },
+            {
+              "id": 9,
+              "title": "Suntik Apple Nectar 200ml",
+              "type": "Drinks",
+              "price": 0.2,
+              "image": "./img/product-logo/suntik9.png",
+              "sales": "110k+",
+              "description": "Suntik Apple Nectar 200 ml is a high-quality product with at least 50% natural apple juice content. It consists of concentrated apple juice, water, sugar, citric acid and natural flavoring. The nectar has a pleasant apple taste and is low in calories: only 41 kilocalories per 100 grams. This product is ideal for resale, as it does not contain artificial additives, genetically modified organisms, preservatives and dyes, which makes it attractive to health-conscious buyers. When stored in a dry and cool place, at a temperature of 0 C to 25 C, it retains its qualities and taste for a long time. Each package contains information about the production date and expiration date. It is recommended to shake the contents before use. An open package must be stored in the refrigerator and consumed within three days. Suntik apple nectar is an excellent choice for restaurants, cafes and shops that want to offer their customers natural and tasty drinks."
+            }
+          ]
+        },
+        {
+          "name": "AQUA",
+          "dateAdded": "01.03.2025",
+          "img": "./img/company-logo/aqua.png",
+          "company-info": "Aqua High quality drinking water",
+          "products": [
+            {
+              "id": 1,
+              "title": "Aqua carbonated 0.5l",
+              "type": "Drinks",
+              "price": 0.03,
+              "image": "./img/product-logo/aqua-stil.webp"
+            },
+            {
+              "id": 2,
+              "title": "Aqua Stil 0.5l",
+              "type": "Drinks",
+              "price": 0.03,
+              "image": "./img/product-logo/aqua-cor.webp"
+            }
+          ]
+        },
+        {
+          "name": "Ji-Ji",
+          "dateAdded": "01.03.2025",
+          "img": "./img/company-logo/jiji.png",
+          "company-info": "Ji-Ji lemonade, natural extracts of fruits, herbs and berries will not only give you bright aromas of summer, but also take care of your health.",
+          "products": [
+            {
+              "id": 1,
+              "title": "Ji-Ji Buratino carbonated 1.0l",
+              "type": "Drinks",
+              "price": 0.33,
+              "image": "./img/product-logo/Ji-buratino.png"
+            },
+            {
+              "id": 2,
+              "title": "Ji-Ji Duchess carbonated 1.0l",
+              "type": "Drinks",
+              "price": 0.33,
+              "image": "./img/product-logo/Ji-dushes.png"
+            },
+            {
+              "id": 3,
+              "title": "Ji-Ji Kola carbonated 1.0l",
+              "type": "Drinks",
+              "price": 0.33,
+              "image": "./img/product-logo/Ji-cola.png"
+            },
+            {
+              "id": 4,
+              "title": "Ji-Ji Moxito carbonated 1.0l",
+              "type": "Drinks",
+              "price": 0.33,
+              "image": "./img/product-logo/Ji-napitok.png"
+            },
+            {
+              "id": 5,
+              "title": "Ji-Ji Tarxun carbonated 1.0l",
+              "type": "Drinks",
+              "price": 0.33,
+              "image": "./img/product-logo/Ji-tarxun.png"
+            }
+          ]
+        },
+        {
+          "name": "S-Gel",
+          "dateAdded": "01.03.2025",
+          "img": "./img/company-logo/s-gel.png",
+          "company-info": "Professional product for washing all types of dishes. Effectively eliminates odors, removes grease even in cold water. Completely rinses off, leaves no marks on dishes.",
+          "products": [
+            {
+              "id": 1,
+              "title": "S-Gel 3in1 5.0l",
+              "type": "House cleaner",
+              "price": 3.79,
+              "image": "./img/product-logo/s1.png",
+              "sales": "10k+",
+              "description": "3-in-1 washing gel. With a frosty fresh scent. Aroma: pronounced marine aroma Aroma intensity: 5 out of 5  Economical: one canister is enough for 166 washes German technology Contains + stain remover and fabric softener"
+            },
+            {
+              "id": 2,
+              "title": "S-Gel juicy lemon 1.0l",
+              "type": "House cleaner",
+              "price": 1,
+              "image": "./img/product-logo/s2.png",
+              "sales": "10k+",
+              "description": "Professional product for washing all types of dishes with lemon aroma. Effectively eliminates odors, removes grease even in cold water. Completely rinses off, leaves no marks on dishes."
+            },
+            {
+              "id": 3,
+              "title": "S-Gel 5.0l",
+              "type": "House cleaner",
+              "price": 2.79,
+              "image": "./img/product-logo/s3.png",
+              "sales": "10k+",
+              "description": "Professional product for washing all types of dishes with lemon aroma. Effectively eliminates odors, removes grease even in cold water. Completely rinses off, leaves no marks on dishes."
+            },
+            {
+              "id": 4,
+              "title": "S-Gel 2.0l",
+              "type": "House cleaner",
+              "price": 3.59,
+              "image": "./img/product-logo/s4.png",
+              "sales": "10k+",
+              "description": "Professional product for washing all types of dishes with lemon aroma. Effectively eliminates odors, removes grease even in cold water. Completely rinses off, leaves no marks on dishes."
+            },
+            {
+              "id": 5,
+              "title": "S-Gel 5.0l",
+              "type": "House cleaner",
+              "price": 6.18,
+              "image": "./img/product-logo/s5.png",
+              "sales": "10k+",
+              "description": "Professional product for washing all types of dishes with lemon aroma. Effectively eliminates odors, removes grease even in cold water. Completely rinses off, leaves no marks on dishes."
+            },
+            {
+              "id": 6,
+              "title": "S-Gel 2.0l",
+              "type": "House cleaner",
+              "price": 3.38,
+              "image": "./img/product-logo/s6.png",
+              "sales": "10k+",
+              "description": "Professional product for washing all types of dishes with lemon aroma. Effectively eliminates odors, removes grease even in cold water. Completely rinses off, leaves no marks on dishes."
+            },
+            {
+              "id": 7,
+              "title": "S-Gel 2.0l",
+              "type": "House cleaner",
+              "price": 3.67,
+              "image": "./img/product-logo/s7.png",
+              "sales": "10k+",
+              "description": "Professional product for washing all types of dishes with lemon aroma. Effectively eliminates odors, removes grease even in cold water. Completely rinses off, leaves no marks on dishes."
+            },
+            {
+              "id": 8,
+              "title": "S-Gel 5.0l",
+              "type": "House cleaner",
+              "price": 13.33,
+              "image": "./img/product-logo/s8.png",
+              "sales": "10k+",
+              "description": "Professional product for washing all types of dishes with lemon aroma. Effectively eliminates odors, removes grease even in cold water. Completely rinses off, leaves no marks on dishes."
+            },
+            {
+              "id": 9,
+              "title": "S-Gel 1.0l",
+              "type": "House cleaner",
+              "price": 1.59,
+              "image": "./img/product-logo/s9.png",
+              "sales": "10k+",
+              "description": "Professional product for washing all types of dishes with lemon aroma. Effectively eliminates odors, removes grease even in cold water. Completely rinses off, leaves no marks on dishes."
+            }
+          ]
+        },
+        {
+          "name": "Raxat",
+          "dateAdded": "01.03.2025",
+          "img": "./img/company-logo/raxat.png",
+          "company-info": "LOTTE Rakhat is one of Kazakhstan’s leading confectionery producers, offering over 400 products including chocolates, cookies, and sweets. Founded in 1942 and now part of South Korea’s LOTTE Group, it exports to CIS, Europe, the U.S., and China.",
+          "products": [
+            {
+              "id": 1,
+              "title": "Candy Almatiniskiy suviner",
+              "type": "Sweets",
+              "price": 2,
+              "image": "./img/product-logo/raxat-candies.jpg",
+              "sales": "10k+",
+              "description": "Set of chocolate candies: candy in form of white rosette filled with caramel and nut filling; candy in the shape of rosette, made of natural chocolate, filled with truffle filling with aroma of strawberry and vanilla; cone- shaped candy made of natural chocolate filled with truffle filling with coffee flavor; cone- shaped candy made of white chocolate with truffle filling with strawberry and vanilla flavor; candy with whipped filling, in corps made of white glaze; candy with truffle body with the addition of alcohol, coated with chocolate glaze, covered with decorative crumbs; chocolate candies with filling made with adding of chocolate, with tiramisu aroma; candy with praline body made with the addition of milk, coated with chocolate glaze, covered with crisp wafer crumbs."
+            },
+            {
+              "id": 2,
+              "title": "Set of chocolates raxat",
+              "type": "Sweets",
+              "price": 2,
+              "image": "./img/product-logo/raxat-choco.jpg",
+              "sales": "10k+",
+              "description": "Set of chocolate candies: candy in form of white rosette filled with caramel and nut filling; candy in the shape of rosette, made of natural chocolate, filled with truffle filling with aroma of strawberry and vanilla; cone- shaped candy made of natural chocolate filled with truffle filling with coffee flavor; cone- shaped candy made of white chocolate with truffle filling with strawberry and vanilla flavor; candy with whipped filling, in corps made of white glaze; candy with truffle body with the addition of alcohol, coated with chocolate glaze, covered with decorative crumbs; chocolate candies with filling made with adding of chocolate, with tiramisu aroma; candy with praline body made with the addition of milk, coated with chocolate glaze, covered with crisp wafer crumbs."
+            },
+            {
+              "id": 3,
+              "title": "Raxat desertnye",
+              "type": "Sweets",
+              "price": 0.8,
+              "image": "./img/product-logo/raxat-des.jpg",
+              "sales": "10k+",
+              "description": "Set of chocolate candies: candy in form of white rosette filled with caramel and nut filling; candy in the shape of rosette, made of natural chocolate, filled with truffle filling with aroma of strawberry and vanilla; cone- shaped candy made of natural chocolate filled with truffle filling with coffee flavor; cone- shaped candy made of white chocolate with truffle filling with strawberry and vanilla flavor; candy with whipped filling, in corps made of white glaze; candy with truffle body with the addition of alcohol, coated with chocolate glaze, covered with decorative crumbs; chocolate candies with filling made with adding of chocolate, with tiramisu aroma; candy with praline body made with the addition of milk, coated with chocolate glaze, covered with crisp wafer crumbs."
+            },
+            {
+              "id": 4,
+              "title": "Zephir glazirovanniy",
+              "type": "Sweets",
+              "price": 1,
+              "image": "./img/product-logo/raxat-zef.jpg",
+              "sales": "10k+",
+              "description": "Set of chocolate candies: candy in form of white rosette filled with caramel and nut filling; candy in the shape of rosette, made of natural chocolate, filled with truffle filling with aroma of strawberry and vanilla; cone- shaped candy made of natural chocolate filled with truffle filling with coffee flavor; cone- shaped candy made of white chocolate with truffle filling with strawberry and vanilla flavor; candy with whipped filling, in corps made of white glaze; candy with truffle body with the addition of alcohol, coated with chocolate glaze, covered with decorative crumbs; chocolate candies with filling made with adding of chocolate, with tiramisu aroma; candy with praline body made with the addition of milk, coated with chocolate glaze, covered with crisp wafer crumbs."
+            }
+          ]
+        }
+      ]
+    },
+
+
+    {
+      "name": "China",
+      "flag": "./assets/images/thumbs/china-flag.png",
+      "companies": [
+          {
+          "name": "Wimow",
+          "dateAdded": "01.03.2025",
+          "img": "./img/company-logo/wimow.avif",
+          "company-info": "We have our own production line, professional food production equipment,  and experienced technical personnel. Our formula has undergone scientific research.  We have pet dry food, pet snacks, freeze-dried snacks, and fruit freeze-dried.  We have our own brand Wimow ,can also provide you with customized plans.",
+          "products": [
+            {
+              "id": 1,
+              "title": " 3KG High Protein Dog Food",
+              "type": "Pet foods",
+              "price": 2,
+              "image": "./img/product-logo/wimow1.avif",
+              "sales": "243",
+              "description":"Feature Health, organic Type PET FOOD Applicable Pet Dogs Main Ingredient meat Life stage Adult, Puppy & kitten, All Health Feature muscle gain, Joint Health, Skin & Coat Health"
+            }
+          ]
+        },
+          {
+          "name": "Laiwu Spring rain",
+          "dateAdded": "01.06.2025",
+          "img": "./img/company-logo/drip.png",
+          "company-info": "Laiwu Spring Rain Drip Irrigation Technology Co., Ltd. is a high-tech enterprise focusing on research and development of drip irrigation products for many years. It is especially expert at designing and manufacturing inline dripper moulds with cold runner, hot runner or semi hot runner.",
+          "products": [
+            {
+              "id": 1,
+              "title": "Automatic drip machine",
+              "type": "Garden products",
+              "price": "1.300",
+              "image": "./img/product-logo/drip1.png",
+              "sales": "250",
+              "description":"Laiwu Spring Rain Drip Irrigation Technology Co., Ltd. is a high-tech enterprise focusing on research and development of drip irrigation products for many years. It is especially expert at designing and manufacturing inline dripper moulds with cold runner"
+            },
+            {
+              "id": 2,
+              "title": "Automatic drip machine",
+              "type": "Garden products",
+              "price": "1.350",
+              "image": "./img/product-logo/drip2.png",
+              "sales": "250",
+              "description":"Laiwu Spring Rain Drip Irrigation Technology Co., Ltd. is a high-tech enterprise focusing on research and development of drip irrigation products for many years. It is especially expert at designing and manufacturing inline dripper moulds with cold runner"
+            },
+            {
+              "id": 3,
+              "title": "Automatic drip machine",
+              "type": "Garden products",
+              "price": "1.500",
+              "image": "./img/product-logo/drip3.png",
+              "sales": "250",
+              "description":"Laiwu Spring Rain Drip Irrigation Technology Co., Ltd. is a high-tech enterprise focusing on research and development of drip irrigation products for many years. It is especially expert at designing and manufacturing inline dripper moulds with cold runner"
+            }
+          ]
+          },
+          {
+          "name": "Sany",
+          "dateAdded": "01.06.2025",
+          "img": "./img/company-logo/sany.png",
+          "company-info": "SANY ranks among the top global manufacturers of construction machinery. In recent years, it has consistently been listed as one of the largest and most influential companies in the industry. Based on reports from reliable industry sources like Yellow Table Rankings by KHL Group and International Construction.",
+          "products": [
+            {
+              "id": 1,
+              "title": "Sany bulldozer",
+              "type": "Transport",
+              "price": "110.000",
+              "image": "./img/product-logo/sany1.webp",
+              "sales": "43",
+              "description":"These machines are designed for earthmoving tasks, similar to other heavy equipment produced by competitors like Caterpillar and Komatsu."
+            },
+            {
+              "id": 2,
+              "title": "Sany excavator",
+              "type": "Transport",
+              "price": "170.000",
+              "image": "./img/product-logo/sany2.webp",
+              "sales": "25",
+              "description":"The SANY SY365H is often considered one of the best excavators in SANY’s lineup. It is a 36-ton heavy-duty hydraulic excavator, recognized for its durability, power, and versatility, making it suitable for large-scale construction, mining, and excavation projects."
+            },
+            {
+              "id": 3,
+              "title": "Sany truck",
+              "type": "Transport",
+              "price": "185.000",
+              "image": "./img/product-logo/sany3.webp",
+              "sales": "25",
+              "description":"The SANY truck is often considered one of the best excavators in SANY’s lineup. It is a 36-ton heavy-duty hydraulic excavator, recognized for its durability, power, and versatility, making it suitable for large-scale construction, mining, and excavation projects."
+            },
+            {
+              "id": 4,
+              "title": "Sany roller",
+              "type": "Transport",
+              "price": "125.000",
+              "image": "./img/product-logo/sany4.webp",
+              "sales": "15",
+              "description":"The SANY roller is often considered one of the best excavators in SANY’s lineup. It is a 36-ton heavy-duty hydraulic excavator, recognized for its durability, power, and versatility, making it suitable for large-scale construction, mining, and excavation projects."
+            },
+            {
+              "id": 5,
+              "title": "Sany truck mixer",
+              "type": "Transport",
+              "price": "135.000",
+              "image": "./img/product-logo/sany5.webp",
+              "sales": "35",
+              "description":"The SANY truck mixer is often considered one of the best excavators in SANY’s lineup. It is a 36-ton heavy-duty hydraulic excavator, recognized for its durability, power, and versatility, making it suitable for large-scale construction, mining, and excavation projects."
+            },
+            {
+              "id": 6,
+              "title": "Sany crawler crane",
+              "type": "Transport",
+              "price": "130.000",
+              "image": "./img/product-logo/sany6.webp",
+              "sales": "12",
+              "description":"The SANY crawler is often considered one of the best excavators in SANY’s lineup. It is a 36-ton heavy-duty hydraulic excavator, recognized for its durability, power, and versatility, making it suitable for large-scale construction, mining, and excavation projects."
+            },
+            {
+              "id": 7,
+              "title": "Sany dump truck",
+              "type": "Transport",
+              "price": "120.000",
+              "image": "./img/product-logo/sany7.webp",
+              "sales": "12",
+              "description":"The SANY Dump is often considered one of the best excavators in SANY’s lineup. It is a 36-ton heavy-duty hydraulic excavator, recognized for its durability, power, and versatility, making it suitable for large-scale construction, mining, and excavation projects."
+            },
+            {
+              "id": 8,
+              "title": "Sany light truck",
+              "type": "Transport",
+              "price": "150.000",
+              "image": "./img/product-logo/sany8.webp",
+              "sales": "12",
+              "description":"The SANY light truck is often considered one of the best excavators in SANY’s lineup. It is a 36-ton heavy-duty hydraulic excavator, recognized for its durability, power, and versatility, making it suitable for large-scale construction, mining, and excavation projects."
+            },
+            {
+              "id": 9,
+              "title": "Semi trailer truck",
+              "type": "Transport",
+              "price": "125.000",
+              "image": "./img/product-logo/sany9.webp",
+              "sales": "12",
+              "description":"The SANY Semi trailer truck is often considered one of the best excavators in SANY’s lineup. It is a 36-ton heavy-duty hydraulic excavator, recognized for its durability, power, and versatility, making it suitable for large-scale construction, mining, and excavation projects."
+            },
+            {
+              "id": 10,
+              "title": "Rotary Drilling Rig",
+              "type": "Transport",
+              "price": "190.000",
+              "image": "./img/product-logo/sany10.webp",
+              "sales": "8",
+              "description":"The SANY C10 Rotary Drilling Rig is often considered one of the best excavators in SANY’s lineup. It is a 36-ton heavy-duty hydraulic excavator, recognized for its durability, power, and versatility, making it suitable for large-scale construction, mining, and excavation projects."
+            },
+            {
+              "id": 11,
+              "title": "Sany Roadheader",
+              "type": "Transport",
+              "price": "190.000",
+              "image": "./img/product-logo/sany11.webp",
+              "sales": "12",
+              "description":"The SANY Roadheader is often considered one of the best excavators in SANY’s lineup. It is a 36-ton heavy-duty hydraulic excavator, recognized for its durability, power, and versatility, making it suitable for large-scale construction, mining, and excavation projects."
+            },
+            {
+              "id": 12,
+              "title": "Sany Forklift",
+              "type": "Transport",
+              "price": "30.000",
+              "image": "./img/product-logo/sany12.webp",
+              "sales": "125",
+              "description":"The SANY Forklift is often considered one of the best excavators in SANY’s lineup. It is a 36-ton heavy-duty hydraulic excavator, recognized for its durability, power, and versatility, making it suitable for large-scale construction, mining, and excavation projects."
+            }
+            
+          ]
+          }
+        
+      ]
+    },
+
+
+    {
+      "name": "Tajikistan",
+      "flag": "./assets/images/thumbs/taj-flag.png",
+      "companies": [
+      ]
+    },
+
+
+    {
+      "name": "Turkmanistan",
+      "flag": "./assets/images/thumbs/turk-flag.png",
+      "companies": [
+  
+      ]
+    },
+
+
+    {
+      "name": "Afganistan",
+      "flag": "./assets/images/thumbs/afg-flag.png",
+      "companies": [
+        {
+          "name": "Almas-K",
+          "dateAdded": "01.03.2025",
+          "img": "./img/company-logo/Almas-K.jpg",
+          "company-info": "Almas Kabir is a women leaded Afghan hand-made carpet company who produces high quality of Afghan rugs in the country and provide 100% wool and pure natural-coloured rugs to its national and international customers and have been producing a major percentage in the carpet industry of Afghanistan. Indeed, carpets are an essential element in Afghan culture and are recognized fortheir quality throughout the world.",
+          "products": [
+            {
+              "id": 1,
+              "title": "Almas-K Carpet",
+              "type": "House products",
+              "price": 100,
+              "image": "./img/product-logo/almas1.jpg",
+              "sales": "566",
+              "description":"The Afghan wool used in Almas carpets come from sheep raised at high altitudes in central Afghanistan where cold weather causes the wool fibres to be strong, long and ideal for making rugs. Wool is harvested once a year by skilled shearers."
+            },
+            {
+              "id": 2,
+              "title": "Almas-K Carpet",
+              "type": "House products",
+              "price": 110,
+              "image": "./img/product-logo/almas2.jpg",
+              "sales": "576",
+              "description":"The Afghan wool used in Almas carpets come from sheep raised at high altitudes in central Afghanistan where cold weather causes the wool fibres to be strong, long and ideal for making rugs. Wool is harvested once a year by skilled shearers."
+            },
+            {
+              "id": 3,
+              "title": "Almas-K Carpet",
+              "type": "House products",
+              "price": 115,
+              "image": "./img/product-logo/almas3.jpg",
+              "sales": "526",
+              "description":"The Afghan wool used in Almas carpets come from sheep raised at high altitudes in central Afghanistan where cold weather causes the wool fibres to be strong, long and ideal for making rugs. Wool is harvested once a year by skilled shearers."
+            },
+            {
+              "id": 4,
+              "title": "Almas-K Carpet",
+              "type": "House products",
+              "price": 130,
+              "image": "./img/product-logo/almas4.jpg",
+              "sales": "676",
+              "description":"The Afghan wool used in Almas carpets come from sheep raised at high altitudes in central Afghanistan where cold weather causes the wool fibres to be strong, long and ideal for making rugs. Wool is harvested once a year by skilled shearers."
+            },
+            {
+              "id": 5,
+              "title": "Almas-K Carpet",
+              "type": "House products",
+              "price": 210,
+              "image": "./img/product-logo/almas5.jpg",
+              "sales": "844",
+              "description":"The Afghan wool used in Almas carpets come from sheep raised at high altitudes in central Afghanistan where cold weather causes the wool fibres to be strong, long and ideal for making rugs. Wool is harvested once a year by skilled shearers."
+            },
+            {
+              "id": 6,
+              "title": "Almas-K Carpet",
+              "type": "House products",
+              "price": 170,
+              "image": "./img/product-logo/almas6.jpg",
+              "sales": "426",
+              "description":"The Afghan wool used in Almas carpets come from sheep raised at high altitudes in central Afghanistan where cold weather causes the wool fibres to be strong, long and ideal for making rugs. Wool is harvested once a year by skilled shearers."
+            },
+            {
+              "id": 7,
+              "title": "Almas-K Carpet",
+              "type": "House products",
+              "price": 244,
+              "image": "./img/product-logo/almas7.jpg",
+              "sales": "983",
+              "description":"The Afghan wool used in Almas carpets come from sheep raised at high altitudes in central Afghanistan where cold weather causes the wool fibres to be strong, long and ideal for making rugs. Wool is harvested once a year by skilled shearers."
+            }
+          ]
+        },
+        {
+          "name": "Afgan Kazan",
+          "dateAdded": "01.03.2025",
+          "img": "./img/company-logo/kazan.png",
+          "company-info": "The Afghan pot is a multifunctional pressure cooker designed for quick and tasty cooking. It is widely used in Afghanistan and Central Asian countries. This pot is characterized by its practicality, high pressure operation, and preservation of the natural flavor of food. It is produced in various sizes, from 5 liters to 20 liters. This makes it suitable for small families to large communities",
+          "products": [
+            {
+              "id": 1,
+              "title": "Afgan Kazan 15l",
+              "type": "House products",
+              "price": 28,
+              "image": "./img/product-logo/qozon1.jpg",
+              "sales": "266",
+              "description":"An Afghan pot is usually made of cast aluminum or stainless steel. Aluminum conducts heat well, which ensures that food cooks evenly and quickly."
+            },
+            {
+              "id": 2,
+              "title": "Afgan Kazan 5l",
+              "type": "House products",
+              "price": 16,
+              "image": "./img/product-logo/qozon2.jpg",
+              "sales": "136",
+              "description":"An Afghan pot is usually made of cast aluminum or stainless steel. Aluminum conducts heat well, which ensures that food cooks evenly and quickly."
+            },
+            {
+              "id": 3,
+              "title": "Afgan Kazan 8l",
+              "type": "House products",
+              "price": 22,
+              "image": "./img/product-logo/qozon3.jpg",
+              "sales": "426",
+              "description":"An Afghan pot is usually made of cast aluminum or stainless steel. Aluminum conducts heat well, which ensures that food cooks evenly and quickly."
+            },
+            {
+              "id": 4,
+              "title": "Afgan Kazan 15l",
+              "type": "House products",
+              "price": 26,
+              "image": "./img/product-logo/qozon4.jpg",
+              "sales": "336",
+              "description":"An Afghan pot is usually made of cast aluminum or stainless steel. Aluminum conducts heat well, which ensures that food cooks evenly and quickly."
+            }
+          ]
+        }
+      ]
+    },
+
+
+    {
+      "name": "Kyrgyzstan",
+      "flag": "./assets/images/thumbs/kirg-flag.png",
+      "companies": [
+       
+      ]
+    }
+    ] 
+}

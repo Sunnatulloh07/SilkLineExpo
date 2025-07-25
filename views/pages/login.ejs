@@ -1,0 +1,255 @@
+<%- include('../partials/header') %>
+<!-- Loader Fix CSS -->
+<link rel="stylesheet" href="/css/loader-fix.css">
+<!-- Login Button Fix CSS -->
+<link rel="stylesheet" href="/css/login-button-fix.css">
+<!-- Password Toggle CSS -->
+<link rel="stylesheet" href="/css/login-password-toggle.css">
+
+<body>
+  <!--==================== Preloader Start ====================-->
+  <div class="loader-mask">
+    <div class="loader">
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+  <!--==================== Preloader End ====================-->
+
+  <!--==================== Overlay Start ====================-->
+  <div class="overlay"></div>
+  <!--==================== Overlay End ====================-->
+
+  <!--==================== Sidebar Overlay End ====================-->
+  <div class="side-overlay"></div>
+  <!--==================== Sidebar Overlay End ====================-->
+
+  <!-- ==================== Scroll to Top End Here ==================== -->
+  <div class="progress-wrap">
+    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+      <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+    </svg>
+  </div>
+  <!-- ==================== Scroll to Top End Here ==================== -->
+
+
+    <!-- ==================== Mobile Menu Start Here ==================== -->
+    <div class="mobile-menu d-lg-none d-block">
+      <button type="button" class="close-button"> <i class="las la-times"></i> </button>
+      <div class="mobile-menu__inner">
+        <a href="/" class="mobile-menu__logo">
+          <img src="/assets/images/logo/logo.png" alt="<%= t('common.logoAlt') %>" class="white-version">
+          <img src="/assets/images/logo/white-logo-two.png" alt="<%= t('common.logoAlt') %>" class="dark-version">
+        </a>
+        <div class="mobile-menu__menu">
+
+          <ul class="nav-menu flx-align nav-menu--mobile">
+            <li class="nav-menu__item">
+              <a href="/" class="nav-menu__link"><%= t('nav.home') %></a>
+            </li>
+            <li class="nav-menu__item">
+              <a href="/all-product" class="nav-menu__link"><%= t('nav.allProducts') %></a>
+            </li>
+            <li class="nav-menu__item">
+              <a href="/blog" class="nav-menu__link"><%= t('nav.news') %></a>
+            </li>
+            <li class="nav-menu__item">
+              <a href="/contact" class="nav-menu__link"><%= t('nav.contact') %></a>
+            </li>
+            <li class="nav-menu__item">
+              <a href="/partner-countries" class="nav-menu__link"><%= t('nav.partnersCountries') %></a>
+            </li>
+            <li class="nav-menu__item">
+              <a href="/partners-agents" class="nav-menu__link"><%= t('nav.partnersAgents') %></a>
+            </li>
+          </ul>
+          <div class="header-right__inner d-lg-none my-3 gap-1 d-flex flx-align">
+
+            <a href="/login" class="btn btn-main pill">
+              <span class="icon-left icon">
+                <img src="/assets/images/icons/user.svg" alt="<%= t('common.userIconAlt') %>">
+              </span><%= t('nav.createAccount') %>
+            </a>
+            <!-- Custom Language Selector - Login Mobile -->
+            <div class="custom-lang-selector" data-type="login-mobile">
+              <div class="lang-btn">
+                <img src="/assets/images/icons/globe.svg" alt="" class="globe-icon white-version">
+                <img src="/assets/images/icons/globe-white.svg" alt="" class="globe-icon dark-version">
+                <span class="current-lang-text"><%= lng.toUpperCase() %></span>
+                <i class="las la-angle-down lang-arrow"></i>
+              </div>
+              <div class="lang-dropdown">
+                <a href="/language/en" class="lang-option <%= lng === 'en' ? 'active' : '' %>" data-lang="en">
+                  <span>English</span>
+                </a>
+                <a href="/language/uz" class="lang-option <%= lng === 'uz' ? 'active' : '' %>" data-lang="uz">
+                  <span>O'zbekcha</span>
+                </a>
+                <a href="/language/ru" class="lang-option <%= lng === 'ru' ? 'active' : '' %>" data-lang="ru">
+                  <span>Русский</span>
+                </a>
+                <a href="/language/tr" class="lang-option <%= lng === 'tr' ? 'active' : '' %>" data-lang="tr">
+                  <span>Türkçe</span>
+                </a>
+                <a href="/language/fa" class="lang-option <%= lng === 'fa' ? 'active' : '' %>" data-lang="fa">
+                  <span>فارسی</span>
+                </a>
+                <a href="/language/zh" class="lang-option <%= lng === 'zh' ? 'active' : '' %>" data-lang="zh">
+                  <span>中文</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ==================== Mobile Menu End Here ==================== -->
+
+    <!-- ================================== Account Page Start =========================== -->
+    <section class="account d-flex">
+      <img src="/assets/images/thumbs/account-img.png" alt="" class="account__img">
+      <div class="account__left d-md-flex d-none flx-align section-bg position-relative z-index-1 overflow-hidden">
+        <img src="/assets/images/shapes/pattern-curve-seven.png" alt=""
+          class="position-absolute end-0 top-0 z-index--1 h-100">
+        <div class="account-thumb">
+          <img src="/assets/images/thumbs/banner-img.png" alt="">
+
+        </div>
+      </div>
+      <div class="account__right padding-y-120 flx-align">
+
+        <div class="dark-light-mode">
+          <!-- Light Dark Mode -->
+          <div class="theme-switch-wrapper position-relative">
+            <label class="theme-switch" for="checkbox">
+              <input type="checkbox" class="d-none" id="checkbox">
+              <span class="slider text-black header-right__button white-version">
+                <img src="/assets/images/icons/sun.svg" alt="<%= t('common.sunIconAlt') %>">
+              </span>
+              <span class="slider text-black header-right__button dark-version">
+                <img src="/assets/images/icons/moon.svg" alt="<%= t('common.moonIconAlt') %>">
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="account-content">
+          <a href="/" class="logo mb-64">
+            <img src="/assets/images/logo/logo.png" alt="<%= t('common.logoAlt') %>" class="white-version">
+            <img src="/assets/images/logo/white-logo-two.png" alt="<%= t('common.logoAlt') %>" class="dark-version">
+          </a>
+          <h4 class="account-content__title mb-48 text-capitalize"><%= t('auth.welcomeBack') %></h4>
+
+          <!-- Error/Success Messages -->
+          <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-danger mb-24">
+              <i class="las la-exclamation-triangle"></i>
+              <%= error %>
+            </div>
+          <% } %>
+          <% if (typeof message !== 'undefined' && message) { %>
+            <div class="alert alert-success mb-24">
+              <i class="las la-check-circle"></i>
+              <%= message %>
+            </div>
+          <% } %>
+
+          <form action="/auth/login" method="POST" id="loginForm">
+            <!-- CSRF Token -->
+            <input type="hidden" name="csrfToken" value="<%= csrfToken || '' %>">
+            <div class="row gy-4">
+              <div class="col-12">
+                <label for="identifier" class="form-label mb-2 font-18 font-heading fw-600"><%= t('auth.emailOrTaxNumber') %></label>
+                <div class="position-relative">
+                  <input type="text" class="common-input common-input--bg common-input--withIcon" id="identifier" name="identifier"
+                    placeholder="<%= t('auth.emailOrTaxNumberPlaceholder') %>" required>
+                  <span class="input-icon"><img src="/assets/images/icons/envelope-icon.svg" alt=""></span>
+                </div>
+              </div>
+              <div class="col-12">
+                <label for="password" class="form-label mb-2 font-18 font-heading fw-600"><%= t('auth.password') %></label>
+                <div class="position-relative">
+                  <input type="password" class="common-input common-input--bg" id="password" name="password"
+                    placeholder="<%= t('auth.passwordPlaceholder') %>" required>
+                  <button type="button" class="password-toggle-btn" data-target="password" title="Show/Hide Password">
+                    <i class="las la-eye" id="passwordToggleIcon"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="flx-between gap-1">
+                  <div class="common-check my-2">
+                    <input class="form-check-input" type="checkbox" name="rememberMe" id="rememberMe">
+                    <label class="form-check-label mb-0 fw-400 font-14 text-body" for="rememberMe"><%= t('auth.rememberMe') %></label>
+                  </div>
+                  <a href="/auth/forgot-password" class="forgot-password text-decoration-underline text-main text-poppins font-14"><%= t('auth.forgotPassword') %></a>
+                </div>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-main btn-lg w-100 pill">
+                  <span class="btn-text"><%= t('auth.signIn') %></span>
+                  <span class="btn-loading d-none">
+                    <i class="las la-spinner la-spin"></i> <%= t('auth.signingIn') %>
+                  </span>
+                </button>
+              </div>
+              <div class="col-12">
+                <button 
+                  type="button" 
+                  class="btn btn-outline-light btn-lg-icon btn-lg w-100 pill" 
+                  onclick="alert('<%= t(`auth.googleSignInDisabled`) %>')"
+>
+                  <span class="icon icon-left">
+                    <img src="/assets/images/icons/google.svg" alt="">
+                  </span>
+                  <%= t('auth.signInWithGoogle') %>
+              </button>
+              </div>
+              <div class="col-sm-12 mb-0">
+                <div class="have-account">
+                  <p class="text font-14"><%= t('auth.newToMarket') %> <a class="link text-main text-decoration-underline fw-500"
+                      href="/register"><%= t('auth.signUp') %></a></p>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+    <!-- ================================== Account Page End =========================== -->
+  </div>
+  
+  <!-- jQuery library js -->
+  <script src="/assets/js/jquery-3.7.1.min.js"></script>
+  <!-- Bootstrap js -->
+  <script src="/assets/js/boostrap.bundle.min.js"></script>
+  <!-- Slick js -->
+  <script src="/assets/js/slick.min.js"></script>
+  <!-- magnific popup -->
+  <script src="/assets/js/jquery.magnific-popup.js"></script>
+  <!-- Marquee js -->
+  <script src="/assets/js/marquee.min.js"></script>
+  <!-- Countdown js -->
+  <script src="/assets/js/countdown.js"></script>
+  <!-- CounterUp -->
+  <script src="/assets/js/counterup.min.js"></script>
+  <!-- ApexChart js -->
+  <script src="/assets/js/apexchart.js"></script>
+  <!-- Login Loader Fix - Load First -->
+  <script src="/js/login-loader-fix.js"></script>
+  
+  <!-- Main js -->
+  <script src="/assets/js/main.js"></script>
+  
+  <!-- Custom Language Selector JavaScript -->
+  <script src="/js/custom-lang-selector.js"></script>
+  
+  <!-- Password Toggle JavaScript -->
+  <script src="/js/login-password-toggle.js"></script>
+  
+  <!-- Login Handler JavaScript removed - using simple form submission -->
+
+  <!-- Google Translate removed - using i18next instead -->
+
+</body>
+</html>

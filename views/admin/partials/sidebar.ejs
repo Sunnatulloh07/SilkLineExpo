@@ -1,0 +1,116 @@
+<!-- Admin Sidebar -->
+<div class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">
+            <img src="/assets/images/logo/logo.png" alt="SLEX" class="logo-img">
+        </div>
+        <button class="sidebar-toggle d-lg-none" id="sidebarToggle">
+            <i class="las la-times"></i>
+        </button>
+    </div>
+
+    <div class="sidebar-content">
+
+        <!-- Navigation Menu -->
+        <nav class="sidebar-nav">
+            <ul class="nav-menu">
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <a href="/admin/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
+                        <i class="nav-icon las la-tachometer-alt"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- Company Management -->
+                <li class="nav-item">
+                    <a href="/admin/companies" class="nav-link <%= currentPage === 'companies' ? 'active' : '' %>">
+                        <i class="nav-icon las la-building"></i>
+                        <span class="nav-text">Companies</span>
+                        <% if (typeof pendingApprovals !== 'undefined' && pendingApprovals > 0) { %>
+                            <span class="nav-badge"><%= pendingApprovals %></span>
+                        <% } %>
+                    </a>
+                </li>
+
+                <!-- User Management -->
+                <li class="nav-item">
+                    <a href="/admin/users" class="nav-link <%= currentPage === 'users' ? 'active' : '' %>">
+                        <i class="nav-icon las la-users"></i>
+                        <span class="nav-text">Users</span>
+                    </a>
+                </li>
+
+                <!-- Product Management -->
+                <li class="nav-item">
+                    <a href="/admin/products" class="nav-link <%= currentPage === 'products' ? 'active' : '' %>">
+                        <i class="nav-icon las la-box"></i>
+                        <span class="nav-text">Products</span>
+                    </a>
+                </li>
+
+                <!-- Order Management -->
+                <li class="nav-item">
+                    <a href="/admin/orders" class="nav-link <%= currentPage === 'orders' ? 'active' : '' %>">
+                        <i class="nav-icon las la-shopping-cart"></i>
+                        <span class="nav-text">Orders</span>
+                    </a>
+                </li>
+
+                <!-- Divider -->
+                <li class="nav-divider">
+                    <span>Support & System</span>
+                </li>
+
+                <!-- Support -->
+                <li class="nav-item">
+                    <a href="/admin/support/tickets" class="nav-link <%= currentPage === 'support' ? 'active' : '' %>">
+                        <i class="nav-icon las la-headset"></i>
+                        <span class="nav-text">Support Tickets</span>
+                    </a>
+                </li>
+
+                <!-- Analytics -->
+                <li class="nav-item">
+                    <a href="/admin/analytics" class="nav-link <%= currentPage === 'analytics' ? 'active' : '' %>">
+                        <i class="nav-icon las la-chart-bar"></i>
+                        <span class="nav-text">Analytics</span>
+                    </a>
+                </li>
+
+                <!-- System -->
+                <li class="nav-item has-submenu <%= ['logs', 'security', 'settings'].includes(currentPage) ? 'active' : '' %>">
+                    <a href="#" class="nav-link submenu-toggle">
+                        <i class="nav-icon las la-cog"></i>
+                        <span class="nav-text">System</span>
+                        <i class="submenu-arrow las la-angle-right"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li class="submenu-item">
+                            <a href="/admin/system/logs" class="submenu-link <%= currentPage === 'logs' ? 'active' : '' %>">
+                                <i class="las la-file-alt"></i>
+                                System Logs
+                            </a>
+                        </li>
+                        <li class="submenu-item">
+                            <a href="/admin/system/security" class="submenu-link <%= currentPage === 'security' ? 'active' : '' %>">
+                                <i class="las la-shield-alt"></i>
+                                Security
+                            </a>
+                        </li>
+                        <li class="submenu-item">
+                            <a href="/admin/system/settings" class="submenu-link <%= currentPage === 'settings' ? 'active' : '' %>">
+                                <i class="las la-sliders-h"></i>
+                                Settings
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+</div>
+
+<!-- Sidebar Overlay for Mobile -->
+<div class="sidebar-overlay d-lg-none" id="sidebarOverlay"></div>

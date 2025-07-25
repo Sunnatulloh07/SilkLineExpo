@@ -1,0 +1,208 @@
+<%- include('../partials/header') %> <%- include('../partials/navigation') %>
+
+<!-- ========================= Cart Thank You Section Start ======================= -->
+<section
+  class="cart-thank section-bg padding-y-120 position-relative z-index-1 overflow-hidden"
+>
+  <div class="container container-two">
+    <div class="row justify-content-center">
+      <div class="col-lg-6 col-md-8 col-sm-10">
+        <div class="cart-thank__content text-center">
+          <h2 class="cart-thank__title mb-20">
+            <%= t('agents.partnerAgentsTitle') %>
+          </h2>
+          <div class="cart-thank__img">
+            <!-- <img src="/assets/images/thumbs/banner-img.png" alt=""> -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="padding-t-100 mt-5">
+      <div class="cart-thank__box">
+        <!-- countries -->
+        <div class="row gy-4 text-center">
+          <div class="col-lg-4 text-center">
+            <div class="thank-card">
+              <h5 class="thank-card__title mb-2" translate="no">
+                "Useful Workers" LLC
+              </h5>
+              <div class="thank-card__thumb agent-img">
+                <img
+                  src="/assets/images/thumbs/agent-1.jpg"
+                  alt="${country.name}"
+                  class=""
+                />
+              </div>
+              <div class="flx-between gap-2 agent-text">
+                <p class="text">
+                  <b><%= t('agents.address') %>: </b>Surxondaryo vil. Termiz
+                  shahar<br />
+                  <b><%= t('agents.tin') %>:</b> 310573169 <br />
+                  <b><%= t('agents.employees') %>:</b> 6
+                </p>
+                <a href="#!" class="btn btn-main flx-align gap-2 pill">
+                  <%= t('agents.moreDetails') %>
+                  <span class="icon line-height-1 font-20"
+                    ><i class="las la-arrow-right"></i
+                  ></span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="thank-card">
+              <h5 class="thank-card__title mb-2" translate="no">
+                "Angel Investors" LLC
+              </h5>
+              <div class="thank-card__thumb agent-img">
+                <img
+                  src="/assets/images/thumbs/agent-angel.jpg"
+                  alt="${country.name}"
+                  class=""
+                />
+              </div>
+              <div class="flx-between gap-2 agent-text">
+                <p class="text">
+                  <b><%= t('agents.address') %>:</b> Toshkent vil, Chirchiq
+                  shahar<br />
+                  <b><%= t('agents.tin') %>:</b> 310642184 <br />
+                  <b><%= t('agents.employees') %>:</b> 6
+                </p>
+                <a href="#!" class="btn btn-main flx-align gap-2 pill">
+                  <%= t('agents.moreDetails') %>
+                  <span class="icon line-height-1 font-20"
+                    ><i class="las la-arrow-right"></i
+                  ></span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="thank-card">
+              <h5 class="thank-card__title mb-2" translate="no">
+                "Business-Center-Angor"
+              </h5>
+              <div class="thank-card__thumb agent-img">
+                <img
+                  src="/assets/images/thumbs/agent-angor.jpg"
+                  alt="${country.name}"
+                  class=""
+                />
+              </div>
+              <div class="flx-between gap-2 agent-text">
+                <p class="text">
+                  <b><%= t('agents.address') %>:</b> Surxondaryo vil, Angor
+                  tuman<br />
+                  <b><%= t('agents.tin') %>:</b> 310561215 <br />
+                  <b><%= t('agents.employees') %>:</b> 6
+                </p>
+                <a href="#!" class="btn btn-main flx-align gap-2 pill">
+                  <%= t('agents.moreDetails') %>
+                  <span class="icon line-height-1 font-20"
+                    ><i class="las la-arrow-right"></i
+                  ></span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="thank-card">
+              <h5 class="thank-card__title mb-2" translate="no">
+                "BIMM Toshkent" LLC
+              </h5>
+              <div class="thank-card__thumb agent-img">
+                <img
+                  src="/assets/images/thumbs/agent-bimm.png"
+                  alt="${country.name}"
+                  class=""
+                />
+              </div>
+              <div class="flx-between gap-2 agent-text">
+                <p class="text">
+                  <b><%= t('agents.address') %>:</b> Toshkent vil.
+                  Yuqorichirchiq<br />
+                  <b><%= t('agents.tin') %>:</b> 310850702 <br />
+                  <b><%= t('agents.employees') %>:</b> 6
+                </p>
+                <a href="#!" class="btn btn-main flx-align gap-2 pill">
+                  <%= t('agents.moreDetails') %>
+                  <span class="icon line-height-1 font-20"
+                    ><i class="las la-arrow-right"></i
+                  ></span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="thank-card">
+              <h5 class="thank-card__title mb-2" translate="no">
+                "Olim Aka" LLC
+              </h5>
+              <div class="thank-card__thumb agent-img">
+                <img
+                  src="/assets/images/thumbs/agent-olim.jpg"
+                  alt="${country.name}"
+                  class=""
+                />
+              </div>
+              <div class="flx-between gap-2 agent-text">
+                <p class="text">
+                  <b><%= t('agents.address') %>:</b> Toshkent shah. Yunusobod<br />
+                  <b><%= t('agents.tin') %>:</b> 310608669 <br />
+                  <b><%= t('agents.employees') %>:</b> 6
+                </p>
+                <a href="#!" class="btn btn-main flx-align gap-2 pill">
+                  <%= t('agents.moreDetails') %>
+                  <span class="icon line-height-1 font-20"
+                    ><i class="las la-arrow-right"></i
+                  ></span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="thank-card">
+              <h5 class="thank-card__title mb-2" translate="no">
+                "ZHEJIANG GONGQIAO TRADING" LTD
+              </h5>
+              <div class="thank-card__thumb agent-img">
+                <img
+                  src="/assets/images/thumbs/agent-china.jpg"
+                  alt="${country.name}"
+                  class=""
+                />
+              </div>
+              <div class="flx-between gap-2 agent-text">
+                <p class="text">
+                  <b><%= t('agents.address') %>:</b> Zhejiang Province
+                  Shaoxing<br />
+                  <b><%= t('agents.employees') %>:</b> 6
+                </p>
+                <a href="#!" class="btn btn-main flx-align gap-2 pill">
+                  <%= t('agents.moreDetails') %>
+                  <span class="icon line-height-1 font-20"
+                    ><i class="las la-arrow-right"></i
+                  ></span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ========================= Cart Thank You Section End ======================= -->
+
+<!-- ======================== Brand Section Start ========================= -->
+<div class="brand">
+  <div class="container container">
+    <div id="partners-slider">
+      <div class="brand-slider"></div>
+    </div>
+  </div>
+</div>
+<!-- ======================== Brand Section End ========================= -->
+
+<%- include('../partials/footer') %>

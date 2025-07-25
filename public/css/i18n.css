@@ -1,0 +1,377 @@
+/* Language selector styles */
+.language-select {
+  position: relative;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+/* Light mode selector styling */
+body:not(.dark-version) .language-select {
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+body:not(.dark-version) .language-select:hover {
+  background: rgba(0, 0, 0, 0.15);
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+body:not(.dark-version) .language-select #current-lang {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+/* Dark mode selector styling */
+.dark-version .language-select {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(51, 65, 85, 0.6);
+}
+
+.dark-version .language-select:hover {
+  background: rgba(51, 65, 85, 0.9);
+  border-color: rgba(71, 85, 105, 0.8);
+}
+
+.dark-version .language-select #current-lang {
+  color: #e2e8f0;
+}
+
+.language-select__options {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  min-width: 150px;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  display: none;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  margin-top: 4px;
+}
+
+/* Light mode dropdown styles */
+body:not(.dark-version) .language-select__options {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+
+body:not(.dark-version) .language-select__options .list-group-item {
+  background: #ffffff;
+  color: #1e293b;
+  border: none;
+}
+
+body:not(.dark-version) .language-select__options .list-group-item:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+body:not(.dark-version) .language-select__options .list-group-item.active {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Dark mode dropdown styles */
+.dark-version .language-select__options {
+  background: #1e293b;
+  border: 1px solid #334155;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.dark-version .language-select__options .list-group-item {
+  background: #1e293b;
+  color: #e2e8f0;
+  border: none;
+}
+
+.dark-version .language-select__options .list-group-item:hover {
+  background-color: #334155;
+  color: #f8fafc;
+}
+
+.dark-version .language-select__options .list-group-item.active {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Show dropdown when active */
+.language-select.active .language-select__options {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.language-select__options .list-group {
+  margin: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.language-select__options .list-group-item {
+  padding: 12px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: block;
+}
+
+.language-select__options .list-group-item:first-child {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.language-select__options .list-group-item:last-child {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* Language indicator */
+#current-lang {
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  margin-left: 8px;
+  margin-right: 4px;
+}
+
+/* Globe icon styling */
+.globe-icon {
+  transition: all 0.3s ease;
+  width: 16px;
+  height: 16px;
+  opacity: 0.9;
+}
+
+.language-select:hover .globe-icon {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.language-select.active .globe-icon {
+  transform: rotate(180deg) scale(1.1);
+  opacity: 1;
+}
+
+/* RTL support for Persian and Arabic */
+[lang="fa"], [lang="ar"] {
+  direction: rtl;
+  text-align: right;
+}
+
+[lang="fa"] .banner-three-content__title,
+[lang="ar"] .banner-three-content__title {
+  text-align: right;
+}
+
+[lang="fa"] .banner-three-content__desc,
+[lang="ar"] .banner-three-content__desc {
+  text-align: right;
+}
+
+/* Smooth transitions for language changes */
+.nav-menu__link,
+.banner-three-content__title,
+.banner-three-content__desc {
+  transition: all 0.3s ease;
+}
+
+/* Additional dark mode support */
+.dark-version .language-select .globe-icon.white-version {
+  display: none;
+}
+
+.dark-version .language-select .globe-icon.dark-version {
+  display: inline-block;
+  filter: brightness(1.2);
+}
+
+body:not(.dark-version) .language-select .globe-icon.dark-version {
+  display: none;
+}
+
+body:not(.dark-version) .language-select .globe-icon.white-version {
+  display: inline-block;
+  filter: brightness(0.2) contrast(1.5);
+  opacity: 0.8;
+}
+
+/* Ensure dropdown stays open */
+.language-select.active .language-select__options {
+  display: block !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  pointer-events: auto;
+}
+
+.language-select__options {
+  pointer-events: none;
+}
+
+.language-select.active .language-select__options {
+  pointer-events: auto;
+}
+
+/* Prevent hover interference */
+.language-select__options:hover {
+  display: block !important;
+  opacity: 1 !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .language-select__options {
+    right: -20px;
+    min-width: 120px;
+  }
+  
+  .language-select {
+    padding: 6px 10px;
+  }
+  
+  #current-lang {
+    font-size: 14px;
+  }
+}
+/* Force
+ disable hover-based dropdowns */
+.language-select:hover .language-select__options {
+  display: none !important;
+  opacity: 0 !important;
+  transform: translateY(-10px) !important;
+}
+
+.language-select__options:hover {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+/* Only show dropdown when explicitly activated */
+.language-select.active .language-select__options {
+  display: block !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+}
+
+/* Prevent any hover states from interfering */
+.language-select:not(.active) .language-select__options {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Ensure proper dark mode icon visibility */
+body.dark-version .language-select .globe-icon.white-version,
+.dark-version .language-select .globe-icon.white-version {
+  display: none !important;
+}
+
+body.dark-version .language-select .globe-icon.dark-version,
+.dark-version .language-select .globe-icon.dark-version {
+  display: inline-block !important;
+}
+
+body:not(.dark-version) .language-select .globe-icon.dark-version {
+  display: none !important;
+}
+
+body:not(.dark-version) .language-select .globe-icon.white-version {
+  display: inline-block !important;
+}
+/* 
+Light mode header specific styling */
+.header:not(.dark-version) .language-select,
+body:not(.dark-version) .header .language-select {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.header:not(.dark-version) .language-select:hover,
+body:not(.dark-version) .header .language-select:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header:not(.dark-version) .language-select #current-lang,
+body:not(.dark-version) .header .language-select #current-lang {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.header:not(.dark-version) .language-select .globe-icon.white-version,
+body:not(.dark-version) .header .language-select .globe-icon.white-version {
+  filter: brightness(0.3) contrast(1.2);
+  opacity: 0.9;
+}
+
+/* Dark mode header styling remains the same */
+.header.dark-version .language-select,
+body.dark-version .header .language-select {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(51, 65, 85, 0.6);
+  backdrop-filter: blur(10px);
+}
+
+.header.dark-version .language-select:hover,
+body.dark-version .header .language-select:hover {
+  background: rgba(51, 65, 85, 0.95);
+  border-color: rgba(71, 85, 105, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.header.dark-version .language-select #current-lang,
+body.dark-version .header .language-select #current-lang {
+  color: #e2e8f0;
+}
+
+.header.dark-version .language-select .globe-icon.dark-version,
+body.dark-version .header .language-select .globe-icon.dark-version {
+  filter: brightness(1.2);
+  opacity: 1;
+}/* Force
+ light mode text color */
+body:not(.dark-version) .language-select #current-lang,
+.language-select:not(.dark-mode-selector) #current-lang {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+}
+
+/* Force dark mode text color */
+body.dark-version .language-select #current-lang,
+.dark-version .language-select #current-lang,
+.language-select.dark-mode-selector #current-lang {
+  color: #e2e8f0 !important;
+  font-weight: 600 !important;
+}
+
+/* Light mode globe icon */
+body:not(.dark-version) .language-select .globe-icon.white-version,
+.language-select:not(.dark-mode-selector) .globe-icon.white-version {
+  filter: brightness(0.2) contrast(1.5) !important;
+  opacity: 0.8 !important;
+}
+
+/* Dark mode globe icon */
+body.dark-version .language-select .globe-icon.dark-version,
+.dark-version .language-select .globe-icon.dark-version,
+.language-select.dark-mode-selector .globe-icon.dark-version {
+  filter: brightness(1.2) !important;
+  opacity: 1 !important;
+}
+
+/* Ensure proper visibility in all contexts */
+.language-select {
+  color: inherit;
+}
+
+.language-select * {
+  transition: color 0.3s ease;
+}

@@ -1,0 +1,134 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navigation') %>
+
+    <!-- ======================== Breadcrumb one Section Start ===================== -->
+    <section class="breadcrumb breadcrumb-one padding-y-60 section-bg position-relative z-index-1 overflow-hidden">
+
+      <img src="/assets/images/gradients/breadcrumb-gradient-bg.png" alt="" class="bg--gradient">
+      <img src="/assets/images/shapes/element-moon3.png" alt="" class="element one">
+      <img src="/assets/images/shapes/element-moon1.png" alt="" class="element three">
+
+      <div class="container container-two">
+        <div class="row justify-content-center">
+          <div class="col-lg-7">
+            <div class="breadcrumb-one-content">
+              <h3 class="breadcrumb-one-content__title text-center mb-3 text-capitalize">8,000+ <%= t('product.products') %></h3>
+              <p class="breadcrumb-one-content__desc text-center text-black-three"><%= t('product.allProducts') %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- ======================== Breadcrumb one Section End ===================== -->
+    <!-- ======================== All Product Section Start ====================== -->
+    <section class="all-product padding-y-120">
+      <div class="container container-two">
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="filter-tab gap-3 flx-between me-auto">
+              <ul class="nav common-tab nav-pills mb-0 gap-lg-2 gap-1 products-tab" id="pills-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="pills-product-tab" data-bs-toggle="pill"
+                    data-bs-target="#pills-product" type="button" role="tab" aria-controls="pills-product"
+                    aria-selected="true"><%= t('allProducts.allCategories') %></button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="pills-bestMatch-tab" data-bs-toggle="pill"
+                    data-bs-target="#pills-bestMatch" type="button" role="tab" aria-controls="pills-bestMatch"
+                    aria-selected="false">Best Match</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="pills-bestRating-tab" data-bs-toggle="pill"
+                    data-bs-target="#pills-bestRating" type="button" role="tab" aria-controls="pills-bestRating"
+                    aria-selected="false">Best Rating</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="pills-trending-tab" data-bs-toggle="pill"
+                    data-bs-target="#pills-trending" type="button" role="tab" aria-controls="pills-trending"
+                    aria-selected="false">Site Template</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="pills-bestOffers-tab" data-bs-toggle="pill"
+                    data-bs-target="#pills-bestOffers" type="button" role="tab" aria-controls="pills-bestOffers"
+                    aria-selected="false">Best Offers</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="pills-bestSelling-tab" data-bs-toggle="pill"
+                    data-bs-target="#pills-bestSelling" type="button" role="tab" aria-controls="pills-bestSelling"
+                    aria-selected="false">Best Selling</button>
+                </li>
+              </ul>
+              <div class="list-grid d-flex align-items-center gap-2">
+                <button class="list-grid__button list-button d-sm-flex d-none text-body"><i
+                    class="las la-list"></i></button>
+                <button class="list-grid__button grid-button d-sm-flex d-none active text-body"><i
+                    class="las la-border-all"></i></button>
+                <button class="list-grid__button sidebar-btn text-body d-lg-none d-flex"><i
+                    class="las la-bars"></i></button>
+              </div>
+            </div>
+            <form action="#" class="filter-form pb-4 ">
+              <div class="row gy-3">
+                <div class="col-sm-4 col-xs-6">
+                  <div class="flx-between gap-1">
+                    <label for="tag" class="form-label font-16"><%= t('common.filter') %></label>
+                    <button type="reset" class="text-body font-14"><%= t('system.clear') %></button>
+                  </div>
+                  <div class="position-relative">
+                    <input type="text" class="common-input border-gray-five common-input--withLeftIcon" id="tag"
+                      placeholder="<%= t('allProducts.searchPlaceholder') %>">
+                    <span class="input-icon input-icon--left"><img src="/assets/images/icons/search-two.svg"
+                        alt=""></span>
+                  </div>
+                </div>
+                <div class="col-sm-4 col-xs-6">
+                  <label for="category" class="form-label font-16"><%= t('allProducts.category') %></label>
+                  <div class="select-has-icon">
+                    <select class="form-select common-input border-gray-five" id="category">
+                      <option value="" selected disabled><%= t('allProducts.allCategories') %></option>
+                      <option value="electronics"><%= t('categories.electronics') %></option>
+                      <option value="food"><%= t('categories.food') %></option>
+                      <option value="drinks"><%= t('categories.drinks') %></option>
+                    </select>
+                    <span class="select-icon"><i class="las la-angle-down"></i></span>
+                  </div>
+                </div>
+                <div class="col-sm-4 col-xs-6">
+                  <label for="sortBy" class="form-label font-16"><%= t('allProducts.sortBy') %></label>
+                  <div class="select-has-icon">
+                    <select class="form-select common-input border-gray-five" id="sortBy">
+                      <option value="newest" selected><%= t('allProducts.newest') %></option>
+                      <option value="oldest"><%= t('allProducts.oldest') %></option>
+                      <option value="price-low"><%= t('allProducts.priceLowToHigh') %></option>
+                      <option value="price-high"><%= t('allProducts.priceHighToLow') %></option>
+                    </select>
+                    <span class="select-icon"><i class="las la-angle-down"></i></span>
+                  </div>
+                </div>
+              </div>
+            </form>
+            <div class="tab-content" id="pills-tabContent">
+              <div class="tab-pane fade show active" id="pills-product" role="tabpanel" aria-labelledby="pills-product-tab"
+                tabindex="0">
+                <div class="row gy-4" id="product-list">
+                  <!-- Products will be loaded here dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- ======================== All Product Section End ====================== -->
+
+    <!-- ======================== Brand Section Start ========================= -->
+    <div class="brand ">
+      <div class="container container">
+        <div id="partners-slider">
+          <div class="brand-slider"></div>
+        </div>
+      </div>
+    </div>
+    <!-- ======================== Brand Section End ========================= -->
+
+<%- include('../partials/footer') %>

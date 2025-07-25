@@ -1,0 +1,435 @@
+<!-- Modern Admin Header -->
+<header class="modern-header">
+    <div class="header-container">
+        <!-- Left Section -->
+        <div class="header-left">
+            <!-- Mobile Sidebar Toggle -->
+            <button class="mobile-sidebar-toggle d-lg-none" id="mobileSidebarToggle">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+
+            <!-- Breadcrumb Navigation -->
+            <nav class="breadcrumb-nav">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="/admin/dashboard" class="breadcrumb-link">
+                            <i class="las la-home"></i>
+                            <span>Admin</span>
+                        </a>
+                    </li>
+                    <% if (typeof breadcrumb !== 'undefined' && breadcrumb.length > 0) { %>
+                        <% breadcrumb.forEach((item, index) => { %>
+                            <li class="breadcrumb-item <%= index === breadcrumb.length - 1 ? 'active' : '' %>">
+                                <% if (item.url && index !== breadcrumb.length - 1) { %>
+                                    <a href="<%= item.url %>" class="breadcrumb-link">
+                                        <%= item.title %>
+                                    </a>
+                                <% } else { %>
+                                    <span class="breadcrumb-current">
+                                        <%= item.title %>
+                                    </span>
+                                <% } %>
+                            </li>
+                        <% }) %>
+                    <% } %>
+                </ol>
+            </nav>
+
+            <!-- Page Title Section -->
+            <div class="page-title-section">
+                <h1 class="page-title"><%= title || 'Admin Dashboard' %></h1>
+                <% if (typeof subtitle !== 'undefined') { %>
+                    <p class="page-subtitle"><%= subtitle %></p>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Right Section -->
+        <div class="header-right">
+            <!-- Global Search -->
+            <div class="header-search">
+                <div class="search-wrapper">
+                    <button class="search-trigger" id="searchTrigger">
+                        <i class="las la-search"></i>
+                    </button>
+                    <div class="search-container" id="searchContainer">
+                        <div class="search-input-wrapper">
+                            <i class="las la-search search-icon"></i>
+                            <input type="text" class="search-input" placeholder="Search companies, users, products..." id="globalSearch">
+                            <button class="search-close" id="searchClose">
+                                <i class="las la-times"></i>
+                            </button>
+                        </div>
+                        <div class="search-suggestions" id="searchSuggestions">
+                            <div class="suggestion-section">
+                                <h6 class="suggestion-title">Quick Actions</h6>
+                                <a href="/admin/pending-approvals" class="suggestion-item">
+                                    <i class="las la-user-check"></i>
+                                    <span>Pending Approvals</span>
+                                </a>
+                                <a href="/admin/users/new" class="suggestion-item">
+                                    <i class="las la-plus"></i>
+                                    <span>Add New User</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="header-quick-actions">
+                <button class="quick-action-btn" data-bs-toggle="tooltip" title="Refresh Data" id="refreshData">
+                    <i class="las la-sync-alt"></i>
+                </button>
+                <button class="quick-action-btn" data-bs-toggle="tooltip" title="Export Report" id="exportReport">
+                    <i class="las la-download"></i>
+                </button>
+            </div>
+
+            <!-- Notifications -->
+            <div class="header-notifications">
+                <div class="notification-dropdown">
+                    <button class="notification-btn" id="notificationToggle">
+                        <i class="las la-bell"></i>
+                        <span class="notification-badge" id="notificationCount">5</span>
+                        <div class="notification-pulse"></div>
+                    </button>
+                    
+                    <div class="notification-panel" id="notificationPanel">
+                        <div class="notification-header">
+                            <h6 class="notification-title">
+                                <i class="las la-bell"></i>
+                                Notifications
+                            </h6>
+                            <div class="notification-actions">
+                                <button class="notification-action" data-bs-toggle="tooltip" title="Mark all as read">
+                                    <i class="las la-check-double"></i>
+                                </button>
+                                <button class="notification-action" data-bs-toggle="tooltip" title="Settings">
+                                    <i class="las la-cog"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-tabs">
+                            <button class="notification-tab active" data-tab="all">All (5)</button>
+                            <button class="notification-tab" data-tab="unread">Unread (3)</button>
+                            <button class="notification-tab" data-tab="mentions">Mentions (1)</button>
+                        </div>
+                        
+                        <div class="notification-list" id="notificationList">
+                            <div class="notification-item unread urgent">
+                                <div class="notification-avatar">
+                                    <div class="avatar-placeholder bg-warning">
+                                        <i class="las la-exclamation-triangle"></i>
+                                    </div>
+                                </div>
+                                <div class="notification-content">
+                                    <h6 class="notification-title">System Alert</h6>
+                                    <p class="notification-text">High memory usage detected on server</p>
+                                    <span class="notification-time">2 minutes ago</span>
+                                </div>
+                                <div class="notification-actions">
+                                    <button class="notification-action-btn">
+                                        <i class="las la-external-link-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="notification-item unread">
+                                <div class="notification-avatar">
+                                    <div class="avatar-placeholder bg-success">
+                                        <i class="las la-user-plus"></i>
+                                    </div>
+                                </div>
+                                <div class="notification-content">
+                                    <h6 class="notification-title">New Registration</h6>
+                                    <p class="notification-text"><strong>Silk Road Textiles LLC</strong> submitted registration</p>
+                                    <span class="notification-time">15 minutes ago</span>
+                                </div>
+                                <div class="notification-actions">
+                                    <button class="notification-action-btn primary">
+                                        Review
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="notification-item unread">
+                                <div class="notification-avatar">
+                                    <img src="/assets/images/avatars/user-1.jpg" alt="User" class="avatar-img">
+                                </div>
+                                <div class="notification-content">
+                                    <h6 class="notification-title">Support Request</h6>
+                                    <p class="notification-text"><strong>@admin</strong> mentioned you in ticket #1247</p>
+                                    <span class="notification-time">1 hour ago</span>
+                                </div>
+                            </div>
+                            
+                            <div class="notification-item">
+                                <div class="notification-avatar">
+                                    <div class="avatar-placeholder bg-info">
+                                        <i class="las la-chart-line"></i>
+                                    </div>
+                                </div>
+                                <div class="notification-content">
+                                    <h6 class="notification-title">Weekly Report</h6>
+                                    <p class="notification-text">Platform analytics report is ready for review</p>
+                                    <span class="notification-time">3 hours ago</span>
+                                </div>
+                            </div>
+                            
+                            <div class="notification-item">
+                                <div class="notification-avatar">
+                                    <div class="avatar-placeholder bg-primary">
+                                        <i class="las la-check-circle"></i>
+                                    </div>
+                                </div>
+                                <div class="notification-content">
+                                    <h6 class="notification-title">Backup Complete</h6>
+                                    <p class="notification-text">Daily system backup completed successfully</p>
+                                    <span class="notification-time">12 hours ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-footer">
+                            <a href="/admin/notifications" class="notification-footer-link">
+                                View All Notifications
+                                <i class="las la-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Language Selector -->
+            <div class="header-language">
+                <div class="language-dropdown">
+                    <button class="language-btn" id="languageToggle">
+                        <div class="language-flag">
+                            <% 
+                            const flags = {
+                                'uz': '🇺🇿',
+                                'en': '🇺🇸', 
+                                'ru': '🇷🇺',
+                                'tr': '🇹🇷',
+                                'fa': '🇮🇷',
+                                'zh': '🇨🇳'
+                            };
+                            const currentFlag = flags[currentLang || 'uz'] || '🇺🇿';
+                            %>
+                            <%= currentFlag %>
+                        </div>
+                        <span class="language-code"><%= (currentLang || 'uz').toUpperCase() %></span>
+                        <i class="las la-angle-down"></i>
+                    </button>
+                    
+                    <div class="language-panel" id="languagePanel">
+                        <div class="language-header">
+                            <h6 class="language-title">Select Language</h6>
+                        </div>
+                        <div class="language-list">
+                            <a href="/language/uz" class="language-option <%= (currentLang || 'uz') === 'uz' ? 'active' : '' %>">
+                                <span class="language-flag">🇺🇿</span>
+                                <div class="language-info">
+                                    <span class="language-name">O'zbekcha</span>
+                                    <span class="language-native">Uzbek</span>
+                                </div>
+                                <% if ((currentLang || 'uz') === 'uz') { %>
+                                    <i class="las la-check language-check"></i>
+                                <% } %>
+                            </a>
+                            <a href="/language/en" class="language-option <%= currentLang === 'en' ? 'active' : '' %>">
+                                <span class="language-flag">🇺🇸</span>
+                                <div class="language-info">
+                                    <span class="language-name">English</span>
+                                    <span class="language-native">English</span>
+                                </div>
+                                <% if (currentLang === 'en') { %>
+                                    <i class="las la-check language-check"></i>
+                                <% } %>
+                            </a>
+                            <a href="/language/ru" class="language-option <%= currentLang === 'ru' ? 'active' : '' %>">
+                                <span class="language-flag">🇷🇺</span>
+                                <div class="language-info">
+                                    <span class="language-name">Русский</span>
+                                    <span class="language-native">Russian</span>
+                                </div>
+                                <% if (currentLang === 'ru') { %>
+                                    <i class="las la-check language-check"></i>
+                                <% } %>
+                            </a>
+                            <a href="/language/tr" class="language-option <%= currentLang === 'tr' ? 'active' : '' %>">
+                                <span class="language-flag">🇹🇷</span>
+                                <div class="language-info">
+                                    <span class="language-name">Türkçe</span>
+                                    <span class="language-native">Turkish</span>
+                                </div>
+                                <% if (currentLang === 'tr') { %>
+                                    <i class="las la-check language-check"></i>
+                                <% } %>
+                            </a>
+                            <a href="/language/fa" class="language-option <%= currentLang === 'fa' ? 'active' : '' %>">
+                                <span class="language-flag">🇮🇷</span>
+                                <div class="language-info">
+                                    <span class="language-name">فارسی</span>
+                                    <span class="language-native">Persian</span>
+                                </div>
+                                <% if (currentLang === 'fa') { %>
+                                    <i class="las la-check language-check"></i>
+                                <% } %>
+                            </a>
+                            <a href="/language/zh" class="language-option <%= currentLang === 'zh' ? 'active' : '' %>">
+                                <span class="language-flag">🇨🇳</span>
+                                <div class="language-info">
+                                    <span class="language-name">中文</span>
+                                    <span class="language-native">Chinese</span>
+                                </div>
+                                <% if (currentLang === 'zh') { %>
+                                    <i class="las la-check language-check"></i>
+                                <% } %>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme Toggle -->
+            <div class="header-theme">
+                <button class="theme-toggle-btn" data-theme-toggle data-bs-toggle="tooltip" title="Toggle theme">
+                    <i class="las la-moon"></i>
+                </button>
+            </div>
+
+            <!-- User Profile Menu -->
+            <div class="header-profile">
+                <div class="profile-dropdown">
+                    <button class="profile-btn" id="profileToggle">
+                        <div class="profile-avatar">
+                            <div class="avatar-wrapper">
+                                <% if (user.avatar) { %>
+                                    <img src="<%= user.avatar %>" alt="<%= user.name %>" class="avatar-img">
+                                <% } else { %>
+                                    <div class="avatar-placeholder">
+                                        <%= user.name ? user.name.charAt(0).toUpperCase() : 'A' %>
+                                    </div>
+                                <% } %>
+                                <div class="avatar-status status-online"></div>
+                            </div>
+                        </div>
+                        <div class="profile-info">
+                            <span class="profile-name"><%= user.name || 'Super Admin' %></span>
+                            <span class="profile-role">
+                                <% if (user.role === 'super_admin') { %>
+                                    <i class="las la-crown"></i> Super Admin
+                                <% } else if (user.role === 'admin') { %>
+                                    <i class="las la-shield-alt"></i> Admin
+                                <% } else { %>
+                                    <i class="las la-user-check"></i> Moderator
+                                <% } %>
+                            </span>
+                        </div>
+                        <i class="las la-angle-down profile-arrow"></i>
+                    </button>
+                    
+                    <div class="profile-panel" id="profilePanel">
+                        <div class="profile-header">
+                            <div class="profile-avatar-large">
+                                <div class="avatar-wrapper">
+                                    <div class="avatar-placeholder">
+                                        <%= user.name ? user.name.charAt(0).toUpperCase() : 'A' %>
+                                    </div>
+                                    <div class="avatar-status status-online"></div>
+                                </div>
+                            </div>
+                            <div class="profile-details">
+                                <h6 class="profile-name"><%= user.name || 'Super Admin' %></h6>
+                                <p class="profile-email"><%= user.email || 'admin@slex.uz' %></p>
+                                <span class="profile-role-badge">
+                                    <% if (user.role === 'super_admin') { %>
+                                        <i class="las la-crown"></i> Super Admin
+                                    <% } else if (user.role === 'admin') { %>
+                                        <i class="las la-shield-alt"></i> Admin
+                                    <% } else { %>
+                                        <i class="las la-user-check"></i> Moderator
+                                    <% } %>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-stats">
+                            <div class="profile-stat">
+                                <span class="stat-value">24</span>
+                                <span class="stat-label">Actions Today</span>
+                            </div>
+                            <div class="profile-stat">
+                                <span class="stat-value">7</span>
+                                <span class="stat-label">Pending Tasks</span>
+                            </div>
+                            <div class="profile-stat">
+                                <span class="stat-value">15d</span>
+                                <span class="stat-label">Session Time</span>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-menu">
+                            <a href="/admin/profile" class="profile-menu-item">
+                                <div class="menu-item-icon">
+                                    <i class="las la-user"></i>
+                                </div>
+                                <div class="menu-item-content">
+                                    <span class="menu-item-title">My Profile</span>
+                                    <span class="menu-item-desc">View and edit profile</span>
+                                </div>
+                                <i class="las la-arrow-right menu-item-arrow"></i>
+                            </a>
+                            
+                            <a href="/admin/settings" class="profile-menu-item">
+                                <div class="menu-item-icon">
+                                    <i class="las la-cog"></i>
+                                </div>
+                                <div class="menu-item-content">
+                                    <span class="menu-item-title">Settings</span>
+                                    <span class="menu-item-desc">Preferences & security</span>
+                                </div>
+                                <i class="las la-arrow-right menu-item-arrow"></i>
+                            </a>
+                            
+                            <a href="/admin/activity" class="profile-menu-item">
+                                <div class="menu-item-icon">
+                                    <i class="las la-history"></i>
+                                </div>
+                                <div class="menu-item-content">
+                                    <span class="menu-item-title">Activity Log</span>
+                                    <span class="menu-item-desc">Recent actions</span>
+                                </div>
+                                <i class="las la-arrow-right menu-item-arrow"></i>
+                            </a>
+                            
+                            <a href="/admin/help" class="profile-menu-item">
+                                <div class="menu-item-icon">
+                                    <i class="las la-question-circle"></i>
+                                </div>
+                                <div class="menu-item-content">
+                                    <span class="menu-item-title">Help & Support</span>
+                                    <span class="menu-item-desc">Documentation & FAQ</span>
+                                </div>
+                                <i class="las la-arrow-right menu-item-arrow"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="profile-footer">
+                            <button type="button" class="logout-btn" id="logoutBtn" onclick="handleLogout()">
+                                <i class="las la-sign-out-alt"></i>
+                                <span>Sign Out</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

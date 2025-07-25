@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="<%= currentLang || 'uz' %>" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Management - SLEX Admin</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/line-awesome.min.css" rel="stylesheet">
+    <link href="/admin/css/admin-theme.css" rel="stylesheet">
+    <link href="/admin/css/admin-components.css" rel="stylesheet">
+    <link href="/admin/css/admin-responsive.css" rel="stylesheet">
+</head>
+<body class="admin-layout">
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <%- include('../partials/sidebar', { currentPage: 'security', user: user }) %>
+        
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Header -->
+            <%- include('../partials/header', { 
+                user: user, 
+                title: 'Security Management',
+                breadcrumb: [
+                    { title: 'System', url: '/admin' },
+                    { title: 'Security' }
+                ],
+                currentLang: typeof currentLang !== 'undefined' ? currentLang : 'uz'
+            }) %>
+            
+            <!-- Content -->
+            <div class="admin-content">
+                <div class="container-fluid">
+                    <!-- Page Title and Actions -->
+                    <div class="page-header mb-4">
+                        <div class="page-header-content">
+                            <div class="page-title-section">
+                                <h1 class="page-title">
+                                    <i class="las la-shield-alt"></i>
+                                    Security Management
+                                </h1>
+                                <p class="page-subtitle">Monitor security events, manage access controls, and review audit logs</p>
+                            </div>
+                            
+                            <div class="page-actions">
+                                <button class="btn btn-outline-primary" onclick="downloadSecurityReport()">
+                                    <i class="las la-download"></i>
+                                    Security Report
+                                </button>
+                                <button class="btn btn-primary" onclick="runSecurityScan()">
+                                    <i class="las la-shield-alt"></i>
+                                    Security Scan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Status Banner -->
+                    <div class="security-status-banner mb-4">
+                        <div class="status-banner-content">
+                            <div class="status-info">
+                                <div class="status-indicator">
+                                    <div class="status-dot status-secure"></div>
+                                    <span class="status-text">System Secure</span>
+                                </div>
+                                <div class="last-scan">
+                                    <i class="las la-clock"></i>
+                                    Last scan: <span id="lastScan">--</span>
+                                </div>
+                            </div>
+                            <div class="status-actions">
+                                <button class="btn btn-sm btn-outline-success" onclick="quickSecurityCheck()" title="Quick Security Check">
+                                    <i class="las la-search"></i>
+                                    Quick Check
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Metrics -->
+                    <div class="metrics-grid mb-4">
+                        <div class="metric-card metric-success">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-shield-alt"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">98.5%</h3>
+                                    <p class="metric-label">Security Score</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-up"></i>
+                                        +2.1% this week
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-warning">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-exclamation-triangle"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">3</h3>
+                                    <p class="metric-label">Active Threats</p>
+                                    <span class="metric-trend negative">
+                                        <i class="las la-arrow-down"></i>
+                                        -7 this week
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-info">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-user-lock"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">127</h3>
+                                    <p class="metric-label">Failed Login Attempts</p>
+                                    <span class="metric-trend neutral">
+                                        <i class="las la-minus"></i>
+                                        Same as yesterday
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card metric-primary">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-key"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value">2,847</h3>
+                                    <p class="metric-label">Active Sessions</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-up"></i>
+                                        +5.2% today
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Management Dashboard -->
+                    <div class="dashboard-card">
+                        <div class="card-body text-center py-5">
+                            <i class="las la-shield-alt" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                            <h4>Security Management</h4>
+                            <p class="text-muted">Security monitoring and management features will be implemented here.</p>
+                            <div class="mt-4">
+                                <button class="btn btn-primary me-2" onclick="runSecurityScan()">
+                                    <i class="las la-shield-alt"></i>
+                                    Run Security Scan
+                                </button>
+                                <button class="btn btn-outline-secondary me-2" onclick="viewSecurityLogs()">
+                                    <i class="las la-file-alt"></i>
+                                    View Security Logs
+                                </button>
+                                <button class="btn btn-outline-warning" onclick="manageThreatDetection()">
+                                    <i class="las la-exclamation-triangle"></i>
+                                    Threat Detection
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="/admin/js/admin-theme.js"></script>
+
+    <script>
+    window.downloadSecurityReport = () => {
+        console.log('Security report download functionality will be implemented');
+    };
+
+    window.runSecurityScan = () => {
+        console.log('Security scan functionality will be implemented');
+    };
+
+    window.viewSecurityLogs = () => {
+        console.log('Security logs functionality will be implemented');
+    };
+
+    window.quickSecurityCheck = () => {
+        console.log('Quick security check functionality will be implemented');
+    };
+
+    window.manageThreatDetection = () => {
+        console.log('Threat detection management functionality will be implemented');
+    };
+
+    // Update last scan time
+    document.getElementById('lastScan').textContent = new Date().toLocaleTimeString();
+    </script>
+</body>
+</html>

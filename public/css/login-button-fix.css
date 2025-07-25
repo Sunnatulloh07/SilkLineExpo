@@ -1,0 +1,64 @@
+/* Login Page Button Height Consistency Fix */
+
+/* Fix button heights to be consistent */
+.account .btn-lg {
+  height: 56px !important;
+  padding: 16px 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+  line-height: 1.4 !important;
+}
+
+/* Input field height consistency */
+.account .common-input {
+  height: 56px !important;
+  padding: 16px 20px !important;
+  font-size: 16px !important;
+  line-height: 1.4 !important;
+}
+
+/* Input with icon padding adjustment */
+.account .common-input--withIcon {
+  padding-right: 50px !important;
+}
+
+/* Icon positioning */
+.account .input-icon {
+  right: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* Google button specific styling */
+.account .btn-outline-light.btn-lg-icon {
+  height: 56px !important;
+  padding: 16px 24px !important;
+  gap: 12px !important;
+}
+
+.account .btn-lg-icon .icon {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.account .btn-lg-icon .icon img {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .account .btn-lg,
+  .account .common-input {
+    height: 52px !important;
+    padding: 14px 20px !important;
+    font-size: 15px !important;
+  }
+  
+  .account .btn-outline-light.btn-lg-icon {
+    height: 52px !important;
+    padding: 14px 20px !important;
+  }
+}

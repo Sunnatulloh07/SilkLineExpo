@@ -1,0 +1,515 @@
+/*
+Professional Registration Page Enhancement
+Senior Software Engineer Clean Code Implementation
+Fixes button positioning and step design issues
+*/
+
+/* ===== BUTTON POSITIONING FIX ===== */
+.form-navigation {
+  position: relative;
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color, #e9ecef);
+}
+
+.form-navigation .row {
+  width: 100%;
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+  gap: 1rem;
+}
+
+.form-navigation .col-6 {
+  display: flex;
+  padding: 0;
+}
+
+.form-navigation .col-6:first-child {
+  justify-content: flex-start;
+}
+
+.form-navigation .col-6:last-child {
+  justify-content: flex-end;
+}
+
+/* Ensure buttons don't overlap */
+.form-navigation .btn {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  height: 48px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+  z-index: 100;
+}
+
+/* Previous Button Styling */
+.form-navigation .btn-outline-secondary {
+  background: transparent;
+  border-color: #6c757d;
+  color: #6c757d;
+}
+
+.form-navigation .btn-outline-secondary:hover {
+  background: #6c757d;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.25);
+}
+
+/* Next/Submit Button Styling */
+.form-navigation .btn-main {
+  background: linear-gradient(135deg, var(--main-color, #007bff) 0%, #0056b3 100%);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.form-navigation .btn-main:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+}
+
+.form-navigation .btn-main:active {
+  transform: translateY(0);
+}
+
+/* Icon spacing in buttons */
+.form-navigation .btn i {
+  margin: 0 4px;
+}
+
+/* Loading state */
+.btn-loading {
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-loading.d-block {
+  display: flex !important;
+}
+
+.btn-loading .la-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Hide/Show button states */
+.form-navigation .btn[style*="display: none"] {
+  display: none !important;
+}
+
+.form-navigation .btn[style*="display: block"],
+.form-navigation .btn[style*="display: flex"] {
+  display: inline-flex !important;
+}
+
+/* ===== ENHANCED STEP DESIGN ===== */
+.step-progress {
+  margin-bottom: 2.5rem;
+}
+
+.step-progress__bar {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 0 20px;
+  padding: 0;
+}
+
+/* Progressive connection line */
+.step-progress__bar::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 12%;
+  right: 12%;
+  height: 3px;
+  background: linear-gradient(90deg, #e9ecef 0%, #dee2e6 100%);
+  border-radius: 2px;
+  z-index: 1;
+}
+
+/* Active progress line */
+.step-progress__bar::after {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 12%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--main-color, #007bff) 0%, #0056b3 100%);
+  border-radius: 2px;
+  z-index: 2;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 123, 255, 0.3);
+}
+
+/* Progressive width based on step */
+.step-progress__bar.step-1::after { width: 0%; }
+.step-progress__bar.step-2::after { width: 25%; }
+.step-progress__bar.step-3::after { width: 50%; }
+.step-progress__bar.step-4::after { width: 76%; }
+
+/* Enhanced Step Items */
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  max-width: 100px;
+}
+
+/* Professional Step Circles */
+.step-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #f8f9fa;
+  border: 3px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-size: 18px;
+  font-weight: 600;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 12px;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+/* Active Step Circle */
+.step-item.active .step-circle {
+  background: linear-gradient(135deg, var(--main-color, #007bff) 0%, #0056b3 100%);
+  border-color: var(--main-color, #007bff);
+  color: white;
+  transform: scale(1.15);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4); }
+  50% { box-shadow: 0 6px 20px rgba(0, 123, 255, 0.6); }
+  100% { box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4); }
+}
+
+/* Completed Step Circle */
+.step-item.completed .step-circle {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border-color: #28a745;
+  color: white;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+  transform: scale(1.05);
+}
+
+/* Checkmark animation for completed steps */
+.step-item.completed .step-circle i {
+  animation: checkmarkBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes checkmarkBounce {
+  0% { 
+    transform: scale(0) rotate(0deg); 
+    opacity: 0; 
+  }
+  50% { 
+    transform: scale(1.3) rotate(180deg); 
+    opacity: 0.8; 
+  }
+  100% { 
+    transform: scale(1) rotate(360deg); 
+    opacity: 1; 
+  }
+}
+
+/* Professional Step Labels */
+.step-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6c757d;
+  transition: all 0.3s ease;
+  line-height: 1.3;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 85px;
+}
+
+/* Active Step Label */
+.step-item.active .step-label {
+  color: var(--main-color, #007bff);
+  font-weight: 700;
+  transform: translateY(-2px);
+  text-shadow: 0 1px 3px rgba(0, 123, 255, 0.2);
+}
+
+/* Completed Step Label */
+.step-item.completed .step-label {
+  color: #28a745;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(40, 167, 69, 0.2);
+}
+
+/* ===== RESPONSIVE ENHANCEMENTS ===== */
+
+/* Tablet View */
+@media (max-width: 992px) {
+  .form-navigation .btn {
+    min-width: 120px;
+    height: 44px;
+    font-size: 14px;
+    padding: 10px 20px;
+  }
+  
+  .step-circle {
+    width: 45px;
+    height: 45px;
+    font-size: 16px;
+  }
+  
+  .step-label {
+    font-size: 12px;
+    max-width: 75px;
+  }
+}
+
+/* Mobile View */
+@media (max-width: 768px) {
+  .form-navigation {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+  }
+  
+  .form-navigation .row {
+    gap: 12px;
+  }
+  
+  .form-navigation .btn {
+    min-width: 110px;
+    height: 42px;
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+  
+  .step-progress__bar {
+    margin: 0 15px;
+  }
+  
+  .step-circle {
+    width: 42px;
+    height: 42px;
+    font-size: 15px;
+  }
+  
+  .step-label {
+    font-size: 11px;
+    max-width: 70px;
+  }
+  
+  .step-progress__bar::before,
+  .step-progress__bar::after {
+    top: 21px;
+  }
+}
+
+/* Small Mobile View */
+@media (max-width: 480px) {
+  .form-navigation .btn {
+    min-width: 100px;
+    height: 40px;
+    font-size: 12px;
+    padding: 6px 14px;
+  }
+  
+  .step-progress__bar {
+    margin: 0 10px;
+  }
+  
+  .step-circle {
+    width: 38px;
+    height: 38px;
+    font-size: 14px;
+  }
+  
+  .step-label {
+    font-size: 10px;
+    max-width: 60px;
+  }
+  
+  .step-progress__bar::before,
+  .step-progress__bar::after {
+    top: 19px;
+  }
+  
+  .form-navigation .row {
+    gap: 8px;
+  }
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+[data-theme="dark"] .step-circle,
+.dark-version .step-circle {
+  background: #2d3748;
+  border-color: #4a5568;
+  color: #a0aec0;
+}
+
+[data-theme="dark"] .step-progress__bar::before,
+.dark-version .step-progress__bar::before {
+  background: linear-gradient(90deg, #4a5568 0%, #2d3748 100%);
+}
+
+[data-theme="dark"] .step-label,
+.dark-version .step-label {
+  color: #a0aec0;
+}
+
+[data-theme="dark"] .form-navigation,
+.dark-version .form-navigation {
+  border-color: #4a5568;
+}
+
+/* Password Requirements Dark Mode Fix */
+[data-theme="dark"] .password-requirements,
+.dark-version .password-requirements {
+  background: #2d3748 !important;
+  border-color: #4a5568 !important;
+  color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .password-requirements h6,
+.dark-version .password-requirements h6 {
+  color: #f7fafc !important;
+}
+
+[data-theme="dark"] .requirement,
+.dark-version .requirement {
+  color: #cbd5e0 !important;
+}
+
+[data-theme="dark"] .requirement.valid,
+.dark-version .requirement.valid {
+  color: #68d391 !important;
+}
+
+/* Registration Summary Dark Mode Fix */
+[data-theme="dark"] .registration-summary,
+.dark-version .registration-summary {
+  background: #2d3748 !important;
+  border-color: #4a5568 !important;
+}
+
+[data-theme="dark"] .registration-summary h5,
+.dark-version .registration-summary h5 {
+  color: #f7fafc !important;
+}
+
+[data-theme="dark"] .summary-item,
+.dark-version .summary-item {
+  border-color: #4a5568 !important;
+}
+
+[data-theme="dark"] .summary-item strong,
+.dark-version .summary-item strong {
+  color: #f7fafc !important;
+}
+
+[data-theme="dark"] .summary-item span,
+.dark-version .summary-item span {
+  color: #cbd5e0 !important;
+}
+
+/* ===== FORM ELEMENT DARK MODE FIXES ===== */
+[data-theme="dark"] .common-input,
+.dark-version .common-input {
+  background: #2d3748 !important;
+  border-color: #4a5568 !important;
+  color: #f7fafc !important;
+}
+
+[data-theme="dark"] .common-input:focus,
+.dark-version .common-input:focus {
+  border-color: var(--main-color, #007bff) !important;
+  background: #2d3748 !important;
+}
+
+[data-theme="dark"] .common-input::placeholder,
+.dark-version .common-input::placeholder {
+  color: #a0aec0 !important;
+}
+
+[data-theme="dark"] .form-label,
+.dark-version .form-label {
+  color: #f7fafc !important;
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+.step-item:focus-within .step-circle {
+  outline: 3px solid rgba(0, 123, 255, 0.3);
+  outline-offset: 2px;
+}
+
+.form-navigation .btn:focus {
+  outline: 3px solid rgba(0, 123, 255, 0.3);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .step-circle {
+    border-width: 4px;
+  }
+  
+  .step-item.active .step-circle {
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.7);
+  }
+  
+  .step-item.completed .step-circle {
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.7);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .step-circle,
+  .step-label,
+  .form-navigation .btn,
+  .step-progress__bar::after {
+    transition: none;
+  }
+  
+  .step-item.active .step-circle {
+    animation: none;
+  }
+  
+  .step-item.completed .step-circle i {
+    animation: none;
+  }
+}

@@ -1,0 +1,89 @@
+/* Loader Fix CSS */
+
+/* Default state - hidden loader */
+.loader-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: hsl(var(--white));
+  z-index: 99999;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Dark theme loader */
+[data-theme='dark'] .loader-mask,
+.dark-version .loader-mask {
+  background-color: var(--dark-black-two);
+}
+
+/* Hidden state */
+.loader-mask.loader-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Force hide with display none */
+.loader-mask.loader-removed {
+  display: none !important;
+}
+
+/* Animation for smooth hiding */
+.loader-mask.loader-fadeout {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Login page specific loader handling */
+body.login-page .loader-mask {
+  animation: fadeOutLoader 0.5s ease forwards;
+  animation-delay: 0.1s;
+}
+
+@keyframes fadeOutLoader {
+  0% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* Emergency fallback - force hide after 2 seconds */
+.loader-mask {
+  animation: emergencyHide 0.1s ease forwards;
+  animation-delay: 2s;
+}
+
+@keyframes emergencyHide {
+  to {
+    display: none !important;
+  }
+}
+
+/* Override any existing loader styles */
+.loader-mask {
+  will-change: opacity, visibility;
+}
+
+/* Loader content styling remains the same */
+.loader-mask .loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 80px;
+  height: 80px;
+  font-size: 0;
+  display: inline-block;
+  margin: -40px 0 0 -40px;
+  text-indent: -9999em;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+}

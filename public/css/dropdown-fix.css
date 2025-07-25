@@ -1,0 +1,110 @@
+/* Clean Language Dropdown Solution */
+
+/* Ensure header containers don't clip dropdown */
+.header,
+.header-inner,
+.header-right,
+.header-right__inner {
+  overflow: visible !important;
+}
+
+/* Language selector base positioning */
+.custom-lang-selector {
+  position: relative;
+  z-index: 1000;
+}
+
+/* Dropdown positioning - extends 10px beyond right edge */
+.lang-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: -10px;
+  left: auto;
+  min-width: 150px;
+  z-index: 9999;
+  
+  /* Smooth transitions */
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: all 0.2s ease;
+  pointer-events: none;
+  
+  /* Styling */
+  background: var(--white);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  border: 1px solid rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* Dark mode dropdown */
+[data-theme="dark"] .lang-dropdown,
+.dark-version .lang-dropdown {
+  background: var(--dark-bg, #1a1a1a);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+/* Active state - show dropdown */
+.custom-lang-selector.active .lang-dropdown {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Dropdown options */
+.lang-dropdown .lang-option {
+  display: block;
+  padding: 10px 16px;
+  color: var(--body-color);
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.lang-dropdown .lang-option:hover {
+  background-color: var(--main-color);
+  color: white;
+}
+
+[data-theme="dark"] .lang-dropdown .lang-option,
+.dark-version .lang-dropdown .lang-option {
+  color: var(--white);
+}
+
+[data-theme="dark"] .lang-dropdown .lang-option:hover,
+.dark-version .lang-dropdown .lang-option:hover {
+  background-color: var(--main-color);
+}
+
+/* Active language option */
+.lang-dropdown .lang-option.active {
+  background-color: rgba(var(--main-color-rgb), 0.1);
+  font-weight: 600;
+}
+
+/* Fixed/sticky header support */
+.header.fixed-header .custom-lang-selector {
+  position: relative;
+}
+
+.header.fixed-header .lang-dropdown {
+  position: absolute;
+  z-index: 10001;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .lang-dropdown {
+    right: -5px;
+    min-width: 120px;
+  }
+  
+  .lang-dropdown .lang-option {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
