@@ -452,26 +452,66 @@
         </div>
     </div>
 
-    <!-- Theme Toggle Button -->
-    <button class="theme-toggle-btn" id="themeToggle" title="Toggle Dark Mode">
-        <i class="las la-moon"></i>
-    </button>
-
     <!-- Scripts -->
     <script src="/assets/js/jquery-3.7.1.min.js"></script>
     <script src="/assets/js/boostrap.bundle.min.js"></script>
     <script src="/assets/js/apexchart.js"></script>
+    
+    <!-- Admin Dashboard Core Scripts -->
+    <script src="/admin/js/dashboard.js"></script>
     <script src="/admin/js/analytics-charts.js"></script>
     
     <script>
-        // Analytics Page Initialization - Let analytics-charts.js handle everything
+        // Analytics Page Initialization - Enhanced with Debug
         document.addEventListener('DOMContentLoaded', function() {
+            
+            // Debug current state
+            const adminWrapper = document.querySelector('.admin-wrapper');
+            const adminMain = document.querySelector('.admin-main');
+             
+            // Initialize admin dashboard core FIRST (critical for sidebar)
+            if (typeof SLEXDashboard !== 'undefined') {
+                window.SLEXDashboard = new SLEXDashboard();
+                window.SLEXDashboard.init();
+            }
+            
+            // Small delay for DOM to stabilize
+            setTimeout(() => {
+                // Initialize admin header dropdowns
+                if (typeof AdminHeaderDropdownFix !== 'undefined') {
+                    window.adminHeaderDropdownFix = new AdminHeaderDropdownFix();
+                     }
+                
+                // Initialize responsive handlers (enhanced)
+                initializeResponsiveHandlers();
+                
+                // Force apply saved sidebar state (Dashboard Compatible)
+                const savedState = localStorage.getItem('admin_sidebar_state');
+                
+                const sidebar = document.querySelector('.admin-sidebar');
+                const adminMain = document.querySelector('.admin-main');
+                const adminHeader = document.querySelector('.admin-header');
+                
+                if (savedState === 'collapsed') {
+                    sidebar?.classList.add('collapsed');
+                    adminMain?.classList.add('sidebar-collapsed');
+                    adminHeader?.classList.add('sidebar-collapsed');
+                     } else {
+                    sidebar?.classList.remove('collapsed');
+                    adminMain?.classList.remove('sidebar-collapsed');  
+                    adminHeader?.classList.remove('sidebar-collapsed');
+                    }
+                
+            }, 100);
             
             // Initialize theme toggle
             initializeThemeToggle();
             
-            // Initialize responsive handlers
-            initializeResponsiveHandlers();
+            // Initialize analytics charts (can be parallel)
+            if (typeof AnalyticsCharts !== 'undefined') {
+                window.analyticsCharts = new AnalyticsCharts();
+                console.log('✅ Analytics Charts initialized');
+            }
             
         });
 
@@ -553,27 +593,85 @@
             console.log('Updating charts theme to:', theme);
         }
 
-        // Initialize Responsive Handlers
+        // Initialize Dashboard-Compatible Responsive Handlers
         function initializeResponsiveHandlers() {
-            // Handle mobile sidebar toggle
             const sidebarToggle = document.getElementById('sidebarToggle');
             const sidebar = document.querySelector('.admin-sidebar');
             const adminMain = document.querySelector('.admin-main');
+            const adminHeader = document.querySelector('.admin-header');
             
-            if (sidebarToggle) {
-                sidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('open');
-                    adminMain.classList.toggle('sidebar-open');
-                });
+            if (!sidebarToggle || !sidebar || !adminMain) {
+                console.warn('⚠️ Sidebar elements not found');
+                return;
             }
             
-            // Handle sidebar overlay click
-            adminMain.addEventListener('click', function(e) {
-                if (adminMain.classList.contains('sidebar-open') && !sidebar.contains(e.target)) {
-                    sidebar.classList.remove('open');
-                    adminMain.classList.remove('sidebar-open');
+            console.log('🔧 Setting up sidebar toggle - Dashboard Compatible...');
+            
+            // Restore sidebar state from localStorage (Dashboard approach)
+            const savedSidebarState = localStorage.getItem('admin_sidebar_state');
+            const isSidebarCollapsed = savedSidebarState === 'collapsed';
+            
+            // Apply Dashboard-style classes
+            if (isSidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                adminMain.classList.add('sidebar-collapsed');
+                adminHeader?.classList.add('sidebar-collapsed');
+                console.log('📁 Restored collapsed sidebar state (Dashboard Compatible)');
+            } else {
+                sidebar.classList.remove('collapsed');
+                adminMain.classList.remove('sidebar-collapsed');
+                adminHeader?.classList.remove('sidebar-collapsed');
+                console.log('📂 Restored expanded sidebar state (Dashboard Compatible)');
+            }
+            
+            // Remove any existing event listeners by cloning
+            const newSidebarToggle = sidebarToggle.cloneNode(true);
+            sidebarToggle.parentNode.replaceChild(newSidebarToggle, sidebarToggle);
+            
+            // Add Dashboard-compatible event listener
+            newSidebarToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('📱 Sidebar toggle clicked (Dashboard Compatible)');
+                
+                const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
+                console.log('🔍 Currently collapsed:', isCurrentlyCollapsed);
+                
+                if (isCurrentlyCollapsed) {
+                    // Expand sidebar - Dashboard approach
+                    sidebar.classList.remove('collapsed');
+                    adminMain.classList.remove('sidebar-collapsed');
+                    adminHeader?.classList.remove('sidebar-collapsed');
+                    localStorage.setItem('admin_sidebar_state', 'expanded');
+                    console.log('📂 Sidebar expanded (Dashboard Compatible)');
+                } else {
+                    // Collapse sidebar - Dashboard approach
+                    sidebar.classList.add('collapsed');
+                    adminMain.classList.add('sidebar-collapsed');
+                    adminHeader?.classList.add('sidebar-collapsed');
+                    localStorage.setItem('admin_sidebar_state', 'collapsed');
+                    console.log('📁 Sidebar collapsed (Dashboard Compatible)');
                 }
+                
+                // Debug final computed styles
+                setTimeout(() => {
+                    const computedStyle = window.getComputedStyle(adminMain);
+                    console.log('🔍 Final margin-left:', computedStyle.marginLeft);
+                    console.log('🔍 Final width:', computedStyle.width);
+                    console.log('🔍 Sidebar classes:', sidebar.className);
+                    console.log('🔍 Main classes:', adminMain.className);
+                }, 100);
             });
+            
+            // Handle mobile responsiveness (Dashboard approach)
+            if (window.innerWidth <= 1024) {
+                console.log('📱 Mobile mode detected - Dashboard mobile behavior');
+                // Mobile logic will be handled by existing CSS media queries
+                // No additional mobile event listeners needed - dashboard approach
+            }
+            
+            console.log('✅ Dashboard-compatible sidebar functionality initialized');
         }
     </script>
 </body>

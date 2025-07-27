@@ -37,6 +37,9 @@
   --border-radius-sm: 8px;
   --border-radius-lg: 16px;
   
+  /* Sidebar Transitions */
+  --sidebar-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
   /* Dark Mode Colors */
   --dark-bg-main: #0f0f23;
   --dark-bg-card: #1a1a2e;
@@ -229,7 +232,7 @@ body {
 .admin-main {
   flex: 1;
   margin-left: var(--sidebar-width);
-  transition: margin-left var(--transition-base);
+  transition: margin-left var(--sidebar-transition);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -238,6 +241,7 @@ body {
   max-width: calc(100vw - var(--sidebar-width));
 }
 
+/* Original dashboard approach - element-based selector */
 .admin-main.sidebar-collapsed {
   margin-left: var(--sidebar-collapsed);
   width: calc(100% - var(--sidebar-collapsed));
@@ -887,6 +891,117 @@ h6 { font-size: var(--font-size-base); }
 /* Transition utilities */
 .transition-fast { transition: all var(--transition-fast); }
 .transition-base { transition: all var(--transition-base); }
+
+/* ===============================================
+   15. Sidebar Collapse Functionality
+   =============================================== */
+
+/* Sidebar Default State */
+.admin-sidebar {
+  width: var(--sidebar-width);
+  transition: var(--sidebar-transition);
+  overflow: hidden;
+}
+
+/* Collapsed Sidebar State - Dashboard Original Approach */
+.admin-sidebar.collapsed {
+  width: var(--sidebar-collapsed);
+  min-width: var(--sidebar-collapsed);
+}
+
+/* Sidebar Menu Items in Collapsed State */
+.admin-sidebar.collapsed .sidebar-menu-item .menu-text {
+  opacity: 0;
+  visibility: hidden;
+  width: 0;
+  overflow: hidden;
+  transition: var(--sidebar-transition);
+}
+
+.admin-sidebar.collapsed .sidebar-menu-item .menu-icon {
+  margin-right: 0;
+  justify-content: center;
+}
+
+.admin-sidebar.collapsed .sidebar-menu-item {
+  justify-content: center;
+  padding: var(--spacing-sm);
+}
+
+/* Sidebar Logo in Collapsed State */
+.admin-sidebar.collapsed .sidebar-logo .logo-text {
+  opacity: 0;
+  visibility: hidden;
+  width: 0;
+  overflow: hidden;
+}
+
+.admin-sidebar.collapsed .sidebar-logo {
+  justify-content: center;
+  padding: var(--spacing-md) var(--spacing-sm);
+}
+
+/* Mobile Sidebar States */
+@media (max-width: 1024px) {
+  .admin-main {
+    margin-left: 0;
+  }
+  
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    height: 100vh;
+    z-index: var(--z-sidebar);
+    transition: var(--sidebar-transition);
+  }
+  
+  .admin-sidebar.mobile-open {
+    left: 0;
+  }
+  
+  .admin-main.sidebar-mobile-open::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: calc(var(--z-sidebar) - 1);
+  }
+  
+  /* Disable collapse functionality on mobile */
+  .admin-sidebar.collapsed {
+    width: var(--sidebar-width);
+  }
+  
+  .admin-main.sidebar-collapsed {
+    margin-left: 0;
+  }
+}
+
+/* Animation for Sidebar State Changes */
+@keyframes sidebarCollapse {
+  from { width: var(--sidebar-width); }
+  to { width: var(--sidebar-collapsed); }
+}
+
+@keyframes sidebarExpand {
+  from { width: var(--sidebar-collapsed); }
+  to { width: var(--sidebar-width); }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .admin-sidebar,
+  .admin-main,
+  .sidebar-menu-item .menu-text,
+  .sidebar-logo .logo-text {
+    transition: none !important;
+    animation: none !important;
+  }
+}
 .transition-slow { transition: all var(--transition-slow); }
 
 /* End of SLEX Admin Dashboard CSS Framework */ 
