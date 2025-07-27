@@ -2032,14 +2032,11 @@ class SLEXDashboard {
       const action = actionBtn.getAttribute('data-action');
       const userId = actionBtn.getAttribute('data-user-id');
 
-      console.log(`🎯 Table action clicked: ${action}`, { userId, element: actionBtn });
-
-      // Handle specific actions with proper context
+       // Handle specific actions with proper context
       switch (action) {
         case 'view':
           if (userId) {
-            console.log('📋 Calling viewUserDetails for:', userId);
-            self.viewUserDetails(userId);
+             self.viewUserDetails(userId);
           } else {
             console.error('❌ No userId provided for view action');
             self.showToast('Error: No user ID provided', 'error');
@@ -2047,7 +2044,6 @@ class SLEXDashboard {
           break;
         case 'approve':
           if (userId) {
-            console.log('✅ Calling quickApproveUser for:', userId);
             self.quickApproveUser(userId);
           } else {
             console.error('❌ No userId provided for approve action');
@@ -2056,8 +2052,7 @@ class SLEXDashboard {
           break;
         case 'reject':
           if (userId) {
-            console.log('❌ Calling quickRejectUser for:', userId);
-            self.quickRejectUser(userId);
+           self.quickRejectUser(userId);
           } else {
             console.error('❌ No userId provided for reject action');
             self.showToast('Error: No user ID provided', 'error');
@@ -2065,7 +2060,6 @@ class SLEXDashboard {
           break;
         case 'delete':
           if (userId) {
-            console.log('🗑️ Calling deleteUserRequest for:', userId);
             self.deleteUserRequest(userId);
           } else {
             console.error('❌ No userId provided for delete action');
@@ -2073,11 +2067,9 @@ class SLEXDashboard {
           }
           break;
         case 'bulk-approve':
-          console.log('📦 Calling bulkApproveSelected');
           self.bulkApproveSelected();
           break;
         case 'bulk-reject':
-          console.log('📦 Calling bulkRejectSelected');
           self.bulkRejectSelected();
           break;
         default:
@@ -4279,4 +4271,728 @@ setInterval(() => {
     window.SLEXDashboard.loadNotifications();
   }
 }, 30000);
+
+// ===============================================
+// ADMIN HEADER DROPDOWN FIX - INTEGRATED
+// ===============================================
+
+class AdminHeaderDropdownFix {
+  constructor() {
+    this.init();
+    this.setupRealTimeBadges();
+  }
+
+  init() {
+    
+    // Wait for DOM elements to be available
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        this.waitForElements();
+      });
+    } else {
+      this.waitForElements();
+    }
+  }
+
+  waitForElements() {
+    // Check if essential elements exist, retry if not
+    const checkElements = () => {
+      const languageToggle = document.getElementById('languageToggle');
+      const messagesBtn = document.getElementById('messagesBtn');
+      const notificationBtn = document.getElementById('notificationBtn');
+      const userMenuBtn = document.getElementById('userMenuBtn');
+      
+      if (languageToggle && messagesBtn && notificationBtn && userMenuBtn) {
+        this.setupDropdowns();
+        return true;
+      } else {
+        return false;
+      }
+    };
+
+    // Try immediate check
+    if (!checkElements()) {
+      // Retry with interval
+      let attempts = 0;
+      const maxAttempts = 20; // 10 seconds max wait
+      
+      const retryInterval = setInterval(() => {
+        attempts++;
+        if (checkElements() || attempts >= maxAttempts) {
+          clearInterval(retryInterval);
+          if (attempts >= maxAttempts) {
+            console.error('❌ Failed to find header elements after maximum attempts');
+          }
+        }
+      }, 500);
+    }
+  }
+
+  setupDropdowns() {
+
+    // Debug: Check if elements exist
+    const languageToggle = document.getElementById('languageToggle');
+    const messagesBtn = document.getElementById('messagesBtn');
+    const notificationBtn = document.getElementById('notificationBtn');
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    
+   
+    // Language Dropdown
+    this.setupLanguageDropdown();
+    
+    // Messages Dropdown
+    this.setupMessagesDropdown();
+    
+    // Notifications Dropdown
+    this.setupNotificationsDropdown();
+    
+    // User Menu Dropdown
+    this.setupUserMenuDropdown();
+    
+    // Global click outside handler
+    this.setupGlobalHandlers();
+    
+  }
+
+  setupLanguageDropdown() {
+    const languageToggle = document.getElementById('languageToggle');
+    const languageMenu = document.getElementById('languageMenu');
+    
+    if (!languageToggle || !languageMenu) {
+      console.warn('⚠️ Language dropdown elements not found');
+      return;
+    }
+
+
+    // Remove existing listeners by cloning node
+    const newLanguageToggle = languageToggle.cloneNode(true);
+    languageToggle.parentNode.replaceChild(newLanguageToggle, languageToggle);
+
+    newLanguageToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      this.toggleDropdown(languageMenu);
+      this.closeOtherDropdowns(languageMenu);
+    });
+
+    // Language option clicks
+    const languageOptions = languageMenu.querySelectorAll('.language-option');
+    languageOptions.forEach(option => {
+      option.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const langCode = option.dataset.lang;
+        const langName = option.dataset.name;
+        
+        
+        if (langCode) {
+          this.changeLanguage(langCode);
+          this.closeDropdown(languageMenu);
+        }
+      });
+    });
+  }
+
+  setupMessagesDropdown() {
+    const messagesBtn = document.getElementById('messagesBtn');
+    const messagesDropdown = document.getElementById('messagesDropdown');
+    
+    if (!messagesBtn || !messagesDropdown) {
+      console.warn('⚠️ Messages dropdown elements not found');
+      return;
+    }
+
+
+    // Remove existing listeners by cloning node
+    const newMessagesBtn = messagesBtn.cloneNode(true);
+    messagesBtn.parentNode.replaceChild(newMessagesBtn, messagesBtn);
+
+    newMessagesBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      this.toggleDropdown(messagesDropdown);
+      this.closeOtherDropdowns(messagesDropdown);
+      this.loadMessages();
+    });
+  }
+
+  setupNotificationsDropdown() {
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationDropdown = document.getElementById('notificationDropdown');
+    
+    if (!notificationBtn || !notificationDropdown) {
+      console.warn('⚠️ Notifications dropdown elements not found');
+      return;
+    }
+
+
+    // Remove existing listeners by cloning node
+    const newNotificationBtn = notificationBtn.cloneNode(true);
+    notificationBtn.parentNode.replaceChild(newNotificationBtn, notificationBtn);
+
+    newNotificationBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      this.toggleDropdown(notificationDropdown);
+      this.closeOtherDropdowns(notificationDropdown);
+      this.loadNotifications();
+    });
+  }
+
+  setupUserMenuDropdown() {
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    const userDropdown = document.getElementById('userDropdown');
+    
+    if (!userMenuBtn || !userDropdown) {
+      console.warn('⚠️ User menu dropdown elements not found');
+      return;
+    }
+
+
+    // Remove existing listeners by cloning node
+    const newUserMenuBtn = userMenuBtn.cloneNode(true);
+    userMenuBtn.parentNode.replaceChild(newUserMenuBtn, userMenuBtn);
+
+    newUserMenuBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      this.toggleDropdown(userDropdown);
+      this.closeOtherDropdowns(userDropdown);
+    });
+  }
+
+  setupGlobalHandlers() {
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.header-dropdown') && !e.target.closest('.language-dropdown')) {
+        this.closeAllDropdowns();
+      }
+    });
+
+    // Close dropdowns on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.closeAllDropdowns();
+      }
+    });
+  }
+
+  // ===============================================
+  // DROPDOWN UTILITIES
+  // ===============================================
+
+  toggleDropdown(dropdown) {
+    if (!dropdown) return;
+    
+    const isHidden = dropdown.classList.contains('hidden');
+    
+    if (isHidden) {
+      this.openDropdown(dropdown);
+    } else {
+      this.closeDropdown(dropdown);
+    }
+  }
+
+  openDropdown(dropdown) {
+    if (!dropdown) return;
+    
+    dropdown.classList.remove('hidden');
+    dropdown.style.cssText = `
+      visibility: visible !important;
+      opacity: 1 !important;
+      transform: translateY(0) !important;
+      pointer-events: auto !important;
+      display: block !important;
+      position: absolute !important;
+      top: 100% !important;
+      right: 0 !important;
+      z-index: 1050 !important;
+    `;
+    
+  }
+
+  closeDropdown(dropdown) {
+    if (!dropdown) return;
+    
+    dropdown.classList.add('hidden');
+    dropdown.style.cssText = `
+      visibility: hidden !important;
+      opacity: 0 !important;
+      transform: translateY(-10px) !important;
+      pointer-events: none !important;
+      display: none !important;
+    `;
+  }
+
+  closeOtherDropdowns(keepOpen) {
+    const allDropdowns = document.querySelectorAll('.dropdown-menu, .language-menu');
+    allDropdowns.forEach(dropdown => {
+      if (dropdown !== keepOpen) {
+        this.closeDropdown(dropdown);
+      }
+    });
+  }
+
+  closeAllDropdowns() {
+    const allDropdowns = document.querySelectorAll('.dropdown-menu, .language-menu');
+    allDropdowns.forEach(dropdown => {
+      this.closeDropdown(dropdown);
+    });
+  }
+
+  // ===============================================
+  // LANGUAGE SWITCHING
+  // ===============================================
+
+  async changeLanguage(langCode) {
+    
+    try {
+      // Show loading state
+      this.showLanguageLoading(true);
+      
+      // Make API request to change language
+      const response = await fetch('/admin/api/language/change', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ language: langCode }),
+        credentials: 'same-origin'
+      });
+
+      if (response.ok) {
+        
+        // Reload page with new language
+        setTimeout(() => {
+          window.location.reload();
+        }, 300);
+      } else {
+        throw new Error('Language change request failed');
+      }
+
+    } catch (error) {
+      console.error('❌ Language change failed:', error);
+      this.showToast('error', 'Failed to change language. Please try again.');
+    } finally {
+      this.showLanguageLoading(false);
+    }
+  }
+
+  showLanguageLoading(show) {
+    const languageToggle = document.getElementById('languageToggle');
+    if (!languageToggle) return;
+
+    const chevron = languageToggle.querySelector('.lang-chevron');
+    if (chevron) {
+      if (show) {
+        chevron.className = 'fas fa-spinner fa-spin';
+        languageToggle.disabled = true;
+      } else {
+        chevron.className = 'fas fa-chevron-down lang-chevron';
+        languageToggle.disabled = false;
+      }
+    }
+  }
+
+  // ===============================================
+  // MESSAGES & NOTIFICATIONS LOADING
+  // ===============================================
+
+  async loadMessages() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    
+    if (!messagesContainer) {
+      console.warn('Messages container not found');
+      return;
+    }
+
+    // Show loading state
+    messagesContainer.innerHTML = `
+      <div class="messages-loading">
+        <div class="loading-spinner"></div>
+        <span>Loading messages...</span>
+      </div>
+    `;
+
+    try {
+      const response = await fetch('/admin/api/messages');
+      const data = await response.json();
+
+      if (data.success) {
+        this.renderMessages(data.data);
+        this.updateMessagesBadge(data.data);
+      } else {
+        throw new Error(data.message || 'Failed to load messages');
+      }
+
+    } catch (error) {
+      console.error('❌ Messages loading failed:', error);
+      messagesContainer.innerHTML = `
+        <div class="error-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>Failed to load messages</p>
+          <button onclick="window.adminHeaderDropdownFix.loadMessages()" class="btn-retry">
+            Try Again
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  async loadNotifications() {
+    const notificationsContainer = document.getElementById('notificationsContainer');
+    
+    if (!notificationsContainer) {
+      console.warn('Notifications container not found');
+      return;
+    }
+
+    // Show loading state
+    notificationsContainer.innerHTML = `
+      <div class="notifications-loading">
+        <div class="loading-spinner"></div>
+        <span>Loading notifications...</span>
+      </div>
+    `;
+
+    try {
+      const response = await fetch('/admin/api/notifications');
+      const data = await response.json();
+
+      if (data.success) {
+        this.renderNotifications(data.data);
+        this.updateNotificationsBadge(data.data);
+      } else {
+        throw new Error(data.message || 'Failed to load notifications');
+      }
+
+    } catch (error) {
+      console.error('❌ Notifications loading failed:', error);
+      notificationsContainer.innerHTML = `
+        <div class="error-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>Failed to load notifications</p>
+          <button onclick="window.adminHeaderDropdownFix.loadNotifications()" class="btn-retry">
+            Try Again
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  // ===============================================
+  // RENDER MESSAGES & NOTIFICATIONS
+  // ===============================================
+
+  renderMessages(messages) {
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (!messagesContainer) return;
+
+    if (!messages || messages.length === 0) {
+      messagesContainer.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-inbox"></i>
+          <p>No messages found</p>
+        </div>
+      `;
+      return;
+    }
+
+    const messagesHTML = messages.map(message => this.createMessageHTML(message)).join('');
+    messagesContainer.innerHTML = messagesHTML;
+  }
+
+  renderNotifications(notifications) {
+    const notificationsContainer = document.getElementById('notificationsContainer');
+    if (!notificationsContainer) return;
+
+    if (!notifications || notifications.length === 0) {
+      notificationsContainer.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-bell-slash"></i>
+          <p>No notifications found</p>
+        </div>
+      `;
+      return;
+    }
+
+    const notificationsHTML = notifications.map(notification => this.createNotificationHTML(notification)).join('');
+    notificationsContainer.innerHTML = notificationsHTML;
+  }
+
+  createMessageHTML(message) {
+    const isUnread = !message.readAt;
+    const timeAgo = this.formatTimeAgo(message.createdAt);
+    
+    return `
+      <div class="message-item ${isUnread ? 'unread' : ''}" 
+           onclick="window.adminHeaderDropdownFix.handleMessageClick('${message._id}')">
+        <div class="message-avatar">
+          ${message.senderId?.name?.charAt(0) || 'U'}
+        </div>
+        <div class="message-content">
+          <div class="message-from">
+            ${message.senderId?.name || 'Unknown User'}
+          </div>
+          <div class="message-subject">
+            ${message.subject || 'Support Message'}
+          </div>
+          <div class="message-preview">
+            ${message.content?.substring(0, 50) || ''}...
+          </div>
+          <div class="message-time">${timeAgo}</div>
+        </div>
+        ${isUnread ? '<div class="unread-indicator"></div>' : ''}
+      </div>
+    `;
+  }
+
+  createNotificationHTML(notification) {
+    const isUnread = !notification.readAt;
+    const timeAgo = this.formatTimeAgo(notification.createdAt);
+    
+    return `
+      <div class="notification-item ${isUnread ? 'unread' : ''}" 
+           onclick="window.adminHeaderDropdownFix.handleNotificationClick('${notification._id}')">
+        <div class="notification-icon ${notification.color || 'blue'}">
+          <i class="fas ${this.getNotificationIcon(notification.type)}"></i>
+        </div>
+        <div class="notification-content">
+          <div class="notification-title">
+            ${notification.title}
+          </div>
+          <div class="notification-message">
+            ${notification.message}
+          </div>
+          <div class="notification-time">${timeAgo}</div>
+        </div>
+        ${isUnread ? '<div class="unread-indicator"></div>' : ''}
+      </div>
+    `;
+  }
+
+  // ===============================================
+  // BADGE UPDATES
+  // ===============================================
+
+  updateMessagesBadge(messages) {
+    const messagesBadge = document.getElementById('messagesBadge');
+    if (!messagesBadge) return;
+
+    const unreadCount = messages.filter(msg => !msg.readAt).length;
+    
+    if (unreadCount > 0) {
+      messagesBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+      messagesBadge.style.display = 'block';
+    } else {
+      messagesBadge.style.display = 'none';
+    }
+  }
+
+  updateNotificationsBadge(notifications) {
+    const notificationBadge = document.querySelector('#notificationBtn .notification-badge');
+    if (!notificationBadge) return;
+
+    const unreadCount = notifications.filter(notif => !notif.readAt).length;
+    
+    if (unreadCount > 0) {
+      notificationBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+      notificationBadge.style.display = 'block';
+    } else {
+      notificationBadge.style.display = 'none';
+    }
+  }
+
+  // ===============================================
+  // REAL-TIME BADGE UPDATES
+  // ===============================================
+
+  setupRealTimeBadges() {
+    
+    // Update badges every 30 seconds
+    this.badgeUpdateInterval = setInterval(() => {
+      this.updateBadgesCount();
+    }, 30000);
+
+    // Initial badge update
+    setTimeout(() => {
+      this.updateBadgesCount();
+    }, 2000);
+  }
+
+  async updateBadgesCount() {
+    try {
+      // Get unread messages count
+      const messagesResponse = await fetch('/admin/api/messages?unreadOnly=true');
+      const messagesData = await messagesResponse.json();
+      
+      if (messagesData.success) {
+        this.updateMessagesBadge(messagesData.data);
+      }
+
+      // Get unread notifications count
+      const notificationsResponse = await fetch('/admin/api/notifications?unreadOnly=true');
+      const notificationsData = await notificationsResponse.json();
+      
+      if (notificationsData.success) {
+        this.updateNotificationsBadge(notificationsData.data);
+      }
+
+    } catch (error) {
+      console.error('❌ Badge update failed:', error);
+    }
+  }
+
+  // ===============================================
+  // EVENT HANDLERS
+  // ===============================================
+
+  async handleMessageClick(messageId) {
+    
+    try {
+      // Mark as read
+      await fetch(`/admin/api/messages/${messageId}/read`, {
+        method: 'POST'
+      });
+
+      // Navigate to message page
+      window.location.href = `/admin/messages/${messageId}`;
+
+    } catch (error) {
+      console.error('❌ Message click handling failed:', error);
+    }
+  }
+
+  async handleNotificationClick(notificationId) {
+    
+    try {
+      // Mark as read
+      await fetch(`/admin/api/notifications/${notificationId}/read`, {
+        method: 'POST'
+      });
+
+      // Navigate based on notification type
+      window.location.href = `/admin/notifications/${notificationId}`;
+
+    } catch (error) {
+      console.error('❌ Notification click handling failed:', error);
+    }
+  }
+
+  // ===============================================
+  // UTILITY METHODS
+  // ===============================================
+
+  formatTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
+  }
+
+  getNotificationIcon(type) {
+    const icons = {
+      'user_registration': 'fa-user-plus',
+      'support_message': 'fa-envelope',
+      'system': 'fa-cog',
+      'warning': 'fa-exclamation-triangle',
+      'success': 'fa-check-circle',
+      'info': 'fa-info-circle'
+    };
+    return icons[type] || 'fa-bell';
+  }
+
+  showToast(type, message) {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 1060;
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      font-size: 14px;
+      transform: translateX(100%);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      max-width: 350px;
+      background: ${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#3B82F6'};
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.transform = 'translateX(0)';
+      toast.style.opacity = '1';
+    }, 100);
+    
+    setTimeout(() => {
+      toast.style.transform = 'translateX(100%)';
+      toast.style.opacity = '0';
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 300);
+    }, 3000);
+  }
+
+  // Cleanup method
+  destroy() {
+    if (this.badgeUpdateInterval) {
+      clearInterval(this.badgeUpdateInterval);
+    }
+  }
+}
+
+// Initialize Admin Header Dropdown Fix after window load
+window.addEventListener('load', () => {
+  // Ensure DOM is fully loaded and parsed
+  setTimeout(() => {
+    if (!window.adminHeaderDropdownFix) {
+      try {
+        window.adminHeaderDropdownFix = new AdminHeaderDropdownFix();
+        } catch (error) {
+        console.error('❌ Failed to initialize Admin Header Dropdown Fix:', error);
+        
+        // Retry after additional delay
+        setTimeout(() => {
+          try {
+            window.adminHeaderDropdownFix = new AdminHeaderDropdownFix();
+           } catch (retryError) {
+            console.error('❌ Failed to initialize Admin Header Dropdown Fix on retry:', retryError);
+          }
+        }, 2000);
+      }
+    }
+  }, 500);
+});
+
+// Also try immediate initialization for already loaded pages
+if (document.readyState === 'complete') {
+  setTimeout(() => {
+    if (!window.adminHeaderDropdownFix) {
+      try {
+        window.adminHeaderDropdownFix = new AdminHeaderDropdownFix();
+       } catch (error) {
+        console.error('❌ Failed immediate initialization:', error);
+      }
+    }
+  }, 100);
+}
 

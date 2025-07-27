@@ -712,6 +712,150 @@ class AdminService {
     }
   }
 
+  /**
+   * Mark message as read - REAL DATABASE
+   */
+  async markMessageAsRead(adminId, messageId) {
+    try {
+      // Validate admin access and database connection
+      await this.validateAdminAccess(adminId);
+
+      const result = await Message.findOneAndUpdate(
+        { 
+          _id: messageId, 
+          recipientId: adminId, 
+          recipientType: 'admin' 
+        },
+        { 
+          readAt: new Date(),
+          status: 'read' 
+        },
+        { new: true }
+      );
+
+      if (!result) {
+        throw new Error('Message not found or access denied');
+      }
+
+      this.logger.log(`✅ Message marked as read: ${messageId} for admin: ${adminId}`);
+      return result;
+
+    } catch (error) {
+      this.logger.error('❌ Mark message as read error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Mark notification as read - REAL DATABASE
+   */
+  async markNotificationAsRead(adminId, notificationId) {
+    try {
+      // Validate admin access and database connection
+      await this.validateAdminAccess(adminId);
+
+      const result = await Notification.findOneAndUpdate(
+        { 
+          _id: notificationId, 
+          recipientId: adminId, 
+          recipientType: 'admin' 
+        },
+        { 
+          readAt: new Date(),
+          status: 'read' 
+        },
+        { new: true }
+      );
+
+      if (!result) {
+        throw new Error('Notification not found or access denied');
+      }
+
+      this.logger.log(`✅ Notification marked as read: ${notificationId} for admin: ${adminId}`);
+      return result;
+
+    } catch (error) {
+      this.logger.error('❌ Mark notification as read error:', error);
+      throw error;
+    }
+  }
+
+  // ===============================================
+  // NOTIFICATION CREATION METHODS
+  // ===============================================
+
+  /**
+   * Create support message notification for admins
+   */
+  async createSupportMessageNotification(senderId, subject, content) {
+    try {
+      // Get all admin users
+      const admins = await Admin.find({ status: 'active' }).select('_id').lean();
+
+      // Create notification for each admin
+      const notifications = admins.map(admin => ({
+        recipientId: admin._id,
+        recipientType: 'admin',
+        type: 'support_message',
+        title: 'New Support Message',
+        message: `Support request from user: ${subject}`,
+        data: {
+          senderId,
+          subject,
+          content: content.substring(0, 100) + '...'
+        },
+        actionUrl: `/admin/messages/${senderId}`,
+        createdAt: new Date()
+      }));
+
+      await Notification.insertMany(notifications);
+
+      this.logger.log(`✅ Support message notifications created for ${admins.length} admins`);
+      return notifications;
+
+    } catch (error) {
+      this.logger.error('❌ Create support message notification error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create user registration notification for admins
+   */
+  async createUserRegistrationNotification(userId, userData) {
+    try {
+      // Get all admin users
+      const admins = await Admin.find({ status: 'active' }).select('_id').lean();
+
+      // Create notification for each admin
+      const notifications = admins.map(admin => ({
+        recipientId: admin._id,
+        recipientType: 'admin',
+        type: 'user_registration',
+        title: 'New User Registration',
+        message: `New company registration: ${userData.companyName}`,
+        data: {
+          userId,
+          companyName: userData.companyName,
+          email: userData.email,
+          country: userData.country,
+          companyType: userData.companyType
+        },
+        actionUrl: `/admin/users/${userId}`,
+        createdAt: new Date()
+      }));
+
+      await Notification.insertMany(notifications);
+
+      this.logger.log(`✅ User registration notifications created for ${admins.length} admins`);
+      return notifications;
+
+    } catch (error) {
+      this.logger.error('❌ Create user registration notification error:', error);
+      throw error;
+    }
+  }
+
   // ===============================================
   // ANALYTICS METHODS - PROXY TO ANALYTICS SERVICE
   // ===============================================

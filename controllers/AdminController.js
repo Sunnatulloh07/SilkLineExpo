@@ -364,6 +364,75 @@ class AdminController {
   }
 
   /**
+   * API: Mark message as read
+   */
+  async markMessageAsRead(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { messageId } = req.params;
+      
+      this.logger.log(`💬 Mark message as read: ${messageId} by admin: ${adminId}`);
+      
+      await AdminService.markMessageAsRead(adminId, messageId);
+      
+      this.sendSuccess(res, null, 'Message marked as read');
+
+    } catch (error) {
+      this.handleAPIError(res, error, 'Failed to mark message as read');
+    }
+  }
+
+  /**
+   * API: Mark notification as read
+   */
+  async markNotificationAsRead(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { notificationId } = req.params;
+      
+      this.logger.log(`🔔 Mark notification as read: ${notificationId} by admin: ${adminId}`);
+      
+      await AdminService.markNotificationAsRead(adminId, notificationId);
+      
+      this.sendSuccess(res, null, 'Notification marked as read');
+
+    } catch (error) {
+      this.handleAPIError(res, error, 'Failed to mark notification as read');
+    }
+  }
+
+  /**
+   * API: Change admin language
+   */
+  async changeLanguage(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { language } = req.body;
+      
+      this.logger.log(`🌐 Language change request: ${language} by admin: ${adminId}`);
+      
+      // Validate language code
+      const validLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
+      if (!validLanguages.includes(language)) {
+        return this.sendError(res, 'Invalid language code', 400);
+      }
+      
+      // Set language cookie (same as public pages)
+      res.cookie('i18next', language, {
+        maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
+      
+      this.sendSuccess(res, { language }, `Language changed to ${language}`);
+
+    } catch (error) {
+      this.handleAPIError(res, error, 'Failed to change language');
+    }
+  }
+
+  /**
    * Show user details for approval review
    */
   async showUserDetails(req, res) {

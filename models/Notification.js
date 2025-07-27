@@ -1,6 +1,6 @@
 /**
- * Notification Model for Admin Notification System
- * Handles system notifications, alerts, and activity updates
+ * Notification Model - Professional Admin Notification System
+ * Senior Software Engineer Level Implementation
  */
 
 const mongoose = require('mongoose');
@@ -9,54 +9,46 @@ const notificationSchema = new mongoose.Schema({
   // Recipient Information
   recipientId: {
     type: mongoose.Schema.Types.ObjectId,
-    refPath: 'recipientType',
-    required: true
+    required: true,
+    refPath: 'recipientType'
   },
-  
   recipientType: {
     type: String,
-    enum: ['admin', 'user'],
-    required: true
+    required: true,
+    enum: ['user', 'admin', 'system']
   },
   
   // Notification Content
   title: {
     type: String,
     required: true,
-    trim: true,
-    maxlength: 150
+    maxLength: 150,
+    trim: true
   },
-  
   message: {
     type: String,
     required: true,
-    trim: true,
-    maxlength: 500
+    maxLength: 500,
+    trim: true
   },
   
-  // Notification Type and Category
+  // Notification Type
   type: {
     type: String,
+    required: true,
     enum: [
       'user_registration',
-      'user_approval',
-      'user_rejection',
+      'support_message',
+      'order_placed',
+      'payment_received',
       'system_alert',
-      'security',
       'maintenance',
-      'report',
-      'reminder',
-      'order',
-      'inquiry',
-      'general'
-    ],
-    required: true
-  },
-  
-  category: {
-    type: String,
-    enum: ['info', 'success', 'warning', 'error', 'urgent'],
-    default: 'info'
+      'security',
+      'info',
+      'warning',
+      'success',
+      'error'
+    ]
   },
   
   // Priority Level
@@ -66,63 +58,66 @@ const notificationSchema = new mongoose.Schema({
     default: 'normal'
   },
   
-  // Icon and Styling
-  icon: {
+  // Status
+  status: {
     type: String,
-    default: 'fas fa-bell'
+    enum: ['unread', 'read', 'dismissed', 'archived'],
+    default: 'unread'
   },
   
-  color: {
-    type: String,
-    enum: ['primary', 'success', 'warning', 'danger', 'info'],
-    default: 'primary'
+  // Read Status
+  readAt: {
+    type: Date,
+    default: null
+  },
+  isRead: {
+    type: Boolean,
+    default: false
   },
   
   // Action Information
   actionUrl: {
     type: String,
+    maxLength: 500,
     trim: true
   },
-  
   actionText: {
     type: String,
+    maxLength: 50,
     trim: true,
-    maxlength: 50
+    default: 'View Details'
   },
   
-  // Related Entity Information
-  relatedEntity: {
-    entityType: {
-      type: String,
-      enum: ['user', 'admin', 'order', 'product', 'inquiry', 'system']
-    },
-    entityId: mongoose.Schema.Types.ObjectId,
-    entityName: String
+  // Additional Data
+  data: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
   },
   
-  // Status and Tracking
-  status: {
+  // Sender Information (optional)
+  senderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    refPath: 'senderType',
+    default: null
+  },
+  senderType: {
     type: String,
-    enum: ['unread', 'read', 'archived', 'dismissed'],
-    default: 'unread'
+    enum: ['user', 'admin', 'system'],
+    default: 'system'
   },
   
-  readAt: {
-    type: Date,
-    default: null
+  // Display Settings
+  icon: {
+    type: String,
+    default: 'fas fa-bell'
+  },
+  color: {
+    type: String,
+    enum: ['blue', 'green', 'yellow', 'red', 'purple', 'gray'],
+    default: 'blue'
   },
   
-  dismissedAt: {
-    type: Date,
-    default: null
-  },
-  
-  archivedAt: {
-    type: Date,
-    default: null
-  },
-  
-  // Auto-expiry
+  // Expiry (for temporary notifications)
   expiresAt: {
     type: Date,
     default: null
@@ -130,38 +125,155 @@ const notificationSchema = new mongoose.Schema({
   
   // Metadata
   metadata: {
-    type: mongoose.Schema.Types.Mixed,
-    default: {}
+    source: {
+      type: String,
+      enum: ['system', 'user_action', 'admin_action', 'external'],
+      default: 'system'
+    },
+    category: String,
+    tags: [String]
   },
   
-  // Source Information
-  source: {
-    type: String,
-    enum: ['system', 'admin', 'user', 'automated'],
-    default: 'system'
+  // Timestamps
+  createdAt: {
+    type: Date,
+    default: Date.now
   },
-  
-  sourceId: {
-    type: mongoose.Schema.Types.ObjectId,
-    default: null
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
-}, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
 });
 
-// Indexes for performance
-notificationSchema.index({ recipientId: 1, recipientType: 1, status: 1 });
-notificationSchema.index({ recipientId: 1, readAt: 1 });
-notificationSchema.index({ type: 1, category: 1 });
-notificationSchema.index({ createdAt: -1 });
-notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-notificationSchema.index({ priority: 1, status: 1 });
+// Compound indexes for performance
+notificationSchema.index({ recipientId: 1, recipientType: 1, createdAt: -1 });
+notificationSchema.index({ status: 1, createdAt: -1 });
+notificationSchema.index({ type: 1, priority: 1 });
+notificationSchema.index({ readAt: 1, isRead: 1 });
+notificationSchema.index({ expiresAt: 1 });
 
-// Virtual for checking if notification is read
-notificationSchema.virtual('isRead').get(function() {
-  return this.readAt !== null;
+// TTL index for expired notifications
+notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+// Update timestamps on save
+notificationSchema.pre('save', function(next) {
+  this.updatedAt = new Date();
+  
+  // Set isRead based on readAt
+  if (this.readAt && !this.isRead) {
+    this.isRead = true;
+  }
+  
+  // Update status when read
+  if (this.readAt && this.status === 'unread') {
+    this.status = 'read';
+  }
+  
+  next();
+});
+
+// Instance methods
+notificationSchema.methods.markAsRead = function() {
+  this.readAt = new Date();
+  this.isRead = true;
+  this.status = 'read';
+  return this.save();
+};
+
+notificationSchema.methods.dismiss = function() {
+  this.status = 'dismissed';
+  return this.save();
+};
+
+notificationSchema.methods.archive = function() {
+  this.status = 'archived';
+  return this.save();
+};
+
+// Static methods
+notificationSchema.statics.getUnreadCount = function(recipientId, recipientType) {
+  return this.countDocuments({
+    recipientId,
+    recipientType,
+    isRead: false,
+    status: { $ne: 'archived' }
+  });
+};
+
+notificationSchema.statics.markAllAsRead = function(recipientId, recipientType) {
+  return this.updateMany(
+    {
+      recipientId,
+      recipientType,
+      isRead: false,
+      status: 'unread'
+    },
+    {
+      $set: {
+        readAt: new Date(),
+        isRead: true,
+        status: 'read',
+        updatedAt: new Date()
+      }
+    }
+  );
+};
+
+notificationSchema.statics.createUserRegistrationNotification = async function(userId, userData) {
+  const Admin = require('./Admin');
+  const admins = await Admin.find({ status: 'active' }).select('_id');
+  
+  const notifications = admins.map(admin => ({
+    recipientId: admin._id,
+    recipientType: 'admin',
+    type: 'user_registration',
+    title: 'New User Registration',
+    message: `New company registration: ${userData.companyName}`,
+    data: userData,
+    actionUrl: `/admin/users/${userId}`,
+    actionText: 'Review Registration',
+    priority: 'normal',
+    color: 'blue',
+    icon: 'fas fa-user-plus'
+  }));
+  
+  return this.insertMany(notifications);
+};
+
+notificationSchema.statics.createSupportMessageNotification = async function(senderId, subject, content) {
+  const Admin = require('./Admin');
+  const admins = await Admin.find({ status: 'active' }).select('_id');
+  
+  const notifications = admins.map(admin => ({
+    recipientId: admin._id,
+    recipientType: 'admin',
+    type: 'support_message',
+    title: 'New Support Message',
+    message: `Support request: ${subject}`,
+    data: {
+      senderId,
+      subject,
+      content: content.substring(0, 100) + '...'
+    },
+    actionUrl: `/admin/messages/${senderId}`,
+    actionText: 'View Message',
+    priority: 'high',
+    color: 'yellow',
+    icon: 'fas fa-envelope'
+  }));
+  
+  return this.insertMany(notifications);
+};
+
+// Virtual for formatted creation date
+notificationSchema.virtual('formattedDate').get(function() {
+  return this.createdAt.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 });
 
 // Virtual for time ago
@@ -172,116 +284,21 @@ notificationSchema.virtual('timeAgo').get(function() {
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
   
-  if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
-  if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-  if (minutes > 0) return `${minutes} min ago`;
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  if (minutes > 0) return `${minutes}m ago`;
   return 'Just now';
 });
 
-// Virtual for checking if notification is urgent
-notificationSchema.virtual('isUrgent').get(function() {
-  return this.priority === 'urgent' || this.category === 'urgent';
+// Transform JSON output
+notificationSchema.set('toJSON', {
+  virtuals: true,
+  transform: function(doc, ret) {
+    delete ret.__v;
+    return ret;
+  }
 });
 
-// Instance Methods
-notificationSchema.methods.markAsRead = async function() {
-  this.readAt = new Date();
-  this.status = 'read';
-  return await this.save();
-};
+const Notification = mongoose.model('Notification', notificationSchema);
 
-notificationSchema.methods.dismiss = async function() {
-  this.dismissedAt = new Date();
-  this.status = 'dismissed';
-  return await this.save();
-};
-
-notificationSchema.methods.archive = async function() {
-  this.archivedAt = new Date();
-  this.status = 'archived';
-  return await this.save();
-};
-
-// Static Methods
-notificationSchema.statics.getUnreadCount = async function(recipientId, recipientType) {
-  return await this.countDocuments({
-    recipientId,
-    recipientType,
-    status: 'unread'
-  });
-};
-
-notificationSchema.statics.markAllAsRead = async function(recipientId, recipientType) {
-  return await this.updateMany(
-    {
-      recipientId,
-      recipientType,
-      status: 'unread'
-    },
-    {
-      $set: {
-        readAt: new Date(),
-        status: 'read'
-      }
-    }
-  );
-};
-
-notificationSchema.statics.createNotification = async function(data) {
-  const notification = new this(data);
-  
-  // Set default icon based on type
-  if (!notification.icon) {
-    const iconMap = {
-      user_registration: 'fas fa-user-plus',
-      user_approval: 'fas fa-check-circle',
-      user_rejection: 'fas fa-times-circle',
-      system_alert: 'fas fa-exclamation-triangle',
-      security: 'fas fa-shield-alt',
-      maintenance: 'fas fa-tools',
-      report: 'fas fa-chart-bar',
-      reminder: 'fas fa-clock',
-      order: 'fas fa-shopping-cart',
-      inquiry: 'fas fa-question-circle',
-      general: 'fas fa-bell'
-    };
-    notification.icon = iconMap[notification.type] || 'fas fa-bell';
-  }
-  
-  // Set default color based on category
-  if (!notification.color) {
-    const colorMap = {
-      info: 'primary',
-      success: 'success',
-      warning: 'warning',
-      error: 'danger',
-      urgent: 'danger'
-    };
-    notification.color = colorMap[notification.category] || 'primary';
-  }
-  
-  return await notification.save();
-};
-
-notificationSchema.statics.cleanExpired = async function() {
-  return await this.deleteMany({
-    expiresAt: { $lt: new Date() }
-  });
-};
-
-// Pre-save middleware
-notificationSchema.pre('save', function(next) {
-  // Auto-set status based on readAt
-  if (this.readAt && this.status === 'unread') {
-    this.status = 'read';
-  }
-  
-  // Set default expiry for certain types (30 days)
-  if (!this.expiresAt && ['reminder', 'general'].includes(this.type)) {
-    this.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  }
-  
-  next();
-});
-
-module.exports = mongoose.model('Notification', notificationSchema); 
+module.exports = Notification; 

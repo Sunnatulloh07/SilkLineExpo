@@ -581,7 +581,6 @@ try {
   const dataElement = document.getElementById('dashboard-data');
   window.dashboardData = JSON.parse(dataElement.textContent);
   window.dashboardChartData = null;
-  console.log('📊 Dashboard Data Loaded:', window.dashboardData);
 } catch (error) {
   console.error('Dashboard data loading error:', error);
   window.dashboardData = {
@@ -600,7 +599,6 @@ try {
 <!-- Initialize Dashboard -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Initializing Production Dashboard...');
   
   // Auto-update dashboard data every 30 seconds
   setInterval(() => {
@@ -609,7 +607,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }, 30000);
   
-  console.log('✅ Dashboard fully loaded and operational');
 });
 </script>
 

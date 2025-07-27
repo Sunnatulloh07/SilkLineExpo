@@ -62,6 +62,21 @@ class AuthService {
       // Send notification emails
       await this.sendRegistrationNotifications(newUser, verificationToken);
 
+      // Create admin notification for new user registration
+      try {
+        const AdminService = require('./AdminService');
+        await AdminService.createUserRegistrationNotification(newUser._id, {
+          companyName: newUser.companyName,
+          email: newUser.email,
+          country: newUser.country,
+          companyType: newUser.companyType
+        });
+        console.log('✅ Admin notification created for new user registration:', newUser.email);
+      } catch (notificationError) {
+        console.error('❌ Failed to create admin notification:', notificationError);
+        // Don't fail the registration if notification fails
+      }
+
       return {
         userId: newUser._id,
         companyName: newUser.companyName,
