@@ -64,6 +64,50 @@ router.get('/register',
 );
 
 /**
+ * POST /auth/register
+ * Handle registration request
+ */
+router.post('/register', 
+    authRateLimit,
+    redirectIfAuthenticated,
+    // Add multer middleware for file uploads
+    (() => {
+        const multer = require('multer');
+        const path = require('path');
+        
+        const upload = multer({
+            dest: path.join(__dirname, '../temp/'),
+            limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+            fileFilter: (req, file, cb) => {
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+                allowedTypes.includes(file.mimetype) 
+                    ? cb(null, true) 
+                    : cb(new Error('Only JPG and PNG files allowed'), false);
+            }
+        });
+        
+        return upload.single('companyLogo');
+    })(),
+    async (req, res) => {
+        try {
+            // Import AuthController and create instance
+            const AuthControllerClass = require('../controllers/AuthController');
+            const authController = new AuthControllerClass();
+            
+            // Call the register method
+            await authController.register(req, res);
+        } catch (error) {
+            console.error('Registration error in jwtAuth:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message || 'Registration failed',
+                code: 'REGISTRATION_ERROR'
+            });
+        }
+    }
+);
+
+/**
  * GET /auth/forgot-password
  * Show forgot password page
  */
@@ -119,6 +163,22 @@ router.get('/me',
     authenticate,
     JWTAuthController.me
 );
+
+/**
+ * GET /auth/data.json
+ * Static data endpoint for compatibility
+ */
+router.get('/data.json', (req, res) => {
+    try {
+        const data = require('../public/data.json');
+        res.json(data);
+    } catch (error) {
+        res.status(404).json({
+            success: false,
+            message: 'Data not found'
+        });
+    }
+});
 
 /**
  * POST /auth/verify-session
@@ -365,20 +425,13 @@ router.use((error, req, res, next) => {
     const isDevelopment = process.env.NODE_ENV === 'development';
     const errorMessage = isDevelopment ? error.message : 'Authentication error occurred';
     
-    if (req.xhr || req.headers.accept?.includes('json')) {
-        res.status(500).json({
-            success: false,
-            message: errorMessage,
-            code: 'AUTH_ERROR',
-            ...(isDevelopment && { stack: error.stack })
-        });
-    } else {
-        res.status(500).render('error/500', {
-            title: 'Authentication Error',
-            message: errorMessage,
-            layout: 'layouts/error'
-        });
-    }
+    // Always return JSON for auth API routes
+    res.status(500).json({
+        success: false,
+        message: errorMessage,
+        code: 'AUTH_ERROR',
+        ...(isDevelopment && { stack: error.stack })
+    });
 });
 
 module.exports = router;

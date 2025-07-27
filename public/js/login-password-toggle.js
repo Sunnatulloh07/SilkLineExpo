@@ -13,7 +13,6 @@ Professional password visibility toggle functionality
 
         init() {
             this.setupPasswordToggle();
-            console.log('Login password toggle initialized');
         }
 
         setupPasswordToggle() {

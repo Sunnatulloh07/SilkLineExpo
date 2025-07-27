@@ -176,7 +176,7 @@ const userSchema = new mongoose.Schema({
   
   companyType: {
     type: String,
-    enum: ['manufacturer', 'distributor', 'both'],
+    enum: ['manufacturer', 'distributor'],
     required: true
   },
   
@@ -202,23 +202,7 @@ const userSchema = new mongoose.Schema({
     enum: ['under-100k', '100k-500k', '500k-1m', '1m-5m', '5m+']
   },
   
-  // Capabilities
-  manufacturingCapabilities: [{
-    type: String,
-    enum: [
-      'food_processing', 'textile_production', 'electronics_assembly',
-      'machinery_manufacturing', 'chemical_production', 'agricultural_processing',
-      'construction_materials', 'automotive_parts', 'pharmaceutical_production'
-    ]
-  }],
-  
-  distributionCapabilities: [{
-    type: String,
-    enum: [
-      'local_distribution', 'regional_distribution', 'national_distribution',
-      'international_export', 'cold_chain', 'bulk_handling', 'retail_distribution'
-    ]
-  }],
+  // Note: Capabilities removed - only companyType (manufacturer/distributor) is needed
   
   // Certifications
   certifications: [{
@@ -318,9 +302,7 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// Indexes for better performance
-userSchema.index({ email: 1 });
-userSchema.index({ taxNumber: 1 });
+// Indexes for better performance (email and taxNumber already indexed via unique: true)
 userSchema.index({ status: 1 });
 userSchema.index({ country: 1 });
 userSchema.index({ activityType: 1 });
@@ -336,18 +318,7 @@ userSchema.virtual('isLocked').get(function() {
 
 // Pre-save validations
 userSchema.pre('save', function(next) {
-  // Validate company type and capabilities
-  if (this.companyType === 'manufacturer' || this.companyType === 'both') {
-    if (!this.manufacturingCapabilities || this.manufacturingCapabilities.length === 0) {
-      return next(new Error('Manufacturing capabilities required for manufacturer companies'));
-    }
-  }
-  
-  if (this.companyType === 'distributor' || this.companyType === 'both') {
-    if (!this.distributionCapabilities || this.distributionCapabilities.length === 0) {
-      return next(new Error('Distribution capabilities required for distributor companies'));
-    }
-  }
+  // Note: Capabilities validation removed - only companyType validation remains
   
   // Calculate profile completion
   this.calculateProfileCompletion();

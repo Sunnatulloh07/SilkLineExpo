@@ -1021,23 +1021,28 @@
   });
   // ========================= Header Sticky Js End===================
   document.addEventListener("DOMContentLoaded", () => {
-    fetch("data.json")
-      .then((res) => res.json())
-      .then((data) => {
-        const $slider = $('.brand-slider'); // jQuery selector
-
-        // Har bir kompaniyani olib, slick sliderga qo'shamiz
-        if (data && data.companies) {
-          data.companies.forEach(company => {
-            const slide = `
-            <div class="brand-item d-flex align-items-center justify-content-center">
-              <img src="${company.logo}" alt="${company.name}">
-            </div>
-          `;
-            $slider.slick('slickAdd', slide); // Slickga element qo'shish
-          });
-        }
-      });
+    // Only fetch data if brand slider exists on the page
+    const brandSlider = $('.brand-slider');
+    if (brandSlider.length > 0) {
+      fetch("/data.json")
+        .then((res) => res.json())
+        .then((data) => {
+          // Har bir kompaniyani olib, slick sliderga qo'shamiz
+          if (data && data.companies) {
+            data.companies.forEach(company => {
+              const slide = `
+              <div class="brand-item d-flex align-items-center justify-content-center">
+                <img src="${company.logo}" alt="${company.name}">
+              </div>
+            `;
+              brandSlider.slick('slickAdd', slide); // Slickga element qo'shish
+            });
+          }
+        })
+        .catch((error) => {
+          console.log('Brand slider data not available:', error.message);
+        });
+    }
   });
 })(jQuery);
 

@@ -48,6 +48,16 @@
   height: 20px !important;
 }
 
+/* Input text color fixes for all themes */
+.account .common-input {
+  color: hsl(var(--black)) !important;
+}
+
+/* Input placeholder color fixes */
+.account .common-input::placeholder {
+  color: hsl(var(--black-three)) !important;
+}
+
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
   .account .btn-lg,

@@ -45,7 +45,6 @@ class AdaptiveHeaderManager {
     // Initial optimization
     this.optimizeHeader();
 
-    console.log('Adaptive header initialized successfully');
   }
 
   storeOriginalStyles() {
@@ -274,5 +273,3 @@ document.addEventListener('languageChanged', (e) => {
     adaptiveHeader.handleLanguageChange(e.detail.language);
   }
 });
-
-console.log('Adaptive header system loaded successfully');

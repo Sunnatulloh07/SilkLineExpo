@@ -160,6 +160,39 @@
     "createAccount": "Hisob yaratish",
     "processing": "Ishlov berilmoqda...",
     "alreadyHaveAccount": "Hisobingiz bormi?",
+    "companyType": "Kompaniya turi",
+    "selectCompanyType": "Kompaniya turini tanlang",
+    "manufacturer": "Ishlab chiqaruvchi",
+    "distributor": "Distribyutor",
+    "manufacturingCapabilities":"Ishlab chiqarish imkoniyatlari",
+    "distributionCapabilities":"Tarqatish imkoniyatlari",
+    "companyTypeHelp": "Kompaniya turini tanlang",
+    "companyTypes":{
+      "manufacturer": "Ishlab chiqaruvchi",
+      "distributor": "Distribyutor"
+    },
+    "manufacturingCaps":{
+      "foodProcessing": "Oziq-ovqat ishlab chiqarish",
+      "textileProduction": "To'qimachilik ishlab chiqarish",
+      "electronicsAssembly": "Elektronika ishlab chiqarish",
+      "machineryManufacturing": "Texnika va uskunalar ishlab chiqarish",
+      "chemicalProduction": "Kimyo sanoati",
+      "agriculturalProcessing": "Qishloq xo'jaligi",
+      "constructionMaterials": "Qurilish materiallari",
+      "automotiveParts": "Avtomobil sanoati",
+      "pharmaceuticalProduction": "Farmatsevtika",
+      "other": "Boshqa"
+    },
+    "distributionCaps":{
+      "localDistribution": "Mahsulotlarni mahalliy tarqatish",
+      "regionalDistribution": "Mahsulotlarni regional tarqatish",
+      "nationalDistribution": "Mahsulotlarni milliy tarqatish",
+      "internationalExport": "Mahsulotlarni jahon tarqatish",
+      "coldChain": "Mahsulotlarni sovuq zonadagi tarqatish",
+      "bulkHandling": "Mahsulotlarni massiv tarqatish",
+      "retailDistribution": "Mahsulotlarni retail tarqatish"
+      
+    },
     "steps": {
       "companyInfo": "Kompaniya ma'lumotlari",
       "locationInfo": "Joylashuv",
@@ -537,23 +570,6 @@
       "viewDetails": "Tafsilotlarni ko'rish"
     }
   },
-  "admin": {
-    "adminPanel": "Admin panel",
-    "userManagement": "Foydalanuvchilarni boshqarish",
-    "productManagement": "Mahsulotlarni boshqarish",
-    "systemSettings": "Tizim sozlamalari",
-    "logs": "Loglar",
-    "backup": "Zaxira nusxa",
-    "maintenance": "Texnik xizmat",
-    "statistics": "Statistika",
-    "userApproved": "Foydalanuvchi muvaffaqiyatli tasdiqlandi",
-    "userRejected": "Foydalanuvchi muvaffaqiyatli rad etildi",
-    "userAlreadyProcessed": "Foydalanuvchi allaqachon qayta ishlangan",
-    "userSuspended": "Foydalanuvchi muvaffaqiyatli to'xtatildi",
-    "userReactivated": "Foydalanuvchi muvaffaqiyatli qayta faollashtirildi",
-    "userAlreadySuspended": "Foydalanuvchi allaqachon to'xtatilgan",
-    "userAlreadyActive": "Foydalanuvchi allaqachon faol"
-  },
   "user": {
     "profile": "Profil",
     "account": "Hisob",
@@ -790,5 +806,110 @@
     "turkish":"Turkish",
     "persian":"Persian",
     "chinese":"Chinese"
+  },
+  "admin": {
+    "nav": {
+      "overview": "Umumiy ko'rinish",
+      "dashboard": "Boshqaruv paneli",
+      "analytics": "Analitika",
+      "management": "Boshqaruv",
+      "users": "Foydalanuvchilar",
+      "companies": "Kompaniyalar",
+      "products": "Mahsulotlar",
+      "orders": "Buyurtmalar",
+      "support": "Qo'llab-quvvatlash",
+      "support_tickets": "Qo'llab-quvvatlash so'rovlari",
+      "reports": "Hisobotlar",
+      "system": "Tizim",
+      "settings": "Sozlamalar",
+      "security": "Xavfsizlik",
+      "system_logs": "Tizim jurnallari"
+    },
+    "header": {
+      "search_placeholder": "Qidirish...",
+      "change_language": "Tilni o'zgartirish",
+      "select_language": "Tilni tanlang",
+      "toggle_theme": "Mavzuni o'zgartirish",
+      "notifications": "Bildirishnomalar",
+      "profile": "Profil",
+      "settings": "Sozlamalar",
+      "help_support": "Yordam va qo'llab-quvvatlash",
+      "logout": "Chiqish"
+    },
+    "dashboard": {
+      "platform_working": "SilkInExpo platformasi ishlayapti",
+      "all_services_operational": "Barcha xizmatlar yaxshi ishlayapti",
+      "uptime": "Ishlaganlik vaqti",
+      "response_time": "Javob berish vaqti",
+      "total_users": "Jami foydalanuvchilar",
+      "active_users": "Faol foydalanuvchilar",
+      "pending_approvals": "Kutilayotgan tasdiqlar",
+      "usd_revenue": "USD daromad",
+      "from_last_month": "o'tgan oydan",
+      "requires_attention": "E'tibor talab qiladi",
+      "growth_analytics": "O'sish tahlillari",
+      "days": "kun",
+      "year": "yil",
+      "quick_actions": "Tezkor amallar",
+      "add_user": "Foydalanuvchi qo'shish",
+      "approve_pending": "Kutilayotganlarni tasdiqlash",
+      "export_data": "Ma'lumotlarni eksport qilish",
+      "settings": "Sozlamalar",
+      "system_status": "Tizim holati",
+      "database": "Ma'lumotlar bazasi",
+      "operational": "Ishlamoqda",
+      "memory": "Xotira",
+      "used": "ishlatilgan",
+      "online": "onlayn",
+      "recent_activity": "So'nggi faollik",
+      "filter": "Filtr",
+      "view_all": "Barchasini ko'rish",
+      "dashboard_access": "boshqaruv paneliga kirdi",
+      "new_user_registered": "Yangi foydalanuvchi ro'yxatdan o'tdi",
+      "company_application_approved": "Kompaniya arizasi tasdiqlandi",
+      "automatic_backup_completed": "Avtomatik zaxira nusxa tayyorlandi",
+      "system": "TIZIM",
+      "user": "FOYDALANUVCHI",
+      "approval": "TASDIQLASH",
+      "just_now": "Hozir",
+      "5_min_ago": "5 daqiqa oldin",
+      "15_min_ago": "15 daqiqa oldin",
+      "1_hour_ago": "1 soat oldin",
+      "loading": "Yuklanmoqda...",
+      "language_selector": {
+        "uz": "O'zbekcha",
+        "en": "English", 
+        "ru": "Русский",
+        "tr": "Türkçe",
+        "fa": "فارسی",
+        "zh": "中文"
+      },
+      "responsive": {
+        "sidebar_open": "Sidebar ochiq",
+        "sidebar_closed": "Sidebar yopiq",
+        "mobile_menu": "Mobil menyu",
+        "desktop_view": "Desktop ko'rinish",
+        "tablet_view": "Planshet ko'rinish"
+      },
+      "production": {
+        "enterprise_grade": "Korporativ darajadagi",
+        "professional_design": "Professional dizayn",
+        "scalable_architecture": "Miqyoslanadigan arxitektura",
+        "high_performance": "Yuqori unumdorlik",
+        "secure_platform": "Xavfsiz platforma",
+        "real_time_data": "Real vaqt ma'lumotlari",
+        "advanced_analytics": "Ilg'or analitika",
+        "multi_language": "Ko'p tilli",
+        "responsive_design": "Moslashuvchan dizayn",
+        "dark_mode": "Qorong'u rejim"
+      },
+      "theme": {
+        "light_mode": "Yorqin rejim",
+        "dark_mode": "Qorong'u rejim",
+        "auto_mode": "Avto rejim",
+        "theme_changed": "Mavzu o'zgartirildi",
+        "theme_error": "Mavzuni o'zgartirishda xatolik"
+      }
+    }
   }
 }

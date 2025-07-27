@@ -3,6 +3,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detailsContainer = document.getElementById('company-details');
   const tabsContainer = document.getElementById('pills-tab');
   const tabContentContainer = document.getElementById('pills-tabContent');
+  
+  // Exit early if required elements don't exist on this page
+  if (!profileContainer || !detailsContainer || !tabsContainer || !tabContentContainer) {
+    console.log('About-company script: Required elements not found on this page');
+    return;
+  }
+  
   const urlParams = new URLSearchParams(window.location.search);
   const companyName = urlParams.get('company-name');
 

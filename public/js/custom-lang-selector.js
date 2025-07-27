@@ -30,8 +30,7 @@ class CustomLanguageSelector {
     // Escape key handler
     document.addEventListener('keydown', (e) => this.handleKeyDown(e));
 
-    console.log(`Initialized ${selectorElements.length} language selectors`);
-  }
+   }
 
   setupSelector(element) {
     const langBtn = element.querySelector('.lang-btn');

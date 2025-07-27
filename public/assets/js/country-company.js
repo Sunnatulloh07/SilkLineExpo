@@ -1,8 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-
-
   const companyList = document.getElementById('company-list');
+  
+  // Exit early if the required element doesn't exist on this page
+  if (!companyList) {
+    console.log('Country-company script: Required elements not found on this page');
+    return;
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   const countryName = urlParams.get('country');
   const ITEMS_PER_PAGE = 8;

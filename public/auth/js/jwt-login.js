@@ -162,7 +162,6 @@ class JWTLoginHandler {
         
         // Check honeypot
         if (this.form.website && this.form.website.value) {
-            console.log('Bot detected');
             return;
         }
         

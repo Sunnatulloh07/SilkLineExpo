@@ -143,14 +143,9 @@ class JWTAuthController {
             let { email, identifier, password, csrfToken, rememberMe } = req.body;
             const clientIP = req.ip || req.connection.remoteAddress;
             
-            // Debug logging
-            console.log('Login request body:', { email, identifier, password: '***', csrfToken: csrfToken ? 'present' : 'missing', rememberMe });
-            console.log('Content-Type:', req.get('Content-Type'));
             
             // Use identifier if email is not provided (for backward compatibility)
             const loginEmail = email || identifier;
-            
-            console.log('Final loginEmail:', loginEmail);
 
             // Input validation
             const validation = this.validateLoginInput({ email: loginEmail, password, csrfToken });
@@ -309,14 +304,9 @@ class JWTAuthController {
                 });
             }
 
-            // Log logout activity
-            if (req.user) {
-                console.log(`User logout: ${req.user.email} (${req.user.userType})`);
-            }
 
-            return this.sendResponse(res, 200, true, 'Logged out successfully', {
-                redirectUrl: '/auth/login?message=logged_out'
-            });
+            // Redirect to login page instead of JSON response
+            return res.redirect('/auth/login?message=logged_out');
 
         } catch (error) {
             console.error('Logout error:', error);
@@ -419,10 +409,13 @@ class JWTAuthController {
      */
     async authenticateUser(email, password) {
         try {
-            // First, try to find in Admin collection
-            let user = await Admin.findOne({ email: email.toLowerCase() });
+            let user = null;
             let userType = 'admin';
 
+            // Real database authentication - requires MongoDB connection
+            // First, try to find in Admin collection
+            user = await Admin.findOne({ email: email.toLowerCase() });
+            
             // If not found in Admin, try User collection
             if (!user) {
                 user = await User.findOne({ email: email.toLowerCase() });
@@ -446,7 +439,7 @@ class JWTAuthController {
                 };
             }
 
-            // Check if account is locked
+            // Check if account is locked (skip for test users)
             if (user.loginAttempts >= 5 && user.lockUntil > Date.now()) {
                 const lockTimeRemaining = Math.ceil((user.lockUntil - Date.now()) / (1000 * 60));
                 return {
@@ -457,7 +450,8 @@ class JWTAuthController {
                 };
             }
 
-            // Verify password
+            // Verify password using bcrypt
+            const bcrypt = require('bcryptjs');
             const isPasswordValid = await bcrypt.compare(password, user.password);
             
             if (!isPasswordValid) {
@@ -468,7 +462,7 @@ class JWTAuthController {
                     success: false,
                     message: 'Invalid email or password',
                     code: 'INVALID_CREDENTIALS',
-                    attempts: user.loginAttempts + 1
+                    attempts: (user.loginAttempts || 0) + 1
                 };
             }
 
@@ -505,6 +499,7 @@ class JWTAuthController {
             return { valid: false, message: 'Password is required', field: 'password' };
         }
 
+        // CSRF token validation
         if (!csrfToken) {
             return { valid: false, message: 'Security token is required', field: 'csrfToken' };
         }
@@ -592,7 +587,6 @@ class JWTAuthController {
         ipAttempts.push(now);
         this.loginAttempts.set(ip, ipAttempts);
         
-        console.log(`Failed login attempt: ${email} from ${ip}`);
     }
 
     /**
@@ -600,7 +594,6 @@ class JWTAuthController {
      */
     clearFailedAttempts(ip, email) {
         this.loginAttempts.delete(ip);
-        console.log(`Successful login: ${email} from ${ip}`);
     }
 
     /**

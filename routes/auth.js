@@ -6,10 +6,24 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const AuthController = require('../controllers/AuthController');
+const AuthControllerClass = require('../controllers/AuthController');
 const { rateLimit } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Create AuthController instance and bind methods
+const AuthController = new AuthControllerClass();
+const boundAuthMethods = {
+  register: AuthController.register.bind(AuthController),
+  login: AuthController.login.bind(AuthController),
+  adminLogin: AuthController.adminLogin.bind(AuthController),
+  logout: AuthController.logout.bind(AuthController),
+  checkEmailExists: AuthController.checkEmailExists.bind(AuthController),
+  checkTaxNumberExists: AuthController.checkTaxNumberExists.bind(AuthController),
+  requestPasswordReset: AuthController.requestPasswordReset.bind(AuthController),
+  resetPassword: AuthController.resetPassword.bind(AuthController),
+  getStatus: AuthController.getStatus.bind(AuthController)
+};
 
 // Multer configuration for file uploads
 const upload = multer({
@@ -27,37 +41,37 @@ const upload = multer({
 router.post('/register', 
   rateLimit(3, 15 * 60 * 1000), 
   upload.single('companyLogo'), 
-  AuthController.register
+  boundAuthMethods.register
 );
 
 // Unified Login (Auto-detects Admin or Company User)
 router.post('/login', 
   rateLimit(5, 15 * 60 * 1000), 
-  AuthController.login
+  boundAuthMethods.login
 );
 
 // Legacy Admin Login (redirects to unified login)
 router.post('/admin/login', 
   rateLimit(3, 15 * 60 * 1000), 
-  AuthController.adminLogin
+  boundAuthMethods.adminLogin
 );
 
 // Logout
-router.post('/logout', AuthController.logout);
+router.post('/logout', boundAuthMethods.logout);
 
 // Validation Endpoints
-router.get('/check-email', AuthController.checkEmailExists);
-router.get('/check-tax-number', AuthController.checkTaxNumberExists);
+router.get('/check-email', boundAuthMethods.checkEmailExists);
+router.get('/check-tax-number', boundAuthMethods.checkTaxNumberExists);
 
 // Password Reset
 router.post('/password-reset', 
   rateLimit(3, 60 * 60 * 1000), 
-  AuthController.requestPasswordReset
+  boundAuthMethods.requestPasswordReset
 );
 
-router.post('/reset-password', AuthController.resetPassword);
+router.post('/reset-password', boundAuthMethods.resetPassword);
 
 // Status Check
-router.get('/status', AuthController.getStatus);
+router.get('/status', boundAuthMethods.getStatus);
 
 module.exports = router;

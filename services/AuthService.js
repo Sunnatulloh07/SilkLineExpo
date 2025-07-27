@@ -41,6 +41,7 @@ class AuthService {
         phone: userData.phone.trim(),
         taxNumber: userData.taxNumber.trim(),
         activityType: userData.activityType,
+        companyType: userData.companyType,
         country: userData.country,
         city: userData.city.trim(),
         address: userData.address.trim(),

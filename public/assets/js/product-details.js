@@ -8,9 +8,16 @@ function getParamsFromUrl() {
 
 document.addEventListener("DOMContentLoaded", () => {
   const { productId, companyParam } = getParamsFromUrl();
+  const productDetailsContainer = document.querySelector(".product-details");
+
+  // Exit early if required elements don't exist on this page
+  if (!productDetailsContainer) {
+    console.log('Product-details script: Required elements not found on this page');
+    return;
+  }
 
   if (!productId || !companyParam) {
-    document.querySelector(".product-details").innerHTML = "<p>Mahsulot yoki kompaniya topilmadi</p>";
+    productDetailsContainer.innerHTML = "<p>Mahsulot yoki kompaniya topilmadi</p>";
     return;
   }
 

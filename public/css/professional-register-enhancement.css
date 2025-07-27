@@ -61,12 +61,12 @@ Fixes button positioning and step design issues
 .form-navigation .btn-outline-secondary {
   background: transparent;
   border-color: #6c757d;
-  color: #6c757d;
+  color: #6c757d !important;
 }
 
 .form-navigation .btn-outline-secondary:hover {
   background: #6c757d;
-  color: white;
+  color: white !important;
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(108, 117, 125, 0.25);
 }
@@ -373,102 +373,7 @@ Fixes button positioning and step design issues
   }
 }
 
-/* ===== DARK MODE SUPPORT ===== */
-[data-theme="dark"] .step-circle,
-.dark-version .step-circle {
-  background: #2d3748;
-  border-color: #4a5568;
-  color: #a0aec0;
-}
-
-[data-theme="dark"] .step-progress__bar::before,
-.dark-version .step-progress__bar::before {
-  background: linear-gradient(90deg, #4a5568 0%, #2d3748 100%);
-}
-
-[data-theme="dark"] .step-label,
-.dark-version .step-label {
-  color: #a0aec0;
-}
-
-[data-theme="dark"] .form-navigation,
-.dark-version .form-navigation {
-  border-color: #4a5568;
-}
-
-/* Password Requirements Dark Mode Fix */
-[data-theme="dark"] .password-requirements,
-.dark-version .password-requirements {
-  background: #2d3748 !important;
-  border-color: #4a5568 !important;
-  color: #e2e8f0 !important;
-}
-
-[data-theme="dark"] .password-requirements h6,
-.dark-version .password-requirements h6 {
-  color: #f7fafc !important;
-}
-
-[data-theme="dark"] .requirement,
-.dark-version .requirement {
-  color: #cbd5e0 !important;
-}
-
-[data-theme="dark"] .requirement.valid,
-.dark-version .requirement.valid {
-  color: #68d391 !important;
-}
-
-/* Registration Summary Dark Mode Fix */
-[data-theme="dark"] .registration-summary,
-.dark-version .registration-summary {
-  background: #2d3748 !important;
-  border-color: #4a5568 !important;
-}
-
-[data-theme="dark"] .registration-summary h5,
-.dark-version .registration-summary h5 {
-  color: #f7fafc !important;
-}
-
-[data-theme="dark"] .summary-item,
-.dark-version .summary-item {
-  border-color: #4a5568 !important;
-}
-
-[data-theme="dark"] .summary-item strong,
-.dark-version .summary-item strong {
-  color: #f7fafc !important;
-}
-
-[data-theme="dark"] .summary-item span,
-.dark-version .summary-item span {
-  color: #cbd5e0 !important;
-}
-
-/* ===== FORM ELEMENT DARK MODE FIXES ===== */
-[data-theme="dark"] .common-input,
-.dark-version .common-input {
-  background: #2d3748 !important;
-  border-color: #4a5568 !important;
-  color: #f7fafc !important;
-}
-
-[data-theme="dark"] .common-input:focus,
-.dark-version .common-input:focus {
-  border-color: var(--main-color, #007bff) !important;
-  background: #2d3748 !important;
-}
-
-[data-theme="dark"] .common-input::placeholder,
-.dark-version .common-input::placeholder {
-  color: #a0aec0 !important;
-}
-
-[data-theme="dark"] .form-label,
-.dark-version .form-label {
-  color: #f7fafc !important;
-}
+/* Note: Dark mode styles moved to register-dark-mode-fix.css for better organization */
 
 /* ===== ACCESSIBILITY ENHANCEMENTS ===== */
 .step-item:focus-within .step-circle {

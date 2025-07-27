@@ -7,6 +7,8 @@
 <link rel="stylesheet" href="/css/multi-step-registration.css">
 <!-- Professional Enhancement CSS -->
 <link rel="stylesheet" href="/css/professional-register-enhancement.css">
+<!-- Login Password Toggle CSS -->
+<link rel="stylesheet" href="/css/login-password-toggle.css">
 
 <body>
   <!--==================== Preloader Start ====================-->
@@ -255,6 +257,23 @@
                     </select>
                   </div>
                 </div>
+
+                <!-- Company Type -->
+                <div class="col-12">
+                  <label for="companyType" class="form-label mb-2 font-18 font-heading fw-600">
+                    <%= t('register.companyType') %> <span class="text-danger">*</span>
+                  </label>
+                  <div class="position-relative">
+                    <select class="common-input common-input--bg" id="companyType" name="companyType" required>
+                      <option value=""><%= t('register.selectCompanyType') %></option>
+                      <option value="manufacturer"><%= t('register.companyTypes.manufacturer') %></option>
+                      <option value="distributor"><%= t('register.companyTypes.distributor') %></option>
+                    </select>
+                  </div>
+                  <small class="text-muted mt-1">
+                    <%= t('register.companyTypeHelp') %>
+                  </small>
+                </div>
               </div>
             </div>
 
@@ -333,13 +352,13 @@
                     <%= t('auth.password') %> <span class="text-danger">*</span>
                   </label>
                   <div class="position-relative">
-                    <input type="password" class="common-input common-input--bg common-input--withIcon" 
+                    <input type="password" class="common-input common-input--bg" 
                            id="password" name="password"
                            placeholder="<%= t('auth.passwordPlaceholder') %>" 
                            required minlength="6">
-                    <span class="input-icon toggle-password cursor-pointer" data-target="password">
-                      <img src="/assets/images/icons/lock-icon.svg" alt="">
-                    </span>
+                    <button type="button" class="password-toggle-btn" data-target="password" title="Show/Hide Password">
+                      <i class="las la-eye" id="passwordToggleIcon"></i>
+                    </button>
                   </div>
                   <div class="password-strength mt-2">
                     <div class="strength-bar">
@@ -355,13 +374,13 @@
                     <%= t('register.confirmPassword') %> <span class="text-danger">*</span>
                   </label>  
                   <div class="position-relative">
-                    <input type="password" class="common-input common-input--bg common-input--withIcon" 
+                    <input type="password" class="common-input common-input--bg" 
                            id="confirmPassword" name="confirmPassword"
                            placeholder="<%= t('register.confirmPasswordPlaceholder') %>" 
                            required minlength="6">
-                    <span class="input-icon toggle-password cursor-pointer" data-target="confirmPassword">
-                      <img src="/assets/images/icons/lock-icon.svg" alt="">
-                    </span>
+                    <button type="button" class="password-toggle-btn" data-target="confirmPassword" title="Show/Hide Password">
+                      <i class="las la-eye" id="confirmPasswordToggleIcon"></i>
+                    </button>
                   </div>
                 </div>
 
@@ -421,6 +440,10 @@
                         <span id="summaryActivityType">-</span>
                       </div>
                       <div class="summary-item">
+                        <strong><%= t('register.companyType') %>:</strong>
+                        <span id="summaryCompanyType">-</span>
+                      </div>
+                      <div class="summary-item">
                         <strong><%= t('register.country') %>:</strong>
                         <span id="summaryCountry">-</span>
                       </div>
@@ -462,7 +485,7 @@
             <div class="form-navigation mt-4">
               <div class="row">
                 <div class="col-6">
-                  <button type="button" class="btn btn-outline-secondary btn-lg w-100 pill" id="prevBtn" style="display: none;">
+                  <button type="button" class="btn btn-outline-secondary btn-lg w-100 pill register-btn" id="prevBtn" style="display: none;">
                     <i class="las la-arrow-left me-2"></i>
                     <%= t('register.previous') %>
                   </button>
@@ -527,6 +550,18 @@
   
   <!-- Enhanced Multi-step Registration JavaScript -->
   <script src="/js/enhanced-multi-step-registration.js"></script>
+  
+  <!-- Register Password Toggle JavaScript -->
+  <script src="/js/register-password-toggle.js"></script>
+  
+  <!-- Register Company Type Handler JavaScript -->
+  <script src="/js/register-company-type-handler.js"></script>
+
+  <!-- Theme Debug Helper -->
+  <script src="/js/theme-debug-helper.js"></script>
+  
+  <!-- Theme Fix for Input Colors -->
+  <script src="/js/theme-fix.js"></script>
 
 </body>
 </html>

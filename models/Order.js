@@ -281,8 +281,7 @@ const orderSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Indexes
-orderSchema.index({ orderNumber: 1 });
+// Indexes (orderNumber already indexed via unique: true)
 orderSchema.index({ buyer: 1, status: 1 });
 orderSchema.index({ seller: 1, status: 1 });
 orderSchema.index({ status: 1, createdAt: -1 });

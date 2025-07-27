@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="<%= currentLang || 'uz' %>" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - SLEX Admin</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/css/line-awesome.min.css" rel="stylesheet">
+    <link href="/admin/css/admin-dashboard.css" rel="stylesheet">
+    <link href="/admin/css/dashboard-components.css" rel="stylesheet">
+    <link href="/admin/css/analytics-dashboard.css" rel="stylesheet">
+</head>
+<body class="admin-layout theme-transition" data-theme="light">
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <%- include('../partials/sidebar', { currentPage: 'analytics', user: user }) %>
+        
+        <!-- Main Content -->
+        <div class="admin-main">
+            <!-- Header -->
+            <%- include('../partials/header', { 
+                user: user, 
+                title: 'Analytics Dashboard',
+                breadcrumb: [
+                    { title: 'Dashboard', url: '/admin' },
+                    { title: 'Analytics' }
+                ],
+                currentLang: typeof currentLang !== 'undefined' ? currentLang : 'uz'
+            }) %>
+            
+            <!-- Content -->
+            <div class="admin-content">
+                <div class="container-fluid">
+                    <!-- Page Header -->
+                    <div class="page-header animate-fade-in">
+                        <div class="page-header-content">
+                            <div class="page-title-section">
+                                <h1 class="page-title">
+                                    <i class="las la-chart-line"></i>
+                                    Analytics Dashboard
+                                </h1>
+                                <p class="page-subtitle">Advanced analytics and insights for your B2B marketplace</p>
+                            </div>
+                            
+                            <div class="page-actions">
+                                <div class="time-range-selector">
+                                    <select id="timeRange" class="form-select">
+                                        <option value="7d">Last 7 Days</option>
+                                        <option value="30d" selected>Last 30 Days</option>
+                                        <option value="90d">Last 90 Days</option>
+                                        <option value="1y">Last Year</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-outline-primary" onclick="exportAnalytics()">
+                                    <i class="las la-download"></i>
+                                    Export Report
+                                </button>
+                                <button class="btn btn-primary" onclick="refreshAnalytics()">
+                                    <i class="las la-sync-alt"></i>
+                                    Refresh Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI Cards Grid -->
+                    <div class="metrics-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg animate-fade-in">
+                        <!-- Total Revenue -->
+                        <div class="metric-card metric-primary">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-dollar-sign"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value" id="totalRevenue">$284,750</h3>
+                                    <p class="metric-label">Total Revenue</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-up"></i>
+                                        +18.2% vs last month
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Users -->
+                        <div class="metric-card metric-success">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-users"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value" id="activeUsers">1,847</h3>
+                                    <p class="metric-label">Active Users</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-up"></i>
+                                        +12.5% vs last month
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Volume -->
+                        <div class="metric-card metric-warning">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-shopping-cart"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value" id="orderVolume">3,247</h3>
+                                    <p class="metric-label">Total Orders</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-up"></i>
+                                        +8.7% vs last month
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conversion Rate -->
+                        <div class="metric-card metric-info">
+                            <div class="metric-content">
+                                <div class="metric-icon">
+                                    <i class="las la-percentage"></i>
+                                </div>
+                                <div class="metric-details">
+                                    <h3 class="metric-value" id="conversionRate">24.8%</h3>
+                                    <p class="metric-label">Conversion Rate</p>
+                                    <span class="metric-trend positive">
+                                        <i class="las la-arrow-up"></i>
+                                        +3.2% vs last month
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-lg mb-lg">
+                        <!-- Revenue Chart -->
+                        <div class="col-span-2">
+                            <div class="chart-container animate-fade-in">
+                                <div class="chart-header">
+                                    <h3 class="chart-title">Revenue Analytics</h3>
+                                    <div class="chart-actions">
+                                        <div class="chart-filters">
+                                            <button class="filter-btn active" data-filter="revenue">Revenue</button>
+                                            <button class="filter-btn" data-filter="orders">Orders</button>
+                                            <button class="filter-btn" data-filter="users">Users</button>
+                                        </div>
+                                        <button class="btn-icon btn-sm" title="Fullscreen">
+                                            <i class="las la-expand"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="chart-body">
+                                    <div id="revenueChart" class="chart-area"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User Activity -->
+                        <div class="col-span-1">
+                            <div class="chart-container animate-fade-in">
+                                <div class="chart-header">
+                                    <h3 class="chart-title">User Activity</h3>
+                                    <div class="chart-actions">
+                                        <button class="btn-icon btn-sm" title="Settings">
+                                            <i class="las la-cog"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="chart-body">
+                                    <div id="userActivityChart" class="chart-area"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Tables Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg mb-lg">
+                        <!-- Top Products -->
+                        <div class="analytics-table-container animate-fade-in">
+                            <div class="table-header">
+                                <h3 class="table-title">
+                                    <i class="las la-trophy"></i>
+                                    Top Performing Products
+                                </h3>
+                                <div class="table-actions">
+                                    <button class="btn-icon btn-sm" title="View All">
+                                        <i class="las la-external-link-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-body">
+                                <table class="analytics-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Revenue</th>
+                                            <th>Orders</th>
+                                            <th>Growth</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div class="product-info">
+                                                    <div class="product-avatar">R</div>
+                                                    <div class="product-details">
+                                                        <span class="product-name">Raxat Chocolates</span>
+                                                        <span class="product-category">Food & Beverages</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="font-semibold">$45,280</td>
+                                            <td>1,247</td>
+                                            <td>
+                                                <span class="trend-badge positive">
+                                                    <i class="las la-arrow-up"></i>
+                                                    +24.5%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="product-info">
+                                                    <div class="product-avatar">U</div>
+                                                    <div class="product-details">
+                                                        <span class="product-name">Uzbek Cotton</span>
+                                                        <span class="product-category">Textiles</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="font-semibold">$38,950</td>
+                                            <td>892</td>
+                                            <td>
+                                                <span class="trend-badge positive">
+                                                    <i class="las la-arrow-up"></i>
+                                                    +18.3%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="product-info">
+                                                    <div class="product-avatar">D</div>
+                                                    <div class="product-details">
+                                                        <span class="product-name">Dried Fruits Mix</span>
+                                                        <span class="product-category">Agriculture</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="font-semibold">$29,470</td>
+                                            <td>756</td>
+                                            <td>
+                                                <span class="trend-badge positive">
+                                                    <i class="las la-arrow-up"></i>
+                                                    +15.7%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="product-info">
+                                                    <div class="product-avatar">H</div>
+                                                    <div class="product-details">
+                                                        <span class="product-name">Handicrafts</span>
+                                                        <span class="product-category">Crafts</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="font-semibold">$22,180</td>
+                                            <td>634</td>
+                                            <td>
+                                                <span class="trend-badge neutral">
+                                                    <i class="las la-minus"></i>
+                                                    +2.1%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Geographic Distribution -->
+                        <div class="analytics-table-container animate-fade-in">
+                            <div class="table-header">
+                                <h3 class="table-title">
+                                    <i class="las la-globe"></i>
+                                    Geographic Distribution
+                                </h3>
+                                <div class="table-actions">
+                                    <button class="btn-icon btn-sm" title="View Map">
+                                        <i class="las la-map"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-body">
+                                <table class="analytics-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Country</th>
+                                            <th>Users</th>
+                                            <th>Revenue</th>
+                                            <th>Share</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div class="country-info">
+                                                    <span class="country-flag">🇺🇿</span>
+                                                    <span class="country-name">Uzbekistan</span>
+                                                </div>
+                                            </td>
+                                            <td>1,247</td>
+                                            <td class="font-semibold">$89,750</td>
+                                            <td>
+                                                <div class="progress-container">
+                                                    <div class="progress-bar" style="width: 45%"></div>
+                                                    <span class="progress-text">45%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="country-info">
+                                                    <span class="country-flag">🇹🇷</span>
+                                                    <span class="country-name">Turkey</span>
+                                                </div>
+                                            </td>
+                                            <td>892</td>
+                                            <td class="font-semibold">$67,280</td>
+                                            <td>
+                                                <div class="progress-container">
+                                                    <div class="progress-bar" style="width: 34%"></div>
+                                                    <span class="progress-text">34%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="country-info">
+                                                    <span class="country-flag">🇰🇿</span>
+                                                    <span class="country-name">Kazakhstan</span>
+                                                </div>
+                                            </td>
+                                            <td>634</td>
+                                            <td class="font-semibold">$43,120</td>
+                                            <td>
+                                                <div class="progress-container">
+                                                    <div class="progress-bar" style="width: 21%"></div>
+                                                    <span class="progress-text">21%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="country-info">
+                                                    <span class="country-flag">🇦🇫</span>
+                                                    <span class="country-name">Afghanistan</span>
+                                                </div>
+                                            </td>
+                                            <td>456</td>
+                                            <td class="font-semibold">$28,970</td>
+                                            <td>
+                                                <div class="progress-container">
+                                                    <div class="progress-bar" style="width: 15%"></div>
+                                                    <span class="progress-text">15%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Activities -->
+                    <div class="realtime-activities animate-fade-in">
+                        <div class="activities-header">
+                            <h3 class="activities-title">
+                                <i class="las la-bolt"></i>
+                                Real-time Activities
+                                <span class="live-indicator">
+                                    <span class="live-dot"></span>
+                                    LIVE
+                                </span>
+                            </h3>
+                            <div class="activities-actions">
+                                <button class="btn btn-sm btn-ghost" onclick="pauseRealtime()">
+                                    <i class="las la-pause"></i>
+                                    Pause
+                                </button>
+                            </div>
+                        </div>
+                        <div class="activities-list" id="realtimeActivities">
+                            <div class="activity-item">
+                                <div class="activity-avatar success">
+                                    <i class="las la-shopping-cart"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">
+                                        New order #3458 placed by <strong>Tashkent Traders LLC</strong>
+                                    </div>
+                                    <div class="activity-meta">
+                                        <span class="activity-badge success">+$2,450</span>
+                                        <span class="activity-time">2 seconds ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-avatar primary">
+                                    <i class="las la-user-plus"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">
+                                        New company registration: <strong>Silk Road Enterprises</strong>
+                                    </div>
+                                    <div class="activity-meta">
+                                        <span class="activity-badge primary">NEW USER</span>
+                                        <span class="activity-time">1 minute ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-avatar warning">
+                                    <i class="las la-exclamation-triangle"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">
+                                        Payment gateway timeout detected for order #3457
+                                    </div>
+                                    <div class="activity-meta">
+                                        <span class="activity-badge warning">ALERT</span>
+                                        <span class="activity-time">3 minutes ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle-btn" id="themeToggle" title="Toggle Dark Mode">
+        <i class="las la-moon"></i>
+    </button>
+
+    <!-- Scripts -->
+    <script src="/assets/js/jquery-3.7.1.min.js"></script>
+    <script src="/assets/js/boostrap.bundle.min.js"></script>
+    <script src="/assets/js/apexchart.js"></script>
+    <script src="/admin/js/analytics-charts.js"></script>
+    
+    <script>
+        // Analytics Page Initialization - Let analytics-charts.js handle everything
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Initialize theme toggle
+            initializeThemeToggle();
+            
+            // Initialize responsive handlers
+            initializeResponsiveHandlers();
+            
+        });
+
+        // Global functions for analytics buttons (called from UI)
+        function exportAnalytics() {
+            if (window.analyticsCharts) {
+                window.analyticsCharts.exportAnalytics();
+            } else {
+                console.warn('Analytics charts not initialized yet');
+            }
+        }
+
+        function refreshAnalytics() {
+            if (window.analyticsCharts) {
+                window.analyticsCharts.refreshAllCharts();
+            } else {
+                console.warn('Analytics charts not initialized yet');
+            }
+        }
+
+        function pauseRealtime() {
+            if (window.analyticsCharts && window.analyticsCharts.realtimeInterval) {
+                clearInterval(window.analyticsCharts.realtimeInterval);
+                console.log('Real-time updates paused');
+                
+                // Update button text
+                const pauseBtn = document.querySelector('[onclick="pauseRealtime()"]');
+                if (pauseBtn) {
+                    pauseBtn.innerHTML = '<i class="las la-play"></i> Resume';
+                    pauseBtn.setAttribute('onclick', 'resumeRealtime()');
+                }
+            }
+        }
+
+        function resumeRealtime() {
+            if (window.analyticsCharts) {
+                window.analyticsCharts.startRealTimeUpdates();
+                console.log('Real-time updates resumed');
+                
+                // Update button text
+                const resumeBtn = document.querySelector('[onclick="resumeRealtime()"]');
+                if (resumeBtn) {
+                    resumeBtn.innerHTML = '<i class="las la-pause"></i> Pause';
+                    resumeBtn.setAttribute('onclick', 'pauseRealtime()');
+                }
+            }
+        }
+
+        // Initialize Theme Toggle
+        function initializeThemeToggle() {
+            const themeToggle = document.getElementById('themeToggle');
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            updateThemeIcon(currentTheme);
+            
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+                
+                // Update charts theme
+                updateChartsTheme(newTheme);
+            });
+        }
+
+        // Update Theme Icon
+        function updateThemeIcon(theme) {
+            const icon = document.querySelector('#themeToggle i');
+            icon.className = theme === 'light' ? 'las la-moon' : 'las la-sun';
+        }
+
+        // Update Charts Theme
+        function updateChartsTheme(theme) {
+            // Implementation for updating chart themes
+            console.log('Updating charts theme to:', theme);
+        }
+
+        // Initialize Responsive Handlers
+        function initializeResponsiveHandlers() {
+            // Handle mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.querySelector('.admin-sidebar');
+            const adminMain = document.querySelector('.admin-main');
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('open');
+                    adminMain.classList.toggle('sidebar-open');
+                });
+            }
+            
+            // Handle sidebar overlay click
+            adminMain.addEventListener('click', function(e) {
+                if (adminMain.classList.contains('sidebar-open') && !sidebar.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                    adminMain.classList.remove('sidebar-open');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

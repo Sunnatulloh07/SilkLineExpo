@@ -4,6 +4,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const tabsContainer = document.getElementById('pills-tab');
   const tabContent = document.getElementById('pills-tabContent');
 
+  // Exit early if required elements don't exist on this page
+  if (!tabsContainer || !tabContent) {
+    console.log('Products script: Required elements not found on this page');
+    return;
+  }
+
   initProductDisplay();
 
   async function initProductDisplay() {

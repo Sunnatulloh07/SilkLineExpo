@@ -23,7 +23,6 @@ class MultiStepRegistration {
     this.setupFileUpload();
     this.updateStepDescription();
     
-    console.log('Multi-step registration initialized');
   }
 
   setupStepNavigation() {

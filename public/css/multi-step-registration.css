@@ -294,7 +294,7 @@
   background: #f8f9fa;
   padding: 16px;
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #7a7a7a;
 }
 
 .requirements-list {
@@ -324,12 +324,34 @@
   content: "\f00c"; /* check icon */
 }
 
+/* Company Type Capabilities Sections */
+#manufacturingCapabilitiesSection,
+#distributionCapabilitiesSection {
+  transition: opacity 0.3s ease-in-out;
+}
+
+#manufacturingCapabilitiesSection.show,
+#distributionCapabilitiesSection.show {
+  animation: fadeInSlide 0.4s ease-out;
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Registration Summary */
 .registration-summary {
   background: #f8f9fa;
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #7a7a7a;
 }
 
 .summary-grid {
@@ -399,32 +421,20 @@
   flex: 1;
 }
 
-/* Dark Mode Support */
-[data-theme="dark"] .step-progress__bar::before,
-.dark-version .step-progress__bar::before {
-  background: #495057;
-}
-
-[data-theme="dark"] .step-circle,
-.dark-version .step-circle {
-  background: #495057;
-  color: #adb5bd;
-}
-
 [data-theme="dark"] .step-label,
 .dark-version .step-label {
   color: #adb5bd;
 }
 
-[data-theme="dark"] .password-requirements,
+[data-theme="light"] .password-requirements,
 .dark-version .password-requirements {
-  background: #2d3748;
+  background: #031129;
   border-color: #4a5568;
 }
 
-[data-theme="dark"] .registration-summary,
+[data-theme="light"] .registration-summary,
 .dark-version .registration-summary {
-  background: #2d3748;
+  background: #031129;
   border-color: #4a5568;
 }
 
@@ -433,7 +443,7 @@
   border-color: #4a5568;
 }
 
-[data-theme="dark"] .logo-preview,
+[data-theme="light"] .logo-preview,
 .dark-version .logo-preview {
   background: #2d3748;
   border-color: #4a5568;
@@ -444,7 +454,7 @@
   border-color: #4a5568;
 }
 
-[data-theme="dark"] .alert-info,
+[data-theme="light"] .alert-info,
 .dark-version .alert-info {
   background: rgba(13, 202, 240, 0.1);
   border-color: rgba(13, 202, 240, 0.2);

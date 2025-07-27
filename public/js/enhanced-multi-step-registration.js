@@ -31,7 +31,6 @@ class EnhancedMultiStepRegistration {
     this.updateStepDescription();
     this.fixInitialDisplay();
     
-    console.log('Enhanced Multi-step registration initialized');
   }
 
   fixInitialDisplay() {

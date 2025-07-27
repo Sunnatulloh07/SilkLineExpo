@@ -49,9 +49,16 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       scriptSrc: ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com"],
+      scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"]
+      connectSrc: ["'self'"],
+      frameSrc: ["'self'", "https://maps.google.com", "https://www.google.com"], // Allow Google Maps
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'self'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: []
     }
   }
 }));
@@ -92,7 +99,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Load data
-const data = require('./data.json');
+const data = require('./public/data.json');
 
 // Make data available to all views
 app.locals.data = data;
@@ -148,21 +155,42 @@ app.get('/debug', (req, res) => {
   });
 });
 
-// Language switching route
+// Language switching route (PUBLIC PAGES & DASHBOARD COMPATIBLE)
 app.get('/language/:lng', (req, res) => {
   const lng = req.params.lng;
   const supportedLanguages = ['uz', 'en', 'ru', 'fa', 'tr', 'zh'];
   
   if (supportedLanguages.includes(lng)) {
-    // Set cookie with proper options
+    // Set multiple cookies for compatibility
     res.cookie('i18next', lng, {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       httpOnly: false,
       path: '/'
     });
     
+    res.cookie('selectedLanguage', lng, {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      httpOnly: false,
+      path: '/'
+    });
+    
+    // Set session language
+    req.session.language = lng;
+    
     // Change i18next language
     i18next.changeLanguage(lng);
+    
+    console.log(`🌐 Language changed to ${lng} via route`);
+  }
+  
+  // Check for explicit redirect parameter (for admin dashboard)
+  const redirectTo = req.query.redirect;
+  if (redirectTo) {
+    const safeRedirect = decodeURIComponent(redirectTo);
+    // Add language parameter to redirect URL
+    const redirectUrl = new URL(safeRedirect, `${req.protocol}://${req.get('host')}`);
+    redirectUrl.searchParams.set('lng', lng);
+    return res.redirect(redirectUrl.toString());
   }
   
   // Redirect back to previous page or home
@@ -206,11 +234,42 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Global Error Handler:', err.stack);
+  
+  // Check if it's an API request or AJAX request
+  const isApiRequest = req.originalUrl.startsWith('/api/') || 
+                      req.originalUrl.startsWith('/auth/') ||
+                      req.originalUrl.startsWith('/admin/api/') ||
+                      req.get('Content-Type') === 'application/json' ||
+                      req.get('X-Requested-With') === 'XMLHttpRequest';
+  
+  if (isApiRequest) {
+    // Return JSON error for API requests
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+  }
+  
+  // Get language preference for HTML responses
+  const lng = req.session?.language || 
+              req.cookies?.selectedLanguage || 
+              req.cookies?.i18next ||
+              req.query?.lng || 
+              'uz';
+  
+  // Return HTML error page for regular requests
   res.status(500).render('pages/error', { 
     title: 'Error - Silk Line Expo',
+    message: err.message || 'Server xatosi yuz berdi',
     data: data,
-    error: process.env.NODE_ENV === 'development' ? err : {}
+    error: process.env.NODE_ENV === 'development' ? err : {},
+    user: req.user || null,
+    admin: req.user || null,
+    lng: lng,
+    currentLang: lng,
+    t: req.t || ((key) => key)
   });
 });
 

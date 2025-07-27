@@ -35,7 +35,6 @@
         loaderMask.style.display = 'none';
       }, 400);
       
-      console.log('Login loader hidden successfully');
     } else {
       console.warn('Loader mask not found');
     }
@@ -58,7 +57,6 @@
     const loaderMask = document.querySelector('.loader-mask');
     if (loaderMask && loaderMask.style.display !== 'none') {
       loaderMask.style.display = 'none !important';
-      console.log('Emergency loader removal activated');
     }
   }, 1000);
   
@@ -79,7 +77,6 @@
         // Check if this timeout is trying to show loader
         const callbackString = callback.toString();
         if (callbackString.includes('loader') || callbackString.includes('preloader')) {
-          console.log('Prevented conflicting loader timeout');
           return;
         }
         callback.apply(this, arguments);
@@ -96,5 +93,3 @@
   });
   
 })();
-
-console.log('Login loader fix script loaded');

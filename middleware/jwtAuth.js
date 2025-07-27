@@ -61,43 +61,78 @@ class JWTAuthMiddleware {
     }
 
     /**
-     * Main authentication middleware
+     * Main authentication middleware with enhanced error handling
      */
     authenticate = async (req, res, next) => {
         try {
             // Extract tokens from request
             const tokens = TokenService.extractTokensFromRequest(req);
             
+            // No tokens available - redirect to login
             if (!tokens.accessToken && !tokens.refreshToken) {
+                console.log(`🔒 No tokens found for ${req.method} ${req.path}`);
                 return this.handleUnauthenticated(req, res);
             }
 
             // Try to verify access token first
-            const accessTokenResult = TokenService.verifyAccessToken(tokens.accessToken);
+            let accessTokenResult = null;
+            if (tokens.accessToken) {
+                try {
+                    accessTokenResult = TokenService.verifyAccessToken(tokens.accessToken);
+                } catch (tokenError) {
+                    console.log(`🔒 Access token verification failed: ${tokenError.message}`);
+                    accessTokenResult = { valid: false, expired: true };
+                }
+            }
             
-            if (accessTokenResult.valid) {
+            if (accessTokenResult && accessTokenResult.valid) {
                 // Access token is valid, set user data and continue
                 req.user = accessTokenResult.payload;
                 req.sessionId = tokens.sessionId;
+                
+                // Update last activity for security monitoring
+                if (req.user && req.user.userId) {
+                    req.user.lastActivity = new Date();
+                }
+                
                 return next();
             }
 
             // Access token is invalid/expired, try refresh token
-            if (accessTokenResult.expired && tokens.refreshToken) {
-                const refreshResult = await this.refreshTokens(req, res, tokens.refreshToken);
+            if (tokens.refreshToken && (!accessTokenResult || accessTokenResult.expired)) {
+                console.log(`🔄 Attempting token refresh for user session`);
                 
-                if (refreshResult.success) {
-                    req.user = refreshResult.user;
-                    req.sessionId = refreshResult.sessionId;
-                    return next();
+                try {
+                    const refreshResult = await this.refreshTokens(req, res, tokens.refreshToken);
+                    
+                    if (refreshResult.success) {
+                        req.user = refreshResult.user;
+                        req.sessionId = refreshResult.sessionId;
+                        
+                        console.log(`✅ Token refresh successful for user: ${req.user.userId}`);
+                        return next();
+                    } else {
+                        console.log(`❌ Token refresh failed: ${refreshResult.error}`);
+                    }
+                } catch (refreshError) {
+                    console.error(`❌ Token refresh error: ${refreshError.message}`);
                 }
             }
 
-            // Both tokens are invalid, redirect to login
+            // Both tokens are invalid, clear cookies and redirect to login
+            console.log(`🔒 Authentication failed - redirecting to login`);
             return this.handleUnauthenticated(req, res);
 
         } catch (error) {
-            console.error('Authentication error:', error);
+            console.error(`❌ Authentication middleware error for ${req.method} ${req.path}:`, error);
+            
+            // Ensure cookies are cleared on any error
+            try {
+                TokenService.clearAuthCookies(res);
+            } catch (clearError) {
+                console.error('Error clearing cookies:', clearError);
+            }
+            
             return this.handleUnauthenticated(req, res);
         }
     };
@@ -246,34 +281,82 @@ class JWTAuthMiddleware {
     };
 
     /**
-     * Refresh tokens and update cookies
+     * Refresh tokens and update cookies with enhanced error handling
      */
     async refreshTokens(req, res, refreshToken) {
         try {
+            if (!refreshToken) {
+                throw new Error('Refresh token is required');
+            }
+
+            // Apply rate limiting for refresh attempts
+            try {
+                await new Promise((resolve, reject) => {
+                    this.refreshRateLimit(req, res, (err) => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+                });
+            } catch (rateLimitError) {
+                return { 
+                    success: false, 
+                    error: 'Too many refresh attempts. Please try again later.',
+                    rateLimited: true 
+                };
+            }
+
+            console.log(`🔄 Processing token refresh request`);
+            
             const refreshResult = await TokenService.refreshAccessToken(refreshToken, this.models);
             
             if (refreshResult.success) {
-                // Set new cookies
+                // Set new cookies with enhanced security
                 TokenService.setAuthCookies(res, refreshResult.tokens);
+                
+                // Prepare user object with proper structure
+                const userPayload = {
+                    userId: refreshResult.user._id.toString(),
+                    userType: refreshResult.user.role ? 'admin' : 'user',
+                    role: refreshResult.user.role || 'company_admin',
+                    email: refreshResult.user.email,
+                    name: refreshResult.user.name || refreshResult.user.fullName,
+                    permissions: refreshResult.user.permissions || [],
+                    accountStatus: refreshResult.user.accountStatus || 'active',
+                    lastActivity: new Date()
+                };
+
+                console.log(`✅ Token refresh successful for user: ${userPayload.userId} (${userPayload.userType})`);
                 
                 return {
                     success: true,
-                    user: {
-                        userId: refreshResult.user._id,
-                        userType: refreshResult.user.role ? 'admin' : 'user',
-                        role: refreshResult.user.role || 'company_admin',
-                        email: refreshResult.user.email,
-                        name: refreshResult.user.name,
-                        permissions: refreshResult.user.permissions || []
-                    },
-                    sessionId: refreshResult.tokens.sessionId
+                    user: userPayload,
+                    sessionId: refreshResult.tokens.sessionId,
+                    refreshedAt: new Date()
                 };
             }
             
-            return { success: false, error: refreshResult.error };
+            console.log(`❌ Token refresh failed: ${refreshResult.error}`);
+            return { 
+                success: false, 
+                error: refreshResult.error || 'Token refresh failed',
+                clearCookies: true 
+            };
+            
         } catch (error) {
-            console.error('Token refresh error:', error);
-            return { success: false, error: 'Token refresh failed' };
+            console.error('❌ Token refresh method error:', error);
+            
+            // Ensure invalid cookies are cleared
+            try {
+                TokenService.clearAuthCookies(res);
+            } catch (clearError) {
+                console.error('Error clearing cookies during refresh error:', clearError);
+            }
+            
+            return { 
+                success: false, 
+                error: 'Token refresh failed due to server error',
+                clearCookies: true 
+            };
         }
     }
 

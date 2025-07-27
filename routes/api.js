@@ -7,7 +7,7 @@ const express = require('express');
 const router = express.Router();
 
 // Load static data
-const data = require('../data.json');
+const data = require('../public/data.json');
 
 // ===== PUBLIC DATA APIs =====
 

@@ -4,12 +4,20 @@
  */
 
 const express = require('express');
-const AuthController = require('../controllers/AuthController');
+const AuthControllerClass = require('../controllers/AuthController');
 
 const router = express.Router();
 
+// Create AuthController instance and bind methods
+const AuthController = new AuthControllerClass();
+const boundAuthMethods = {
+  showLoginPage: AuthController.showLoginPage.bind(AuthController),
+  showRegisterPage: AuthController.showRegisterPage.bind(AuthController),
+  showPasswordResetForm: AuthController.showPasswordResetForm.bind(AuthController)
+};
+
 // Load static data
-const data = require('../data.json');
+const data = require('../public/data.json');
 
 // Homepage
 router.get('/', (req, res) => {
@@ -111,8 +119,8 @@ router.get('/blog-details', (req, res) => {
 });
 
 // Authentication UI pages
-router.get('/login', AuthController.showLoginPage);
-router.get('/register', AuthController.showRegisterPage);
+router.get('/login', boundAuthMethods.showLoginPage);
+router.get('/register', boundAuthMethods.showRegisterPage);
 
 // Legacy admin login redirect (for backward compatibility)
 router.get('/admin/login', (req, res) => {
@@ -120,6 +128,6 @@ router.get('/admin/login', (req, res) => {
 });
 
 // Password reset UI page
-router.get('/reset-password', AuthController.showPasswordResetForm);
+router.get('/reset-password', boundAuthMethods.showPasswordResetForm);
 
 module.exports = router;

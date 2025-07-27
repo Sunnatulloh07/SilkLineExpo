@@ -26,7 +26,6 @@ Senior Software Engineer Clean Code Implementation
             this.setupThemeManagement();
             this.setupLanguageManagement();
             
-            console.log('Modern login initialized');
         }
 
         setupPasswordToggle() {

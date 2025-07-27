@@ -16,7 +16,6 @@ class LoginHandler {
     this.setupFormValidation();
     this.setupPasswordToggle();
     
-    console.log('Login form handler initialized');
   }
 
   setupFormValidation() {

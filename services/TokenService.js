@@ -15,7 +15,7 @@ class TokenService {
         
         // Token expiration times
         this.accessTokenExpiry = process.env.JWT_ACCESS_EXPIRY || '15m'; // 15 minutes
-        this.refreshTokenExpiry = process.env.JWT_REFRESH_EXPIRY || '7d'; // 7 days
+        this.refreshTokenExpiry = process.env.JWT_REFRESH_EXPIRY || '3d'; // 3 days
         
         // Cookie settings
         this.cookieOptions = {
@@ -318,13 +318,13 @@ class TokenService {
             // Refresh token cookie (longer expiry)
             res.cookie('refreshToken', tokens.refreshToken, {
                 ...this.cookieOptions,
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                maxAge: 3 * 24 * 60 * 60 * 1000 // 3 days
             });
 
             // Session ID cookie (for additional security)
             res.cookie('sessionId', tokens.sessionId, {
                 ...this.cookieOptions,
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                maxAge: 3 * 24 * 60 * 60 * 1000 // 3 days
             });
 
             return true;

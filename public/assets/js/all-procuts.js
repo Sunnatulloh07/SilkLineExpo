@@ -209,7 +209,6 @@ try {
             .then((data) => {
               const allCompanies = data.countries.flatMap((country) => country.companies);
               const selectedCompany = allCompanies.find((c) => c.name === selectedCompanyName);
-              console.log(selectedCompany);
               
               if (!selectedCompany) return;
 

@@ -1,116 +1,104 @@
-<!-- Admin Sidebar -->
-<div class="admin-sidebar" id="adminSidebar">
-    <div class="sidebar-header">
-        <div class="sidebar-logo">
-            <img src="/assets/images/logo/logo.png" alt="SLEX" class="logo-img">
+<!-- Sidebar -->
+<aside class="admin-sidebar">
+  <div class="sidebar-content">
+    <!-- Brand -->
+    <a href="/admin/dashboard" class="sidebar-brand">
+      <div class="sidebar-brand-logo">S</div>
+      <span class="sidebar-brand-text">SilkInExpo</span>
+    </a>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <!-- Dashboard Section -->
+      <div class="nav-section">
+        <div class="nav-section-title">
+          <%= typeof t !== 'undefined' ? t('admin.nav.overview') : 'Overview' %>
         </div>
-        <button class="sidebar-toggle d-lg-none" id="sidebarToggle">
-            <i class="las la-times"></i>
-        </button>
-    </div>
 
-    <div class="sidebar-content">
+        <a href="/admin/dashboard" class="nav-item <%= currentPage === 'dashboard' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.dashboard') : 'Dashboard' %>">
+          <i class="fas fa-chart-pie nav-icon"></i>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.dashboard') : 'Dashboard' %></span>
+        </a>
 
-        <!-- Navigation Menu -->
-        <nav class="sidebar-nav">
-            <ul class="nav-menu">
-                <!-- Dashboard -->
-                <li class="nav-item">
-                    <a href="/admin/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
-                        <i class="nav-icon las la-tachometer-alt"></i>
-                        <span class="nav-text">Dashboard</span>
-                    </a>
-                </li>
+        <a href="/admin/analytics" class="nav-item <%= currentPage === 'analytics' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.analytics') : 'Analytics' %>">
+          <i class="fas fa-chart-line nav-icon"></i>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.analytics') : 'Analytics' %></span>
+        </a>
+      </div>
 
-                <!-- Company Management -->
-                <li class="nav-item">
-                    <a href="/admin/companies" class="nav-link <%= currentPage === 'companies' ? 'active' : '' %>">
-                        <i class="nav-icon las la-building"></i>
-                        <span class="nav-text">Companies</span>
-                        <% if (typeof pendingApprovals !== 'undefined' && pendingApprovals > 0) { %>
-                            <span class="nav-badge"><%= pendingApprovals %></span>
-                        <% } %>
-                    </a>
-                </li>
+      <!-- Management Section -->
+      <div class="nav-section">
+        <div class="nav-section-title">
+          <%= typeof t !== 'undefined' ? t('admin.nav.management') : 'Management' %>
+        </div>
 
-                <!-- User Management -->
-                <li class="nav-item">
-                    <a href="/admin/users" class="nav-link <%= currentPage === 'users' ? 'active' : '' %>">
-                        <i class="nav-icon las la-users"></i>
-                        <span class="nav-text">Users</span>
-                    </a>
-                </li>
+        <a href="/admin/users" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.users') : 'Users' %>">
+          <i class="fas fa-users nav-icon"></i>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.users') : 'Users' %></span>
+          <% if (typeof stats !== 'undefined' && stats.pendingApprovals > 0) { %>
+            <span class="nav-badge badge-danger"><%= stats.pendingApprovals %></span>
+          <% } %>
+        </a>
 
-                <!-- Product Management -->
-                <li class="nav-item">
-                    <a href="/admin/products" class="nav-link <%= currentPage === 'products' ? 'active' : '' %>">
-                        <i class="nav-icon las la-box"></i>
-                        <span class="nav-text">Products</span>
-                    </a>
-                </li>
+        <a href="/admin/companies" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.companies') : 'Companies' %>">
+          <i class="fas fa-building nav-icon"></i>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.companies') : 'Companies' %></span>
+        </a>
 
-                <!-- Order Management -->
-                <li class="nav-item">
-                    <a href="/admin/orders" class="nav-link <%= currentPage === 'orders' ? 'active' : '' %>">
-                        <i class="nav-icon las la-shopping-cart"></i>
-                        <span class="nav-text">Orders</span>
-                    </a>
-                </li>
+        <a href="/admin/products" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.products') : 'Products' %>">
+          <i class="fas fa-box nav-icon"></i>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.products') : 'Products' %></span>
+        </a>
 
-                <!-- Divider -->
-                <li class="nav-divider">
-                    <span>Support & System</span>
-                </li>
+        <a href="/admin/orders" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.orders') : 'Orders' %>">
+          <i class="fas fa-shopping-cart nav-icon"></i>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.orders') : 'Orders' %></span>
+        </a>
+      </div>
 
-                <!-- Support -->
-                <li class="nav-item">
-                    <a href="/admin/support/tickets" class="nav-link <%= currentPage === 'support' ? 'active' : '' %>">
-                        <i class="nav-icon las la-headset"></i>
-                        <span class="nav-text">Support Tickets</span>
-                    </a>
-                </li>
+      <!-- Support Section -->
+      <div class="nav-section">
+        <div class="nav-section-title">
+          <%= typeof t !== 'undefined' ? t('admin.nav.support') : 'Support' %>
+        </div>
 
-                <!-- Analytics -->
-                <li class="nav-item">
-                    <a href="/admin/analytics" class="nav-link <%= currentPage === 'analytics' ? 'active' : '' %>">
-                        <i class="nav-icon las la-chart-bar"></i>
-                        <span class="nav-text">Analytics</span>
-                    </a>
-                </li>
+        <a href="/admin/support/tickets" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.support_tickets') : 'Support Tickets' %>">
+          <i class="fas fa-headset nav-icon"></i>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.support_tickets') : 'Support Tickets' %></span>
+          <% if (typeof stats !== 'undefined' && stats.openTickets > 0) { %>
+            <span class="nav-badge badge-warning"><%= stats.openTickets %></span>
+          <% } %>
+        </a>
 
-                <!-- System -->
-                <li class="nav-item has-submenu <%= ['logs', 'security', 'settings'].includes(currentPage) ? 'active' : '' %>">
-                    <a href="#" class="nav-link submenu-toggle">
-                        <i class="nav-icon las la-cog"></i>
-                        <span class="nav-text">System</span>
-                        <i class="submenu-arrow las la-angle-right"></i>
-                    </a>
-                    <ul class="submenu">
-                        <li class="submenu-item">
-                            <a href="/admin/system/logs" class="submenu-link <%= currentPage === 'logs' ? 'active' : '' %>">
-                                <i class="las la-file-alt"></i>
-                                System Logs
-                            </a>
-                        </li>
-                        <li class="submenu-item">
-                            <a href="/admin/system/security" class="submenu-link <%= currentPage === 'security' ? 'active' : '' %>">
-                                <i class="las la-shield-alt"></i>
-                                Security
-                            </a>
-                        </li>
-                        <li class="submenu-item">
-                            <a href="/admin/system/settings" class="submenu-link <%= currentPage === 'settings' ? 'active' : '' %>">
-                                <i class="las la-sliders-h"></i>
-                                Settings
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-    </div>
+        <a href="/admin/reports" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.reports') : 'Reports' %>">
+          <i class="fas fa-file-alt nav-icon"></i>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.reports') : 'Reports' %></span>
+        </a>
+      </div>
 
-</div>
+      <!-- System Section -->
+      <div class="nav-section">
+        <div class="nav-section-title">
+          <%= typeof t !== 'undefined' ? t('admin.nav.system') : 'System' %>
+        </div>
 
-<!-- Sidebar Overlay for Mobile -->
-<div class="sidebar-overlay d-lg-none" id="sidebarOverlay"></div>
+        <a href="/admin/system/settings" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.settings') : 'Settings' %>">
+          <i class="fas fa-cog nav-icon"></i>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.settings') : 'Settings' %></span>
+        </a>
+
+        <a href="/admin/system/security" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.security') : 'Security' %>">
+          <i class="fas fa-shield-alt nav-icon"></i>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.security') : 'Security' %></span>
+        </a>
+
+        <a href="/admin/system/logs" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.system_logs') : 'System Logs' %>">
+          <i class="fas fa-file-code nav-icon"></i>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.system_logs') : 'System Logs' %></span>
+        </a>
+      </div>
+    </nav>
+
+
+  </div>
+</aside>

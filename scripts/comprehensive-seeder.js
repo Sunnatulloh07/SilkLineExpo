@@ -36,15 +36,11 @@ class ComprehensiveSeeder {
 
       for (const uri of mongoUris) {
         try {
-          console.log(`🔄 Trying to connect to: ${uri}`);
           await mongoose.connect(uri);
-          console.log("✅ Connected to MongoDB");
-          console.log(`📍 Database: ${uri}`);
           connected = true;
           break;
         } catch (error) {
           lastError = error;
-          console.log(`❌ Failed: ${error.message}`);
           continue;
         }
       }
@@ -57,20 +53,11 @@ class ComprehensiveSeeder {
         "❌ All MongoDB connection attempts failed:",
         error.message
       );
-      console.log("\n💡 Solutions:");
-      console.log(
-        "1. Install and start MongoDB locally without authentication"
-      );
-      console.log(
-        "2. Use MongoDB Atlas (cloud) and update MONGODB_URI in .env"
-      );
-      console.log("3. Start MongoDB with: mongod --noauth");
       process.exit(1);
     }
   }
 
   async clearDatabase() {
-    console.log("🧹 Clearing existing data...");
     try {
       await Promise.all([
         Admin.deleteMany({}),
@@ -80,13 +67,8 @@ class ComprehensiveSeeder {
         Review.deleteMany({}),
         Inquiry.deleteMany({}),
       ]);
-      console.log("✅ Database cleared");
     } catch (error) {
       if (error.code === 13) {
-        console.log("⚠️ Authentication required for clearing database");
-        console.log(
-          "📝 Continuing with seeding (data will be added to existing)"
-        );
       } else {
         throw error;
       }
@@ -94,10 +76,10 @@ class ComprehensiveSeeder {
   }
 
   async seedAdmins() {
-    console.log("👑 Seeding Admins...");
 
     const admins = [
       {
+        _id: "60c72b2f9b1e8c001c8e4d5a", // Fixed ID to match routes/admin.js
         name: "Super Admin",
         email: "admin@slex.uz",
         password: "admin123",
@@ -145,11 +127,9 @@ class ComprehensiveSeeder {
       await Admin.create(adminData);
     }
 
-    console.log(`✅ Created ${admins.length} admins`);
   }
 
   async seedUsers() {
-    console.log("🏭 Seeding Companies...");
 
     const companies = [
       // Manufacturers
@@ -330,11 +310,9 @@ class ComprehensiveSeeder {
       this.users.push(user);
     }
 
-    console.log(`✅ Created ${companies.length} companies`);
   }
 
   async seedProducts() {
-    console.log("📦 Seeding Products...");
 
     const manufacturers = this.users.filter(
       (u) => u.companyType === "manufacturer" || u.companyType === "both"
@@ -506,11 +484,9 @@ class ComprehensiveSeeder {
       }
     }
 
-    console.log(`✅ Created ${this.products.length} products`);
   }
 
   async seedInquiries() {
-    console.log("💬 Seeding Inquiries...");
 
     const distributors = this.users.filter(
       (u) => u.companyType === "distributor" || u.companyType === "both"
@@ -599,11 +575,9 @@ class ComprehensiveSeeder {
       this.inquiries.push(inquiry);
     }
 
-    console.log(`✅ Created ${this.inquiries.length} inquiries`);
   }
 
   async seedOrders() {
-    console.log("📋 Seeding Orders...");
 
     const distributors = this.users.filter(
       (u) => u.companyType === "distributor" || u.companyType === "both"
@@ -687,11 +661,9 @@ class ComprehensiveSeeder {
       await seller.save();
     }
 
-    console.log(`✅ Created ${this.orders.length} orders`);
   }
 
   async seedReviews() {
-    console.log("⭐ Seeding Reviews...");
 
     const completedOrders = this.orders.filter((o) => o.status === "completed");
 
@@ -758,11 +730,9 @@ class ComprehensiveSeeder {
       await company.save();
     }
 
-    console.log(`✅ Created ${this.reviews.length} reviews`);
   }
 
   async updateAnalytics() {
-    console.log("📊 Updating Analytics...");
 
     // Update product analytics
     for (const product of this.products) {
@@ -772,12 +742,10 @@ class ComprehensiveSeeder {
       await product.save();
     }
 
-    console.log("✅ Analytics updated");
   }
 
   async run() {
     try {
-      console.log("🚀 Starting Comprehensive Database Seeding...\n");
 
       await this.connect();
       await this.clearDatabase();

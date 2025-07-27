@@ -18,7 +18,6 @@ class RegisterFormValidator {
     this.setupPhoneFormatting();
     this.setupFileUpload();
     
-    console.log('Register form validation initialized');
   }
 
   setupFormValidation() {

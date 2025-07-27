@@ -37,8 +37,10 @@ class AuthController {
       // Store token in session for verification
       req.session.csrfToken = csrfToken;
       
+      const t = req.t || ((key) => key);
+      
       res.render('pages/login', {
-        title: req.t('login.title'),
+        title: t('login.title'),
         error: req.query.error || null,
         message: req.query.message || null,
         formData: {},
@@ -73,6 +75,7 @@ class AuthController {
         phone: req.body.phone,
         taxNumber: req.body.taxNumber,
         activityType: req.body.activityType,
+        companyType: req.body.companyType,
         country: req.body.country,
         city: req.body.city,
         address: req.body.address,
@@ -138,11 +141,22 @@ class AuthController {
    */
   async login(req, res) {
     try {
-      const {email, identifier, password, rememberMe } = req.body;
+      const {email, identifier, password, rememberMe, csrfToken } = req.body;
+
+      // Validate CSRF token
+      if (csrfToken && req.session.csrfToken && req.session.csrfToken !== csrfToken) {
+        return this.sendError(res, 403, 'Invalid security token. Please refresh the page.');
+      }
+
+      // Clear CSRF token after validation
+      if (req.session.csrfToken) {
+        delete req.session.csrfToken;
+      }
 
       // Validate input
       if (!identifier || !password) {
-        return this.sendError(res, 400, req.t('login.errors.requiredFields'));
+        const t = req.t || ((key) => key);
+        return this.sendError(res, 400, t('login.errors.requiredFields'));
       }
 
       // Auto-detect user type and login through service
@@ -160,9 +174,11 @@ class AuthController {
       const redirectUrl = this.getRedirectUrl(result.userType, result.role);
 
       // Success response
+      const t = req.t || ((key) => key);
+      
       res.json({
         success: true,
-        message: req.t('login.success'),
+        message: t('login.success'),
         data: {
           userId: result.userId,
           name: result.name,
@@ -499,19 +515,22 @@ class AuthController {
     let message = error.message;
     let errorType = 'general';
 
+    // Safe translation function fallback
+    const t = req.t || ((key) => key);
+
     // Handle specific error types
     if (error.type === 'blocked') {
       statusCode = 403;
       errorType = 'blocked';
-      message = req.t('login.errors.accountBlocked');
+      message = t('login.errors.accountBlocked');
     } else if (error.type === 'suspended') {
       statusCode = 403;
       errorType = 'suspended';
-      message = req.t('login.errors.accountSuspended');
+      message = t('login.errors.accountSuspended');
     } else if (error.message.includes('locked')) {
       statusCode = 423;
       errorType = 'locked';
-      message = req.t('login.errors.accountLocked');
+      message = t('login.errors.accountLocked');
     } else if (error.message.includes('attempts')) {
       errorType = 'attempts';
       message = error.message;
@@ -521,4 +540,4 @@ class AuthController {
   }
 }
 
-module.exports = new AuthController();
+module.exports = AuthController;
