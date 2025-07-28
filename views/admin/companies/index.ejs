@@ -68,7 +68,7 @@
                 <i class="las la-industry"></i>
             </div>
             <div class="metric-details">
-                <h3 class="metric-value" data-metric="manufacturers">0</h3>
+                <h3 class="metric-value" data-metric="manufacturers"><%= typeof manufacturers !== 'undefined' ? manufacturers : 0 %></h3>
                 <p class="metric-label">Manufacturers</p>
                 <span class="metric-trend positive">
                     <i class="las la-arrow-up"></i>
@@ -87,7 +87,7 @@
                 <i class="las la-store"></i>
             </div>
             <div class="metric-details">
-                <h3 class="metric-value" data-metric="distributors">0</h3>
+                <h3 class="metric-value" data-metric="distributors"><%= typeof distributors !== 'undefined' ? distributors : 0 %></h3>
                 <p class="metric-label">Distributors</p>
                 <span class="metric-trend positive">
                     <i class="las la-arrow-up"></i>

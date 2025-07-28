@@ -1,106 +1,775 @@
 <!DOCTYPE html>
-<html lang="<%= currentLang || 'uz' %>" data-theme="light">
+<html lang="<%= typeof lng !== 'undefined' ? lng : 'uz' %>" class="theme-transition">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Management - SLEX Admin</title>
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+    <title>Product Management - SLEX Admin Dashboard</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- CSS -->
-    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/assets/css/line-awesome.min.css" rel="stylesheet">
-    <link href="/admin/css/admin-theme.css" rel="stylesheet">
-    <link href="/admin/css/admin-components.css" rel="stylesheet">
-    <link href="/admin/css/admin-responsive.css" rel="stylesheet">
+    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="/assets/css/line-awesome.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/admin/css/admin-dashboard.css">
+    <link rel="stylesheet" href="/admin/css/dashboard-components.css">
+    
+    <!-- Professional Products CSS -->
+    <link rel="stylesheet" href="/admin/css/products-management.css">
+    
+    <!-- Override dashboard performance script for products page -->
+    <script>
+        // Disable dashboard performance script for products page
+        window.DISABLE_DASHBOARD_PERFORMANCE = true;
+    </script>
 </head>
-<body class="admin-layout">
-    <div class="admin-wrapper">
-        <!-- Sidebar -->
-        <%- include('../partials/sidebar', { currentPage: 'products', user: user }) %>
-        
-        <!-- Main Content -->
-        <div class="admin-main">
-            <!-- Header -->
-            <%- include('../partials/header', { 
-                user: user, 
-                title: 'Product Management',
-                breadcrumb: [
-                    { title: 'Management', url: '/admin' },
-                    { title: 'Products' }
-                ],
-                currentLang: typeof currentLang !== 'undefined' ? currentLang : 'uz'
-            }) %>
+
+<body class="admin-layout theme-transition" data-theme="light">
+
+    <%- include('../partials/header', { 
+        title: 'Product Management - SLEX Admin Dashboard',
+        lng: typeof currentLang !== 'undefined' ? currentLang : 'uz',
+        admin: admin, 
+        user: user,
+        breadcrumb: [
+            { title: 'Dashboard', url: '/admin' },
+            { title: 'Products' }
+        ]
+    }) %>
+    
+    <%- include('../partials/sidebar', { 
+        admin: admin, 
+        user: user, 
+        currentPage: 'products',
+        stats: typeof stats !== 'undefined' ? stats : {}
+    }) %>
+    
+    <!-- Main Content -->
+    <main class="admin-main">
+        <div class="admin-content">
             
-            <!-- Content -->
-            <div class="admin-content">
-                <div class="container-fluid">
-                    <!-- Page Title and Actions -->
-                    <div class="page-header mb-4">
-                        <div class="page-header-content">
-                            <div class="page-title-section">
-                                <h1 class="page-title">
-                                    <i class="las la-box"></i>
-                                    Product Management
-                                </h1>
-                                <p class="page-subtitle">Manage product catalog, moderate listings, and monitor product quality</p>
+            <!-- Products Management Content -->
+            <div class="products-container">
+                
+                <!-- Page Header -->
+                <div class="page-header animate-fade-in">
+                    <div class="page-header-content">
+                        <div class="page-title-section">
+                            <h1 class="page-title">
+                                <i class="las la-boxes text-primary"></i>
+                                Product Management
+                            </h1>
+                            <p class="page-subtitle">
+                                Comprehensive product catalog management with advanced inventory control, performance analytics, and bulk operations
+                            </p>
+                        </div>
+                        <div class="page-actions">
+                            <button class="btn btn-outline-primary" onclick="exportProducts()">
+                                <i class="las la-download"></i>
+                                Export Data
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="refreshData()">
+                                <i class="las la-sync-alt"></i>
+                                Refresh
+                            </button>
+                            <button class="btn btn-primary" onclick="openCreateProductModal()">
+                                <i class="las la-plus"></i>
+                                Add Product
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Dashboard -->
+                <div class="metrics-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg animate-fade-in">
+                    <div class="stat-card primary">
+                        <div class="stat-content">
+                            <div class="stat-icon">
+                                <i class="las la-boxes"></i>
                             </div>
-                            
-                            <div class="page-actions">
-                                <button class="btn btn-outline-primary" onclick="exportProducts()">
-                                    <i class="las la-download"></i>
-                                    Export Products
-                                </button>
-                                <button class="btn btn-primary" onclick="addProduct()">
-                                    <i class="las la-plus"></i>
-                                    Add Product
-                                </button>
+                            <div class="stat-details">
+                                <div class="stat-value" id="totalProductsCount"><%= statistics?.total || 0 %></div>
+                                <div class="stat-label">Total Products</div>
+                                <div class="stat-trend positive">
+                                    <i class="las la-arrow-up"></i>
+                                    +8%
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Product Management Dashboard -->
-                    <div class="dashboard-card">
-                        <div class="card-body text-center py-5">
-                            <i class="las la-box" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
-                            <h4>Product Management</h4>
-                            <p class="text-muted">Advanced product management features will be implemented here.</p>
-                            <div class="mt-4">
-                                <button class="btn btn-primary me-2" onclick="addProduct()">
-                                    <i class="las la-plus"></i>
-                                    Add New Product
+                    <div class="stat-card success">
+                        <div class="stat-content">
+                            <div class="stat-icon success">
+                                <i class="las la-check-circle"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="activeProductsCount"><%= statistics?.statusCounts?.active || 0 %></div>
+                                <div class="stat-label">Active Products</div>
+                                <div class="stat-trend positive">
+                                    <i class="las la-arrow-up"></i>
+                                    +12%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-content">
+                            <div class="stat-icon warning">
+                                <i class="las la-exclamation-triangle"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="lowStockCount"><%= statistics?.stockStats?.lowStock || 0 %></div>
+                                <div class="stat-label">Low Stock Items</div>
+                                <div class="stat-trend negative">
+                                    <i class="las la-arrow-down"></i>
+                                    -3%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card info">
+                        <div class="stat-content">
+                            <div class="stat-icon info">
+                                <i class="las la-dollar-sign"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="totalValue">$<%= statistics?.totalValue ? Math.round(statistics.totalValue).toLocaleString() : '0' %></div>
+                                <div class="stat-label">Total Inventory Value</div>
+                                <div class="stat-trend positive">
+                                    <i class="las la-arrow-up"></i>
+                                    +8%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Card -->
+                <div class="main-card animate-fade-in">
+                    
+                    <!-- Tab Navigation -->
+                    <div class="tabs-navigation">
+                        <button class="tab-item active" data-status="" data-tab="all">
+                            <i class="las la-list"></i>
+                            All Products
+                            <span class="tab-badge" id="allProductsTab"><%= statistics?.total || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="active" data-tab="active">
+                            <i class="las la-check-circle"></i>
+                            Active
+                            <span class="tab-badge success" id="activeProductsTab"><%= statistics?.statusCounts?.active || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="draft" data-tab="draft">
+                            <i class="las la-edit"></i>
+                            Draft
+                            <span class="tab-badge secondary" id="draftProductsTab"><%= statistics?.statusCounts?.draft || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="inactive" data-tab="inactive">
+                            <i class="las la-pause"></i>
+                            Inactive
+                            <span class="tab-badge warning" id="inactiveProductsTab"><%= statistics?.statusCounts?.inactive || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="discontinued" data-tab="discontinued">
+                            <i class="las la-ban"></i>
+                            Discontinued
+                            <span class="tab-badge danger" id="discontinuedProductsTab"><%= statistics?.statusCounts?.discontinued || 0 %></span>
+                        </button>
+                    </div>
+
+                    <!-- Filters Section -->
+                    <div class="filters-section">
+                        <div class="filters-header">
+                            <h3 class="filters-title">
+                                <i class="las la-filter"></i>
+                                Advanced Filters
+                            </h3>
+                            <div class="filter-actions">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()">
+                                    <i class="las la-times"></i>
+                                    Clear
                                 </button>
-                                <button class="btn btn-outline-secondary" onclick="importProducts()">
-                                    <i class="las la-upload"></i>
-                                    Import Products
+                                <button class="btn btn-primary btn-sm" onclick="applyFilters()">
+                                    <i class="las la-search"></i>
+                                    Search
                                 </button>
                             </div>
+                        </div>
+                        
+                        <div class="filters-grid">
+                            <div class="filter-group">
+                                <label class="filter-label">Search Products</label>
+                                <div class="search-input">
+                                    <i class="las la-search search-icon"></i>
+                                    <input type="text" class="filter-input" id="searchInput" placeholder="Product name, description, manufacturer...">
+                                </div>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Category</label>
+                                <select class="filter-input" id="categoryFilter">
+                                    <option value="">All Categories</option>
+                                    <option value="food_beverages">Food & Beverages</option>
+                                    <option value="textiles_clothing">Textiles & Clothing</option>
+                                    <option value="electronics">Electronics</option>
+                                    <option value="machinery_equipment">Machinery & Equipment</option>
+                                    <option value="chemicals">Chemicals</option>
+                                    <option value="agriculture">Agriculture</option>
+                                    <option value="construction_materials">Construction Materials</option>
+                                    <option value="automotive">Automotive</option>
+                                    <option value="pharmaceuticals">Pharmaceuticals</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Manufacturer Country</label>
+                                <select class="filter-input" id="countryFilter">
+                                    <option value="">All Countries</option>
+                                    <option value="Uzbekistan">Uzbekistan</option>
+                                    <option value="Kazakhstan">Kazakhstan</option>
+                                    <option value="China">China</option>
+                                    <option value="Tajikistan">Tajikistan</option>
+                                    <option value="Turkmenistan">Turkmenistan</option>
+                                    <option value="Afghanistan">Afghanistan</option>
+                                    <option value="Kyrgyzstan">Kyrgyzstan</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Price Range (USD)</label>
+                                <select class="filter-input" id="priceRangeFilter">
+                                    <option value="">All Prices</option>
+                                    <option value="0-100">$0 - $100</option>
+                                    <option value="100-500">$100 - $500</option>
+                                    <option value="500-1000">$500 - $1,000</option>
+                                    <option value="1000-5000">$1,000 - $5,000</option>
+                                    <option value="5000-">$5,000+</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Stock Status</label>
+                                <select class="filter-input" id="stockStatusFilter">
+                                    <option value="">All Stock Levels</option>
+                                    <option value="in_stock">In Stock</option>
+                                    <option value="low_stock">Low Stock</option>
+                                    <option value="out_of_stock">Out of Stock</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Date Added</label>
+                                <select class="filter-input" id="dateRangeFilter">
+                                    <option value="">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                    <option value="quarter">This Quarter</option>
+                                    <option value="year">This Year</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table Section -->
+                    <div class="table-section">
+                        <div class="table-header">
+                            <div class="table-title">
+                                <i class="las la-table"></i>
+                                Products Catalog
+                                <span class="result-count" id="tableResultsCount">(0 results)</span>
+                            </div>
+                            
+                            <div class="bulk-actions hidden" id="bulkActions">
+                                <span class="selected-count" id="selectedCount">0 selected</span>
+                                <button class="btn btn-success btn-sm" onclick="bulkActivateProducts()" id="bulkActivateBtn">
+                                    <i class="las la-check"></i>
+                                    Activate
+                                </button>
+                                <button class="btn btn-warning btn-sm" onclick="bulkPromoteProducts()" id="bulkPromoteBtn">
+                                    <i class="las la-star"></i>
+                                    Promote
+                                </button>
+                                <button class="btn btn-info btn-sm" onclick="bulkExportProducts()" id="bulkExportBtn">
+                                    <i class="las la-download"></i>
+                                    Export
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="bulkDeleteProducts()" id="bulkDeleteBtn">
+                                    <i class="las la-trash"></i>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="professional-table-container" id="tableContainer">
+                            <!-- Desktop Table View -->
+                            <div class="desktop-table-view">
+                                <table class="professional-products-table">
+                                    <thead class="table-header-sticky">
+                                        <tr class="header-row">
+                                            <th class="th-select" data-column="select">
+                                                <div class="th-content">
+                                                    <label class="modern-checkbox">
+                                                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)">
+                                                        <span class="checkbox-mark"></span>
+                                                    </label>
+                                                </div>
+                                            </th>
+                                            <th class="th-product" data-column="product" onclick="sortTable('name')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Product</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-manufacturer" data-column="manufacturer">
+                                                <div class="th-content">
+                                                    <span class="th-label">Manufacturer</span>
+                                                </div>
+                                            </th>
+                                            <th class="th-category" data-column="category">
+                                                <div class="th-content">
+                                                    <span class="th-label">Category</span>
+                                                </div>
+                                            </th>
+                                            <th class="th-price" data-column="price" onclick="sortTable('price')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Price & Stock</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-status" data-column="status" onclick="sortTable('status')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Status</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-performance" data-column="performance">
+                                                <div class="th-content">
+                                                    <span class="th-label">Performance</span>
+                                                </div>
+                                            </th>
+                                            <th class="th-featured" data-column="featured" onclick="sortTable('featured')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Featured</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-actions" data-column="actions">
+                                                <div class="th-content">
+                                                    <span class="th-label">Actions</span>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="productsTableBody" class="table-body-modern">
+                                        <!-- Loading state -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Mobile Card View -->
+                            <div class="mobile-cards-view" id="mobileCardsView">
+                                <!-- Mobile cards will be rendered here -->
+                            </div>
+
+                            <!-- Table Loading Overlay -->
+                            <div class="table-loading-overlay" id="tableLoadingOverlay">
+                                <div class="loading-content">
+                                    <div class="modern-spinner"></div>
+                                    <p class="loading-text">Loading products...</p>
+                                </div>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div class="table-empty-state hidden" id="tableEmptyState">
+                                <div class="empty-state-content">
+                                    <div class="empty-state-icon">
+                                        <i class="las la-boxes"></i>
+                                    </div>
+                                    <h3 class="empty-state-title">No Products Found</h3>
+                                    <p class="empty-state-description">No products match your current filter criteria.</p>
+                                    <button class="btn btn-primary" onclick="clearAllFilters()">
+                                        <i class="las la-refresh"></i>
+                                        Reset Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination Section -->
+                    <div class="pagination-section" id="paginationSection">
+                        <div class="pagination-info">
+                            Showing <span id="paginationStart">0</span>-<span id="paginationEnd">0</span> of <span id="paginationTotal">0</span> products
+                        </div>
+                        <div class="pagination-controls" id="paginationControls">
+                            <!-- Pagination buttons will be generated here -->
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay d-none" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="loading-text" id="loadingText">Processing...</div>
+        </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="/assets/js/bootstrap.bundle.min.js"></script>
-    <script src="/admin/js/admin-theme.js"></script>
+<!-- Scripts -->
+<script src="/assets/js/jquery-3.7.1.min.js"></script>
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-    window.exportProducts = () => {
-        console.log('Export products functionality will be implemented');
-    };
+<!-- Admin Dashboard Core Scripts -->
+<script src="/admin/js/dashboard.js"></script>
 
-    window.addProduct = () => {
-        console.log('Add product functionality will be implemented');
-    };
+<!-- Products Management JavaScript -->
+<script src="/admin/js/products-management.js"></script>
 
-    window.importProducts = () => {
-        console.log('Import products functionality will be implemented');
-    };
-    </script>
+<!-- Products Management Configuration -->
+<script>
+    // Initialize Products Management
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof ProductsManagement !== 'undefined') {
+            window.productsManager = new ProductsManagement();
+            window.productsManager.init();
+        }
+    });
+
+    // Global product management functions
+    function openCreateProductModal() {
+        // Implementation for creating new product
+        console.log('Opening create product modal...');
+    }
+
+    function exportProducts() {
+        if (window.productsManager) {
+            window.productsManager.exportProducts();
+        }
+    }
+
+    function refreshData() {
+        if (window.productsManager) {
+            window.productsManager.refreshData();
+        }
+    }
+
+    function clearAllFilters() {
+        if (window.productsManager) {
+            window.productsManager.clearAllFilters();
+        }
+    }
+
+    function applyFilters() {
+        if (window.productsManager) {
+            window.productsManager.applyFilters();
+        }
+    }
+
+    function toggleSelectAll(checked) {
+        if (window.productsManager) {
+            window.productsManager.toggleSelectAll(checked);
+        }
+    }
+
+    function sortTable(column) {
+        if (window.productsManager) {
+            window.productsManager.sortTable(column);
+        }
+    }
+
+    function bulkActivateProducts() {
+        if (window.productsManager) {
+            window.productsManager.bulkAction('activate');
+        }
+    }
+
+    function bulkPromoteProducts() {
+        if (window.productsManager) {
+            window.productsManager.bulkAction('promote');
+        }
+    }
+
+    function bulkExportProducts() {
+        if (window.productsManager) {
+            window.productsManager.bulkExport();
+        }
+    }
+
+    function bulkDeleteProducts() {
+        if (window.productsManager) {
+            window.productsManager.bulkAction('delete');
+        }
+    }
+</script>
+
+<!-- Responsive Table CSS Enhancement -->
+<style>
+    /* Products Table Column Sizing */
+    .products-table {
+        table-layout: auto;
+        width: 100%;
+        min-width: 1200px;
+    }
+    
+    /* Column Classes for Responsive Control */
+    .col-select { 
+        width: 4%; 
+        min-width: 40px; 
+    }
+    
+    .col-product { 
+        width: 25%; 
+        min-width: 220px; 
+    }
+    
+    .col-manufacturer { 
+        width: 15%; 
+        min-width: 140px; 
+    }
+    
+    .col-category { 
+        width: 12%; 
+        min-width: 100px; 
+    }
+    
+    .col-price { 
+        width: 15%; 
+        min-width: 120px; 
+    }
+    
+    .col-status { 
+        width: 8%; 
+        min-width: 80px; 
+    }
+    
+    .col-performance { 
+        width: 8%; 
+        min-width: 80px; 
+    }
+    
+    .col-featured { 
+        width: 6%; 
+        min-width: 60px; 
+    }
+    
+    .col-date { 
+        width: 8%; 
+        min-width: 80px; 
+    }
+    
+    .col-actions { 
+        width: 5%; 
+        min-width: 50px; 
+    }
+    
+    /* Mobile Responsive Columns */
+    @media (max-width: 768px) {
+        .products-table {
+            min-width: 900px;
+            font-size: 0.75rem;
+        }
+        
+        .col-product { min-width: 180px; }
+        .col-manufacturer { min-width: 120px; }
+        .col-category { min-width: 80px; }
+        .col-price { min-width: 100px; }
+        .col-performance { min-width: 70px; }
+        .col-featured { min-width: 50px; }
+        .col-date { min-width: 70px; }
+    }
+    
+    @media (max-width: 480px) {
+        .products-table {
+            min-width: 800px;
+            font-size: 0.7rem;
+        }
+        
+        .col-product { min-width: 160px; }
+        .col-manufacturer { min-width: 100px; }
+        .col-category { min-width: 70px; }
+        .col-price { min-width: 90px; }
+        .col-performance { min-width: 60px; }
+        .col-featured { min-width: 45px; }
+        .col-date { min-width: 60px; }
+        .col-actions { min-width: 45px; }
+    }
+    
+    /* Hide less important columns on very small screens */
+    @media (max-width: 360px) {
+        .col-featured,
+        .col-date {
+            display: none;
+        }
+        
+        .products-table {
+            min-width: 700px;
+        }
+    }
+    
+    /* Product-specific styling */
+    .product-image {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid var(--border-color);
+    }
+    
+    .product-image-placeholder {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.875rem;
+    }
+    
+    .product-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 200px;
+    }
+    
+    .product-details h4 {
+        margin: 0 0 4px 0;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        line-height: 1.2;
+    }
+    
+    .product-description {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .price-info {
+        text-align: right;
+    }
+    
+    .price-value {
+        font-weight: 700;
+        color: var(--success-color);
+        font-size: 1rem;
+        margin: 0;
+    }
+    
+    .stock-info {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin: 4px 0 0 0;
+    }
+    
+    .category-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: capitalize;
+        white-space: nowrap;
+        text-align: center;
+    }
+    
+    .category-badge.food_beverages {
+        background: rgba(34, 197, 94, 0.1);
+        color: #059669;
+    }
+    
+    .category-badge.textiles_clothing {
+        background: rgba(168, 85, 247, 0.1);
+        color: #7C3AED;
+    }
+    
+    .category-badge.electronics {
+        background: rgba(59, 130, 246, 0.1);
+        color: #2563EB;
+    }
+    
+    .category-badge.machinery_equipment {
+        background: rgba(107, 114, 128, 0.1);
+        color: #4B5563;
+    }
+    
+    .featured-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid var(--warning-color);
+        color: var(--warning-color);
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .featured-badge.active {
+        background: var(--warning-color);
+        color: white;
+    }
+    
+    .performance-score {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .performance-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+    
+    .performance-indicator.high {
+        background: var(--success-color);
+    }
+    
+    .performance-indicator.medium {
+        background: var(--warning-color);
+    }
+    
+    .performance-indicator.low {
+        background: var(--danger-color);
+    }
+</style>
+
 </body>
 </html>

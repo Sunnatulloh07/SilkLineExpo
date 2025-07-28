@@ -156,6 +156,7 @@ body {
   display: flex;
   min-height: 100vh;
   background-color: var(--bg-main);
+  width: 100%;
 }
 
 /* Mobile Layout Fixes */

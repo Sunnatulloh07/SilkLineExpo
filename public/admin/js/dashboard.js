@@ -1682,15 +1682,32 @@ class SLEXDashboard {
   // 6. Real-time Updates
   // ===============================================
   startRealTimeUpdates() {
-    // Update dashboard data every 30 seconds
-    this.updateInterval = setInterval(() => {
-      this.updateDashboardData();
+    // Professional performance-optimized updates
+    console.log('🚀 Starting performance-optimized updates...');
+    
+    // Initialize performance optimizer
+    if (window.dashboardOptimizer) {
+      window.dashboardOptimizer.init();
+    }
+    
+    // Critical data updates every 10 seconds
+    this.criticalUpdateInterval = setInterval(() => {
+      this.updateDashboardDataFast();
+    }, 10000);
+    
+    // Non-critical updates every 30 seconds
+    this.generalUpdateInterval = setInterval(() => {
+      this.loadMessages();
+      this.loadNotifications();
     }, 30000);
 
+    console.log('✅ Performance-optimized updates initialized');
   }
 
   async updateDashboardData() {
     try {
+      console.log('🔄 Standard dashboard data update starting...');
+      
       const response = await fetch('/admin/api/dashboard-stats', {
         headers: {
           'X-Requested-With': 'XMLHttpRequest'
@@ -1700,19 +1717,74 @@ class SLEXDashboard {
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {
-          // Update global data
-          window.dashboardData.stats = result.data;
+          console.log('✅ Real data received from backend:', result.data);
           
-          // Update UI components
+          // Save last known good data
+          if (window.dashboardOptimizer && !window.DISABLE_DASHBOARD_PERFORMANCE) {
+            window.dashboardOptimizer.saveLastKnownData(result.data);
+          }
+          
+          // Initialize and update global data
+          if (!window.dashboardData) {
+            window.dashboardData = {};
+          }
+          window.dashboardData.stats = result.data;
+          window.dashboardData.timestamp = new Date().toISOString();
+          
+          // Update UI components with real data
           this.updateStatCards(result.data);
           this.updateRecentActivity(result.data);
           this.updateSystemStatus(result.data);
           
+          console.log('✅ Dashboard UI updated with real data');
+        } else {
+          console.warn('⚠️ Backend returned unsuccessful response:', result);
         }
+      } else {
+        console.error('❌ HTTP error:', response.status, response.statusText);
+        this.showDataError('Failed to fetch dashboard data. Please check your connection.');
       }
     } catch (error) {
-      console.error('Real-time update error:', error);
+      console.error('❌ Dashboard update error:', error);
+      this.showDataError('Network error while updating dashboard data.');
     }
+  }
+
+  /**
+   * Fast dashboard update with performance optimization
+   */
+  async updateDashboardDataFast() {
+    if (window.dashboardOptimizer) {
+      const data = await window.dashboardOptimizer.loadDashboardDataFast('high');
+      if (data && data.success && data.data) {
+        this.updateStatCards(data.data);
+        console.log('⚡ Fast dashboard update completed');
+      }
+    } else {
+      // Fallback to standard update
+      this.updateDashboardData();
+    }
+  }
+
+  /**
+   * Show professional data error without fake data
+   */
+  showDataError(message) {
+    const errorToast = document.createElement('div');
+    errorToast.className = 'alert alert-warning';
+    errorToast.style.cssText = 'position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 300px;';
+    errorToast.innerHTML = `
+      <strong>Data Update Error:</strong><br>
+      ${message}<br>
+      <small>Showing last known data. Retrying automatically...</small>
+    `;
+    
+    document.body.appendChild(errorToast);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+      errorToast.remove();
+    }, 5000);
   }
 
   updateStatCards(stats) {
@@ -4232,45 +4304,38 @@ window.markNotificationAsRead = async function(notificationId) {
 }; 
 
 // ===============================================
-// DASHBOARD INITIALIZATION - SENIOR LEVEL
+// PROFESSIONAL DASHBOARD INITIALIZATION
 // ===============================================
 
-// Initialize Dashboard when DOM is ready
+// Single, consistent dashboard initialization
 document.addEventListener('DOMContentLoaded', function() {
   
   try {
-    // Create dashboard instance
+    console.log('🎯 Professional dashboard initialization starting...');
+    
+    // Create dashboard instance with consistent naming
     window.SLEXDashboard = new SLEXDashboard();
+    window.adminDashboard = window.SLEXDashboard; // Compatibility alias
     
     // Initialize dashboard
     window.SLEXDashboard.init();
     
-    
-    // Show success notification after initialization
-    setTimeout(() => {
-      if (window.SLEXDashboard && window.SLEXDashboard.showToast) {
-        window.SLEXDashboard.showToast('success', 'Dashboard loaded successfully!');
-      }
-    }, 1000);
+    console.log('✅ Professional dashboard initialization completed');
     
   } catch (error) {
     console.error('❌ Dashboard initialization failed:', error);
     
-    // Fallback alert if toast system fails
-    setTimeout(() => {
-      alert('Dashboard initialization failed. Please refresh the page.');
-    }, 500);
+    // Professional error display without fake data
+    const errorBanner = document.createElement('div');
+    errorBanner.innerHTML = `
+      <div class="alert alert-danger" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+        <strong>Dashboard Error:</strong> ${error.message}<br>
+        <small>Please refresh the page or contact support.</small>
+      </div>
+    `;
+    document.body.appendChild(errorBanner);
   }
 });
-
-// Auto-refresh dashboard data every 30 seconds
-setInterval(() => {
-  if (window.SLEXDashboard && typeof window.SLEXDashboard.loadMessages === 'function') {
-
-    window.SLEXDashboard.loadMessages();
-    window.SLEXDashboard.loadNotifications();
-  }
-}, 30000);
 
 // ===============================================
 // ADMIN HEADER DROPDOWN FIX - INTEGRATED

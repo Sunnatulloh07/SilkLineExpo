@@ -29,12 +29,31 @@ const boundMethods = {
   markMessageAsRead: AdminController.markMessageAsRead.bind(AdminController),
   markNotificationAsRead: AdminController.markNotificationAsRead.bind(AdminController),
   changeLanguage: AdminController.changeLanguage.bind(AdminController),
+  getRecentActivity: AdminController.getRecentActivity.bind(AdminController),
+  exportDashboardData: AdminController.exportDashboardData.bind(AdminController),
   getAnalyticsOverview: AdminController.getAnalyticsOverview.bind(AdminController),
   getRevenueAnalytics: AdminController.getRevenueAnalytics.bind(AdminController),
   getUserAnalytics: AdminController.getUserAnalytics.bind(AdminController),
   getProductAnalytics: AdminController.getProductAnalytics.bind(AdminController),
   getGeographicAnalytics: AdminController.getGeographicAnalytics.bind(AdminController),
-  getRealtimeAnalytics: AdminController.getRealtimeAnalytics.bind(AdminController)
+  getRealtimeAnalytics: AdminController.getRealtimeAnalytics.bind(AdminController),
+  showAllUsers: AdminController.showAllUsers.bind(AdminController),
+  getAllUsersAPI: AdminController.getAllUsersAPI.bind(AdminController),
+  showProducts: AdminController.showProducts.bind(AdminController),
+  getAllProductsAPI: AdminController.getAllProductsAPI.bind(AdminController),
+  updateProductStatus: AdminController.updateProductStatus.bind(AdminController),
+  bulkUpdateProducts: AdminController.bulkUpdateProducts.bind(AdminController),
+  exportProducts: AdminController.exportProducts.bind(AdminController),
+  showCompanies: AdminController.showCompanies.bind(AdminController),
+  getAllCompaniesAPI: AdminController.getAllCompaniesAPI.bind(AdminController),
+  blockUser: AdminController.blockUser.bind(AdminController),
+  unblockUser: AdminController.unblockUser.bind(AdminController),
+  suspendUser: AdminController.suspendUser.bind(AdminController),
+  activateUser: AdminController.activateUser.bind(AdminController),
+  restoreUser: AdminController.restoreUser.bind(AdminController),
+  permanentDeleteUser: AdminController.permanentDeleteUser.bind(AdminController),
+  updateUser: AdminController.updateUser.bind(AdminController),
+  exportUsers: AdminController.exportUsers.bind(AdminController)
 };
 
 const router = express.Router();
@@ -47,26 +66,33 @@ router.use(adminOnly);
 router.get('/dashboard', boundMethods.showDashboard);
 router.get('/analytics', boundMethods.showAnalytics);
 router.get('/pending-approvals', boundMethods.showPendingApprovals);
-// router.get('/users', AdminController.showAllUsers); // To be implemented
+router.get('/users', boundMethods.showAllUsers);
+router.get('/products', boundMethods.showProducts);
+router.get('/companies', boundMethods.showCompanies);
 // router.get('/users/:userId', AdminController.showUserDetails); // To be implemented
 // router.get('/settings', AdminController.showSettings); // To be implemented
 
 // ===== API ROUTES =====
 // Dashboard APIs
 router.get('/api/dashboard-stats', boundMethods.getDashboardStats);
+router.get('/api/recent-activity', boundMethods.getRecentActivity);
+router.post('/api/export-dashboard-data', boundMethods.exportDashboardData);
 
-// Analytics APIs
-router.get('/api/analytics/overview', boundMethods.getAnalyticsOverview);
-router.get('/api/analytics/revenue', boundMethods.getRevenueAnalytics);
-router.get('/api/analytics/users', boundMethods.getUserAnalytics);
-router.get('/api/analytics/products', boundMethods.getProductAnalytics);
-router.get('/api/analytics/geographic', boundMethods.getGeographicAnalytics);
-router.get('/api/analytics/realtime', boundMethods.getRealtimeAnalytics);
+// Analytics APIs - Real Database Integration
+const analyticsRouter = require('./api/analytics');
+router.use('/api/analytics', analyticsRouter);
 
 // User Management APIs
 router.get('/api/pending-approvals', boundMethods.getPendingApprovals);
-// router.get('/api/users', AdminController.getAllUsers); // To be implemented
+router.get('/api/users', boundMethods.getAllUsersAPI);
+router.get('/api/products', boundMethods.getAllProductsAPI);
+router.post('/api/products/:productId/status', boundMethods.updateProductStatus);
+router.post('/api/products/bulk', boundMethods.bulkUpdateProducts);
+router.get('/api/products/export', boundMethods.exportProducts);
 router.get('/api/users/:userId', boundMethods.getUserDetails);
+
+// Company Management APIs
+router.get('/api/companies', boundMethods.getAllCompaniesAPI);
 
 // User Actions APIs (with validation)
 router.post('/api/users/:userId/approve', 
@@ -85,6 +111,39 @@ router.get('/api/users/:userId/details',
   AdminControllerClass.getUserValidationRules(), 
   boundMethods.getUserDetails
 );
+
+// Enhanced User Management APIs - CRITICAL MISSING ENDPOINTS
+router.post('/api/users/:userId/block', 
+  AdminControllerClass.getUserValidationRules(), 
+  boundMethods.blockUser
+);
+router.post('/api/users/:userId/unblock', 
+  AdminControllerClass.getUserValidationRules(), 
+  boundMethods.unblockUser
+);
+router.post('/api/users/:userId/suspend', 
+  AdminControllerClass.getUserValidationRules(), 
+  boundMethods.suspendUser
+);
+router.post('/api/users/:userId/activate', 
+  AdminControllerClass.getUserValidationRules(), 
+  boundMethods.activateUser
+);
+router.post('/api/users/:userId/restore', 
+  AdminControllerClass.getUserValidationRules(), 
+  boundMethods.restoreUser
+);
+router.delete('/api/users/:userId/permanent-delete', 
+  AdminControllerClass.getUserValidationRules(), 
+  boundMethods.permanentDeleteUser
+);
+router.put('/api/users/:userId/update', 
+  AdminControllerClass.getUserUpdateValidationRules(), 
+  boundMethods.updateUser
+);
+
+// Export APIs
+router.get('/api/users/export', boundMethods.exportUsers);
 
 // Activity & Filters APIs (commented out - to be implemented later)
 // router.get('/api/recent-activity', AdminController.getRecentActivity);

@@ -144,6 +144,84 @@ class EmailService {
   }
 
   /**
+   * Send user status change email - UNIVERSAL METHOD
+   */
+  async sendUserStatusChangeEmail(email, data) {
+    try {
+      const { status, reason, adminName, notes, duration, suspensionEndDate } = data;
+      
+      let subject, html;
+      
+      switch (status) {
+        case 'blocked':
+          subject = `Account Blocked - ${this.appName}`;
+          html = this.generateUserStatusChangeTemplate({
+            status: 'blocked',
+            title: 'Account Blocked',
+            message: 'Your account has been blocked by an administrator.',
+            reason,
+            adminName,
+            action: 'Contact support if you believe this was done in error.'
+          });
+          break;
+          
+        case 'active':
+          subject = `Account Activated - ${this.appName}`;
+          html = this.generateUserStatusChangeTemplate({
+            status: 'active',
+            title: 'Account Activated',
+            message: 'Your account has been activated. You can now access all features.',
+            adminName,
+            notes,
+            action: 'You can now login to your account.'
+          });
+          break;
+          
+        case 'suspended':
+          subject = `Account Suspended - ${this.appName}`;
+          html = this.generateUserStatusChangeTemplate({
+            status: 'suspended',
+            title: 'Account Suspended',
+            message: `Your account has been suspended${duration ? ` for ${duration} days` : ''}.`,
+            reason,
+            adminName,
+            suspensionEndDate,
+            action: 'Contact support if you have questions about this suspension.'
+          });
+          break;
+          
+        case 'restored':
+          subject = `Account Restored - ${this.appName}`;
+          html = this.generateUserStatusChangeTemplate({
+            status: 'restored',
+            title: 'Account Restored',
+            message: 'Your account has been restored by an administrator.',
+            adminName,
+            notes,
+            action: 'Your account is now pending review. We will contact you soon.'
+          });
+          break;
+          
+        default:
+          subject = `Account Status Update - ${this.appName}`;
+          html = this.generateUserStatusChangeTemplate({
+            status,
+            title: 'Account Status Updated',
+            message: `Your account status has been updated to: ${status}`,
+            adminName,
+            notes: notes || reason,
+            action: 'Contact support if you have any questions.'
+          });
+      }
+      
+      return await this.sendEmail(email, subject, html);
+    } catch (error) {
+      console.error('User status change email error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Send password reset email
    */
   async sendPasswordResetEmail(email, data) {
@@ -477,6 +555,87 @@ class EmailService {
             <p>Thank you for your patience.</p>
             
             <p>Best regards,<br>The ${this.appName} Team</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Generate user status change email template - UNIVERSAL TEMPLATE
+   */
+  generateUserStatusChangeTemplate(data) {
+    const { status, title, message, reason, adminName, notes, suspensionEndDate, action } = data;
+    
+    const statusColors = {
+      blocked: '#dc3545',
+      active: '#28a745',
+      suspended: '#ffc107',
+      restored: '#17a2b8'
+    };
+    
+    const statusColor = statusColors[status] || '#6c757d';
+    
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>${title} - ${this.appName}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: ${statusColor}; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f9f9f9; }
+          .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+          .status-badge { 
+            display: inline-block; 
+            padding: 5px 10px; 
+            background: ${statusColor}; 
+            color: white; 
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>${title}</h1>
+            <span class="status-badge">${status}</span>
+          </div>
+          <div class="content">
+            <p><strong>${message}</strong></p>
+            
+            ${reason ? `
+              <h3>Reason:</h3>
+              <p>${reason}</p>
+            ` : ''}
+            
+            ${notes ? `
+              <h3>Notes:</h3>
+              <p>${notes}</p>
+            ` : ''}
+            
+            ${suspensionEndDate ? `
+              <h3>Suspension End Date:</h3>
+              <p>${new Date(suspensionEndDate).toLocaleDateString()}</p>
+            ` : ''}
+            
+            ${adminName ? `
+              <p><em>This action was performed by: ${adminName}</em></p>
+            ` : ''}
+            
+            <h3>What to do next:</h3>
+            <p>${action}</p>
+            
+            <p>If you have any questions, please contact our support team.</p>
+          </div>
+          <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} ${this.appName}. All rights reserved.</p>
+            <p>This is an automated email. Please do not reply to this message.</p>
           </div>
         </div>
       </body>

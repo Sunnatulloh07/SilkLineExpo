@@ -461,6 +461,189 @@ class AdminController {
   /**
    * Show all users page
    */
+  /**
+   * Render products management page
+   */
+  async showProducts(req, res) {
+    try {
+      const adminId = req.user.userId;
+      this.logger.log(`📦 Products page request from admin: ${adminId}`);
+      
+      // Get language preference
+      const lng = this.getLanguagePreference(req);
+      
+      // Get products statistics for initial page load
+      const options = {
+        page: 1,
+        pageSize: 25
+      };
+      
+      const result = await AdminService.getAllProducts(adminId, options);
+      
+      res.render('admin/products/index', {
+        title: req.t('admin.products') || 'Products Management',
+        statistics: result.statistics,
+        admin: req.user,
+        user: req.user, // Template compatibility
+        currentLang: lng,
+        lng,
+        csrfToken: req.csrfToken?.() || '',
+        breadcrumb: [
+          { title: 'Dashboard', url: '/admin' },
+          { title: 'Products' }
+        ]
+      });
+    } catch (error) {
+      this.logger.error('❌ Error in showProducts:', error);
+      this.handleError(res, error, 'Failed to load products page');
+    }
+  }
+
+  /**
+   * Get all products via API with advanced filtering
+   */
+  async getAllProductsAPI(req, res) {
+    try {
+      const adminId = req.user.userId;
+      
+      // Extract query parameters with defaults
+      const options = {
+        page: parseInt(req.query.page) || 1,
+        pageSize: parseInt(req.query.pageSize) || 25,
+        status: req.query.status || '',
+        category: req.query.category || '',
+        manufacturerId: req.query.manufacturerId || '',
+        country: req.query.country || '',
+        priceRange: req.query.priceRange || '',
+        stockStatus: req.query.stockStatus || '',
+        search: req.query.search || '',
+        sortBy: req.query.sortBy || 'createdAt',
+        sortOrder: req.query.sortOrder || 'desc',
+        dateRange: req.query.dateRange || '',
+        isPromoted: req.query.isPromoted || '',
+        isFeatured: req.query.isFeatured || '',
+        visibility: req.query.visibility || ''
+      };
+
+      this.logger.log(`📦 Products API request from admin: ${adminId}`, options);
+
+      const result = await AdminService.getAllProducts(adminId, options);
+
+      this.sendSuccess(res, result, 'Products retrieved successfully');
+    } catch (error) {
+      this.logger.error('❌ Error in getAllProductsAPI:', error);
+      this.sendError(res, error, 'Failed to retrieve products');
+    }
+  }
+
+  /**
+   * Update product status
+   */
+  async updateProductStatus(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { productId } = req.params;
+      const { status, reason = '' } = req.body;
+
+      this.logger.log(`📦 Product status update: ${productId} -> ${status} by admin: ${adminId}`);
+
+      const result = await AdminService.updateProductStatus(productId, status, adminId, reason);
+
+      this.sendSuccess(res, result, `Product ${status} successfully`);
+    } catch (error) {
+      this.logger.error('❌ Error in updateProductStatus:', error);
+      this.sendError(res, error, 'Failed to update product status');
+    }
+  }
+
+  /**
+   * Bulk update products
+   */
+  async bulkUpdateProducts(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { productIds, action, actionData = {} } = req.body;
+
+      // Validation
+      if (!Array.isArray(productIds) || productIds.length === 0) {
+        return this.sendError(res, new Error('Product IDs are required'), 'Product IDs are required');
+      }
+
+      this.logger.log(`📦 Bulk product action: ${action} on ${productIds.length} products by admin: ${adminId}`);
+
+      let result;
+      switch (action) {
+        case 'activate':
+          result = await AdminService.bulkUpdateProductStatus(productIds, 'active', adminId);
+          break;
+        case 'deactivate':
+          result = await AdminService.bulkUpdateProductStatus(productIds, 'inactive', adminId);
+          break;
+        case 'promote':
+          result = await AdminService.bulkPromoteProducts(productIds, adminId);
+          break;
+        case 'unpromote':
+          result = await AdminService.bulkUnpromoteProducts(productIds, adminId);
+          break;
+        case 'feature':
+          result = await AdminService.bulkFeatureProducts(productIds, adminId);
+          break;
+        case 'unfeature':
+          result = await AdminService.bulkUnfeatureProducts(productIds, adminId);
+          break;
+        case 'delete':
+          result = await AdminService.bulkDeleteProducts(productIds, adminId, actionData.reason);
+          break;
+        default:
+          throw new Error('Invalid bulk action');
+      }
+
+      this.sendSuccess(res, result, `Bulk ${action} completed successfully`);
+    } catch (error) {
+      this.logger.error('❌ Error in bulkUpdateProducts:', error);
+      this.sendError(res, error, 'Failed to perform bulk action');
+    }
+  }
+
+  /**
+   * Export products data
+   */
+  async exportProducts(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const format = req.query.format || 'csv';
+      
+      this.logger.log(`📊 Products export request from admin: ${adminId}, format: ${format}`);
+
+      // Get filters from query
+      const filters = {
+        status: req.query.status,
+        category: req.query.category,
+        country: req.query.country,
+        dateRange: req.query.dateRange
+      };
+
+      const exportData = await AdminService.exportProducts(adminId, { format, filters });
+
+      // Set appropriate headers
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `products_export_${timestamp}.${format}`;
+
+      if (format === 'csv') {
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      } else if (format === 'excel') {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      }
+
+      res.send(exportData);
+    } catch (error) {
+      this.logger.error('❌ Error in exportProducts:', error);
+      this.sendError(res, error, 'Failed to export products');
+    }
+  }
+
   async showAllUsers(req, res) {
     try {
       const adminId = req.user.userId;
@@ -477,13 +660,22 @@ class AdminController {
 
       const result = await AdminService.getAllUsers(adminId, options);
 
-      res.render('admin/all-users', {
-        title: req.t('admin.allUsers'),
+      // Get language preference
+      const lng = this.getLanguagePreference(req);
+      
+      res.render('admin/users/index', {
+        title: req.t('admin.allUsers') || 'All Users',
         users: result.users,
         pagination: result.pagination,
         filters: result.filters,
         sorting: result.sorting,
-        admin: req.user
+        statistics: result.statistics,
+        admin: req.user,
+        user: req.user, // Template compatibility
+        currentLang: lng,
+        lng,
+        t: req.t || ((key) => key),
+        currentPage: 'users'
       });
 
     } catch (error) {
@@ -492,6 +684,132 @@ class AdminController {
         title: 'Error',
         message: error.message
       });
+    }
+  }
+
+  /**
+   * API: Get all users with filtering and pagination
+   */
+  async getAllUsersAPI(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const options = {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 20,
+        status: req.query.status,
+        country: req.query.country,
+        activityType: req.query.activityType,
+        companyType: req.query.companyType,
+        search: req.query.search,
+        sortBy: req.query.sortBy || 'createdAt',
+        sortOrder: req.query.sortOrder || 'desc',
+        dateFrom: req.query.dateFrom,
+        dateTo: req.query.dateTo,
+        emailVerified: req.query.emailVerified,
+        profileCompleted: req.query.profileCompleted
+      };
+      
+      this.logger.log(`👥 Users API request from admin: ${adminId}`, options);
+      
+      const result = await AdminService.getAllUsers(adminId, options);
+      
+      this.sendSuccess(res, result, 'Users retrieved successfully');
+
+    } catch (error) {
+      this.handleAPIError(res, error, 'Failed to get users');
+    }
+  }
+
+  /**
+   * Show companies page with comprehensive business management
+   */
+  async showCompanies(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const options = {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 20,
+        status: req.query.status,
+        companyType: req.query.companyType,
+        country: req.query.country,
+        activityType: req.query.activityType,
+        search: req.query.search,
+        sortBy: req.query.sortBy || 'createdAt',
+        sortOrder: req.query.sortOrder || 'desc',
+        dateFrom: req.query.dateFrom,
+        dateTo: req.query.dateTo,
+        minEmployees: req.query.minEmployees,
+        minRevenue: req.query.minRevenue,
+        emailVerified: req.query.emailVerified,
+        hasProducts: req.query.hasProducts
+      };
+
+      this.logger.log(`🏢 Companies page request from admin: ${adminId}`, options);
+
+      const result = await AdminService.getAllCompanies(adminId, options);
+
+      // Get language preference
+      const lng = this.getLanguagePreference(req);
+      
+      res.render('admin/companies/index', {
+        title: req.t('admin.companies') || 'Company Management',
+        companies: result.companies,
+        pagination: result.pagination,
+        filters: result.filters,
+        sorting: result.sorting,
+        statistics: result.statistics,
+        analytics: result.analytics,
+        admin: req.user,
+        user: req.user, // Template compatibility
+        currentLang: lng,
+        lng,
+        t: req.t || ((key) => key),
+        currentPage: 'companies',
+        // Statistics for template
+        activeCompanies: result.statistics.byStatus?.find(s => s.label === 'active')?.count || 0,
+        pendingApprovals: result.statistics.byStatus?.find(s => s.label === 'pending')?.count || 0,
+        manufacturers: result.analytics.manufacturers || 0,
+        distributors: result.analytics.distributors || 0
+      });
+
+    } catch (error) {
+      console.error('Show companies error:', error);
+      this.renderError(res, req, error, 'Failed to load companies');
+    }
+  }
+
+  /**
+   * API: Get all companies with filtering and analytics
+   */
+  async getAllCompaniesAPI(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const options = {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 20,
+        status: req.query.status,
+        companyType: req.query.companyType,
+        country: req.query.country,
+        activityType: req.query.activityType,
+        search: req.query.search,
+        sortBy: req.query.sortBy || 'createdAt',
+        sortOrder: req.query.sortOrder || 'desc',
+        dateFrom: req.query.dateFrom,
+        dateTo: req.query.dateTo,
+        minEmployees: req.query.minEmployees,
+        minRevenue: req.query.minRevenue,
+        emailVerified: req.query.emailVerified,
+        hasProducts: req.query.hasProducts
+      };
+      
+      this.logger.log(`🏢 Companies API request from admin: ${adminId}`, options);
+      
+      const result = await AdminService.getAllCompanies(adminId, options);
+      
+      this.sendSuccess(res, result, 'Companies retrieved successfully');
+
+    } catch (error) {
+      this.handleAPIError(res, error, 'Failed to get companies');
     }
   }
 
@@ -591,7 +909,7 @@ class AdminController {
     } catch (error) {
       console.error('Mark message read error:', error);
       res.status(400).json({
-        success: false,
+          success: false,
         error: error.message
       });
     }
@@ -638,7 +956,7 @@ class AdminController {
     } catch (error) {
       console.error('Mark all messages read error:', error);
       res.status(400).json({
-        success: false,
+          success: false,
         error: error.message
       });
     }
@@ -685,24 +1003,24 @@ class AdminController {
                   req.query.lng || 
                   'uz';
       
-      // Get analytics data
+      // Get analytics data - NO MOCK FALLBACKS
       let analyticsData = {};
+      let dataLoadError = null;
+      
       try {
         analyticsData = await AdminService.getAnalyticsData(adminId);
       } catch (analyticsError) {
-        console.warn('Analytics data loading failed, using defaults:', analyticsError.message);
+        this.logger.error('❌ Analytics data loading failed:', analyticsError);
+        dataLoadError = analyticsError.message;
+        // Return empty structure - no fake data
         analyticsData = {
-          overview: {
-            totalRevenue: 284750,
-            activeUsers: 1847,
-            totalOrders: 3247,
-            conversionRate: 24.8
-          },
+          overview: {},
           revenueData: [],
           userActivity: {},
           topProducts: [],
           geographicData: [],
-          realtimeActivities: []
+          realtimeActivities: [],
+          error: dataLoadError
         };
       }
 
@@ -861,7 +1179,7 @@ class AdminController {
       const adminId = req.user.userId;
       
       const realtimeData = await AdminService.getRealtimeAnalytics(adminId);
-      
+
       res.json({
         success: true,
         data: realtimeData,
@@ -871,7 +1189,36 @@ class AdminController {
     } catch (error) {
       console.error('Get realtime analytics error:', error);
       res.status(400).json({
-        success: false,
+          success: false,
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Export dashboard data to CSV/Excel
+   */
+  async exportDashboardData(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { format = 'csv', dateRange = 'last-30-days' } = req.body;
+
+      this.logger.log(`📊 Dashboard export request from admin: ${adminId}, format: ${format}`);
+
+      const exportData = await AdminService.exportDashboardData(adminId, { format, dateRange });
+
+      // Set appropriate headers for file download
+      const filename = `dashboard-export-${new Date().toISOString().split('T')[0]}.${format}`;
+      
+      res.setHeader('Content-Type', format === 'csv' ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      
+      res.send(exportData);
+
+    } catch (error) {
+      console.error('Export dashboard data error:', error);
+      res.status(500).json({
+          success: false,
         error: error.message
       });
     }
@@ -966,8 +1313,8 @@ class AdminController {
    * Send success response
    */
   sendSuccess(res, data, message = 'Success', meta = {}) {
-    res.json({
-      success: true,
+      res.json({
+        success: true,
       message,
       data,
       timestamp: new Date().toISOString(),
@@ -980,7 +1327,7 @@ class AdminController {
    */
   sendError(res, message, statusCode = 400, details = null) {
     const response = {
-      success: false,
+        success: false,
       message,
       timestamp: new Date().toISOString()
     };
@@ -1031,7 +1378,7 @@ class AdminController {
     const lng = this.getLanguagePreference(req);
     
     res.status(500).render('pages/error', {
-      title: 'Error',
+        title: 'Error',
       message: error.message || defaultMessage,
       error: error, // Pass the full error object for template access
       user: req.user,
@@ -1041,6 +1388,255 @@ class AdminController {
       t: req.t || ((key) => key),
       currentPage: 'error'
     });
+  }
+
+  // ===============================================
+  // CRITICAL MISSING USER MANAGEMENT METHODS
+  // ===============================================
+
+  /**
+   * API: Block user account
+   */
+  async blockUser(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { userId } = req.params;
+      const { reason = '' } = req.body;
+      
+      this.logger.log(`🚫 User block request: ${userId} from admin: ${adminId}`);
+      
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+      
+      const result = await AdminService.blockUser(userId, adminId, reason);
+      
+      this.sendSuccess(res, result, req.t('admin.userBlocked') || 'User blocked successfully');
+
+    } catch (error) {
+      this.handleAPIError(res, error, 'Failed to block user');
+    }
+  }
+
+  /**
+   * API: Unblock user account
+   */
+  async unblockUser(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { userId } = req.params;
+      const { notes = '' } = req.body;
+      
+      this.logger.log(`✅ User unblock request: ${userId} from admin: ${adminId}`);
+      
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+      
+      const result = await AdminService.unblockUser(userId, adminId, notes);
+      
+      this.sendSuccess(res, result, req.t('admin.userUnblocked') || 'User unblocked successfully');
+
+    } catch (error) {
+      this.handleAPIError(res, error, 'Failed to unblock user');
+    }
+  }
+
+  /**
+   * API: Suspend user account
+   */
+  async suspendUser(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { userId } = req.params;
+      const { reason, duration } = req.body;
+      
+      this.logger.log(`⏸️ User suspend request: ${userId} from admin: ${adminId}`);
+      
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+      
+      if (!reason || reason.trim().length < 10) {
+        return this.sendError(res, 'Suspension reason must be at least 10 characters long', 400);
+      }
+      
+      const result = await AdminService.suspendUser(userId, adminId, reason, duration);
+      
+      this.sendSuccess(res, result, req.t('admin.userSuspended') || 'User suspended successfully');
+
+    } catch (error) {
+      this.handleAPIError(res, error, 'Failed to suspend user');
+    }
+  }
+
+  /**
+   * API: Activate user account
+   */
+  async activateUser(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { userId } = req.params;
+      const { notes = '' } = req.body;
+      
+      this.logger.log(`🟢 User activate request: ${userId} from admin: ${adminId}`);
+      
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+      
+      const result = await AdminService.activateUser(userId, adminId, notes);
+      
+      this.sendSuccess(res, result, req.t('admin.userActivated') || 'User activated successfully');
+
+    } catch (error) {
+      this.handleAPIError(res, error, 'Failed to activate user');
+    }
+  }
+
+  /**
+   * API: Restore deleted user
+   */
+  async restoreUser(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { userId } = req.params;
+      const { notes = '' } = req.body;
+      
+      this.logger.log(`🔄 User restore request: ${userId} from admin: ${adminId}`);
+      
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+      
+      const result = await AdminService.restoreUser(userId, adminId, notes);
+      
+      this.sendSuccess(res, result, req.t('admin.userRestored') || 'User restored successfully');
+
+    } catch (error) {
+      this.handleAPIError(res, error, 'Failed to restore user');
+    }
+  }
+
+  /**
+   * API: Permanently delete user
+   */
+  async permanentDeleteUser(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { userId } = req.params;
+      const { confirmPassword } = req.body;
+      
+      this.logger.log(`⚠️ PERMANENT user deletion request: ${userId} from admin: ${adminId}`);
+      
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+      
+      // Additional security check for permanent deletion
+      if (!confirmPassword) {
+        return this.sendError(res, 'Admin password confirmation required for permanent deletion', 400);
+      }
+      
+      const result = await AdminService.permanentDeleteUser(userId, adminId, confirmPassword);
+      
+      this.sendSuccess(res, result, req.t('admin.userPermanentlyDeleted') || 'User permanently deleted');
+
+    } catch (error) {
+      this.handleAPIError(res, error, 'Failed to permanently delete user');
+    }
+  }
+
+  /**
+   * API: Update user information
+   */
+  async updateUser(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { userId } = req.params;
+      const updateData = req.body;
+      
+      this.logger.log(`📝 User update request: ${userId} from admin: ${adminId}`);
+      
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+      
+      const result = await AdminService.updateUser(userId, adminId, updateData);
+      
+      this.sendSuccess(res, result, req.t('admin.userUpdated') || 'User updated successfully');
+
+    } catch (error) {
+      this.handleAPIError(res, error, 'Failed to update user');
+    }
+  }
+
+  /**
+   * API: Export users data
+   */
+  async exportUsers(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { format = 'csv', filters = {} } = req.query;
+      
+      this.logger.log(`📊 Users export request from admin: ${adminId}, format: ${format}`);
+      
+      // Validate format
+      const validFormats = ['csv', 'excel', 'json'];
+      if (!validFormats.includes(format)) {
+        return this.sendError(res, 'Invalid export format. Supported: csv, excel, json', 400);
+      }
+      
+      const exportData = await AdminService.exportUsers(adminId, { format, filters });
+      
+      // Set appropriate headers for file download
+      const filename = `users-export-${new Date().toISOString().split('T')[0]}.${format}`;
+      
+      if (format === 'json') {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.json(exportData);
+      } else {
+        res.setHeader('Content-Type', format === 'csv' ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(exportData);
+      }
+
+    } catch (error) {
+      this.handleAPIError(res, error, 'Failed to export users');
+    }
+  }
+
+  // ===============================================
+  // ENHANCED VALIDATION RULES
+  // ===============================================
+
+  /**
+   * Validation rules for user update operations
+   */
+  static getUserUpdateValidationRules() {
+    return [
+      param('userId').isMongoId().withMessage('Invalid user ID format'),
+      body('companyName').optional().isLength({ min: 2, max: 100 }).trim(),
+      body('email').optional().isEmail().normalizeEmail(),
+      body('phone').optional().isMobilePhone(),
+      body('status').optional().isIn(['active', 'pending', 'blocked', 'suspended', 'rejected']),
+      body('activityType').optional().isIn(['textiles_clothing', 'food_beverages', 'electronics', 'agriculture', 'other'])
+    ];
   }
 }
 

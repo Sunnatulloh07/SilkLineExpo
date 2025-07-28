@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="<%= typeof lng !== 'undefined' ? lng : 'uz' %>" class="theme-transition">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+    <title>User Management - SLEX Admin Dashboard</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="/assets/css/line-awesome.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/admin/css/admin-dashboard.css">
+    <link rel="stylesheet" href="/admin/css/dashboard-components.css">
+  
+  <!-- Professional Users CSS -->
+  <link rel="stylesheet" href="/admin/css/users-management.css">
+  
+  <!-- Override dashboard performance script for users page -->
+  <script>
+    // Disable dashboard performance script for users page
+    window.DISABLE_DASHBOARD_PERFORMANCE = true;
+  </script>
+</head>
+
+<body class="admin-layout theme-transition" data-theme="light">
+
+    <%- include('../partials/header', { 
+        title: 'User Management - SLEX Admin Dashboard',
+        lng: typeof currentLang !== 'undefined' ? currentLang : 'uz',
+        admin: admin, 
+        user: user,
+        breadcrumb: [
+            { title: 'Dashboard', url: '/admin' },
+            { title: 'Users' }
+        ]
+    }) %>
+
+<%- include('../partials/sidebar', { 
+    admin: admin, 
+    user: user, 
+        currentPage: 'users',
+        stats: typeof stats !== 'undefined' ? stats : {}
+}) %>
+
+<!-- Main Content -->
+<main class="admin-main">
+        <div class="admin-content">
+            
+            <!-- Users Management Content -->
+            <div class="users-container">
+
+            <!-- Page Header -->
+                <div class="page-header animate-fade-in">
+                    <div class="page-header-content">
+                        <div class="page-title-section">
+                            <h1 class="page-title">
+                                <i class="las la-users text-primary"></i>
+                        User Management
+                    </h1>
+                            <p class="page-subtitle">
+                                Comprehensive user management system with advanced filtering, bulk operations, and real-time analytics
+                            </p>
+                </div>
+                        <div class="page-actions">
+                    <button class="btn btn-outline-primary" onclick="exportUsers()">
+                                <i class="las la-download"></i>
+                                Export Data
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="refreshData()">
+                                <i class="las la-sync-alt"></i>
+                                Refresh
+                    </button>
+                            <button class="btn btn-primary" onclick="openCreateUserModal()">
+                                <i class="las la-plus"></i>
+                                Add User
+                    </button>
+                        </div>
+                </div>
+            </div>
+
+                <!-- Statistics Dashboard -->
+                <div class="metrics-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg animate-fade-in">
+                    <div class="stat-card primary">
+                        <div class="stat-content">
+                            <div class="stat-icon">
+        <i class="las la-users"></i>
+      </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="totalUsersCount"><%= statistics?.total || 0 %></div>
+                                <div class="stat-label">Total Users</div>
+                                <div class="stat-trend positive">
+          <i class="las la-arrow-up"></i>
+          +12%
+      </div>
+    </div>
+    </div>
+  </div>
+
+                    <div class="stat-card success">
+                        <div class="stat-content">
+                            <div class="stat-icon success">
+        <i class="las la-check-circle"></i>
+      </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="activeUsersCount"><%= statistics?.statuses?.find(s => s.label === 'active')?.count || 0 %></div>
+                                <div class="stat-label">Active Users</div>
+                                <div class="stat-trend positive">
+          <i class="las la-arrow-up"></i>
+          +8%
+      </div>
+    </div>
+    </div>
+  </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-content">
+                            <div class="stat-icon warning">
+        <i class="las la-clock"></i>
+      </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="pendingUsersCount"><%= statistics?.statuses?.find(s => s.label === 'pending')?.count || 0 %></div>
+                                <div class="stat-label">Pending Approval</div>
+                                <div class="stat-trend neutral">
+          <i class="las la-minus"></i>
+          0%
+      </div>
+    </div>
+    </div>
+  </div>
+
+                    <div class="stat-card danger">
+                        <div class="stat-content">
+                            <div class="stat-icon danger">
+        <i class="las la-ban"></i>
+      </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="blockedUsersCount"><%= statistics?.statuses?.find(s => s.label === 'blocked')?.count || 0 %></div>
+                                <div class="stat-label">Blocked Users</div>
+                                <div class="stat-trend negative">
+          <i class="las la-arrow-down"></i>
+          -5%
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+
+                <!-- Main Content Card -->
+                <div class="main-card animate-fade-in">
+                    
+                    <!-- Tab Navigation -->
+                    <div class="tabs-navigation">
+                        <button class="tab-item active" data-status="" data-tab="all">
+                            <i class="las la-list"></i>
+                            All Users
+                            <span class="tab-badge" id="allUsersTab"><%= statistics?.total || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="pending" data-tab="pending">
+                            <i class="las la-clock"></i>
+                            Pending
+                            <span class="tab-badge warning" id="pendingUsersTab"><%= statistics?.statuses?.find(s => s.label === 'pending')?.count || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="active" data-tab="active">
+                            <i class="las la-check-circle"></i>
+                            Active
+                            <span class="tab-badge success" id="activeUsersTab"><%= statistics?.statuses?.find(s => s.label === 'active')?.count || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="blocked" data-tab="blocked">
+                            <i class="las la-ban"></i>
+                            Blocked
+                            <span class="tab-badge danger" id="blockedUsersTab"><%= statistics?.statuses?.find(s => s.label === 'blocked')?.count || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="suspended" data-tab="suspended">
+                            <i class="las la-pause"></i>
+                            Suspended
+                            <span class="tab-badge secondary" id="suspendedUsersTab"><%= statistics?.statuses?.find(s => s.label === 'suspended')?.count || 0 %></span>
+                        </button>
+                    </div>
+
+                    <!-- Filters Section -->
+                    <div class="filters-section">
+                        <div class="filters-header">
+                            <h3 class="filters-title">
+                                <i class="las la-filter"></i>
+                                Advanced Filters
+                            </h3>
+                            <div class="filter-actions">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()">
+                                    <i class="las la-times"></i>
+                                    Clear
+                                </button>
+                                <button class="btn btn-primary btn-sm" onclick="applyFilters()">
+                                    <i class="las la-search"></i>
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="filters-grid">
+                            <div class="filter-group">
+                                <label class="filter-label">Search Users</label>
+                                <div class="search-input">
+                                    <i class="las la-search search-icon"></i>
+                                    <input type="text" class="filter-input" id="searchInput" placeholder="Company name, email, phone, tax number...">
+                                </div>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Country</label>
+                                <select class="filter-input" id="countryFilter">
+                                    <option value="">All Countries</option>
+                                    <option value="Uzbekistan">Uzbekistan</option>
+                                    <option value="Kazakhstan">Kazakhstan</option>
+                                    <option value="China">China</option>
+                                    <option value="Tajikistan">Tajikistan</option>
+                                    <option value="Turkmenistan">Turkmenistan</option>
+                                    <option value="Afghanistan">Afghanistan</option>
+                                    <option value="Kyrgyzstan">Kyrgyzstan</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Company Type</label>
+                                <select class="filter-input" id="companyTypeFilter">
+                                    <option value="">All Types</option>
+                                    <option value="manufacturer">Manufacturer</option>
+                                    <option value="distributor">Distributor</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Activity Type</label>
+                                <select class="filter-input" id="activityTypeFilter">
+                                    <option value="">All Activities</option>
+                                    <option value="food_beverages">Food & Beverages</option>
+                                    <option value="textiles_clothing">Textiles & Clothing</option>
+                                    <option value="electronics">Electronics</option>
+                                    <option value="machinery_equipment">Machinery & Equipment</option>
+                                    <option value="chemicals">Chemicals</option>
+                                    <option value="agriculture">Agriculture</option>
+                                    <option value="construction_materials">Construction Materials</option>
+                                    <option value="automotive">Automotive</option>
+                                    <option value="pharmaceuticals">Pharmaceuticals</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Registration Date</label>
+                                <select class="filter-input" id="dateRangeFilter">
+                                    <option value="">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                    <option value="quarter">This Quarter</option>
+                                    <option value="year">This Year</option>
+                                </select>
+  </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Email Status</label>
+                                <select class="filter-input" id="emailVerifiedFilter">
+                                    <option value="">All Users</option>
+                                    <option value="true">Verified</option>
+                                    <option value="false">Not Verified</option>
+        </select>
+      </div>
+                        </div>
+                    </div>
+
+                    <!-- Table Section -->
+                    <div class="table-section">
+                        <div class="table-header">
+                            <div class="table-title">
+                                <i class="las la-table"></i>
+                                Users Directory
+                                <span class="result-count" id="tableResultsCount">(0 results)</span>
+      </div>
+                            
+                            <div class="bulk-actions hidden" id="bulkActions">
+                                <span class="selected-count" id="selectedCount">0 selected</span>
+                                <button class="btn btn-success btn-sm" onclick="bulkApproveUsers()" id="bulkApproveBtn">
+                                    <i class="las la-check"></i>
+                                    Approve
+                                </button>
+                                <button class="btn btn-warning btn-sm" onclick="bulkBlockUsers()" id="bulkBlockBtn">
+                                    <i class="las la-ban"></i>
+                                    Block
+                                </button>
+                                <button class="btn btn-info btn-sm" onclick="bulkExportUsers()" id="bulkExportBtn">
+                                    <i class="las la-download"></i>
+                                    Export
+        </button>
+                                <button class="btn btn-danger btn-sm" onclick="bulkDeleteUsers()" id="bulkDeleteBtn">
+                                    <i class="las la-trash"></i>
+                                    Delete
+        </button>
+      </div>
+    </div>
+
+                                                <div class="professional-table-container" id="tableContainer">
+                            <!-- Desktop Table View -->
+                            <div class="desktop-table-view">
+                                <table class="professional-users-table">
+                                    <thead class="table-header-sticky">
+                                        <tr class="header-row">
+                                            <th class="th-select" data-column="select">
+                                                <div class="th-content">
+                                                    <label class="modern-checkbox">
+                                                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)">
+                                                        <span class="checkbox-mark"></span>
+                                                    </label>
+                                                </div>
+                                            </th>
+                                            <th class="th-company" data-column="company" onclick="sortTable('company')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Company</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-contact" data-column="contact">
+                                                <div class="th-content">
+                                                    <span class="th-label">Contact</span>
+                                                </div>
+                                            </th>
+                                            <th class="th-business" data-column="business">
+                                                <div class="th-content">
+                                                    <span class="th-label">Business</span>
+                                                </div>
+                                            </th>
+                                            <th class="th-location" data-column="location">
+                                                <div class="th-content">
+                                                    <span class="th-label">Location</span>
+                                                </div>
+                                            </th>
+                                            <th class="th-status" data-column="status" onclick="sortTable('status')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Status</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-metrics" data-column="metrics">
+                                                <div class="th-content">
+                                                    <span class="th-label">Metrics</span>
+                                                </div>
+                                            </th>
+                                            <th class="th-date" data-column="date" onclick="sortTable('createdAt')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Joined</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-actions" data-column="actions">
+                                                <div class="th-content">
+                                                    <span class="th-label">Actions</span>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody" class="table-body-modern">
+                                        <!-- Loading state -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Mobile Card View -->
+                            <div class="mobile-cards-view" id="mobileCardsView">
+                                <!-- Mobile cards will be rendered here -->
+                            </div>
+
+                            <!-- Table Loading Overlay -->
+                            <div class="table-loading-overlay" id="tableLoadingOverlay">
+                                <div class="loading-content">
+                                    <div class="modern-spinner"></div>
+                                    <p class="loading-text">Loading users...</p>
+                                </div>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div class="table-empty-state hidden" id="tableEmptyState">
+                                <div class="empty-state-content">
+                                    <div class="empty-state-icon">
+                                        <i class="las la-users"></i>
+                                    </div>
+                                    <h3 class="empty-state-title">No Users Found</h3>
+                                    <p class="empty-state-description">No users match your current filter criteria.</p>
+                                    <button class="btn btn-primary" onclick="clearAllFilters()">
+                                        <i class="las la-refresh"></i>
+                                        Reset Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination Section -->
+                    <div class="pagination-section" id="paginationSection">
+                        <div class="pagination-info">
+                            Showing <span id="paginationStart">0</span>-<span id="paginationEnd">0</span> of <span id="paginationTotal">0</span> users
+                        </div>
+                        <div class="pagination-controls" id="paginationControls">
+                            <!-- Pagination buttons will be generated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay d-none" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="loading-text" id="loadingText">Processing...</div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="/assets/js/jquery-3.7.1.min.js"></script>
+<!-- Bootstrap JS not needed for users page -->
+
+<!-- Admin Dashboard Core Scripts -->
+<script src="/admin/js/dashboard.js"></script>
+
+<!-- Users Management JavaScript -->
+<script src="/admin/js/users-management.js"></script>
+
+<!-- Responsive Table CSS Enhancement -->
+<style>
+    /* Responsive Table Column Sizing */
+    .users-table {
+        table-layout: auto;
+        width: 100%;
+        min-width: 1000px;
+    }
+    
+    /* Column Classes for Responsive Control */
+    .col-select { 
+        width: 4%; 
+        min-width: 40px; 
+    }
+    
+    .col-company { 
+        width: 25%; 
+        min-width: 200px; 
+    }
+    
+    .col-contact { 
+        width: 18%; 
+        min-width: 150px; 
+    }
+    
+    .col-type { 
+        width: 10%; 
+        min-width: 80px; 
+    }
+    
+    .col-location { 
+        width: 12%; 
+        min-width: 100px; 
+    }
+    
+    .col-status { 
+        width: 10%; 
+        min-width: 80px; 
+    }
+    
+    .col-registration { 
+        width: 8%; 
+        min-width: 80px; 
+    }
+    
+    .col-profile { 
+        width: 8%; 
+        min-width: 70px; 
+    }
+    
+    .col-login { 
+        width: 8%; 
+        min-width: 80px; 
+    }
+    
+    .col-actions { 
+        width: 5%; 
+        min-width: 50px; 
+    }
+    
+    /* Mobile Responsive Columns */
+    @media (max-width: 768px) {
+        .users-table {
+            min-width: 800px;
+            font-size: 0.75rem;
+        }
+        
+        .col-company { min-width: 160px; }
+        .col-contact { min-width: 120px; }
+        .col-location { min-width: 80px; }
+        .col-registration { min-width: 70px; }
+        .col-profile { min-width: 60px; }
+        .col-login { min-width: 70px; }
+    }
+    
+    @media (max-width: 480px) {
+        .users-table {
+            min-width: 700px;
+            font-size: 0.7rem;
+        }
+        
+        .col-company { min-width: 140px; }
+        .col-contact { min-width: 100px; }
+        .col-type { min-width: 70px; }
+        .col-location { min-width: 70px; }
+        .col-registration { min-width: 60px; }
+        .col-profile { min-width: 50px; }
+        .col-login { min-width: 60px; }
+        .col-actions { min-width: 45px; }
+    }
+    
+    /* Hide less important columns on very small screens */
+    @media (max-width: 360px) {
+        .col-registration,
+        .col-login {
+            display: none;
+        }
+        
+        .users-table {
+            min-width: 600px;
+        }
+    }
+    
+    /* Improved horizontal scroll styling */
+    .table-container {
+        position: relative;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+    }
+    
+    .table-container::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .table-container::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+        border-radius: 4px;
+    }
+    
+    .table-container::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+    }
+    
+    .table-container::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-dark);
+    }
+    
+    /* Table enhancement for better mobile UX */
+    .users-table td,
+    .users-table th {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 0;
+        vertical-align: middle;
+    }
+    
+    .users-table .col-company,
+    .users-table .col-contact {
+        white-space: normal;
+        min-height: 60px;
+    }
+    
+    /* Touch-friendly action buttons on mobile */
+    @media (max-width: 768px) {
+        .actions-trigger {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
+        .user-checkbox {
+            transform: scale(1.2);
+        }
+    }
+    
+    /* Sticky header enhancement */
+    .users-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: var(--bg-secondary);
+        border-bottom: 2px solid var(--border-color);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    [data-theme="dark"] .users-table thead th {
+        background: var(--bg-secondary);
+        box-shadow: 0 2px 4px rgba(255,255,255,0.1);
+    }
+</style>
+
+</body>
+</html>

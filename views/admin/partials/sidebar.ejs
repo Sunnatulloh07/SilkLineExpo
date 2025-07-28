@@ -32,7 +32,7 @@
           <%= typeof t !== 'undefined' ? t('admin.nav.management') : 'Management' %>
         </div>
 
-        <a href="/admin/users" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.users') : 'Users' %>">
+        <a href="/admin/users" class="nav-item <%= currentPage === 'users' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.users') : 'Users' %>">
           <i class="fas fa-users nav-icon"></i>
           <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.users') : 'Users' %></span>
           <% if (typeof stats !== 'undefined' && stats.pendingApprovals > 0) { %>

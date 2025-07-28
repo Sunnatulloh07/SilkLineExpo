@@ -135,8 +135,8 @@ const userSchema = new mongoose.Schema({
   // Admin Status Management
   status: {
     type: String,
-    enum: ['blocked', 'active', 'suspended'],
-    default: 'blocked' // Default blocked status requiring super admin approval
+    enum: ['pending', 'active', 'blocked', 'suspended'],
+    default: 'pending' // Default pending status requiring super admin approval
   },
   
   // Approval Information

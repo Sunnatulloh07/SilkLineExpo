@@ -70,9 +70,9 @@
         <div class="stat-value">
           <%= typeof stats !== 'undefined' && stats.overview && stats.overview.totalUsers ? stats.overview.totalUsers.toLocaleString() : '0' %>
         </div>
-        <div class="stat-change positive">
-          <i class="fas fa-arrow-up stat-change-icon"></i>
-          <span>+12% 
+        <div class="stat-change <%= typeof stats !== 'undefined' && stats.trends && stats.trends.usersChange && stats.trends.usersChange.isPositive ? 'positive' : (stats.trends && stats.trends.usersChange && stats.trends.usersChange.value !== 0 ? 'negative' : '') %>">
+          <i class="fas fa-arrow-<%= typeof stats !== 'undefined' && stats.trends && stats.trends.usersChange && stats.trends.usersChange.isPositive ? 'up' : (stats.trends && stats.trends.usersChange && stats.trends.usersChange.value !== 0 ? 'down' : 'right') %> stat-change-icon"></i>
+          <span><%= typeof stats !== 'undefined' && stats.trends && stats.trends.usersChange ? (stats.trends.usersChange.isPositive ? '+' : '') + stats.trends.usersChange.value + '%' : '0%' %> 
             <%= typeof t !== 'undefined' ? t('admin.dashboard.from_last_month') : 'from last month' %>
           </span>
         </div>
@@ -91,9 +91,9 @@
         <div class="stat-value">
           <%= typeof stats !== 'undefined' && stats.overview && stats.overview.activeUsers ? stats.overview.activeUsers.toLocaleString() : '0' %>
         </div>
-        <div class="stat-change positive">
-          <i class="fas fa-arrow-up stat-change-icon"></i>
-          <span>+8% 
+        <div class="stat-change <%= typeof stats !== 'undefined' && stats.trends && stats.trends.activeUsersChange && stats.trends.activeUsersChange.isPositive ? 'positive' : (stats.trends && stats.trends.activeUsersChange && stats.trends.activeUsersChange.value !== 0 ? 'negative' : '') %>">
+          <i class="fas fa-arrow-<%= typeof stats !== 'undefined' && stats.trends && stats.trends.activeUsersChange && stats.trends.activeUsersChange.isPositive ? 'up' : (stats.trends && stats.trends.activeUsersChange && stats.trends.activeUsersChange.value !== 0 ? 'down' : 'right') %> stat-change-icon"></i>
+          <span><%= typeof stats !== 'undefined' && stats.trends && stats.trends.activeUsersChange ? (stats.trends.activeUsersChange.isPositive ? '+' : '') + stats.trends.activeUsersChange.value + '%' : '0%' %> 
             <%= typeof t !== 'undefined' ? t('admin.dashboard.from_last_month') : 'from last month' %>
           </span>
         </div>
@@ -129,12 +129,19 @@
             <i class="fas fa-dollar-sign"></i>
           </div>
         </div>
-        <div class="stat-value">
-          $<%= typeof stats !== 'undefined' && stats.overview ? (stats.overview.totalUsers * 50).toLocaleString() : '0' %>
+        <div class="stat-value" id="totalRevenueValue">
+          <% if (typeof stats !== 'undefined' && stats.overview && typeof stats.overview.totalRevenue === 'number') { %>
+            $<%= stats.overview.totalRevenue.toLocaleString() %>
+          <% } else { %>
+            <div class="loading-placeholder">
+              <div class="loading-spinner"></div>
+              <span class="loading-text">Loading...</span>
+            </div>
+          <% } %>
         </div>
-        <div class="stat-change positive">
-          <i class="fas fa-arrow-up stat-change-icon"></i>
-          <span>+15% 
+        <div class="stat-change <%= typeof stats !== 'undefined' && stats.trends && stats.trends.revenueChange && stats.trends.revenueChange.isPositive ? 'positive' : (stats.trends && stats.trends.revenueChange && stats.trends.revenueChange.value !== 0 ? 'negative' : '') %>">
+          <i class="fas fa-arrow-<%= typeof stats !== 'undefined' && stats.trends && stats.trends.revenueChange && stats.trends.revenueChange.isPositive ? 'up' : (stats.trends && stats.trends.revenueChange && stats.trends.revenueChange.value !== 0 ? 'down' : 'right') %> stat-change-icon"></i>
+          <span><%= typeof stats !== 'undefined' && stats.trends && stats.trends.revenueChange ? (stats.trends.revenueChange.isPositive ? '+' : '') + stats.trends.revenueChange.value + '%' : '0%' %> 
             <%= typeof t !== 'undefined' ? t('admin.dashboard.from_last_month') : 'from last month' %>
           </span>
         </div>
@@ -596,17 +603,12 @@ try {
 <!-- Custom Scripts -->
 <script src="/admin/js/dashboard.js"></script>
 
-<!-- Initialize Dashboard -->
+<!-- Dashboard Initialization - Professional Level -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  
-  // Auto-update dashboard data every 30 seconds
-  setInterval(() => {
-    if (window.adminDashboard && typeof window.adminDashboard.updateDashboardData === 'function') {
-      window.adminDashboard.updateDashboardData();
-    }
-  }, 30000);
-  
+  // Dashboard initialization is handled by dashboard.js
+  // No duplicate intervals or object references
+  console.log('✅ Dashboard template loaded - initialization delegated to dashboard.js');
 });
 </script>
 

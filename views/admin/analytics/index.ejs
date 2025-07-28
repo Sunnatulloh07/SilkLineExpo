@@ -79,11 +79,11 @@
                                     <i class="las la-dollar-sign"></i>
                                 </div>
                                 <div class="metric-details">
-                                    <h3 class="metric-value" id="totalRevenue">$284,750</h3>
+                                    <h3 class="metric-value" id="totalRevenue" data-metric="totalRevenue">Loading...</h3>
                                     <p class="metric-label">Total Revenue</p>
-                                    <span class="metric-trend positive">
+                                    <span class="metric-trend positive" data-growth="revenue">
                                         <i class="las la-arrow-up"></i>
-                                        +18.2% vs last month
+                                        Loading...
                                     </span>
                                 </div>
                             </div>
@@ -96,11 +96,11 @@
                                     <i class="las la-users"></i>
                                 </div>
                                 <div class="metric-details">
-                                    <h3 class="metric-value" id="activeUsers">1,847</h3>
+                                    <h3 class="metric-value" id="activeUsers" data-metric="activeUsers">Loading...</h3>
                                     <p class="metric-label">Active Users</p>
-                                    <span class="metric-trend positive">
+                                    <span class="metric-trend positive" data-growth="users">
                                         <i class="las la-arrow-up"></i>
-                                        +12.5% vs last month
+                                        Loading...
                                     </span>
                                 </div>
                             </div>
@@ -113,11 +113,11 @@
                                     <i class="las la-shopping-cart"></i>
                                 </div>
                                 <div class="metric-details">
-                                    <h3 class="metric-value" id="orderVolume">3,247</h3>
+                                    <h3 class="metric-value" id="orderVolume" data-metric="totalOrders">Loading...</h3>
                                     <p class="metric-label">Total Orders</p>
-                                    <span class="metric-trend positive">
+                                    <span class="metric-trend positive" data-growth="orders">
                                         <i class="las la-arrow-up"></i>
-                                        +8.7% vs last month
+                                        Loading...
                                     </span>
                                 </div>
                             </div>
@@ -130,11 +130,11 @@
                                     <i class="las la-percentage"></i>
                                 </div>
                                 <div class="metric-details">
-                                    <h3 class="metric-value" id="conversionRate">24.8%</h3>
+                                    <h3 class="metric-value" id="conversionRate" data-metric="conversionRate">Loading...</h3>
                                     <p class="metric-label">Conversion Rate</p>
-                                    <span class="metric-trend positive">
+                                    <span class="metric-trend positive" data-growth="conversion">
                                         <i class="las la-arrow-up"></i>
-                                        +3.2% vs last month
+                                        Loading...
                                     </span>
                                 </div>
                             </div>
@@ -183,6 +183,39 @@
                         </div>
                     </div>
 
+                    <!-- Additional Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg mb-lg">
+                        <!-- Product Performance Chart -->
+                        <div class="chart-container animate-fade-in">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Product Performance</h3>
+                                <div class="chart-actions">
+                                    <button class="btn-icon btn-sm" title="Settings">
+                                        <i class="las la-cog"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="chart-body">
+                                <div id="productChart" class="chart-area"></div>
+                            </div>
+                        </div>
+
+                        <!-- Geographic Distribution Chart -->
+                        <div class="chart-container animate-fade-in">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Geographic Distribution</h3>
+                                <div class="chart-actions">
+                                    <button class="btn-icon btn-sm" title="Settings">
+                                        <i class="las la-cog"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="chart-body">
+                                <div id="geographicChart" class="chart-area"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Analytics Tables Section -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg mb-lg">
                         <!-- Top Products -->
@@ -208,81 +241,11 @@
                                             <th>Growth</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="topProductsTableBody">
                                         <tr>
-                                            <td>
-                                                <div class="product-info">
-                                                    <div class="product-avatar">R</div>
-                                                    <div class="product-details">
-                                                        <span class="product-name">Raxat Chocolates</span>
-                                                        <span class="product-category">Food & Beverages</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="font-semibold">$45,280</td>
-                                            <td>1,247</td>
-                                            <td>
-                                                <span class="trend-badge positive">
-                                                    <i class="las la-arrow-up"></i>
-                                                    +24.5%
-                                                </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="product-info">
-                                                    <div class="product-avatar">U</div>
-                                                    <div class="product-details">
-                                                        <span class="product-name">Uzbek Cotton</span>
-                                                        <span class="product-category">Textiles</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="font-semibold">$38,950</td>
-                                            <td>892</td>
-                                            <td>
-                                                <span class="trend-badge positive">
-                                                    <i class="las la-arrow-up"></i>
-                                                    +18.3%
-                                                </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="product-info">
-                                                    <div class="product-avatar">D</div>
-                                                    <div class="product-details">
-                                                        <span class="product-name">Dried Fruits Mix</span>
-                                                        <span class="product-category">Agriculture</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="font-semibold">$29,470</td>
-                                            <td>756</td>
-                                            <td>
-                                                <span class="trend-badge positive">
-                                                    <i class="las la-arrow-up"></i>
-                                                    +15.7%
-                                                </span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="product-info">
-                                                    <div class="product-avatar">H</div>
-                                                    <div class="product-details">
-                                                        <span class="product-name">Handicrafts</span>
-                                                        <span class="product-category">Crafts</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="font-semibold">$22,180</td>
-                                            <td>634</td>
-                                            <td>
-                                                <span class="trend-badge neutral">
-                                                    <i class="las la-minus"></i>
-                                                    +2.1%
-                                                </span>
+                                            <td colspan="4" class="text-center">
+                                                <div class="loading-skeleton" style="height: 20px; margin: 10px 0;"></div>
+                                                <small class="text-muted">Loading product data...</small>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -313,69 +276,11 @@
                                             <th>Share</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="geographicTableBody">
                                         <tr>
-                                            <td>
-                                                <div class="country-info">
-                                                    <span class="country-flag">🇺🇿</span>
-                                                    <span class="country-name">Uzbekistan</span>
-                                                </div>
-                                            </td>
-                                            <td>1,247</td>
-                                            <td class="font-semibold">$89,750</td>
-                                            <td>
-                                                <div class="progress-container">
-                                                    <div class="progress-bar" style="width: 45%"></div>
-                                                    <span class="progress-text">45%</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="country-info">
-                                                    <span class="country-flag">🇹🇷</span>
-                                                    <span class="country-name">Turkey</span>
-                                                </div>
-                                            </td>
-                                            <td>892</td>
-                                            <td class="font-semibold">$67,280</td>
-                                            <td>
-                                                <div class="progress-container">
-                                                    <div class="progress-bar" style="width: 34%"></div>
-                                                    <span class="progress-text">34%</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="country-info">
-                                                    <span class="country-flag">🇰🇿</span>
-                                                    <span class="country-name">Kazakhstan</span>
-                                                </div>
-                                            </td>
-                                            <td>634</td>
-                                            <td class="font-semibold">$43,120</td>
-                                            <td>
-                                                <div class="progress-container">
-                                                    <div class="progress-bar" style="width: 21%"></div>
-                                                    <span class="progress-text">21%</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="country-info">
-                                                    <span class="country-flag">🇦🇫</span>
-                                                    <span class="country-name">Afghanistan</span>
-                                                </div>
-                                            </td>
-                                            <td>456</td>
-                                            <td class="font-semibold">$28,970</td>
-                                            <td>
-                                                <div class="progress-container">
-                                                    <div class="progress-bar" style="width: 15%"></div>
-                                                    <span class="progress-text">15%</span>
-                                                </div>
+                                            <td colspan="4" class="text-center">
+                                                <div class="loading-skeleton" style="height: 20px; margin: 10px 0;"></div>
+                                                <small class="text-muted">Loading geographic data...</small>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -404,44 +309,16 @@
                         </div>
                         <div class="activities-list" id="realtimeActivities">
                             <div class="activity-item">
-                                <div class="activity-avatar success">
-                                    <i class="las la-shopping-cart"></i>
+                                <div class="activity-avatar info">
+                                    <i class="las la-sync-alt"></i>
                                 </div>
                                 <div class="activity-content">
                                     <div class="activity-text">
-                                        New order #3458 placed by <strong>Tashkent Traders LLC</strong>
+                                        Loading real-time activities...
                                     </div>
                                     <div class="activity-meta">
-                                        <span class="activity-badge success">+$2,450</span>
-                                        <span class="activity-time">2 seconds ago</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-avatar primary">
-                                    <i class="las la-user-plus"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <div class="activity-text">
-                                        New company registration: <strong>Silk Road Enterprises</strong>
-                                    </div>
-                                    <div class="activity-meta">
-                                        <span class="activity-badge primary">NEW USER</span>
-                                        <span class="activity-time">1 minute ago</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-avatar warning">
-                                    <i class="las la-exclamation-triangle"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <div class="activity-text">
-                                        Payment gateway timeout detected for order #3457
-                                    </div>
-                                    <div class="activity-meta">
-                                        <span class="activity-badge warning">ALERT</span>
-                                        <span class="activity-time">3 minutes ago</span>
+                                        <span class="activity-badge info">LOADING</span>
+                                        <span class="activity-time">Just now</span>
                                     </div>
                                 </div>
                             </div>
@@ -454,7 +331,7 @@
 
     <!-- Scripts -->
     <script src="/assets/js/jquery-3.7.1.min.js"></script>
-    <script src="/assets/js/boostrap.bundle.min.js"></script>
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/apexchart.js"></script>
     
     <!-- Admin Dashboard Core Scripts -->
@@ -485,22 +362,27 @@
                 // Initialize responsive handlers (enhanced)
                 initializeResponsiveHandlers();
                 
-                // Force apply saved sidebar state (Dashboard Compatible)
-                const savedState = localStorage.getItem('admin_sidebar_state');
-                
-                const sidebar = document.querySelector('.admin-sidebar');
-                const adminMain = document.querySelector('.admin-main');
-                const adminHeader = document.querySelector('.admin-header');
-                
-                if (savedState === 'collapsed') {
-                    sidebar?.classList.add('collapsed');
-                    adminMain?.classList.add('sidebar-collapsed');
-                    adminHeader?.classList.add('sidebar-collapsed');
-                     } else {
-                    sidebar?.classList.remove('collapsed');
-                    adminMain?.classList.remove('sidebar-collapsed');  
-                    adminHeader?.classList.remove('sidebar-collapsed');
-                    }
+                            // PROFESSIONAL MIGRATION: Convert old inconsistent keys
+            migrateOldSidebarState();
+            
+            // Force apply saved sidebar state (DASHBOARD CONSISTENT)
+            const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            
+            const sidebar = document.querySelector('.admin-sidebar');
+            const adminMain = document.querySelector('.admin-main');
+            const adminHeader = document.querySelector('.admin-header');
+            
+            if (sidebarCollapsed) {
+                sidebar?.classList.add('collapsed');
+                adminMain?.classList.add('sidebar-collapsed');
+                adminHeader?.classList.add('sidebar-collapsed');
+                console.log('📁 Restored collapsed sidebar state (Dashboard Consistent)');
+            } else {
+                sidebar?.classList.remove('collapsed');
+                adminMain?.classList.remove('sidebar-collapsed');  
+                adminHeader?.classList.remove('sidebar-collapsed');
+                console.log('📂 Restored expanded sidebar state (Dashboard Consistent)');
+            }
                 
             }, 100);
             
@@ -511,6 +393,13 @@
             if (typeof AnalyticsCharts !== 'undefined') {
                 window.analyticsCharts = new AnalyticsCharts();
                 console.log('✅ Analytics Charts initialized');
+                
+                // Cleanup on page unload to prevent memory leaks
+                window.addEventListener('beforeunload', function() {
+                    if (window.analyticsCharts) {
+                        window.analyticsCharts.destroy();
+                    }
+                });
             }
             
         });
@@ -594,6 +483,31 @@
         }
 
         // Initialize Dashboard-Compatible Responsive Handlers
+        /**
+         * Professional Migration Function - Convert Inconsistent localStorage Keys
+         */
+        function migrateOldSidebarState() {
+            const oldKey = 'admin_sidebar_state';
+            const newKey = 'sidebarCollapsed';
+            
+            const oldValue = localStorage.getItem(oldKey);
+            const newValue = localStorage.getItem(newKey);
+            
+            // If old key exists but new key doesn't, migrate
+            if (oldValue && !newValue) {
+                const migratedValue = oldValue === 'collapsed' ? 'true' : 'false';
+                localStorage.setItem(newKey, migratedValue);
+                localStorage.removeItem(oldKey); // Clean up old key
+                console.log(`🔄 Migrated localStorage: ${oldKey}="${oldValue}" → ${newKey}="${migratedValue}"`);
+            }
+            
+            // Clean up any remaining old keys for consistency
+            if (oldValue && newValue) {
+                localStorage.removeItem(oldKey);
+                console.log(`🧹 Cleaned up inconsistent localStorage key: ${oldKey}`);
+            }
+        }
+
         function initializeResponsiveHandlers() {
             const sidebarToggle = document.getElementById('sidebarToggle');
             const sidebar = document.querySelector('.admin-sidebar');
@@ -605,23 +519,22 @@
                 return;
             }
             
-            console.log('🔧 Setting up sidebar toggle - Dashboard Compatible...');
+            console.log('🔧 Setting up sidebar toggle - DASHBOARD CONSISTENT...');
             
-            // Restore sidebar state from localStorage (Dashboard approach)
-            const savedSidebarState = localStorage.getItem('admin_sidebar_state');
-            const isSidebarCollapsed = savedSidebarState === 'collapsed';
+            // Restore sidebar state from localStorage (EXACT Dashboard approach)
+            const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
             
-            // Apply Dashboard-style classes
+            // Apply EXACT Dashboard-style classes
             if (isSidebarCollapsed) {
                 sidebar.classList.add('collapsed');
                 adminMain.classList.add('sidebar-collapsed');
                 adminHeader?.classList.add('sidebar-collapsed');
-                console.log('📁 Restored collapsed sidebar state (Dashboard Compatible)');
+                console.log('📁 Restored collapsed sidebar state (Dashboard Consistent)');
             } else {
                 sidebar.classList.remove('collapsed');
                 adminMain.classList.remove('sidebar-collapsed');
                 adminHeader?.classList.remove('sidebar-collapsed');
-                console.log('📂 Restored expanded sidebar state (Dashboard Compatible)');
+                console.log('📂 Restored expanded sidebar state (Dashboard Consistent)');
             }
             
             // Remove any existing event listeners by cloning
@@ -639,19 +552,19 @@
                 console.log('🔍 Currently collapsed:', isCurrentlyCollapsed);
                 
                 if (isCurrentlyCollapsed) {
-                    // Expand sidebar - Dashboard approach
+                    // Expand sidebar - EXACT Dashboard approach
                     sidebar.classList.remove('collapsed');
                     adminMain.classList.remove('sidebar-collapsed');
                     adminHeader?.classList.remove('sidebar-collapsed');
-                    localStorage.setItem('admin_sidebar_state', 'expanded');
-                    console.log('📂 Sidebar expanded (Dashboard Compatible)');
+                    localStorage.setItem('sidebarCollapsed', 'false');
+                    console.log('📂 Sidebar expanded (Dashboard Consistent)');
                 } else {
-                    // Collapse sidebar - Dashboard approach
+                    // Collapse sidebar - EXACT Dashboard approach
                     sidebar.classList.add('collapsed');
                     adminMain.classList.add('sidebar-collapsed');
                     adminHeader?.classList.add('sidebar-collapsed');
-                    localStorage.setItem('admin_sidebar_state', 'collapsed');
-                    console.log('📁 Sidebar collapsed (Dashboard Compatible)');
+                    localStorage.setItem('sidebarCollapsed', 'true');
+                    console.log('📁 Sidebar collapsed (Dashboard Consistent)');
                 }
                 
                 // Debug final computed styles
