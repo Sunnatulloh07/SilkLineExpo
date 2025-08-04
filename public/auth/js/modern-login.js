@@ -198,13 +198,30 @@ Senior Software Engineer Clean Code Implementation
                         'Content-Type': 'application/json',
                         'X-CSRF-Token': this.getCSRFToken()
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(data),
+                    credentials: 'same-origin'  // CRITICAL: Enable cookies for JWT tokens
                 });
                 
                 const result = await response.json();
                 
                 if (response.ok && result.success) {
-                    this.handleLoginSuccess(result);
+                    console.log('🎉 Login successful - checking cookie setting...');
+                    console.log('🍪 Cookies before:', document.cookie);
+                    
+                    // Check if accessToken cookie was set
+                    setTimeout(() => {
+                        console.log('🍪 Cookies after 100ms:', document.cookie);
+                        const hasAccessToken = document.cookie.includes('accessToken');
+                        const hasRefreshToken = document.cookie.includes('refreshToken');
+                        
+                        if (hasAccessToken && hasRefreshToken) {
+                            console.log('✅ JWT cookies successfully set!');
+                        } else {
+                            console.warn('⚠️ JWT cookies not found - using session auth fallback');
+                        }
+                        
+                        this.handleLoginSuccess(result);
+                    }, 500);  // Increased timeout to ensure cookies are set
                 } else {
                     this.handleLoginError(result, response.status);
                 }

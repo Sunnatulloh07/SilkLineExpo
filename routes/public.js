@@ -119,8 +119,8 @@ router.get('/blog-details', (req, res) => {
 });
 
 // Authentication UI pages
-router.get('/login', boundAuthMethods.showLoginPage);
-router.get('/register', boundAuthMethods.showRegisterPage);
+router.get('/auth/login', boundAuthMethods.showLoginPage);
+router.get('/auth/register', boundAuthMethods.showRegisterPage);
 
 // Legacy admin login redirect (for backward compatibility)
 router.get('/admin/login', (req, res) => {

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="<%= typeof lng !== 'undefined' ? lng : 'uz' %>" class="theme-transition">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+    <title>Categories Management - SLEX Admin Dashboard</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="/assets/css/line-awesome.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/admin/css/admin-dashboard.css">
+    <link rel="stylesheet" href="/admin/css/dashboard-components.css">
+    
+    <!-- Professional Categories CSS -->
+    <link rel="stylesheet" href="/admin/css/categories-management.css">
+    
+    <!-- Initialize theme for categories page -->
+    <script>
+        // Initialize theme from localStorage or default to light
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+        
+        // Disable dashboard performance script for categories page
+        window.DISABLE_DASHBOARD_PERFORMANCE = false;
+    </script>
+</head>
+
+<body class="admin-layout theme-transition">
+
+    <%- include('../partials/header', { 
+        title: 'Categories Management - SLEX Admin Dashboard',
+        lng: typeof currentLang !== 'undefined' ? currentLang : 'uz',
+        admin: admin, 
+        user: user,
+        breadcrumb: [
+            { title: 'Dashboard', url: '/admin' },
+            { title: 'Categories' }
+        ]
+    }) %>
+    
+    <%- include('../partials/sidebar', { 
+        admin: admin, 
+        user: user, 
+        currentPage: 'categories',
+        stats: typeof stats !== 'undefined' ? stats : {}
+    }) %>
+    
+    <!-- Main Content -->
+    <main class="admin-main">
+        <div class="admin-content">
+            
+            <!-- Categories Management Content -->
+            <div class="categories-container">
+                
+                <!-- Page Header -->
+                <div class="page-header animate-fade-in">
+                    <div class="page-header-content">
+                        <div class="page-title-section">
+                            <h1 class="page-title">
+                                <i class="las la-folder-open text-primary"></i>
+                                Categories Management
+                            </h1>
+                            <p class="page-subtitle">
+                                Comprehensive category hierarchy management with multi-language support, advanced analytics, and business intelligence
+                            </p>
+                        </div>
+                        <div class="page-actions">
+                            <button class="btn btn-outline-primary" onclick="exportCategories()">
+                                <i class="las la-download"></i>
+                                Export Data
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="refreshData()">
+                                <i class="las la-sync-alt"></i>
+                                Refresh
+                            </button>
+                            <button class="btn btn-primary" onclick="openCreateCategoryModal()">
+                                <i class="las la-plus"></i>
+                                Add Category
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Dashboard -->
+                <div class="metrics-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg animate-fade-in">
+                    <div class="stat-card primary">
+                        <div class="stat-content">
+                            <div class="stat-icon">
+                                <i class="las la-folder-open"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="totalCategoriesCount"><%= statistics?.overview?.total || 0 %></div>
+                                <div class="stat-label">Total Categories</div>
+                                <div class="stat-trend positive">
+                                    <i class="las la-arrow-up"></i>
+                                    +<%= statistics?.growth?.growthRate || 0 %>%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card success">
+                        <div class="stat-content">
+                            <div class="stat-icon success">
+                                <i class="las la-check-circle"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="activeCategoriesCount"><%= statistics?.overview?.active || 0 %></div>
+                                <div class="stat-label">Active Categories</div>
+                                <div class="stat-trend positive">
+                                    <i class="las la-arrow-up"></i>
+                                    +5%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card info">
+                        <div class="stat-content">
+                            <div class="stat-icon info">
+                                <i class="las la-boxes"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="totalProductsCount"><%= statistics?.businessMetrics?.totalProducts || 0 %></div>
+                                <div class="stat-label">Total Products</div>
+                                <div class="stat-trend positive">
+                                    <i class="las la-arrow-up"></i>
+                                    +18%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-content">
+                            <div class="stat-icon warning">
+                                <i class="las la-dollar-sign"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="totalRevenueCount">$<%= statistics?.businessMetrics?.totalRevenue ? Math.round(statistics.businessMetrics.totalRevenue).toLocaleString() : '0' %></div>
+                                <div class="stat-label">Total Revenue</div>
+                                <div class="stat-trend positive">
+                                    <i class="las la-arrow-up"></i>
+                                    +22%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Card -->
+                <div class="main-card animate-fade-in">
+                    
+                    <!-- Tab Navigation -->
+                    <div class="tabs-navigation">
+                        <button class="tab-item active" data-status="" data-tab="all">
+                            <i class="las la-list"></i>
+                            All Categories
+                            <span class="tab-badge" id="allCategoriesTab"><%= statistics?.overview?.total || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="active" data-tab="active">
+                            <i class="las la-check-circle"></i>
+                            Active
+                            <span class="tab-badge success" id="activeCategoriesTab"><%= statistics?.overview?.active || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="draft" data-tab="draft">
+                            <i class="las la-edit"></i>
+                            Draft
+                            <span class="tab-badge secondary" id="draftCategoriesTab"><%= statistics?.overview?.draft || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="inactive" data-tab="inactive">
+                            <i class="las la-pause"></i>
+                            Inactive
+                            <span class="tab-badge warning" id="inactiveCategoriesTab"><%= statistics?.overview?.inactive || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-level="0" data-tab="root">
+                            <i class="las la-sitemap"></i>
+                            Root Categories
+                            <span class="tab-badge info" id="rootCategoriesTab">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Filters Section -->
+                    <div class="filters-section">
+                        <div class="filters-header">
+                            <h3 class="filters-title">
+                                <i class="las la-filter"></i>
+                                Advanced Filters
+                            </h3>
+                            <div class="filter-actions">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()">
+                                    <i class="las la-times"></i>
+                                    Clear
+                                </button>
+                                <button class="btn btn-primary btn-sm" onclick="applyFilters()">
+                                    <i class="las la-search"></i>
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="filters-grid">
+                            <div class="filter-group">
+                                <label class="filter-label">Search Categories</label>
+                                <div class="search-input">
+                                    <i class="las la-search search-icon"></i>
+                                    <input type="text" class="filter-input" id="searchInput" placeholder="Category name, description, slug...">
+                                </div>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Category Level</label>
+                                <select class="filter-input" id="levelFilter">
+                                    <option value="">All Levels</option>
+                                    <option value="0">Root Categories (Level 0)</option>
+                                    <option value="1">Level 1</option>
+                                    <option value="2">Level 2</option>
+                                    <option value="3">Level 3</option>
+                                    <option value="4">Level 4</option>
+                                    <option value="5">Level 5</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Parent Category</label>
+                                <select class="filter-input" id="parentCategoryFilter">
+                                    <option value="">All Categories</option>
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Featured Status</label>
+                                <select class="filter-input" id="featuredFilter">
+                                    <option value="">All Categories</option>
+                                    <option value="true">Featured Only</option>
+                                    <option value="false">Not Featured</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Product Count</label>
+                                <select class="filter-input" id="productCountFilter">
+                                    <option value="">All Categories</option>
+                                    <option value="0">No Products</option>
+                                    <option value="1-10">1-10 Products</option>
+                                    <option value="11-50">11-50 Products</option>
+                                    <option value="51-100">51-100 Products</option>
+                                    <option value="100+">100+ Products</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Date Created</label>
+                                <select class="filter-input" id="dateRangeFilter">
+                                    <option value="">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                    <option value="quarter">This Quarter</option>
+                                    <option value="year">This Year</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table Section -->
+                    <div class="table-section">
+                        <div class="table-header">
+                            <div class="table-title">
+                                <i class="las la-table"></i>
+                                Categories Catalog
+                                <span class="result-count" id="tableResultsCount">(0 results)</span>
+                            </div>
+                            
+                            <div class="bulk-actions hidden" id="bulkActions">
+                                <span class="selected-count" id="selectedCount">0 selected</span>
+                                <button class="btn btn-success btn-sm" onclick="bulkActivateCategories()" id="bulkActivateBtn">
+                                    <i class="las la-check"></i>
+                                    Activate
+                                </button>
+                                <button class="btn btn-warning btn-sm" onclick="bulkFeatureCategories()" id="bulkFeatureBtn">
+                                    <i class="las la-star"></i>
+                                    Feature
+                                </button>
+                                <button class="btn btn-info btn-sm" onclick="bulkExportCategories()" id="bulkExportBtn">
+                                    <i class="las la-download"></i>
+                                    Export
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="bulkArchiveCategories()" id="bulkArchiveBtn">
+                                    <i class="las la-archive"></i>
+                                    Archive
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="professional-table-container" id="tableContainer">
+                            <!-- Desktop Table View -->
+                            <div class="desktop-table-view">
+                                <table class="professional-categories-table">
+                                    <thead class="table-header-sticky">
+                                        <tr class="header-row">
+                                            <th class="th-select" data-column="select">
+                                                <div class="th-content">
+                                                    <label class="modern-checkbox">
+                                                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)">
+                                                        <span class="checkbox-mark"></span>
+                                                    </label>
+                                                </div>
+                                            </th>
+                                            <th class="th-category" data-column="category" onclick="sortTable('name')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Category Information</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-hierarchy" data-column="hierarchy">
+                                                <div class="th-content">
+                                                    <span class="th-label">Hierarchy</span>
+                                                </div>
+                                            </th>
+                                            <th class="th-products" data-column="products" onclick="sortTable('metrics.totalProducts')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Products & Analytics</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-business" data-column="business">
+                                                <div class="th-content">
+                                                    <span class="th-label">Business Metrics</span>
+                                                </div>
+                                            </th>
+                                            <th class="th-status" data-column="status" onclick="sortTable('status')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Status</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-date" data-column="date" onclick="sortTable('createdAt')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Created</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-actions" data-column="actions">
+                                                <div class="th-content">
+                                                    <span class="th-label">Actions</span>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="categoriesTableBody" class="table-body-modern">
+                                        <!-- Categories data will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Mobile Card View -->
+                            <div class="mobile-cards-view" id="mobileCardsView">
+                                <!-- Mobile cards will be rendered here -->
+                            </div>
+
+                            <!-- Table Loading Overlay -->
+                            <div class="table-loading-overlay" id="tableLoadingOverlay">
+                                <div class="loading-content">
+                                    <div class="modern-spinner"></div>
+                                    <p class="loading-text">Loading categories...</p>
+                                </div>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div class="table-empty-state hidden" id="tableEmptyState">
+                                <div class="empty-state-content">
+                                    <div class="empty-state-icon">
+                                        <i class="las la-folder-open"></i>
+                                    </div>
+                                    <h3 class="empty-state-title">No Categories Found</h3>
+                                    <p class="empty-state-description">No categories match your current filter criteria.</p>
+                                    <button class="btn btn-primary" onclick="clearAllFilters()">
+                                        <i class="las la-refresh"></i>
+                                        Reset Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination Section -->
+                    <div class="pagination-section" id="paginationSection">
+                        <div class="pagination-info">
+                            Showing <span id="paginationStart">0</span>-<span id="paginationEnd">0</span> of <span id="paginationTotal">0</span> categories
+                        </div>
+                        <div class="pagination-controls" id="paginationControls">
+                            <!-- Pagination buttons will be generated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay d-none" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="loading-text" id="loadingText">Processing...</div>
+        </div>
+    </div>
+
+<!-- Scripts -->
+<script src="/assets/js/jquery-3.7.1.min.js"></script>
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+
+<!-- Admin Dashboard Core Scripts -->
+<script src="/admin/js/dashboard.js"></script>
+
+<!-- Categories Management JavaScript -->
+<script src="/admin/js/categories-management.js"></script>
+
+<!-- Categories Management Configuration -->
+<script>
+    // Initialize Categories Management
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof CategoriesManagement !== 'undefined') {
+            window.categoriesManager = new CategoriesManagement();
+            window.categoriesManager.init();
+        }
+    });
+
+    // Global category management functions
+    function openCreateCategoryModal() {
+        // Implementation for creating new category
+        console.log('Opening create category modal...');
+        if (window.categoriesManager) {
+            window.categoriesManager.showCreateModal();
+        }
+    }
+
+    function exportCategories() {
+        if (window.categoriesManager) {
+            window.categoriesManager.exportCategories();
+        }
+    }
+
+    function refreshData() {
+        if (window.categoriesManager) {
+            window.categoriesManager.refreshData();
+        }
+    }
+
+    function clearAllFilters() {
+        if (window.categoriesManager) {
+            window.categoriesManager.clearAllFilters();
+        }
+    }
+
+    function applyFilters() {
+        if (window.categoriesManager) {
+            window.categoriesManager.applyFilters();
+        }
+    }
+
+    function toggleSelectAll(checked) {
+        if (window.categoriesManager) {
+            window.categoriesManager.toggleSelectAll(checked);
+        }
+    }
+
+    function sortTable(column) {
+        if (window.categoriesManager) {
+            window.categoriesManager.sortTable(column);
+        }
+    }
+
+    function bulkActivateCategories() {
+        if (window.categoriesManager) {
+            window.categoriesManager.bulkAction('activate');
+        }
+    }
+
+    function bulkFeatureCategories() {
+        if (window.categoriesManager) {
+            window.categoriesManager.bulkAction('feature');
+        }
+    }
+
+    function bulkExportCategories() {
+        if (window.categoriesManager) {
+            window.categoriesManager.bulkExport();
+        }
+    }
+
+    function bulkArchiveCategories() {
+        if (window.categoriesManager) {
+            window.categoriesManager.bulkAction('archive');
+        }
+    }
+</script>
+
+</body>
+</html>

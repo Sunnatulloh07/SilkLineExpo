@@ -115,27 +115,50 @@ class LoginHandler {
     try {
       const formData = new FormData(this.form);
       
+      // Convert FormData to JSON for better handling
+      const loginData = {
+        identifier: formData.get('identifier'),
+        password: formData.get('password'),
+        rememberMe: formData.get('rememberMe') === 'on',
+        csrfToken: formData.get('csrfToken')
+      };
+
+      console.log('🔍 Submitting login with data:', {
+        identifier: loginData.identifier,
+        hasPassword: !!loginData.password,
+        rememberMe: loginData.rememberMe,
+        hasCsrfToken: !!loginData.csrfToken
+      });
+      
       const response = await fetch('/auth/login', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(loginData),
+        credentials: 'include' // Important for cookies
       });
       
       const result = await response.json();
+      console.log('🔍 Login response:', result);
       
-      if (response.ok) {
+      if (result.success) {
         this.showToast('Login successful! Redirecting...', 'success');
         
-        // Use the redirect URL from the response
-        const redirectUrl = result.data?.redirectUrl || '/user/dashboard';
+        // Use the redirect URL from the response - check both data.redirectUrl and data.user structure
+        const redirectUrl = result.data?.redirectUrl || 
+                           (result.data?.user?.userType === 'admin' ? '/admin/dashboard' : '/dashboard');
         
         setTimeout(() => {
+          console.log('🔄 Redirecting to:', redirectUrl);
           window.location.href = redirectUrl;
-        }, 1000);
+        }, 500);
       } else {
         this.handleLoginError(result, response.status);
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       this.showToast('Network error. Please check your connection and try again.', 'error');
     } finally {
       this.isSubmitting = false;

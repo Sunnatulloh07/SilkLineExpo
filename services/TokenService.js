@@ -19,7 +19,7 @@ class TokenService {
         
         // Cookie settings
         this.cookieOptions = {
-            httpOnly: true,
+            httpOnly: false, // Allow JavaScript access for API calls
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             path: '/'
@@ -54,7 +54,7 @@ class TokenService {
             // Check rate limiting
             this.checkTokenGenerationRateLimit(payload.userId);
 
-            // Create access token payload
+            // Create access token payload with all user fields
             const accessPayload = {
                 userId: payload.userId,
                 userType: payload.userType, // 'admin' or 'user'
@@ -62,6 +62,13 @@ class TokenService {
                 email: payload.email,
                 name: payload.name,
                 permissions: payload.permissions || [],
+                
+                // Company-specific fields (for company users)
+                companyType: payload.companyType,
+                companyName: payload.companyName,
+                companyId: payload.companyId,
+                
+                // JWT standard fields
                 sessionId: this.generateSessionId(),
                 iat: Math.floor(Date.now() / 1000),
                 tokenType: 'access'

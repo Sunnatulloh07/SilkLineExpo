@@ -1,0 +1,447 @@
+<%- include('../partials/header', { title: title, lng: lng, user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'analytics' }) %>
+<link rel="stylesheet" href="/css/manufacturer/manufacture-analytics.css">
+<!-- Main Content -->
+<main class="admin-main">
+  <div class="admin-content">
+
+    <!-- Analytics Page Header -->
+    <div class="marketplace-header animate-fade-in">
+      <div class="header-content">
+        <div class="header-title-section">
+          <h1 class="page-title">
+            <i class="fas fa-chart-line"></i>
+            <% if (productInfo) { %>
+              Mahsulot tahlili - <%= productInfo.name || 'Mahsulot' %>
+            <% } else { %>
+              Biznes tahlili
+            <% } %>
+          </h1>
+          <p class="page-subtitle">
+            <% if (productInfo) { %>
+              <%= productInfo.name || 'Mahsulot' %> uchun batafsil analitik ma'lumotlar
+            <% } else { %>
+              Biznesingiz bo'yicha to'liq analitik ko'rsatkichlar
+            <% } %>
+          </p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-outline" id="refreshAnalytics">
+            <i class="fas fa-sync-alt"></i>
+            Yangilash
+          </button>
+          <button class="btn-primary" id="exportReport">
+            <i class="fas fa-download"></i>
+            Hisobot yuklash
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <% if (errorMessage) { %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      <%= errorMessage %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <% } %>
+
+    <!-- Analytics Content -->
+    <div class="analytics-content">
+      
+      <% if (productInfo && productAnalytics) { %>
+        <!-- Product Analytics Section -->
+        
+        <!-- KPI Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg">
+          
+          <!-- Total Revenue -->
+          <div class="stat-card success animate-fade-in">
+            <div class="stat-header">
+              <h3 class="stat-title">Umumiy daromad</h3>
+              <div class="stat-icon success">
+                <i class="fas fa-dollar-sign"></i>
+              </div>
+            </div>
+            <div class="stat-value">
+              <span class="metric-value">$<%= productAnalytics.totalRevenue || 0 %></span>
+            </div>
+            <div class="stat-change positive">
+              <i class="fas fa-arrow-up"></i>
+              +<%= productAnalytics.revenueGrowth || 0 %>% o'sish
+            </div>
+          </div>
+
+          <!-- Total Orders -->
+          <div class="stat-card info animate-fade-in">
+            <div class="stat-header">
+              <h3 class="stat-title">Umumiy buyurtmalar</h3>
+              <div class="stat-icon info">
+                <i class="fas fa-shopping-cart"></i>
+              </div>
+            </div>
+            <div class="stat-value">
+              <span class="metric-value"><%= productAnalytics.totalOrders || 0 %></span>
+            </div>
+            <div class="stat-change positive">
+              <i class="fas fa-arrow-up"></i>
+              +<%= productAnalytics.orderGrowth || 0 %>% o'sish
+            </div>
+          </div>
+
+          <!-- Total Customers -->
+          <div class="stat-card warning animate-fade-in">
+            <div class="stat-header">
+              <h3 class="stat-title">Mijozlar soni</h3>
+              <div class="stat-icon warning">
+                <i class="fas fa-users"></i>
+              </div>
+            </div>
+            <div class="stat-value">
+              <span class="metric-value"><%= productAnalytics.totalCustomers || 0 %></span>
+            </div>
+            <div class="stat-change neutral">
+              <i class="fas fa-minus"></i>
+              <%= productAnalytics.retentionRate || 0 %>% saqlanish
+            </div>
+          </div>
+
+          <!-- Conversion Rate -->
+          <div class="stat-card primary animate-fade-in">
+            <div class="stat-header">
+              <h3 class="stat-title">Konversiya darajasi</h3>
+              <div class="stat-icon primary">
+                <i class="fas fa-percentage"></i>
+              </div>
+            </div>
+            <div class="stat-value">
+              <span class="metric-value"><%= productAnalytics.conversionRate || 0 %>%</span>
+            </div>
+            <div class="stat-change positive">
+              <i class="fas fa-arrow-up"></i>
+              Yaxshi holat
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg mb-lg">
+          
+          <!-- Revenue Chart -->
+          <div class="chart-card animate-fade-in">
+            <div class="chart-header">
+              <h3 class="chart-title">Daromad tendentsiyasi</h3>
+              <div class="chart-actions">
+                <select class="form-select form-select-sm" id="revenueChartPeriod">
+                  <option value="7">7 kun</option>
+                  <option value="30" selected>30 kun</option>
+                  <option value="90">90 kun</option>
+                </select>
+              </div>
+            </div>
+            <div class="chart-body">
+              <div id="revenueChart" style="height: 300px;"></div>
+            </div>
+          </div>
+
+          <!-- Orders Chart -->
+          <div class="chart-card animate-fade-in">
+            <div class="chart-header">
+              <h3 class="chart-title">Buyurtmalar tendentsiyasi</h3>
+              <div class="chart-actions">
+                <select class="form-select form-select-sm" id="ordersChartPeriod">
+                  <option value="7">7 kun</option>
+                  <option value="30" selected>30 kun</option>
+                  <option value="90">90 kun</option>
+                </select>
+              </div>
+            </div>
+            <div class="chart-body">
+              <div id="ordersChart" style="height: 300px;"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-lg mb-lg">
+          
+          <!-- Stock Status -->
+          <div class="metric-card animate-fade-in">
+            <div class="metric-header">
+              <h4 class="metric-title">
+                <i class="fas fa-boxes"></i>
+                Zaxira holati
+              </h4>
+            </div>
+            <div class="metric-body">
+              <div class="metric-row">
+                <span class="metric-label">Joriy zaxira:</span>
+                <span class="metric-value-sm"><%= productAnalytics.currentStock || 0 %></span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Zaxira aylanishi:</span>
+                <span class="metric-value-sm"><%= productAnalytics.stockTurnover || 0 %>x</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Status:</span>
+                <span class="badge badge-<%= productAnalytics.stockStatus === 'healthy' ? 'success' : 'warning' %>">
+                  <%= productAnalytics.stockStatus === 'healthy' ? 'Sog\'lom' : 'Kam' %>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Performance Score -->
+          <div class="metric-card animate-fade-in">
+            <div class="metric-header">
+              <h4 class="metric-title">
+                <i class="fas fa-tachometer-alt"></i>
+                Performance ball
+              </h4>
+            </div>
+            <div class="metric-body">
+              <div class="performance-score">
+                <div class="score-circle">
+                  <span class="score-value"><%= productAnalytics.performanceScore || 0 %></span>
+                  <span class="score-max">/100</span>
+                </div>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">O'rtacha buyurtma:</span>
+                <span class="metric-value-sm">$<%= productAnalytics.avgOrderValue || 0 %></span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">O'rtacha miqdor:</span>
+                <span class="metric-value-sm"><%= productAnalytics.avgQuantityPerOrder || 0 %></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rating Analysis -->
+          <div class="metric-card animate-fade-in">
+            <div class="metric-header">
+              <h4 class="metric-title">
+                <i class="fas fa-star"></i>
+                Reyting tahlili
+              </h4>
+            </div>
+            <div class="metric-body">
+              <div class="rating-overview">
+                <div class="avg-rating">
+                  <span class="rating-value"><%= productAnalytics.avgRating || 0 %></span>
+                  <div class="rating-stars">
+                    <% for(let i = 1; i <= 5; i++) { %>
+                      <i class="fas fa-star <%= (productAnalytics.avgRating >= i) ? 'active' : '' %>"></i>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Umumiy sharhlar:</span>
+                <span class="metric-value-sm"><%= productAnalytics.totalReviews || 0 %></span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Mahsulot yoshi:</span>
+                <span class="metric-value-sm"><%= productAnalytics.productAge || 0 %> kun</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      <% } else { %>
+        <!-- General Business Analytics -->
+        
+        <!-- Business KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg">
+          
+          <!-- Total Revenue -->
+          <div class="stat-card success animate-fade-in">
+            <div class="stat-header">
+              <h3 class="stat-title">Umumiy daromad</h3>
+              <div class="stat-icon success">
+                <i class="fas fa-dollar-sign"></i>
+              </div>
+            </div>
+            <div class="stat-value">
+              <span class="metric-value">
+                <% if (dashboardStats && dashboardStats.overview && dashboardStats.overview.totalRevenue) { %>
+                  $<%= dashboardStats.overview.totalRevenue.toLocaleString() %>
+                <% } else { %>
+                  $0
+                <% } %>
+              </span>
+            </div>
+            <div class="stat-change positive">
+              <i class="fas fa-arrow-up"></i>
+              O'sish tendentsiyasi
+            </div>
+          </div>
+
+          <!-- Total Products -->
+          <div class="stat-card info animate-fade-in">
+            <div class="stat-header">
+              <h3 class="stat-title">Mahsulotlar soni</h3>
+              <div class="stat-icon info">
+                <i class="fas fa-box"></i>
+              </div>
+            </div>
+            <div class="stat-value">
+              <span class="metric-value">
+                <% if (dashboardStats && dashboardStats.overview && dashboardStats.overview.totalProducts) { %>
+                  <%= dashboardStats.overview.totalProducts %>
+                <% } else { %>
+                  0
+                <% } %>
+              </span>
+            </div>
+            <div class="stat-change neutral">
+              <i class="fas fa-minus"></i>
+              Barqaror
+            </div>
+          </div>
+
+          <!-- Total Orders -->
+          <div class="stat-card warning animate-fade-in">
+            <div class="stat-header">
+              <h3 class="stat-title">Buyurtmalar</h3>
+              <div class="stat-icon warning">
+                <i class="fas fa-shopping-cart"></i>
+              </div>
+            </div>
+            <div class="stat-value">
+              <span class="metric-value">
+                <% if (dashboardStats && dashboardStats.overview && dashboardStats.overview.totalOrders) { %>
+                  <%= dashboardStats.overview.totalOrders %>
+                <% } else { %>
+                  0
+                <% } %>
+              </span>
+            </div>
+            <div class="stat-change positive">
+              <i class="fas fa-arrow-up"></i>
+              Faol
+            </div>
+          </div>
+
+          <!-- Active Customers -->
+          <div class="stat-card primary animate-fade-in">
+            <div class="stat-header">
+              <h3 class="stat-title">Faol mijozlar</h3>
+              <div class="stat-icon primary">
+                <i class="fas fa-users"></i>
+              </div>
+            </div>
+            <div class="stat-value">
+              <span class="metric-value">
+                <% if (dashboardStats && dashboardStats.overview && dashboardStats.overview.activeCustomers) { %>
+                  <%= dashboardStats.overview.activeCustomers %>
+                <% } else { %>
+                  0
+                <% } %>
+              </span>
+            </div>
+            <div class="stat-change positive">
+              <i class="fas fa-arrow-up"></i>
+              Yaxshi
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Business Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg mb-lg">
+          
+          <!-- Business Performance Chart -->
+          <div class="chart-card animate-fade-in">
+            <div class="chart-header">
+              <h3 class="chart-title">Biznes performance</h3>
+              <div class="chart-actions">
+                <select class="form-select form-select-sm" id="businessChartPeriod">
+                  <option value="7">7 kun</option>
+                  <option value="30" selected>30 kun</option>
+                  <option value="90">90 kun</option>
+                </select>
+              </div>
+            </div>
+            <div class="chart-body">
+              <div id="businessChart" style="height: 300px;"></div>
+            </div>
+          </div>
+
+          <!-- Categories Performance -->
+          <div class="chart-card animate-fade-in">
+            <div class="chart-header">
+              <h3 class="chart-title">Kategoriyalar performance</h3>
+            </div>
+            <div class="chart-body">
+              <div id="categoriesChart" style="height: 300px;"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Message for Product Selection -->
+        <div class="info-card animate-fade-in">
+          <div class="info-content">
+            <div class="info-icon">
+              <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="info-text">
+              <h4>Mahsulot tahlili uchun</h4>
+              <p>Alohida mahsulot bo'yicha batafsil tahlil ko'rish uchun Marketplace sahifasidan mahsulotning "Statistika" tugmasini bosing.</p>
+            </div>
+          </div>
+        </div>
+
+      <% } %>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- Core JS Files (EXACT Marketplace Pattern) -->
+<script src="/assets/js/jquery-3.7.1.min.js"></script>
+<script src="/assets/js/boostrap.bundle.min.js"></script>
+
+<!-- ApexCharts (Local - CSP Safe) -->
+<script src="/assets/js/apexchart.js"></script>
+
+<!-- Dashboard JS Files (EXACT Marketplace Pattern) -->
+<script src="/js/manufacturer/dashboard-init.js"></script>
+<script src="/js/manufacturer/manufacturer-header.js"></script>
+<script src="/js/manufacturer/manufacturer-dashboard.js"></script>
+
+<!-- Analytics Data Container (Hidden) -->
+<div id="analytics-data-container" style="display: none;" 
+     data-has-product="<%= productInfo ? 'true' : 'false' %>"
+     data-product-id="<%= productInfo ? productInfo._id : '' %>"
+     data-user-id="<%= user._id %>"
+     data-user-name="<%= user.name || 'User' %>"
+     data-company-name="<%= user.companyName || 'Company' %>">
+  
+  <% if (productInfo && productAnalytics) { %>
+  <script type="application/json" id="product-analytics-json"><%- JSON.stringify(productAnalytics) %></script>
+  <script type="application/json" id="product-info-json"><%- JSON.stringify(productInfo) %></script>
+  <% } %>
+  
+  <% if (dashboardStats) { %>
+  <script type="application/json" id="dashboard-stats-json"><%- JSON.stringify(dashboardStats) %></script>
+  <% } %>
+  
+  <% if (businessIntelligence) { %>
+  <script type="application/json" id="business-intelligence-json"><%- JSON.stringify(businessIntelligence) %></script>
+  <% } %>
+  
+</div>
+
+<!-- Professional Analytics JavaScript -->
+ <script src="/js/manufacturer/manufacture-analytics.js"></script>
+
+
+</body>
+</html>

@@ -40,17 +40,16 @@
           <% } %>
         </a>
 
-        <a href="/admin/companies" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.companies') : 'Companies' %>">
-          <i class="fas fa-building nav-icon"></i>
-          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.companies') : 'Companies' %></span>
+        <a href="/admin/categories" class="nav-item <%= currentPage === 'categories' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.categories') : 'Categories' %>">
+          <i class="fas fa-list nav-icon"></i>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.categories') : 'Categories' %></span>
         </a>
-
-        <a href="/admin/products" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.products') : 'Products' %>">
+        <a href="/admin/products" class="nav-item <%= currentPage === 'products' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.products') : 'Products' %>">
           <i class="fas fa-box nav-icon"></i>
           <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.products') : 'Products' %></span>
         </a>
 
-        <a href="/admin/orders" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.orders') : 'Orders' %>">
+        <a href="/admin/orders" class="nav-item <%= currentPage === 'orders' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.orders') : 'Orders' %>">
           <i class="fas fa-shopping-cart nav-icon"></i>
           <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.orders') : 'Orders' %></span>
         </a>
@@ -82,9 +81,14 @@
           <%= typeof t !== 'undefined' ? t('admin.nav.system') : 'System' %>
         </div>
 
-        <a href="/admin/system/settings" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.settings') : 'Settings' %>">
+        <a href="/admin/settings" class="nav-item <%= currentPage === 'settings' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.settings') : 'Settings' %>">
           <i class="fas fa-cog nav-icon"></i>
           <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.settings') : 'Settings' %></span>
+        </a>
+
+        <a href="/admin/profile" class="nav-item <%= currentPage === 'profile' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.profile') : 'Profile' %>">
+          <i class="fas fa-user-circle nav-icon"></i>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.profile') : 'Profile' %></span>
         </a>
 
         <a href="/admin/system/security" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.security') : 'Security' %>">

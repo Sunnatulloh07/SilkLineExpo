@@ -1,0 +1,111 @@
+<!-- Sidebar -->
+<aside class="admin-sidebar">
+  <div class="sidebar-content">
+    <!-- Brand -->
+    <a href="/manufacturer/dashboard" class="sidebar-brand">
+      <div class="sidebar-brand-logo">M</div>
+      <span class="sidebar-brand-text">Ishlab chiqarish</span>
+    </a>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <!-- Main Section -->
+      <div class="nav-section">
+        <div class="nav-section-title">Asosiy</div>
+
+        <a href="/manufacturer/dashboard" class="nav-item <%= currentPage === 'dashboard' ? 'active' : '' %>" data-tooltip="Boshqaruv paneli">
+          <i class="fas fa-tachometer-alt nav-icon"></i>
+          <span class="nav-text">Dashboard</span>
+        </a>
+
+        <a href="/manufacturer/marketplace" class="nav-item <%= currentPage === 'marketplace' ? 'active' : '' %>" data-tooltip="B2B Marketplace">
+          <i class="fas fa-store nav-icon"></i>
+          <span class="nav-text">Marketplace</span>
+        </a>
+      </div>
+
+      <!-- Products & Inventory -->
+      <div class="nav-section">
+        <div class="nav-section-title">Mahsulotlar</div>
+
+        <a href="/manufacturer/products" class="nav-item <%= currentPage === 'products' ? 'active' : '' %>" data-tooltip="Mahsulotlar ro'yxati">
+          <i class="fas fa-box-open nav-icon"></i>
+          <span class="nav-text">Mahsulotlar</span>
+        </a>
+
+        <a href="/manufacturer/products/add" class="nav-item <%= currentPage === 'add-product' ? 'active' : '' %>" data-tooltip="Yangi mahsulot">
+          <i class="fas fa-plus-circle nav-icon"></i>
+          <span class="nav-text">Qo'shish</span>
+        </a>
+
+        <a href="/manufacturer/inventory" class="nav-item <%= currentPage === 'inventory' ? 'active' : '' %>" data-tooltip="Ombor boshqaruvi">
+          <i class="fas fa-warehouse nav-icon"></i>
+          <span class="nav-text">Ombor</span>
+          <% if (typeof lowStock !== 'undefined' && lowStock > 0) { %>
+            <span class="nav-badge badge-warning"><%= lowStock %></span>
+          <% } %>
+        </a>
+      </div>
+
+      <!-- Orders & Communication -->
+      <div class="nav-section">
+        <div class="nav-section-title">Savdo</div>
+
+        <a href="/manufacturer/orders" class="nav-item <%= currentPage === 'orders' ? 'active' : '' %>" data-tooltip="Buyurtmalar">
+          <i class="fas fa-clipboard-list nav-icon"></i>
+          <span class="nav-text">Buyurtmalar</span>
+          <% if (typeof pendingOrders !== 'undefined' && pendingOrders > 0) { %>
+            <span class="nav-badge badge-danger"><%= pendingOrders %></span>
+          <% } %>
+        </a>
+
+        <a href="/manufacturer/inquiries" class="nav-item <%= currentPage === 'inquiries' ? 'active' : '' %>" data-tooltip="So'rovlar">
+          <i class="fas fa-envelope nav-icon"></i>
+          <span class="nav-text">So'rovlar</span>
+          <% if (typeof newInquiries !== 'undefined' && newInquiries > 0) { %>
+            <span class="nav-badge badge-info"><%= newInquiries %></span>
+          <% } %>
+        </a>
+
+        <a href="/manufacturer/messages" class="nav-item <%= currentPage === 'messages' ? 'active' : '' %>" data-tooltip="Xabarlar">
+          <i class="fas fa-comments nav-icon"></i>
+          <span class="nav-text">Xabarlar</span>
+          <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+            <span class="nav-badge badge-primary"><%= unreadMessages %></span>
+          <% } %>
+        </a>
+
+        <a href="/manufacturer/shipping" class="nav-item <%= currentPage === 'shipping' ? 'active' : '' %>" data-tooltip="Yetkazib berish">
+          <i class="fas fa-truck nav-icon"></i>
+          <span class="nav-text">Yetkazib berish</span>
+        </a>
+      </div>
+
+      <!-- System Section -->
+      <div class="nav-section">
+        <div class="nav-section-title">Tizim</div>
+
+        <a href="/manufacturer/settings" class="nav-item <%= currentPage === 'settings' ? 'active' : '' %>" data-tooltip="Sozlamalar">
+          <i class="fas fa-cog nav-icon"></i>
+          <span class="nav-text">Sozlamalar</span>
+        </a>
+
+        <a href="/manufacturer/profile" class="nav-item <%= currentPage === 'profile' ? 'active' : '' %>" data-tooltip="Profil">
+          <i class="fas fa-user-circle nav-icon"></i>
+          <span class="nav-text">Profil</span>
+        </a>
+
+        <a href="/manufacturer/support" class="nav-item" data-tooltip="Qo'llab-quvvatlash">
+          <i class="fas fa-headset nav-icon"></i>
+          <span class="nav-text">Qo'llab-quvvatlash</span>
+        </a>
+
+        <a href="/auth/logout" class="nav-item" data-tooltip="Chiqish">
+          <i class="fas fa-sign-out-alt nav-icon"></i>
+          <span class="nav-text">Chiqish</span>
+        </a>
+      </div>
+    </nav>
+
+  </div>
+</aside>

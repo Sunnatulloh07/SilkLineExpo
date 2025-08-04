@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="<%= typeof lng !== 'undefined' ? lng : 'uz' %>" class="theme-transition">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+  <title><%= typeof title !== 'undefined' ? title : 'SLEX Manufacturing Dashboard' %></title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS Libraries (Using Local Assets) -->
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome-all.min.css">
+  <link rel="stylesheet" href="/assets/css/line-awesome.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/admin/css/admin-dashboard.css">
+  <link rel="stylesheet" href="/admin/css/dashboard-components.css">
+  <link rel="stylesheet" href="/admin/css/dashboard-loading.css">
+  
+  <!-- Manufacturer Dashboard Professional CSS -->
+  <link rel="stylesheet" href="/css/manufacturer-dashboard.css">
+  <link rel="stylesheet" href="/css/manufacturer-cards.css">
+  <link rel="stylesheet" href="/css/manufacturer-fixes.css">
+  
+  <!-- Professional B2B Marketplace Cards CSS -->
+  <link rel="stylesheet" href="/css/b2b-marketplace-cards.css">
+  
+  <!-- PROFESSIONAL TOKEN MANAGEMENT SYSTEM - LOAD FIRST -->
+  <script src="/js/token-manager.js"></script>
+  <script src="/js/token-manager-fix.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/admin/css/admin-dashboard.css">
+  <link rel="stylesheet" href="/admin/css/dashboard-components.css">
+  <link rel="stylesheet" href="/admin/css/dashboard-loading.css">
+  
+  <!-- DISABLE DASHBOARD PERFORMANCE TEMPORARILY -->
+  <script>window.DISABLE_DASHBOARD_PERFORMANCE = false;</script>
+  
+  <!-- Performance Optimization -->
+  <script src="/admin/js/dashboard-performance.js" defer></script>
+  
+  <!-- Theme Variables -->
+  <style>
+    :root {
+      --header-brand-text: 'Manufacturing';
+    }
+  </style>
+</head>
+
+<body class="theme-transition">
+  <div class="admin-layout">
+    
+    <!-- Header -->
+    <header class="admin-header">
+      
+      <!-- Left Section -->
+      <div class="header-left">
+        <!-- Mobile Menu Toggle -->
+        <button id="mobileMenuToggle" class="header-action-btn mobile-only">
+          <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Sidebar Toggle (Desktop) -->
+        <button id="sidebarToggle" class="header-action-btn desktop-only">
+          <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Brand Logo (Mobile) -->
+        <div class="header-brand mobile-only">
+          <div class="header-brand-logo">M</div>
+          <span class="header-brand-text">Manufacturing</span>
+        </div>
+      </div>
+      
+      <!-- Center Section - Search -->
+      <div class="header-center">
+        <div class="header-search">
+          <i class="fas fa-search header-search-icon"></i>
+          <input 
+            type="text" 
+            id="headerSearch"
+            placeholder="<%= typeof t !== 'undefined' ? t('admin.header.search_placeholder') : 'Search products, orders, reports...' %>"
+            autocomplete="off"
+          >
+        </div>
+      </div>
+      
+      <!-- Right Section -->
+      <div class="header-right">
+        
+        <!-- Language Selector (Production Style) -->
+        <div class="language-selector-wrapper">
+          <% 
+            const currentLang = typeof lng !== 'undefined' ? lng : 'uz';
+            const langConfig = {
+              'uz': { flag: '🇺🇿', name: 'O\'zbekcha', code: 'UZ' },
+              'en': { flag: '🇺🇸', name: 'English', code: 'EN' },
+              'ru': { flag: '🇷🇺', name: 'Русский', code: 'RU' },
+              'tr': { flag: '🇹🇷', name: 'Türkçe', code: 'TR' },
+              'fa': { flag: '🇮🇷', name: 'فارسی', code: 'FA' },
+              'zh': { flag: '🇨🇳', name: '中文', code: 'ZH' }
+            };
+            const current = langConfig[currentLang] || langConfig['uz'];
+          %>
+          
+          <div class="language-dropdown">
+            <button id="languageToggle" class="language-btn" 
+                    data-tooltip="<%= typeof t !== 'undefined' ? t('admin.header.change_language') : 'Change Language' %>">
+              <span class="lang-flag current-lang-flag"><%= current.flag %></span>
+              <i class="fas fa-chevron-down lang-chevron"></i>
+            </button>
+            
+            <div id="languageMenu" class="language-menu hidden">
+              <div class="language-menu-header">
+                <span class="menu-title">
+                  <%= typeof t !== 'undefined' ? t('admin.header.select_language') : 'Select Language' %>
+                </span>
+              </div>
+              <div class="language-options">
+                <% Object.entries(langConfig).forEach(([code, config]) => { %>
+                  <button class="language-option <%= currentLang === code ? 'active' : '' %>" 
+                          data-lang="<%= code %>"
+                          data-name="<%= config.name %>">
+                    <span class="option-flag"><%= config.flag %></span>
+                    <span class="option-name"><%= config.name %></span>
+                    <span class="option-code"><%= config.code %></span>
+                    <% if (currentLang === code) { %>
+                      <i class="fas fa-check option-check"></i>
+                    <% } %>
+                  </button>
+                <% }); %>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Theme Toggle -->
+        <button id="themeToggle" class="header-action-btn" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.header.toggle_theme') : 'Toggle Dark Mode' %>">
+          <i class="fas fa-moon theme-icon"></i>
+        </button>
+        
+        <!-- Messages -->
+        <div class="header-dropdown">
+          <button id="messagesBtn" class="header-action-btn" data-tooltip="Xabarlar">
+            <i class="fas fa-envelope"></i>
+            <span class="notification-badge messages-badge" id="messagesBadge">5</span>
+          </button>
+          
+          <!-- Messages Dropdown -->
+          <div id="messagesDropdown" class="dropdown-menu messages-dropdown hidden">
+            <div class="dropdown-header">
+              <span class="dropdown-title">Xabarlar</span>
+              <button class="btn-sm btn-ghost" onclick="markAllMessagesRead()">Hammasini o'qilgan</button>
+            </div>
+            <div class="dropdown-content">
+              <div class="message-item unread">
+                <img src="/images/default-avatar.png" alt="Avatar" class="message-avatar">
+                <div class="message-content">
+                  <h4 class="message-sender">Tashkent Textiles Co.</h4>
+                  <p class="message-text">500m paxta mato narxi qancha?</p>
+                  <span class="message-time">5 daqiqa oldin</span>
+                </div>
+              </div>
+              <div class="message-item unread">
+                <img src="/images/default-avatar.png" alt="Avatar" class="message-avatar">
+                <div class="message-content">
+                  <h4 class="message-sender">Samarkand Distribution</h4>
+                  <p class="message-text">Buyurtma #1234 qachon tayyor?</p>
+                  <span class="message-time">15 daqiqa oldin</span>
+                </div>
+              </div>
+              <div class="message-item">
+                <img src="/images/default-avatar.png" alt="Avatar" class="message-avatar">
+                <div class="message-content">
+                  <h4 class="message-sender">Bukhara Wholesale</h4>
+                  <p class="message-text">Namuna olish mumkinmi?</p>
+                  <span class="message-time">1 soat oldin</span>
+                </div>
+              </div>
+            </div>
+            <div class="dropdown-footer">
+              <a href="/manufacturer/messages" class="view-all-link">Barcha xabarlar</a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Notifications -->
+        <div class="header-dropdown">
+          <button id="notificationsBtn" class="header-action-btn" data-tooltip="Bildirishnomalar">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notificationsBadge" style="display: none;">0</span>
+          </button>
+          
+          <!-- Notifications Dropdown -->
+          <div id="notificationsDropdown" class="dropdown-menu notifications-dropdown hidden">
+            <div class="dropdown-header">
+              <span class="dropdown-title">Bildirishnomalar</span>
+              <button class="btn-sm btn-ghost" onclick="markAllNotificationsRead()">Hammasini o'qilgan deb belgilash</button>
+            </div>
+            <div class="dropdown-content" id="notificationsContent">
+              <div class="notification-item unread">
+                <div class="notification-icon success">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="notification-content">
+                  <h4 class="notification-title">Order #1234 Completed</h4>
+                  <p class="notification-text">Premium cotton fabric order has been completed</p>
+                  <span class="notification-time">5 minutes ago</span>
+                </div>
+              </div>
+              <div class="notification-item">
+                <div class="notification-icon info">
+                  <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="notification-content">
+                  <h4 class="notification-title">New Order Received</h4>
+                  <p class="notification-text">Large order from Tashkent Textiles</p>
+                  <span class="notification-time">30 minutes ago</span>
+                </div>
+              </div>
+            </div>
+            <div class="dropdown-footer">
+              <a href="/manufacturer/notifications" class="view-all-link">Barcha bildirishnomalar</a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- User Profile Dropdown -->
+        <div class="header-user-dropdown">
+          <button class="user-profile-btn avatar-only" id="userProfileToggle">
+            <div class="user-avatar">
+              <% if (typeof user !== 'undefined' && user.avatar) { %>
+                <img src="<%= user.avatar %>" alt="Profile">
+              <% } else { %>
+                <i class="fas fa-user"></i>
+              <% } %>
+            </div>
+          </button>
+          
+          <!-- Profile Dropdown Menu -->
+          <div id="profileDropdown" class="dropdown-menu profile-dropdown hidden">
+            <div class="profile-header">
+              <div class="profile-avatar-large">
+                <% if (typeof user !== 'undefined' && user.avatar) { %>
+                  <img src="<%= user.avatar %>" alt="Profile">
+                <% } else { %>
+                  <i class="fas fa-user"></i>
+                <% } %>
+              </div>
+              <div class="profile-info">
+                <h4 class="profile-name"><%= typeof user !== 'undefined' && user.name ? user.name : 'Ishlab chiqaruvchi admin' %></h4>
+                <p class="profile-email"><%= typeof user !== 'undefined' && user.email ? user.email : 'admin@manufacturer.com' %></p>
+                <span class="profile-badge">Ishlab chiqarish menejeri</span>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-content">
+              <a href="/manufacturer/profile" class="dropdown-item">
+                <i class="fas fa-user-circle"></i>
+                <span>Mening profilim</span>
+              </a>
+              <a href="/manufacturer/settings" class="dropdown-item">
+                <i class="fas fa-cog"></i>
+                <span>Sozlamalar</span>
+              </a>
+              <a href="/manufacturer/production/stats" class="dropdown-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>Ishlab chiqarish statistikasi</span>
+              </a>
+              <a href="/manufacturer/help" class="dropdown-item">
+                <i class="fas fa-question-circle"></i>
+                <span>Yordam va qo'llab-quvvatlash</span>
+              </a>
+            </div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-content">
+              <a href="/auth/logout" class="dropdown-item text-danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Chiqish</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </header>

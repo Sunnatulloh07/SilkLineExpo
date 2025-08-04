@@ -25,15 +25,23 @@
     
     <!-- Professional Products CSS -->
     <link rel="stylesheet" href="/admin/css/products-management.css">
+    <link rel="stylesheet" href="/admin/css/products-management-professional.css">
+    <link rel="stylesheet" href="/admin/css/products-modal.css">
     
-    <!-- Override dashboard performance script for products page -->
+    <!-- Initialize theme for products page -->
     <script>
+        // Initialize theme from localStorage or default to light
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+        
         // Disable dashboard performance script for products page
-        window.DISABLE_DASHBOARD_PERFORMANCE = true;
+        window.DISABLE_DASHBOARD_PERFORMANCE = false;
     </script>
 </head>
 
-<body class="admin-layout theme-transition" data-theme="light">
+<body class="admin-layout theme-transition">
 
     <%- include('../partials/header', { 
         title: 'Product Management - SLEX Admin Dashboard',
@@ -45,13 +53,13 @@
             { title: 'Products' }
         ]
     }) %>
-    
-    <%- include('../partials/sidebar', { 
-        admin: admin, 
-        user: user, 
+
+<%- include('../partials/sidebar', { 
+    admin: admin, 
+    user: user, 
         currentPage: 'products',
         stats: typeof stats !== 'undefined' ? stats : {}
-    }) %>
+}) %>
     
     <!-- Main Content -->
     <main class="admin-main">
@@ -329,7 +337,7 @@
                                             </th>
                                             <th class="th-product" data-column="product" onclick="sortTable('name')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Product</span>
+                                                    <span class="th-label">Product Information</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -340,14 +348,14 @@
                                                     <span class="th-label">Manufacturer</span>
                                                 </div>
                                             </th>
-                                            <th class="th-category" data-column="category">
+                                            <th class="th-business" data-column="business">
                                                 <div class="th-content">
-                                                    <span class="th-label">Category</span>
+                                                    <span class="th-label">Business Details</span>
                                                 </div>
                                             </th>
-                                            <th class="th-price" data-column="price" onclick="sortTable('price')">
+                                            <th class="th-pricing" data-column="pricing" onclick="sortTable('price')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Price & Stock</span>
+                                                    <span class="th-label">Pricing & Stock</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -361,14 +369,14 @@
                                                     </span>
                                                 </div>
                                             </th>
-                                            <th class="th-performance" data-column="performance">
+                                            <th class="th-metrics" data-column="metrics">
                                                 <div class="th-content">
                                                     <span class="th-label">Performance</span>
                                                 </div>
                                             </th>
-                                            <th class="th-featured" data-column="featured" onclick="sortTable('featured')">
+                                            <th class="th-date" data-column="date" onclick="sortTable('createdAt')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Featured</span>
+                                                    <span class="th-label">Added</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -382,7 +390,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="productsTableBody" class="table-body-modern">
-                                        <!-- Loading state -->
+                                        <!-- Products data will be loaded here -->
                                     </tbody>
                                 </table>
                             </div>
@@ -465,6 +473,9 @@
     function openCreateProductModal() {
         // Implementation for creating new product
         console.log('Opening create product modal...');
+        if (window.productsManager) {
+            window.productsManager.showCreateModal();
+        }
     }
 
     function exportProducts() {
@@ -528,246 +539,146 @@
     }
 </script>
 
-<!-- Responsive Table CSS Enhancement -->
+<!-- Professional Table Enhancement Styles -->
 <style>
-    /* Products Table Column Sizing */
-    .products-table {
-        table-layout: auto;
-        width: 100%;
+    /* Override default table container styles for professional design */
+    .professional-table-container {
+        position: relative;
+        overflow-x: auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Ensure proper table layout */
+    .professional-products-table {
         min-width: 1200px;
     }
     
-    /* Column Classes for Responsive Control */
-    .col-select { 
-        width: 4%; 
-        min-width: 40px; 
-    }
-    
-    .col-product { 
-        width: 25%; 
-        min-width: 220px; 
-    }
-    
-    .col-manufacturer { 
-        width: 15%; 
-        min-width: 140px; 
-    }
-    
-    .col-category { 
-        width: 12%; 
-        min-width: 100px; 
-    }
-    
-    .col-price { 
-        width: 15%; 
-        min-width: 120px; 
-    }
-    
-    .col-status { 
-        width: 8%; 
-        min-width: 80px; 
-    }
-    
-    .col-performance { 
-        width: 8%; 
-        min-width: 80px; 
-    }
-    
-    .col-featured { 
-        width: 6%; 
-        min-width: 60px; 
-    }
-    
-    .col-date { 
-        width: 8%; 
-        min-width: 80px; 
-    }
-    
-    .col-actions { 
-        width: 5%; 
-        min-width: 50px; 
-    }
-    
-    /* Mobile Responsive Columns */
+    /* Mobile responsive adjustments */
     @media (max-width: 768px) {
-        .products-table {
+        .professional-products-table {
             min-width: 900px;
-            font-size: 0.75rem;
         }
         
-        .col-product { min-width: 180px; }
-        .col-manufacturer { min-width: 120px; }
-        .col-category { min-width: 80px; }
-        .col-price { min-width: 100px; }
-        .col-performance { min-width: 70px; }
-        .col-featured { min-width: 50px; }
-        .col-date { min-width: 70px; }
-    }
-    
-    @media (max-width: 480px) {
-        .products-table {
-            min-width: 800px;
-            font-size: 0.7rem;
+        .professional-products-table .th-content,
+        .professional-products-table td {
+            padding: 12px 8px;
         }
         
-        .col-product { min-width: 160px; }
-        .col-manufacturer { min-width: 100px; }
-        .col-category { min-width: 70px; }
-        .col-price { min-width: 90px; }
-        .col-performance { min-width: 60px; }
-        .col-featured { min-width: 45px; }
-        .col-date { min-width: 60px; }
-        .col-actions { min-width: 45px; }
-    }
-    
-    /* Hide less important columns on very small screens */
-    @media (max-width: 360px) {
-        .col-featured,
-        .col-date {
-            display: none;
+        .professional-products-table .th-label {
+            font-size: 0.8rem;
         }
         
-        .products-table {
-            min-width: 700px;
+        .product-name {
+            font-size: 0.85rem !important;
+        }
+        
+        .product-description {
+            font-size: 0.75rem !important;
         }
     }
     
-    /* Product-specific styling */
-    .product-image {
-        width: 48px;
-        height: 48px;
-        border-radius: 8px;
-        object-fit: cover;
-        border: 1px solid var(--border-color);
+    /* Table header enhancements */
+    .table-header-sticky {
+        position: sticky;
+        top: 0;
+        z-index: 10;
     }
     
-    .product-image-placeholder {
-        width: 48px;
-        height: 48px;
-        border-radius: 8px;
-        background: linear-gradient(135deg, var(--primary-color), var(--info-color));
-        color: white;
-        display: flex;
+    /* Smooth scrolling for table container */
+    .professional-table-container {
+        scroll-behavior: smooth;
+    }
+    
+    /* Enhanced checkbox styling */
+    .modern-checkbox {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 0.875rem;
+        cursor: pointer;
+        user-select: none;
     }
     
-    .product-info {
-        display: flex;
+    .modern-checkbox input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        opacity: 0;
+        position: absolute;
+    }
+    
+    .checkbox-mark {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #d1d5db;
+        border-radius: 4px;
+        background: white;
+        position: relative;
+        transition: all 0.2s ease;
+    }
+    
+    .modern-checkbox input[type="checkbox"]:checked + .checkbox-mark {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .modern-checkbox input[type="checkbox"]:checked + .checkbox-mark::after {
+        content: '';
+        position: absolute;
+        left: 4px;
+        top: 1px;
+        width: 4px;
+        height: 8px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+    
+    /* Enhanced status badges */
+    .status-badge {
+        display: inline-flex;
         align-items: center;
-        gap: 12px;
-        min-width: 200px;
-    }
-    
-    .product-details h4 {
-        margin: 0 0 4px 0;
-        font-weight: 600;
-        color: var(--text-primary);
-        font-size: 0.875rem;
-        line-height: 1.2;
-    }
-    
-    .product-description {
-        color: var(--text-secondary);
-        font-size: 0.75rem;
-        margin: 0;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    
-    .price-info {
-        text-align: right;
-    }
-    
-    .price-value {
-        font-weight: 700;
-        color: var(--success-color);
-        font-size: 1rem;
-        margin: 0;
-    }
-    
-    .stock-info {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        margin: 4px 0 0 0;
-    }
-    
-    .category-badge {
-        padding: 4px 8px;
-        border-radius: 12px;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
         font-size: 0.75rem;
         font-weight: 600;
         text-transform: capitalize;
         white-space: nowrap;
-        text-align: center;
     }
     
-    .category-badge.food_beverages {
+    .status-badge.active {
         background: rgba(34, 197, 94, 0.1);
         color: #059669;
     }
     
-    .category-badge.textiles_clothing {
-        background: rgba(168, 85, 247, 0.1);
-        color: #7C3AED;
-    }
-    
-    .category-badge.electronics {
-        background: rgba(59, 130, 246, 0.1);
-        color: #2563EB;
-    }
-    
-    .category-badge.machinery_equipment {
+    .status-badge.draft {
         background: rgba(107, 114, 128, 0.1);
-        color: #4B5563;
+        color: #4b5563;
     }
     
-    .featured-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
+    .status-badge.inactive {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+    }
+    
+    .status-badge.discontinued {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+    
+    .status-badge.out_of_stock {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+    
+    /* Status icon enhancement */
+    .status-icon {
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
-        border: 2px solid var(--warning-color);
-        color: var(--warning-color);
-        font-size: 1rem;
-        transition: all 0.2s ease;
-    }
-    
-    .featured-badge.active {
-        background: var(--warning-color);
-        color: white;
-    }
-    
-    .performance-score {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-    
-    .performance-indicator {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-    }
-    
-    .performance-indicator.high {
-        background: var(--success-color);
-    }
-    
-    .performance-indicator.medium {
-        background: var(--warning-color);
-    }
-    
-    .performance-indicator.low {
-        background: var(--danger-color);
+        background: currentColor;
     }
 </style>
 

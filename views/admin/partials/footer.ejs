@@ -1,0 +1,139 @@
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/bootstrap.bundle.min.js"></script>
+  <script src="/admin/js/admin-theme.js"></script>
+  
+  <!-- Settings Notification Styles -->
+  <style>
+    .settings-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      min-width: 320px;
+      max-width: 480px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      display: none;
+      animation: slideInRight 0.3s ease-out;
+    }
+
+    .settings-notification.success {
+      border-left: 4px solid #10b981;
+    }
+
+    .settings-notification.error {
+      border-left: 4px solid #ef4444;
+    }
+
+    .settings-notification.warning {
+      border-left: 4px solid #f59e0b;
+    }
+
+    .settings-notification.info {
+      border-left: 4px solid #3b82f6;
+    }
+
+    .notification-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .notification-content i {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .settings-notification.success .notification-content i {
+      color: #10b981;
+    }
+
+    .settings-notification.error .notification-content i {
+      color: #ef4444;
+    }
+
+    .settings-notification.warning .notification-content i {
+      color: #f59e0b;
+    }
+
+    .settings-notification.info .notification-content i {
+      color: #3b82f6;
+    }
+
+    .notification-content span {
+      flex: 1;
+      font-size: 14px;
+      color: #374151;
+      line-height: 1.4;
+    }
+
+    .notification-close {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .notification-close:hover {
+      background-color: #f3f4f6;
+      color: #374151;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .search-results-count {
+      background-color: #f3f4f6;
+      color: #6b7280;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .no-search-results {
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .setting-item.search-match {
+      border: 1px solid #e5e7eb;
+    }
+
+    .setting-item.search-highlight {
+      border-color: #3b82f6;
+      background-color: rgba(59, 130, 246, 0.05);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1);
+    }
+  </style>
+
+  <!-- Global Variables -->
+  <script>
+    // Set global debug mode
+    window.DEBUG_MODE = <%= process.env.NODE_ENV !== 'production' %>;
+    
+    // Settings page specific initialization
+    if (window.location.pathname.includes('/settings')) {
+      console.log('Settings page detected - initializing settings management');
+    }
+  </script>
+</body>
+</html>

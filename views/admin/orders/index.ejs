@@ -1,181 +1,511 @@
-<!DOCTYPE html>
-<html lang="<%= currentLang || 'uz' %>" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Management - SLEX Admin</title>
+<%- include('../partials/header', { 
+    title: 'Orders Management - SLEX Admin Dashboard',
+    lng: typeof currentLang !== 'undefined' ? currentLang : 'uz',
+    admin: admin, 
+    user: user,
+    breadcrumb: [
+        { title: 'Dashboard', url: '/admin' },
+        { title: 'Orders' }
+    ]
+}) %>
+
+    <!-- Professional Orders CSS -->
+    <link rel="stylesheet" href="/admin/css/orders-management.css">
+    <link rel="stylesheet" href="/admin/css/orders-professional.css">
+    <link rel="stylesheet" href="/admin/css/orders-modal.css">
+
+<%- include('../partials/sidebar', { 
+    admin: admin, 
+    user: user, 
+    currentPage: 'orders',
+    stats: typeof stats !== 'undefined' ? stats : {}
+}) %>
     
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- CSS -->
-    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/assets/css/line-awesome.min.css" rel="stylesheet">
-    <link href="/admin/css/admin-theme.css" rel="stylesheet">
-    <link href="/admin/css/admin-components.css" rel="stylesheet">
-    <link href="/admin/css/admin-responsive.css" rel="stylesheet">
-</head>
-<body class="admin-layout">
-    <div class="admin-wrapper">
-        <!-- Sidebar -->
-        <%- include('../partials/sidebar', { currentPage: 'orders', user: user }) %>
-        
-        <!-- Main Content -->
-        <div class="admin-main">
-            <!-- Header -->
-            <%- include('../partials/header', { 
-                user: user, 
-                title: 'Order Management',
-                breadcrumb: [
-                    { title: 'Management', url: '/admin' },
-                    { title: 'Orders' }
-                ],
-                currentLang: typeof currentLang !== 'undefined' ? currentLang : 'uz'
-            }) %>
+    <!-- Main Content -->
+    <main class="admin-main">
+        <div class="admin-content">
             
-            <!-- Content -->
-            <div class="admin-content">
-                <div class="container-fluid">
-                    <!-- Page Title and Actions -->
-                    <div class="page-header mb-4">
-                        <div class="page-header-content">
-                            <div class="page-title-section">
-                                <h1 class="page-title">
-                                    <i class="las la-shopping-cart"></i>
-                                    Order Management
-                                </h1>
-                                <p class="page-subtitle">Monitor orders, track payments, and manage logistics coordination</p>
+            <!-- Orders Management Content -->
+            <div class="orders-container">
+                
+                <!-- Page Header -->
+                <div class="page-header animate-fade-in">
+                    <div class="page-header-content">
+                        <div class="page-title-section">
+                            <h1 class="page-title">
+                                <i class="las la-shopping-cart text-primary"></i>
+                                Orders Management
+                            </h1>
+                            <p class="page-subtitle">
+                                Comprehensive B2B order management with advanced tracking, payment processing, and logistics coordination
+                            </p>
+                        </div>
+                        <div class="page-actions">
+                            <button class="btn btn-outline-primary" onclick="exportOrders()">
+                                <i class="las la-download"></i>
+                                Export Data
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="refreshData()">
+                                <i class="las la-sync-alt"></i>
+                                Refresh
+                            </button>
+                            <button class="btn btn-primary" onclick="openCreateOrderModal()">
+                                <i class="las la-plus"></i>
+                                Create Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Dashboard -->
+                <div class="metrics-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg animate-fade-in">
+                    <div class="stat-card primary">
+                        <div class="stat-content">
+                            <div class="stat-icon">
+                                <i class="las la-shopping-cart"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="totalOrdersCount"><%= statistics?.total || 0 %></div>
+                                <div class="stat-label">Total Orders</div>
+                                <div class="stat-trend positive">
+                                    <i class="las la-arrow-up"></i>
+                                    +12%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card success">
+                        <div class="stat-content">
+                            <div class="stat-icon success">
+                                <i class="las la-check-circle"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="completedOrdersCount"><%= statistics?.statusCounts?.completed || 0 %></div>
+                                <div class="stat-label">Completed Orders</div>
+                                <div class="stat-trend positive">
+                                    <i class="las la-arrow-up"></i>
+                                    +8%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-content">
+                            <div class="stat-icon warning">
+                                <i class="las la-clock"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="pendingOrdersCount"><%= statistics?.statusCounts?.pending || 0 %></div>
+                                <div class="stat-label">Pending Orders</div>
+                                <div class="stat-trend negative">
+                                    <i class="las la-arrow-down"></i>
+                                    -5%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card info">
+                        <div class="stat-content">
+                            <div class="stat-icon info">
+                                <i class="las la-dollar-sign"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value" id="totalRevenue">$<%= statistics?.totalRevenue ? Math.round(statistics.totalRevenue).toLocaleString() : '0' %></div>
+                                <div class="stat-label">Total Revenue</div>
+                                <div class="stat-trend positive">
+                                    <i class="las la-arrow-up"></i>
+                                    +15%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Card -->
+                <div class="main-card animate-fade-in">
+                    
+                    <!-- Tab Navigation -->
+                    <div class="tabs-navigation">
+                        <button class="tab-item active" data-status="" data-tab="all">
+                            <i class="las la-list"></i>
+                            All Orders
+                            <span class="tab-badge" id="allOrdersTab"><%= statistics?.total || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="pending" data-tab="pending">
+                            <i class="las la-clock"></i>
+                            Pending
+                            <span class="tab-badge warning" id="pendingOrdersTab"><%= statistics?.statusCounts?.pending || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="confirmed" data-tab="confirmed">
+                            <i class="las la-check"></i>
+                            Confirmed
+                            <span class="tab-badge success" id="confirmedOrdersTab"><%= statistics?.statusCounts?.confirmed || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="processing" data-tab="processing">
+                            <i class="las la-cog"></i>
+                            Processing
+                            <span class="tab-badge info" id="processingOrdersTab"><%= statistics?.statusCounts?.processing || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="shipped" data-tab="shipped">
+                            <i class="las la-shipping-fast"></i>
+                            Shipped
+                            <span class="tab-badge primary" id="shippedOrdersTab"><%= statistics?.statusCounts?.shipped || 0 %></span>
+                        </button>
+                        <button class="tab-item" data-status="completed" data-tab="completed">
+                            <i class="las la-check-double"></i>
+                            Completed
+                            <span class="tab-badge success" id="completedOrdersTab"><%= statistics?.statusCounts?.completed || 0 %></span>
+                        </button>
+                    </div>
+
+                    <!-- Filters Section -->
+                    <div class="filters-section">
+                        <div class="filters-header">
+                            <h3 class="filters-title">
+                                <i class="las la-filter"></i>
+                                Advanced Filters
+                            </h3>
+                            <div class="filter-actions">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()">
+                                    <i class="las la-times"></i>
+                                    Clear
+                                </button>
+                                <button class="btn btn-primary btn-sm" onclick="applyFilters()">
+                                    <i class="las la-search"></i>
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="filters-grid">
+                            <div class="filter-group">
+                                <label class="filter-label">Search Orders</label>
+                                <div class="search-input">
+                                    <i class="las la-search search-icon"></i>
+                                    <input type="text" class="filter-input" id="searchInput" placeholder="Order number, buyer, seller...">
+                                </div>
                             </div>
                             
-                            <div class="page-actions">
-                                <button class="btn btn-outline-primary" onclick="exportOrders()">
-                                    <i class="las la-download"></i>
-                                    Export Orders
-                                </button>
-                                <button class="btn btn-primary" onclick="createOrder()">
-                                    <i class="las la-plus"></i>
-                                    Create Order
-                                </button>
+                            <div class="filter-group">
+                                <label class="filter-label">Buyer Country</label>
+                                <select class="filter-input" id="countryFilter">
+                                    <option value="">All Countries</option>
+                                    <option value="Uzbekistan">Uzbekistan</option>
+                                    <option value="Kazakhstan">Kazakhstan</option>
+                                    <option value="China">China</option>
+                                    <option value="Tajikistan">Tajikistan</option>
+                                    <option value="Turkmenistan">Turkmenistan</option>
+                                    <option value="Afghanistan">Afghanistan</option>
+                                    <option value="Kyrgyzstan">Kyrgyzstan</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Order Value (USD)</label>
+                                <select class="filter-input" id="valueRangeFilter">
+                                    <option value="">All Values</option>
+                                    <option value="0-1000">$0 - $1,000</option>
+                                    <option value="1000-5000">$1,000 - $5,000</option>
+                                    <option value="5000-25000">$5,000 - $25,000</option>
+                                    <option value="25000-100000">$25,000 - $100,000</option>
+                                    <option value="100000-">$100,000+</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Payment Status</label>
+                                <select class="filter-input" id="paymentStatusFilter">
+                                    <option value="">All Payment Status</option>
+                                    <option value="pending">Pending Payment</option>
+                                    <option value="partial">Partially Paid</option>
+                                    <option value="paid">Fully Paid</option>
+                                    <option value="overdue">Overdue</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Date Range</label>
+                                <select class="filter-input" id="dateRangeFilter">
+                                    <option value="">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                    <option value="quarter">This Quarter</option>
+                                    <option value="year">This Year</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label">Shipping Method</label>
+                                <select class="filter-input" id="shippingFilter">
+                                    <option value="">All Methods</option>
+                                    <option value="air_freight">Air Freight</option>
+                                    <option value="sea_freight">Sea Freight</option>
+                                    <option value="land_transport">Land Transport</option>
+                                    <option value="express">Express Delivery</option>
+                                </select>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Order Statistics -->
-                    <div class="metrics-grid mb-4">
-                        <div class="metric-card metric-primary">
-                            <div class="metric-content">
-                                <div class="metric-icon">
-                                    <i class="las la-shopping-cart"></i>
-                                </div>
-                                <div class="metric-details">
-                                    <h3 class="metric-value">1,847</h3>
-                                    <p class="metric-label">Total Orders</p>
-                                    <span class="metric-trend positive">
-                                        <i class="las la-arrow-up"></i>
-                                        +8.2% this month
-                                    </span>
-                                </div>
+                    <!-- Table Section -->
+                    <div class="table-section">
+                        <div class="table-header">
+                            <div class="table-title">
+                                <i class="las la-table"></i>
+                                Orders Catalog
+                                <span class="result-count" id="tableResultsCount">(0 results)</span>
                             </div>
-                        </div>
-
-                        <div class="metric-card metric-success">
-                            <div class="metric-content">
-                                <div class="metric-icon">
-                                    <i class="las la-check-circle"></i>
-                                </div>
-                                <div class="metric-details">
-                                    <h3 class="metric-value">1,423</h3>
-                                    <p class="metric-label">Completed Orders</p>
-                                    <span class="metric-trend positive">
-                                        <i class="las la-arrow-up"></i>
-                                        +12.5% this month
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="metric-card metric-warning">
-                            <div class="metric-content">
-                                <div class="metric-icon">
-                                    <i class="las la-clock"></i>
-                                </div>
-                                <div class="metric-details">
-                                    <h3 class="metric-value">234</h3>
-                                    <p class="metric-label">Pending Orders</p>
-                                    <span class="metric-trend neutral">
-                                        <i class="las la-minus"></i>
-                                        Same as yesterday
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="metric-card metric-purple">
-                            <div class="metric-content">
-                                <div class="metric-icon">
-                                    <i class="las la-dollar-sign"></i>
-                                </div>
-                                <div class="metric-details">
-                                    <h3 class="metric-value">$89.4K</h3>
-                                    <p class="metric-label">Monthly Revenue</p>
-                                    <span class="metric-trend positive">
-                                        <i class="las la-arrow-up"></i>
-                                        +18.7% this month
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Order Management Dashboard -->
-                    <div class="dashboard-card">
-                        <div class="card-body text-center py-5">
-                            <i class="las la-shopping-cart" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
-                            <h4>Order Management System</h4>
-                            <p class="text-muted">Comprehensive order tracking and logistics management will be implemented here.</p>
-                            <div class="mt-4">
-                                <button class="btn btn-primary me-2" onclick="createOrder()">
-                                    <i class="las la-plus"></i>
-                                    Create New Order
+                            
+                            <div class="bulk-actions hidden" id="bulkActions">
+                                <span class="selected-count" id="selectedCount">0 selected</span>
+                                <button class="btn btn-success btn-sm" onclick="bulkConfirmOrders()" id="bulkConfirmBtn">
+                                    <i class="las la-check"></i>
+                                    Confirm
                                 </button>
-                                <button class="btn btn-outline-secondary me-2" onclick="trackOrders()">
-                                    <i class="las la-search"></i>
-                                    Track Orders
-                                </button>
-                                <button class="btn btn-outline-info" onclick="manageShipping()">
+                                <button class="btn btn-info btn-sm" onclick="bulkShipOrders()" id="bulkShipBtn">
                                     <i class="las la-shipping-fast"></i>
-                                    Manage Shipping
+                                    Ship
+                                </button>
+                                <button class="btn btn-primary btn-sm" onclick="bulkExportOrders()" id="bulkExportBtn">
+                                    <i class="las la-download"></i>
+                                    Export
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="bulkCancelOrders()" id="bulkCancelBtn">
+                                    <i class="las la-times"></i>
+                                    Cancel
                                 </button>
                             </div>
+                        </div>
+                        
+                        <div class="professional-table-container" id="tableContainer">
+                            <!-- Desktop Table View -->
+                            <div class="desktop-table-view">
+                                <table class="professional-orders-table">
+                                    <thead class="table-header-sticky">
+                                        <tr class="header-row">
+                                            <th class="th-select" data-column="select">
+                                                <div class="th-content">
+                                                    <label class="modern-checkbox">
+                                                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)">
+                                                        <span class="checkbox-mark"></span>
+                                                    </label>
+                                                </div>
+                                            </th>
+                                            <th class="th-order" data-column="order" onclick="sortTable('orderNumber')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Order Information</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-parties" data-column="parties">
+                                                <div class="th-content">
+                                                    <span class="th-label">Buyer & Seller</span>
+                                                </div>
+                                            </th>
+                                            <th class="th-items" data-column="items">
+                                                <div class="th-content">
+                                                    <span class="th-label">Order Items</span>
+                                                </div>
+                                            </th>
+                                            <th class="th-value" data-column="value" onclick="sortTable('totalAmount')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Order Value</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-status" data-column="status" onclick="sortTable('status')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Status</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-payment" data-column="payment">
+                                                <div class="th-content">
+                                                    <span class="th-label">Payment</span>
+                                                </div>
+                                            </th>
+                                            <th class="th-date" data-column="date" onclick="sortTable('createdAt')">
+                                                <div class="th-content sortable">
+                                                    <span class="th-label">Order Date</span>
+                                                    <span class="sort-indicator">
+                                                        <i class="las la-sort sort-icon"></i>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="th-actions" data-column="actions">
+                                                <div class="th-content">
+                                                    <span class="th-label">Actions</span>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ordersTableBody" class="table-body-modern">
+                                        <!-- Orders data will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Mobile Card View -->
+                            <div class="mobile-cards-view" id="mobileCardsView">
+                                <!-- Mobile cards will be rendered here -->
+                            </div>
+
+                            <!-- Table Loading Overlay -->
+                            <div class="table-loading-overlay" id="tableLoadingOverlay">
+                                <div class="loading-content">
+                                    <div class="modern-spinner"></div>
+                                    <p class="loading-text">Loading orders...</p>
+                                </div>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div class="table-empty-state hidden" id="tableEmptyState">
+                                <div class="empty-state-content">
+                                    <div class="empty-state-icon">
+                                        <i class="las la-shopping-cart"></i>
+                                    </div>
+                                    <h3 class="empty-state-title">No Orders Found</h3>
+                                    <p class="empty-state-description">No orders match your current filter criteria.</p>
+                                    <button class="btn btn-primary" onclick="clearAllFilters()">
+                                        <i class="las la-refresh"></i>
+                                        Reset Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination Section -->
+                    <div class="pagination-section" id="paginationSection">
+                        <div class="pagination-info">
+                            Showing <span id="paginationStart">0</span>-<span id="paginationEnd">0</span> of <span id="paginationTotal">0</span> orders
+                        </div>
+                        <div class="pagination-controls" id="paginationControls">
+                            <!-- Pagination buttons will be generated here -->
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="modern-spinner"></div>
+            <div class="loading-text" id="loadingText">Processing...</div>
+        </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="/assets/js/bootstrap.bundle.min.js"></script>
-    <script src="/admin/js/admin-theme.js"></script>
+<!-- Scripts -->
+<script src="/assets/js/jquery-3.7.1.min.js"></script>
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-    window.exportOrders = () => {
-        console.log('Export orders functionality will be implemented');
-    };
+<!-- Admin Dashboard Core Scripts -->
+<script src="/admin/js/dashboard.js"></script>
 
-    window.createOrder = () => {
-        console.log('Create order functionality will be implemented');
-    };
+<!-- Orders Management JavaScript -->
+<script src="/admin/js/orders-management.js"></script>
 
-    window.trackOrders = () => {
-        console.log('Order tracking functionality will be implemented');
-    };
+<!-- Orders Management Configuration -->
+<script>
+    // Set debug mode
+    window.DEBUG_MODE = <%= JSON.stringify(process.env.NODE_ENV !== 'production') %>;
+    
+    // Initialize Orders Management
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof OrdersManagement !== 'undefined') {
+            try {
+                window.ordersManager = new OrdersManagement();
+                window.ordersManager.init();
+            } catch (error) {
+                console.error('Failed to initialize Orders Management:', error);
+            }
+        } else {
+            console.error('OrdersManagement class not found');
+        }
+    });
 
-    window.manageShipping = () => {
-        console.log('Shipping management functionality will be implemented');
-    };
-    </script>
+    // Global order management functions
+    function openCreateOrderModal() {
+        if (window.DEBUG_MODE) console.log('Opening create order modal...');
+        if (window.ordersManager) {
+            window.ordersManager.showCreateModal();
+        } else {
+            console.error('Orders manager not initialized');
+        }
+    }
+
+    function exportOrders() {
+        if (window.ordersManager) {
+            window.ordersManager.exportOrders();
+        }
+    }
+
+    function refreshData() {
+        if (window.ordersManager) {
+            window.ordersManager.refreshData();
+        }
+    }
+
+    function clearAllFilters() {
+        if (window.ordersManager) {
+            window.ordersManager.clearAllFilters();
+        }
+    }
+
+    function applyFilters() {
+        if (window.ordersManager) {
+            window.ordersManager.applyFilters();
+        }
+    }
+
+    function toggleSelectAll(checked) {
+        if (window.ordersManager) {
+            window.ordersManager.toggleSelectAll(checked);
+        }
+    }
+
+    function sortTable(column) {
+        if (window.ordersManager) {
+            window.ordersManager.sortTable(column);
+        }
+    }
+
+    function bulkConfirmOrders() {
+        if (window.ordersManager) {
+            window.ordersManager.bulkAction('confirm');
+        }
+    }
+
+    function bulkShipOrders() {
+        if (window.ordersManager) {
+            window.ordersManager.bulkAction('ship');
+        }
+    }
+
+    function bulkExportOrders() {
+        if (window.ordersManager) {
+            window.ordersManager.bulkExport();
+        }
+    }
+
+    function bulkCancelOrders() {
+        if (window.ordersManager) {
+            window.ordersManager.bulkAction('cancel');
+        }
+    }
+</script>
+
 </body>
 </html>

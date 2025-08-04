@@ -64,6 +64,7 @@ class ProductsManagement {
     init() {
         this.setupEventListeners();
         this.setupKeyboardShortcuts();
+        this.setupThemeListener(); // Add theme listener setup
         this.loadProducts(false);
         this.updateTabCounts();
         this.setupAutoRefresh();
@@ -343,12 +344,21 @@ class ProductsManagement {
             
             // Handle wrapped response structure
             const data = response_data.success ? response_data.data : response_data;
+            console.log('📦 Extracted data:', data);
             
             // Validate response structure
             if (!data || !data.pagination || !data.products) {
-                console.error('❌ Invalid response structure:', { data, response_data });
+                console.error('❌ Invalid response structure:', { 
+                    hasData: !!data,
+                    hasPagination: !!(data && data.pagination),
+                    hasProducts: !!(data && data.products),
+                    dataKeys: data ? Object.keys(data) : 'No data',
+                    response_data 
+                });
                 throw new Error('Invalid API response structure');
             }
+            
+            console.log(`📊 Processing ${data.products.length} products for rendering`);
             
             // Update state with fallbacks
             this.totalProducts = data.pagination.total || data.pagination.totalCount || 0;
@@ -488,14 +498,27 @@ class ProductsManagement {
      */
     renderProducts(products) {
         const tableBody = document.getElementById('productsTableBody');
+        const mobileCardsView = document.getElementById('mobileCardsView');
+        
         if (!tableBody) return;
         
         if (!products || products.length === 0) {
+            console.log('📦 No products to render:', {
+                products: products,
+                productsLength: products ? products.length : 'undefined',
+                productsType: typeof products
+            });
             this.renderEmptyState();
             return;
         }
         
+        // Render desktop table
         tableBody.innerHTML = products.map(product => this.renderProductRow(product)).join('');
+        
+        // Render mobile cards
+        if (mobileCardsView) {
+            mobileCardsView.innerHTML = products.map(product => this.renderMobileCard(product)).join('');
+        }
         
         // Apply fade-in animation
         tableBody.classList.add('fade-in');
@@ -508,81 +531,211 @@ class ProductsManagement {
     }
 
     /**
+     * Render mobile card view
+     */
+    renderMobileCard(product) {
+        const isSelected = this.selectedProducts.has(product._id);
+        
+        return `
+            <div class="mobile-product-card ${isSelected ? 'selected' : ''}" data-product-id="${product._id}">
+                <div class="mobile-card-header">
+                    <label class="modern-checkbox">
+                        <input type="checkbox" 
+                               class="product-checkbox" 
+                               value="${product._id}"
+                               ${isSelected ? 'checked' : ''}
+                               onchange="window.productsManager.toggleProductSelection('${product._id}', this.checked)">
+                        <span class="checkbox-mark"></span>
+                    </label>
+                    <div class="mobile-product-info">
+                        ${this.renderProductImage(product)}
+                        <div class="mobile-product-details">
+                            <h4 class="mobile-product-name">${this.escapeHtml(product.name || 'N/A')}</h4>
+                            <div class="mobile-product-badges">
+                                ${product.isFeatured ? '<span class="badge badge-featured"><i class="las la-star"></i>Featured</span>' : ''}
+                                ${product.isPromoted ? '<span class="badge badge-promoted"><i class="las la-fire"></i>Promoted</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                    ${this.renderProductActions(product)}
+                </div>
+                
+                <div class="mobile-card-content">
+                    <p class="mobile-product-description">${this.escapeHtml(product.shortDescription || product.description || 'No description available')}</p>
+                    
+                    <div class="mobile-info-grid">
+                        <div class="mobile-info-item">
+                            <span class="mobile-info-label">Manufacturer:</span>
+                            <span class="mobile-info-value">${this.escapeHtml(product.manufacturerInfo?.companyName || 'N/A')}</span>
+                        </div>
+                        <div class="mobile-info-item">
+                            <span class="mobile-info-label">Category:</span>
+                            ${this.renderCategoryBadge(product)}
+                        </div>
+                        <div class="mobile-info-item">
+                            <span class="mobile-info-label">Price:</span>
+                            <span class="mobile-price-value">$${this.formatPrice(product.pricing?.basePrice || 0)} ${product.pricing?.currency || 'USD'}</span>
+                        </div>
+                        <div class="mobile-info-item">
+                            <span class="mobile-info-label">Stock:</span>
+                            <div class="mobile-stock-info">
+                                <div class="stock-status ${this.getStockStatus(product)}">
+                                    <div class="stock-indicator"></div>
+                                    <span class="stock-text">${this.getStockStatusText(product)}</span>
+                                </div>
+                                <span class="stock-quantity">${product.inventory?.availableStock || 0} ${product.inventory?.unit || 'pcs'}</span>
+                            </div>
+                        </div>
+                        <div class="mobile-info-item">
+                            <span class="mobile-info-label">Status:</span>
+                            ${this.renderStatusBadge(product.status)}
+                        </div>
+                        <div class="mobile-info-item">
+                            <span class="mobile-info-label">Added:</span>
+                            <span class="mobile-info-value">${this.formatDate(product.createdAt)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
      * Render a single product row
      */
     renderProductRow(product) {
         const isSelected = this.selectedProducts.has(product._id);
         
         return `
-            <tr class="${isSelected ? 'selected' : ''}" data-product-id="${product._id}">
-                <td>
-                    <input type="checkbox" 
-                           class="product-checkbox" 
-                           value="${product._id}"
-                           ${isSelected ? 'checked' : ''}
-                           onchange="productsManagement.toggleProductSelection('${product._id}', this.checked)">
+            <tr class="table-row ${isSelected ? 'selected' : ''}" data-product-id="${product._id}">
+                <td class="td-select">
+                    <label class="modern-checkbox">
+                        <input type="checkbox" 
+                               class="product-checkbox" 
+                               value="${product._id}"
+                               ${isSelected ? 'checked' : ''}
+                               onchange="window.productsManager.toggleProductSelection('${product._id}', this.checked)">
+                        <span class="checkbox-mark"></span>
+                    </label>
                 </td>
-                <td>
-                    <div class="product-info">
-                        ${this.renderProductImage(product)}
+                <td class="td-product">
+                    <div class="product-info-cell">
+                        <div class="product-image-container">
+                            ${this.renderProductImage(product)}
+                        </div>
                         <div class="product-details">
-                            <h4 class="product-name">${this.escapeHtml(product.name || 'N/A')}</h4>
+                            <div class="product-name-container">
+                                <h4 class="product-name">${this.escapeHtml(product.name || 'N/A')}</h4>
+                                <div class="product-badges">
+                                    ${product.isFeatured ? '<span class="badge badge-featured"><i class="las la-star"></i>Featured</span>' : ''}
+                                    ${product.isPromoted ? '<span class="badge badge-promoted"><i class="las la-fire"></i>Promoted</span>' : ''}
+                                </div>
+                            </div>
                             <p class="product-description">${this.escapeHtml(product.shortDescription || product.description || 'No description available')}</p>
+                            <div class="product-meta">
+                                <span class="product-sku">${product.sku || 'No SKU'}</span>
+                                ${this.renderCategoryBadge(product)}
+                            </div>
                         </div>
                     </div>
                 </td>
-                <td>
-                    <div class="manufacturer-info">
-                        <div class="manufacturer-name">${this.escapeHtml(product.manufacturerInfo?.companyName || 'N/A')}</div>
-                        <div class="manufacturer-country">
+                <td class="td-manufacturer">
+                    <div class="manufacturer-info-cell">
+                        <div class="manufacturer-header">
+                            <div class="manufacturer-name">${this.escapeHtml(product.manufacturerInfo?.companyName || 'N/A')}</div>
+                            <div class="manufacturer-rating">
+                                ${this.renderTrustScore(product.manufacturerInfo?.trustScore || 0)}
+                            </div>
+                        </div>
+                        <div class="manufacturer-location">
                             ${this.renderCountryFlag(product.manufacturerInfo?.country)}
-                            <span>${this.escapeHtml(product.manufacturerInfo?.country || 'N/A')}</span>
+                            <span class="country-name">${this.escapeHtml(product.manufacturerInfo?.country || 'N/A')}</span>
                         </div>
-                        <div class="trust-score">
-                            <div class="trust-indicator ${this.getTrustLevel(product.manufacturerInfo?.trustScore || 0)}"></div>
-                            ${product.manufacturerInfo?.trustScore || 0}%
+                        <div class="manufacturer-contact">
+                            ${product.manufacturerInfo?.email ? `<span class="contact-email">${this.escapeHtml(product.manufacturerInfo.email)}</span>` : ''}
                         </div>
                     </div>
                 </td>
-                <td>
-                    ${this.renderCategoryBadge(product.category || 'other')}
-                </td>
-                <td>
-                    <div class="price-stock-info">
-                        <div class="price-value">
-                            $${this.formatPrice(product.pricing?.basePrice || 0)}
-                            <span class="price-currency">${product.pricing?.currency || 'USD'}</span>
+                <td class="td-business">
+                    <div class="business-info-cell">
+                        <div class="business-type">
+                            <i class="las la-industry business-icon"></i>
+                            <span class="business-label">${this.getBusinessTypeLabel(product.businessMetrics?.type || 'standard')}</span>
                         </div>
-                        <div class="stock-info">
-                            <div class="stock-level ${this.getStockStatus(product)}">
-                                ${this.getStockStatusText(product)}
+                        <div class="certification-info">
+                            ${product.certifications?.length ? 
+                                `<span class="certification-count"><i class="las la-certificate"></i>${product.certifications.length} Certified</span>` : 
+                                '<span class="no-certification">No Certifications</span>'
+                            }
+                        </div>
+                        <div class="quality-score">
+                            ${this.renderQualityScore(product.businessMetrics?.qualityScore || 0)}
+                        </div>
+                    </div>
+                </td>
+                <td class="td-pricing">
+                    <div class="pricing-info-cell">
+                        <div class="price-container">
+                            <div class="price-main">
+                                <span class="currency-symbol">$</span>
+                                <span class="price-value">${this.formatPrice(product.pricing?.basePrice || 0)}</span>
+                                <span class="price-currency">${product.pricing?.currency || 'USD'}</span>
+                            </div>
+                            <div class="price-details">
+                                ${product.pricing?.discount ? `<span class="price-discount">-${product.pricing.discount}%</span>` : ''}
+                                <span class="price-unit">per ${product.inventory?.unit || 'pcs'}</span>
+                            </div>
+                        </div>
+                        <div class="stock-container">
+                            <div class="stock-status ${this.getStockStatus(product)}">
+                                <div class="stock-indicator"></div>
+                                <span class="stock-text">${this.getStockStatusText(product)}</span>
                             </div>
                             <div class="stock-quantity">
-                                ${product.inventory?.availableStock || 0} ${product.inventory?.unit || 'pcs'}
+                                <span class="stock-number">${product.inventory?.availableStock || 0}</span>
+                                <span class="stock-unit">${product.inventory?.unit || 'pcs'}</span>
                             </div>
                         </div>
                     </div>
                 </td>
-                <td>
-                    ${this.renderStatusBadge(product.status)}
-                </td>
-                <td>
-                    <div class="performance-score">
-                        <div class="performance-indicator ${product.businessMetrics?.performanceLevel || 'low'}"></div>
-                        ${this.formatPerformanceScore(product.businessMetrics?.profitabilityScore || 0)}
+                <td class="td-status">
+                    <div class="status-cell">
+                        ${this.renderStatusBadge(product.status)}
+                        <div class="status-details">
+                            <small class="status-updated">Updated ${this.getTimeAgo(product.lastModifiedAt || product.createdAt)}</small>
+                        </div>
                     </div>
                 </td>
-                <td>
-                    <div class="featured-badge ${product.isFeatured ? 'active' : ''}" 
-                         onclick="productsManagement.toggleFeatured('${product._id}', ${!product.isFeatured})">
-                        <i class="las la-star"></i>
+                <td class="td-metrics">
+                    <div class="metrics-cell">
+                        <div class="performance-score">
+                            <div class="performance-indicator ${this.getPerformanceLevel(product.businessMetrics?.profitabilityScore || 0)}"></div>
+                            <span class="performance-value">${this.formatPerformanceScore(product.businessMetrics?.profitabilityScore || 0)}%</span>
+                        </div>
+                        <div class="metrics-details">
+                            <div class="metric-item">
+                                <span class="metric-label">Views:</span>
+                                <span class="metric-value">${product.businessMetrics?.viewCount || 0}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Orders:</span>
+                                <span class="metric-value">${product.businessMetrics?.orderCount || 0}</span>
+                            </div>
+                        </div>
                     </div>
                 </td>
-                <td>
-                    <small>${this.formatDate(product.createdAt)}</small>
+                <td class="td-date">
+                    <div class="date-cell">
+                        <div class="date-main">${this.formatDate(product.createdAt)}</div>
+                        <div class="date-details">
+                            <small class="date-time">${this.formatTime(product.createdAt)}</small>
+                        </div>
+                    </div>
                 </td>
-                <td>
-                    ${this.renderProductActions(product)}
+                <td class="td-actions">
+                    <div class="actions-cell">
+                        ${this.renderProductActions(product)}
+                    </div>
                 </td>
             </tr>
         `;
@@ -632,23 +785,47 @@ class ProductsManagement {
     /**
      * Render category badge
      */
-    renderCategoryBadge(category) {
-        const categoryLabels = {
-            food_beverages: 'Food & Beverages',
-            textiles_clothing: 'Textiles & Clothing',
-            electronics: 'Electronics',
-            machinery_equipment: 'Machinery & Equipment',
-            chemicals: 'Chemicals',
-            agriculture: 'Agriculture',
-            construction_materials: 'Construction Materials',
-            automotive: 'Automotive',
-            pharmaceuticals: 'Pharmaceuticals',
-            other: 'Other'
-        };
-        
-        const label = categoryLabels[category] || category;
-        
-        return `<div class="category-badge ${category}">${this.escapeHtml(label)}</div>`;
+    renderCategoryBadge(product) {
+        // Handle new category structure with MongoDB references
+        if (product.categoryName) {
+            // New category system with full category information
+            const categoryColor = product.categoryColor || '#3B82F6';
+            const categoryIcon = product.categoryIcon || 'las la-folder';
+            const categoryLevel = product.categoryLevel || 0;
+            
+            return `
+                <div class="category-badge-modern" style="border-left-color: ${categoryColor}">
+                    <div class="category-icon" style="color: ${categoryColor}">
+                        <i class="${categoryIcon}"></i>
+                    </div>
+                    <div class="category-info">
+                        <span class="category-name">${this.escapeHtml(product.categoryName)}</span>
+                        ${product.subcategoryName ? `<span class="subcategory-name">${this.escapeHtml(product.subcategoryName)}</span>` : ''}
+                        <span class="category-level">Level ${categoryLevel}</span>
+                    </div>
+                </div>
+            `;
+        } else if (product.legacyCategory) {
+            // Legacy category system support
+            const categoryLabels = {
+                food_beverages: 'Food & Beverages',
+                textiles_clothing: 'Textiles & Clothing',
+                electronics: 'Electronics',
+                machinery_equipment: 'Machinery & Equipment',
+                chemicals: 'Chemicals',
+                agriculture: 'Agriculture',
+                construction_materials: 'Construction Materials',
+                automotive: 'Automotive',
+                pharmaceuticals: 'Pharmaceuticals',
+                other: 'Other'
+            };
+            
+            const label = categoryLabels[product.legacyCategory] || product.legacyCategory;
+            return `<div class="category-badge legacy-category ${product.legacyCategory}">${this.escapeHtml(label)}</div>`;
+        } else {
+            // Fallback for products without category
+            return `<div class="category-badge no-category">Uncategorized</div>`;
+        }
     }
 
     /**
@@ -678,26 +855,26 @@ class ProductsManagement {
     renderProductActions(product) {
         return `
             <div class="actions-dropdown">
-                <button class="actions-trigger" onclick="productsManagement.toggleActionMenu('${product._id}')">
+                <button class="actions-trigger" onclick="window.productsManager.toggleActionMenu('${product._id}')">
                     <i class="las la-ellipsis-v"></i>
                 </button>
                 <div class="actions-menu" id="actions-${product._id}">
-                    <button class="action-item" onclick="productsManagement.viewProduct('${product._id}')">
+                    <button class="action-item" onclick="window.productsManager.viewProduct('${product._id}')">
                         <i class="las la-eye"></i>
                         View Details
                     </button>
-                    <button class="action-item" onclick="productsManagement.editProduct('${product._id}')">
+                    <button class="action-item" onclick="window.productsManager.editProduct('${product._id}')">
                         <i class="las la-edit"></i>
                         Edit Product
                     </button>
                     <div class="action-divider"></div>
                     ${this.getProductStatusActions(product)}
                     <div class="action-divider"></div>
-                    <button class="action-item ${product.isPromoted ? 'warning' : 'success'}" onclick="productsManagement.togglePromoted('${product._id}', ${!product.isPromoted})">
+                    <button class="action-item ${product.isPromoted ? 'warning' : 'success'}" onclick="window.productsManager.togglePromoted('${product._id}', ${!product.isPromoted})">
                         <i class="las la-${product.isPromoted ? 'star-half-alt' : 'star'}"></i>
                         ${product.isPromoted ? 'Remove Promotion' : 'Promote Product'}
                     </button>
-                    <button class="action-item danger" onclick="productsManagement.deleteProduct('${product._id}')">
+                    <button class="action-item danger" onclick="window.productsManager.deleteProduct('${product._id}')">
                         <i class="las la-trash"></i>
                         Delete Product
                     </button>
@@ -715,7 +892,7 @@ class ProductsManagement {
         switch (product.status) {
             case 'draft':
                 actions.push(`
-                    <button class="action-item success" onclick="productsManagement.activateProduct('${product._id}')">
+                    <button class="action-item success" onclick="window.productsManager.activateProduct('${product._id}')">
                         <i class="las la-check"></i>
                         Activate Product
                     </button>
@@ -724,11 +901,11 @@ class ProductsManagement {
                 
             case 'active':
                 actions.push(`
-                    <button class="action-item warning" onclick="productsManagement.deactivateProduct('${product._id}')">
+                    <button class="action-item warning" onclick="window.productsManager.deactivateProduct('${product._id}')">
                         <i class="las la-pause"></i>
                         Deactivate Product
                     </button>
-                    <button class="action-item danger" onclick="productsManagement.discontinueProduct('${product._id}')">
+                    <button class="action-item danger" onclick="window.productsManager.discontinueProduct('${product._id}')">
                         <i class="las la-times-circle"></i>
                         Discontinue Product
                     </button>
@@ -737,7 +914,7 @@ class ProductsManagement {
                 
             case 'inactive':
                 actions.push(`
-                    <button class="action-item success" onclick="productsManagement.activateProduct('${product._id}')">
+                    <button class="action-item success" onclick="window.productsManager.activateProduct('${product._id}')">
                         <i class="las la-check"></i>
                         Activate Product
                     </button>
@@ -746,7 +923,7 @@ class ProductsManagement {
                 
             case 'discontinued':
                 actions.push(`
-                    <button class="action-item success" onclick="productsManagement.activateProduct('${product._id}')">
+                    <button class="action-item success" onclick="window.productsManager.activateProduct('${product._id}')">
                         <i class="las la-redo"></i>
                         Reactivate Product
                     </button>
@@ -784,6 +961,23 @@ class ProductsManagement {
         return 'low';
     }
 
+    getPerformanceLevel(score) {
+        if (score >= 70) return 'high';
+        if (score >= 40) return 'medium';
+        return 'low';
+    }
+
+    getBusinessTypeLabel(type) {
+        const types = {
+            manufacturer: 'Manufacturer',
+            distributor: 'Distributor',
+            wholesaler: 'Wholesaler',
+            retailer: 'Retailer',
+            standard: 'Standard'
+        };
+        return types[type] || 'Standard';
+    }
+
     formatPrice(price) {
         return new Intl.NumberFormat('en-US', {
             minimumFractionDigits: 2,
@@ -793,6 +987,54 @@ class ProductsManagement {
 
     formatPerformanceScore(score) {
         return Math.round(score).toString();
+    }
+
+    formatTime(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false 
+        });
+    }
+
+    getTimeAgo(dateString) {
+        if (!dateString) return 'N/A';
+        
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) return 'today';
+        if (diffDays === 2) return 'yesterday';
+        if (diffDays <= 7) return `${diffDays - 1} days ago`;
+        if (diffDays <= 30) return `${Math.ceil((diffDays - 1) / 7)} weeks ago`;
+        
+        return `${Math.ceil(diffDays / 30)} months ago`;
+    }
+
+    renderTrustScore(score) {
+        const level = this.getTrustLevel(score);
+        return `
+            <div class="trust-score ${level}">
+                <div class="trust-indicator ${level}"></div>
+                <span class="trust-value">${score}%</span>
+            </div>
+        `;
+    }
+
+    renderQualityScore(score) {
+        const level = this.getPerformanceLevel(score);
+        return `
+            <div class="quality-score ${level}">
+                <div class="quality-bar">
+                    <div class="quality-fill" style="width: ${Math.min(100, score)}%"></div>
+                </div>
+                <span class="quality-value">${Math.round(score)}%</span>
+            </div>
+        `;
     }
 
     // Product action methods
@@ -887,13 +1129,13 @@ class ProductsManagement {
         try {
             this.showLoading(`${action.charAt(0).toUpperCase() + action.slice(1)}ing product...`);
             
-            const response = await this.fetchWithRetry('/admin/api/products/action', {
+            const response = await this.fetchWithRetry('/admin/api/products/bulk', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    productId,
+                    productIds: [productId],
                     action,
                     ...data
                 })
@@ -925,46 +1167,36 @@ class ProductsManagement {
     }
 
     // Bulk operations
-    async bulkActivateProducts() {
+    async bulkAction(action) {
         if (this.selectedProducts.size === 0) return;
         
+        const actionLabels = {
+            activate: 'Activate',
+            promote: 'Promote', 
+            delete: 'Delete'
+        };
+        
         const confirmed = await this.confirmAction(
-            'Bulk Activate',
-            `Are you sure you want to activate ${this.selectedProducts.size} selected products?`,
-            'success'
+            `Bulk ${actionLabels[action] || action}`,
+            `Are you sure you want to ${action} ${this.selectedProducts.size} selected products?`,
+            action === 'delete' ? 'danger' : 'success'
         );
         
         if (confirmed) {
-            await this.performBulkAction('activate');
+            await this.performBulkAction(action);
         }
+    }
+
+    async bulkActivateProducts() {
+        this.bulkAction('activate');
     }
 
     async bulkPromoteProducts() {
-        if (this.selectedProducts.size === 0) return;
-        
-        const confirmed = await this.confirmAction(
-            'Bulk Promote',
-            `Are you sure you want to promote ${this.selectedProducts.size} selected products?`,
-            'warning'
-        );
-        
-        if (confirmed) {
-            await this.performBulkAction('promote');
-        }
+        this.bulkAction('promote');
     }
 
     async bulkDeleteProducts() {
-        if (this.selectedProducts.size === 0) return;
-        
-        const confirmed = await this.confirmAction(
-            'Bulk Delete',
-            `Are you sure you want to delete ${this.selectedProducts.size} selected products? This action can be undone.`,
-            'danger'
-        );
-        
-        if (confirmed) {
-            await this.performBulkAction('delete');
-        }
+        this.bulkAction('delete');
     }
 
     async bulkExportProducts() {
@@ -1244,8 +1476,8 @@ class ProductsManagement {
                         <h3 class="empty-title">${message.title}</h3>
                         <p class="empty-description">${message.description}</p>
                         ${type === 'error' ? 
-                            '<button class="btn btn-primary" onclick="productsManagement.loadProducts()">Try Again</button>' : 
-                            '<button class="btn btn-outline-primary" onclick="productsManagement.clearAllFilters()">Clear Filters</button>'
+                            '<button class="btn btn-primary" onclick="window.productsManager.loadProducts()">Try Again</button>' : 
+                            '<button class="btn btn-outline-primary" onclick="window.productsManager.clearAllFilters()">Clear Filters</button>'
                         }
                     </div>
                 </td>
@@ -1272,7 +1504,7 @@ class ProductsManagement {
         // Previous button
         html += `
             <button class="page-btn ${currentPage === 1 ? 'disabled' : ''}" 
-                    onclick="productsManagement.goToPage(${currentPage - 1})"
+                    onclick="window.productsManager.goToPage(${currentPage - 1})"
                     ${currentPage === 1 ? 'disabled' : ''}>
                 <i class="las la-chevron-left"></i>
                 <span class="d-none d-md-inline">Previous</span>
@@ -1292,7 +1524,7 @@ class ProductsManagement {
             const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
             
             if (startPage > 1) {
-                html += `<button class="page-btn" onclick="productsManagement.goToPage(1)">1</button>`;
+                html += `<button class="page-btn" onclick="window.productsManager.goToPage(1)">1</button>`;
                 if (startPage > 2) {
                     html += `<span class="page-btn disabled">...</span>`;
                 }
@@ -1301,7 +1533,7 @@ class ProductsManagement {
             for (let i = startPage; i <= endPage; i++) {
                 html += `
                     <button class="page-btn ${i === currentPage ? 'active' : ''}" 
-                            onclick="productsManagement.goToPage(${i})">
+                            onclick="window.productsManager.goToPage(${i})">
                         ${i}
                     </button>
                 `;
@@ -1311,14 +1543,14 @@ class ProductsManagement {
                 if (endPage < totalPages - 1) {
                     html += `<span class="page-btn disabled">...</span>`;
                 }
-                html += `<button class="page-btn" onclick="productsManagement.goToPage(${totalPages})">${totalPages}</button>`;
+                html += `<button class="page-btn" onclick="window.productsManager.goToPage(${totalPages})">${totalPages}</button>`;
             }
         }
         
         // Next button
         html += `
             <button class="page-btn ${currentPage === totalPages ? 'disabled' : ''}" 
-                    onclick="productsManagement.goToPage(${currentPage + 1})"
+                    onclick="window.productsManager.goToPage(${currentPage + 1})"
                     ${currentPage === totalPages ? 'disabled' : ''}>
                 <span class="d-none d-md-inline">Next</span>
                 <i class="las la-chevron-right"></i>
@@ -1373,25 +1605,26 @@ class ProductsManagement {
     }
 
     showTableLoading() {
+        const loadingOverlay = document.getElementById('tableLoadingOverlay');
         const tableBody = document.getElementById('productsTableBody');
+        
+        if (loadingOverlay) {
+            loadingOverlay.classList.remove('hidden');
+            loadingOverlay.style.display = 'flex';
+        }
+        
         if (tableBody) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="10" class="text-center py-4">
-                        <div class="loading-state">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <p class="mt-2 mb-0 text-muted">Loading products...</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            tableBody.innerHTML = '';
         }
     }
 
     hideTableLoading() {
-        // Loading state is replaced by actual content or empty state
+        const loadingOverlay = document.getElementById('tableLoadingOverlay');
+        
+        if (loadingOverlay) {
+            loadingOverlay.classList.add('hidden');
+            loadingOverlay.style.display = 'none';
+        }
     }
 
     showLoading(message = 'Loading...') {
@@ -1727,6 +1960,500 @@ class ProductsManagement {
         this.showToast('Product edit modal - Coming soon!', 'info');
     }
 
+    // Theme management for products page
+    updateModalTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        const modals = document.querySelectorAll('.product-modal, .modal-overlay');
+        
+        modals.forEach(modal => {
+            if (currentTheme === 'dark') {
+                modal.classList.add('dark-theme');
+            } else {
+                modal.classList.remove('dark-theme');
+            }
+        });
+    }
+
+    // Listen for theme changes from dashboard
+    setupThemeListener() {
+        // Listen for theme changes from the main dashboard
+        window.addEventListener('themeChanged', (event) => {
+            const newTheme = event.detail.theme;
+            console.log('Products page received theme change:', newTheme);
+            this.updateModalTheme();
+        });
+
+        // Listen for storage events (theme changes from other tabs)
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'theme') {
+                console.log('Products page received theme change from storage:', event.newValue);
+                this.updateModalTheme();
+            }
+        });
+
+        // Initial theme setup
+        this.updateModalTheme();
+    }
+
+    /**
+     * Show create product modal
+     */
+    async showCreateModal() {
+        console.log('🎨 Opening create product modal...');
+        
+        try {
+            // Create and show modal
+            const modal = this.createProductModal();
+            document.body.appendChild(modal);
+            
+            // Initialize modal functionality
+            this.initializeModalFeatures(modal);
+            
+            // Apply current theme to modal
+            this.updateModalTheme();
+            
+            // Show modal with animation
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+            
+            console.log('✅ Create product modal opened successfully');
+        } catch (error) {
+            console.error('❌ Error opening create modal:', error);
+            this.showError('Failed to open create product modal');
+        }
+    }
+
+    /**
+     * Create professional product modal
+     */
+    createProductModal() {
+        const modal = document.createElement('div');
+        modal.className = 'product-modal-overlay';
+        modal.innerHTML = `
+            <div class="product-modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">
+                        <i class="las la-plus-circle"></i>
+                        Add New Product
+                    </h2>
+                    <button type="button" class="modal-close" onclick="this.closest('.product-modal-overlay').remove()">
+                        <i class="las la-times"></i>
+                    </button>
+                </div>
+
+                <form class="product-form" id="createProductForm">
+                    <div class="modal-body">
+                        
+                        <!-- Basic Information Section -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <h3 class="section-title">
+                                    <i class="las la-info-circle"></i>
+                                    Basic Information
+                                </h3>
+                            </div>
+                            
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label required">Product Name</label>
+                                    <input type="text" name="name" class="form-control" required 
+                                           placeholder="Enter product name" maxlength="200">
+                                    <div class="form-feedback"></div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label required">Category</label>
+                                    <select name="category" class="form-control" required>
+                                        <option value="">Select Category</option>
+                                        <option value="food_beverages">Food & Beverages</option>
+                                        <option value="textiles_clothing">Textiles & Clothing</option>
+                                        <option value="electronics">Electronics</option>
+                                        <option value="machinery_equipment">Machinery & Equipment</option>
+                                        <option value="chemicals">Chemicals</option>
+                                        <option value="agriculture">Agriculture</option>
+                                        <option value="construction_materials">Construction Materials</option>
+                                        <option value="automotive">Automotive</option>
+                                        <option value="pharmaceuticals">Pharmaceuticals</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                    <div class="form-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label required">Description</label>
+                                <textarea name="description" class="form-control" rows="4" required 
+                                          placeholder="Provide detailed product description" maxlength="2000"></textarea>
+                                <div class="form-feedback"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Short Description</label>
+                                <textarea name="shortDescription" class="form-control" rows="2" 
+                                          placeholder="Brief product summary (optional)" maxlength="500"></textarea>
+                                <div class="form-feedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Manufacturer Information -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <h3 class="section-title">
+                                    <i class="las la-industry"></i>
+                                    Manufacturer Information
+                                </h3>
+                            </div>
+                            
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label required">Manufacturer Name</label>
+                                    <input type="text" name="manufacturerName" class="form-control" required 
+                                           placeholder="Enter manufacturer name">
+                                    <div class="form-feedback"></div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label required">Country</label>
+                                    <select name="country" class="form-control" required>
+                                        <option value="">Select Country</option>
+                                        <option value="Uzbekistan">🇺🇿 Uzbekistan</option>
+                                        <option value="Kazakhstan">🇰🇿 Kazakhstan</option>
+                                        <option value="China">🇨🇳 China</option>
+                                        <option value="Tajikistan">🇹🇯 Tajikistan</option>
+                                        <option value="Turkmenistan">🇹🇲 Turkmenistan</option>
+                                        <option value="Afghanistan">🇦🇫 Afghanistan</option>
+                                        <option value="Kyrgyzstan">🇰🇬 Kyrgyzstan</option>
+                                    </select>
+                                    <div class="form-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pricing & Inventory -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <h3 class="section-title">
+                                    <i class="las la-dollar-sign"></i>
+                                    Pricing & Inventory
+                                </h3>
+                            </div>
+                            
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label required">Base Price (USD)</label>
+                                    <input type="number" name="basePrice" class="form-control" required 
+                                           min="0" step="0.01" placeholder="0.00">
+                                    <div class="form-feedback"></div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Currency</label>
+                                    <select name="currency" class="form-control">
+                                        <option value="USD" selected>USD - US Dollar</option>
+                                        <option value="UZS">UZS - Uzbek Som</option>
+                                        <option value="KZT">KZT - Kazakhstani Tenge</option>
+                                        <option value="CNY">CNY - Chinese Yuan</option>
+                                        <option value="EUR">EUR - Euro</option>
+                                    </select>
+                                    <div class="form-feedback"></div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label required">Stock Quantity</label>
+                                    <input type="number" name="stockQuantity" class="form-control" required 
+                                           min="0" placeholder="0">
+                                    <div class="form-feedback"></div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label required">Unit of Measurement</label>
+                                    <select name="unit" class="form-control" required>
+                                        <option value="">Select Unit</option>
+                                        <option value="piece">Piece</option>
+                                        <option value="kg">Kilogram</option>
+                                        <option value="ton">Ton</option>
+                                        <option value="liter">Liter</option>
+                                        <option value="meter">Meter</option>
+                                        <option value="box">Box</option>
+                                        <option value="carton">Carton</option>
+                                        <option value="pallet">Pallet</option>
+                                    </select>
+                                    <div class="form-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-grid grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Minimum Order Quantity</label>
+                                    <input type="number" name="minOrderQuantity" class="form-control" 
+                                           min="1" value="1" placeholder="1">
+                                    <div class="form-feedback"></div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Maximum Order Quantity</label>
+                                    <input type="number" name="maxOrderQuantity" class="form-control" 
+                                           min="1" placeholder="Unlimited">
+                                    <div class="form-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Settings -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <h3 class="section-title">
+                                    <i class="las la-cog"></i>
+                                    Product Settings
+                                </h3>
+                            </div>
+                            
+                            <div class="settings-grid">
+                                <div class="setting-item">
+                                    <label class="setting-label">
+                                        <input type="checkbox" name="isActive" value="true" checked>
+                                        <span class="setting-toggle"></span>
+                                        <span class="setting-text">
+                                            <strong>Active Product</strong>
+                                            <small>Product will be visible to buyers</small>
+                                        </span>
+                                    </label>
+                                </div>
+                                
+                                <div class="setting-item">
+                                    <label class="setting-label">
+                                        <input type="checkbox" name="isFeatured" value="true">
+                                        <span class="setting-toggle"></span>
+                                        <span class="setting-text">
+                                            <strong>Featured Product</strong>
+                                            <small>Show in featured products section</small>
+                                        </span>
+                                    </label>
+                                </div>
+                                
+                                <div class="setting-item">
+                                    <label class="setting-label">
+                                        <input type="checkbox" name="allowBackorders" value="true">
+                                        <span class="setting-toggle"></span>
+                                        <span class="setting-text">
+                                            <strong>Allow Backorders</strong>
+                                            <small>Accept orders when out of stock</small>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="this.closest('.product-modal-overlay').remove()">
+                            <i class="las la-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="las la-save"></i>
+                            Create Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+        
+        return modal;
+    }
+
+    /**
+     * Initialize modal features
+     */
+    initializeModalFeatures(modal) {
+        const form = modal.querySelector('.product-form');
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.handleProductCreation(form, modal);
+            });
+        }
+
+        // Close modal on overlay click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+
+        // Escape key to close
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                modal.remove();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+    }
+
+    /**
+     * Handle product creation
+     */
+    async handleProductCreation(form, modal) {
+        console.log('🚀 Starting product creation process...');
+        
+        try {
+            // Validate form
+            if (!this.validateProductForm(form)) {
+                this.showError('Please fix the validation errors before submitting');
+                return;
+            }
+            
+            // Show loading state
+            this.setProductModalLoadingState(true);
+            
+            // Collect form data
+            const formData = this.collectProductFormData(form);
+            console.log('📋 Collected form data:', formData);
+            
+            // Submit to backend
+            const response = await fetch(this.endpoints.products, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            console.log('📡 Server response:', result);
+            
+            if (result.success) {
+                // Success - close modal and refresh table
+                modal.remove();
+                this.showSuccess('Product created successfully!');
+                await this.loadProducts(true);
+                
+                // Update theme for any remaining modals
+                this.updateModalTheme();
+                
+                console.log('✅ Product created successfully:', result.data.product);
+            } else {
+                // Handle validation errors
+                this.handleProductServerErrors(result, form);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error creating product:', error);
+            this.showError('Failed to create product. Please try again.');
+        } finally {
+            this.setProductModalLoadingState(false);
+        }
+    }
+
+    /**
+     * Validate product form
+     */
+    validateProductForm(form) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                this.showFieldError(field, 'This field is required');
+                isValid = false;
+            } else {
+                this.clearFieldError(field);
+            }
+        });
+
+        return isValid;
+    }
+
+    /**
+     * Collect product form data
+     */
+    collectProductFormData(form) {
+        const formData = new FormData(form);
+        const data = {};
+
+        for (let [key, value] of formData.entries()) {
+            if (key.includes('[]')) {
+                const cleanKey = key.replace('[]', '');
+                if (!data[cleanKey]) data[cleanKey] = [];
+                data[cleanKey].push(value);
+            } else {
+                data[key] = value;
+            }
+        }
+
+        // Handle checkboxes
+        const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            data[checkbox.name] = checkbox.checked;
+        });
+
+        return data;
+    }
+
+    /**
+     * Handle server validation errors for products
+     */
+    handleProductServerErrors(result, form) {
+        if (result.errors) {
+            Object.entries(result.errors).forEach(([field, messages]) => {
+                const fieldElement = form.querySelector(`[name="${field}"]`);
+                if (fieldElement) {
+                    this.showFieldError(fieldElement, Array.isArray(messages) ? messages[0] : messages);
+                }
+            });
+        } else {
+            this.showError(result.message || 'Failed to create product');
+        }
+    }
+
+    /**
+     * Set modal loading state
+     */
+    setProductModalLoadingState(loading) {
+        const modal = document.querySelector('.product-modal');
+        if (!modal) return;
+
+        const submitBtn = modal.querySelector('button[type="submit"]');
+        const cancelBtn = modal.querySelector('.btn-secondary');
+
+        if (loading) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="las la-spinner animate-spin"></i> Creating...';
+            cancelBtn.disabled = true;
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="las la-save"></i> Create Product';
+            cancelBtn.disabled = false;
+        }
+    }
+
+    /**
+     * Show field error
+     */
+    showFieldError(field, message) {
+        field.classList.add('is-invalid');
+        const feedback = field.parentNode.querySelector('.form-feedback');
+        if (feedback) {
+            feedback.textContent = message;
+            feedback.classList.add('invalid-feedback');
+        }
+    }
+
+    /**
+     * Clear field error
+     */
+    clearFieldError(field) {
+        field.classList.remove('is-invalid');
+        const feedback = field.parentNode.querySelector('.form-feedback');
+        if (feedback) {
+            feedback.textContent = '';
+            feedback.classList.remove('invalid-feedback');
+        }
+    }
+
     destroy() {
         if (this.autoRefreshInterval) {
             clearInterval(this.autoRefreshInterval);
@@ -1744,36 +2471,27 @@ class ProductsManagement {
     }
 }
 
-// Global instance and functions
-let productsManagement;
+// Global instance - will be initialized in EJS template
+// window.productsManager is set in the EJS template
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    productsManagement = new ProductsManagement();
-    productsManagement.init();
-});
-
-// Global functions for inline event handlers
-window.productsManagement = productsManagement;
-
-// Expose global functions
-window.toggleSelectAll = (checked) => productsManagement?.toggleSelectAll(checked);
-window.clearAllFilters = () => productsManagement?.clearAllFilters();
-window.applyFilters = () => productsManagement?.applyFilters();
-window.refreshData = () => productsManagement?.refreshData();
-window.exportProducts = () => productsManagement?.exportProducts();
-window.bulkActivateProducts = () => productsManagement?.bulkActivateProducts();
-window.bulkPromoteProducts = () => productsManagement?.bulkPromoteProducts();
-window.bulkDeleteProducts = () => productsManagement?.bulkDeleteProducts();
-window.bulkExportProducts = () => productsManagement?.bulkExportProducts();
+// Expose global functions - these will work with window.productsManager
+window.toggleSelectAll = (checked) => window.productsManager?.toggleSelectAll(checked);
+window.clearAllFilters = () => window.productsManager?.clearAllFilters();
+window.applyFilters = () => window.productsManager?.applyFilters();
+window.refreshData = () => window.productsManager?.refreshData();
+window.exportProducts = () => window.productsManager?.exportProducts();
+window.bulkActivateProducts = () => window.productsManager?.bulkActivateProducts();
+window.bulkPromoteProducts = () => window.productsManager?.bulkPromoteProducts();
+window.bulkDeleteProducts = () => window.productsManager?.bulkDeleteProducts();
+window.bulkExportProducts = () => window.productsManager?.bulkExportProducts();
 window.openCreateProductModal = () => {
     console.log('TODO: Implement create product modal');
-    productsManagement?.showToast('Create product modal - Coming soon!', 'info');
+    window.productsManager?.showToast('Create product modal - Coming soon!', 'info');
 };
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
-    productsManagement?.destroy();
+    window.productsManager?.destroy();
 });
 
 console.log('✅ Products Management JavaScript loaded successfully');

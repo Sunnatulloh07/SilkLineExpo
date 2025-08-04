@@ -32,10 +32,17 @@ const productSchema = new mongoose.Schema({
     required: true
   },
   
-  // Product Classification
+  // Product Classification - Updated to use Category references
   category: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
     required: true,
+    index: true
+  },
+  
+  // Legacy category support for migration
+  legacyCategory: {
+    type: String,
     enum: [
       'food_beverages', 'textiles_clothing', 'electronics', 'machinery_equipment',
       'chemicals', 'agriculture', 'construction_materials', 'automotive', 
@@ -44,9 +51,15 @@ const productSchema = new mongoose.Schema({
   },
   
   subcategory: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category'
+  },
+  
+  // Additional category tags for flexible classification
+  categoryTags: [{
     type: String,
     trim: true
-  },
+  }],
   
   // Product Specifications
   specifications: [{
@@ -209,7 +222,53 @@ const productSchema = new mongoose.Schema({
       type: Number,
       default: 0
     },
-    lastViewed: Date
+    lastViewed: Date,
+    uniqueViewers: {
+      type: Number,
+      default: 0
+    },
+    conversionRate: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100
+    }
+  },
+  
+  // Business Metrics for Category Analytics
+  businessMetrics: {
+    totalRevenue: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    totalOrdersCount: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    averageOrderValue: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    totalQuantitySold: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    monthlyRevenue: [{
+      month: String, // YYYY-MM format
+      revenue: Number,
+      orders: Number,
+      quantity: Number
+    }],
+    lastSaleDate: Date,
+    bestSellingMonth: String,
+    popularityRank: {
+      type: Number,
+      default: 0
+    }
   },
   
   // Reviews & Ratings
@@ -275,6 +334,11 @@ productSchema.virtual('priceRange').get(function() {
   };
 });
 
+// Virtual for rating compatibility (for backward compatibility)
+productSchema.virtual('rating').get(function() {
+  return this.averageRating;
+});
+
 // Methods
 productSchema.methods.updateStock = function(quantity, operation = 'subtract') {
   if (operation === 'subtract') {
@@ -336,6 +400,8 @@ productSchema.statics.findByManufacturer = function(manufacturerId, options = {}
   
   return this.find(query)
     .populate('manufacturer', 'companyName country')
+    .populate('category', 'name slug level')
+    .populate('subcategory', 'name slug')
     .sort(options.sort || { createdAt: -1 });
 };
 
@@ -380,6 +446,8 @@ productSchema.statics.searchProducts = function(searchTerm, filters = {}) {
   
   return this.find(query)
     .populate('manufacturer', 'companyName country averageRating')
+    .populate('category', 'name slug level')
+    .populate('subcategory', 'name slug')
     .sort(sortCriteria);
 };
 
@@ -387,6 +455,7 @@ productSchema.statics.searchProducts = function(searchTerm, filters = {}) {
 productSchema.statics.getTrendingProducts = function(limit = 10) {
   return this.find({ status: 'active' })
     .populate('manufacturer', 'companyName country')
+    .populate('category', 'name slug level')
     .sort({ 'analytics.views': -1, 'analytics.orders': -1 })
     .limit(limit);
 };
@@ -398,19 +467,91 @@ productSchema.statics.getFeaturedProducts = function(limit = 10) {
     isFeatured: true 
   })
     .populate('manufacturer', 'companyName country averageRating')
+    .populate('category', 'name slug level')
     .sort({ createdAt: -1 })
     .limit(limit);
 };
 
 // Static method to get products by category
-productSchema.statics.getByCategory = function(category, limit = 20) {
+productSchema.statics.getByCategory = function(categoryId, limit = 20) {
   return this.find({ 
     status: 'active', 
-    category: category 
+    category: categoryId 
   })
     .populate('manufacturer', 'companyName country')
+    .populate('category', 'name slug level')
     .sort({ averageRating: -1, 'analytics.views': -1 })
     .limit(limit);
+};
+
+// Static method to get products by category hierarchy (including subcategories)
+productSchema.statics.getByCategoryHierarchy = async function(categoryId, limit = 20) {
+  const Category = mongoose.model('Category');
+  
+  // First get the category to get its path info
+  const category = await Category.findById(categoryId);
+  if (!category) {
+    throw new Error('Category not found');
+  }
+  
+  // Build proper path pattern for subcategories
+  const fullPath = category.path ? `${category.path}/${category.slug}` : category.slug;
+  const escapedPath = fullPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  
+  // Get all subcategory IDs for this category
+  const subcategoryIds = await Category.find({ 
+    $or: [
+      { _id: categoryId }, // Include the category itself
+      { parentCategory: categoryId }, // Direct children
+      { path: new RegExp(`^${escapedPath}/`) } // All descendants
+    ]
+  }).distinct('_id');
+  
+  return this.find({ 
+    status: 'active', 
+    category: { $in: subcategoryIds }
+  })
+    .populate('manufacturer', 'companyName country')
+    .populate('category', 'name slug level parentCategory')
+    .sort({ averageRating: -1, 'analytics.views': -1 })
+    .limit(limit);
+};
+
+// Method to update business metrics
+productSchema.methods.updateBusinessMetrics = function(orderData) {
+  const { quantity, totalAmount, orderDate = new Date() } = orderData;
+  
+  // Update main metrics
+  this.businessMetrics.totalRevenue += totalAmount;
+  this.businessMetrics.totalOrdersCount += 1;
+  this.businessMetrics.totalQuantitySold += quantity;
+  this.businessMetrics.averageOrderValue = this.businessMetrics.totalRevenue / this.businessMetrics.totalOrdersCount;
+  this.businessMetrics.lastSaleDate = orderDate;
+  
+  // Update monthly revenue tracking
+  const month = orderDate.toISOString().substring(0, 7); // YYYY-MM format
+  const monthlyRecord = this.businessMetrics.monthlyRevenue.find(m => m.month === month);
+  
+  if (monthlyRecord) {
+    monthlyRecord.revenue += totalAmount;
+    monthlyRecord.orders += 1;
+    monthlyRecord.quantity += quantity;
+  } else {
+    this.businessMetrics.monthlyRevenue.push({
+      month,
+      revenue: totalAmount,
+      orders: 1,
+      quantity
+    });
+  }
+  
+  // Update best selling month
+  const bestMonth = this.businessMetrics.monthlyRevenue.reduce((best, current) => 
+    current.revenue > best.revenue ? current : best
+  );
+  this.businessMetrics.bestSellingMonth = bestMonth.month;
+  
+  return this.save();
 };
 
 module.exports = mongoose.model('Product', productSchema);

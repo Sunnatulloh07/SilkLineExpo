@@ -10,6 +10,7 @@ require("dotenv").config();
 const Admin = require("../models/Admin");
 const User = require("../models/User");
 const Product = require("../models/Product");
+const Category = require("../models/Category");
 const Order = require("../models/Order");
 const Review = require("../models/Review");
 const Inquiry = require("../models/Inquiry");
@@ -17,6 +18,7 @@ const Inquiry = require("../models/Inquiry");
 class ComprehensiveSeeder {
   constructor() {
     this.users = [];
+    this.categories = [];
     this.products = [];
     this.orders = [];
     this.reviews = [];
@@ -63,6 +65,7 @@ class ComprehensiveSeeder {
         Admin.deleteMany({}),
         User.deleteMany({}),
         Product.deleteMany({}),
+        Category.deleteMany({}),
         Order.deleteMany({}),
         Review.deleteMany({}),
         Inquiry.deleteMany({}),
@@ -312,11 +315,265 @@ class ComprehensiveSeeder {
 
   }
 
+  async seedCategories() {
+    console.log("🏷️ Creating categories...");
+
+    // Main categories with their subcategories
+    const categoryData = [
+      {
+        name: "Textiles & Clothing",
+        slug: "textiles-clothing",
+        description: "High-quality textiles, fabrics, and clothing products for various industries",
+        shortDescription: "Textiles, fabrics, and clothing",
+        icon: "las la-tshirt",
+        color: "#8B5CF6",
+        subcategories: [
+          {
+            name: "Cotton Fabrics",
+            slug: "cotton-fabrics",
+            description: "Premium cotton fabrics for various applications",
+            shortDescription: "High-quality cotton textiles",
+            icon: "las la-leaf",
+            color: "#10B981"
+          },
+          {
+            name: "Synthetic Fabrics",
+            slug: "synthetic-fabrics", 
+            description: "Durable synthetic fabrics and materials",
+            shortDescription: "Synthetic textile materials",
+            icon: "las la-industry",
+            color: "#6366F1"
+          },
+          {
+            name: "Ready-made Garments",
+            slug: "ready-made-garments",
+            description: "Ready-to-wear clothing and garments",
+            shortDescription: "Ready-made clothing",
+            icon: "las la-tshirt",
+            color: "#EC4899"
+          }
+        ]
+      },
+      {
+        name: "Food & Beverages", 
+        slug: "food-beverages",
+        description: "Quality food products, beverages, and agricultural produce",
+        shortDescription: "Food products and beverages",
+        icon: "las la-apple-alt",
+        color: "#F59E0B",
+        subcategories: [
+          {
+            name: "Grains & Cereals",
+            slug: "grains-cereals",
+            description: "Wheat, rice, barley and other grain products",
+            shortDescription: "Grain and cereal products",
+            icon: "las la-seedling",
+            color: "#D97706"
+          },
+          {
+            name: "Flour Products",
+            slug: "flour-products",
+            description: "High-quality flour and flour-based products",
+            shortDescription: "Flour and flour products",
+            icon: "las la-bread-slice",
+            color: "#92400E"
+          },
+          {
+            name: "Processed Foods",
+            slug: "processed-foods",
+            description: "Processed and packaged food products",
+            shortDescription: "Processed food items",
+            icon: "las la-box",
+            color: "#B45309"
+          }
+        ]
+      },
+      {
+        name: "Electronics",
+        slug: "electronics", 
+        description: "Electronic components, devices, and industrial electronics",
+        shortDescription: "Electronic products and components",
+        icon: "las la-microchip",
+        color: "#3B82F6",
+        subcategories: [
+          {
+            name: "Display Systems",
+            slug: "display-systems",
+            description: "LED displays, monitors, and visual display systems",
+            shortDescription: "Display and visual systems",
+            icon: "las la-tv",
+            color: "#1D4ED8"
+          },
+          {
+            name: "Industrial Electronics",
+            slug: "industrial-electronics",
+            description: "Industrial electronic components and systems",
+            shortDescription: "Industrial electronic equipment",
+            icon: "las la-cogs",
+            color: "#1E40AF"
+          },
+          {
+            name: "Consumer Electronics",
+            slug: "consumer-electronics",
+            description: "Consumer electronic devices and accessories",
+            shortDescription: "Consumer electronic products",
+            icon: "las la-mobile-alt",
+            color: "#2563EB"
+          }
+        ]
+      },
+      {
+        name: "Machinery & Equipment",
+        slug: "machinery-equipment",
+        description: "Industrial machinery, equipment, and tools",
+        shortDescription: "Machinery and industrial equipment",
+        icon: "las la-tools",
+        color: "#6B7280",
+        subcategories: [
+          {
+            name: "Manufacturing Equipment",
+            slug: "manufacturing-equipment",
+            description: "Equipment for manufacturing and production",
+            shortDescription: "Manufacturing machinery",
+            icon: "las la-industry",
+            color: "#4B5563"
+          },
+          {
+            name: "Construction Equipment",
+            slug: "construction-equipment",
+            description: "Construction machinery and equipment",
+            shortDescription: "Construction machinery",
+            icon: "las la-hammer",
+            color: "#374151"
+          }
+        ]
+      },
+      {
+        name: "Chemicals",
+        slug: "chemicals",
+        description: "Industrial chemicals, raw materials, and chemical products",
+        shortDescription: "Chemical products and materials",
+        icon: "las la-flask",
+        color: "#EF4444",
+        subcategories: [
+          {
+            name: "Industrial Chemicals",
+            slug: "industrial-chemicals",
+            description: "Industrial chemical compounds and materials",
+            shortDescription: "Industrial chemical products",
+            icon: "las la-vial",
+            color: "#DC2626"
+          }
+        ]
+      },
+      {
+        name: "Agriculture",
+        slug: "agriculture",
+        description: "Agricultural products, seeds, and farming supplies",
+        shortDescription: "Agricultural and farming products",
+        icon: "las la-tractor",
+        color: "#10B981",
+        subcategories: [
+          {
+            name: "Seeds & Plants",
+            slug: "seeds-plants",
+            description: "Seeds, seedlings, and plant materials",
+            shortDescription: "Seeds and plant materials",
+            icon: "las la-seedling",
+            color: "#059669"
+          }
+        ]
+      }
+    ];
+
+    // Get first user as creator (super admin or first active user)
+    const firstUser = this.users.find(u => u.status === 'active') || this.users[0];
+    if (!firstUser) {
+      throw new Error('No users available to create categories');
+    }
+
+    // Create main categories and their subcategories
+    for (const catData of categoryData) {
+      // Create main category
+      const mainCategory = await Category.create({
+        name: catData.name,
+        slug: catData.slug,
+        description: catData.description,
+        shortDescription: catData.shortDescription,
+        icon: catData.icon,
+        color: catData.color,
+        level: 0,
+        path: '',
+        parentCategory: null,
+        status: 'active',
+        createdBy: firstUser._id,
+        settings: {
+          isActive: true,
+          isVisible: true,
+          isFeatured: true,
+          allowProducts: true,
+          sortOrder: 0
+        }
+      });
+
+      this.categories.push(mainCategory);
+
+      // Create subcategories
+      if (catData.subcategories) {
+        for (const subCatData of catData.subcategories) {
+          const subcategory = await Category.create({
+            name: subCatData.name,
+            slug: subCatData.slug,
+            description: subCatData.description,
+            shortDescription: subCatData.shortDescription,
+            icon: subCatData.icon,
+            color: subCatData.color,
+            level: 1,
+            path: mainCategory.slug,
+            parentCategory: mainCategory._id,
+            status: 'active',
+            createdBy: firstUser._id,
+            settings: {
+              isActive: true,
+              isVisible: true,
+              isFeatured: false,
+              allowProducts: true,
+              sortOrder: 0
+            }
+          });
+
+          this.categories.push(subcategory);
+        }
+      }
+    }
+
+    console.log(`✅ Created ${this.categories.length} categories`);
+  }
+
+  // Helper method to find category by slug
+  findCategoryBySlug(slug) {
+    return this.categories.find(cat => cat.slug === slug);
+  }
+
   async seedProducts() {
 
     const manufacturers = this.users.filter(
       (u) => u.companyType === "manufacturer" || u.companyType === "both"
     );
+
+    console.log(`📦 Creating products for ${manufacturers.length} manufacturers...`);
+
+    // Get category references
+    const textilesCategory = this.findCategoryBySlug('textiles-clothing');
+    const cottonFabricsSubcat = this.findCategoryBySlug('cotton-fabrics');
+    const foodCategory = this.findCategoryBySlug('food-beverages');
+    const flourProductsSubcat = this.findCategoryBySlug('flour-products');
+    const electronicsCategory = this.findCategoryBySlug('electronics');
+    const displaySystemsSubcat = this.findCategoryBySlug('display-systems');
+
+    if (!textilesCategory || !foodCategory || !electronicsCategory) {
+      throw new Error('Required categories not found! Make sure to seed categories first.');
+    }
 
     const productTemplates = [
       // Textile Products
@@ -325,8 +582,8 @@ class ComprehensiveSeeder {
         description:
           "High-quality 100% cotton fabric suitable for clothing manufacturing. Soft texture, durable, and available in various colors.",
         shortDescription: "Premium 100% cotton fabric for clothing",
-        category: "textiles_clothing",
-        subcategory: "Cotton Fabrics",
+        category: textilesCategory._id,
+        subcategory: cottonFabricsSubcat?._id,
         specifications: [
           { name: "Material", value: "100% Cotton", unit: "" },
           { name: "Weight", value: "150", unit: "GSM" },
@@ -366,8 +623,8 @@ class ComprehensiveSeeder {
         description:
           "Premium organic wheat flour milled from carefully selected wheat grains. Perfect for bread, pastries, and other baked goods.",
         shortDescription: "Premium organic wheat flour for baking",
-        category: "food_beverages",
-        subcategory: "Flour & Grains",
+        category: foodCategory._id,
+        subcategory: flourProductsSubcat?._id,
         specifications: [
           { name: "Protein Content", value: "12-14", unit: "%" },
           { name: "Moisture", value: "Max 14", unit: "%" },
@@ -412,8 +669,8 @@ class ComprehensiveSeeder {
         description:
           "High-resolution LED display panel designed for industrial applications. Weather-resistant and energy-efficient.",
         shortDescription: "Industrial-grade LED display panel",
-        category: "electronics",
-        subcategory: "Display Systems",
+        category: electronicsCategory._id,
+        subcategory: displaySystemsSubcat?._id,
         specifications: [
           { name: "Resolution", value: "1920x1080", unit: "pixels" },
           { name: "Brightness", value: "5000", unit: "nits" },
@@ -752,6 +1009,7 @@ class ComprehensiveSeeder {
 
       await this.seedAdmins();
       await this.seedUsers();
+      await this.seedCategories();
       await this.seedProducts();
       await this.seedInquiries();
       await this.seedOrders();
@@ -762,6 +1020,7 @@ class ComprehensiveSeeder {
       console.log("\n📊 Summary:");
       console.log(`   👑 Admins: 3`);
       console.log(`   🏭 Companies: ${this.users.length}`);
+      console.log(`   🏷️ Categories: ${this.categories.length}`);
       console.log(`   📦 Products: ${this.products.length}`);
       console.log(`   💬 Inquiries: ${this.inquiries.length}`);
       console.log(`   📋 Orders: ${this.orders.length}`);

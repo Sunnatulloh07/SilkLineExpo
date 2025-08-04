@@ -1,0 +1,953 @@
+<!-- Professional User Action Modals -->
+
+<!-- Approve User Modal -->
+<div class="modal fade" id="approveUserModal" tabindex="-1" aria-labelledby="approveUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approveUserModalLabel">
+                    <i class="las la-check-circle text-success"></i>
+                    Approve User Account
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="user-details-section mb-3">
+                    <h6 class="section-title">User Information</h6>
+                    <div class="user-info-card">
+                        <div class="user-avatar">
+                            <img id="approveUserAvatar" src="/assets/images/default-avatar.png" alt="User Avatar">
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name" id="approveUserName">Loading...</div>
+                            <div class="user-email" id="approveUserEmail">Loading...</div>
+                            <div class="user-company" id="approveUserCompany">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="approveUserNotes" class="form-label">Notes (Optional)</label>
+                    <textarea class="form-control" id="approveUserNotes" rows="3" 
+                              placeholder="Add any notes about this approval..."></textarea>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="las la-info-circle"></i>
+                    This user will be granted full access to the platform and will receive a welcome email.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmApproveUser">
+                    <i class="las la-check"></i>
+                    Approve User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Block User Modal -->
+<div class="modal fade" id="blockUserModal" tabindex="-1" aria-labelledby="blockUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="blockUserModalLabel">
+                    <i class="las la-ban text-danger"></i>
+                    Block User Account
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="user-details-section mb-3">
+                    <h6 class="section-title">User Information</h6>
+                    <div class="user-info-card">
+                        <div class="user-avatar">
+                            <img id="blockUserAvatar" src="/assets/images/default-avatar.png" alt="User Avatar">
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name" id="blockUserName">Loading...</div>
+                            <div class="user-email" id="blockUserEmail">Loading...</div>
+                            <div class="user-company" id="blockUserCompany">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="blockUserReason" class="form-label">Block Reason <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="blockUserReason" rows="3" required
+                              placeholder="Please provide a detailed reason for blocking this user..."></textarea>
+                    <div class="form-text">Minimum 10 characters required</div>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="las la-exclamation-triangle"></i>
+                    This user will be immediately blocked from accessing the platform and will receive a notification email.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmBlockUser">
+                    <i class="las la-ban"></i>
+                    Block User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Suspend User Modal -->
+<div class="modal fade" id="suspendUserModal" tabindex="-1" aria-labelledby="suspendUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="suspendUserModalLabel">
+                    <i class="las la-pause text-warning"></i>
+                    Suspend User Account
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="user-details-section mb-3">
+                    <h6 class="section-title">User Information</h6>
+                    <div class="user-info-card">
+                        <div class="user-avatar">
+                            <img id="suspendUserAvatar" src="/assets/images/default-avatar.png" alt="User Avatar">
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name" id="suspendUserName">Loading...</div>
+                            <div class="user-email" id="suspendUserEmail">Loading...</div>
+                            <div class="user-company" id="suspendUserCompany">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="suspendUserDuration" class="form-label">Suspension Duration</label>
+                            <select class="form-control" id="suspendUserDuration">
+                                <option value="7">7 Days</option>
+                                <option value="14">14 Days</option>
+                                <option value="30" selected>30 Days</option>
+                                <option value="60">60 Days</option>
+                                <option value="90">90 Days</option>
+                                <option value="permanent">Permanent</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label class="form-label">Suspension End Date</label>
+                            <div class="form-control-plaintext" id="suspendEndDate">
+                                <!-- Will be calculated automatically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="suspendUserReason" class="form-label">Suspension Reason <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="suspendUserReason" rows="3" required
+                              placeholder="Please provide a detailed reason for suspending this user..."></textarea>
+                    <div class="form-text">Minimum 10 characters required</div>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="las la-clock"></i>
+                    This user will be temporarily suspended and can be reactivated later. They will receive a notification email.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmSuspendUser">
+                    <i class="las la-pause"></i>
+                    Suspend User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activate User Modal -->
+<div class="modal fade" id="activateUserModal" tabindex="-1" aria-labelledby="activateUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="activateUserModalLabel">
+                    <i class="las la-play text-success"></i>
+                    Activate User Account
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="user-details-section mb-3">
+                    <h6 class="section-title">User Information</h6>
+                    <div class="user-info-card">
+                        <div class="user-avatar">
+                            <img id="activateUserAvatar" src="/assets/images/default-avatar.png" alt="User Avatar">
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name" id="activateUserName">Loading...</div>
+                            <div class="user-email" id="activateUserEmail">Loading...</div>
+                            <div class="user-company" id="activateUserCompany">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="activateUserNotes" class="form-label">Notes (Optional)</label>
+                    <textarea class="form-control" id="activateUserNotes" rows="3" 
+                              placeholder="Add any notes about this activation..."></textarea>
+                </div>
+                
+                <div class="alert alert-success">
+                    <i class="las la-check-circle"></i>
+                    This user will be reactivated and granted access to the platform. They will receive a notification email.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmActivateUser">
+                    <i class="las la-play"></i>
+                    Activate User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteUserModalLabel">
+                    <i class="las la-trash text-danger"></i>
+                    Delete User Account
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="user-details-section mb-3">
+                    <h6 class="section-title">User Information</h6>
+                    <div class="user-info-card">
+                        <div class="user-avatar">
+                            <img id="deleteUserAvatar" src="/assets/images/default-avatar.png" alt="User Avatar">
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name" id="deleteUserName">Loading...</div>
+                            <div class="user-email" id="deleteUserEmail">Loading...</div>
+                            <div class="user-company" id="deleteUserCompany">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="deleteUserReason" class="form-label">Deletion Reason <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="deleteUserReason" rows="3" required
+                              placeholder="Please provide a detailed reason for deleting this user..."></textarea>
+                    <div class="form-text">Minimum 10 characters required</div>
+                </div>
+                
+                <div class="alert alert-danger">
+                    <i class="las la-exclamation-triangle"></i>
+                    <strong>Warning:</strong> This action will:
+                    <ul class="mb-0 mt-2">
+                        <li>Soft delete the user account (can be restored later)</li>
+                        <li>Disable all user access immediately</li>
+                        <li>Hide user from public listings</li>
+                        <li>Send a notification email to the user</li>
+                    </ul>
+                </div>
+                
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="confirmDeleteAction">
+                    <label class="form-check-label" for="confirmDeleteAction">
+                        I understand the consequences and want to proceed with deletion
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteUser" disabled>
+                    <i class="las la-trash"></i>
+                    Delete User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject User Modal -->
+<div class="modal fade" id="rejectUserModal" tabindex="-1" aria-labelledby="rejectUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectUserModalLabel">
+                    <i class="las la-times-circle text-danger"></i>
+                    Reject User Application
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="user-details-section mb-3">
+                    <h6 class="section-title">User Information</h6>
+                    <div class="user-info-card">
+                        <div class="user-avatar">
+                            <img id="rejectUserAvatar" src="/assets/images/default-avatar.png" alt="User Avatar">
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name" id="rejectUserName">Loading...</div>
+                            <div class="user-email" id="rejectUserEmail">Loading...</div>
+                            <div class="user-company" id="rejectUserCompany">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="rejectUserReason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="rejectUserReason" rows="3" required
+                              placeholder="Please provide a detailed reason for rejecting this application..."></textarea>
+                    <div class="form-text">Minimum 10 characters required</div>
+                </div>
+                
+                <div class="alert alert-danger">
+                    <i class="las la-times-circle"></i>
+                    This user application will be permanently rejected and the user will receive a notification email with the reason.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmRejectUser">
+                    <i class="las la-times"></i>
+                    Reject Application
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal CSS Styles -->
+<style>
+.user-info-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.user-avatar {
+    margin-right: 1rem;
+}
+
+.user-avatar img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
+.user-details {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.user-email {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.user-company {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.section-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-primary);
+}
+
+.modal-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-body {
+    background: var(--bg-primary);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-primary);
+}
+
+.alert {
+    border-radius: var(--border-radius);
+    border: none;
+    padding: 1rem;
+}
+
+.alert-info {
+    background: rgba(13, 202, 240, 0.1);
+    color: #0dcaf0;
+}
+
+.alert-warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.alert-success {
+    background: rgba(25, 135, 84, 0.1);
+    color: #198754;
+}
+
+.alert-danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Animation for modal appearance */
+.modal.fade .modal-dialog {
+    transform: translateY(-50px);
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: translateY(0);
+}
+
+/* Focus management */
+.modal-content {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+</style>
+
+<!-- Bulk Approve Users Modal -->
+<div class="modal fade" id="bulkApproveModal" tabindex="-1" aria-labelledby="bulkApproveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkApproveModalLabel">
+                    <i class="las la-check-circle text-success"></i>
+                    Bulk Approve Users
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="selected-users-section mb-3">
+                    <h6 class="section-title">Selected Users (<span id="bulkApproveCount">0</span>)</h6>
+                    <div class="selected-users-list" id="bulkApproveUsersList">
+                        <!-- Selected users will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="bulkApproveNotes" class="form-label">Notes (Optional)</label>
+                    <textarea class="form-control" id="bulkApproveNotes" rows="3" 
+                              placeholder="Add any notes about this bulk approval..."></textarea>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="las la-info-circle"></i>
+                    All selected users will be granted full access to the platform and will receive welcome emails.
+                </div>
+                
+                <div class="progress-section d-none" id="bulkApproveProgress">
+                    <div class="progress mb-2">
+                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">Processing: <span id="bulkApproveProgressText">0/0</span></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmBulkApprove">
+                    <i class="las la-check"></i>
+                    Approve All Users
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Block Users Modal -->
+<div class="modal fade" id="bulkBlockModal" tabindex="-1" aria-labelledby="bulkBlockModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkBlockModalLabel">
+                    <i class="las la-ban text-danger"></i>
+                    Bulk Block Users
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="selected-users-section mb-3">
+                    <h6 class="section-title">Selected Users (<span id="bulkBlockCount">0</span>)</h6>
+                    <div class="selected-users-list" id="bulkBlockUsersList">
+                        <!-- Selected users will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="bulkBlockReason" class="form-label">Block Reason <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="bulkBlockReason" rows="3" required
+                              placeholder="Please provide a detailed reason for blocking these users..."></textarea>
+                    <div class="form-text">Minimum 10 characters required</div>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="las la-exclamation-triangle"></i>
+                    All selected users will be immediately blocked from accessing the platform and will receive notification emails.
+                </div>
+                
+                <div class="progress-section d-none" id="bulkBlockProgress">
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">Processing: <span id="bulkBlockProgressText">0/0</span></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmBulkBlock">
+                    <i class="las la-ban"></i>
+                    Block All Users
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Suspend Users Modal -->
+<div class="modal fade" id="bulkSuspendModal" tabindex="-1" aria-labelledby="bulkSuspendModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkSuspendModalLabel">
+                    <i class="las la-pause text-warning"></i>
+                    Bulk Suspend Users
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="selected-users-section mb-3">
+                    <h6 class="section-title">Selected Users (<span id="bulkSuspendCount">0</span>)</h6>
+                    <div class="selected-users-list" id="bulkSuspendUsersList">
+                        <!-- Selected users will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="bulkSuspendDuration" class="form-label">Suspension Duration</label>
+                            <select class="form-control" id="bulkSuspendDuration">
+                                <option value="7">7 Days</option>
+                                <option value="14">14 Days</option>
+                                <option value="30" selected>30 Days</option>
+                                <option value="60">60 Days</option>
+                                <option value="90">90 Days</option>
+                                <option value="permanent">Permanent</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label class="form-label">Suspension End Date</label>
+                            <div class="form-control-plaintext" id="bulkSuspendEndDate">
+                                <!-- Will be calculated automatically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="bulkSuspendReason" class="form-label">Suspension Reason <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="bulkSuspendReason" rows="3" required
+                              placeholder="Please provide a detailed reason for suspending these users..."></textarea>
+                    <div class="form-text">Minimum 10 characters required</div>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="las la-clock"></i>
+                    All selected users will be temporarily suspended and can be reactivated later. They will receive notification emails.
+                </div>
+                
+                <div class="progress-section d-none" id="bulkSuspendProgress">
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">Processing: <span id="bulkSuspendProgressText">0/0</span></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmBulkSuspend">
+                    <i class="las la-pause"></i>
+                    Suspend All Users
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Delete Users Modal -->
+<div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-labelledby="bulkDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkDeleteModalLabel">
+                    <i class="las la-trash text-danger"></i>
+                    Bulk Delete Users
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="selected-users-section mb-3">
+                    <h6 class="section-title">Selected Users (<span id="bulkDeleteCount">0</span>)</h6>
+                    <div class="selected-users-list" id="bulkDeleteUsersList">
+                        <!-- Selected users will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="bulkDeleteReason" class="form-label">Deletion Reason <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="bulkDeleteReason" rows="3" required
+                              placeholder="Please provide a detailed reason for deleting these users..."></textarea>
+                    <div class="form-text">Minimum 10 characters required</div>
+                </div>
+                
+                <div class="alert alert-danger">
+                    <i class="las la-exclamation-triangle"></i>
+                    <strong>Warning:</strong> This action will:
+                    <ul class="mb-0 mt-2">
+                        <li>Soft delete all selected user accounts (can be restored later)</li>
+                        <li>Disable all user access immediately</li>
+                        <li>Hide users from public listings</li>
+                        <li>Send notification emails to all users</li>
+                    </ul>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="confirmBulkDeleteAction">
+                    <label class="form-check-label" for="confirmBulkDeleteAction">
+                        I understand the consequences and want to proceed with bulk deletion
+                    </label>
+                </div>
+                
+                <div class="progress-section d-none" id="bulkDeleteProgress">
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">Processing: <span id="bulkDeleteProgressText">0/0</span></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmBulkDelete" disabled>
+                    <i class="las la-trash"></i>
+                    Delete All Users
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Results Modal -->
+<div class="modal fade" id="bulkResultsModal" tabindex="-1" aria-labelledby="bulkResultsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkResultsModalLabel">
+                    <i class="las la-chart-bar"></i>
+                    Bulk Operation Results
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="results-summary mb-3">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="result-stat success">
+                                <div class="stat-number" id="bulkSuccessCount">0</div>
+                                <div class="stat-label">Successful</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="result-stat danger">
+                                <div class="stat-number" id="bulkFailedCount">0</div>
+                                <div class="stat-label">Failed</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="result-stat info">
+                                <div class="stat-number" id="bulkTotalCount">0</div>
+                                <div class="stat-label">Total</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="results-details">
+                    <div class="successful-operations" id="bulkSuccessfulResults">
+                        <!-- Successful operations will be listed here -->
+                    </div>
+                    
+                    <div class="failed-operations" id="bulkFailedResults">
+                        <!-- Failed operations will be listed here -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="retryFailedOperations" style="display: none;">
+                    <i class="las la-redo"></i>
+                    Retry Failed Operations
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional CSS for Bulk Modals -->
+<style>
+.selected-users-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+    background: var(--bg-secondary);
+}
+
+.selected-user-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    margin-bottom: 0.25rem;
+    background: var(--bg-primary);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.selected-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+    object-fit: cover;
+}
+
+.selected-user-info {
+    flex: 1;
+}
+
+.selected-user-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.selected-user-email {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.progress-section {
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.progress {
+    height: 8px;
+    background: var(--bg-tertiary);
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.result-stat {
+    text-align: center;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.result-stat.success {
+    background: rgba(25, 135, 84, 0.1);
+    border-color: #198754;
+}
+
+.result-stat.danger {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: #dc3545;
+}
+
+.result-stat.info {
+    background: rgba(13, 202, 240, 0.1);
+    border-color: #0dcaf0;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.results-details {
+    margin-top: 1.5rem;
+}
+
+.operation-result {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.operation-result.success {
+    background: rgba(25, 135, 84, 0.05);
+    border-color: #198754;
+}
+
+.operation-result.failed {
+    background: rgba(220, 53, 69, 0.05);
+    border-color: #dc3545;
+}
+
+.operation-icon {
+    margin-right: 0.75rem;
+    font-size: 1.2rem;
+}
+
+.operation-icon.success {
+    color: #198754;
+}
+
+.operation-icon.failed {
+    color: #dc3545;
+}
+
+.operation-details {
+    flex: 1;
+}
+
+.operation-user {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.operation-message {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+</style>
+
+<!-- Modal JavaScript -->
+<script>
+// Modal functionality will be handled in users-management.js
+document.addEventListener('DOMContentLoaded', function() {
+    // Enable confirmation checkbox for delete modal
+    const confirmDeleteCheckbox = document.getElementById('confirmDeleteAction');
+    const confirmDeleteButton = document.getElementById('confirmDeleteUser');
+    
+    if (confirmDeleteCheckbox && confirmDeleteButton) {
+        confirmDeleteCheckbox.addEventListener('change', function() {
+            confirmDeleteButton.disabled = !this.checked;
+        });
+    }
+    
+    // Enable confirmation checkbox for bulk delete modal
+    const confirmBulkDeleteCheckbox = document.getElementById('confirmBulkDeleteAction');
+    const confirmBulkDeleteButton = document.getElementById('confirmBulkDelete');
+    
+    if (confirmBulkDeleteCheckbox && confirmBulkDeleteButton) {
+        confirmBulkDeleteCheckbox.addEventListener('change', function() {
+            confirmBulkDeleteButton.disabled = !this.checked;
+        });
+    }
+    
+    // Auto-calculate suspension end date
+    const suspendDurationSelect = document.getElementById('suspendUserDuration');
+    const suspendEndDateDiv = document.getElementById('suspendEndDate');
+    
+    if (suspendDurationSelect && suspendEndDateDiv) {
+        suspendDurationSelect.addEventListener('change', function() {
+            const duration = this.value;
+            const now = new Date();
+            let endDate;
+            
+            if (duration === 'permanent') {
+                endDate = 'Permanent suspension';
+            } else {
+                const days = parseInt(duration);
+                endDate = new Date(now.getTime() + (days * 24 * 60 * 60 * 1000));
+                endDate = endDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+            
+            suspendEndDateDiv.textContent = endDate;
+        });
+        
+        // Trigger initial calculation
+        suspendDurationSelect.dispatchEvent(new Event('change'));
+    }
+});
+</script>

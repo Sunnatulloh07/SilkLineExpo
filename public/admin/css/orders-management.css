@@ -1,0 +1,608 @@
+/* ===============================================
+   SLEX Orders Management System - Main CSS
+   Professional B2B Order Management Interface
+   =============================================== */
+
+/* ===============================================
+   1. Orders Container Layout
+   =============================================== */
+.orders-container {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===============================================
+   2. Page Header
+   =============================================== */
+.page-header {
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.page-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+}
+
+.page-title-section {
+  flex: 1;
+}
+
+.page-title {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.page-title i {
+  font-size: 1.75rem;
+}
+
+.page-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 600px;
+}
+
+.page-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .page-header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .page-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+/* ===============================================
+   3. Statistics Dashboard Grid
+   =============================================== */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* ===============================================
+   4. Statistics Cards
+   =============================================== */
+.stat-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.stat-card.primary::before {
+  background: linear-gradient(90deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, white));
+}
+
+.stat-card.success::before {
+  background: linear-gradient(90deg, var(--color-success), color-mix(in srgb, var(--color-success) 80%, white));
+}
+
+.stat-card.warning::before {
+  background: linear-gradient(90deg, var(--color-warning), color-mix(in srgb, var(--color-warning) 80%, white));
+}
+
+.stat-card.info::before {
+  background: linear-gradient(90deg, var(--color-info), color-mix(in srgb, var(--color-info) 80%, white));
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.5rem;
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+}
+
+.stat-icon.success {
+  background-color: color-mix(in srgb, var(--color-success) 10%, transparent);
+  color: var(--color-success);
+}
+
+.stat-icon.warning {
+  background-color: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  color: var(--color-warning);
+}
+
+.stat-icon.info {
+  background-color: color-mix(in srgb, var(--color-info) 10%, transparent);
+  color: var(--color-info);
+}
+
+.stat-details {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: var(--spacing-xs);
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.stat-trend {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.stat-trend.positive {
+  color: var(--color-success);
+}
+
+.stat-trend.negative {
+  color: var(--color-danger);
+}
+
+.stat-trend i {
+  font-size: 0.75rem;
+}
+
+/* ===============================================
+   5. Main Content Card
+   =============================================== */
+.main-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+/* ===============================================
+   6. Tab Navigation
+   =============================================== */
+.tabs-navigation {
+  display: flex;
+  background-color: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
+  overflow-x: auto;
+  padding: 0 var(--spacing-lg);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tabs-navigation::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-item:hover {
+  color: var(--text-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.tab-item.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.tab-badge {
+  background-color: var(--text-muted);
+  color: var(--text-inverse);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.tab-badge.success {
+  background-color: var(--color-success);
+}
+
+.tab-badge.warning {
+  background-color: var(--color-warning);
+}
+
+.tab-badge.info {
+  background-color: var(--color-info);
+}
+
+.tab-badge.primary {
+  background-color: var(--color-primary);
+}
+
+/* ===============================================
+   7. Filters Section
+   =============================================== */
+.filters-section {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+}
+
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.filters-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.filter-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.filter-label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.search-input {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: var(--spacing-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  z-index: 1;
+}
+
+.filter-input {
+  width: 100%;
+  height: 40px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-fast);
+}
+
+.search-input .filter-input {
+  padding-left: calc(var(--spacing-lg) + 16px);
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.filter-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Mobile Responsive Filters */
+@media (max-width: 768px) {
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .filters-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+  
+  .filter-actions {
+    justify-content: stretch;
+  }
+  
+  .filter-actions .btn {
+    flex: 1;
+  }
+}
+
+/* ===============================================
+   8. Loading States
+   =============================================== */
+.modern-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  border-top: 3px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xl);
+}
+
+.loading-text {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+/* ===============================================
+   9. Animation Classes
+   =============================================== */
+.animate-fade-in {
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===============================================
+   10. Button Variants (Missing from main CSS)
+   =============================================== */
+.btn-outline-primary {
+  background-color: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-outline-primary:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: var(--text-inverse);
+  border-color: var(--color-primary);
+}
+
+.btn-outline-secondary {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+.btn-outline-secondary:hover:not(:disabled) {
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.btn-success {
+  background-color: var(--color-success);
+  color: var(--text-inverse);
+  border-color: var(--color-success);
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-success) 90%, black);
+  border-color: color-mix(in srgb, var(--color-success) 90%, black);
+}
+
+.btn-info {
+  background-color: var(--color-info);
+  color: var(--text-inverse);
+  border-color: var(--color-info);
+}
+
+.btn-info:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-info) 90%, black);
+  border-color: color-mix(in srgb, var(--color-info) 90%, black);
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+  color: var(--text-inverse);
+  border-color: var(--color-danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-danger) 90%, black);
+  border-color: color-mix(in srgb, var(--color-danger) 90%, black);
+}
+
+/* ===============================================
+   11. Loading Overlay
+   =============================================== */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+}
+
+.loading-overlay.hidden {
+  display: none;
+}
+
+.loading-overlay .loading-content {
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-xl);
+  text-align: center;
+  border: 1px solid var(--border-color);
+  min-width: 200px;
+}
+
+.loading-overlay .loading-text {
+  margin-top: var(--spacing-md);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+}
+
+/* ===============================================
+   12. Responsive Design
+   =============================================== */
+@media (max-width: 1200px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .page-header {
+    padding: var(--spacing-md);
+  }
+  
+  .main-card {
+    margin: 0 -var(--spacing-md);
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  
+  .filters-section {
+    padding: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .stat-card {
+    padding: var(--spacing-md);
+  }
+  
+  .stat-content {
+    gap: var(--spacing-sm);
+  }
+  
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+  }
+  
+  .tabs-navigation {
+    padding: 0 var(--spacing-md);
+  }
+  
+  .tab-item {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+}

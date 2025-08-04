@@ -1,240 +1,1096 @@
 <!DOCTYPE html>
-<html lang="<%= currentLang || 'uz' %>" data-theme="light">
+<html lang="<%= typeof lng !== 'undefined' ? lng : 'uz' %>" class="theme-transition">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
     <title>System Settings - SLEX Admin</title>
+       
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- CSS -->
-    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/assets/css/line-awesome.min.css" rel="stylesheet">
-    <link href="/admin/css/admin-theme.css" rel="stylesheet">
-    <link href="/admin/css/admin-components.css" rel="stylesheet">
-    <link href="/admin/css/admin-responsive.css" rel="stylesheet">
-</head>
-<body class="admin-layout">
-    <div class="admin-wrapper">
-        <!-- Sidebar -->
-        <%- include('../partials/sidebar', { currentPage: 'settings', user: user }) %>
+    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="/assets/css/line-awesome.min.css">
+    
+    <!-- Core Admin CSS -->
+    <link rel="stylesheet" href="/admin/css/admin-dashboard.css">
+    
+    <!-- Professional Settings Styles -->
+    <style>
+        /* ======================================
+           PROFESSIONAL SETTINGS PAGE STYLES
+           Senior Software Engineer Implementation
+           ====================================== */
         
-        <!-- Main Content -->
-        <div class="admin-main">
-            <!-- Header -->
-            <%- include('../partials/header', { 
-                user: user, 
-                title: 'System Settings',
-                breadcrumb: [
-                    { title: 'System', url: '/admin' },
-                    { title: 'Settings' }
-                ],
-                currentLang: typeof currentLang !== 'undefined' ? currentLang : 'uz'
-            }) %>
+        /* Settings Container */
+        .settings-container {
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+        
+        /* Settings Header */
+        .settings-header {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            color: white;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .settings-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+        
+        .settings-header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .settings-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .settings-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin: 0;
+            font-weight: 400;
+        }
+        
+        .settings-actions {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .settings-actions .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .settings-actions .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        /* Settings Navigation */
+        .settings-nav {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0;
+        }
+        
+        .settings-nav-list {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .settings-nav-list::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .settings-nav-item {
+            flex-shrink: 0;
+        }
+        
+        .settings-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .settings-nav-link:hover {
+            color: var(--color-primary);
+            background: var(--bg-hover);
+        }
+        
+        .settings-nav-link.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+            background: var(--bg-card);
+        }
+        
+        .settings-nav-icon {
+            font-size: 1rem;
+        }
+        
+        /* Settings Content */
+        .settings-content {
+            padding: 2rem;
+        }
+        
+        .settings-section {
+            display: none;
+        }
+        
+        .settings-section.active {
+            display: block;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 1.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin: 0 0 2rem 0;
+            line-height: 1.5;
+        }
+        
+        /* Settings Groups */
+        .settings-group {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        
+        .group-header {
+            background: var(--bg-secondary);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .group-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .group-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0.25rem 0 0 0;
+        }
+        
+        /* Setting Items */
+        .setting-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-info {
+            flex: 1;
+        }
+        
+        .setting-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 0.25rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .setting-description {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .setting-control {
+            flex-shrink: 0;
+            min-width: 200px;
+        }
+        
+        /* Form Controls */
+        .form-control {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+        
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--border-color);
+            transition: 0.2s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            transition: 0.2s;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--color-primary);
+        }
+        
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 4px;
+        }
+        
+        .badge-required {
+            background: var(--color-danger-light);
+            color: var(--color-danger);
+        }
+        
+        .badge-readonly {
+            background: var(--color-warning-light);
+            color: var(--color-warning);
+        }
+        
+        .badge-restart {
+            background: var(--color-info-light);
+            color: var(--color-info);
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+        
+        .btn-primary:hover {
+            background: var(--color-primary-dark);
+            border-color: var(--color-primary-dark);
+        }
+        
+        .btn-success {
+            background: var(--color-success);
+            color: white;
+            border-color: var(--color-success);
+        }
+        
+        .btn-success:hover {
+            background: var(--color-success-dark);
+            border-color: var(--color-success-dark);
+        }
+        
+        .btn-outline-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border-color: var(--border-color);
+        }
+        
+        .btn-outline-secondary:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .settings-header {
+                padding: 1.5rem;
+            }
             
-            <!-- Content -->
-            <div class="admin-content">
-                <div class="container-fluid">
-                    <!-- Page Title and Actions -->
-                    <div class="page-header mb-4">
-                        <div class="page-header-content">
-                            <div class="page-title-section">
-                                <h1 class="page-title">
-                                    <i class="las la-cog"></i>
-                                    System Settings
-                                </h1>
-                                <p class="page-subtitle">Configure platform settings, features, and system parameters</p>
-                            </div>
-                            
-                            <div class="page-actions">
-                                <button class="btn btn-outline-primary" onclick="exportConfig()">
-                                    <i class="las la-download"></i>
-                                    Export Config
-                                </button>
-                                <button class="btn btn-primary" onclick="saveSettings()">
-                                    <i class="las la-save"></i>
-                                    Save Changes
-                                </button>
-                            </div>
-                        </div>
+            .settings-actions {
+                position: static;
+                margin-top: 1rem;
+                flex-wrap: wrap;
+            }
+            
+            .settings-content {
+                padding: 1rem;
+            }
+            
+            .setting-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .setting-control {
+                width: 100%;
+                min-width: unset;
+            }
+        }
+        
+        /* Dark Theme Support */
+        [data-theme="dark"] .settings-header {
+            background: linear-gradient(135deg, var(--color-primary) 0%, #1e40af 100%);
+        }
+        
+        [data-theme="dark"] .form-control {
+            background: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        [data-theme="dark"] .toggle-slider {
+            background: var(--bg-secondary);
+        }
+        
+        /* Animation */
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Loading State */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+        
+        .loading-spinner {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--color-primary);
+        }
+        
+        /* Success State */
+        .save-indicator {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--color-success);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .save-indicator.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+
+<body class="admin-layout theme-transition" data-theme="light">
+
+    <%- include('../partials/header', { 
+        title: 'System Settings - SLEX Admin',
+        lng: typeof currentLang !== 'undefined' ? currentLang : 'uz',
+        admin: admin, 
+        user: user,
+        breadcrumb: [
+            { title: 'System', url: '/admin' },
+            { title: 'Settings' }
+        ]
+    }) %>
+
+    <%- include('../partials/sidebar', { 
+        admin: admin, 
+        user: user, 
+        currentPage: 'settings'
+    }) %>
+    
+    <!-- Main Content -->
+    <div class="admin-main">
+        <div class="admin-content">
+            
+            <!-- Professional Settings Container -->
+            <div class="settings-container animate-fade-in">
+                
+                <!-- Settings Header -->
+                <div class="settings-header">
+                    <div class="settings-header-content">
+                        <h1 class="settings-title">
+                            <i class="las la-cogs"></i>
+                            System Settings
+                        </h1>
+                        <p class="settings-subtitle">
+                            Configure platform settings, security parameters, and system preferences
+                        </p>
                     </div>
-
-                    <!-- Settings Navigation Tabs -->
-                    <div class="settings-tabs mb-4">
-                        <nav>
-                            <div class="nav nav-tabs" id="settingsTab" role="tablist">
-                                <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">
-                                    <i class="las la-cog"></i>
-                                    General
-                                </button>
-                                <button class="nav-link" id="platform-tab" data-bs-toggle="tab" data-bs-target="#platform" type="button" role="tab">
-                                    <i class="las la-globe"></i>
-                                    Platform
-                                </button>
-                                <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab">
-                                    <i class="las la-bell"></i>
-                                    Notifications
-                                </button>
-                                <button class="nav-link" id="integrations-tab" data-bs-toggle="tab" data-bs-target="#integrations" type="button" role="tab">
-                                    <i class="las la-plug"></i>
-                                    Integrations
-                                </button>
-                                <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced" type="button" role="tab">
-                                    <i class="las la-tools"></i>
-                                    Advanced
-                                </button>
-                            </div>
-                        </nav>
-                    </div>
-
-                    <!-- Settings Tab Content -->
-                    <div class="tab-content" id="settingsTabContent">
-                        <!-- General Settings -->
-                        <div class="tab-pane fade show active" id="general" role="tabpanel">
-                            <div class="dashboard-card">
-                                <div class="card-header">
-                                    <div class="card-title-section">
-                                        <h3 class="card-title">
-                                            <i class="las la-cog"></i>
-                                            General Settings
-                                        </h3>
-                                        <p class="card-subtitle">Basic platform configuration and settings</p>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">Platform Name</label>
-                                                <input type="text" class="form-control" value="SLEX - Silk Road Express">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">Default Language</label>
-                                                <select class="form-select">
-                                                    <option value="uz" selected>Uzbek</option>
-                                                    <option value="ru">Russian</option>
-                                                    <option value="en">English</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">Time Zone</label>
-                                                <select class="form-select">
-                                                    <option value="Asia/Tashkent" selected>Asia/Tashkent (UTC+5)</option>
-                                                    <option value="Asia/Almaty">Asia/Almaty (UTC+6)</option>
-                                                    <option value="Asia/Bishkek">Asia/Bishkek (UTC+6)</option>
-                                                    <option value="Asia/Dushanbe">Asia/Dushanbe (UTC+5)</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">Currency</label>
-                                                <select class="form-select">
-                                                    <option value="UZS" selected>Uzbek Sum (UZS)</option>
-                                                    <option value="USD">US Dollar (USD)</option>
-                                                    <option value="EUR">Euro (EUR)</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Platform Settings -->
-                        <div class="tab-pane fade" id="platform" role="tabpanel">
-                            <div class="dashboard-card">
-                                <div class="card-body text-center py-5">
-                                    <i class="las la-globe" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
-                                    <h4>Platform Settings</h4>
-                                    <p class="text-muted">Platform-specific configuration options will be implemented here.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Notifications Settings -->
-                        <div class="tab-pane fade" id="notifications" role="tabpanel">
-                            <div class="dashboard-card">
-                                <div class="card-body text-center py-5">
-                                    <i class="las la-bell" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
-                                    <h4>Notification Settings</h4>
-                                    <p class="text-muted">Email, SMS, and push notification settings will be implemented here.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Integrations Settings -->
-                        <div class="tab-pane fade" id="integrations" role="tabpanel">
-                            <div class="dashboard-card">
-                                <div class="card-body text-center py-5">
-                                    <i class="las la-plug" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
-                                    <h4>Integration Settings</h4>
-                                    <p class="text-muted">Third-party integration configuration will be implemented here.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Advanced Settings -->
-                        <div class="tab-pane fade" id="advanced" role="tabpanel">
-                            <div class="dashboard-card">
-                                <div class="card-body text-center py-5">
-                                    <i class="las la-tools" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
-                                    <h4>Advanced Settings</h4>
-                                    <p class="text-muted">Advanced system configuration options will be implemented here.</p>
-                                    <div class="mt-4">
-                                        <button class="btn btn-primary me-2" onclick="configureGeneral()">
-                                            <i class="las la-sliders-h"></i>
-                                            General Settings
-                                        </button>
-                                        <button class="btn btn-outline-secondary" onclick="configureAdvanced()">
-                                            <i class="las la-tools"></i>
-                                            Advanced Settings
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="settings-actions">
+                        <button class="btn" onclick="resetAllSettings()">
+                            <i class="las la-undo"></i>
+                            Reset to Defaults
+                        </button>
+                        <button class="btn" onclick="exportSettings()">
+                            <i class="las la-download"></i>
+                            Export Configuration
+                        </button>
+                        <button class="btn" onclick="saveAllSettings()">
+                            <i class="las la-save"></i>
+                            Save All Changes
+                        </button>
                     </div>
                 </div>
+                
+                <!-- Settings Navigation -->
+                <nav class="settings-nav">
+                    <ul class="settings-nav-list">
+                        <li class="settings-nav-item">
+                            <a href="#general" class="settings-nav-link active" data-section="general">
+                                <i class="las la-cog settings-nav-icon"></i>
+                                <span>General</span>
+                            </a>
+                        </li>
+                        <li class="settings-nav-item">
+                            <a href="#security" class="settings-nav-link" data-section="security">
+                                <i class="las la-shield-alt settings-nav-icon"></i>
+                                <span>Security</span>
+                            </a>
+                        </li>
+                        <li class="settings-nav-item">
+                            <a href="#notifications" class="settings-nav-link" data-section="notifications">
+                                <i class="las la-bell settings-nav-icon"></i>
+                                <span>Notifications</span>
+                            </a>
+                        </li>
+                        <li class="settings-nav-item">
+                            <a href="#integrations" class="settings-nav-link" data-section="integrations">
+                                <i class="las la-plug settings-nav-icon"></i>
+                                <span>Integrations</span>
+                            </a>
+                        </li>
+                        <li class="settings-nav-item">
+                            <a href="#advanced" class="settings-nav-link" data-section="advanced">
+                                <i class="las la-tools settings-nav-icon"></i>
+                                <span>Advanced</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <!-- Settings Content -->
+                <div class="settings-content">
+                    
+                    <!-- General Settings -->
+                    <div class="settings-section active" id="general-section">
+                        <h2 class="section-title">
+                            <i class="las la-cog"></i>
+                            General Settings
+                        </h2>
+                        <p class="section-description">
+                            Basic platform configuration and general preferences
+                        </p>
+                        
+                        <div class="settings-group">
+                            <div class="group-header">
+                                <h3 class="group-title">Platform Information</h3>
+                                <p class="group-description">Basic platform identification and branding</p>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">
+                                        Platform Name
+                                        <span class="badge badge-required">
+                                            <i class="las la-asterisk"></i>
+                                            Required
+                                        </span>
+                                    </label>
+                                    <p class="setting-description">
+                                        The name of your B2B marketplace platform that will be displayed throughout the application
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="text" class="form-control" value="SLEX B2B Marketplace" data-setting="platform_name">
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Platform Description</label>
+                                    <p class="setting-description">
+                                        A brief description of your platform for meta tags and branding
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <textarea class="form-control" rows="2" data-setting="platform_description">Professional B2B marketplace connecting manufacturers, distributors, and buyers</textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Contact Email</label>
+                                    <p class="setting-description">
+                                        Main contact email for support and inquiries
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="email" class="form-control" value="support@slex.uz" data-setting="contact_email">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-group">
+                            <div class="group-header">
+                                <h3 class="group-title">Regional Settings</h3>
+                                <p class="group-description">Localization and regional preferences</p>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Default Language</label>
+                                    <p class="setting-description">
+                                        Default language for new users and system messages
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-control form-select" data-setting="default_language">
+                                        <option value="uz">Uzbek (O'zbek)</option>
+                                        <option value="ru">Russian (Русский)</option>
+                                        <option value="en">English</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Default Currency</label>
+                                    <p class="setting-description">
+                                        Primary currency for transactions and pricing
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-control form-select" data-setting="default_currency">
+                                        <option value="USD">USD - US Dollar</option>
+                                        <option value="UZS">UZS - Uzbek Som</option>
+                                        <option value="EUR">EUR - Euro</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Timezone</label>
+                                    <p class="setting-description">
+                                        System timezone for dates and scheduling
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="form-control form-select" data-setting="timezone">
+                                        <option value="Asia/Tashkent" selected>Asia/Tashkent (UTC+5)</option>
+                                        <option value="UTC">UTC</option>
+                                        <option value="Europe/Moscow">Europe/Moscow (UTC+3)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Security Settings -->
+                    <div class="settings-section" id="security-section">
+                        <h2 class="section-title">
+                            <i class="las la-shield-alt"></i>
+                            Security Settings
+                        </h2>
+                        <p class="section-description">
+                            Authentication, authorization, and security policies
+                        </p>
+                        
+                        <div class="settings-group">
+                            <div class="group-header">
+                                <h3 class="group-title">Authentication</h3>
+                                <p class="group-description">User authentication and session management</p>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Session Timeout (minutes)</label>
+                                    <p class="setting-description">
+                                        Automatic logout after inactivity period
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="number" class="form-control" value="60" min="5" max="480" data-setting="session_timeout">
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Require Email Verification</label>
+                                    <p class="setting-description">
+                                        New users must verify their email before accessing the platform
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="email-verification" checked data-setting="require_email_verification">
+                                        <label for="email-verification" class="toggle-slider"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Enable Two-Factor Authentication</label>
+                                    <p class="setting-description">
+                                        Allow users to enable 2FA for enhanced security
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="two-factor" data-setting="enable_2fa">
+                                        <label for="two-factor" class="toggle-slider"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-group">
+                            <div class="group-header">
+                                <h3 class="group-title">Password Policy</h3>
+                                <p class="group-description">Password strength and requirements</p>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Minimum Password Length</label>
+                                    <p class="setting-description">
+                                        Minimum number of characters required for passwords
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="number" class="form-control" value="8" min="6" max="32" data-setting="min_password_length">
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Require Special Characters</label>
+                                    <p class="setting-description">
+                                        Passwords must contain at least one special character
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="special-chars" checked data-setting="require_special_chars">
+                                        <label for="special-chars" class="toggle-slider"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notification Settings -->
+                    <div class="settings-section" id="notifications-section">
+                        <h2 class="section-title">
+                            <i class="las la-bell"></i>
+                            Notification Settings
+                        </h2>
+                        <p class="section-description">
+                            Email notifications, alerts, and communication preferences
+                        </p>
+                        
+                        <div class="settings-group">
+                            <div class="group-header">
+                                <h3 class="group-title">Email Notifications</h3>
+                                <p class="group-description">Control which email notifications are sent to users</p>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Welcome Email</label>
+                                    <p class="setting-description">
+                                        Send welcome email to new users after registration
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="welcome-email" checked data-setting="send_welcome_email">
+                                        <label for="welcome-email" class="toggle-slider"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Order Notifications</label>
+                                    <p class="setting-description">
+                                        Notify users about order status changes and updates
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="order-notifications" checked data-setting="send_order_notifications">
+                                        <label for="order-notifications" class="toggle-slider"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Integration Settings -->
+                    <div class="settings-section" id="integrations-section">
+                        <h2 class="section-title">
+                            <i class="las la-plug"></i>
+                            Integration Settings
+                        </h2>
+                        <p class="section-description">
+                            Third-party service integrations and API configurations
+                        </p>
+                        
+                        <div class="settings-group">
+                            <div class="group-header">
+                                <h3 class="group-title">Payment Gateways</h3>
+                                <p class="group-description">Configure payment processing services</p>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Enable PayPal</label>
+                                    <p class="setting-description">
+                                        Allow payments through PayPal gateway
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="paypal-enabled" data-setting="paypal_enabled">
+                                        <label for="paypal-enabled" class="toggle-slider"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">Enable Click (Uzbekistan)</label>
+                                    <p class="setting-description">
+                                        Allow payments through Click payment system
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="click-enabled" data-setting="click_enabled">
+                                        <label for="click-enabled" class="toggle-slider"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Settings -->
+                    <div class="settings-section" id="advanced-section">
+                        <h2 class="section-title">
+                            <i class="las la-tools"></i>
+                            Advanced Settings
+                        </h2>
+                        <p class="section-description">
+                            Advanced system parameters and developer options
+                        </p>
+                        
+                        <div class="settings-group">
+                            <div class="group-header">
+                                <h3 class="group-title">System Configuration</h3>
+                                <p class="group-description">Low-level system settings</p>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">
+                                        Debug Mode
+                                        <span class="badge badge-restart">
+                                            <i class="las la-power-off"></i>
+                                            Requires Restart
+                                        </span>
+                                    </label>
+                                    <p class="setting-description">
+                                        Enable detailed logging and error reporting (development only)
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="debug-mode" data-setting="debug_mode">
+                                        <label for="debug-mode" class="toggle-slider"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label class="setting-label">API Rate Limit (requests/minute)</label>
+                                    <p class="setting-description">
+                                        Maximum API requests per minute per user
+                                    </p>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="number" class="form-control" value="100" min="10" max="1000" data-setting="api_rate_limit">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
             </div>
+            
         </div>
+    </div>
+    
+    <!-- Save Success Indicator -->
+    <div class="save-indicator" id="saveIndicator">
+        <i class="las la-check-circle"></i>
+        Settings saved successfully!
     </div>
 
     <!-- Scripts -->
+    <script src="/assets/js/jquery-3.7.1.min.js"></script>
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
-    <script src="/admin/js/admin-theme.js"></script>
+    <script src="/admin/js/dashboard.js"></script>
 
     <script>
-    window.exportConfig = () => {
-        console.log('Export config functionality will be implemented');
-    };
-
-    window.saveSettings = () => {
-        console.log('Save settings functionality will be implemented');
-    };
-
-    window.configureGeneral = () => {
-        console.log('General settings functionality will be implemented');
-    };
-
-    window.configureAdvanced = () => {
-        console.log('Advanced settings functionality will be implemented');
-    };
-
-    // Initialize tabs
-    document.addEventListener('DOMContentLoaded', function() {
-        // Bootstrap tab initialization is handled automatically
-        console.log('Settings tabs initialized');
-    });
+        // Professional Settings Management
+        class SettingsManager {
+            constructor() {
+                this.unsavedChanges = new Map();
+                this.init();
+            }
+            
+            init() {
+                this.setupNavigation();
+                this.setupSettingControls();
+                this.setupAutoSave();
+            }
+            
+            setupNavigation() {
+                const navLinks = document.querySelectorAll('.settings-nav-link');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const section = link.dataset.section;
+                        this.switchSection(section);
+                    });
+                });
+            }
+            
+            switchSection(sectionId) {
+                // Update navigation
+                document.querySelectorAll('.settings-nav-link').forEach(link => {
+                    link.classList.remove('active');
+                });
+                document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+                
+                // Update content
+                document.querySelectorAll('.settings-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(`${sectionId}-section`).classList.add('active');
+            }
+            
+            setupSettingControls() {
+                const controls = document.querySelectorAll('[data-setting]');
+                controls.forEach(control => {
+                    control.addEventListener('change', (e) => {
+                        const setting = e.target.dataset.setting;
+                        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+                        this.updateSetting(setting, value);
+                    });
+                });
+            }
+            
+            updateSetting(key, value) {
+                this.unsavedChanges.set(key, value);
+                console.log(`Setting updated: ${key} = ${value}`);
+            }
+            
+            setupAutoSave() {
+                // Auto-save every 30 seconds if there are changes
+                setInterval(() => {
+                    if (this.unsavedChanges.size > 0) {
+                        this.saveSettings();
+                    }
+                }, 30000);
+            }
+            
+            async saveSettings() {
+                if (this.unsavedChanges.size === 0) return;
+                
+                try {
+                    const settings = Object.fromEntries(this.unsavedChanges);
+                    
+                    const response = await fetch('/admin/api/settings/bulk-update', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+                        },
+                        body: JSON.stringify({ settings })
+                    });
+                    
+                    if (response.ok) {
+                        this.unsavedChanges.clear();
+                        this.showSaveSuccess();
+                        console.log('Settings saved successfully');
+                    } else {
+                        console.error('Failed to save settings');
+                    }
+                } catch (error) {
+                    console.error('Error saving settings:', error);
+                }
+            }
+            
+            showSaveSuccess() {
+                const indicator = document.getElementById('saveIndicator');
+                indicator.classList.add('show');
+                setTimeout(() => {
+                    indicator.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        // Global Functions
+        window.saveAllSettings = function() {
+            if (window.settingsManager) {
+                window.settingsManager.saveSettings();
+            }
+        };
+        
+        window.resetAllSettings = function() {
+            if (confirm('Are you sure you want to reset all settings to their default values?')) {
+                console.log('Resetting all settings to defaults...');
+                // Implementation would call backend API
+            }
+        };
+        
+        window.exportSettings = function() {
+            console.log('Exporting settings configuration...');
+            // Implementation would generate and download config file
+        };
+        
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 Professional Settings page initialized');
+            
+            // Initialize settings manager
+            window.settingsManager = new SettingsManager();
+            
+            // Initialize theme system
+            if (typeof initializeThemeSystem === 'function') {
+                initializeThemeSystem();
+            }
+        });
     </script>
+
 </body>
 </html>

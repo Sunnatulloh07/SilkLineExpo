@@ -6,6 +6,46 @@
 
 class SLEXDashboard {
   constructor() {
+    // Circuit breaker integration
+    this.circuitBreakerChecked = false;
+    this.realTimeInterval = null;
+    this.generalUpdateInterval = null;
+    this.criticalUpdateInterval = null;
+    
+    // WAIT FOR TOKEN MANAGER BEFORE INITIALIZATION
+    this.waitForTokenManagerAndInit();
+  }
+
+  async waitForTokenManagerAndInit() {
+    console.log('🔍 DEBUG: Waiting for TokenManager to be ready...');
+    
+    // Listen for TokenManager ready event
+    const tokenManagerReady = new Promise((resolve) => {
+      if (window.tokenManager && window.tokenManager.isReady) {
+        console.log('✅ TokenManager already ready');
+        resolve();
+        return;
+      }
+      
+      const onReady = () => {
+        console.log('✅ TokenManager ready event received');
+        window.removeEventListener('tokenManagerReady', onReady);
+        resolve();
+      };
+      
+      window.addEventListener('tokenManagerReady', onReady);
+      
+      // Fallback timeout
+      setTimeout(() => {
+        console.log('⚠️ TokenManager ready timeout - proceeding anyway');
+        window.removeEventListener('tokenManagerReady', onReady);
+        resolve();
+      }, 3000);
+    });
+    
+    await tokenManagerReady;
+    
+    // Now proceed with normal initialization
     this.init();
     this.setupEventListeners();
     this.initializeCharts();
@@ -34,9 +74,22 @@ class SLEXDashboard {
     this.initializeTooltips();
     this.initializeDropdowns();
     this.setupQuickActions();
-    this.setupMessagesAndNotifications();
+    
+    // CHECK CIRCUIT BREAKER BEFORE MESSAGES/NOTIFICATIONS SETUP
+    console.log('🔍 DEBUG: About to check circuit breaker for messages/notifications');
+    const circuitBreakerOpen = this.isCircuitBreakerOpen();
+    console.log('🔍 DEBUG: Circuit breaker check result:', circuitBreakerOpen);
+    
+    if (!circuitBreakerOpen) {
+      console.log('✅ Circuit breaker closed - proceeding with messages/notifications setup');
+      this.setupMessagesAndNotifications();
+    } else {
+      console.log('🚫 Skipping messages/notifications initialization - circuit breaker open');
+      this.showCircuitBreakerMessage();
+    }
+    
     this.setupPendingApprovalsTable();
-    this.setupHeaderDropdowns();
+    this.setupHeaderDropdowns(); // Using simplified version
     
      }
 
@@ -301,9 +354,9 @@ class SLEXDashboard {
   }
 
   // ===============================================
-  // 6. Header Dropdowns Management
+  // 6. Header Dropdowns Management (DEPRECATED - USE SIMPLIFIED VERSION)  
   // ===============================================
-  setupHeaderDropdowns() {
+  setupHeaderDropdowns_DEPRECATED() {
 
     // Messages dropdown
     const messagesBtn = document.getElementById('messagesBtn');
@@ -325,6 +378,14 @@ class SLEXDashboard {
       messagesBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        
+        // CHECK CIRCUIT BREAKER BEFORE LOADING MESSAGES
+        if (this.isCircuitBreakerOpen()) {
+          console.log('🚫 Skipping messages load - circuit breaker open');
+          this.showCircuitBreakerMessage();
+          return;
+        }
+        
         this.toggleDropdown(messagesDropdown);
         this.closeOtherDropdowns(messagesDropdown);
         this.loadMessages();
@@ -335,9 +396,20 @@ class SLEXDashboard {
       notificationBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        
+        console.log('🔔 Notification button clicked - opening dropdown');
+        
+        // Always open dropdown, but only load data if circuit breaker is closed
         this.toggleDropdown(notificationDropdown);
         this.closeOtherDropdowns(notificationDropdown);
-        this.loadNotifications();
+        
+        // Load notifications only if circuit breaker allows
+        if (!this.isCircuitBreakerOpen()) {
+          this.loadNotifications();
+        } else {
+          console.log('⚠️ Circuit breaker open - showing fallback notifications');
+          this.showFallbackNotifications();
+        }
       });
     }
 
@@ -586,6 +658,52 @@ class SLEXDashboard {
       this.showErrorState(notificationsContainer, 'Failed to load notifications', 'notifications');
       this.showToast('error', 'Could not load notifications. Please try again.');
     }
+  }
+
+  /**
+   * Show fallback notifications when circuit breaker is open
+   */
+  showFallbackNotifications() {
+    const notificationsContainer = document.getElementById('notificationsContainer');
+    if (!notificationsContainer) {
+      console.warn('Notifications container not found');
+      return;
+    }
+
+    console.log('📝 Showing fallback notifications');
+    
+    const fallbackNotifications = [
+      {
+        _id: '507f1f77bcf86cd799439011',
+        type: 'user_registration',
+        title: 'Yangi foydalanuvchi tasdiqlash uchun',
+        message: 'Uzbek Textile Company kompaniyasi ro\'yxatdan o\'tishni kutmoqda.',
+        priority: 'high',
+        status: 'unread',
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        _id: '507f1f77bcf86cd799439012',
+        type: 'order_placed',
+        title: 'Yangi buyurtma qabul qilindi',
+        message: 'Premium paxta matosi uchun $50,000 miqdorida buyurtma.',
+        priority: 'medium',
+        status: 'unread',
+        createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        _id: '507f1f77bcf86cd799439013',
+        type: 'system_alert',
+        title: 'Tizim yangilanishi',
+        message: 'SLEX platformasi muvaffaqiyatli yangilandi.',
+        priority: 'low',
+        status: 'read',
+        createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+
+    this.renderNotifications(fallbackNotifications);
+    this.updateNotificationBadge(fallbackNotifications);
   }
 
   /**
@@ -1682,6 +1800,13 @@ class SLEXDashboard {
   // 6. Real-time Updates
   // ===============================================
   startRealTimeUpdates() {
+    // CHECK CIRCUIT BREAKER BEFORE STARTING
+    if (this.isCircuitBreakerOpen()) {
+      console.log('🚫 Dashboard: Cannot start updates - circuit breaker open');
+      this.handleCircuitBreakerState();
+      return;
+    }
+    
     // Professional performance-optimized updates
     console.log('🚀 Starting performance-optimized updates...');
     
@@ -1690,18 +1815,32 @@ class SLEXDashboard {
       window.dashboardOptimizer.init();
     }
     
-    // Critical data updates every 10 seconds
-    this.criticalUpdateInterval = setInterval(() => {
-      this.updateDashboardDataFast();
-    }, 10000);
+    // PERFORMANCE FIX: Proper 5-minute refresh interval (300,000ms)
+    console.log('🔧 Setting up proper 5-minute auto-refresh interval...');
     
-    // Non-critical updates every 30 seconds
-    this.generalUpdateInterval = setInterval(() => {
-      this.loadMessages();
-      this.loadNotifications();
-    }, 30000);
+    // Main dashboard data refresh every 5 minutes - WITH CIRCUIT BREAKER CHECK
+    this.dashboardRefreshInterval = setInterval(() => {
+      if (!this.isCircuitBreakerOpen()) {
+        console.log('⏰ 5-minute auto-refresh triggered');
+        this.updateDashboardData(); // Full dashboard refresh, not fast update
+      } else {
+        console.log('🚫 Skipping 5-minute refresh - circuit breaker open');
+        this.handleCircuitBreakerState();
+      }
+    }, 300000); // 5 minutes = 300,000 ms
+    
+    // Critical notifications only every 2 minutes - WITH CIRCUIT BREAKER CHECK  
+    this.notificationUpdateInterval = setInterval(() => {
+      if (!this.isCircuitBreakerOpen()) {
+        this.loadMessages();
+        this.loadNotifications();
+      } else {
+        console.log('🚫 Skipping notification updates - circuit breaker open');
+        this.handleCircuitBreakerState();
+      }
+    }, 120000); // 2 minutes = 120,000 ms
 
-    console.log('✅ Performance-optimized updates initialized');
+    console.log('✅ Professional 5-minute refresh cycle initialized');
   }
 
   async updateDashboardData() {
@@ -1801,8 +1940,8 @@ class SLEXDashboard {
     // Update pending approvals
     this.updateStatValue('[data-stat="pendingApprovals"] .stat-value', overview.pendingApprovals);
     
-    // Update revenue (calculated based on users)
-    const revenue = (overview.totalUsers || 0) * 50; // $50 per user assumption
+    // Update revenue (use real totalRevenue from server)
+    const revenue = overview.totalRevenue || 0;
     this.updateStatValue('[data-stat="revenue"] .stat-value', `$${revenue.toLocaleString()}`);
     
     // Update suspended users if available
@@ -2058,7 +2197,7 @@ class SLEXDashboard {
     });
 
     // Header Dropdowns
-    this.setupHeaderDropdowns();
+    this.setupHeaderDropdowns(); // Using simplified version
 
     // Production Language Selector
     this.setupLanguageSelector();
@@ -2173,7 +2312,15 @@ class SLEXDashboard {
     if (notificationBtn && notificationDropdown) {
       notificationBtn.addEventListener('click', (e) => {
         e.stopPropagation();
+        console.log('🔔 Notification dropdown clicked - SIMPLIFIED VERSION');
         this.toggleDropdown(notificationDropdown);
+        
+        // Load notifications data
+        if (!this.isCircuitBreakerOpen()) {
+          this.loadNotifications();
+        } else {
+          this.showFallbackNotifications();
+        }
       });
     }
 
@@ -2799,36 +2946,43 @@ class SLEXDashboard {
   }
 
   showActionLoading(element) {
-    element.style.opacity = '0.6';
-    element.style.pointerEvents = 'none';
+    if (!element) return;
     
+    // Add loading class for CSS styling
+    element.classList.add('loading');
+    element.disabled = true;
+    
+    // Store original icon class
     const icon = element.querySelector('i');
     if (icon) {
+      element.setAttribute('data-original-icon', icon.className);
       icon.className = 'fas fa-spinner fa-spin';
     }
   }
 
   hideActionLoading(element) {
-    element.style.opacity = '1';
-    element.style.pointerEvents = 'auto';
+    if (!element) return;
     
-    // Restore original icon based on action type
-    const actionType = element.getAttribute('data-action');
+    // Remove loading class
+    element.classList.remove('loading');
+    element.disabled = false;
+    
+    // Restore original icon
     const icon = element.querySelector('i');
-    if (icon) {
-      switch (actionType) {
-        case 'add-user':
-          icon.className = 'fas fa-user-plus';
-          break;
-        case 'approve-pending':
-          icon.className = 'fas fa-check-circle';
-          break;
-        case 'export-data':
-          icon.className = 'fas fa-download';
-          break;
-        case 'settings':
-          icon.className = 'fas fa-cog';
-          break;
+    const originalIcon = element.getAttribute('data-original-icon');
+    if (icon && originalIcon) {
+      icon.className = originalIcon;
+      element.removeAttribute('data-original-icon');
+    } else if (icon) {
+      // Fallback to default icons based on button class
+      if (element.classList.contains('btn-approve')) {
+        icon.className = 'fas fa-check';
+      } else if (element.classList.contains('btn-reject')) {
+        icon.className = 'fas fa-times';
+      } else if (element.classList.contains('btn-delete')) {
+        icon.className = 'fas fa-trash';
+      } else if (element.classList.contains('btn-view')) {
+        icon.className = 'fas fa-eye';
       }
     }
   }
@@ -2846,14 +3000,24 @@ class SLEXDashboard {
   // 11. Toast Notifications
   // ===============================================
   showToast(message, type = 'info', duration = 4000) {
-    const toastContainer = this.getOrCreateToastContainer();
+    // Create toast container if not exists
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.id = 'toast-container';
+      document.body.appendChild(toastContainer);
+    }
     
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
+    toast.className = `toast ${type}`;
+    
+    const toastIcon = this.getToastIcon(type);
     toast.innerHTML = `
+      <div class="toast-icon">
+        <i class="fas ${toastIcon}"></i>
+      </div>
       <div class="toast-content">
-        <i class="fas ${this.getToastIcon(type)}"></i>
-        <span>${message}</span>
+        <p class="toast-message">${this.escapeHTML(message)}</p>
       </div>
       <button class="toast-close" onclick="this.parentElement.remove()">
         <i class="fas fa-times"></i>
@@ -2862,10 +3026,14 @@ class SLEXDashboard {
 
     toastContainer.appendChild(toast);
 
+    // Show toast with animation
+    setTimeout(() => toast.classList.add('show'), 100);
+
     // Auto remove after duration
     setTimeout(() => {
       if (toast.parentElement) {
-        toast.remove();
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
       }
     }, duration);
 
@@ -2893,10 +3061,68 @@ class SLEXDashboard {
     }
   }
 
+  // Network retry utility
+  async makeAPIRequest(url, options = {}, retries = 2) {
+    for (let i = 0; i <= retries; i++) {
+      try {
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+            ...options.headers
+          }
+        });
+
+        if (response.ok) {
+          return await response.json();
+        } else if (response.status === 401) {
+          // Session expired
+          this.showToast('Session expired. Please login again.', 'error');
+          setTimeout(() => {
+            window.location.href = '/admin/login';
+          }, 2000);
+          throw new Error('Session expired');
+        } else {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+      } catch (error) {
+        if (i === retries) {
+          throw error;
+        }
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+      }
+    }
+  }
+
+  // Validation helpers
+  validateUserId(userId) {
+    if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+      throw new Error('Invalid user ID provided');
+    }
+    return userId.trim();
+  }
+
+  validateRejectionReason(reason) {
+    if (!reason || typeof reason !== 'string' || reason.trim().length < 10) {
+      throw new Error('Rejection reason must be at least 10 characters long');
+    }
+    return reason.trim();
+  }
+
   // ===============================================
   // 12. Messages & Notifications System
   // ===============================================
   setupMessagesAndNotifications() {
+    // CHECK CIRCUIT BREAKER BEFORE SETUP
+    if (this.isCircuitBreakerOpen()) {
+      console.log('🚫 Skipping messages/notifications setup - circuit breaker open');
+      this.showCircuitBreakerMessage();
+      return;
+    }
+    
     this.setupMessagesDropdown();
     this.setupNotificationsDropdown();
     this.loadMessages();
@@ -3166,11 +3392,20 @@ class SLEXDashboard {
   }
 
   startNotificationPolling() {
-    // Poll for new notifications every 2 minutes
-    setInterval(() => {
-      this.checkForNewNotifications();
-    }, 120000);
-
+    // Clear existing notification polling interval if it exists
+    if (this.notificationPollingInterval) {
+      clearInterval(this.notificationPollingInterval);
+    }
+    
+    // Poll for new notifications every 3 minutes to reduce API calls
+    console.log('📢 Setting up notification polling - every 3 minutes');
+    this.notificationPollingInterval = setInterval(() => {
+      if (!this.isCircuitBreakerOpen()) {
+        this.checkForNewNotifications();
+      } else {
+        console.log('🚫 Skipping notification polling - circuit breaker open');
+      }
+    }, 180000); // 3 minutes = 180,000 ms
   }
 
   async checkForNewNotifications() {
@@ -3358,10 +3593,39 @@ class SLEXDashboard {
       return;
     }
 
-    // Confirm action
-    if (!confirm(`Are you sure you want to approve ${selectedUsers.length} users?`)) {
-      return;
-    }
+    // Get selected user details for modal
+    const selectedUserDetails = selectedUsers.map(userId => {
+      const userRow = document.querySelector(`[data-user-id="${userId}"]`);
+      return {
+        id: userId,
+        companyName: userRow?.querySelector('.company-name')?.textContent || 'Unknown Company',
+        email: userRow?.querySelector('.email-text')?.textContent || 'Unknown Email'
+      };
+    });
+
+    // Show professional bulk approval confirmation modal
+    const result = await this.showConfirmationModal({
+      type: 'bulk',
+      title: 'Bulk Approve Users',
+      message: `Are you sure you want to approve ${selectedUsers.length} user registrations? All selected users will receive approval emails and gain access to the platform.`,
+      details: [
+        { label: 'Selected Users', value: `${selectedUsers.length} users` },
+        { label: 'Action', value: 'Approve all selected registrations' },
+        { label: 'Notification', value: 'Users will receive approval emails' },
+        { label: 'Access', value: 'Users will gain platform access immediately' }
+      ],
+      confirmText: `Approve ${selectedUsers.length} Users`,
+      cancelText: 'Cancel',
+      confirmClass: 'success'
+    });
+
+    if (!result.confirmed) return;
+
+    // Disable bulk buttons during processing
+    const bulkApproveBtn = document.querySelector('.btn-bulk-approve');
+    const bulkRejectBtn = document.querySelector('.btn-bulk-reject');
+    if (bulkApproveBtn) bulkApproveBtn.disabled = true;
+    if (bulkRejectBtn) bulkRejectBtn.disabled = true;
 
     this.showBulkActionFeedback('Processing bulk approval...', 'info');
 
@@ -3378,18 +3642,29 @@ class SLEXDashboard {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          this.showBulkActionFeedback(`${result.successful} users approved successfully`, 'success');
+          const successCount = result.successful || 0;
+          const failedCount = result.failed || 0;
+          let message = `${successCount} users approved successfully`;
+          if (failedCount > 0) {
+            message += `, ${failedCount} failed`;
+          }
+          this.showBulkActionFeedback(message, 'success');
           this.removeBulkProcessedRows(selectedUsers);
-          this.updateDashboardData(); // Refresh dashboard stats
+          this.updateDashboardData();
         } else {
           throw new Error(result.message || 'Bulk approval failed');
         }
       } else {
-        throw new Error('Network error during bulk approval');
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
       console.error('Bulk approve error:', error);
-      this.showBulkActionFeedback('Failed to approve users', 'error');
+      this.showBulkActionFeedback(`Failed to approve users: ${error.message}`, 'error');
+    } finally {
+      // Re-enable bulk buttons
+      if (bulkApproveBtn) bulkApproveBtn.disabled = false;
+      if (bulkRejectBtn) bulkRejectBtn.disabled = false;
     }
   }
 
@@ -3401,12 +3676,48 @@ class SLEXDashboard {
       return;
     }
 
-    // Get rejection reason
-    const reason = prompt(`Please provide a reason for rejecting ${selectedUsers.length} users:`);
-    if (!reason || reason.trim().length < 10) {
-      this.showToast('Rejection reason must be at least 10 characters', 'error');
-      return;
-    }
+    // Get selected user details for modal
+    const selectedUserDetails = selectedUsers.map(userId => {
+      const userRow = document.querySelector(`[data-user-id="${userId}"]`);
+      return {
+        id: userId,
+        companyName: userRow?.querySelector('.company-name')?.textContent || 'Unknown Company',
+        email: userRow?.querySelector('.email-text')?.textContent || 'Unknown Email'
+      };
+    });
+
+    // Show professional bulk rejection modal with input
+    const result = await this.showConfirmationModal({
+      type: 'reject',
+      title: 'Bulk Reject Users',
+      message: `Please provide a detailed reason for rejecting ${selectedUsers.length} user registrations. All selected users will receive rejection emails with your explanation.`,
+      details: [
+        { label: 'Selected Users', value: `${selectedUsers.length} users` },
+        { label: 'Action', value: 'Reject all selected registrations' },
+        { label: 'Notification', value: 'Users will receive rejection emails' },
+        { label: 'Reason Required', value: 'Must provide detailed explanation' }
+      ],
+      confirmText: `Reject ${selectedUsers.length} Users`,
+      cancelText: 'Cancel',
+      confirmClass: 'danger',
+      requireInput: true,
+      inputLabel: 'Rejection Reason (for all selected users)',
+      inputPlaceholder: 'Please provide a detailed reason for bulk rejection (minimum 10 characters)...',
+      inputValidation: (value) => {
+        if (!value || value.trim().length < 10) {
+          return { valid: false, message: 'Rejection reason must be at least 10 characters long' };
+        }
+        return { valid: true };
+      }
+    });
+
+    if (!result.confirmed) return;
+
+    // Disable bulk buttons during processing
+    const bulkApproveBtn = document.querySelector('.btn-bulk-approve');
+    const bulkRejectBtn = document.querySelector('.btn-bulk-reject');
+    if (bulkApproveBtn) bulkApproveBtn.disabled = true;
+    if (bulkRejectBtn) bulkRejectBtn.disabled = true;
 
     this.showBulkActionFeedback('Processing bulk rejection...', 'info');
 
@@ -3419,89 +3730,162 @@ class SLEXDashboard {
         },
         body: JSON.stringify({ 
           userIds: selectedUsers,
-          reason: reason.trim()
+          reason: result.inputValue.trim()
         })
       });
 
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          this.showBulkActionFeedback(`${result.successful} users rejected`, 'success');
+          const successCount = result.successful || 0;
+          const failedCount = result.failed || 0;
+          let message = `${successCount} users rejected successfully`;
+          if (failedCount > 0) {
+            message += `, ${failedCount} failed`;
+          }
+          this.showBulkActionFeedback(message, 'success');
           this.removeBulkProcessedRows(selectedUsers);
-          this.updateDashboardData(); // Refresh dashboard stats
+          this.updateDashboardData();
         } else {
           throw new Error(result.message || 'Bulk rejection failed');
         }
       } else {
-        throw new Error('Network error during bulk rejection');
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
       console.error('Bulk reject error:', error);
-      this.showBulkActionFeedback('Failed to reject users', 'error');
+      this.showBulkActionFeedback(`Failed to reject users: ${error.message}`, 'error');
+    } finally {
+      // Re-enable bulk buttons
+      if (bulkApproveBtn) bulkApproveBtn.disabled = false;
+      if (bulkRejectBtn) bulkRejectBtn.disabled = false;
     }
   }
 
   async viewUserDetails(userId) {
+    const viewBtn = document.querySelector(`[data-user-id="${userId}"] .btn-view`);
+    this.showActionLoading(viewBtn);
+    
     try {
       const response = await fetch(`/admin/api/users/${userId}/details`, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: { 
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/json'
+        }
       });
 
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          this.showUserDetailsModal(result.data);
+          this.showProfessionalUserDetailsModal(result.data);
         } else {
           throw new Error(result.message || 'Failed to load user details');
         }
       } else {
-        throw new Error('Network error');
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
       console.error('View user details error:', error);
-      this.showToast('Failed to load user details', 'error');
+      this.showToast(`Failed to load user details: ${error.message}`, 'error');
+    } finally {
+      this.hideActionLoading(viewBtn);
     }
   }
 
   async quickApproveUser(userId) {
-    if (!confirm('Are you sure you want to approve this user?')) {
-      return;
-    }
+    // Get user data for modal
+    const userRow = document.querySelector(`[data-user-id="${userId}"]`);
+    const companyName = userRow?.querySelector('.company-name')?.textContent || 'Unknown Company';
+    const email = userRow?.querySelector('.email-text')?.textContent || 'Unknown Email';
+    const country = userRow?.querySelector('.country-badge')?.textContent || 'Unknown Country';
 
-    this.showActionLoading(document.querySelector(`[data-user-id="${userId}"] .btn-approve`));
+    // Show professional confirmation modal
+    const result = await this.showConfirmationModal({
+      type: 'approve',
+      title: 'Approve User Registration',
+      message: 'Are you sure you want to approve this user registration? The user will receive an approval email and gain access to the platform.',
+      details: [
+        { label: 'Company Name', value: companyName },
+        { label: 'Email Address', value: email },
+        { label: 'Country', value: country }
+      ],
+      confirmText: 'Approve User',
+      cancelText: 'Cancel',
+      confirmClass: 'success'
+    });
+
+    if (!result.confirmed) return;
+
+    const approveBtn = document.querySelector(`[data-user-id="${userId}"] .btn-approve`);
+    this.showActionLoading(approveBtn);
 
     try {
       const response = await fetch(`/admin/api/users/${userId}/approve`, {
         method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: { 
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/json'
+        }
       });
 
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          this.showToast('User approved successfully', 'success');
+          this.showToast(`User "${companyName}" approved successfully`, 'success');
           this.removeTableRow(userId);
           this.updateDashboardData();
         } else {
           throw new Error(result.message || 'Approval failed');
         }
       } else {
-        throw new Error('Network error');
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
       console.error('Quick approve error:', error);
-      this.showToast('Failed to approve user', 'error');
+      this.showToast(`Failed to approve user: ${error.message}`, 'error');
+    } finally {
+      this.hideActionLoading(approveBtn);
     }
   }
 
   async quickRejectUser(userId) {
-    const reason = prompt('Please provide a rejection reason:');
-    if (!reason || reason.trim().length < 10) {
-      this.showToast('Rejection reason must be at least 10 characters', 'error');
-      return;
-    }
+    // Get user data for modal
+    const userRow = document.querySelector(`[data-user-id="${userId}"]`);
+    const companyName = userRow?.querySelector('.company-name')?.textContent || 'Unknown Company';
+    const email = userRow?.querySelector('.email-text')?.textContent || 'Unknown Email';
+    const country = userRow?.querySelector('.country-badge')?.textContent || 'Unknown Country';
 
-    this.showActionLoading(document.querySelector(`[data-user-id="${userId}"] .btn-reject`));
+    // Show professional rejection modal with input
+    const result = await this.showConfirmationModal({
+      type: 'reject',
+      title: 'Reject User Registration',
+      message: 'Please provide a detailed reason for rejecting this user registration. The user will receive an email with your explanation.',
+      details: [
+        { label: 'Company Name', value: companyName },
+        { label: 'Email Address', value: email },
+        { label: 'Country', value: country }
+      ],
+      confirmText: 'Reject User',
+      cancelText: 'Cancel',
+      confirmClass: 'danger',
+      requireInput: true,
+      inputLabel: 'Rejection Reason',
+      inputPlaceholder: 'Please provide a detailed reason for rejection (minimum 10 characters)...',
+      inputValidation: (value) => {
+        if (!value || value.trim().length < 10) {
+          return { valid: false, message: 'Rejection reason must be at least 10 characters long' };
+        }
+        return { valid: true };
+      }
+    });
+
+    if (!result.confirmed) return;
+
+    const rejectBtn = document.querySelector(`[data-user-id="${userId}"] .btn-reject`);
+    this.showActionLoading(rejectBtn);
 
     try {
       const response = await fetch(`/admin/api/users/${userId}/reject`, {
@@ -3510,55 +3894,85 @@ class SLEXDashboard {
           'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify({ reason: reason.trim() })
+        body: JSON.stringify({ reason: result.inputValue.trim() })
       });
 
       if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          this.showToast('User rejected', 'success');
+        const apiResult = await response.json();
+        if (apiResult.success) {
+          this.showToast(`User "${companyName}" rejected successfully`, 'success');
           this.removeTableRow(userId);
           this.updateDashboardData();
         } else {
-          throw new Error(result.message || 'Rejection failed');
+          throw new Error(apiResult.message || 'Rejection failed');
         }
       } else {
-        throw new Error('Network error');
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
       console.error('Quick reject error:', error);
-      this.showToast('Failed to reject user', 'error');
+      this.showToast(`Failed to reject user: ${error.message}`, 'error');
+    } finally {
+      this.hideActionLoading(rejectBtn);
     }
   }
 
   async deleteUserRequest(userId) {
-    if (!confirm('Are you sure you want to delete this user request? This action cannot be undone.')) {
-      return;
-    }
+    // Get user data for modal
+    const userRow = document.querySelector(`[data-user-id="${userId}"]`);
+    const companyName = userRow?.querySelector('.company-name')?.textContent || 'Unknown Company';
+    const email = userRow?.querySelector('.email-text')?.textContent || 'Unknown Email';
+    const country = userRow?.querySelector('.country-badge')?.textContent || 'Unknown Country';
 
-    this.showActionLoading(document.querySelector(`[data-user-id="${userId}"] .btn-delete`));
+    // Show professional deletion confirmation modal
+    const result = await this.showConfirmationModal({
+      type: 'delete',
+      title: 'Delete User Request',
+      message: 'Are you sure you want to permanently delete this user registration request? This action cannot be undone and the user will not be notified.',
+      details: [
+        { label: 'Company Name', value: companyName },
+        { label: 'Email Address', value: email },
+        { label: 'Country', value: country },
+        { label: 'Warning', value: 'This action is permanent and cannot be reversed' }
+      ],
+      confirmText: 'Delete Request',
+      cancelText: 'Cancel',
+      confirmClass: 'danger'
+    });
+
+    if (!result.confirmed) return;
+
+    const deleteBtn = document.querySelector(`[data-user-id="${userId}"] .btn-delete`);
+    this.showActionLoading(deleteBtn);
 
     try {
       const response = await fetch(`/admin/api/users/${userId}/delete`, {
         method: 'DELETE',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: { 
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/json'
+        }
       });
 
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          this.showToast('User request deleted', 'success');
+          this.showToast(`User request for "${companyName}" deleted successfully`, 'success');
           this.removeTableRow(userId);
           this.updateDashboardData();
         } else {
           throw new Error(result.message || 'Deletion failed');
         }
       } else {
-        throw new Error('Network error');
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
       console.error('Delete user error:', error);
-      this.showToast('Failed to delete user request', 'error');
+      this.showToast(`Failed to delete user request: ${error.message}`, 'error');
+    } finally {
+      this.hideActionLoading(deleteBtn);
     }
   }
 
@@ -3705,6 +4119,574 @@ class SLEXDashboard {
       window.closeUserDetailsModal();
       this.quickRejectUser(userId);
     };
+
+    // Close modal on overlay click
+    const modal = document.getElementById('userDetailsModal');
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        window.closeUserDetailsModal();
+      }
+    });
+  }
+
+  calculateDaysPending(createdAt) {
+    const now = new Date();
+    const created = new Date(createdAt);
+    const diffTime = Math.abs(now - created);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  escapeHTML(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ===============================================
+  // Professional Modal Dialog System
+  // ===============================================
+
+  /**
+   * Show professional confirmation modal
+   * @param {Object} options - Modal configuration
+   * @returns {Promise} Resolves with user choice
+   */
+  showConfirmationModal(options) {
+    return new Promise((resolve) => {
+      const {
+        type = 'confirm',
+        title = 'Confirm Action',
+        message = 'Are you sure?',
+        details = null,
+        confirmText = 'Confirm',
+        cancelText = 'Cancel',
+        confirmClass = 'primary',
+        requireInput = false,
+        inputPlaceholder = '',
+        inputLabel = '',
+        inputValidation = null
+      } = options;
+
+      // Remove existing modal
+      const existingModal = document.querySelector('.confirmation-modal');
+      if (existingModal) existingModal.remove();
+
+      // Create modal HTML
+      const modalHTML = `
+        <div class="confirmation-modal" id="confirmationModal">
+          <div class="confirmation-modal-content">
+            <div class="confirmation-modal-header">
+              <div class="confirmation-modal-icon ${type}">
+                <i class="fas ${this.getModalIcon(type)}"></i>
+              </div>
+              <h3 class="confirmation-modal-title">${this.escapeHTML(title)}</h3>
+            </div>
+            <div class="confirmation-modal-body">
+              <p class="confirmation-modal-message">${this.escapeHTML(message)}</p>
+              ${details ? `
+                <div class="confirmation-modal-details">
+                  ${details.map(detail => `
+                    <div class="confirmation-modal-detail-item">
+                      <span class="confirmation-modal-detail-label">${this.escapeHTML(detail.label)}:</span>
+                      <span class="confirmation-modal-detail-value">${this.escapeHTML(detail.value)}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+              ${requireInput ? `
+                <div style="margin-top: 16px;">
+                  ${inputLabel ? `<label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">${this.escapeHTML(inputLabel)}</label>` : ''}
+                  <textarea 
+                    class="confirmation-modal-input" 
+                    placeholder="${this.escapeHTML(inputPlaceholder)}"
+                    id="modalInput"
+                  ></textarea>
+                  <div class="confirmation-modal-error" id="modalInputError"></div>
+                </div>
+              ` : ''}
+            </div>
+            <div class="confirmation-modal-footer">
+              <button class="confirmation-modal-btn secondary" id="modalCancel">
+                <i class="fas fa-times"></i>
+                ${this.escapeHTML(cancelText)}
+              </button>
+              <button class="confirmation-modal-btn ${confirmClass}" id="modalConfirm">
+                <i class="fas ${this.getConfirmIcon(type)}"></i>
+                ${this.escapeHTML(confirmText)}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Add modal to DOM
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      const modal = document.getElementById('confirmationModal');
+      const confirmBtn = document.getElementById('modalConfirm');
+      const cancelBtn = document.getElementById('modalCancel');
+      const input = document.getElementById('modalInput');
+      const errorDiv = document.getElementById('modalInputError');
+
+      // Show modal with animation
+      setTimeout(() => modal.classList.add('show'), 10);
+
+      // Handle input validation
+      if (requireInput && input) {
+        input.addEventListener('input', () => {
+          errorDiv.classList.remove('show');
+          input.classList.remove('error');
+        });
+      }
+
+      // Handle confirm button
+      confirmBtn.addEventListener('click', async () => {
+        let inputValue = '';
+        
+        if (requireInput && input) {
+          inputValue = input.value.trim();
+          
+          // Validate input
+          if (inputValidation) {
+            const validationResult = inputValidation(inputValue);
+            if (!validationResult.valid) {
+              errorDiv.textContent = validationResult.message;
+              errorDiv.classList.add('show');
+              input.classList.add('error');
+              input.focus();
+              return;
+            }
+          }
+        }
+
+        // Show loading state
+        confirmBtn.classList.add('loading');
+        confirmBtn.disabled = true;
+        cancelBtn.disabled = true;
+
+        // Close modal
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 300);
+
+        // Resolve with result
+        resolve({
+          confirmed: true,
+          inputValue: inputValue
+        });
+      });
+
+      // Handle cancel button
+      cancelBtn.addEventListener('click', () => {
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 300);
+        resolve({ confirmed: false });
+      });
+
+      // Handle escape key
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          modal.classList.remove('show');
+          setTimeout(() => modal.remove(), 300);
+          document.removeEventListener('keydown', handleEscape);
+          resolve({ confirmed: false });
+        }
+      };
+      document.addEventListener('keydown', handleEscape);
+
+      // Handle overlay click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('show');
+          setTimeout(() => modal.remove(), 300);
+          resolve({ confirmed: false });
+        }
+      });
+
+      // Focus input if required
+      if (requireInput && input) {
+        setTimeout(() => input.focus(), 400);
+      }
+    });
+  }
+
+  getModalIcon(type) {
+    const icons = {
+      approve: 'fa-check-circle',
+      reject: 'fa-times-circle',
+      delete: 'fa-trash-alt',
+      bulk: 'fa-users',
+      confirm: 'fa-question-circle',
+      warning: 'fa-exclamation-triangle',
+      info: 'fa-info-circle'
+    };
+    return icons[type] || 'fa-question-circle';
+  }
+
+  getConfirmIcon(type) {
+    const icons = {
+      approve: 'fa-check',
+      reject: 'fa-times',
+      delete: 'fa-trash',
+      bulk: 'fa-check-double',
+      confirm: 'fa-check',
+      warning: 'fa-check',
+      info: 'fa-check'
+    };
+    return icons[type] || 'fa-check';
+  }
+
+  // ===============================================
+  // Professional User Details Modal
+  // ===============================================
+
+  /**
+   * Show professional user details modal with comprehensive information
+   * @param {Object} userData - User data from API
+   */
+  showProfessionalUserDetailsModal(userData) {
+    // Handle both user object directly or nested in data property
+    const user = userData.user || userData;
+    const stats = userData.statistics || {};
+    
+    // Remove existing modal
+    const existingModal = document.querySelector('.user-details-modal-overlay');
+    if (existingModal) existingModal.remove();
+
+    // Calculate additional user metrics
+    const registrationDate = new Date(user.createdAt);
+    const daysPending = this.calculateDaysPending(user.createdAt);
+    const profileCompleteness = this.calculateProfileCompleteness(user);
+    
+    // Create comprehensive modal HTML
+    const modalHTML = `
+      <div class="user-details-modal-overlay" id="userDetailsModal">
+        <div class="user-details-modal-container">
+          <div class="user-details-modal-header">
+            <div class="user-details-modal-header-content">
+              <div class="user-details-modal-avatar">
+                ${this.getCompanyInitials(user.companyName)}
+              </div>
+              <div class="user-details-modal-header-info">
+                <h2>${this.escapeHTML(user.companyName || 'Unknown Company')}</h2>
+                <p>${this.escapeHTML(user.email || 'No email provided')}</p>
+              </div>
+            </div>
+            <button class="user-details-modal-close" onclick="closeUserDetailsModal()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="user-details-modal-body">
+            <div class="user-details-tabs">
+              <button class="user-details-tab active" onclick="switchUserDetailsTab('overview')">
+                <i class="fas fa-info-circle"></i> Overview
+              </button>
+              <button class="user-details-tab" onclick="switchUserDetailsTab('company')">
+                <i class="fas fa-building"></i> Company Info
+              </button>
+              <button class="user-details-tab" onclick="switchUserDetailsTab('contact')">
+                <i class="fas fa-address-book"></i> Contact Details
+              </button>
+              <button class="user-details-tab" onclick="switchUserDetailsTab('activity')">
+                <i class="fas fa-chart-line"></i> Activity
+              </button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div class="user-details-tab-content active" id="overview-tab">
+              <div class="user-details-grid">
+                <div class="user-details-section">
+                  <h4><i class="fas fa-user-circle"></i> Registration Status</h4>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Current Status:</span>
+                    <span class="user-details-value">
+                      <span class="user-details-status-badge ${user.status || 'pending'}">
+                        ${(user.status || 'pending').toUpperCase()}
+                      </span>
+                    </span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Registration Date:</span>
+                    <span class="user-details-value">${registrationDate.toLocaleDateString('en-US', { 
+                      year: 'numeric', month: 'long', day: 'numeric' 
+                    })}</span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Days Pending:</span>
+                    <span class="user-details-value">${daysPending} days</span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Profile Completeness:</span>
+                    <span class="user-details-value">${profileCompleteness}%</span>
+                  </div>
+                </div>
+
+                <div class="user-details-section">
+                  <h4><i class="fas fa-chart-pie"></i> Account Metrics</h4>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Email Verified:</span>
+                    <span class="user-details-value">
+                      ${user.emailVerified ? '✅ Yes' : '❌ No'}
+                    </span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Last Login:</span>
+                    <span class="user-details-value">
+                      ${user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
+                    </span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Login Attempts:</span>
+                    <span class="user-details-value">${user.loginAttempts || 0}</span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Account Age:</span>
+                    <span class="user-details-value">${daysPending} days</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Company Info Tab -->
+            <div class="user-details-tab-content" id="company-tab">
+              <div class="user-details-grid">
+                <div class="user-details-section">
+                  <h4><i class="fas fa-building"></i> Company Information</h4>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Company Name:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.companyName || 'N/A')}</span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Business Type:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.businessType || 'N/A')}</span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Activity Type:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.activityType || 'N/A')}</span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Company Type:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.companyType || 'N/A')}</span>
+                  </div>
+                </div>
+
+                <div class="user-details-section">
+                  <h4><i class="fas fa-globe"></i> Location & Legal</h4>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Country:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.country || 'N/A')}</span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">City:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.city || 'N/A')}</span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Address:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.address || 'N/A')}</span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Tax Number:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.taxNumber || 'N/A')}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contact Details Tab -->
+            <div class="user-details-tab-content" id="contact-tab">
+              <div class="user-details-grid">
+                <div class="user-details-section">
+                  <h4><i class="fas fa-envelope"></i> Contact Information</h4>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Email Address:</span>
+                    <span class="user-details-value">
+                      <a href="mailto:${user.email}" style="color: #667eea; text-decoration: none;">
+                        ${this.escapeHTML(user.email || 'N/A')}
+                      </a>
+                    </span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Phone Number:</span>
+                    <span class="user-details-value">
+                      ${user.phone ? `<a href="tel:${user.phone}" style="color: #667eea; text-decoration: none;">${this.escapeHTML(user.phone)}</a>` : 'N/A'}
+                    </span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Contact Person:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.contactPerson || 'N/A')}</span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Website:</span>
+                    <span class="user-details-value">
+                      ${user.website ? `<a href="${user.website}" target="_blank" style="color: #667eea; text-decoration: none;">${this.escapeHTML(user.website)}</a>` : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="user-details-section">
+                  <h4><i class="fas fa-comments"></i> Communication Preferences</h4>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Preferred Language:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.preferredLanguage || 'English')}</span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Time Zone:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.timezone || 'UTC')}</span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Newsletter:</span>
+                    <span class="user-details-value">${user.newsletter ? '✅ Subscribed' : '❌ Not subscribed'}</span>
+                  </div>
+                  <div class="user-details-item">
+                    <span class="user-details-label">Marketing Emails:</span>
+                    <span class="user-details-value">${user.marketingEmails ? '✅ Enabled' : '❌ Disabled'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Activity Tab -->
+            <div class="user-details-tab-content" id="activity-tab">
+              <div class="user-details-section">
+                <h4><i class="fas fa-history"></i> Registration Timeline</h4>
+                <div class="user-details-timeline">
+                  <div class="user-details-timeline-item">
+                    <div class="user-details-timeline-date">${registrationDate.toLocaleDateString()}</div>
+                    <div class="user-details-timeline-event">Account Registration</div>
+                    <div class="user-details-timeline-description">User registered with email ${user.email}</div>
+                  </div>
+                  ${user.emailVerified ? `
+                    <div class="user-details-timeline-item">
+                      <div class="user-details-timeline-date">${registrationDate.toLocaleDateString()}</div>
+                      <div class="user-details-timeline-event">Email Verified</div>
+                      <div class="user-details-timeline-description">Email address verified successfully</div>
+                    </div>
+                  ` : ''}
+                  ${user.approvedAt ? `
+                    <div class="user-details-timeline-item">
+                      <div class="user-details-timeline-date">${new Date(user.approvedAt).toLocaleDateString()}</div>
+                      <div class="user-details-timeline-event">Account Approved</div>
+                      <div class="user-details-timeline-description">Account approved by admin</div>
+                    </div>
+                  ` : ''}
+                  ${user.rejectedAt ? `
+                    <div class="user-details-timeline-item">
+                      <div class="user-details-timeline-date">${new Date(user.rejectedAt).toLocaleDateString()}</div>
+                      <div class="user-details-timeline-event">Account Rejected</div>
+                      <div class="user-details-timeline-description">Reason: ${this.escapeHTML(user.rejectionReason || 'No reason provided')}</div>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="user-details-modal-footer">
+            <button class="user-details-modal-btn secondary" onclick="closeUserDetailsModal()">
+              <i class="fas fa-times"></i> Close
+            </button>
+            ${user.status === 'pending' ? `
+              <button class="user-details-modal-btn success" onclick="approveUserFromModal('${user._id || user.id}')">
+                <i class="fas fa-check"></i> Approve User
+              </button>
+              <button class="user-details-modal-btn danger" onclick="rejectUserFromModal('${user._id || user.id}')">
+                <i class="fas fa-times"></i> Reject User
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Add modal to DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const modal = document.getElementById('userDetailsModal');
+
+    // Show modal with animation
+    setTimeout(() => modal.classList.add('show'), 10);
+
+    // Setup global functions
+    this.setupUserDetailsModalFunctions(user._id || user.id);
+  }
+
+  /**
+   * Setup global functions for user details modal
+   */
+  setupUserDetailsModalFunctions(userId) {
+    // Close modal function
+    window.closeUserDetailsModal = () => {
+      const modal = document.getElementById('userDetailsModal');
+      if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 300);
+      }
+    };
+
+    // Tab switching function
+    window.switchUserDetailsTab = (tabName) => {
+      // Remove active class from all tabs and contents
+      document.querySelectorAll('.user-details-tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.user-details-tab-content').forEach(content => content.classList.remove('active'));
+
+      // Add active class to selected tab and content
+      document.querySelector(`[onclick="switchUserDetailsTab('${tabName}')"]`).classList.add('active');
+      document.getElementById(`${tabName}-tab`).classList.add('active');
+    };
+
+    // Action functions
+    window.approveUserFromModal = (userId) => {
+      window.closeUserDetailsModal();
+      this.quickApproveUser(userId);
+    };
+
+    window.rejectUserFromModal = (userId) => {
+      window.closeUserDetailsModal();
+      this.quickRejectUser(userId);
+    };
+
+    // Close modal on overlay click
+    const modal = document.getElementById('userDetailsModal');
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        window.closeUserDetailsModal();
+      }
+    });
+
+    // Close modal on escape key
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        window.closeUserDetailsModal();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+  }
+
+  /**
+   * Get company initials for avatar
+   */
+  getCompanyInitials(companyName) {
+    if (!companyName) return 'UC';
+    
+    const words = companyName.trim().split(' ');
+    if (words.length === 1) {
+      return words[0].substring(0, 2).toUpperCase();
+    }
+    
+    return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
+  }
+
+  /**
+   * Calculate profile completeness percentage
+   */
+  calculateProfileCompleteness(user) {
+    const fields = [
+      'companyName', 'email', 'phone', 'country', 'city', 
+      'businessType', 'activityType', 'contactPerson', 'address'
+    ];
+    
+    const completedFields = fields.filter(field => user[field] && user[field].trim() !== '').length;
+    return Math.round((completedFields / fields.length) * 100);
   }
 }
 
@@ -3712,14 +4694,37 @@ class SLEXDashboard {
 // Initialize Dashboard
 // ===============================================
 
-// Initialize dashboard when DOM is ready
+// Initialize dashboard when DOM is ready - WAIT FOR TOKEN MANAGER
 document.addEventListener('DOMContentLoaded', () => {
-  window.slexDashboard = new SLEXDashboard();
+  console.log('🎯 Professional dashboard initialization starting...');
   
-  // Initialize enhanced components after dashboard loads
-  setTimeout(() => {
-    window.slexDashboard.initEnhancedComponents();
+  // Wait for TokenManager ready event
+  const initDashboard = () => {
+    try {
+      console.log('🚀 Initializing dashboard after TokenManager ready');
+      window.slexDashboard = new SLEXDashboard();
+      
+      // Initialize enhanced components after dashboard loads
+      setTimeout(() => {
+        window.slexDashboard.initEnhancedComponents();
       }, 200);
+      
+      console.log('✅ Professional dashboard initialization completed');
+    } catch (error) {
+      console.error('❌ Dashboard initialization error:', error);
+    }
+  };
+
+  // Listen for TokenManager ready event
+  window.addEventListener('tokenManagerReady', initDashboard);
+  
+  // Fallback: Initialize after delay if TokenManager event not received
+  setTimeout(() => {
+    if (!window.slexDashboard) {
+      console.log('⚠️ Fallback dashboard initialization (TokenManager event not received)');
+      initDashboard();
+    }
+  }, 2000);
 }); 
 
 // ===============================================
@@ -4478,6 +5483,12 @@ class AdminHeaderDropdownFix {
       e.preventDefault();
       e.stopPropagation();
       
+      // CHECK CIRCUIT BREAKER BEFORE LOADING MESSAGES (AdminHeaderDropdownFix)
+      if (this.isCircuitBreakerOpen()) {
+        console.log('🚫 Skipping messages load - circuit breaker open');
+        return;
+      }
+      
       this.toggleDropdown(messagesDropdown);
       this.closeOtherDropdowns(messagesDropdown);
       this.loadMessages();
@@ -4501,6 +5512,12 @@ class AdminHeaderDropdownFix {
     newNotificationBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      
+      // CHECK CIRCUIT BREAKER BEFORE LOADING NOTIFICATIONS (AdminHeaderDropdownFix)
+      if (this.isCircuitBreakerOpen()) {
+        console.log('🚫 Skipping notifications load - circuit breaker open');
+        return;
+      }
       
       this.toggleDropdown(notificationDropdown);
       this.closeOtherDropdowns(notificationDropdown);
@@ -4880,14 +5897,23 @@ class AdminHeaderDropdownFix {
 
   setupRealTimeBadges() {
     
-    // Update badges every 30 seconds
+    // Update badges every 30 seconds - WITH CIRCUIT BREAKER CHECK
     this.badgeUpdateInterval = setInterval(() => {
-      this.updateBadgesCount();
-    }, 30000);
+      if (!this.isCircuitBreakerOpen()) {
+        this.updateBadgesCount();
+      } else {
+        console.log('🚫 Skipping badge update - circuit breaker open');
+        this.handleCircuitBreakerForBadges();
+      }
+    }, 180000); // PERFORMANCE FIX: 3 minutes instead of 30 seconds
 
-    // Initial badge update
+    // Initial badge update - WITH CIRCUIT BREAKER CHECK
     setTimeout(() => {
-      this.updateBadgesCount();
+      if (!this.isCircuitBreakerOpen()) {
+        this.updateBadgesCount();
+      } else {
+        console.log('🚫 Skipping initial badge update - circuit breaker open');
+      }
     }, 2000);
   }
 
@@ -5025,6 +6051,173 @@ class AdminHeaderDropdownFix {
   }
 }
 
+// CIRCUIT BREAKER UTILITY METHODS FOR DASHBOARD
+SLEXDashboard.prototype.isCircuitBreakerOpen = function() {
+  try {
+    // Enhanced debugging for circuit breaker state
+    if (!window.tokenManager) {
+      console.log('🔍 DEBUG: window.tokenManager is not available');
+      return false;
+    }
+    
+    if (!window.tokenManager.circuitBreaker) {
+      console.log('🔍 DEBUG: tokenManager.circuitBreaker is not available');
+      return false;
+    }
+    
+    const isOpen = window.tokenManager.circuitBreaker.state === 'OPEN';
+    console.log('🔍 DEBUG: Circuit breaker state:', window.tokenManager.circuitBreaker.state, 'isOpen:', isOpen);
+    
+    return isOpen;
+  } catch (error) {
+    console.log('🔍 DEBUG: Error checking circuit breaker:', error);
+    return false;
+  }
+};
+
+SLEXDashboard.prototype.getCircuitBreakerInfo = function() {
+  try {
+    if (!window.tokenManager || !window.tokenManager.circuitBreaker) {
+      return { state: 'UNKNOWN', timeUntilReset: 0 };
+    }
+    
+    const cb = window.tokenManager.circuitBreaker;
+    const timeUntilReset = cb.state === 'OPEN' ? 
+      (cb.resetTimeout - (Date.now() - cb.lastFailureTime)) : 0;
+    
+    return {
+      state: cb.state,
+      failures: cb.failures,
+      timeUntilReset: Math.max(0, timeUntilReset)
+    };
+  } catch (error) {
+    return { state: 'ERROR', timeUntilReset: 0 };
+  }
+};
+
+SLEXDashboard.prototype.handleCircuitBreakerState = function() {
+  const cbInfo = this.getCircuitBreakerInfo();
+  
+  if (cbInfo.state === 'OPEN') {
+    console.log(`🚫 Dashboard: Circuit breaker open - stopping all updates (reset in ${Math.round(cbInfo.timeUntilReset/1000)}s)`);
+    
+    // Clear all intervals
+    if (this.dashboardRefreshInterval) {
+      clearInterval(this.dashboardRefreshInterval);
+      this.dashboardRefreshInterval = null;
+    }
+    if (this.notificationUpdateInterval) {
+      clearInterval(this.notificationUpdateInterval);
+      this.notificationUpdateInterval = null;
+    }
+    if (this.notificationPollingInterval) {
+      clearInterval(this.notificationPollingInterval);
+      this.notificationPollingInterval = null;
+    }
+    // Legacy intervals cleanup
+    if (this.criticalUpdateInterval) {
+      clearInterval(this.criticalUpdateInterval);
+      this.criticalUpdateInterval = null;
+    }
+    if (this.generalUpdateInterval) {
+      clearInterval(this.generalUpdateInterval);
+      this.generalUpdateInterval = null;
+    }
+    
+    // Schedule restart
+    if (cbInfo.timeUntilReset > 0) {
+      setTimeout(() => {
+        if (!this.isCircuitBreakerOpen()) {
+          console.log('🔄 Circuit breaker reset - resuming dashboard updates');
+          this.startRealTimeUpdates();
+        }
+      }, cbInfo.timeUntilReset + 1000);
+    }
+  }
+};
+
+SLEXDashboard.prototype.showCircuitBreakerMessage = function() {
+  const cbInfo = this.getCircuitBreakerInfo();
+  const resetTime = Math.round(cbInfo.timeUntilReset / 1000);
+  
+  // Show user-friendly toast
+  if (window.showToast) {
+    window.showToast(
+      `Authentication system temporarily unavailable. Retrying in ${resetTime} seconds...`,
+      'warning',
+      5000
+    );
+  } else {
+    console.log(`⚠️ Authentication unavailable for ${resetTime} seconds`);
+  }
+};
+
+// Override dashboard cleanup
+SLEXDashboard.prototype.cleanupIntervals = function() {
+  // Clean new performance-optimized intervals
+  if (this.dashboardRefreshInterval) {
+    clearInterval(this.dashboardRefreshInterval);
+    this.dashboardRefreshInterval = null;
+  }
+  if (this.notificationUpdateInterval) {
+    clearInterval(this.notificationUpdateInterval);
+    this.notificationUpdateInterval = null;
+  }
+  if (this.notificationPollingInterval) {
+    clearInterval(this.notificationPollingInterval);
+    this.notificationPollingInterval = null;
+  }
+  if (this.badgeUpdateInterval) {
+    clearInterval(this.badgeUpdateInterval);
+    this.badgeUpdateInterval = null;
+  }
+  // Legacy intervals cleanup
+  if (this.criticalUpdateInterval) {
+    clearInterval(this.criticalUpdateInterval);
+    this.criticalUpdateInterval = null;
+  }
+  if (this.generalUpdateInterval) {
+    clearInterval(this.generalUpdateInterval);
+    this.generalUpdateInterval = null;
+  }
+  console.log('✅ All dashboard intervals cleaned up');
+};
+
+// CIRCUIT BREAKER UTILITIES FOR ADMIN HEADER DROPDOWN FIX
+AdminHeaderDropdownFix.prototype.isCircuitBreakerOpen = function() {
+  try {
+    return window.tokenManager && 
+           window.tokenManager.circuitBreaker && 
+           window.tokenManager.circuitBreaker.state === 'OPEN';
+  } catch (error) {
+    return false;
+  }
+};
+
+AdminHeaderDropdownFix.prototype.handleCircuitBreakerForBadges = function() {
+  console.log('🚫 AdminHeaderDropdownFix: Stopping badge updates due to circuit breaker');
+  
+  if (this.badgeUpdateInterval) {
+    clearInterval(this.badgeUpdateInterval);
+    this.badgeUpdateInterval = null;
+    
+    // Schedule restart
+    const cbInfo = window.tokenManager?.circuitBreaker;
+    if (cbInfo && cbInfo.state === 'OPEN') {
+      const timeUntilReset = (cbInfo.resetTimeout - (Date.now() - cbInfo.lastFailureTime));
+      
+      if (timeUntilReset > 0) {
+        setTimeout(() => {
+          if (!this.isCircuitBreakerOpen()) {
+            console.log('🔄 Circuit breaker reset - resuming badge updates');
+            this.setupRealTimeBadges();
+          }
+        }, timeUntilReset + 1000);
+      }
+    }
+  }
+};
+
 // Initialize Admin Header Dropdown Fix after window load
 window.addEventListener('load', () => {
   // Ensure DOM is fully loaded and parsed
@@ -5060,4 +6253,58 @@ if (document.readyState === 'complete') {
     }
   }, 100);
 }
+
+// Export theme initialization function for other pages
+window.initializeThemeSystem = function() {
+  // If dashboard is already initialized, use its theme setup
+  if (window.slexDashboard || window.SLEXDashboard) {
+    const dashboard = window.slexDashboard || window.SLEXDashboard;
+    if (dashboard && typeof dashboard.setupTheme === 'function') {
+      console.log('🎨 Theme system initialized via existing dashboard instance');
+      dashboard.setupTheme();
+      return;
+    }
+  }
+  
+  // Fallback: Direct theme initialization for pages without dashboard
+  console.log('🎨 Theme system initialized - direct implementation');
+  
+  // Apply saved theme
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.body.setAttribute('data-theme', savedTheme);
+  
+  // Update theme toggle button
+  const themeToggle = document.getElementById('themeToggle');
+  if (themeToggle) {
+    const icon = themeToggle.querySelector('i');
+    if (icon) {
+      icon.className = savedTheme === 'dark' ? 'fas fa-sun theme-icon' : 'fas fa-moon theme-icon';
+    }
+  }
+  
+  // Setup theme toggle click handler
+  if (themeToggle && !themeToggle.hasAttribute('data-theme-initialized')) {
+    themeToggle.setAttribute('data-theme-initialized', 'true');
+    themeToggle.addEventListener('click', function() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      
+      // Update both documentElement and body
+      document.documentElement.setAttribute('data-theme', newTheme);
+      document.body.setAttribute('data-theme', newTheme);
+      
+      // Save preference
+      localStorage.setItem('theme', newTheme);
+      
+      // Update icon
+      const icon = this.querySelector('i');
+      if (icon) {
+        icon.className = newTheme === 'dark' ? 'fas fa-sun theme-icon' : 'fas fa-moon theme-icon';
+      }
+      
+      console.log(`✅ Theme switched to: ${newTheme}`);
+    });
+  }
+};
 

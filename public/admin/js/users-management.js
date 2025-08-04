@@ -9,6 +9,7 @@ class UsersManagement {
         // Core state management
         this.currentTab = 'all';
         this.currentStatus = '';
+        this.currentCompanyType = '';
         this.selectedUsers = new Set();
         this.currentPage = 1;
         this.pageSize = 20;
@@ -21,6 +22,9 @@ class UsersManagement {
             country: '',
             companyType: '',
             activityType: '',
+            companySize: '',
+            revenue: '',
+            established: '',
             dateRange: '',
             emailVerified: ''
         };
@@ -30,6 +34,9 @@ class UsersManagement {
             country: '',
             companyType: '',
             activityType: '',
+            companySize: '',
+            revenue: '',
+            established: '',
             dateRange: '',
             emailVerified: ''
         };
@@ -57,8 +64,14 @@ class UsersManagement {
      * Initialize the Users Management System
      */
     init() {
+        
         this.setupEventListeners();
         this.setupKeyboardShortcuts();
+        this.setupDropdownListeners();
+        
+        // Ensure all dropdowns start in hidden state
+        this.closeAllDropdowns();
+        
         this.loadUsers(false);
         this.updateTabCounts();
         this.setupAutoRefresh();
@@ -66,8 +79,196 @@ class UsersManagement {
         
         // Restore state from URL parameters
         this.restoreState();
+    
+    }
+
+    /**
+     * PROFESSIONAL SMART DROPDOWN LISTENERS
+     */
+    setupDropdownListeners() {
+        // Click outside to close dropdowns
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.actions-wrapper')) {
+                this.closeAllSmartDropdowns();
+            }
+        });
         
-        console.log('🚀 Users Management System initialized successfully');
+        // Escape key to close dropdowns
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                this.closeAllSmartDropdowns();
+            }
+        });
+        
+        // Close dropdowns on scroll
+        window.addEventListener('scroll', () => {
+            this.closeAllSmartDropdowns();
+        }, { passive: true });
+        
+        console.log('✅ Professional smart dropdown listeners initialized');
+    }
+
+
+
+    /**
+     * Execute dropdown action based on action type
+     */
+    executeDropdownAction(action, userId) {
+        try {
+            switch (action) {
+                case 'viewProfile':
+                    this.viewCompanyProfile(userId);
+                    break;
+                case 'editCompany':
+                    this.editCompanyInfo(userId);
+                    break;
+                case 'viewProducts':
+                    this.viewCompanyProducts(userId);
+                    break;
+                case 'viewOrders':
+                    this.viewCompanyOrders(userId);
+                    break;
+                case 'approveCompany':
+                    this.approveCompany(userId);
+                    break;
+                case 'suspendCompany':
+                    this.suspendCompany(userId);
+                    break;
+                case 'activateCompany':
+                    this.activateCompany(userId);
+                    break;
+                case 'blockCompany':
+                    this.blockCompany(userId);
+                    break;
+                case 'deleteCompany':
+                    this.deleteCompany(userId);
+                    break;
+                default:
+                    console.warn(`❌ Unknown action: ${action}`);
+            }
+        } catch (error) {
+            console.error('❌ Execute dropdown action error:', error);
+            this.showNotification('Action failed. Please try again.', 'error');
+        }
+    }
+
+    /**
+     * CLOSE ALL SMART DROPDOWNS
+     */
+    closeAllSmartDropdowns() {
+        try {
+            document.querySelectorAll('.smart-dropdown.show').forEach(dropdown => {
+                dropdown.classList.remove('show');
+            });
+        } catch (error) {
+            console.error('❌ Close smart dropdowns error:', error);
+        }
+    }
+
+    /**
+     * Enhanced keyboard navigation
+     */
+    handleKeyboardNavigation(event) {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            this.closeAllDropdowns();
+            
+            // Return focus to the last opened trigger
+            if (this.lastFocusedTrigger) {
+                this.lastFocusedTrigger.focus();
+                this.lastFocusedTrigger = null;
+            }
+        }
+        
+        // Tab navigation through dropdown items
+        if (event.key === 'Tab' && this.currentOpenDropdown) {
+            this.handleDropdownTabNavigation(event);
+        }
+    }
+
+    /**
+     * Handle tab navigation within dropdown
+     */
+    handleDropdownTabNavigation(event) {
+        const dropdownItems = this.currentOpenDropdown.querySelectorAll('.dropdown-item');
+        const focusedItem = document.activeElement;
+        const currentIndex = Array.from(dropdownItems).indexOf(focusedItem);
+        
+        if (event.shiftKey) {
+            // Shift+Tab (backward)
+            if (currentIndex <= 0) {
+                event.preventDefault();
+                this.closeAllDropdowns();
+                if (this.lastFocusedTrigger) {
+                    this.lastFocusedTrigger.focus();
+                }
+            }
+        } else {
+            // Tab (forward)
+            if (currentIndex >= dropdownItems.length - 1) {
+                event.preventDefault();
+                this.closeAllDropdowns();
+            }
+        }
+    }
+
+
+
+    /**
+     * Close all dropdowns with proper cleanup - Fixed CSS Conflict
+     */
+    closeAllDropdowns() {
+        try {
+            // Target specifically professional dropdowns to avoid conflicts
+            const professionalDropdowns = document.querySelectorAll('.professional-actions-dropdown .dropdown-menu');
+            const openTriggers = document.querySelectorAll('.dropdown-trigger[aria-expanded="true"]');
+            
+            // Close all professional dropdowns
+            professionalDropdowns.forEach(dropdown => {
+                dropdown.classList.remove('show');
+                dropdown.classList.add('hidden');
+                dropdown.setAttribute('aria-hidden', 'true');
+                dropdown.style.display = 'none';
+                
+                // Remove focus from dropdown items
+                const focusedItem = dropdown.querySelector('.dropdown-item:focus');
+                if (focusedItem) {
+                    focusedItem.blur();
+                }
+            });
+            
+            // Reset triggers
+            openTriggers.forEach(trigger => {
+                trigger.setAttribute('aria-expanded', 'false');
+            });
+            
+            // Clear state
+            this.currentOpenDropdown = null;
+            
+            // Remove any lingering event listeners
+            this.cleanupDropdownEvents();
+            
+            console.log('🎯 All professional dropdowns closed');
+            
+        } catch (error) {
+            console.error('❌ Close all dropdowns error:', error);
+        }
+    }
+
+    /**
+     * Cleanup dropdown-specific event listeners
+     */
+    cleanupDropdownEvents() {
+        // Remove any dynamic event listeners that might be attached to dropdown items
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.removeAttribute('tabindex');
+            
+            // Remove keyboard event listeners
+            if (item._keydownHandler) {
+                item.removeEventListener('keydown', item._keydownHandler);
+                delete item._keydownHandler;
+            }
+        });
     }
 
     /**
@@ -104,6 +305,9 @@ class UsersManagement {
             'countryFilter',
             'companyTypeFilter', 
             'activityTypeFilter',
+            'companySizeFilter',
+            'revenueFilter',
+            'establishedFilter',
             'dateRangeFilter',
             'emailVerifiedFilter'
         ];
@@ -113,8 +317,13 @@ class UsersManagement {
             if (element) {
                 // Only update pending filters, don't trigger search
                 element.addEventListener('change', (e) => {
-                    const filterKey = filterId.replace('Filter', '').replace('companyType', 'companyType')
-                        .replace('activityType', 'activityType').replace('dateRange', 'dateRange')
+                    const filterKey = filterId.replace('Filter', '')
+                        .replace('companyType', 'companyType')
+                        .replace('activityType', 'activityType')
+                        .replace('companySize', 'companySize')
+                        .replace('revenue', 'revenue')
+                        .replace('established', 'established')
+                        .replace('dateRange', 'dateRange')
                         .replace('emailVerified', 'emailVerified');
                     this.pendingFilters[filterKey] = e.target.value;
                 });
@@ -217,7 +426,7 @@ class UsersManagement {
                 this.loadUsers(true);
                 this.updateTabCounts();
             }
-        }, 5 * 60 * 1000);
+        }, 300000);
     }
 
     /**
@@ -270,7 +479,25 @@ class UsersManagement {
         // Update state
         this.currentTab = tabElement.dataset.tab;
         this.currentStatus = tabElement.dataset.status || '';
+        this.currentCompanyType = tabElement.dataset.companytype || '';
         this.currentPage = 1;
+        
+        // Update active filters based on tab
+        this.activeFilters = { ...this.activeFilters };
+        
+        // Set status filter
+        if (this.currentStatus) {
+            this.activeFilters.status = this.currentStatus;
+        } else {
+            delete this.activeFilters.status;
+        }
+        
+        // Set company type filter
+        if (this.currentCompanyType) {
+            this.activeFilters.companyType = this.currentCompanyType;
+        } else {
+            delete this.activeFilters.companyType;
+        }
         
         // Clear selection
         this.clearSelection();
@@ -282,7 +509,11 @@ class UsersManagement {
         this.loadUsers();
         
         // Track analytics
-        this.trackEvent('tab_switch', { tab: this.currentTab });
+        this.trackEvent('tab_switch', { 
+            tab: this.currentTab,
+            status: this.currentStatus,
+            companyType: this.currentCompanyType
+        });
     }
 
     /**
@@ -314,10 +545,12 @@ class UsersManagement {
      * Load users with current state
      */
     async loadUsers(silent = false) {
-        if (this.isLoading) return;
+            if (this.isLoading) {
+            return;
+        }
         
         try {
-            this.isLoading = true;
+            this.isLoading = true;  
             
             if (!silent) {
                 this.showTableLoading();
@@ -325,7 +558,6 @@ class UsersManagement {
             
             const queryParams = this.buildQueryParams();
             const fullUrl = `${this.endpoints.users}?${queryParams}`;
-            console.log('🔍 Fetching users from:', fullUrl);
             
             const response = await this.fetchWithRetry(fullUrl);
             
@@ -335,10 +567,12 @@ class UsersManagement {
             }
             
             const response_data = await response.json();
-            console.log('📊 API Response received:', response_data);
+            
             
             // Handle wrapped response structure
             const data = response_data.success ? response_data.data : response_data;
+            
+            
             
             // Validate response structure
             if (!data || !data.pagination || !data.users) {
@@ -358,7 +592,7 @@ class UsersManagement {
             this.updatePagination(data.pagination);
             this.updateStats(data.statistics);
             this.updateResultsCount(data.pagination.total);
-            this.updateTabCounts(data.statistics);
+            this.updateTabCounts(data.statistics);  
             
             if (!silent) {
                 this.showSuccess(`Loaded ${data.users.length} users successfully`);
@@ -409,6 +643,9 @@ class UsersManagement {
             country: '',
             companyType: '',
             activityType: '',
+            companySize: '',
+            revenue: '',
+            established: '',
             dateRange: '',
             emailVerified: ''
         };
@@ -418,6 +655,9 @@ class UsersManagement {
             country: '',
             companyType: '',
             activityType: '',
+            companySize: '',
+            revenue: '',
+            established: '',
             dateRange: '',
             emailVerified: ''
         };
@@ -429,7 +669,10 @@ class UsersManagement {
         const filterSelects = [
             'countryFilter',
             'companyTypeFilter',
-            'activityTypeFilter', 
+            'activityTypeFilter',
+            'companySizeFilter',
+            'revenueFilter',
+            'establishedFilter',
             'dateRangeFilter',
             'emailVerifiedFilter'
         ];
@@ -477,18 +720,29 @@ class UsersManagement {
      * Render users in the table
      */
     renderUsers(users) {
+        console.log('🎨 renderUsers called with:', {
+            usersCount: users ? users.length : 'null/undefined',
+            users: users,
+            tableBodyExists: !!document.getElementById('usersTableBody'),
+            mobileViewExists: !!document.getElementById('mobileCardsView')
+        });
+        
         const tableBody = document.getElementById('usersTableBody');
         const mobileView = document.getElementById('mobileCardsView');
         
-        if (!tableBody) return;
+        if (!tableBody) {
+            console.error('❌ Table body element not found!');
+            return;
+        }
         
         if (!users || users.length === 0) {
+            console.log('📭 No users to render, showing empty state');
             this.renderEmptyState('empty');
             return;
         }
         
-        // Map flat structure to nested structure for compatibility
-        const mappedUsers = users.map(user => this.mapUserStructure(user));
+        // Use users directly without mapping for now (for debugging)
+        const mappedUsers = users;
         
         // Hide empty state and loading
         this.hideEmptyState();
@@ -641,8 +895,8 @@ class UsersManagement {
                 </td>
                 <td>
                     <div class="professional-contact">
-                        <div class="professional-contact-email">${this.escapeHtml(user.contactInfo?.email || 'N/A')}</div>
-                        <div class="professional-contact-phone">${this.escapeHtml(user.contactInfo?.phone || 'N/A')}</div>
+                        <div class="professional-contact-email">${this.escapeHtml(user.email || user.contactInfo?.email || 'N/A')}</div>
+                        <div class="professional-contact-phone">${this.escapeHtml(user.phone || user.contactInfo?.phone || 'N/A')}</div>
                     </div>
                 </td>
                 <td>
@@ -650,7 +904,7 @@ class UsersManagement {
                 </td>
                 <td>
                     <div class="professional-location">
-                        ${this.renderProfessionalCountryFlag(user.locationInfo?.country)}
+                        ${this.renderProfessionalCountryFlag(user.country || user.locationInfo?.country)}
                         <span class="professional-country-name">${this.escapeHtml(user.locationInfo?.country || 'N/A')}</span>
                     </div>
                 </td>
@@ -679,8 +933,8 @@ class UsersManagement {
      * Render professional avatar
      */
     renderProfessionalAvatar(user) {
-        const logoUrl = user.companyInfo?.logo;
-        const companyName = user.companyInfo?.name || 'Unknown';
+        const logoUrl = user.companyLogo?.url || user.companyInfo?.logo;
+        const companyName = user.companyName || user.companyInfo?.name || 'Unknown';
         const initials = this.getInitials(companyName);
         
         return `
@@ -741,47 +995,411 @@ class UsersManagement {
     }
 
     /**
-     * Render professional actions
+     * PROFESSIONAL DARK MODE & SMART POSITIONING DROPDOWN
      */
     renderProfessionalActions(user) {
+        const availableActions = this.getAvailableActions(user);
+        
         return `
-            <div class="professional-actions">
-                <button class="professional-action-btn" onclick="usersManagement.viewUser('${user._id}')" title="View Details">
-                    <i class="las la-eye"></i>
+            <div class="actions-wrapper" data-user-id="${user._id}">
+                <button 
+                    class="action-btn" 
+                    onclick="window.toggleSmartDropdown('${user._id}', event)"
+                    title="Actions"
+                    aria-expanded="false"
+                    aria-haspopup="true">
+                    <i class="las la-ellipsis-h"></i>
                 </button>
-                <button class="professional-action-btn" onclick="usersManagement.editUser('${user._id}')" title="Edit User">
-                    <i class="las la-edit"></i>
-                </button>
-                ${this.renderActionBasedOnStatus(user)}
+                <div 
+                    id="actions-${user._id}" 
+                    class="smart-dropdown"
+                    role="menu"
+                    aria-hidden="true">
+                    
+                    <!-- View Actions -->
+                    <div class="action-item" onclick="window.viewCompanyProfile('${user._id}')" role="menuitem">
+                        <i class="las la-eye action-icon-primary"></i>
+                        <span>View Company Profile</span>
+                    </div>
+                    
+                    <div class="action-item" onclick="window.editCompanyInfo('${user._id}')" role="menuitem">
+                        <i class="las la-edit action-icon-warning"></i>
+                        <span>Edit Company Info</span>
+                    </div>
+                    
+                    <div class="action-divider"></div>
+                    
+                    <!-- Business Actions -->
+                    <div class="action-item" onclick="window.viewCompanyProducts('${user._id}')" role="menuitem">
+                        <i class="las la-box action-icon-success"></i>
+                        <span>View Products</span>
+                    </div>
+                    
+                    <div class="action-item" onclick="window.viewCompanyOrders('${user._id}')" role="menuitem">
+                        <i class="las la-clipboard-list action-icon-info"></i>
+                        <span>View Orders</span>
+                    </div>
+                    
+                    <div class="action-divider"></div>
+                    
+                    <!-- Status Actions -->
+                    ${availableActions.map(action => `
+                        <div class="action-item ${action.class}" onclick="window.${action.handler}('${user._id}')" role="menuitem" title="${action.tooltip}">
+                            <i class="las ${action.icon} ${action.iconClass}"></i>
+                            <span>${action.text}</span>
+                        </div>
+                    `).join('')}
+                    
+                    ${availableActions.length > 0 ? '<div class="action-divider"></div>' : ''}
+                    
+                    <!-- Danger Actions -->
+                    <div class="action-item danger-action" onclick="window.deleteCompany('${user._id}')" role="menuitem">
+                        <i class="las la-trash action-icon-danger"></i>
+                        <span>Delete Company</span>
+                    </div>
+                </div>
             </div>
         `;
     }
 
     /**
-     * Render action button based on user status
+     * Get available actions based on user status with permission checking
      */
-    renderActionBasedOnStatus(user) {
-        switch (user.status) {
+    getAvailableActions(user) {
+        const actions = [];
+        const status = user.status || 'pending';
+        
+        switch (status) {
             case 'pending':
-                return `
-                    <button class="professional-action-btn success" onclick="usersManagement.approveUser('${user._id}')" title="Approve">
-                        <i class="las la-check"></i>
-                    </button>`;
+                actions.push({
+                    handler: 'approveCompany',
+                    text: 'Approve Company',
+                    icon: 'la-check',
+                    iconClass: 'action-icon-success',
+                    class: 'success-action',
+                    tooltip: 'Approve this company account'
+                });
+                actions.push({
+                    handler: 'rejectCompany',
+                    text: 'Reject Company',
+                    icon: 'la-times',
+                    iconClass: 'action-icon-danger',
+                    class: 'danger-action',
+                    tooltip: 'Reject this company application'
+                });
+                break;
+                
             case 'active':
-                return `
-                    <button class="professional-action-btn danger" onclick="usersManagement.blockUser('${user._id}')" title="Block">
-                        <i class="las la-ban"></i>
-                    </button>`;
+                actions.push({
+                    handler: 'suspendCompany',
+                    text: 'Suspend Company',
+                    icon: 'la-pause',
+                    iconClass: 'action-icon-warning',
+                    class: 'warning-action',
+                    tooltip: 'Temporarily suspend this company'
+                });
+                actions.push({
+                    handler: 'blockCompany',
+                    text: 'Block Company',
+                    icon: 'la-ban',
+                    iconClass: 'action-icon-danger',
+                    class: 'danger-action',
+                    tooltip: 'Block this company from accessing the platform'
+                });
+                break;
+                
+            case 'suspended':
+                actions.push({
+                    handler: 'activateCompany',
+                    text: 'Activate Company',
+                    icon: 'la-play',
+                    iconClass: 'action-icon-success',
+                    class: 'success-action',
+                    tooltip: 'Reactivate this suspended company'
+                });
+                actions.push({
+                    handler: 'blockCompany',
+                    text: 'Block Company',
+                    icon: 'la-ban',
+                    iconClass: 'action-icon-danger',
+                    class: 'danger-action',
+                    tooltip: 'Block this company from accessing the platform'
+                });
+                break;
+                
             case 'blocked':
-                return `
-                    <button class="professional-action-btn success" onclick="usersManagement.unblockUser('${user._id}')" title="Unblock">
-                        <i class="las la-check-circle"></i>
-                    </button>`;
+                actions.push({
+                    handler: 'unblockCompany',
+                    text: 'Unblock Company',
+                    icon: 'la-check',
+                    iconClass: 'action-icon-success',
+                    class: 'success-action',
+                    tooltip: 'Unblock this company and restore access'
+                });
+                break;
+                
+            case 'rejected':
+                actions.push({
+                    handler: 'approveCompany',
+                    text: 'Approve Company',
+                    icon: 'la-check',
+                    iconClass: 'action-icon-success',
+                    class: 'success-action',
+                    tooltip: 'Approve this previously rejected company'
+                });
+                break;
+                
+            case 'deleted':
+                actions.push({
+                    handler: 'restoreCompany',
+                    text: 'Restore Company',
+                    icon: 'la-undo',
+                    iconClass: 'action-icon-info',
+                    class: 'info-action',
+                    tooltip: 'Restore this deleted company'
+                });
+                break;
+        }
+        
+        return actions;
+    }
+
+    /**
+     * Get status action text for dropdown (legacy method for compatibility)
+     */
+    getStatusActionText(status) {
+        const actions = this.getAvailableActions({ status });
+        if (actions.length > 0) {
+            return {
+                action: actions[0].handler,
+                text: actions[0].text,
+                icon: actions[0].icon,
+                class: 'text-success'
+            };
+        }
+        
+        // Fallback for compatibility
+        switch (status) {
+            case 'active':
+                return {
+                    action: 'suspendCompany',
+                    text: 'Suspend Company',
+                    icon: 'la-pause',
+                    class: 'text-warning'
+                };
+            case 'blocked':
+                return {
+                    action: 'activateCompany',
+                    text: 'Activate Company',
+                    icon: 'la-check-circle',
+                    class: 'text-success'
+                };
+            case 'suspended':
+                return {
+                    action: 'activateCompany',
+                    text: 'Activate Company',
+                    icon: 'la-play',
+                    class: 'text-success'
+                };
             default:
-                return `
-                    <button class="professional-action-btn danger" onclick="usersManagement.deleteUser('${user._id}')" title="Delete">
-                        <i class="las la-trash"></i>
-                    </button>`;
+                return {
+                    action: 'blockCompany',
+                    text: 'Block Company',
+                    icon: 'la-ban',
+                    class: 'text-danger'
+                };
+        }
+    }
+
+    /**
+     * Professional dropdown toggle with state management - Fixed Event Delegation
+     */
+    toggleActionDropdown(trigger, userId) {
+        try {
+            if (!trigger || !userId) {
+                console.error('❌ Invalid trigger or userId:', { trigger, userId });
+                return;
+            }
+            
+            const dropdownId = `dropdown-${userId}`;
+            const dropdown = document.getElementById(dropdownId);
+            
+            if (!dropdown) {
+                console.error(`❌ Dropdown not found: ${dropdownId}`);
+                return;
+            }
+            
+            // Check if this dropdown is currently open
+            const isCurrentlyOpen = dropdown.classList.contains('show');
+            
+            // Always close all dropdowns first
+            this.closeAllDropdowns();
+            
+            // If it wasn't open, open it
+            if (!isCurrentlyOpen) {
+                this.openDropdown(dropdown, trigger, userId);
+            }
+            
+            console.log(`🎯 Dropdown toggle: ${userId}, isOpen: ${!isCurrentlyOpen}`);
+            
+        } catch (error) {
+            console.error('❌ Toggle dropdown error:', error);
+            this.closeAllDropdowns(); // Fallback
+        }
+    }
+
+    /**
+     * Open dropdown with proper accessibility and state management - Fixed Event Delegation
+     */
+    openDropdown(dropdown, trigger, userId) {
+        try {
+            // Validate inputs
+            if (!dropdown) {
+                console.error('❌ Invalid dropdown element');
+                return;
+            }
+            
+            if (!trigger || typeof trigger.setAttribute !== 'function') {
+                console.error('❌ Invalid trigger element:', trigger);
+                return;
+            }
+            
+            // Set state
+            this.currentOpenDropdown = dropdown;
+            this.lastFocusedTrigger = trigger;
+            
+            // Update UI - Remove hidden class and add show class
+            dropdown.classList.remove('hidden');
+            dropdown.classList.add('show');
+            dropdown.setAttribute('aria-hidden', 'false');
+            dropdown.style.display = 'block';
+            trigger.setAttribute('aria-expanded', 'true');
+            
+            // Setup dropdown items for keyboard navigation
+            this.setupDropdownItems(dropdown);
+            
+            // Auto-position dropdown if it goes off-screen
+            this.positionDropdown(dropdown);
+            
+            // Track analytics
+            this.trackEvent('dropdown_opened', { userId, timestamp: Date.now() });
+            
+            console.log(`🎯 Professional dropdown opened successfully: ${userId}`);
+            
+        } catch (error) {
+            console.error('❌ Open dropdown error:', error, { dropdown, trigger, userId });
+            this.closeAllDropdowns();
+        }
+    }
+
+    /**
+     * Setup dropdown items for accessibility and keyboard navigation
+     */
+    setupDropdownItems(dropdown) {
+        const items = dropdown.querySelectorAll('.dropdown-item');
+        
+        items.forEach((item, index) => {
+            // Set accessibility attributes
+            item.setAttribute('tabindex', '0');
+            
+            // Remove any existing keyboard listeners to prevent duplicates
+            item.removeEventListener('keydown', this.handleDropdownItemKeydown);
+            
+            // Add keyboard navigation
+            const keydownHandler = (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Trigger the same action as clicking
+                    const action = item.dataset.action;
+                    const userId = item.dataset.userId;
+                    
+                    if (action && userId) {
+                        this.closeAllDropdowns();
+                        this.executeDropdownAction(action, userId);
+                    }
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const nextItem = items[index + 1];
+                    if (nextItem) {
+                        nextItem.focus();
+                    } else {
+                        items[0].focus(); // Loop to first item
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const prevItem = items[index - 1];
+                    if (prevItem) {
+                        prevItem.focus();
+                    } else {
+                        items[items.length - 1].focus(); // Loop to last item
+                    }
+                }
+            };
+            
+            item.addEventListener('keydown', keydownHandler);
+            
+            // Store handler reference for cleanup
+            item._keydownHandler = keydownHandler;
+        });
+        
+        // Focus first item if dropdown just opened
+        if (items.length > 0) {
+            setTimeout(() => {
+                items[0].focus();
+            }, 50);
+        }
+    }
+
+    /**
+     * Auto-position dropdown to prevent off-screen issues
+     */
+    positionDropdown(dropdown) {
+        try {
+            const rect = dropdown.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            // Check if dropdown goes off-screen horizontally
+            if (rect.right > windowWidth - 20) {
+                dropdown.style.right = '0';
+                dropdown.style.left = 'auto';
+            }
+            
+            // Check if dropdown goes off-screen vertically
+            if (rect.bottom > windowHeight - 20) {
+                dropdown.style.top = 'auto';
+                dropdown.style.bottom = '100%';
+                dropdown.style.transform = 'translateY(-5px)';
+            }
+            
+        } catch (error) {
+            console.error('❌ Position dropdown error:', error);
+        }
+    }
+
+    /**
+     * Delete company with confirmation
+     */
+    async deleteCompany(userId) {
+        if (!confirm('Are you sure you want to delete this company? This action cannot be undone.')) return;
+        
+        try {
+            this.showTableLoading();
+            const response = await this.makeRequest(`/admin/api/users/${userId}`, 'DELETE');
+            
+            if (response.success) {
+                this.showNotification('Company deleted successfully', 'success');
+                this.refreshData();
+            } else {
+                throw new Error(response.message);
+            }
+        } catch (error) {
+            console.error('❌ Delete company error:', error);
+            this.showNotification('Failed to delete company', 'error');
+        } finally {
+            this.hideTableLoading();
         }
     }
 
@@ -1181,6 +1799,15 @@ class UsersManagement {
         this.updateElement('pendingUsersTab', statusCounts.pending.toString());
         this.updateElement('blockedUsersTab', statusCounts.blocked.toString());
         this.updateElement('suspendedUsersTab', statusCounts.suspended.toString());
+        
+        // Update company type counts
+        const companyTypeCounts = {
+            manufacturer: statistics.companyTypes?.find(t => t.label === 'manufacturer')?.count || 0,
+            distributor: statistics.companyTypes?.find(t => t.label === 'distributor')?.count || 0
+        };
+        
+        this.updateElement('manufacturersTab', companyTypeCounts.manufacturer.toString());
+        this.updateElement('distributorsTab', companyTypeCounts.distributor.toString());
     }
 
     /**
@@ -1368,14 +1995,11 @@ class UsersManagement {
      * Approve user
      */
     async approveUser(userId) {
-        const confirmed = await this.confirmAction(
-            'Approve User',
-            'Are you sure you want to approve this user?',
-            'approve'
-        );
-        
-        if (confirmed) {
-            await this.performUserAction(userId, 'approve');
+        try {
+            await this.showApproveUserModal(userId);
+        } catch (error) {
+            console.error('❌ Error showing approve user modal:', error);
+            this.showError('Failed to open approval modal. Please try again.');
         }
     }
 
@@ -1394,10 +2018,11 @@ class UsersManagement {
      * Block user
      */
     async blockUser(userId) {
-        const reason = await this.promptForReason('Block User', 'Please provide a reason for blocking:');
-        
-        if (reason) {
-            await this.performUserAction(userId, 'block', { reason });
+        try {
+            await this.showBlockUserModal(userId);
+        } catch (error) {
+            console.error('❌ Error showing block user modal:', error);
+            this.showError('Failed to open block modal. Please try again.');
         }
     }
 
@@ -1405,14 +2030,20 @@ class UsersManagement {
      * Unblock user
      */
     async unblockUser(userId) {
-        const confirmed = await this.confirmAction(
-            'Unblock User',
-            'Are you sure you want to unblock this user?',
-            'unblock'
-        );
-        
-        if (confirmed) {
-            await this.performUserAction(userId, 'unblock');
+        try {
+            // For unblock, we can use a simple confirmation since it's a positive action
+            const confirmed = await this.confirmAction(
+                'Unblock User',
+                'Are you sure you want to unblock this user? They will regain access to the platform.',
+                'unblock'
+            );
+            
+            if (confirmed) {
+                await this.performUserAction(userId, 'unblock');
+            }
+        } catch (error) {
+            console.error('❌ Error unblocking user:', error);
+            this.showError('Failed to unblock user. Please try again.');
         }
     }
 
@@ -1420,10 +2051,11 @@ class UsersManagement {
      * Suspend user
      */
     async suspendUser(userId) {
-        const reason = await this.promptForReason('Suspend User', 'Please provide a reason for suspension:');
-        
-        if (reason) {
-            await this.performUserAction(userId, 'suspend', { reason });
+        try {
+            await this.showSuspendUserModal(userId);
+        } catch (error) {
+            console.error('❌ Error showing suspend user modal:', error);
+            this.showError('Failed to open suspend modal. Please try again.');
         }
     }
 
@@ -1431,14 +2063,11 @@ class UsersManagement {
      * Activate user
      */
     async activateUser(userId) {
-        const confirmed = await this.confirmAction(
-            'Activate User',
-            'Are you sure you want to activate this user?',
-            'activate'
-        );
-        
-        if (confirmed) {
-            await this.performUserAction(userId, 'activate');
+        try {
+            await this.showActivateUserModal(userId);
+        } catch (error) {
+            console.error('❌ Error showing activate user modal:', error);
+            this.showError('Failed to open activate modal. Please try again.');
         }
     }
 
@@ -1446,56 +2075,134 @@ class UsersManagement {
      * Delete user (soft delete)
      */
     async deleteUser(userId) {
-        const confirmed = await this.confirmAction(
-            'Delete User',
-            'Are you sure you want to delete this user? This action can be undone.',
-            'delete'
-        );
-        
-        if (confirmed) {
-            await this.performUserAction(userId, 'delete');
+        try {
+            await this.showDeleteUserModal(userId);
+        } catch (error) {
+            console.error('❌ Error showing delete user modal:', error);
+            this.showError('Failed to open delete modal. Please try again.');
         }
     }
 
     /**
-     * Perform user action
+     * Restore deleted user
+     */
+    async restoreUser(userId) {
+        try {
+            const confirmed = await this.confirmAction(
+                'Restore User',
+                'Are you sure you want to restore this deleted user? They will regain access to the platform.',
+                'restore'
+            );
+            
+            if (confirmed) {
+                await this.performUserAction(userId, 'restore');
+            }
+        } catch (error) {
+            console.error('❌ Error restoring user:', error);
+            this.showError('Failed to restore user. Please try again.');
+        }
+    }
+
+    /**
+     * Reject user application
+     */
+    async rejectUser(userId) {
+        try {
+            const reason = await this.promptForReason(
+                'Reject User Application', 
+                'Please provide a detailed reason for rejecting this application:'
+            );
+            
+            if (reason && reason.length >= 10) {
+                await this.performUserAction(userId, 'reject', { reason });
+            } else if (reason) {
+                this.showError('Rejection reason must be at least 10 characters long.');
+            }
+        } catch (error) {
+            console.error('❌ Error rejecting user:', error);
+            this.showError('Failed to reject user. Please try again.');
+        }
+    }
+
+    /**
+     * Perform user action with specific API endpoints
      */
     async performUserAction(userId, action, data = {}) {
         try {
             this.showLoading(`${action.charAt(0).toUpperCase() + action.slice(1)}ing user...`);
             
-            const response = await this.fetchWithRetry(this.endpoints.userAction, {
-                method: 'POST',
+            // Map actions to specific API endpoints
+            const actionEndpoints = {
+                'approve': `/admin/api/users/${userId}/approve`,
+                'reject': `/admin/api/users/${userId}/reject`,
+                'block': `/admin/api/users/${userId}/block`,
+                'unblock': `/admin/api/users/${userId}/unblock`,
+                'suspend': `/admin/api/users/${userId}/suspend`,
+                'activate': `/admin/api/users/${userId}/activate`,
+                'delete': `/admin/api/users/${userId}/delete`,
+                'restore': `/admin/api/users/${userId}/restore`,
+                'permanent-delete': `/admin/api/users/${userId}/permanent-delete`
+            };
+            
+            const endpoint = actionEndpoints[action];
+            if (!endpoint) {
+                throw new Error(`Unknown action: ${action}`);
+            }
+            
+            // Determine HTTP method based on action
+            const method = action === 'delete' || action === 'permanent-delete' ? 'DELETE' : 'POST';
+            
+            const response = await this.fetchWithRetry(endpoint, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    userId,
-                    action,
-                    ...data
-                })
+                body: JSON.stringify(data)
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
             }
             
             const result = await response.json();
             
-            this.showSuccess(`User ${action}ed successfully`);
-            this.loadUsers(true); // Reload users
-            this.updateTabCounts(); // Update counts
+            // Show success message
+            const actionMessages = {
+                'approve': 'User approved successfully',
+                'reject': 'User rejected successfully',
+                'block': 'User blocked successfully',
+                'unblock': 'User unblocked successfully',
+                'suspend': 'User suspended successfully',
+                'activate': 'User activated successfully',
+                'delete': 'User deleted successfully',
+                'restore': 'User restored successfully',
+                'permanent-delete': 'User permanently deleted'
+            };
+            
+            this.showSuccess(actionMessages[action] || `User ${action}ed successfully`);
+            
+            // Reload users and update UI
+            this.loadUsers(true);
+            this.updateTabCounts();
             
             // Clear selection if user was selected
             this.selectedUsers.delete(userId);
             this.updateBulkActions();
             
             // Track action
-            this.trackEvent('user_action', { action, userId });
+            this.trackEvent('user_action', { action, userId, success: true });
+            
+            return result;
             
         } catch (error) {
             console.error(`❌ Error ${action}ing user:`, error);
-            this.showError(`Failed to ${action} user. Please try again.`);
+            this.showError(error.message || `Failed to ${action} user. Please try again.`);
+            
+            // Track failed action
+            this.trackEvent('user_action', { action, userId, success: false, error: error.message });
+            
+            throw error;
         } finally {
             this.hideLoading();
         }
@@ -2167,6 +2874,8 @@ class UsersManagement {
                     }
                 });
                 
+                console.log('🔥 DEBUG: Token cookie value:', token);
+                console.log('🔥 DEBUG: All cookies:', document.cookie);
                 console.log('🔐 Request made with token:', token ? 'Present' : 'Missing');
                 
                 if (response.ok || response.status < 500) {
@@ -2647,6 +3356,1475 @@ class UsersManagement {
         
         console.log('🧹 Users Management System destroyed');
     }
+
+    // ========================================================================================
+    // COMPANY MANAGEMENT METHODS
+    // ========================================================================================
+
+    /**
+     * View company profile with detailed information
+     */
+    async viewCompanyProfile(userId) {
+        try {
+            console.log('👁️ Opening company profile:', userId);
+            
+            this.showTableLoading();
+            const userData = await this.getUserData(userId);
+            
+            if (!userData.success) {
+                throw new Error(userData.message || 'Failed to fetch company data');
+            }
+            
+            const company = userData.data.user;
+            this.showCompanyProfileModal(company, userData.data.statistics);
+            
+        } catch (error) {
+            console.error('❌ View company profile error:', error);
+            this.showNotification('Failed to load company profile', 'error');
+        } finally {
+            this.hideTableLoading();
+        }
+    }
+
+    /**
+     * Edit company information
+     */
+    async editCompanyInfo(userId) {
+        try {
+            console.log('✏️ Opening company edit:', userId);
+            
+            this.showTableLoading();
+            const userData = await this.getUserData(userId);
+            
+            if (!userData.success) {
+                throw new Error(userData.message || 'Failed to fetch company data');
+            }
+            
+            const company = userData.data.user;
+            this.showCompanyEditModal(company);
+            
+        } catch (error) {
+            console.error('❌ Edit company error:', error);
+            this.showNotification('Failed to load company information', 'error');
+        } finally {
+            this.hideTableLoading();
+        }
+    }
+
+    /**
+     * View company products
+     */
+    async viewCompanyProducts(userId) {
+        try {
+            console.log('📦 Opening company products:', userId);
+            
+            // Navigate to products page with company filter
+            window.location.href = `/admin/products?company=${userId}`;
+            
+        } catch (error) {
+            console.error('❌ View products error:', error);
+            this.showNotification('Failed to open products page', 'error');
+        }
+    }
+
+    /**
+     * View company orders
+     */
+    async viewCompanyOrders(userId) {
+        try {
+            console.log('📋 Opening company orders:', userId);
+            
+            // Navigate to orders page with company filter
+            window.location.href = `/admin/orders?company=${userId}`;
+            
+        } catch (error) {
+            console.error('❌ View orders error:', error);
+            this.showNotification('Failed to open orders page', 'error');
+        }
+    }
+
+    /**
+     * Approve company
+     */
+    async approveCompany(userId) {
+        if (!confirm('Are you sure you want to approve this company?')) return;
+        
+        try {
+            this.showTableLoading();
+            const response = await this.makeRequest(`/admin/api/users/${userId}/approve`, 'PUT');
+            
+            if (response.success) {
+                this.showNotification('Company approved successfully', 'success');
+                this.refreshData();
+            } else {
+                throw new Error(response.message);
+            }
+        } catch (error) {
+            console.error('❌ Approve company error:', error);
+            this.showNotification('Failed to approve company', 'error');
+        } finally {
+            this.hideTableLoading();
+        }
+    }
+
+    /**
+     * Suspend company
+     */
+    async suspendCompany(userId) {
+        if (!confirm('Are you sure you want to suspend this company?')) return;
+        
+        try {
+            this.showTableLoading();
+            const response = await this.makeRequest(`/admin/api/users/${userId}/suspend`, 'PUT');
+            
+            if (response.success) {
+                this.showNotification('Company suspended successfully', 'success');
+                this.refreshData();
+            } else {
+                throw new Error(response.message);
+            }
+        } catch (error) {
+            console.error('❌ Suspend company error:', error);
+            this.showNotification('Failed to suspend company', 'error');
+        } finally {
+            this.hideTableLoading();
+        }
+    }
+
+    /**
+     * Activate company
+     */
+    async activateCompany(userId) {
+        if (!confirm('Are you sure you want to activate this company?')) return;
+        
+        try {
+            this.showTableLoading();
+            const response = await this.makeRequest(`/admin/api/users/${userId}/activate`, 'PUT');
+            
+            if (response.success) {
+                this.showNotification('Company activated successfully', 'success');
+                this.refreshData();
+            } else {
+                throw new Error(response.message);
+            }
+        } catch (error) {
+            console.error('❌ Activate company error:', error);
+            this.showNotification('Failed to activate company', 'error');
+        } finally {
+            this.hideTableLoading();
+        }
+    }
+
+    /**
+     * Block company
+     */
+    async blockCompany(userId) {
+        if (!confirm('Are you sure you want to block this company?')) return;
+        
+        try {
+            this.showTableLoading();
+            const response = await this.makeRequest(`/admin/api/users/${userId}/block`, 'PUT');
+            
+            if (response.success) {
+                this.showNotification('Company blocked successfully', 'success');
+                this.refreshData();
+            } else {
+                throw new Error(response.message);
+            }
+        } catch (error) {
+            console.error('❌ Block company error:', error);
+            this.showNotification('Failed to block company', 'error');
+        } finally {
+            this.hideTableLoading();
+        }
+    }
+
+    /**
+     * Show company profile modal with enhanced information
+     */
+    showCompanyProfileModal(company, statistics) {
+        const modal = document.createElement('div');
+        modal.className = 'professional-modal-overlay company-profile-modal';
+        modal.innerHTML = `
+            <div class="professional-modal large-modal">
+                <div class="modal-header">
+                    <div class="modal-title-section">
+                        <h2 class="modal-title">
+                            <i class="las la-building"></i>
+                            Company Profile
+                        </h2>
+                        <span class="company-type-badge ${company.companyType}">
+                            ${company.companyType?.charAt(0).toUpperCase() + company.companyType?.slice(1) || 'N/A'}
+                        </span>
+                    </div>
+                    <button class="modal-close-btn" onclick="this.closest('.professional-modal-overlay').remove()">
+                        <i class="las la-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body company-profile-body">
+                    <div class="company-profile-grid">
+                        <!-- Company Header -->
+                        <div class="company-header">
+                            <div class="company-logo">
+                                ${company.companyLogo?.url ? 
+                                    `<img src="${company.companyLogo.url}" alt="${company.companyName}" class="company-logo-img">` :
+                                    `<div class="company-logo-placeholder"><i class="las la-building"></i></div>`
+                                }
+                            </div>
+                            <div class="company-main-info">
+                                <h3 class="company-name">${company.companyName || 'N/A'}</h3>
+                                <p class="company-email">${company.email || 'N/A'}</p>
+                                <div class="company-status">
+                                    ${this.renderProfessionalStatusBadge(company.status)}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Business Information -->
+                        <div class="info-section">
+                            <h4 class="section-title"><i class="las la-briefcase"></i> Business Information</h4>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label>Tax Number:</label>
+                                    <span>${company.taxNumber || 'N/A'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Activity Type:</label>
+                                    <span>${company.activityType || 'N/A'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Established Year:</label>
+                                    <span>${company.establishedYear || 'N/A'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Employee Count:</label>
+                                    <span>${company.employeeCount || 'N/A'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact Information -->
+                        <div class="info-section">
+                            <h4 class="section-title"><i class="las la-phone"></i> Contact Information</h4>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label>Phone:</label>
+                                    <span>${company.phone || 'N/A'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Website:</label>
+                                    <span>${company.website ? `<a href="${company.website}" target="_blank">${company.website}</a>` : 'N/A'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Address:</label>
+                                    <span>${company.address || 'N/A'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Location:</label>
+                                    <span>${company.city || 'N/A'}, ${company.country || 'N/A'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Business Metrics -->
+                        <div class="info-section">
+                            <h4 class="section-title"><i class="las la-chart-line"></i> Business Metrics</h4>
+                            <div class="metrics-grid">
+                                <div class="metric-card">
+                                    <div class="metric-value">${company.totalProducts || 0}</div>
+                                    <div class="metric-label">Products</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-value">${company.totalOrders || 0}</div>
+                                    <div class="metric-label">Orders</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-value">${company.averageRating || 0}/5</div>
+                                    <div class="metric-label">Rating</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-value">${statistics?.accountAge || 0}</div>
+                                    <div class="metric-label">Days Active</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="this.closest('.professional-modal-overlay').remove()">
+                        Close
+                    </button>
+                    <button class="btn btn-primary" onclick="usersManagement.editCompanyInfo('${company._id}')">
+                        <i class="las la-edit"></i> Edit Company
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Close on overlay click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        
+        // Close on escape key
+        document.addEventListener('keydown', function escapeHandler(e) {
+            if (e.key === 'Escape') {
+                modal.remove();
+                document.removeEventListener('keydown', escapeHandler);
+            }
+        });
+    }
+
+    /**
+     * Show company edit modal
+     */
+    showCompanyEditModal(company) {
+        const modal = document.createElement('div');
+        modal.className = 'professional-modal-overlay company-edit-modal';
+        modal.innerHTML = `
+            <div class="professional-modal large-modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">
+                        <i class="las la-edit"></i>
+                        Edit Company Information
+                    </h2>
+                    <button class="modal-close-btn" onclick="this.closest('.professional-modal-overlay').remove()">
+                        <i class="las la-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <form id="companyEditForm" class="company-edit-form">
+                        <div class="form-grid">
+                            <div class="form-section">
+                                <h4 class="section-title">Company Details</h4>
+                                <div class="form-group">
+                                    <label for="companyName">Company Name *</label>
+                                    <input type="text" id="companyName" name="companyName" value="${company.companyName || ''}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="companyType">Company Type *</label>
+                                    <select id="companyType" name="companyType" required>
+                                        <option value="manufacturer" ${company.companyType === 'manufacturer' ? 'selected' : ''}>Manufacturer</option>
+                                        <option value="distributor" ${company.companyType === 'distributor' ? 'selected' : ''}>Distributor</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taxNumber">Tax Number *</label>
+                                    <input type="text" id="taxNumber" name="taxNumber" value="${company.taxNumber || ''}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="activityType">Activity Type</label>
+                                    <select id="activityType" name="activityType">
+                                        <option value="">Select Activity Type</option>
+                                        <option value="food_beverages" ${company.activityType === 'food_beverages' ? 'selected' : ''}>Food & Beverages</option>
+                                        <option value="textiles_clothing" ${company.activityType === 'textiles_clothing' ? 'selected' : ''}>Textiles & Clothing</option>
+                                        <option value="electronics" ${company.activityType === 'electronics' ? 'selected' : ''}>Electronics</option>
+                                        <option value="machinery_equipment" ${company.activityType === 'machinery_equipment' ? 'selected' : ''}>Machinery & Equipment</option>
+                                        <option value="chemicals" ${company.activityType === 'chemicals' ? 'selected' : ''}>Chemicals</option>
+                                        <option value="agriculture" ${company.activityType === 'agriculture' ? 'selected' : ''}>Agriculture</option>
+                                        <option value="construction_materials" ${company.activityType === 'construction_materials' ? 'selected' : ''}>Construction Materials</option>
+                                        <option value="automotive" ${company.activityType === 'automotive' ? 'selected' : ''}>Automotive</option>
+                                        <option value="pharmaceuticals" ${company.activityType === 'pharmaceuticals' ? 'selected' : ''}>Pharmaceuticals</option>
+                                        <option value="other" ${company.activityType === 'other' ? 'selected' : ''}>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-section">
+                                <h4 class="section-title">Contact Information</h4>
+                                <div class="form-group">
+                                    <label for="email">Email *</label>
+                                    <input type="email" id="email" name="email" value="${company.email || ''}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone">Phone *</label>
+                                    <input type="tel" id="phone" name="phone" value="${company.phone || ''}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="website">Website</label>
+                                    <input type="url" id="website" name="website" value="${company.website || ''}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="address">Address</label>
+                                    <textarea id="address" name="address" rows="3">${company.address || ''}</textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="form-section">
+                                <h4 class="section-title">Location</h4>
+                                <div class="form-group">
+                                    <label for="country">Country *</label>
+                                    <select id="country" name="country" required>
+                                        <option value="">Select Country</option>
+                                        <option value="Uzbekistan" ${company.country === 'Uzbekistan' ? 'selected' : ''}>Uzbekistan</option>
+                                        <option value="Kazakhstan" ${company.country === 'Kazakhstan' ? 'selected' : ''}>Kazakhstan</option>
+                                        <option value="China" ${company.country === 'China' ? 'selected' : ''}>China</option>
+                                        <option value="Tajikistan" ${company.country === 'Tajikistan' ? 'selected' : ''}>Tajikistan</option>
+                                        <option value="Turkmenistan" ${company.country === 'Turkmenistan' ? 'selected' : ''}>Turkmenistan</option>
+                                        <option value="Afghanistan" ${company.country === 'Afghanistan' ? 'selected' : ''}>Afghanistan</option>
+                                        <option value="Kyrgyzstan" ${company.country === 'Kyrgyzstan' ? 'selected' : ''}>Kyrgyzstan</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="city">City *</label>
+                                    <input type="text" id="city" name="city" value="${company.city || ''}" required>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="this.closest('.professional-modal-overlay').remove()">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary" onclick="usersManagement.handleCompanyUpdate('${company._id}')">
+                        <i class="las la-save"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Close on overlay click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        
+        // Close on escape key
+        document.addEventListener('keydown', function escapeHandler(e) {
+            if (e.key === 'Escape') {
+                modal.remove();
+                document.removeEventListener('keydown', escapeHandler);
+            }
+        });
+    }
+
+    /**
+     * Handle company update
+     */
+    async handleCompanyUpdate(userId) {
+        try {
+            const form = document.getElementById('companyEditForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            this.showTableLoading();
+            
+            const response = await this.makeRequest(`/admin/api/users/${userId}`, 'PUT', data);
+            
+            if (response.success) {
+                this.showNotification('Company information updated successfully', 'success');
+                document.querySelector('.company-edit-modal')?.remove();
+                this.refreshData();
+            } else {
+                throw new Error(response.message);
+            }
+        } catch (error) {
+            console.error('❌ Update company error:', error);
+            this.showNotification('Failed to update company information', 'error');
+        } finally {
+            this.hideTableLoading();
+        }
+    }
+
+    /**
+     * Export filtered companies to Excel
+     */
+    async exportFilteredCompanies() {
+        try {
+            console.log('📊 Exporting filtered companies...');
+            
+            // Show loading
+            this.showTableLoading();
+            
+            // Prepare export data with current filters
+            const exportData = {
+                filters: {
+                    ...this.activeFilters,
+                    status: this.currentStatus,
+                    companyType: this.currentCompanyType
+                },
+                tab: this.currentTab,
+                format: 'xlsx',
+                includeMetrics: true
+            };
+            
+            // Make export request
+            const response = await this.makeRequest('/admin/api/users/export', 'POST', exportData);
+            
+            if (response.success && response.data?.downloadUrl) {
+                // Create download link
+                const link = document.createElement('a');
+                link.href = response.data.downloadUrl;
+                link.download = response.data.filename || `companies_export_${Date.now()}.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                this.showNotification(`Exported ${response.data.totalRecords || 0} companies successfully`, 'success');
+            } else {
+                throw new Error(response.message || 'Export failed');
+            }
+            
+            // Track analytics
+            this.trackEvent('export_filtered_companies', {
+                tab: this.currentTab,
+                filters: this.activeFilters,
+                recordCount: response.data?.totalRecords || 0
+            });
+            
+        } catch (error) {
+            console.error('❌ Export companies error:', error);
+            this.showNotification('Failed to export companies', 'error');
+        } finally {
+            this.hideTableLoading();
+        }
+    }
+
+    // ===============================================
+    // MODAL SYSTEM IMPLEMENTATION - TASK 2.1
+    // ===============================================
+
+    /**
+     * Show approve user modal
+     */
+    async showApproveUserModal(userId) {
+        try {
+            console.log('📋 Opening approve user modal for:', userId);
+            
+            // Get user details
+            const user = await this.getUserDetails(userId);
+            if (!user) return;
+            
+            // Populate modal with user data
+            this.populateUserModal('approve', user);
+            
+            // Show modal with focus management
+            const modalElement = document.getElementById('approveUserModal');
+            const modal = new bootstrap.Modal(modalElement);
+            
+            // Setup focus management
+            window.setupModalFocusManagement('approveUserModal', 'approveUserNotes');
+            
+            modal.show();
+            
+            // Setup confirm button
+            const confirmBtn = document.getElementById('confirmApproveUser');
+            confirmBtn.onclick = () => this.confirmApproveUser(userId, modal);
+            
+        } catch (error) {
+            console.error('❌ Error showing approve modal:', error);
+            this.showNotification('Failed to load user details', 'error');
+        }
+    }
+
+    /**
+     * Show block user modal
+     */
+    async showBlockUserModal(userId) {
+        try {
+            console.log('🚫 Opening block user modal for:', userId);
+            
+            const user = await this.getUserDetails(userId);
+            if (!user) return;
+            
+            this.populateUserModal('block', user);
+            
+            const modal = new bootstrap.Modal(document.getElementById('blockUserModal'));
+            
+            // Setup focus management
+            window.setupModalFocusManagement('blockUserModal', 'blockUserReason');
+            
+            modal.show();
+            
+            const confirmBtn = document.getElementById('confirmBlockUser');
+            confirmBtn.onclick = () => this.confirmBlockUser(userId, modal);
+            
+        } catch (error) {
+            console.error('❌ Error showing block modal:', error);
+            this.showNotification('Failed to load user details', 'error');
+        }
+    }
+
+    /**
+     * Show suspend user modal
+     */
+    async showSuspendUserModal(userId) {
+        try {
+            console.log('⏸️ Opening suspend user modal for:', userId);
+            
+            const user = await this.getUserDetails(userId);
+            if (!user) return;
+            
+            this.populateUserModal('suspend', user);
+            
+            const modal = new bootstrap.Modal(document.getElementById('suspendUserModal'));
+            
+            // Setup focus management
+            window.setupModalFocusManagement('suspendUserModal', 'suspendUserReason');
+            
+            modal.show();
+            
+            const confirmBtn = document.getElementById('confirmSuspendUser');
+            confirmBtn.onclick = () => this.confirmSuspendUser(userId, modal);
+            
+        } catch (error) {
+            console.error('❌ Error showing suspend modal:', error);
+            this.showNotification('Failed to load user details', 'error');
+        }
+    }
+
+    /**
+     * Show activate user modal
+     */
+    async showActivateUserModal(userId) {
+        try {
+            console.log('✅ Opening activate user modal for:', userId);
+            
+            const user = await this.getUserDetails(userId);
+            if (!user) return;
+            
+            this.populateUserModal('activate', user);
+            
+            const modal = new bootstrap.Modal(document.getElementById('activateUserModal'));
+            
+            // Setup focus management
+            window.setupModalFocusManagement('activateUserModal', 'activateUserNotes');
+            
+            modal.show();
+            
+            const confirmBtn = document.getElementById('confirmActivateUser');
+            confirmBtn.onclick = () => this.confirmActivateUser(userId, modal);
+            
+        } catch (error) {
+            console.error('❌ Error showing activate modal:', error);
+            this.showNotification('Failed to load user details', 'error');
+        }
+    }
+
+    /**
+     * Show delete user modal
+     */
+    async showDeleteUserModal(userId) {
+        try {
+            console.log('🗑️ Opening delete user modal for:', userId);
+            
+            const user = await this.getUserDetails(userId);
+            if (!user) return;
+            
+            this.populateUserModal('delete', user);
+            
+            const modal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
+            
+            // Setup focus management
+            window.setupModalFocusManagement('deleteUserModal', 'deleteUserReason');
+            
+            modal.show();
+            
+            const confirmBtn = document.getElementById('confirmDeleteUser');
+            confirmBtn.onclick = () => this.confirmDeleteUser(userId, modal);
+            
+        } catch (error) {
+            console.error('❌ Error showing delete modal:', error);
+            this.showNotification('Failed to load user details', 'error');
+        }
+    }
+
+    /**
+     * Show reject user modal
+     */
+    async showRejectUserModal(userId) {
+        try {
+            console.log('❌ Opening reject user modal for:', userId);
+            
+            const user = await this.getUserDetails(userId);
+            if (!user) return;
+            
+            this.populateUserModal('reject', user);
+            
+            const modal = new bootstrap.Modal(document.getElementById('rejectUserModal'));
+            modal.show();
+            
+            const confirmBtn = document.getElementById('confirmRejectUser');
+            confirmBtn.onclick = () => this.confirmRejectUser(userId, modal);
+            
+        } catch (error) {
+            console.error('❌ Error showing reject modal:', error);
+            this.showNotification('Failed to load user details', 'error');
+        }
+    }
+
+    /**
+     * Populate modal with user data
+     */
+    populateUserModal(action, user) {
+        try {
+            const prefix = action + 'User';
+            
+            // Set user avatar
+            const avatar = document.getElementById(prefix + 'Avatar');
+            if (avatar) {
+                avatar.src = user.companyLogo?.url || '/assets/images/default-avatar.png';
+                avatar.alt = user.companyName || 'User Avatar';
+            }
+            
+            // Set user name
+            const name = document.getElementById(prefix + 'Name');
+            if (name) {
+                name.textContent = user.companyName || 'N/A';
+            }
+            
+            // Set user email
+            const email = document.getElementById(prefix + 'Email');
+            if (email) {
+                email.textContent = user.email || 'N/A';
+            }
+            
+            // Set user company
+            const company = document.getElementById(prefix + 'Company');
+            if (company) {
+                company.textContent = `${user.companyType || 'Unknown'} • ${user.country || 'Unknown'}`;
+            }
+            
+            console.log(`✅ Modal populated for ${action} action`);
+            
+        } catch (error) {
+            console.error('❌ Error populating modal:', error);
+        }
+    }
+
+    /**
+     * Get user details from API
+     */
+    async getUserDetails(userId) {
+        try {
+            const response = await fetch(`/admin/api/users/${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            return data.success ? data.data : data;
+            
+        } catch (error) {
+            console.error('❌ Error fetching user details:', error);
+            this.showNotification('Failed to load user details', 'error');
+            return null;
+        }
+    }
+
+    /**
+     * Confirm approve user action
+     */
+    async confirmApproveUser(userId, modal) {
+        try {
+            const notes = document.getElementById('approveUserNotes').value.trim();
+            
+            this.showLoading('Approving user...');
+            
+            const response = await fetch(`/admin/api/users/${userId}/approve`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ notes })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                modal.hide();
+                this.showNotification('User approved successfully!', 'success');
+                this.loadUsers(); // Refresh table
+            } else {
+                throw new Error(data.error || 'Failed to approve user');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error approving user:', error);
+            this.showNotification(error.message || 'Failed to approve user', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    /**
+     * Confirm block user action
+     */
+    async confirmBlockUser(userId, modal) {
+        try {
+            const reason = document.getElementById('blockUserReason').value.trim();
+            
+            if (!reason || reason.length < 10) {
+                this.showNotification('Block reason must be at least 10 characters long', 'error');
+                return;
+            }
+            
+            this.showLoading('Blocking user...');
+            
+            const response = await fetch(`/admin/api/users/${userId}/block`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ reason })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                modal.hide();
+                this.showNotification('User blocked successfully!', 'success');
+                this.loadUsers();
+            } else {
+                throw new Error(data.error || 'Failed to block user');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error blocking user:', error);
+            this.showNotification(error.message || 'Failed to block user', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    /**
+     * Confirm suspend user action
+     */
+    async confirmSuspendUser(userId, modal) {
+        try {
+            const reason = document.getElementById('suspendUserReason').value.trim();
+            const duration = document.getElementById('suspendUserDuration').value;
+            
+            if (!reason || reason.length < 10) {
+                this.showNotification('Suspension reason must be at least 10 characters long', 'error');
+                return;
+            }
+            
+            this.showLoading('Suspending user...');
+            
+            const response = await fetch(`/admin/api/users/${userId}/suspend`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ reason, duration })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                modal.hide();
+                this.showNotification('User suspended successfully!', 'success');
+                this.loadUsers();
+            } else {
+                throw new Error(data.error || 'Failed to suspend user');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error suspending user:', error);
+            this.showNotification(error.message || 'Failed to suspend user', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    /**
+     * Confirm activate user action
+     */
+    async confirmActivateUser(userId, modal) {
+        try {
+            const notes = document.getElementById('activateUserNotes').value.trim();
+            
+            this.showLoading('Activating user...');
+            
+            const response = await fetch(`/admin/api/users/${userId}/activate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ notes })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                modal.hide();
+                this.showNotification('User activated successfully!', 'success');
+                this.loadUsers();
+            } else {
+                throw new Error(data.error || 'Failed to activate user');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error activating user:', error);
+            this.showNotification(error.message || 'Failed to activate user', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    /**
+     * Confirm delete user action
+     */
+    async confirmDeleteUser(userId, modal) {
+        try {
+            const reason = document.getElementById('deleteUserReason').value.trim();
+            const confirmed = document.getElementById('confirmDeleteAction').checked;
+            
+            if (!reason || reason.length < 10) {
+                this.showNotification('Deletion reason must be at least 10 characters long', 'error');
+                return;
+            }
+            
+            if (!confirmed) {
+                this.showNotification('Please confirm the deletion by checking the checkbox', 'error');
+                return;
+            }
+            
+            this.showLoading('Deleting user...');
+            
+            const response = await fetch(`/admin/api/users/${userId}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ reason, confirmAction: true })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                modal.hide();
+                this.showNotification('User deleted successfully!', 'success');
+                this.loadUsers();
+            } else {
+                throw new Error(data.error || 'Failed to delete user');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error deleting user:', error);
+            this.showNotification(error.message || 'Failed to delete user', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    /**
+     * Confirm reject user action
+     */
+    async confirmRejectUser(userId, modal) {
+        try {
+            const reason = document.getElementById('rejectUserReason').value.trim();
+            
+            if (!reason || reason.length < 10) {
+                this.showNotification('Rejection reason must be at least 10 characters long', 'error');
+                return;
+            }
+            
+            this.showLoading('Rejecting user...');
+            
+            const response = await fetch(`/admin/api/users/${userId}/reject`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ reason })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                modal.hide();
+                this.showNotification('User rejected successfully!', 'success');
+                this.loadUsers();
+            } else {
+                throw new Error(data.error || 'Failed to reject user');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error rejecting user:', error);
+            this.showNotification(error.message || 'Failed to reject user', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    /**
+     * Show loading overlay
+     */
+    showLoading(message = 'Processing...') {
+        const overlay = document.getElementById('loadingOverlay');
+        const text = document.getElementById('loadingText');
+        
+        if (overlay) {
+            if (text) text.textContent = message;
+            overlay.classList.remove('d-none');
+        }
+    }
+
+    /**
+     * Hide loading overlay
+     */
+    hideLoading() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.classList.add('d-none');
+        }
+    }
+
+    // ===============================================
+    // BULK OPERATION MODALS - TASK 2.2
+    // ===============================================
+
+    /**
+     * Show bulk approve modal
+     */
+    showBulkApproveModal() {
+        try {
+            const selectedUsers = Array.from(this.selectedUsers);
+            if (selectedUsers.length === 0) {
+                this.showNotification('Please select users to approve', 'warning');
+                return;
+            }
+
+            console.log('📋 Opening bulk approve modal for', selectedUsers.length, 'users');
+            
+            // Populate modal with selected users
+            this.populateBulkModal('approve', selectedUsers);
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('bulkApproveModal'));
+            
+            // Setup focus management
+            window.setupModalFocusManagement('bulkApproveModal', 'bulkApproveNotes');
+            
+            modal.show();
+            
+            // Setup confirm button
+            const confirmBtn = document.getElementById('confirmBulkApprove');
+            confirmBtn.onclick = () => this.confirmBulkApprove(selectedUsers, modal);
+            
+        } catch (error) {
+            console.error('❌ Error showing bulk approve modal:', error);
+            this.showNotification('Failed to open bulk approve modal', 'error');
+        }
+    }
+
+    /**
+     * Show bulk block modal
+     */
+    showBulkBlockModal() {
+        try {
+            const selectedUsers = Array.from(this.selectedUsers);
+            if (selectedUsers.length === 0) {
+                this.showNotification('Please select users to block', 'warning');
+                return;
+            }
+
+            console.log('🚫 Opening bulk block modal for', selectedUsers.length, 'users');
+            
+            this.populateBulkModal('block', selectedUsers);
+            
+            const modal = new bootstrap.Modal(document.getElementById('bulkBlockModal'));
+            
+            // Setup focus management
+            window.setupModalFocusManagement('bulkBlockModal', 'bulkBlockReason');
+            
+            modal.show();
+            
+            const confirmBtn = document.getElementById('confirmBulkBlock');
+            confirmBtn.onclick = () => this.confirmBulkBlock(selectedUsers, modal);
+            
+        } catch (error) {
+            console.error('❌ Error showing bulk block modal:', error);
+            this.showNotification('Failed to open bulk block modal', 'error');
+        }
+    }
+
+    /**
+     * Show bulk suspend modal
+     */
+    showBulkSuspendModal() {
+        try {
+            const selectedUsers = Array.from(this.selectedUsers);
+            if (selectedUsers.length === 0) {
+                this.showNotification('Please select users to suspend', 'warning');
+                return;
+            }
+
+            console.log('⏸️ Opening bulk suspend modal for', selectedUsers.length, 'users');
+            
+            this.populateBulkModal('suspend', selectedUsers);
+            
+            const modal = new bootstrap.Modal(document.getElementById('bulkSuspendModal'));
+            
+            // Setup focus management
+            window.setupModalFocusManagement('bulkSuspendModal', 'bulkSuspendReason');
+            
+            modal.show();
+            
+            const confirmBtn = document.getElementById('confirmBulkSuspend');
+            confirmBtn.onclick = () => this.confirmBulkSuspend(selectedUsers, modal);
+            
+        } catch (error) {
+            console.error('❌ Error showing bulk suspend modal:', error);
+            this.showNotification('Failed to open bulk suspend modal', 'error');
+        }
+    }
+
+    /**
+     * Show bulk delete modal
+     */
+    showBulkDeleteModal() {
+        try {
+            const selectedUsers = Array.from(this.selectedUsers);
+            if (selectedUsers.length === 0) {
+                this.showNotification('Please select users to delete', 'warning');
+                return;
+            }
+
+            console.log('🗑️ Opening bulk delete modal for', selectedUsers.length, 'users');
+            
+            this.populateBulkModal('delete', selectedUsers);
+            
+            const modal = new bootstrap.Modal(document.getElementById('bulkDeleteModal'));
+            modal.show();
+            
+            const confirmBtn = document.getElementById('confirmBulkDelete');
+            confirmBtn.onclick = () => this.confirmBulkDelete(selectedUsers, modal);
+            
+        } catch (error) {
+            console.error('❌ Error showing bulk delete modal:', error);
+            this.showNotification('Failed to open bulk delete modal', 'error');
+        }
+    }
+
+    /**
+     * Populate bulk modal with selected users
+     */
+    async populateBulkModal(action, selectedUserIds) {
+        try {
+            const prefix = 'bulk' + action.charAt(0).toUpperCase() + action.slice(1);
+            
+            // Set count
+            const countElement = document.getElementById(prefix + 'Count');
+            if (countElement) {
+                countElement.textContent = selectedUserIds.length;
+            }
+            
+            // Get users list container
+            const listContainer = document.getElementById(prefix + 'UsersList');
+            if (!listContainer) return;
+            
+            // Show loading in list
+            listContainer.innerHTML = '<div class="text-center p-3"><div class="spinner-border spinner-border-sm"></div> Loading users...</div>';
+            
+            // Get user details for each selected user
+            const userDetails = await Promise.all(
+                selectedUserIds.map(async (userId) => {
+                    try {
+                        const user = await this.getUserDetails(userId);
+                        return user ? { ...user, _id: userId } : null;
+                    } catch (error) {
+                        console.error('Error fetching user details:', userId, error);
+                        return null;
+                    }
+                })
+            );
+            
+            // Filter out failed requests
+            const validUsers = userDetails.filter(user => user !== null);
+            
+            // Render user list
+            listContainer.innerHTML = validUsers.map(user => `
+                <div class="selected-user-item">
+                    <img class="selected-user-avatar" 
+                         src="${user.companyLogo?.url || '/assets/images/default-avatar.png'}" 
+                         alt="${user.companyName || 'User'}">
+                    <div class="selected-user-info">
+                        <div class="selected-user-name">${this.escapeHtml(user.companyName || 'N/A')}</div>
+                        <div class="selected-user-email">${this.escapeHtml(user.email || 'N/A')}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            console.log(`✅ Bulk ${action} modal populated with ${validUsers.length} users`);
+            
+        } catch (error) {
+            console.error('❌ Error populating bulk modal:', error);
+            const listContainer = document.getElementById(prefix + 'UsersList');
+            if (listContainer) {
+                listContainer.innerHTML = '<div class="text-danger p-3">Failed to load user details</div>';
+            }
+        }
+    }
+
+    /**
+     * Confirm bulk approve operation
+     */
+    async confirmBulkApprove(userIds, modal) {
+        try {
+            const notes = document.getElementById('bulkApproveNotes').value.trim();
+            
+            await this.executeBulkOperation('approve', userIds, { notes }, modal);
+            
+        } catch (error) {
+            console.error('❌ Error in bulk approve:', error);
+            this.showNotification('Failed to approve users', 'error');
+        }
+    }
+
+    /**
+     * Confirm bulk block operation
+     */
+    async confirmBulkBlock(userIds, modal) {
+        try {
+            const reason = document.getElementById('bulkBlockReason').value.trim();
+            
+            if (!reason || reason.length < 10) {
+                this.showNotification('Block reason must be at least 10 characters long', 'error');
+                return;
+            }
+            
+            await this.executeBulkOperation('block', userIds, { reason }, modal);
+            
+        } catch (error) {
+            console.error('❌ Error in bulk block:', error);
+            this.showNotification('Failed to block users', 'error');
+        }
+    }
+
+    /**
+     * Confirm bulk suspend operation
+     */
+    async confirmBulkSuspend(userIds, modal) {
+        try {
+            const reason = document.getElementById('bulkSuspendReason').value.trim();
+            const duration = document.getElementById('bulkSuspendDuration').value;
+            
+            if (!reason || reason.length < 10) {
+                this.showNotification('Suspension reason must be at least 10 characters long', 'error');
+                return;
+            }
+            
+            await this.executeBulkOperation('suspend', userIds, { reason, duration }, modal);
+            
+        } catch (error) {
+            console.error('❌ Error in bulk suspend:', error);
+            this.showNotification('Failed to suspend users', 'error');
+        }
+    }
+
+    /**
+     * Confirm bulk delete operation
+     */
+    async confirmBulkDelete(userIds, modal) {
+        try {
+            const reason = document.getElementById('bulkDeleteReason').value.trim();
+            const confirmed = document.getElementById('confirmBulkDeleteAction').checked;
+            
+            if (!reason || reason.length < 10) {
+                this.showNotification('Deletion reason must be at least 10 characters long', 'error');
+                return;
+            }
+            
+            if (!confirmed) {
+                this.showNotification('Please confirm the deletion by checking the checkbox', 'error');
+                return;
+            }
+            
+            await this.executeBulkOperation('delete', userIds, { reason, confirmAction: true }, modal);
+            
+        } catch (error) {
+            console.error('❌ Error in bulk delete:', error);
+            this.showNotification('Failed to delete users', 'error');
+        }
+    }
+
+    /**
+     * Execute bulk operation with progress tracking
+     */
+    async executeBulkOperation(action, userIds, data, modal) {
+        try {
+            console.log(`🚀 Executing bulk ${action} for ${userIds.length} users`);
+            
+            // Show progress section
+            const progressSection = document.getElementById(`bulk${action.charAt(0).toUpperCase() + action.slice(1)}Progress`);
+            const progressBar = progressSection?.querySelector('.progress-bar');
+            const progressText = document.getElementById(`bulk${action.charAt(0).toUpperCase() + action.slice(1)}ProgressText`);
+            
+            if (progressSection) {
+                progressSection.classList.remove('d-none');
+            }
+            
+            // Disable confirm button
+            const confirmBtn = modal._element.querySelector('.btn-primary, .btn-success, .btn-danger, .btn-warning');
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+            }
+            
+            // Execute bulk operation via API
+            const response = await fetch(`/admin/api/users/bulk-${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    userIds,
+                    ...data
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Hide current modal
+                modal.hide();
+                
+                // Show results modal
+                this.showBulkResultsModal(action, result.data || result);
+                
+                // Clear selection and refresh table
+                this.clearSelection();
+                this.loadUsers();
+                
+                this.showNotification(`Bulk ${action} completed successfully!`, 'success');
+                
+            } else {
+                throw new Error(result.error || `Failed to ${action} users`);
+            }
+            
+        } catch (error) {
+            console.error(`❌ Error in bulk ${action}:`, error);
+            this.showNotification(error.message || `Failed to ${action} users`, 'error');
+            
+            // Re-enable confirm button
+            const confirmBtn = modal._element.querySelector('.btn-primary, .btn-success, .btn-danger, .btn-warning');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+            }
+        }
+    }
+
+    /**
+     * Show bulk operation results modal
+     */
+    showBulkResultsModal(action, results) {
+        try {
+            console.log('📊 Showing bulk results modal:', results);
+            
+            // Populate results summary
+            document.getElementById('bulkSuccessCount').textContent = results.successful || 0;
+            document.getElementById('bulkFailedCount').textContent = results.failed || 0;
+            document.getElementById('bulkTotalCount').textContent = results.total || 0;
+            
+            // Show successful operations
+            const successContainer = document.getElementById('bulkSuccessfulResults');
+            if (results.successfulOperations && results.successfulOperations.length > 0) {
+                successContainer.innerHTML = `
+                    <h6 class="text-success mb-3">
+                        <i class="las la-check-circle"></i>
+                        Successful Operations (${results.successfulOperations.length})
+                    </h6>
+                    ${results.successfulOperations.map(op => `
+                        <div class="operation-result success">
+                            <i class="las la-check-circle operation-icon success"></i>
+                            <div class="operation-details">
+                                <div class="operation-user">${this.escapeHtml(op.userName || op.userId)}</div>
+                                <div class="operation-message">${this.escapeHtml(op.message || `Successfully ${action}ed`)}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            } else {
+                successContainer.innerHTML = '';
+            }
+            
+            // Show failed operations
+            const failedContainer = document.getElementById('bulkFailedResults');
+            if (results.failedOperations && results.failedOperations.length > 0) {
+                failedContainer.innerHTML = `
+                    <h6 class="text-danger mb-3">
+                        <i class="las la-times-circle"></i>
+                        Failed Operations (${results.failedOperations.length})
+                    </h6>
+                    ${results.failedOperations.map(op => `
+                        <div class="operation-result failed">
+                            <i class="las la-times-circle operation-icon failed"></i>
+                            <div class="operation-details">
+                                <div class="operation-user">${this.escapeHtml(op.userName || op.userId)}</div>
+                                <div class="operation-message">${this.escapeHtml(op.error || 'Operation failed')}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+                
+                // Show retry button if there are failed operations
+                const retryBtn = document.getElementById('retryFailedOperations');
+                if (retryBtn) {
+                    retryBtn.style.display = 'inline-block';
+                    retryBtn.onclick = () => this.retryFailedOperations(action, results.failedOperations);
+                }
+            } else {
+                failedContainer.innerHTML = '';
+                const retryBtn = document.getElementById('retryFailedOperations');
+                if (retryBtn) {
+                    retryBtn.style.display = 'none';
+                }
+            }
+            
+            // Show results modal
+            const resultsModal = new bootstrap.Modal(document.getElementById('bulkResultsModal'));
+            resultsModal.show();
+            
+        } catch (error) {
+            console.error('❌ Error showing bulk results modal:', error);
+        }
+    }
+
+    /**
+     * Retry failed operations
+     */
+    async retryFailedOperations(action, failedOperations) {
+        try {
+            console.log('🔄 Retrying failed operations:', failedOperations);
+            
+            const userIds = failedOperations.map(op => op.userId);
+            // This would need to re-open the appropriate modal with the failed user IDs
+            // For now, just show a notification
+            this.showNotification('Retry functionality will be implemented in a future update', 'info');
+            
+        } catch (error) {
+            console.error('❌ Error retrying failed operations:', error);
+            this.showNotification('Failed to retry operations', 'error');
+        }
+    }
 }
 
 // Global instance and functions for window scope
@@ -2667,10 +4845,206 @@ window.clearAllFilters = () => usersManagement?.clearAllFilters();
 window.applyFilters = () => usersManagement?.applyFilters();
 window.refreshData = () => usersManagement?.refreshData();
 window.exportUsers = () => usersManagement?.exportUsers();
-window.bulkApproveUsers = () => usersManagement?.bulkApproveUsers();
-window.bulkBlockUsers = () => usersManagement?.bulkBlockUsers();
-window.bulkDeleteUsers = () => usersManagement?.bulkDeleteUsers();
+window.bulkApproveUsers = () => usersManagement?.showBulkApproveModal();
+window.bulkBlockUsers = () => usersManagement?.showBulkBlockModal();
+window.bulkSuspendUsers = () => usersManagement?.showBulkSuspendModal();
+window.bulkDeleteUsers = () => usersManagement?.showBulkDeleteModal();
 window.bulkExportUsers = () => usersManagement?.bulkExportUsers();
+
+// Company Management Functions
+// PROFESSIONAL SMART DROPDOWN WITH DARK MODE & POSITIONING
+window.toggleSmartDropdown = (userId, event) => {
+    try {
+        console.log('🎯 Toggle smart dropdown:', userId);
+        
+        // Close all other dropdowns first
+        document.querySelectorAll('.smart-dropdown.show').forEach(menu => {
+            if (menu.id !== `actions-${userId}`) {
+                menu.classList.remove('show');
+            }
+        });
+        
+        const dropdown = document.getElementById(`actions-${userId}`);
+        const button = event.currentTarget;
+        
+        if (!dropdown || !button) return;
+        
+        // Toggle current dropdown
+        const isCurrentlyOpen = dropdown.classList.contains('show');
+        
+        if (isCurrentlyOpen) {
+            dropdown.classList.remove('show');
+            console.log('✅ Dropdown closed');
+        } else {
+            // Smart positioning before showing
+            window.positionSmartDropdown(dropdown, button);
+            dropdown.classList.add('show');
+            console.log('✅ Dropdown opened with smart positioning');
+        }
+        
+    } catch (error) {
+        console.error('❌ Smart dropdown error:', error);
+    }
+};
+
+// SMART POSITIONING LOGIC
+window.positionSmartDropdown = (dropdown, button) => {
+    try {
+        const buttonRect = button.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const dropdownHeight = 280; // Approximate dropdown height
+        const spaceBelow = viewportHeight - buttonRect.bottom;
+        const spaceAbove = buttonRect.top;
+        
+        // Remove existing position classes
+        dropdown.classList.remove('position-top', 'position-bottom');
+        
+        // Smart positioning logic
+        if (spaceBelow >= dropdownHeight || spaceBelow >= spaceAbove) {
+            // Position below (default)
+            dropdown.classList.add('position-bottom');
+            console.log('🎯 Positioning dropdown below button');
+        } else {
+            // Position above
+            dropdown.classList.add('position-top');
+            console.log('🎯 Positioning dropdown above button');
+        }
+        
+    } catch (error) {
+        console.error('❌ Smart positioning error:', error);
+        // Fallback to default positioning
+        dropdown.classList.add('position-bottom');
+    }
+};
+
+// PROFESSIONAL FULLY FUNCTIONAL ACTIONS
+window.viewCompanyProfile = (userId) => {
+    console.log('🎯 View company profile:', userId);
+    usersManagement?.closeAllSmartDropdowns();
+    
+    if (usersManagement?.viewCompanyProfile) {
+        usersManagement.viewCompanyProfile(userId);
+    } else {
+        // Fallback implementation
+        console.log('📋 Opening company profile modal for:', userId);
+        usersManagement?.showNotification('Company profile modal opening...', 'info');
+    }
+};
+
+window.editCompanyInfo = (userId) => {
+    console.log('🎯 Edit company info:', userId);
+    usersManagement?.closeAllSmartDropdowns();
+    
+    if (usersManagement?.editCompanyInfo) {
+        usersManagement.editCompanyInfo(userId);
+    } else {
+        // Fallback implementation
+        console.log('✏️ Opening company edit modal for:', userId);
+        usersManagement?.showNotification('Company edit modal opening...', 'info');
+    }
+};
+
+window.viewCompanyProducts = (userId) => {
+    console.log('🎯 View company products:', userId);
+    usersManagement?.closeAllSmartDropdowns();
+    
+    if (usersManagement?.viewCompanyProducts) {
+        usersManagement.viewCompanyProducts(userId);
+    } else {
+        // Fallback implementation
+        console.log('📦 Opening products page for company:', userId);
+        usersManagement?.showNotification('Navigating to company products...', 'info');
+        // Could redirect to products page: window.location.href = `/admin/products?company=${userId}`;
+    }
+};
+
+window.viewCompanyOrders = (userId) => {
+    console.log('🎯 View company orders:', userId);
+    usersManagement?.closeAllSmartDropdowns();
+    
+    if (usersManagement?.viewCompanyOrders) {
+        usersManagement.viewCompanyOrders(userId);
+    } else {
+        // Fallback implementation
+        console.log('📋 Opening orders page for company:', userId);
+        usersManagement?.showNotification('Navigating to company orders...', 'info');
+        // Could redirect to orders page: window.location.href = `/admin/orders?company=${userId}`;
+    }
+};
+
+window.approveCompany = async (userId) => {
+    console.log('🎯 Approve company:', userId);
+    usersManagement?.closeAllSmartDropdowns();
+    
+    if (usersManagement?.showApproveUserModal) {
+        await usersManagement.showApproveUserModal(userId);
+    }
+};
+
+window.suspendCompany = async (userId) => {
+    console.log('🎯 Suspend company:', userId);
+    usersManagement?.closeAllSmartDropdowns();
+    
+    if (usersManagement?.showSuspendUserModal) {
+        await usersManagement.showSuspendUserModal(userId);
+    }
+};
+
+window.activateCompany = async (userId) => {
+    console.log('🎯 Activate company:', userId);
+    usersManagement?.closeAllSmartDropdowns();
+    
+    if (usersManagement?.showActivateUserModal) {
+        await usersManagement.showActivateUserModal(userId);
+    }
+};
+
+window.blockCompany = async (userId) => {
+    console.log('🎯 Block company:', userId);
+    usersManagement?.closeAllSmartDropdowns();
+    
+    if (usersManagement?.showBlockUserModal) {
+        await usersManagement.showBlockUserModal(userId);
+    }
+};
+
+window.deleteCompany = async (userId) => {
+    console.log('🎯 Delete company:', userId);
+    usersManagement?.closeAllSmartDropdowns();
+    
+    if (usersManagement?.showDeleteUserModal) {
+        await usersManagement.showDeleteUserModal(userId);
+    }
+};
+
+window.unblockCompany = async (userId) => {
+    console.log('🎯 Unblock company:', userId);
+    usersManagement?.closeAllSmartDropdowns();
+    
+    if (usersManagement?.unblockUser) {
+        await usersManagement.unblockUser(userId);
+    }
+};
+
+window.restoreCompany = async (userId) => {
+    console.log('🎯 Restore company:', userId);
+    usersManagement?.closeAllSmartDropdowns();
+    
+    if (usersManagement?.restoreUser) {
+        await usersManagement.restoreUser(userId);
+    }
+};
+
+window.rejectCompany = async (userId) => {
+    console.log('🎯 Reject company:', userId);
+    usersManagement?.closeAllSmartDropdowns();
+    
+    if (usersManagement?.rejectUser) {
+        await usersManagement.rejectUser(userId);
+    }
+};
+
+window.exportFilteredCompanies = () => usersManagement?.exportFilteredCompanies();
 window.openCreateUserModal = () => {
     console.log('TODO: Implement create user modal');
     usersManagement?.showToast('Create user modal - Coming soon!', 'info');
@@ -2680,5 +5054,58 @@ window.openCreateUserModal = () => {
 window.addEventListener('beforeunload', () => {
     usersManagement?.destroy();
 });
+
+// Focus Management Utility for Modals
+window.setupModalFocusManagement = (modalId, focusElementId = null) => {
+    const modalElement = document.getElementById(modalId);
+    if (!modalElement) return;
+    
+    // Focus management when modal is shown
+    modalElement.addEventListener('shown.bs.modal', () => {
+        if (focusElementId) {
+            const focusElement = document.getElementById(focusElementId);
+            if (focusElement) {
+                focusElement.focus();
+            }
+        } else {
+            // Focus on first input or button
+            const firstFocusable = modalElement.querySelector('input, textarea, select, button:not([data-bs-dismiss])');
+            if (firstFocusable) {
+                firstFocusable.focus();
+            }
+        }
+    });
+    
+    // Keyboard navigation
+    modalElement.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+        }
+        
+        // Tab trap within modal
+        if (e.key === 'Tab') {
+            const focusableElements = modalElement.querySelectorAll(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+            
+            if (e.shiftKey) {
+                if (document.activeElement === firstElement) {
+                    e.preventDefault();
+                    lastElement.focus();
+                }
+            } else {
+                if (document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        }
+    });
+};
 
 console.log('✅ Users Management JavaScript loaded successfully'); 

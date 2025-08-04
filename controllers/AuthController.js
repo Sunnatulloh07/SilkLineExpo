@@ -7,19 +7,31 @@ const AuthService = require('../services/AuthService');
 const FileService = require('../services/FileService');
 
 class AuthController {
+  constructor() {
+    // Initialize rate limiters
+    this.loginAttempts = new Map();
+    this.maxAttempts = 5;
+    this.windowMs = 15 * 60 * 1000; // 15 minutes
+  }
   /**
    * Show registration page
    */
   async showRegisterPage(req, res) {
     try {
+      const csrfToken = require('crypto').randomBytes(32).toString('hex');
+      req.session.csrfToken = csrfToken;
+      
       res.render('pages/register', {
-        title: req.t('register.title'),
-        error: null,
+        title: req.t('register.title') || 'Register',
+        currentLang: req.language || req.cookies.language || 'uz',
+        csrfToken: csrfToken,
+        languages: this.getSupportedLanguages(),
+        error: req.query.error || null,
         formData: {}
       });
     } catch (error) {
       console.error('Show register page error:', error);
-      res.status(500).render('pages/error', {
+      res.status(500).render('error/500', {
         title: 'Error',
         message: 'Unable to load registration page'
       });
@@ -40,7 +52,9 @@ class AuthController {
       const t = req.t || ((key) => key);
       
       res.render('pages/login', {
-        title: t('login.title'),
+        title: t('login.title') || 'Login',
+        currentLang: req.language || req.cookies.language || 'uz',
+        languages: this.getSupportedLanguages(),
         error: req.query.error || null,
         message: req.query.message || null,
         formData: {},
@@ -94,7 +108,7 @@ class AuthController {
       // Success response
       res.status(201).json({
         success: true,
-        message: req.t('register.success'),
+        message: req.t('register.success') || 'Registration successful. Awaiting admin approval.',
         data: {
           userId: result.userId,
           companyName: result.companyName,
@@ -113,11 +127,11 @@ class AuthController {
       if (error.code === 11000) {
         // MongoDB duplicate key error
         if (error.keyPattern?.email) {
-          message = req.t('register.errors.emailExists');
+          message = req.t('register.errors.emailExists') || 'Email already exists';
         } else if (error.keyPattern?.taxNumber) {
-          message = req.t('register.errors.taxNumberExists');
+          message = req.t('register.errors.taxNumberExists') || 'Tax number already exists';
         } else {
-          message = req.t('register.errors.duplicateData');
+          message = req.t('register.errors.duplicateData') || 'Duplicate data found';
         }
       } else if (error.name === 'ValidationError') {
         // Mongoose validation error
@@ -137,14 +151,36 @@ class AuthController {
   }
 
   /**
-   * Unified Login Handler - Detects user type automatically
+   * Professional Unified Login Handler - Enhanced with JWT and better security
    */
   async login(req, res) {
     try {
-      const {email, identifier, password, rememberMe, csrfToken } = req.body;
+      const { email, identifier, password, rememberMe, csrfToken } = req.body;
+      const clientIP = req.ip || req.connection.remoteAddress;
+      
+      // Use email as identifier if identifier is not provided
+      const loginIdentifier = (identifier || email || "").toLowerCase().trim();
+      
+      console.log(`🔐 Login attempt for: ${loginIdentifier} from IP: ${clientIP}`);
 
-      // Validate CSRF token
-      if (csrfToken && req.session.csrfToken && req.session.csrfToken !== csrfToken) {
+      // Input validation
+      if (!loginIdentifier || !password) {
+        console.log('🔍 DEBUG: Missing required fields - identifier:', !!loginIdentifier, 'password:', !!password);
+        const t = req.t || ((key) => key);
+        return this.sendError(res, 400, t('login.errors.requiredFields'));
+      }
+
+      // Email format validation
+      if (!this.isValidEmail(loginIdentifier)) {
+        return this.sendError(res, 400, "Invalid email format");
+      }
+
+      // CSRF token validation - Check if this is an API request
+      const isApiRequest = req.get('Content-Type') === 'application/json' || 
+                          req.get('X-Requested-With') === 'XMLHttpRequest';
+      
+      // For API requests, CSRF token is optional
+      if (!isApiRequest && csrfToken && req.session.csrfToken && req.session.csrfToken !== csrfToken) {
         return this.sendError(res, 403, 'Invalid security token. Please refresh the page.');
       }
 
@@ -153,44 +189,105 @@ class AuthController {
         delete req.session.csrfToken;
       }
 
-      // Validate input
-      if (!identifier || !password) {
-        const t = req.t || ((key) => key);
-        return this.sendError(res, 400, t('login.errors.requiredFields'));
+      // Rate limiting check
+      if (this.isRateLimited(clientIP)) {
+        return this.sendError(res, 429, "Too many login attempts. Please try again later.");
       }
 
-      // Auto-detect user type and login through service
-      const result = await AuthService.unifiedLogin(identifier, password, rememberMe);
+      // Use AuthService for unified authentication
+      let authResult;
+      try {
+        authResult = await AuthService.unifiedLogin(loginIdentifier, password, rememberMe);
+      } catch (serviceError) {
+        // Record failed attempt
+        this.recordFailedAttempt(clientIP);
+        
+        // Handle specific AuthService errors
+        let statusCode = 401;
+        let code = 'INVALID_CREDENTIALS';
+        
+        if (serviceError.type === 'blocked') {
+          statusCode = 403;
+          code = 'ACCOUNT_BLOCKED';
+        } else if (serviceError.type === 'locked') {
+          statusCode = 423;
+          code = 'ACCOUNT_LOCKED';
+        } else if (serviceError.type === 'suspended') {
+          statusCode = 403;
+          code = 'ACCOUNT_SUSPENDED';
+        }
+        
+        return this.sendError(res, statusCode, serviceError.message, code);
+      }
 
-      // Set session based on detected user type
-      this.setUserSession(req, result, result.userType);
+      // Clear failed attempts on success
+      this.clearFailedAttempts(clientIP);
+
+      // Generate JWT tokens for modern authentication
+      const tokenPayload = {
+        userId: authResult.userId.toString(),
+        userType: authResult.userType,
+        role: authResult.role || 'company_admin',
+        email: authResult.email,
+        name: authResult.name,
+        permissions: [] // Add permissions if needed
+      };
+
+      // Generate tokens using TokenService
+      const TokenService = require('../services/TokenService');
+      const tokens = TokenService.generateTokenPair(tokenPayload);
+
+      // Set secure cookies
+      TokenService.setAuthCookies(res, tokens);
+
+      // Also set legacy session for backward compatibility
+      this.setUserSession(req, {
+        userId: authResult.userId,
+        name: authResult.name,
+        email: authResult.email,
+        role: authResult.role,
+        userType: authResult.userType,
+        status: authResult.status
+      }, authResult.userType);
 
       // Set remember me cookie if requested
       if (rememberMe) {
-        this.setRememberMeCookie(res, result.userId);
+        this.setRememberMeCookie(res, authResult.userId);
       }
 
+      // Update last login through helper method
+      await this.updateLastLoginByType(authResult.userId, authResult.userType, req);
+
       // Determine redirect URL based on role
-      const redirectUrl = this.getRedirectUrl(result.userType, result.role);
+      const redirectUrl = this.getRedirectUrl(authResult.userType, authResult.role);
+
+      console.log(`✅ Login successful for ${loginIdentifier} (${authResult.userType})`);
 
       // Success response
       const t = req.t || ((key) => key);
       
       res.json({
         success: true,
-        message: t('login.success'),
+        message: t('login.success') || 'Login successful',
         data: {
-          userId: result.userId,
-          name: result.name,
-          email: result.email,
-          role: result.role,
-          userType: result.userType,
-          status: result.status,
-          redirectUrl: redirectUrl
+          userId: authResult.userId,
+          name: authResult.name,
+          email: authResult.email,
+          role: authResult.role,
+          userType: authResult.userType,
+          status: authResult.status,
+          redirectUrl: redirectUrl,
+          sessionId: tokens.sessionId
         }
       });
 
     } catch (error) {
+      console.error('🔥 Login error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        type: error.type
+      });
       this.handleLoginError(error, req, res);
     }
   }
@@ -199,21 +296,55 @@ class AuthController {
    * Legacy admin login (for backward compatibility)
    */
   async adminLogin(req, res) {
-    // Redirect to unified login
-    req.body.identifier = req.body.email;
-    return this.login(req, res);
+    try {
+      console.log('🔍 DEBUG: Admin login request received:', {
+        body: req.body,
+        headers: req.headers['content-type']
+      });
+      
+      // Extract identifier from email field for backward compatibility
+      if (req.body.email && !req.body.identifier) {
+        req.body.identifier = req.body.email;
+      }
+      
+      console.log('🔍 DEBUG: Processing admin login with identifier:', req.body.identifier);
+      return await this.login(req, res);
+    } catch (error) {
+      console.error('🔥 Admin login error:', error);
+      return this.sendError(res, 500, 'Admin login failed: ' + error.message);
+    }
   }
 
   /**
-   * Handle user logout
+   * Enhanced logout with JWT token blacklisting
    */
   async logout(req, res) {
     try {
       const userId = req.session.userId;
       const userType = req.session.userType || 'user';
 
+      // Get TokenService for JWT handling
+      const TokenService = require('../services/TokenService');
+      const tokens = TokenService.extractTokensFromRequest(req);
+
+      // Blacklist current tokens
+      if (tokens.accessToken) {
+        TokenService.blacklistToken(tokens.accessToken);
+      }
+      if (tokens.refreshToken) {
+        TokenService.blacklistToken(tokens.refreshToken);
+      }
+
+      // Clear JWT cookies
+      TokenService.clearAuthCookies(res);
+
+      // Legacy service logout if available
       if (userId) {
-        await AuthService.logout(userId, userType);
+        try {
+          await AuthService.logout(userId, userType);
+        } catch (serviceError) {
+          console.warn('AuthService logout error:', serviceError);
+        }
       }
 
       // Clear session
@@ -227,19 +358,21 @@ class AuthController {
       res.clearCookie('rememberMe');
       res.clearCookie('connect.sid');
 
+      console.log("🔓 User logged out successfully");
+
       // Check if it's an AJAX/API request
       const isApiRequest = req.xhr || req.headers.accept?.includes('application/json') || req.path.startsWith('/api/');
       
       if (isApiRequest) {
         return res.json({
           success: true,
-          message: req.t('auth.logoutSuccess'),
-          redirectUrl: '/login'
+          message: req.t('auth.logoutSuccess') || 'Logged out successfully',
+          redirectUrl: '/auth/login'
         });
       }
 
       // For regular browser requests, redirect directly
-      return res.redirect('/login?message=logged_out');
+      return res.redirect('/auth/login?message=logged_out');
 
     } catch (error) {
       console.error('Logout error:', error);
@@ -249,11 +382,11 @@ class AuthController {
       if (isApiRequest) {
         return res.status(500).json({
           success: false,
-          message: req.t('auth.logoutError')
+          message: req.t('auth.logoutError') || 'Logout failed'
         });
       }
       
-      return res.redirect('/login?error=logout_failed');
+      return res.redirect('/auth/login?error=logout_failed');
     }
   }
 
@@ -466,6 +599,128 @@ class AuthController {
         message: 'Unable to check tax number'
       });
     }
+  }
+
+  /**
+   * Update last login by user type
+   */
+  async updateLastLoginByType(userId, userType, req) {
+    try {
+      const Admin = require('../models/Admin');
+      const User = require('../models/User');
+      const Model = userType === "admin" ? Admin : User;
+      await Model.findByIdAndUpdate(userId, {
+        lastLoginAt: new Date(),
+        lastLoginIP: req.ip,
+        lastLoginUserAgent: req.get("User-Agent")
+      });
+    } catch (error) {
+      console.error("Update last login error:", error);
+    }
+  }
+
+  /**
+   * Get supported languages
+   */
+  getSupportedLanguages() {
+    return [
+      { code: "uz", name: "O'zbekcha", flag: "🇺🇿" },
+      { code: "en", name: "English", flag: "🇺🇸" },
+      { code: "ru", name: "Русский", flag: "🇷🇺" },
+      { code: "tr", name: "Türkçe", flag: "🇹🇷" },
+      { code: "fa", name: "فارسی", flag: "🇮🇷" },
+      { code: "zh", name: "中文", flag: "🇨🇳" }
+    ];
+  }
+
+  /**
+   * Rate limiting functions
+   */
+
+  isRateLimited(ip) {
+    const now = Date.now();
+    const attempts = this.loginAttempts.get(ip) || [];
+    
+    // Remove old attempts
+    const recentAttempts = attempts.filter(time => now - time < this.windowMs);
+    this.loginAttempts.set(ip, recentAttempts);
+    
+    return recentAttempts.length >= this.maxAttempts;
+  }
+
+  recordFailedAttempt(ip) {
+    const attempts = this.loginAttempts.get(ip) || [];
+    attempts.push(Date.now());
+    this.loginAttempts.set(ip, attempts);
+  }
+
+  clearFailedAttempts(ip) {
+    this.loginAttempts.delete(ip);
+  }
+
+  /**
+   * Increment login attempts in database
+   */
+  async incrementLoginAttempts(user, userType) {
+    try {
+      const Admin = require('../models/Admin');
+      const User = require('../models/User');
+      const Model = userType === "admin" ? Admin : User;
+      const increment = { $inc: { loginAttempts: 1 } };
+
+      // Lock account after 5 attempts for 30 minutes
+      if ((user.loginAttempts || 0) + 1 >= 5) {
+        increment.$set = {
+          accountLockedUntil: Date.now() + 30 * 60 * 1000
+        };
+      }
+
+      await Model.findByIdAndUpdate(user._id, increment);
+    } catch (error) {
+      console.error("Increment login attempts error:", error);
+    }
+  }
+
+  /**
+   * Reset login attempts in database
+   */
+  async resetLoginAttempts(user, userType) {
+    try {
+      const Admin = require('../models/Admin');
+      const User = require('../models/User');
+      const Model = userType === "admin" ? Admin : User;
+      await Model.findByIdAndUpdate(user._id, {
+        $unset: { loginAttempts: 1, accountLockedUntil: 1 }
+      });
+    } catch (error) {
+      console.error("Reset login attempts error:", error);
+    }
+  }
+
+  /**
+   * Update last login information
+   */
+  async updateLastLogin(user, userType, req) {
+    try {
+      const Admin = require('../models/Admin');
+      const User = require('../models/User');
+      const Model = userType === "admin" ? Admin : User;
+      await Model.findByIdAndUpdate(user._id, {
+        lastLoginAt: new Date(),
+        lastLoginIP: req.ip,
+        lastLoginUserAgent: req.get("User-Agent")
+      });
+    } catch (error) {
+      console.error("Update last login error:", error);
+    }
+  }
+
+  /**
+   * Email validation utility
+   */
+  isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
 
   // Helper Methods

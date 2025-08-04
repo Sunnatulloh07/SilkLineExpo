@@ -108,9 +108,14 @@ app.locals.data = data;
 const publicRoutes = require('./routes/public');
 const authRoutes = require('./routes/auth');
 const jwtAuthRoutes = require('./routes/jwtAuth');
+const multiDashboardRoutes = require('./routes/multiDashboard');
+// const authFixedRoutes = require('./routes/authFixed'); // Merged into main auth routes
 const adminRoutes = require('./routes/admin');
+const manufacturerRoutes = require('./routes/manufacturer');
+const distributorRoutes = require('./routes/distributor');
 const userRoutes = require('./routes/user');
 const apiRoutes = require('./routes/api');
+const dashboardRoutes = require('./routes/dashboard');
 
 // Make i18next available to all views
 app.use((req, res, next) => {
@@ -201,28 +206,75 @@ app.get('/language/:lng', (req, res) => {
 // ===== ROUTES CONFIGURATION =====
 // Order is important - more specific routes first
 
-// JWT Authentication routes (modern)
-app.use('/auth', jwtAuthRoutes);
+// ===== PROFESSIONAL DASHBOARD SECURITY SYSTEM =====
+const {
+    authenticationGuard,
+    dashboardAccessControl,
+    smartDashboardRouter,
+    crossDashboardPrevention,
+    dashboardSecurityHeaders
+} = require('./middleware/dashboardRouting');
 
-// Authentication API routes (legacy)
+// ===== AUTHENTICATION ROUTES (PUBLIC) =====
+// Enhanced Multi-Dashboard Authentication (Production)
+app.use('/auth', multiDashboardRoutes);
+
+// ===== LEGACY AUTHENTICATION ROUTES (Backward Compatibility) =====
+// Keep for existing integrations and gradual migration
+app.use('/auth-legacy', authRoutes);
+app.use('/auth-old', jwtAuthRoutes);
+
+// Authentication API routes (for API clients)
 app.use('/api/auth', authRoutes);
 
 // Public API routes  
 app.use('/api', apiRoutes);
-
-// Admin panel routes (protected)
-app.use('/admin', adminRoutes);
-
-// User dashboard routes (protected)
-app.use('/user', userRoutes);
 
 // Legacy route redirects
 app.get('/login', (req, res) => {
   res.redirect('/auth/login');
 });
 
-// Public pages (must be last to catch all remaining routes)
+// Public pages (NO AUTHENTICATION REQUIRED)
 app.use('/', publicRoutes);
+
+// ===== PROTECTED DASHBOARD ROUTES =====
+// Apply simplified authentication ONLY to protected routes
+
+// Admin Dashboard (Super Admin, Admin, Moderator)
+app.use('/admin', 
+    dashboardSecurityHeaders,
+    authenticationGuard,
+    adminRoutes
+);
+
+// Company Dashboards (Company Admins)
+app.use('/manufacturer', 
+    dashboardSecurityHeaders,
+    authenticationGuard,
+    manufacturerRoutes
+);    
+
+app.use('/distributor', 
+    dashboardSecurityHeaders,
+    authenticationGuard,
+    distributorRoutes
+);      
+
+// User Management Routes
+app.use('/user', 
+    dashboardSecurityHeaders,
+    authenticationGuard,
+    userRoutes
+);
+
+// Universal Dashboard Router (handles /dashboard requests)
+app.use('/dashboard', 
+    dashboardSecurityHeaders,
+    authenticationGuard,
+    smartDashboardRouter,
+    dashboardRoutes
+);
 
 // 404 handler
 app.use((req, res) => {

@@ -1,0 +1,2724 @@
+<!DOCTYPE html>
+<html lang="<%= typeof lng !== 'undefined' ? lng : 'uz' %>" class="theme-transition">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+    <title>Admin Profile - SLEX Admin</title>
+       
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="/assets/css/line-awesome.min.css">
+    
+    <!-- Core Admin CSS -->
+    <link rel="stylesheet" href="/admin/css/admin-dashboard.css">
+    
+    <!-- Professional Profile Styles -->
+    <style>
+        /* ======================================
+           PROFESSIONAL ADMIN PROFILE STYLES
+           Consistent with Settings Page Design
+           Senior Software Engineer Implementation
+           ====================================== */
+        
+        /* Global Page Styling - LIGHT MODE COMPATIBILITY FIXED */
+        body {
+            background: var(--bg-main);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .admin-main {
+            background: var(--bg-main);
+            color: var(--text-primary);
+        }
+        
+        .admin-content {
+            background: var(--bg-main);
+            color: var(--text-primary);
+        }
+        
+        /* Profile Container - Same as Settings */
+        .profile-container {
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+        
+        /* Profile Header - Professional Design with Theme Support */
+        .profile-header {
+            background: linear-gradient(135deg, var(--color-primary) 0%, #1e40af 100%);
+            color: white; /* Always white on gradient background */
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+        
+        .profile-header-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        /* Profile Avatar */
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: white;
+            position: relative;
+            flex-shrink: 0;
+        }
+        
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .avatar-upload-btn {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 32px;
+            height: 32px;
+            background: var(--color-primary);
+            border: 2px solid rgba(255, 255, 255, 0.9); /* Semi-transparent white for better visibility */
+            border-radius: 50%;
+            color: white; /* Always white on primary background */
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .avatar-upload-btn:hover {
+            background: #2563eb;
+            transform: scale(1.1);
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .profile-name {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .profile-title {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin: 0 0 0.5rem 0;
+            font-weight: 400;
+        }
+        
+        .profile-email {
+            font-size: 0.875rem;
+            opacity: 0.7;
+            margin: 0 0 1rem 0;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            color: var(--text-muted);
+        }
+        
+        .profile-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+        
+        .profile-stat {
+            text-align: center;
+        }
+        
+        .profile-stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: block;
+        }
+        
+        .profile-stat-label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+        
+        .profile-actions {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .profile-actions .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .profile-actions .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        /* Profile Navigation - Same as Settings Nav */
+        .profile-nav {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .profile-nav-list {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .profile-nav-list::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .profile-nav-item {
+            flex-shrink: 0;
+        }
+        
+        .profile-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .profile-nav-link:hover {
+            color: var(--color-primary);
+            background: var(--bg-hover);
+        }
+        
+        .profile-nav-link.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+            background: var(--bg-card);
+        }
+        
+        .profile-nav-icon {
+            font-size: 1rem;
+        }
+        
+        /* Profile Content */
+        .profile-content {
+            padding: 2rem;
+        }
+        
+        .profile-section {
+            display: none;
+        }
+        
+        .profile-section.active {
+            display: block;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 1.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin: 0 0 2rem 0;
+            line-height: 1.5;
+        }
+        
+        /* Profile Groups - Same as Settings Groups */
+        .profile-group {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        
+        .group-header {
+            background: var(--bg-secondary);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .group-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .group-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0.25rem 0 0 0;
+        }
+        
+        /* Form Items */
+        .form-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .form-item:last-child {
+            border-bottom: none;
+        }
+        
+        .form-info {
+            flex: 1;
+        }
+        
+        .form-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 0.25rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .form-description {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .form-control-wrapper {
+            flex-shrink: 0;
+            min-width: 250px;
+        }
+        
+        /* Form Controls - Same as Settings */
+        .form-control {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-control[readonly] {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+        
+        /* Buttons - Same as Settings */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+        
+        .btn-success {
+            background: var(--color-success);
+            color: white;
+            border-color: var(--color-success);
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+            border-color: #059669;
+        }
+        
+        .btn-outline-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border-color: var(--border-color);
+        }
+        
+        .btn-outline-secondary:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .btn-danger {
+            background: var(--color-danger);
+            color: white;
+            border-color: var(--color-danger);
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+        }
+        
+        /* Security Section Styles */
+        .security-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .security-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+        
+        .security-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .security-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0 0 1rem 0;
+            line-height: 1.5;
+        }
+        
+        .security-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .status-enabled {
+            color: var(--color-success);
+        }
+        
+        .status-disabled {
+            color: var(--color-danger);
+        }
+        
+        /* Loading States */
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: var(--z-modal);
+        }
+        
+        .modal-overlay.show {
+            display: flex;
+        }
+        
+        .modal-dialog {
+            background: var(--bg-card);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .modal-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            margin: -0.5rem;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+        
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: var(--z-tooltip);
+        }
+        
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            box-shadow: var(--shadow-lg);
+            min-width: 300px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast-success {
+            border-left: 4px solid var(--color-success);
+        }
+        
+        .toast-error {
+            border-left: 4px solid var(--color-danger);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .profile-header {
+                padding: 1.5rem;
+            }
+            
+            .profile-header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1.5rem;
+            }
+            
+            .profile-stats {
+                justify-content: center;
+            }
+            
+            .profile-actions {
+                position: static;
+                margin-top: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .profile-content {
+                padding: 1rem;
+            }
+            
+            .form-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .form-control-wrapper {
+                width: 100%;
+                min-width: unset;
+            }
+        }
+        
+        /* Missing CSS Variables for Compatibility - Light Mode Fixed */
+        :root {
+            --bg-hover: rgba(59, 130, 246, 0.1);
+            --bg-secondary: #F1F5F9;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --text-muted: #94A3B8;
+            --border-color: #E2E8F0;
+            --border-light: #F1F5F9;
+            --bg-card: #FFFFFF;
+            --bg-main: #F8FAFC;
+            --bg-elevated: #FFFFFF;
+            --color-primary: #3B82F6;
+            --color-secondary: #8B5CF6;
+            --color-success: #10B981;
+            --color-warning: #F59E0B;
+            --color-danger: #EF4444;
+            --color-info: #06B6D4;
+        }
+        
+        [data-theme="dark"] {
+            --bg-hover: rgba(60, 165, 250, 0.1);
+            --bg-secondary: #334155;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --border-color: #334155;
+            --border-light: #475569;
+            --bg-card: #1E293B;
+            --bg-main: #0F172A;
+            --bg-elevated: #334155;
+            --color-primary: #60A5FA;
+            --color-secondary: #A78BFA;
+            --color-success: #34D399;
+            --color-warning: #FBBF24;
+            --color-danger: #F87171;
+            --color-info: #38BDF8;
+        }
+        
+        /* Dark Theme Support */
+        [data-theme="dark"] .profile-header {
+            background: linear-gradient(135deg, var(--color-primary) 0%, #1e40af 100%);
+        }
+        
+        [data-theme="dark"] .form-control {
+            background: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        [data-theme="dark"] .modal-dialog {
+            background: var(--bg-elevated);
+        }
+        
+        [data-theme="dark"] .toast {
+            background: var(--bg-elevated);
+            border-color: var(--border-color);
+        }
+        
+        /* Animation */
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* ======================================
+           HEADER & SIDEBAR FUNCTIONALITY STYLES
+           Full Dark Mode & Mobile Support
+           ====================================== */
+        
+        /* Header Improvements */
+        .admin-header {
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .header-action-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .header-action-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+        
+        .header-search {
+            position: relative;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .header-search input {
+            width: 100%;
+            padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        
+        .header-search input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .header-search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        /* Language Selector */
+        .language-dropdown {
+            position: relative;
+        }
+        
+        .language-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .language-btn:hover {
+            background: var(--bg-hover);
+        }
+        
+        .lang-flag {
+            font-size: 1.125rem;
+        }
+        
+        .lang-chevron {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            transition: transform 0.2s ease;
+        }
+        
+        .language-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            min-width: 200px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            z-index: var(--z-dropdown);
+            opacity: 1;
+            transform: translateY(4px);
+            transition: all 0.2s ease;
+        }
+        
+        .language-menu.hidden {
+            opacity: 0;
+            transform: translateY(-4px);
+            pointer-events: none;
+        }
+        
+        .language-menu-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .menu-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .language-options {
+            padding: 0.5rem 0;
+        }
+        
+        .language-option {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+        }
+        
+        .language-option:hover {
+            background: var(--bg-hover);
+        }
+        
+        .language-option.active {
+            background: var(--color-primary);
+            color: white;
+        }
+        
+        .option-name {
+            flex: 1;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+        
+        .option-code {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        
+        .option-check {
+            font-size: 0.875rem;
+        }
+        
+        /* Notification Badge */
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            min-width: 18px;
+            height: 18px;
+            background: var(--color-danger);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 0.25rem;
+            border: 2px solid var(--bg-card);
+        }
+        
+        /* Dropdowns */
+        .header-dropdown {
+            position: relative;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            min-width: 280px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            z-index: var(--z-dropdown);
+            opacity: 1;
+            transform: translateY(4px);
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-menu.hidden {
+            opacity: 0;
+            transform: translateY(-4px);
+            pointer-events: none;
+        }
+        
+        .dropdown-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .dropdown-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .dropdown-content {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .dropdown-footer {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .dropdown-item.danger {
+            color: var(--color-danger);
+        }
+        
+        .dropdown-item.danger:hover {
+            background: var(--color-danger);
+            color: white;
+        }
+        
+        .dropdown-icon {
+            font-size: 1rem;
+            width: 16px;
+            text-align: center;
+        }
+        
+        /* User Menu */
+        .user-menu-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.05);
+        }
+        
+        .user-avatar.large {
+            width: 48px;
+            height: 48px;
+            font-size: 1.125rem;
+        }
+        
+        .user-info-card {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .user-details {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.125rem;
+        }
+        
+        .user-email {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.125rem;
+        }
+        
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--color-primary);
+            font-weight: 500;
+        }
+        
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 0.5rem 0;
+        }
+        
+        /* Sidebar Enhancements */
+        .admin-sidebar {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .admin-sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+        
+        .admin-sidebar.collapsed .nav-text,
+        .admin-sidebar.collapsed .sidebar-brand-text,
+        .admin-sidebar.collapsed .nav-section-title {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .admin-sidebar.collapsed .nav-item {
+            justify-content: center;
+        }
+        
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-brand:hover {
+            color: var(--color-primary);
+        }
+        
+        .sidebar-brand-logo {
+            width: 32px;
+            height: 32px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+        
+        .sidebar-brand-text {
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0 1rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .nav-item.active {
+            background: var(--color-primary);
+            color: white;
+        }
+        
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: white;
+        }
+        
+        .nav-icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .nav-text {
+            flex: 1;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-badge {
+            font-size: 0.75rem;
+            padding: 0.125rem 0.375rem;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .badge-danger {
+            background: var(--color-danger);
+            color: white;
+        }
+        
+        .badge-warning {
+            background: var(--color-warning);
+            color: white;
+        }
+        
+        /* Mobile Sidebar */
+        @media (max-width: 1024px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                z-index: var(--z-fixed);
+            }
+            
+            .admin-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .mobile-only {
+                display: flex !important;
+            }
+            
+            .desktop-only {
+                display: none !important;
+            }
+            
+            .header-search {
+                max-width: 200px;
+            }
+            
+            .admin-main {
+                margin-left: 0 !important;
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            .mobile-only {
+                display: none !important;
+            }
+            
+            .desktop-only {
+                display: flex !important;
+            }
+        }
+        
+        /* Tooltips */
+        .admin-tooltip {
+            position: fixed;
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            z-index: var(--z-tooltip);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            border: 1px solid var(--border-color);
+        }
+        
+        .admin-tooltip.show {
+            opacity: 1;
+        }
+        
+        /* Loading States */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--color-primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        .messages-loading,
+        .notifications-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        /* Button Styles */
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+        }
+        
+        .btn-ghost:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+            border: 1px solid var(--color-primary);
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+        
+        /* Dark Mode Overrides */
+        [data-theme="dark"] .admin-tooltip {
+            background: var(--bg-elevated);
+            border-color: var(--border-color);
+        }
+        
+        [data-theme="dark"] .header-search input {
+            background: var(--bg-secondary);
+        }
+        
+        [data-theme="dark"] .dropdown-menu,
+        [data-theme="dark"] .language-menu {
+            background: var(--bg-elevated);
+            border-color: var(--border-color);
+        }
+        
+        [data-theme="dark"] .notification-badge {
+            border-color: var(--bg-elevated);
+        }
+    </style>
+</head>
+
+<body class="admin-layout theme-transition" data-theme="light">
+
+<%- include('../partials/header', { 
+        title: 'Admin Profile - SLEX Admin',
+        lng: typeof currentLang !== 'undefined' ? currentLang : 'uz',
+    admin: admin, 
+        user: user,
+        breadcrumb: [
+            { title: 'Profile', url: '/admin/profile' }
+        ]
+}) %>
+
+<%- include('../partials/sidebar', { 
+    admin: admin, 
+    user: user, 
+    currentPage: 'profile' 
+}) %>
+
+<!-- Main Content -->
+    <div class="admin-main">
+    <div class="admin-content">
+        
+            <!-- Professional Profile Container -->
+            <div class="profile-container animate-fade-in">
+                
+                <!-- Profile Header -->
+                <div class="profile-header">
+                <div class="profile-header-content">
+                        <div class="profile-avatar" id="profileAvatar">
+                            <% if (typeof admin !== 'undefined' && admin.profilePicture) { %>
+                                <img src="<%= admin.profilePicture %>" alt="Profile Picture">
+                            <% } else { %>
+                                <% 
+                                let initials = 'AD'; // Default initials
+                                if (typeof admin !== 'undefined' && admin.name) {
+                                    const nameParts = admin.name.trim().split(' ');
+                                    if (nameParts.length >= 2) {
+                                        initials = (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+                                    } else if (nameParts.length === 1) {
+                                        initials = nameParts[0].charAt(0).toUpperCase() + 'A';
+                                    }
+                                }
+                                %>
+                                <%= initials %>
+                            <% } %>
+                            <div class="avatar-upload-btn" onclick="uploadAvatar()">
+                                <i class="las la-camera"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-info">
+                            <h1 class="profile-name" id="profileName">
+                                <% if (typeof admin !== 'undefined' && admin.name) { %>
+                                    <%= admin.name %>
+                                <% } else { %>
+                                    Admin User
+                                <% } %>
+                            </h1>
+                            <p class="profile-title" id="profileTitle">
+                                <% if (typeof admin !== 'undefined') { %>
+                                    <%= admin.role === 'super_admin' ? 'Super Administrator' : 'Administrator' %>
+                                <% } else { %>
+                                    Administrator
+                                <% } %>
+                            </p>
+                            <p class="profile-email" id="profileEmail">
+                                <% if (typeof admin !== 'undefined' && admin.email) { %>
+                                    <%= admin.email %>
+                                <% } else { %>
+                                    admin@company.com
+                                <% } %>
+                            </p>
+                    
+                    <div class="profile-stats">
+                                <div class="profile-stat">
+                                    <span class="profile-stat-value" id="totalApprovals">
+                                        <% if (typeof adminProfileData !== 'undefined' && adminProfileData.stats && adminProfileData.stats.overview) { %>
+                                            <%= adminProfileData.stats.overview.totalApprovals || 0 %>
+                                        <% } else { %>
+                                            -
+                                        <% } %>
+                                    </span>
+                                    <span class="profile-stat-label">Tasdiqlangan</span>
+                        </div>
+                                <div class="profile-stat">
+                                    <span class="profile-stat-value" id="accountAge">
+                                        <% if (typeof adminProfileData !== 'undefined' && adminProfileData.stats && adminProfileData.stats.overview) { %>
+                                            <%= adminProfileData.stats.overview.accountAge || 0 %>
+                                        <% } else { %>
+                                            -
+                                        <% } %>
+                                    </span>
+                                    <span class="profile-stat-label">Kun faollik</span>
+                        </div>
+                                <div class="profile-stat">
+                                    <span class="profile-stat-value" id="loginCount">
+                                        <% if (typeof adminProfileData !== 'undefined' && adminProfileData.stats && adminProfileData.stats.overview) { %>
+                                            <%= adminProfileData.stats.overview.totalLoginCount || 0 %>
+                                        <% } else { %>
+                                            -
+                                        <% } %>
+                                    </span>
+                                    <span class="profile-stat-label">Kirishlar</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                    <div class="profile-actions">
+                        <button class="btn" onclick="exportProfile()">
+                            <i class="las la-download"></i>
+                            Export Profile
+                        </button>
+                        <button class="btn" onclick="refreshProfile()">
+                            <i class="las la-sync-alt"></i>
+                            Refresh
+                        </button>
+                            </div>
+                            </div>
+                
+                <!-- Profile Navigation -->
+                <nav class="profile-nav">
+                    <ul class="profile-nav-list">
+                        <li class="profile-nav-item">
+                            <a href="#personal" class="profile-nav-link active" data-section="personal">
+                                <i class="las la-user profile-nav-icon"></i>
+                                <span>Shaxsiy Ma'lumotlar</span>
+                            </a>
+                        </li>
+                        <li class="profile-nav-item">
+                            <a href="#security" class="profile-nav-link" data-section="security">
+                                <i class="las la-shield-alt profile-nav-icon"></i>
+                                <span>Xavfsizlik</span>
+                            </a>
+                        </li>
+                        <li class="profile-nav-item">
+                            <a href="#preferences" class="profile-nav-link" data-section="preferences">
+                                <i class="las la-cog profile-nav-icon"></i>
+                                <span>Sozlamalar</span>
+                            </a>
+                        </li>
+                        <li class="profile-nav-item">
+                            <a href="#activity" class="profile-nav-link" data-section="activity">
+                                <i class="las la-history profile-nav-icon"></i>
+                                <span>Faollik Tarixi</span>
+                            </a>
+                        </li>
+                        <li class="profile-nav-item">
+                            <a href="#sessions" class="profile-nav-link" data-section="sessions">
+                                <i class="las la-desktop profile-nav-icon"></i>
+                                <span>Sessiyalar</span>
+                            </a>
+                        </li>
+                    </ul>
+                    </nav>
+
+                <!-- Profile Content -->
+                <div class="profile-content">
+                    
+                    <!-- Personal Information Section -->
+                    <div class="profile-section active" id="personal-section">
+                        <h2 class="section-title">
+                            <i class="las la-user"></i>
+                            Shaxsiy Ma'lumotlar
+                        </h2>
+                        <p class="section-description">
+                            Shaxsiy ma'lumotlaringiz va aloqa ma'lumotlarini yangilang
+                        </p>
+                        
+                        <div class="profile-group">
+                            <div class="group-header">
+                                <h3 class="group-title">Asosiy Ma'lumotlar</h3>
+                                <p class="group-description">Sizning asosiy profil ma'lumotlaringiz</p>
+                                    </div>
+                                    
+                            <form id="personalInfoForm">
+                                <div class="form-item">
+                                    <div class="form-info">
+                                        <label class="form-label">
+                                            <i class="las la-user"></i>
+                                            To'liq Ism
+                                        </label>
+                                        <p class="form-description">Rasmiy hujjatlarda ko'rsatilgan to'liq ismingiz</p>
+                                        </div>
+                                    <div class="form-control-wrapper">
+                                        <input type="text" class="form-control" id="name" name="name" 
+                                               value="<%= typeof admin !== 'undefined' && admin.name ? admin.name : '' %>" required>
+                                    </div>
+                                    </div>
+                                    
+                                <div class="form-item">
+                                    <div class="form-info">
+                                        <label class="form-label">
+                                            <i class="las la-shield-alt"></i>
+                                            Admin Roli
+                                        </label>
+                                        <p class="form-description">Sizning admin roli va vakolatingiz</p>
+                                            </div>
+                                    <div class="form-control-wrapper">
+                                        <select class="form-control" id="role" name="role" disabled style="background: none;">
+                                            <option value="super_admin" <%= typeof admin !== 'undefined' && admin.role === 'super_admin' ? 'selected' : '' %>>Super Administrator</option>
+                                            <option value="admin" <%= typeof admin !== 'undefined' && admin.role === 'admin' ? 'selected' : '' %>>Administrator</option>
+                                            <option value="moderator" <%= typeof admin !== 'undefined' && admin.role === 'moderator' ? 'selected' : '' %>>Moderator</option>
+                                        </select>
+                                        </div>
+                                    </div>
+                                    
+                                <div class="form-item">
+                                    <div class="form-info">
+                                        <label class="form-label">
+                                            <i class="las la-envelope"></i>
+                                            Email Manzil
+                                        </label>
+                                        <p class="form-description">Asosiy aloqa email manzilingiz (o'zgartirilmaydi)</p>
+                                        </div>
+                                    <div class="form-control-wrapper">
+                                        <input type="email" class="form-control" id="email" name="email" 
+                                               value="<%= typeof admin !== 'undefined' && admin.email ? admin.email : '' %>" readonly>
+                                    </div>
+                                    </div>
+                                    
+                                <div class="form-item">
+                                    <div class="form-info">
+                                        <label class="form-label">
+                                            <i class="las la-language"></i>
+                                            Til Sozlamasi
+                                        </label>
+                                        <p class="form-description">Interface uchun afzal ko'rgan til</p>
+                                    </div>
+                                    <div class="form-control-wrapper">
+                                        <select class="form-control" id="preferredLanguage" name="preferredLanguage">
+                                            <option value="uz" <%= typeof admin !== 'undefined' && admin.preferredLanguage === 'uz' ? 'selected' : '' %>>O'zbek</option>
+                                            <option value="en" <%= typeof admin !== 'undefined' && admin.preferredLanguage === 'en' ? 'selected' : '' %>>English</option>
+                                            <option value="ru" <%= typeof admin !== 'undefined' && admin.preferredLanguage === 'ru' ? 'selected' : '' %>>Русский</option>
+                                            </select>
+                                            </div>
+                                    </div>
+                                    
+                                <div class="form-item">
+                                    <div class="form-info">
+                                        <label class="form-label">
+                                            <i class="las la-check-circle"></i>
+                                            Hisob Holati
+                                        </label>
+                                        <p class="form-description">Sizning admin hisob holatingiz</p>
+                                            </div>
+                                    <div class="form-control-wrapper">
+                                        <select class="form-control" id="status" name="status" disabled style="background: none;">
+                                            <option value="active" <%= typeof admin !== 'undefined' && admin.status === 'active' ? 'selected' : '' %>>Faol</option>
+                                            <option value="inactive" <%= typeof admin !== 'undefined' && admin.status === 'inactive' ? 'selected' : '' %>>Faol emas</option>
+                                            <option value="suspended" <%= typeof admin !== 'undefined' && admin.status === 'suspended' ? 'selected' : '' %>>To'xtatilgan</option>
+                                        </select>
+                                        </div>
+                                    </div>
+                            </form>
+                                </div>
+                                
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary" onclick="savePersonalInfo()">
+                                <i class="las la-save"></i>
+                                O'zgarishlarni Saqlash
+                                    </button>
+                            <button class="btn btn-outline-secondary" onclick="resetPersonalInfo()">
+                                <i class="las la-undo"></i>
+                                Bekor Qilish
+                                    </button>
+                                </div>
+                        </div>
+
+                    <!-- Security Section -->
+                    <div class="profile-section" id="security-section">
+                        <h2 class="section-title">
+                            <i class="las la-shield-alt"></i>
+                            Xavfsizlik Sozlamalari
+                        </h2>
+                        <p class="section-description">
+                            Parolingiz, ikki bosqichli autentifikatsiya va xavfsizlik sozlamalarini boshqaring
+                        </p>
+                        
+                        <!-- Security Cards will be dynamically loaded here -->
+                        <div id="securityCards">
+                            <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+                        
+                    <!-- Preferences Section -->
+                    <div class="profile-section" id="preferences-section">
+                        <h2 class="section-title">
+                            <i class="las la-cog"></i>
+                            Shaxsiy Sozlamalar
+                        </h2>
+                        <p class="section-description">
+                            Dashboard tajribangiz va bildirishnoma sozlamalarini sozlang
+                        </p>
+                        
+                        <div class="profile-group">
+                            <div class="group-header">
+                                <h3 class="group-title">Mavzu va Ko'rinish</h3>
+                                <p class="group-description">Dashboard ko'rinishini sozlang</p>
+                                    </div>
+                            
+                            <div class="form-item">
+                                <div class="form-info">
+                                                                            <label class="form-label">
+                                            <i class="las la-palette"></i>
+                                            Mavzu
+                                        </label>
+                                        <p class="form-description">O'zingizga mos rang sxemasini tanlang</p>
+                                        </div>
+                                <div class="form-control-wrapper">
+                                    <select class="form-control" id="theme">
+                                        <option value="light">Yorug' Rejim</option>
+                                        <option value="dark">Qorong'u Rejim</option>
+                                        <option value="auto">Tizim Sozlamasi</option>
+                                    </select>
+                                    </div>
+                                </div>
+                                
+                            <div class="form-item">
+                                <div class="form-info">
+                                                                            <label class="form-label">
+                                            <i class="las la-language"></i>
+                                            Til
+                                        </label>
+                                        <p class="form-description">O'zingizga mos tilni tanlang</p>
+                                    </div>
+                                <div class="form-control-wrapper">
+                                    <select class="form-control" id="language">
+                                        <option value="uz">O'zbek tili</option>
+                                        <option value="en">English</option>
+                                        <option value="ru">Русский</option>
+                                    </select>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                                
+                    <!-- Activity Log Section -->
+                    <div class="profile-section" id="activity-section">
+                        <h2 class="section-title">
+                            <i class="las la-history"></i>
+                            Faollik Tarixi
+                        </h2>
+                        <p class="section-description">
+                            Yaqinda bajarilgan faolliklar va tizim bilan o'zaro ta'sirlarni ko'ring
+                        </p>
+                        
+                        <div id="activityTimeline">
+                            <div class="loading-spinner"></div>
+                                    </div>
+                                        </div>
+                    
+                    <!-- Sessions Section -->
+                    <div class="profile-section" id="sessions-section">
+                        <h2 class="section-title">
+                            <i class="las la-desktop"></i>
+                            Faol Sessiyalar
+                        </h2>
+                        <p class="section-description">
+                            Faol kirish sessiyalaringiz va qurilma ruxsatlarini boshqaring
+                        </p>
+                        
+                        <div id="sessionsList">
+                            <div class="loading-spinner"></div>
+                                    </div>
+                                        </div>
+                    
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- JavaScript -->
+    <script src="/assets/js/jquery-3.6.0.min.js"></script>
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Header & Sidebar Functionality Script -->
+    <script>
+        /* ======================================
+           PROFESSIONAL HEADER & SIDEBAR MANAGER
+           Full Dark Mode Support & Functionality
+           Senior Software Engineer Implementation
+           ====================================== */
+        
+        class AdminLayoutManager {
+            constructor() {
+                this.themeKey = 'theme';
+                this.sidebarKey = 'sidebarCollapsed';
+                this.languageKey = 'admin_language_preference';
+                
+                this.currentTheme = localStorage.getItem(this.themeKey) || 'light';
+                this.sidebarCollapsed = localStorage.getItem(this.sidebarKey) === 'true';
+                this.currentLanguage = localStorage.getItem(this.languageKey) || 'uz';
+                
+                this.init();
+            }
+            
+            init() {
+                console.log('🚀 Initializing Admin Layout Manager...');
+                
+                // Apply saved theme immediately
+                this.applyTheme(this.currentTheme);
+                
+                // Setup theme toggle
+                this.setupThemeToggle();
+                
+                // Setup sidebar functionality
+                this.setupSidebarToggle();
+                
+                // Setup dropdowns
+                this.setupDropdowns();
+                
+                // Setup language selector
+                this.setupLanguageSelector();
+                
+                // Setup search functionality
+                this.setupSearch();
+                
+                // Setup mobile responsiveness
+                this.setupMobileHandlers();
+                
+                // Setup tooltips
+                this.setupTooltips();
+                
+                console.log('✅ Admin Layout Manager initialized successfully');
+            }
+            
+            // Theme Management
+            setupThemeToggle() {
+                const themeToggle = document.getElementById('themeToggle');
+                if (!themeToggle) return;
+                
+                // Update theme icon based on current theme
+                this.updateThemeIcon();
+                
+                themeToggle.addEventListener('click', () => {
+                    this.toggleTheme();
+                });
+            }
+            
+            toggleTheme() {
+                const newTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+                this.applyTheme(newTheme);
+                this.currentTheme = newTheme;
+                localStorage.setItem(this.themeKey, newTheme);
+                this.updateThemeIcon();
+                
+                // Emit theme change event for other components
+                window.dispatchEvent(new CustomEvent('themeChanged', { 
+                    detail: { theme: newTheme } 
+                }));
+            }
+            
+            applyTheme(theme) {
+                const html = document.documentElement;
+                const body = document.body;
+                
+                // Remove existing theme classes
+                html.classList.remove('theme-light', 'theme-dark');
+                body.classList.remove('theme-light', 'theme-dark');
+                
+                // Add new theme class
+                html.classList.add(`theme-${theme}`);
+                body.classList.add(`theme-${theme}`);
+                
+                // Set data-theme attribute for CSS targeting
+                html.setAttribute('data-theme', theme);
+                body.setAttribute('data-theme', theme);
+                
+                console.log(`🎨 Theme applied: ${theme}`);
+            }
+            
+            updateThemeIcon() {
+                const themeIcon = document.querySelector('#themeToggle .theme-icon');
+                if (!themeIcon) return;
+                
+                // Update icon based on current theme
+                if (this.currentTheme === 'light') {
+                    themeIcon.className = 'fas fa-moon theme-icon';
+                } else {
+                    themeIcon.className = 'fas fa-sun theme-icon';
+                }
+            }
+            
+            // Sidebar Management
+            setupSidebarToggle() {
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+                const sidebar = document.querySelector('.admin-sidebar');
+                const adminMain = document.querySelector('.admin-main');
+                const adminHeader = document.querySelector('.admin-header');
+                
+                if (!sidebar) return;
+                
+                // Apply saved sidebar state
+                this.applySidebarState();
+                
+                // Desktop sidebar toggle
+                if (sidebarToggle) {
+                    sidebarToggle.addEventListener('click', () => {
+                        this.toggleSidebar();
+                    });
+                }
+                
+                // Mobile menu toggle
+                if (mobileMenuToggle) {
+                    mobileMenuToggle.addEventListener('click', () => {
+                        this.toggleMobileSidebar();
+                    });
+                }
+                
+                // Close sidebar on outside click (mobile)
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 1024 && 
+                        !sidebar.contains(e.target) && 
+                        !mobileMenuToggle?.contains(e.target) &&
+                        !sidebarToggle?.contains(e.target)) {
+                        this.closeMobileSidebar();
+                    }
+                });
+            }
+            
+            toggleSidebar() {
+                const sidebar = document.querySelector('.admin-sidebar');
+                const adminMain = document.querySelector('.admin-main');
+                const adminHeader = document.querySelector('.admin-header');
+                
+                this.sidebarCollapsed = !this.sidebarCollapsed;
+                
+                if (this.sidebarCollapsed) {
+                    sidebar?.classList.add('collapsed');
+                    adminMain?.classList.add('sidebar-collapsed');
+                    adminHeader?.classList.add('sidebar-collapsed');
+                } else {
+                    sidebar?.classList.remove('collapsed');
+                    adminMain?.classList.remove('sidebar-collapsed');
+                    adminHeader?.classList.remove('sidebar-collapsed');
+                }
+                
+                localStorage.setItem(this.sidebarKey, this.sidebarCollapsed.toString());
+                console.log(`📱 Sidebar ${this.sidebarCollapsed ? 'collapsed' : 'expanded'}`);
+            }
+            
+            toggleMobileSidebar() {
+                const sidebar = document.querySelector('.admin-sidebar');
+                sidebar?.classList.toggle('mobile-open');
+            }
+            
+            closeMobileSidebar() {
+                const sidebar = document.querySelector('.admin-sidebar');
+                sidebar?.classList.remove('mobile-open');
+            }
+            
+            applySidebarState() {
+                const sidebar = document.querySelector('.admin-sidebar');
+                const adminMain = document.querySelector('.admin-main');
+                const adminHeader = document.querySelector('.admin-header');
+                
+                if (window.innerWidth > 1024 && this.sidebarCollapsed) {
+                    sidebar?.classList.add('collapsed');
+                    adminMain?.classList.add('sidebar-collapsed');
+                    adminHeader?.classList.add('sidebar-collapsed');
+                }
+            }
+            
+            // Dropdown Management
+            setupDropdowns() {
+                // Language dropdown
+                this.setupDropdown('languageToggle', 'languageMenu');
+                
+                // Messages dropdown
+                this.setupDropdown('messagesBtn', 'messagesDropdown');
+                
+                // Notifications dropdown
+                this.setupDropdown('notificationBtn', 'notificationDropdown');
+                
+                // User menu dropdown
+                this.setupDropdown('userMenuBtn', 'userDropdown');
+                
+                // Close dropdowns on outside click
+                document.addEventListener('click', (e) => {
+                    const dropdowns = document.querySelectorAll('.dropdown-menu, .language-menu');
+                    dropdowns.forEach(dropdown => {
+                        if (!dropdown.closest('.header-dropdown, .language-dropdown').contains(e.target)) {
+                            dropdown.classList.add('hidden');
+                        }
+                    });
+                });
+            }
+            
+            setupDropdown(triggerId, dropdownId) {
+                const trigger = document.getElementById(triggerId);
+                const dropdown = document.getElementById(dropdownId);
+                
+                if (!trigger || !dropdown) return;
+                
+                trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    // Close other dropdowns
+                    document.querySelectorAll('.dropdown-menu, .language-menu').forEach(menu => {
+                        if (menu !== dropdown) {
+                            menu.classList.add('hidden');
+                        }
+                    });
+                    
+                    // Toggle current dropdown
+                    dropdown.classList.toggle('hidden');
+                });
+            }
+            
+            // Language Selector
+            setupLanguageSelector() {
+                const languageOptions = document.querySelectorAll('.language-option');
+                
+                languageOptions.forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        const langCode = option.dataset.lang;
+                        const langName = option.dataset.name;
+                        
+                        this.changeLanguage(langCode, langName);
+                    });
+                });
+            }
+            
+            changeLanguage(langCode, langName) {
+                // Update current language
+                this.currentLanguage = langCode;
+                localStorage.setItem(this.languageKey, langCode);
+                
+                // Update UI to show selected language
+                const currentFlag = document.querySelector('.current-lang-flag');
+                const langConfig = {
+                    'uz': '🇺🇿', 'en': '🇺🇸', 'ru': '🇷🇺', 
+                    'tr': '🇹🇷', 'fa': '🇮🇷', 'zh': '🇨🇳'
+                };
+                
+                if (currentFlag) {
+                    currentFlag.textContent = langConfig[langCode] || '🇺🇿';
+                }
+                
+                // Close dropdown
+                const languageMenu = document.getElementById('languageMenu');
+                languageMenu?.classList.add('hidden');
+                
+                // In a real app, you would reload the page or fetch new translations
+                console.log(`🌐 Language changed to: ${langCode} (${langName})`);
+                
+                // For demo, show toast
+                this.showToast(`Language changed to ${langName}`, 'success');
+            }
+            
+            // Search Functionality
+            setupSearch() {
+                const searchInput = document.getElementById('headerSearch');
+                if (!searchInput) return;
+                
+                let searchTimeout;
+                
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    
+                    searchTimeout = setTimeout(() => {
+                        const query = e.target.value.trim();
+                        if (query.length > 2) {
+                            this.performSearch(query);
+                        }
+                    }, 300);
+                });
+                
+                searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const query = e.target.value.trim();
+                        if (query) {
+                            this.performSearch(query);
+                        }
+                    }
+                });
+            }
+            
+            performSearch(query) {
+                console.log(`🔍 Searching for: ${query}`);
+                // In a real app, implement actual search functionality
+                this.showToast(`Searching for "${query}"`, 'info');
+            }
+            
+            // Mobile Responsiveness
+            setupMobileHandlers() {
+                let resizeTimeout;
+                
+                window.addEventListener('resize', () => {
+                    clearTimeout(resizeTimeout);
+                    
+                    resizeTimeout = setTimeout(() => {
+                        const isMobile = window.innerWidth <= 1024;
+                        
+                        if (!isMobile) {
+                            // Close mobile sidebar on desktop
+                            this.closeMobileSidebar();
+                            
+                            // Restore desktop sidebar state
+                            this.applySidebarState();
+                        }
+                    }, 100);
+                });
+            }
+            
+            // Tooltips
+            setupTooltips() {
+                const tooltipElements = document.querySelectorAll('[data-tooltip]');
+                
+                tooltipElements.forEach(element => {
+                    element.addEventListener('mouseenter', (e) => {
+                        this.showTooltip(e.target, e.target.dataset.tooltip);
+                    });
+                    
+                    element.addEventListener('mouseleave', () => {
+                        this.hideTooltip();
+                    });
+                });
+            }
+            
+            showTooltip(element, text) {
+                // Remove existing tooltip
+                this.hideTooltip();
+                
+                const tooltip = document.createElement('div');
+                tooltip.className = 'admin-tooltip';
+                tooltip.textContent = text;
+                tooltip.id = 'adminTooltip';
+                
+                document.body.appendChild(tooltip);
+                
+                // Position tooltip
+                const rect = element.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                
+                let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                let top = rect.bottom + 8;
+                
+                // Ensure tooltip stays within viewport
+                if (left < 8) left = 8;
+                if (left + tooltipRect.width > window.innerWidth - 8) {
+                    left = window.innerWidth - tooltipRect.width - 8;
+                }
+                
+                if (top + tooltipRect.height > window.innerHeight - 8) {
+                    top = rect.top - tooltipRect.height - 8;
+                }
+                
+                tooltip.style.left = `${left}px`;
+                tooltip.style.top = `${top}px`;
+                
+                // Animate in
+                setTimeout(() => tooltip.classList.add('show'), 10);
+            }
+            
+            hideTooltip() {
+                const tooltip = document.getElementById('adminTooltip');
+                if (tooltip) {
+                    tooltip.remove();
+                }
+            }
+            
+            // Utility Methods
+            showToast(message, type = 'info') {
+                const container = document.getElementById('toastContainer');
+                if (!container) return;
+                
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                toast.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="las la-${this.getToastIcon(type)} me-2"></i>
+                        <span>${message}</span>
+                </div>
+                `;
+                
+                container.appendChild(toast);
+                setTimeout(() => toast.classList.add('show'), 100);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => container.removeChild(toast), 300);
+                }, 3000);
+            }
+            
+            getToastIcon(type) {
+                const icons = {
+                    success: 'la-check-circle',
+                    error: 'la-times-circle',
+                    warning: 'la-exclamation-triangle',
+                    info: 'la-info-circle'
+                };
+                return icons[type] || icons.info;
+            }
+        }
+        
+        // Global layout manager instance
+        let adminLayoutManager;
+        
+        // Initialize layout manager when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            adminLayoutManager = new AdminLayoutManager();
+            
+            // Ensure profile manager is initialized after layout manager
+            setTimeout(() => {
+                if (typeof profileManager === 'undefined') {
+                    profileManager = new AdminProfileManager();
+                }
+            }, 100);
+        });
+        
+        // Global functions for inline event handlers
+        function markAllMessagesRead() {
+            console.log('📧 Marking all messages as read');
+            adminLayoutManager.showToast('All messages marked as read', 'success');
+        }
+        
+        function markAllNotificationsRead() {
+            console.log('🔔 Marking all notifications as read');
+            adminLayoutManager.showToast('All notifications marked as read', 'success');
+        }
+    </script>
+    
+    <!-- Professional Profile Management Script -->
+    <script>
+        class AdminProfileManager {
+            constructor() {
+                this.apiEndpoints = {
+                    profile: '/admin/api/profile',
+                    updateProfile: '/admin/api/profile',
+                    stats: '/admin/api/profile/stats',
+                    activity: '/admin/api/profile/activity',
+                    sessions: '/admin/api/profile/sessions',
+                    security: '/admin/api/profile/security'
+                };
+                
+                this.cache = new Map();
+                this.init();
+            }
+            
+            async init() {
+                console.log('🚀 Initializing Professional Admin Profile Manager...');
+                this.setupNavigation();
+                await this.loadInitialData();
+                console.log('✅ Admin Profile Manager initialized successfully');
+            }
+            
+            setupNavigation() {
+                const navLinks = document.querySelectorAll('.profile-nav-link');
+                const sections = document.querySelectorAll('.profile-section');
+                
+                navLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        
+                        const sectionId = link.dataset.section;
+                        
+                        // Update navigation
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        link.classList.add('active');
+                        
+                        // Update sections
+                        sections.forEach(s => s.classList.remove('active'));
+                        const targetSection = document.getElementById(`${sectionId}-section`);
+                        if (targetSection) {
+                            targetSection.classList.add('active');
+                            this.loadSectionData(sectionId);
+                        }
+                    });
+                });
+            }
+            
+            async loadInitialData() {
+                console.log('📊 Starting initial profile data load...');
+                
+                try {
+                    console.log('🌐 API Endpoints:', this.apiEndpoints);
+                    
+                    // Load profile data first
+                    console.log('🔄 Loading profile data...');
+                    let profileData = null;
+                    try {
+                        profileData = await this.makeRequest('GET', this.apiEndpoints.profile);
+                        console.log('✅ Profile data loaded successfully:', profileData);
+                    } catch (profileError) {
+                        console.error('❌ Failed to load profile data:', profileError);
+                        throw new Error(`Profile data load failed: ${profileError.message}`);
+                    }
+                    
+                    // Load stats data
+                    console.log('🔄 Loading stats data...');  
+                    let stats = null;
+                    try {
+                        stats = await this.makeRequest('GET', this.apiEndpoints.stats);
+                        console.log('✅ Stats data loaded successfully:', stats);
+                    } catch (statsError) {
+                        console.error('❌ Failed to load stats data:', statsError);
+                        // Continue without stats, set default values
+                        stats = {
+                            data: {
+                                overview: {
+                                    totalApprovals: 0,
+                                    accountAge: 0,
+                                    totalLoginCount: 0
+                                }
+                            }
+                        };
+                        console.log('⚠️ Using default stats data');
+                    }
+                    
+                    // Update UI with loaded data
+                    console.log('🔄 Updating UI components...');
+                    
+                    if (profileData) {
+                        this.updateProfileForm(profileData);
+                        this.updateProfileHeader(profileData.profile || profileData.data || profileData);
+                        console.log('✅ Profile UI updated');
+                    }
+                    
+                    if (stats) {
+                        this.updateProfileStats(stats);
+                        console.log('✅ Stats UI updated');
+                    }
+                    
+                    console.log('🎉 Initial data load completed successfully!');
+                    
+                } catch (error) {
+                    console.error('❌ Critical error in loadInitialData:', error);
+                    console.error('❌ Error stack:', error.stack);
+                    this.showToast(`Ma'lumotlarni yuklashda xatolik: ${error.message}`, 'error');
+                    
+                    // Set default UI values
+                    console.log('🔄 Setting default UI values...');
+                    const elements = {
+                        totalApprovals: document.getElementById('totalApprovals'),
+                        accountAge: document.getElementById('accountAge'),
+                        loginCount: document.getElementById('loginCount')
+                    };
+                    
+                    Object.values(elements).forEach(el => {
+                        if (el) el.textContent = '-';
+                    });
+                }
+            }
+            
+            updateProfileForm(profileData) {
+                try {
+                    console.log('📝 Updating profile form with data:', profileData);
+                    
+                    // Safe access to profile data with multiple fallback paths
+                    const profile = profileData?.data?.profile || profileData?.profile || profileData?.data || profileData || {};
+                    console.log('👤 Profile extracted:', profile);
+                    
+                    // Update form fields safely - ADMIN MODEL SCHEMA COMPATIBLE
+                    const fields = ['name', 'email', 'role', 'preferredLanguage', 'status'];
+                    fields.forEach(field => {
+                        const element = document.getElementById(field);
+                        if (element) {
+                            const value = profile[field] || '';
+                            if (element.tagName.toLowerCase() === 'select') {
+                                // For select elements, set selected option
+                                const option = element.querySelector(`option[value="${value}"]`);
+                                if (option) {
+                                    element.value = value;
+                                    console.log(`✅ Updated select ${field}:`, value);
+                                } else {
+                                    console.warn(`⚠️ Option not found for ${field}:`, value);
+                                }
+                            } else {
+                                // For input and textarea elements
+                                element.value = value;
+                                console.log(`✅ Updated ${field}:`, value || 'empty');
+                            }
+                        } else {
+                            console.warn(`⚠️ Form element not found: ${field}`);
+                        }
+                    });
+                    
+                    console.log('✅ Profile form updated successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Error updating profile form:', error);
+                    console.log('📊 Raw profileData:', profileData);
+                }
+            }
+            
+            async loadSectionData(sectionId) {
+                switch (sectionId) {
+                    case 'security':
+                        await this.loadSecurityData();
+                        break;
+                    case 'activity':
+                        await this.loadActivityData();
+                        break;
+                    case 'sessions':
+                        await this.loadSessionsData();
+                        break;
+                }
+            }
+            
+            async loadSecurityData() {
+                const container = document.getElementById('securityCards');
+                if (!container) return;
+                
+                try {
+                    const security = await this.makeRequest('GET', this.apiEndpoints.security);
+                    
+                    container.innerHTML = `
+                        <div class="security-card">
+                            <div class="security-icon">
+                                <i class="las la-key"></i>
+        </div>
+                            <h4 class="security-title">Password Security</h4>
+                            <p class="security-description">Manage your account password and security settings</p>
+                            <div class="security-status">
+                                <i class="las la-check-circle status-enabled"></i>
+                                <span>Last changed: ${this.formatDate(security.passwordSecurity.lastChanged)}</span>
+                    </div>
+                            <button class="btn btn-outline-secondary" onclick="alert('Password change functionality coming soon')">
+                                <i class="las la-key"></i>
+                                Change Password
+                        </button>
+                    </div>
+                        
+                        <div class="security-card">
+                            <div class="security-icon">
+                                <i class="las la-mobile"></i>
+                        </div>
+                            <h4 class="security-title">Two-Factor Authentication</h4>
+                            <p class="security-description">Add an extra layer of security to your account</p>
+                            <div class="security-status">
+                                <i class="las ${security.twoFactor.enabled ? 'la-check-circle status-enabled' : 'la-times-circle status-disabled'}"></i>
+                                <span>${security.twoFactor.enabled ? 'Enabled' : 'Disabled'}</span>
+                    </div>
+                            <button class="btn ${security.twoFactor.enabled ? 'btn-danger' : 'btn-primary'}" 
+                                    onclick="alert('2FA functionality coming soon')">
+                                <i class="las ${security.twoFactor.enabled ? 'la-times' : 'la-plus'}"></i>
+                                ${security.twoFactor.enabled ? 'Disable 2FA' : 'Setup 2FA'}
+                        </button>
+                    </div>
+                    `;
+                    
+                } catch (error) {
+                    console.error('Failed to load security data:', error);
+                    container.innerHTML = `
+                        <div class="security-card">
+                            <div class="security-icon">
+                                <i class="las la-key"></i>
+                </div>
+                            <h4 class="security-title">Password Security</h4>
+                            <p class="security-description">Manage your account password</p>
+                            <button class="btn btn-outline-secondary">
+                                <i class="las la-key"></i>
+                Change Password
+            </button>
+</div>
+
+                        <div class="security-card">
+                            <div class="security-icon">
+                                <i class="las la-mobile"></i>
+                            </div>
+                            <h4 class="security-title">Two-Factor Authentication</h4>
+                            <p class="security-description">Add extra security to your account</p>
+                            <button class="btn btn-primary">
+                                <i class="las la-plus"></i>
+                                Setup 2FA
+            </button>
+        </div>
+                    `;
+                }
+            }
+            
+            async loadActivityData() {
+                const container = document.getElementById('activityTimeline');
+                if (!container) return;
+                
+                try {
+                    const activity = await this.makeRequest('GET', this.apiEndpoints.activity);
+                    
+                    let timelineHTML = '<div class="activity-timeline">';
+                    
+                    activity.activities.forEach(item => {
+                        timelineHTML += `
+                            <div class="timeline-item">
+                                <div class="timeline-icon"></div>
+                                <div class="timeline-content">
+                                    <h5 class="timeline-title">${item.description}</h5>
+                                    <p class="timeline-description">${item.action}</p>
+                                    <span class="timeline-time">${this.formatTimeAgo(item.timestamp)}</span>
+                            </div>
+                            </div>
+                        `;
+                    });
+                    
+                    timelineHTML += '</div>';
+                    container.innerHTML = timelineHTML;
+                    
+                } catch (error) {
+                    console.error('Failed to load activity data:', error);
+                    container.innerHTML = '<p>Failed to load activity log</p>';
+                }
+            }
+            
+            async loadSessionsData() {
+                const container = document.getElementById('sessionsList');
+                if (!container) return;
+                
+                try {
+                    const sessions = await this.makeRequest('GET', this.apiEndpoints.sessions);
+                    
+                    let sessionsHTML = '<div class="sessions-list">';
+                    
+                    sessions.sessions.forEach(session => {
+                        sessionsHTML += `
+                            <div class="session-item">
+                                <div class="session-icon">
+                                    <i class="las la-desktop"></i>
+                        </div>
+                                <div class="session-info">
+                                    <h5 class="session-device">${session.device} - ${session.browser}</h5>
+                                    <p class="session-details">
+                                        ${session.location} • ${this.formatTimeAgo(session.lastActivity)}
+                                    </p>
+                    </div>
+                                ${session.isCurrent ? 
+                                    '<span class="session-current">Current</span>' : 
+                                    '<button class="btn btn-outline-secondary btn-sm">Terminate</button>'
+                                }
+                </div>
+                        `;
+                    });
+                    
+                    sessionsHTML += '</div>';
+                    container.innerHTML = sessionsHTML;
+                    
+                } catch (error) {
+                    console.error('Failed to load sessions data:', error);
+                    container.innerHTML = '<p>Failed to load sessions</p>';
+                }
+            }
+            
+            async makeRequest(method, url, data = null) {
+                console.log(`🌐 Making ${method} request to:`, url);
+                console.log('📤 Request data:', data);
+                
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                console.log('🔐 CSRF Token:', csrfToken ? 'Available' : 'Missing');
+                
+                const config = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken || ''
+                    },
+                    credentials: 'same-origin'
+                };
+                
+                if (data && method !== 'GET') {
+                    config.body = JSON.stringify(data);
+                    console.log('📦 Request body:', config.body);
+                }
+                
+                console.log('⚙️ Fetch config:', config);
+                
+                try {
+                    const response = await fetch(url, config);
+                    console.log('📡 Response status:', response.status);
+                    console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('❌ Response error text:', errorText);
+                        
+                        let errorData = {};
+                        try {
+                            errorData = JSON.parse(errorText);
+                        } catch (e) {
+                            errorData = { message: errorText };
+                        }
+                        
+                        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const responseData = await response.json();
+                    console.log('📥 Response data:', responseData);
+                    return responseData;
+                    
+                } catch (error) {
+                    console.error('❌ Fetch error:', error);
+                    throw error;
+                }
+            }
+            
+            async savePersonalInfo() {
+                const form = document.getElementById('personalInfoForm');
+                if (!form) {
+                    console.error('❌ Personal info form not found');
+                    return;
+                }
+                
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                
+                console.log('📝 Saving personal info:', data);
+                
+                try {
+                    // Show loading state
+                    this.showLoading(true);
+                    
+                    const result = await this.makeRequest('PUT', this.apiEndpoints.updateProfile, data);
+                    console.log('✅ Profile updated successfully:', result);
+                    
+                    this.showToast('Profil muvaffaqiyatli yangilandi', 'success');
+                    
+                    // Update UI with the updated profile data
+                    if (result && result.data) {
+                        this.updateProfileForm(result.data);
+                        this.updateProfileHeader(result.data.profile || result.data);
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to save profile:', error);
+                    this.showToast(error.message || 'Profilni saqlashda xatolik yuz berdi', 'error');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+            
+            resetPersonalInfo() {
+                if (confirm('Barcha o\'zgartirishlarni bekor qilishga ishonchingiz komilmi?')) {
+                    const form = document.getElementById('personalInfoForm');
+                    if (form) form.reset();
+                }
+            }
+            
+            updateProfileStats(stats) {
+                console.log('📊 Updating profile stats with:', stats);
+                
+                const elements = {
+                    totalApprovals: document.getElementById('totalApprovals'),
+                    accountAge: document.getElementById('accountAge'),
+                    loginCount: document.getElementById('loginCount')
+                };
+                
+                // Safe access to stats data with fallbacks
+                try {
+                    const overview = stats?.data?.overview || stats?.overview || stats || {};
+                    console.log('📋 Overview data:', overview);
+                    
+                    if (elements.totalApprovals) {
+                        elements.totalApprovals.textContent = overview.totalApprovals || overview.approvalsCount || 0;
+                    }
+                    if (elements.accountAge) {
+                        elements.accountAge.textContent = overview.accountAge || overview.accountAgeDays || 0;
+                    }
+                    if (elements.loginCount) {
+                        elements.loginCount.textContent = overview.totalLoginCount || overview.loginCount || 0;
+                    }
+                    
+                    console.log('✅ Profile stats updated successfully');
+                } catch (error) {
+                    console.error('❌ Error updating profile stats:', error);
+                    console.log('📊 Raw stats data:', stats);
+                    
+                    // Set default values on error
+                    if (elements.totalApprovals) elements.totalApprovals.textContent = '-';
+                    if (elements.accountAge) elements.accountAge.textContent = '-';
+                    if (elements.loginCount) elements.loginCount.textContent = '-';
+                }
+            }
+            
+            updateProfileHeader(admin) {
+                try {
+                    console.log('🔄 Updating profile header with:', admin);
+                    
+                    // Safe access to admin data with fallbacks
+                    const profile = admin?.profile || admin?.data || admin || {};
+                    console.log('👤 Header profile data:', profile);
+                    
+                    const nameElement = document.getElementById('profileName');
+                    if (nameElement) {
+                        if (profile.name) {
+                            nameElement.textContent = profile.name;
+                            console.log('✅ Updated profile name:', profile.name);
+                        } else {
+                            nameElement.textContent = 'Admin User';
+                            console.log('⚠️ Using default profile name');
+                        }
+                    }
+                    
+                    const emailElement = document.getElementById('profileEmail');
+                    if (emailElement) {
+                        if (profile.email) {
+                            emailElement.textContent = profile.email;
+                            console.log('✅ Updated profile email');
+                        } else {
+                            emailElement.textContent = 'admin@company.com';
+                            console.log('⚠️ Using default profile email');
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Error updating profile header:', error);
+                }
+            }
+            
+            showLoading(show) {
+                const overlay = document.getElementById('loadingOverlay');
+                if (overlay) {
+                    overlay.classList.toggle('show', show);
+                } else if (show) {
+                    // Create loading overlay if it doesn't exist
+                    const loadingDiv = document.createElement('div');
+                    loadingDiv.id = 'loadingOverlay';
+                    loadingDiv.className = 'loading-overlay show';
+                    loadingDiv.innerHTML = '<div class="loading-spinner"></div>';
+                    document.body.appendChild(loadingDiv);
+                }
+            }
+            
+            showToast(message, type = 'info') {
+                const container = document.getElementById('toastContainer');
+                if (!container) return;
+                
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                toast.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="las la-${type === 'success' ? 'check-circle' : 'times-circle'} me-2"></i>
+                        <span>${message}</span>
+    </div>
+                `;
+                
+                container.appendChild(toast);
+                setTimeout(() => toast.classList.add('show'), 100);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => container.removeChild(toast), 300);
+                }, 5000);
+            }
+            
+            formatDate(dateString) {
+                return new Date(dateString).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+            
+            formatTimeAgo(dateString) {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+                
+                if (diffMins < 1) return 'Just now';
+                if (diffMins < 60) return `${diffMins} minutes ago`;
+                if (diffHours < 24) return `${diffHours} hours ago`;
+                if (diffDays < 7) return `${diffDays} days ago`;
+                return this.formatDate(dateString);
+            }
+        }
+        
+        // Global instance
+        let profileManager;
+        
+        // Initialize profile manager will be handled by layout manager
+        
+        // Global functions for inline event handlers
+        function uploadAvatar() {
+            alert('Avatar yuklash funksiyasi tez orada qo\'shiladi');
+        }
+        
+        function exportProfile() {
+            alert('Profil eksport funksiyasi tez orada qo\'shiladi');
+        }
+        
+        function refreshProfile() {
+            if (confirm('Sahifani yangilashga ishonchingiz komilmi?')) {
+                location.reload();
+            }
+        }
+        
+        function savePersonalInfo() {
+            profileManager.savePersonalInfo();
+        }
+        
+        function resetPersonalInfo() {
+            profileManager.resetPersonalInfo();
+        }
+    </script>
+
+</body>
+</html>

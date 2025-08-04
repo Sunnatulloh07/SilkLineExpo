@@ -1295,6 +1295,7 @@
   padding: var(--spacing-lg) 0;
   overflow-y: auto;
   overflow-x: hidden;
+  min-width: max-content;
 }
 
 
@@ -2412,6 +2413,7 @@
   gap: var(--spacing-md);
   max-height: 400px;
   overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .activity-item {

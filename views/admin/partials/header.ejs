@@ -24,8 +24,23 @@
   <link rel="stylesheet" href="/admin/css/dashboard-components.css">
   <link rel="stylesheet" href="/admin/css/dashboard-loading.css">
   
-  <!-- Performance Optimization -->
+  <!-- Page-specific CSS -->
+  <% if (typeof title !== 'undefined' && title.includes('Profile')) { %>
+    <link rel="stylesheet" href="/admin/css/profile-management.css">
+  <% } %>
+  
+      <!-- PROFESSIONAL TOKEN MANAGEMENT SYSTEM - LOAD FIRST -->
+    <script src="/js/token-manager.js"></script>
+    <script src="/js/token-manager-fix.js"></script>
+  
+  <!-- DISABLE DASHBOARD PERFORMANCE TEMPORARILY -->
+  <script>window.DISABLE_DASHBOARD_PERFORMANCE = false;</script>
+  
+  <!-- Performance Optimization - DISABLED FOR NOW -->
   <script src="/admin/js/dashboard-performance.js" defer></script>
+  
+  <!-- Unified Header Dropdown Management - DISABLED to prevent conflicts -->
+  <!-- <script src="/admin/js/header-dropdown-fix.js" defer></script> -->
   
   <!-- Theme Variables -->
   <style>
@@ -34,6 +49,8 @@
     }
   </style>
 </head>
+
+
 <body class="theme-transition">
   <div class="admin-layout">
     

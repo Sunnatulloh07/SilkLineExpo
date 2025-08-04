@@ -47,7 +47,7 @@ class AuthService {
         address: userData.address.trim(),
         password: userData.password,
         preferredLanguage: userData.preferredLanguage || 'uz',
-        status: 'blocked', // Default blocked status
+        status: 'pending', // Default pending status
         companyLogo: logoData
       };
 
@@ -98,7 +98,7 @@ class AuthService {
    * Unified Login - Auto-detects user type (Admin or Company User)
    */
   async unifiedLogin(identifier, password, rememberMe = false) {
-    try {
+    try {      
       // First, try to find admin by email
       let user = await Admin.findOne({ email: identifier.toLowerCase().trim() });
       let userType = 'admin';
@@ -108,7 +108,6 @@ class AuthService {
         user = await User.findByEmailOrTaxNumber(identifier);
         userType = 'user';
       }
-
       if (!user) {
         throw new Error('Invalid email/identifier or password');
       }
@@ -179,19 +178,30 @@ class AuthService {
         throw new Error('Admin account is inactive');
       }
     } else {
+      if (user.status === 'pending') {
+        const error = new Error('Hisobingiz hali tasdiqlanmagan. Admin tasdiqlashini kuting.');
+        error.type = 'pending';
+        error.data = {
+          status: user.status,
+          registrationDate: user.createdAt,
+          message: 'Hisobingiz hali tasdiqlanmagan. Admin tasdiqlashini kuting.'
+        };
+        throw error;
+      }
+      
       if (user.status === 'blocked') {
-        const error = new Error('Account is blocked and awaiting admin approval');
+        const error = new Error('Hisobingiz bloklangan. Yordam uchun admin bilan bog\'laning.');
         error.type = 'blocked';
         error.data = {
           status: user.status,
           registrationDate: user.createdAt,
-          message: 'Please contact administrator for approval'
+          message: 'Hisobingiz bloklangan. Yordam uchun admin bilan bog\'laning.'
         };
         throw error;
       }
       
       if (user.status === 'suspended') {
-        const error = new Error('Account has been suspended');
+        const error = new Error('Hisobingiz vaqtincha to\'xtatilgan. Yordam uchun admin bilan bog\'laning.');
         error.type = 'suspended';
         throw error;
       }

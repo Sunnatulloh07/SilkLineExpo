@@ -1,0 +1,4332 @@
+<%- include('../partials/header', { title: title, lng: lng, user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'products' }) %>
+
+<!-- Main Content -->
+<main class="admin-main">
+  <div class="admin-content">
+    
+    <!-- Product Edit Header -->
+    <div class="product-header animate-fade-in">
+      <div class="header-content">
+        <div class="header-title-section">
+          <div class="breadcrumb">
+            <a href="/manufacturer/dashboard" class="breadcrumb-link">Dashboard</a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <a href="/manufacturer/marketplace" class="breadcrumb-link">Marketplace</a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <span class="breadcrumb-current">Mahsulotni tahrirlash</span>
+          </div>
+          <h1 class="page-title">
+            <i class="fas fa-edit"></i>
+            Mahsulotni tahrirlash
+          </h1>
+          <p class="page-subtitle">Professional B2B mahsulot ma'lumotlarini yangilang</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-outline" id="previewBtn">
+            <i class="fas fa-eye"></i>
+            Ko'rish
+          </button>
+          <button class="btn-secondary" id="saveAsDraftBtn">
+            <i class="fas fa-save"></i>
+            Qoralama sifatida saqlash
+          </button>
+          <button class="btn-primary" id="publishBtn">
+            <i class="fas fa-rocket"></i>
+            Chop etish
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Message Alert -->
+    <% if (locals.errorMessage) { %>
+      <div class="alert alert-warning animate-fade-in" style="margin: 1rem 0; padding: 1rem; background: #fff3cd; border: 1px solid #ffecb5; border-radius: 8px; color: #856404;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i>
+          <strong>Diqqat!</strong> <%= errorMessage %>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="product-edit-container">
+      <!-- Left Side: Form -->
+      <div class="form-container">
+        
+        <!-- Multi-step Form -->
+        <form id="productEditForm" class="multi-step-form" novalidate>
+          <input type="hidden" name="productId" value="<%= product._id %>">
+          
+          <!-- Progress Indicator -->
+          <div class="form-progress animate-fade-in">
+            <div class="progress-steps">
+              <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Asosiy ma'lumotlar</div>
+              </div>
+              <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Narxlar va MOQ</div>
+              </div>
+              <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">Texnik xususiyatlar</div>
+              </div>
+              <div class="step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-label">Rasmlar</div>
+              </div>
+              <div class="step" data-step="5">
+                <div class="step-number">5</div>
+                <div class="step-label">Yetkazib berish</div>
+              </div>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 20%;"></div>
+            </div>
+          </div>
+
+          <!-- Step 1: Basic Information -->
+          <div class="form-step active" data-step="1">
+            <div class="step-header">
+              <h3>Asosiy ma'lumotlar</h3>
+              <p class="step-description">Mahsulot haqida umumiy ma'lumotlarni kiriting</p>
+            </div>
+            
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label for="productName" class="form-label required">
+                  <i class="fas fa-tag"></i>
+                  Mahsulot nomi
+                </label>
+                <input 
+                  type="text" 
+                  id="productName" 
+                  name="name" 
+                  class="form-input" 
+                  value="<%= product.name || '' %>"
+                  placeholder="Masalan: Premium Paxta Mato" 
+                  required
+                  maxlength="200"
+                >
+                <div class="form-hint">Xaridorlarga tushunarligi uchun aniq va tavsiflovchi nom kiriting</div>
+                <div class="validation-message"></div>
+              </div>
+              
+              <div class="form-group">
+                <label for="category" class="form-label required">
+                  <i class="fas fa-th-large"></i>
+                  Kategoriya
+                </label>
+                <select id="category" name="category" class="form-select" required>
+                  <option value="">Kategoriyani tanlang...</option>
+                  <% categories.forEach(function(cat) { %>
+                    <%
+                      // Professional ObjectId comparison fix - Senior Software Engineer Logic
+                      let isSelected = false;
+                      if (product.category) {
+                        if (typeof product.category === 'object' && product.category._id) {
+                          // Product category is populated object
+                          isSelected = product.category._id.toString() === cat._id.toString();
+                        } else if (typeof product.category === 'string') {
+                          // Product category is string ID
+                          isSelected = product.category.toString() === cat._id.toString();
+                        } else {
+                          // Direct ObjectId comparison
+                          isSelected = product.category.toString() === cat._id.toString();
+                        }
+                      }
+                    %>
+                    <option value="<%= cat._id %>" 
+                            <%= isSelected ? 'selected' : '' %>
+                            data-level="<%= cat.level || 0 %>"
+                            data-category-name="<%= cat.displayName || cat.name %>"
+                            <% if (cat.description) { %>title="<%= cat.description %>"<% } %>>
+                      <%= cat.displayName || cat.name %>
+                    </option>
+                  <% }) %>
+                </select>
+                <div class="validation-message"></div>
+              </div>
+              
+              <div class="form-group">
+                <label for="productStatus" class="form-label">
+                  <i class="fas fa-toggle-on"></i>
+                  Mahsulot holati
+                </label>
+                <select id="productStatus" name="status" class="form-select">
+                  <option value="active" <%= (product.status === 'active') ? 'selected' : '' %>>Faol</option>
+                  <option value="inactive" <%= (product.status === 'inactive') ? 'selected' : '' %>>Nofaol</option>
+                  <option value="draft" <%= (product.status === 'draft') ? 'selected' : '' %>>Qoralama</option>
+                </select>
+              </div>
+              
+              <div class="form-group full-width">
+                <label for="shortDescription" class="form-label">
+                  <i class="fas fa-align-left"></i>
+                  Qisqacha tavsif
+                </label>
+                <textarea 
+                  id="shortDescription" 
+                  name="shortDescription" 
+                  class="form-textarea" 
+                  rows="3" 
+                  placeholder="Mahsulot haqida qisqacha ma'lumot..."
+                  maxlength="500"
+                ><%= product.shortDescription || '' %></textarea>
+                <div class="form-hint">Qidiruv natijalarida ko'rsetiladi (maksimal 500 belgi)</div>
+              </div>
+              
+              <div class="form-group full-width">
+                <label for="description" class="form-label required">
+                  <i class="fas fa-file-text"></i>
+                  Batafsil tavsif
+                </label>
+                <textarea 
+                  id="description" 
+                  name="description" 
+                  class="form-textarea rich-editor" 
+                  rows="6" 
+                  placeholder="Mahsulot haqida batafsil ma'lumot, xususiyatlari, ishlatilishi..."
+                  required
+                  maxlength="2000"
+                ><%= product.description || '' %></textarea>
+                <div class="form-hint">Xaridorlarga to'liq ma'lumot berish uchun batafsil yozing</div>
+                <div class="validation-message"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Pricing & MOQ -->
+          <div class="form-step" data-step="2">
+            <div class="step-header">
+              <h3>Narxlar va miqdor</h3>
+              <p class="step-description">Narx siyosati va minimum buyurtma miqdorini belgilang</p>
+            </div>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="basePrice" class="form-label required">
+                  <i class="fas fa-dollar-sign"></i>
+                  Bazaviy narx (USD)
+                </label>
+                <div class="price-input-wrapper">
+                  <span class="price-currency">$</span>
+                  <input 
+                    type="number" 
+                    id="basePrice" 
+                    name="pricing.basePrice" 
+                    class="form-input price-input" 
+                    step="0.01" 
+                    min="0"
+                    value="<%= product.pricing?.basePrice || '' %>"
+                    placeholder="0.00"
+                    required
+                  >
+                </div>
+                <div class="validation-message"></div>
+              </div>
+              
+              <div class="form-group">
+                <label for="priceType" class="form-label">
+                  <i class="fas fa-hand-holding-usd"></i>
+                  Narx turi
+                </label>
+                <select id="priceType" name="pricing.priceType" class="form-select">
+                  <option value="fixed" <%= (product.pricing?.priceType === 'fixed') ? 'selected' : '' %>>Qat'iy narx</option>
+                  <option value="negotiable" <%= (product.pricing?.priceType === 'negotiable') ? 'selected' : '' %>>Kelishiladi</option>
+                  <option value="quote_based" <%= (product.pricing?.priceType === 'quote_based') ? 'selected' : '' %>>Taklif asosida</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="minOrderQty" class="form-label required">
+                  <i class="fas fa-sort-numeric-up"></i>
+                  Minimum buyurtma miqdori (MOQ)
+                </label>
+                <input 
+                  type="number" 
+                  id="minOrderQty" 
+                  name="pricing.minimumOrderQuantity" 
+                  class="form-input" 
+                  min="1"
+                  value="<%= product.pricing?.minimumOrderQuantity || '' %>"
+                  placeholder="100"
+                  required
+                >
+                <div class="form-hint">Eng kam buyurtma miqdori</div>
+                <div class="validation-message"></div>
+              </div>
+              
+              <div class="form-group">
+                <label for="maxOrderQty" class="form-label">
+                  <i class="fas fa-sort-numeric-down"></i>
+                  Maksimum buyurtma miqdori
+                </label>
+                <input 
+                  type="number" 
+                  id="maxOrderQty" 
+                  name="pricing.maximumOrderQuantity" 
+                  class="form-input" 
+                  min="1"
+                  value="<%= product.pricing?.maximumOrderQuantity || '' %>"
+                  placeholder="10000"
+                >
+                <div class="form-hint">Bo'sh qoldirish - cheklovsiz</div>
+              </div>
+            </div>
+            
+            <!-- Bulk Pricing Section -->
+            <div class="bulk-pricing-section">
+              <div class="section-header">
+                <h4>
+                  <i class="fas fa-layer-group"></i>
+                  Ulgurji narxlari
+                </h4>
+                <button type="button" class="btn-sm btn-outline" id="addBulkPrice">
+                  <i class="fas fa-plus"></i>
+                  Qo'shish
+                </button>
+              </div>
+              
+              <div class="bulk-pricing-list" id="bulkPricingList">
+                <% if (product.pricing && product.pricing.bulkPricing && product.pricing.bulkPricing.length > 0) { %>
+                  <% product.pricing.bulkPricing.forEach(function(bulk, index) { %>
+                    <div class="bulk-price-item" data-index="<%= index %>">
+                      <div class="bulk-inputs">
+                        <input 
+                          type="number" 
+                          name="pricing.bulkPricing[<%= index %>].minQuantity" 
+                          placeholder="Min miqdor"
+                          value="<%= bulk.minQuantity %>"
+                          class="form-input small"
+                        >
+                        <span>-</span>
+                        <input 
+                          type="number" 
+                          name="pricing.bulkPricing[<%= index %>].maxQuantity" 
+                          placeholder="Max miqdor"
+                          value="<%= bulk.maxQuantity || '' %>"
+                          class="form-input small"
+                        >
+                        <input 
+                          type="number" 
+                          name="pricing.bulkPricing[<%= index %>].price" 
+                          placeholder="Narx (USD)"
+                          value="<%= bulk.price %>"
+                          step="0.01"
+                          class="form-input small"
+                        >
+                        <input 
+                          type="number" 
+                          name="pricing.bulkPricing[<%= index %>].discount" 
+                          placeholder="Chegirma %"
+                          value="<%= bulk.discount || '' %>"
+                          class="form-input small"
+                        >
+                      </div>
+                      <button type="button" class="btn-sm btn-ghost remove-bulk-price">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  <% }) %>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Technical Specifications -->
+          <div class="form-step" data-step="3">
+            <div class="step-header">
+              <h3>Texnik xususiyatlar</h3>
+              <p class="step-description">Mahsulot parametrlari va texnik ko'rsatkichlar</p>
+            </div>
+            
+            <div class="specifications-section">
+              <div class="section-header">
+                <h4>
+                  <i class="fas fa-cogs"></i>
+                  Mahsulot spetsifikatsiyalari
+                </h4>
+                <button type="button" class="btn-sm btn-outline" id="addSpecification">
+                  <i class="fas fa-plus"></i>
+                  Qo'shish
+                </button>
+              </div>
+              
+              <div class="specifications-list" id="specificationsList">
+                <% if (product.specifications && product.specifications.length > 0) { %>
+                  <% product.specifications.forEach(function(spec, index) { %>
+                    <div class="specification-item" data-index="<%= index %>">
+                      <div class="spec-inputs">
+                        <input 
+                          type="text" 
+                          name="specifications[<%= index %>].name" 
+                          placeholder="Xususiyat nomi (Masalan: Material)"
+                          value="<%= spec.name %>"
+                          class="form-input"
+                        >
+                        <input 
+                          type="text" 
+                          name="specifications[<%= index %>].value" 
+                          placeholder="Qiymati (Masalan: 100% Paxta)"
+                          value="<%= spec.value %>"
+                          class="form-input"
+                        >
+                        <input 
+                          type="text" 
+                          name="specifications[<%= index %>].unit" 
+                          placeholder="O'lchov (Masalan: %, kg, m)"
+                          value="<%= spec.unit || '' %>"
+                          class="form-input small"
+                        >
+                      </div>
+                      <button type="button" class="btn-sm btn-ghost remove-specification">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  <% }) %>
+                <% } %>
+              </div>
+            </div>
+            
+            <!-- Inventory Section -->
+            <div class="inventory-section">
+              <div class="section-header">
+                <h4>
+                  <i class="fas fa-warehouse"></i>
+                  Ombor ma'lumotlari
+                </h4>
+              </div>
+              
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="stockQuantity" class="form-label">
+                    <i class="fas fa-boxes"></i>
+                    Mavjud miqdor
+                  </label>
+                  <input 
+                    type="number" 
+                    id="stockQuantity" 
+                    name="inventory.totalStock" 
+                    class="form-input" 
+                    min="0"
+                    value="<%= product.inventory?.totalStock || '' %>"
+                    placeholder="1000"
+                  >
+                </div>
+                
+                <div class="form-group">
+                  <label for="lowStockThreshold" class="form-label">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Kam qolgan chegara
+                  </label>
+                  <input 
+                    type="number" 
+                    id="lowStockThreshold" 
+                    name="inventory.lowStockThreshold" 
+                    class="form-input" 
+                    min="0"
+                    value="<%= product.inventory?.lowStockThreshold || '' %>"
+                    placeholder="100"
+                  >
+                  <div class="form-hint">Bu miqdordan kam qolganda ogohlantirish</div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="inventoryUnit" class="form-label">
+                    <i class="fas fa-ruler"></i>
+                    O'lchov birligi
+                  </label>
+                  <select 
+                    id="inventoryUnit" 
+                    name="inventory.unit" 
+                    class="form-select"
+                  >
+                    <option value="pieces" <%= (product.inventory?.unit === 'pieces') ? 'selected' : '' %>>Dona (pieces)</option>
+                    <option value="kg" <%= (product.inventory?.unit === 'kg') ? 'selected' : '' %>>Kilogram (kg)</option>
+                    <option value="meters" <%= (product.inventory?.unit === 'meters') ? 'selected' : '' %>>Metr (m)</option>
+                    <option value="liters" <%= (product.inventory?.unit === 'liters') ? 'selected' : '' %>>Litr (l)</option>
+                    <option value="boxes" <%= (product.inventory?.unit === 'boxes') ? 'selected' : '' %>>Quti (boxes)</option>
+                    <option value="rolls" <%= (product.inventory?.unit === 'rolls') ? 'selected' : '' %>>Rulon (rolls)</option>
+                  </select>
+                  <div class="form-hint">Mahsulot qanday o'lchov birligida hisoblanadi</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Images -->
+          <div class="form-step" data-step="4">
+            <div class="step-header">
+              <h3>Mahsulot rasmlari</h3>
+              <p class="step-description">Yuqori sifatli rasmlar mahsulot sotuvini oshiradi</p>
+            </div>
+            
+            <div class="image-upload-section">
+              <!-- Image Upload Area -->
+              <div class="upload-area" id="imageUploadArea">
+                <div class="upload-placeholder">
+                  <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                  <h4>Rasmlarni yuklash</h4>
+                  <p>Rasmlarni bu yerga sudrab oling yoki fayllarni tanlash uchun bosing</p>
+                  <p class="upload-requirements">
+                    Maksimal 10 ta rasm • JPG, PNG, WebP • Har biri 5MB gacha
+                  </p>
+                  <button type="button" class="btn-outline upload-btn">
+                    <i class="fas fa-folder-open"></i>
+                    Fayllarni tanlash
+                  </button>
+                </div>
+                <input 
+                  type="file" 
+                  id="imageUploadInput" 
+                  multiple 
+                  accept="image/jpeg,image/png,image/webp"
+                  style="display: none;"
+                >
+              </div>
+              
+              <!-- Current Images -->
+              <div class="current-images" id="currentImages">
+                <% if (product.images && product.images.length > 0) { %>
+                  <div class="images-grid">
+                    <% product.images.forEach(function(image, index) { %>
+                      <% const imageUrl = (typeof image === 'string') ? image : image.url; %>
+                      <% const isPrimary = (typeof image === 'object' && image.isPrimary) || index === 0; %>
+                      <div class="image-item" data-image-url="<%= imageUrl %>">
+                        <div class="image-wrapper">
+                          <img src="<%= imageUrl %>" alt="<%= (typeof image === 'object' && image.alt) ? image.alt : 'Product Image ' + (index + 1) %>" loading="lazy">
+                          <div class="image-overlay">
+                            <button type="button" class="btn-sm btn-ghost set-primary" title="Asosiy qilish">
+                              <i class="fas fa-star"></i>
+                            </button>
+                            <button type="button" class="btn-sm btn-ghost remove-image" title="O'chirish">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </div>
+                          <% if (isPrimary) { %>
+                            <div class="primary-badge">Asosiy</div>
+                          <% } %>
+                        </div>
+                      </div>
+                    <% }) %>
+                  </div>
+                <% } %>
+              </div>
+              
+              <!-- Upload Progress -->
+              <div class="upload-progress" id="uploadProgress" style="display: none;">
+                <div class="progress-info">
+                  <span class="progress-text">Yuklanmoqda...</span>
+                  <span class="progress-percentage">0%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 5: Shipping & Delivery -->
+          <div class="form-step" data-step="5">
+            <div class="step-header">
+              <h3>Yetkazib berish</h3>
+              <p class="step-description">Yetkazib berish parametrlari va muddatlar</p>
+            </div>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="leadTime" class="form-label">
+                  <i class="fas fa-clock"></i>
+                  Tayyorlash muddati
+                </label>
+                <select id="leadTime" name="shipping.leadTime" class="form-select">
+                  <% 
+                    let currentLeadTime = '3-7'; // Default value
+                    if (product.shipping && product.shipping.leadTime && typeof product.shipping.leadTime === 'object') {
+                      const lt = product.shipping.leadTime;
+                      if (lt.min === 1 && lt.max === 3) currentLeadTime = '1-3';
+                      else if (lt.min === 3 && lt.max === 7) currentLeadTime = '3-7';
+                      else if (lt.min === 7 && lt.max === 15) currentLeadTime = '7-15';
+                      else if (lt.min === 15 && lt.max === 30) currentLeadTime = '15-30';
+                      else currentLeadTime = 'custom';
+                    } else if (typeof product.shipping?.leadTime === 'string') {
+                      currentLeadTime = product.shipping.leadTime;
+                    }
+                  %>
+                  <option value="1-3" <%= (currentLeadTime === '1-3') ? 'selected' : '' %>>1-3 kun</option>
+                  <option value="3-7" <%= (currentLeadTime === '3-7') ? 'selected' : '' %>>3-7 kun</option>
+                  <option value="7-15" <%= (currentLeadTime === '7-15') ? 'selected' : '' %>>7-15 kun</option>
+                  <option value="15-30" <%= (currentLeadTime === '15-30') ? 'selected' : '' %>>15-30 kun</option>
+                  <option value="custom" <%= (currentLeadTime === 'custom') ? 'selected' : '' %>>Kelishiladi</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="shippingWeight" class="form-label">
+                  <i class="fas fa-weight"></i>
+                  Og'irligi (kg)
+                </label>
+                <input 
+                  type="number" 
+                  id="shippingWeight" 
+                  name="shipping.weight" 
+                  class="form-input" 
+                  step="0.1" 
+                  min="0"
+                  value="<%= product.shipping?.weight || '' %>"
+                  placeholder="1.5"
+                >
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-cube"></i>
+                  O'lchamlar
+                </label>
+                <div class="dimensions-inputs">
+                  <input 
+                    type="number" 
+                    name="shipping.dimensions.length" 
+                    class="form-input small" 
+                    placeholder="Uzunlik"
+                    value="<%= product.shipping?.dimensions?.length || '' %>"
+                  >
+                  <span>×</span>
+                  <input 
+                    type="number" 
+                    name="shipping.dimensions.width" 
+                    class="form-input small" 
+                    placeholder="Kenglik"
+                    value="<%= product.shipping?.dimensions?.width || '' %>"
+                  >
+                  <span>×</span>
+                  <input 
+                    type="number" 
+                    name="shipping.dimensions.height" 
+                    class="form-input small" 
+                    placeholder="Balandlik"
+                    value="<%= product.shipping?.dimensions?.height || '' %>"
+                  >
+                  <select 
+                    name="shipping.dimensions.unit" 
+                    class="form-select small"
+                    style="max-width: 70px; margin-left: 8px;"
+                  >
+                    <option value="cm" <%= (product.shipping?.dimensions?.unit === 'cm' || !product.shipping?.dimensions?.unit) ? 'selected' : '' %>>cm</option>
+                    <option value="inch" <%= (product.shipping?.dimensions?.unit === 'inch') ? 'selected' : '' %>>inch</option>
+                  </select>
+                </div>
+              </div>
+              
+              <!-- PROFESSIONAL FIX: Adding missing packagingType field -->
+              <div class="form-group">
+                <label for="packagingType" class="form-label">
+                  <i class="fas fa-box"></i>
+                  Qadoqlash turi
+                </label>
+                <select id="packagingType" name="shipping.packagingType" class="form-select">
+                  <option value="">Tanlang...</option>
+                  <option value="Box" <%= (product.shipping?.packagingType === 'Box') ? 'selected' : '' %>>Quti</option>
+                  <option value="Bag" <%= (product.shipping?.packagingType === 'Bag') ? 'selected' : '' %>>Xalta</option>
+                  <option value="Carton" <%= (product.shipping?.packagingType === 'Carton') ? 'selected' : '' %>>Karton</option>
+                  <option value="Pallet" <%= (product.shipping?.packagingType === 'Pallet') ? 'selected' : '' %>>Pallet</option>
+                  <option value="Roll" <%= (product.shipping?.packagingType === 'Roll') ? 'selected' : '' %>>Rulon</option>
+                  <option value="Bundle" <%= (product.shipping?.packagingType === 'Bundle') ? 'selected' : '' %>>Bog'lam</option>
+                  <option value="Custom" <%= (product.shipping?.packagingType === 'Custom') ? 'selected' : '' %>>Boshqa</option>
+                </select>
+              </div>
+              
+              <!-- PROFESSIONAL FIX: Adding missing shippingClass field -->
+              <div class="form-group">
+                <label for="shippingClass" class="form-label">
+                  <i class="fas fa-shipping-fast"></i>
+                  Yetkazib berish klassi
+                </label>
+                <select id="shippingClass" name="shipping.shippingClass" class="form-select">
+                  <option value="">Tanlang...</option>
+                  <option value="standard" <%= (product.shipping?.shippingClass === 'standard') ? 'selected' : '' %>>Standart</option>
+                  <option value="fragile" <%= (product.shipping?.shippingClass === 'fragile') ? 'selected' : '' %>>Mo'rt (ehtiyotkorlik bilan)</option>
+                  <option value="hazardous" <%= (product.shipping?.shippingClass === 'hazardous') ? 'selected' : '' %>>Xavfli materiallar</option>
+                  <option value="perishable" <%= (product.shipping?.shippingClass === 'perishable') ? 'selected' : '' %>>Tez buziladigan</option>
+                  <option value="oversized" <%= (product.shipping?.shippingClass === 'oversized') ? 'selected' : '' %>>Katta hajmli</option>
+                </select>
+              </div>
+              
+              <div class="form-group full-width">
+                <label class="form-label">
+                  <i class="fas fa-shipping-fast"></i>
+                  Yetkazib berish usullari
+                </label>
+                <div class="shipping-methods">
+                  <% const shippingMethods = product.shipping?.methods || []; %>
+                  <label class="checkbox-label">
+                    <input 
+                      type="checkbox" 
+                      name="shipping.methods" 
+                      value="standard"
+                      <%= (Array.isArray(shippingMethods) && shippingMethods.includes('standard')) ? 'checked' : '' %>
+                    >
+                    <span class="checkmark"></span>
+                    Standart yetkazib berish
+                  </label>
+                  <label class="checkbox-label">
+                    <input 
+                      type="checkbox" 
+                      name="shipping.methods" 
+                      value="express"
+                      <%= (Array.isArray(shippingMethods) && shippingMethods.includes('express')) ? 'checked' : '' %>
+                    >
+                    <span class="checkmark"></span>
+                    Tezkor yetkazib berish
+                  </label>
+                  <label class="checkbox-label">
+                    <input 
+                      type="checkbox" 
+                      name="shipping.methods" 
+                      value="pickup"
+                      <%= (Array.isArray(shippingMethods) && shippingMethods.includes('pickup')) ? 'checked' : '' %>
+                    >
+                    <span class="checkmark"></span>
+                    O'zi olib ketish
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Navigation -->
+          <div class="form-navigation">
+            <button type="button" class="btn-outline prev-step" id="prevStep" style="display: none;">
+              <i class="fas fa-arrow-left"></i>
+              Orqaga
+            </button>
+            <div class="nav-info">
+              <span class="current-step">1</span> / <span class="total-steps">5</span>
+            </div>
+            <button type="button" class="btn-primary" id="nextStep">
+              Keyingi
+              <i class="fas fa-arrow-right"></i>
+            </button>
+            <button type="submit" class="btn-success" id="submitForm" style="display: none;">
+              <i class="fas fa-save"></i>
+              Saqlash
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Side: Product Preview & Analytics -->
+      <div class="sidebar-container">
+        <!-- Product Analytics -->
+        <div class="analytics-card animate-fade-in">
+          <div class="card-header">
+            <h4>
+              <i class="fas fa-chart-line"></i>
+              Mahsulot statistikasi
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="analytics-grid">
+              <div class="analytics-item">
+                <div class="analytics-icon views">
+                  <i class="fas fa-eye"></i>
+                </div>
+                <div class="analytics-info">
+                  <div class="analytics-value"><%= productAnalytics.views?.total || 0 %></div>
+                  <div class="analytics-label">Ko'rishlar</div>
+                </div>
+              </div>
+              <div class="analytics-item">
+                <div class="analytics-icon orders">
+                  <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="analytics-info">
+                  <div class="analytics-value"><%= productAnalytics.orders?.totalOrders || 0 %></div>
+                  <div class="analytics-label">Buyurtmalar</div>
+                </div>
+              </div>
+              <div class="analytics-item">
+                <div class="analytics-icon revenue">
+                  <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="analytics-info">
+                  <div class="analytics-value">$<%= (productAnalytics.orders?.totalRevenue || 0).toLocaleString() %></div>
+                  <div class="analytics-label">Daromad</div>
+                </div>
+              </div>
+              <div class="analytics-item">
+                <div class="analytics-icon conversion">
+                  <i class="fas fa-percent"></i>
+                </div>
+                <div class="analytics-info">
+                  <div class="analytics-value"><%= productAnalytics.performance?.conversionRate || '0.00' %>%</div>
+                  <div class="analytics-label">Konversiya</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions-card animate-fade-in">
+          <div class="card-header">
+            <h4>
+              <i class="fas fa-bolt"></i>
+              Tezkor amallar
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="action-buttons">
+              <button class="action-btn" id="duplicateProductBtn">
+                <i class="fas fa-copy"></i>
+                <span>Nusxa olish</span>
+              </button>
+              <button class="action-btn" id="viewAnalyticsBtn">
+                <i class="fas fa-chart-area"></i>
+                <span>Batafsil analitika</span>
+              </button>
+              <button class="action-btn" id="shareProductBtn">
+                <i class="fas fa-share-alt"></i>
+                <span>Ulashish</span>
+              </button>
+              <button class="action-btn danger" id="deleteProductBtn">
+                <i class="fas fa-trash"></i>
+                <span>O'chirish</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status & Visibility -->
+        <div class="status-card animate-fade-in">
+          <div class="card-header">
+            <h4>
+              <i class="fas fa-toggle-on"></i>
+              Holat va ko'rinish
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="status-controls">
+              <div class="control-item">
+                <label class="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    id="isFeatured" 
+                    name="isFeatured"
+                    <%= (product.isFeatured) ? 'checked' : '' %>
+                  >
+                  <span class="toggle-slider"></span>
+                </label>
+                <div class="control-info">
+                  <div class="control-label">Tavsiya etilgan</div>
+                  <div class="control-description">Marketplace'da ajratib ko'rsatish</div>
+                </div>
+              </div>
+              
+              <div class="control-item">
+                <label class="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    id="isPromoted" 
+                    name="isPromoted"
+                    <%= (product.isPromoted) ? 'checked' : '' %>
+                  >
+                  <span class="toggle-slider"></span>
+                </label>
+                <div class="control-info">
+                  <div class="control-label">Reklama qilingan</div>
+                  <div class="control-description">Qidiruv natijalarida birinchi</div>
+                </div>
+              </div>
+              
+              <div class="stock-status">
+                <div class="status-indicator <%= product.stockStatus || 'in_stock' %>">
+                  <% if (product.stockStatus === 'out_of_stock') { %>
+                    <i class="fas fa-times-circle"></i>
+                    Tugagan
+                  <% } else if (product.stockStatus === 'low_stock') { %>
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Kam qolgan
+                  <% } else { %>
+                    <i class="fas fa-check-circle"></i>
+                    Mavjud
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Server Data for JavaScript -->
+<script type="application/json" id="product-edit-data">
+<%- JSON.stringify({
+  product: product,
+  categories: categories,
+  productAnalytics: productAnalytics,
+  user: {
+    id: user._id || '',
+    name: user.name || 'Manufacturer',
+    companyName: user.companyName || 'Manufacturing Company'
+  },
+  apiEndpoints: {
+    updateProduct: '/manufacturer/api/products/' + product._id,
+    uploadImages: '/manufacturer/api/products/upload-images',
+    deleteProduct: '/manufacturer/api/products/' + product._id
+  }
+}) %>
+</script>
+
+<!-- Core JavaScript Dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/assets/js/jquery-3.7.1.min.js"></script>
+<script src="/assets/js/boostrap.bundle.min.js"></script>
+
+<!-- Professional Unified Header Management -->
+<script src="/js/manufacturer/manufacturer-header.js"></script>
+
+<!-- Complete Manufacturer Dashboard Functionality -->
+<script src="/js/manufacturer/manufacturer-dashboard.js"></script>
+
+<!-- Product Edit JavaScript -->
+<script>
+// Get server data
+const productEditData = JSON.parse(document.getElementById('product-edit-data').textContent);
+
+/**
+ * Professional B2B Product Edit Manager
+ * Senior Software Engineer implementation with advanced features
+ */
+class ProductEditManager {
+    constructor() {
+        this.currentStep = 1;
+        this.totalSteps = 5;
+        this.product = productEditData?.product || {};
+        this.isDirty = false;
+        this.autoSaveEnabled = true;
+        this.autoSaveInterval = null;
+        this.validationRules = this.setupValidationRules();
+        this.uploadedImages = [];
+        
+        // Validate essential data
+        if (!this.product._id) {
+            console.warn('⚠️ Product ID missing - form may not save properly');
+        }
+        
+        this.init();
+    }
+
+    init() {
+        console.log('🏭 Initializing Product Edit Manager...');
+        console.log('📦 Product:', this.product.name || 'Unnamed Product');
+        
+        try {
+            this.setupFormNavigation();
+            console.log('✅ Form navigation setup complete');
+            
+            this.setupFormValidation();
+            console.log('✅ Form validation setup complete');
+            
+            this.setupImageUpload();
+            console.log('✅ Image upload setup complete');
+            
+            this.setupDynamicSections();
+            console.log('✅ Dynamic sections setup complete');
+            
+            this.setupAutoSave();
+            console.log('✅ Auto-save setup complete');
+            
+            this.setupKeyboardShortcuts();
+            console.log('✅ Keyboard shortcuts setup complete');
+            
+            this.setupFormChangeTracking();
+            console.log('✅ Form change tracking setup complete');
+            
+            // Initialize form with product data verification
+            this.verifyFormData();
+            
+            console.log('✅ Product Edit Manager fully initialized');
+        } catch (error) {
+            console.error('❌ Product Edit Manager initialization failed:', error);
+            throw error;
+        }
+    }
+    
+    verifyFormData() {
+        const form = document.getElementById('productEditForm');
+        if (!form) {
+            console.error('❌ Product edit form not found!');
+            return;
+        }
+        
+        // Verify key fields are populated
+        const nameField = form.querySelector('input[name="name"]');
+        const priceField = form.querySelector('input[name="pricing.basePrice"]');
+        const stockField = form.querySelector('input[name="inventory.totalStock"]');
+        
+        console.log('📋 Form Data Verification:');
+        console.log('   Name field value:', nameField?.value || 'EMPTY');
+        console.log('   Price field value:', priceField?.value || 'EMPTY');
+        console.log('   Stock field value:', stockField?.value || 'EMPTY');
+        
+        if (!nameField?.value) {
+            console.warn('⚠️ Product name field is empty');
+        }
+    }
+
+    setupFormNavigation() {
+        const nextBtn = document.getElementById('nextStep');
+        const prevBtn = document.getElementById('prevStep');
+        const submitBtn = document.getElementById('submitForm');
+
+        nextBtn?.addEventListener('click', () => this.nextStep());
+        prevBtn?.addEventListener('click', () => this.prevStep());
+        submitBtn?.addEventListener('click', (e) => this.submitForm(e));
+
+        // Step indicators
+        document.querySelectorAll('.step[data-step]').forEach(step => {
+            step.addEventListener('click', (e) => {
+                const stepNum = parseInt(e.currentTarget.dataset.step);
+                this.goToStep(stepNum);
+            });
+        });
+        
+        // Draft/Publish Button Event Listeners - Professional Implementation
+        this.setupDraftPublishButtons();
+    }
+    
+    /**
+     * Setup Draft/Publish functionality - Senior Software Engineer Implementation
+     */
+    setupDraftPublishButtons() {
+        const saveAsDraftBtn = document.getElementById('saveAsDraftBtn');
+        const publishBtn = document.getElementById('publishBtn');
+        
+        // Save as Draft functionality
+        saveAsDraftBtn?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await this.saveAsDraft();
+        });
+        
+        // Publish functionality
+        publishBtn?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await this.publishProduct();
+        });
+        
+        // Update button states based on current product status
+        this.updateButtonStates();
+    }
+    
+    /**
+     * Update button states based on product status
+     */
+    updateButtonStates() {
+        const saveAsDraftBtn = document.getElementById('saveAsDraftBtn');
+        const publishBtn = document.getElementById('publishBtn');
+        
+        if (!saveAsDraftBtn || !publishBtn) return;
+        
+        const currentStatus = this.product?.status || 'draft';
+        
+        // Update button text and styling based on status
+        if (currentStatus === 'draft') {
+            saveAsDraftBtn.innerHTML = '<i class="fas fa-save"></i> Qoralama sifatida saqlash';
+            publishBtn.innerHTML = '<i class="fas fa-rocket"></i> Chop etish';
+            publishBtn.classList.remove('btn-success');
+            publishBtn.classList.add('btn-primary');
+        } else if (currentStatus === 'active') {
+            saveAsDraftBtn.innerHTML = '<i class="fas fa-edit"></i> Qoralamaga qaytarish';
+            publishBtn.innerHTML = '<i class="fas fa-check-circle"></i> Chop etilgan';
+            publishBtn.classList.remove('btn-primary');
+            publishBtn.classList.add('btn-success');
+        }
+    }
+    
+    /**
+     * Save product as draft - Professional implementation
+     */
+    async saveAsDraft() {
+        try {
+            console.log('💾 Saving product as draft...');
+            
+            const saveAsDraftBtn = document.getElementById('saveAsDraftBtn');
+            
+            // Show loading state
+            this.setButtonLoading(saveAsDraftBtn, 'Saqlanmoqda...');
+            
+            // Collect current form data
+            const formData = this.collectFormData();
+            
+            // Send API request
+            const response = await fetch(`/manufacturer/api/products/${this.product._id}/save-draft`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Update product status
+                this.product.status = 'draft';
+                this.updateButtonStates();
+                this.isDirty = false;
+                
+                // Show success message
+                this.showSuccessToast('Mahsulot qoralama sifatida saqlandi');
+                
+                console.log('✅ Product saved as draft successfully');
+            } else {
+                this.showErrorToast(result.message || 'Qoralama saqlashda xatolik yuz berdi');
+                console.error('❌ Save as draft failed:', result.message);
+            }
+            
+        } catch (error) {
+            console.error('❌ Save as draft error:', error);
+            this.showErrorToast('Qoralama saqlashda xatolik yuz berdi');
+        } finally {
+            // Reset button state
+            const saveAsDraftBtn = document.getElementById('saveAsDraftBtn');
+            this.resetButtonLoading(saveAsDraftBtn, '<i class="fas fa-save"></i> Qoralama sifatida saqlash');
+        }
+    }
+    
+    /**
+     * Publish product - Professional implementation with validation
+     */
+    async publishProduct() {
+        try {
+            console.log('🚀 Publishing product...');
+            
+            const publishBtn = document.getElementById('publishBtn');
+            
+            // Show loading state
+            this.setButtonLoading(publishBtn, 'Chop etilmoqda...');
+            
+            // Collect current form data
+            const formData = this.collectFormData();
+            
+            // Validate form before publishing
+            const validationResult = this.validateFormForPublishing(formData);
+            
+            if (!validationResult.isValid) {
+                this.showValidationErrors(validationResult.errors);
+                return;
+            }
+            
+            // Send API request
+            const response = await fetch(`/manufacturer/api/products/${this.product._id}/publish`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Update product status
+                this.product.status = 'active';
+                this.updateButtonStates();
+                this.isDirty = false;
+                
+                // Show success message with marketplace link
+                this.showPublishSuccessMessage(result.data);
+                
+                console.log('✅ Product published successfully');
+            } else {
+                if (result.errors && result.errors.length > 0) {
+                    this.showValidationErrors(result.errors);
+                } else {
+                    this.showErrorToast(result.message || 'Chop etishda xatolik yuz berdi');
+                }
+                console.error('❌ Publish failed:', result.message);
+            }
+            
+        } catch (error) {
+            console.error('❌ Publish error:', error);
+            this.showErrorToast('Chop etishda xatolik yuz berdi');
+        } finally {
+            // Reset button state
+            const publishBtn = document.getElementById('publishBtn');
+            this.resetButtonLoading(publishBtn, '<i class="fas fa-rocket"></i> Chop etish');
+        }
+    }
+    
+    /**
+     * Validate form data for publishing
+     */
+    validateFormForPublishing(formData) {
+        const errors = [];
+        
+        // Required field validations
+        if (!formData.name || formData.name.trim().length < 3) {
+            errors.push('Mahsulot nomi kamida 3 ta belgidan iborat bo\'lishi kerak');
+        }
+        
+        if (!formData.description || formData.description.trim().length < 20) {
+            errors.push('Mahsulot ta\'rif kamida 20 ta belgidan iborat bo\'lishi kerak');
+        }
+        
+        if (!formData.category) {
+            errors.push('Kategoriya tanlanishi shart');
+        }
+        
+        if (!formData.pricing?.basePrice || formData.pricing.basePrice <= 0) {
+            errors.push('Asosiy narx 0 dan katta bo\'lishi kerak');
+        }
+        
+        if (!formData.pricing?.minimumOrderQuantity || formData.pricing.minimumOrderQuantity <= 0) {
+            errors.push('Eng kam buyurtma miqdori 0 dan katta bo\'lishi kerak');
+        }
+        
+        if (!formData.inventory?.totalStock || formData.inventory.totalStock <= 0) {
+            errors.push('Umumiy ombor miqdori 0 dan katta bo\'lishi kerak');
+        }
+        
+        if (!formData.inventory?.unit) {
+            errors.push('O\'lchov birligi tanlanishi shart');
+        }
+        
+        // Check for uploaded images
+        const hasImages = (formData.images && formData.images.length > 0) || 
+                         (document.querySelectorAll('.image-preview-item').length > 0);
+        
+        if (!hasImages) {
+            errors.push('Kamida bitta mahsulot rasmi yuklash shart');
+        }
+        
+        return {
+            isValid: errors.length === 0,
+            errors: errors
+        };
+    }
+    
+    /**
+     * Show validation errors in a professional modal
+     */
+    showValidationErrors(errors) {
+        const errorsList = errors.map(error => `<li>${error}</li>`).join('');
+        
+        const errorHtml = `
+            <div class="validation-errors-modal">
+                <div class="error-header">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Chop etish uchun quyidagi maydonlarni to'ldiring:</h3>
+                </div>
+                <ul class="error-list">
+                    ${errorsList}
+                </ul>
+                <div class="error-actions">
+                    <button class="btn btn-primary" onclick="this.parentElement.parentElement.remove()">
+                        Tushunarli
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Create and show error modal
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'validation-error-overlay';
+        errorDiv.innerHTML = errorHtml;
+        document.body.appendChild(errorDiv);
+        
+        // Auto remove after 10 seconds
+        setTimeout(() => {
+            if (errorDiv && errorDiv.parentElement) {
+                errorDiv.remove();
+            }
+        }, 10000);
+    }
+    
+    /**
+     * Show publish success message with marketplace link
+     */
+    showPublishSuccessMessage(data) {
+        const successHtml = `
+            <div class="publish-success-modal">
+                <div class="success-header">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Mahsulot muvaffaqiyatli chop etildi!</h3>
+                </div>
+                <div class="success-content">
+                    <p>Sizning mahsulotingiz endi marketplace da ko'rinadi va xaridorlar uni topishi mumkin.</p>
+                    ${data.marketplaceUrl ? 
+                        `<a href="${data.marketplaceUrl}" class="btn btn-outline" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Marketplace da ko'rish
+                        </a>` : ''
+                    }
+                </div>
+                <div class="success-actions">
+                    <button class="btn btn-success" onclick="this.parentElement.parentElement.parentElement.remove()">
+                        Ajoyib!
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Create and show success modal
+        const successDiv = document.createElement('div');
+        successDiv.className = 'publish-success-overlay';
+        successDiv.innerHTML = successHtml;
+        document.body.appendChild(successDiv);
+        
+        // Auto remove after 8 seconds
+        setTimeout(() => {
+            if (successDiv && successDiv.parentElement) {
+                successDiv.remove();
+            }
+        }, 8000);
+    }
+    
+    /**
+     * Set button loading state
+     */
+    setButtonLoading(button, text) {
+        if (!button) return;
+        
+        button.disabled = true;
+        button.classList.add('loading');
+        button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${text}`;
+    }
+    
+    /**
+     * Reset button loading state
+     */
+    resetButtonLoading(button, originalText) {
+        if (!button) return;
+        
+        button.disabled = false;
+        button.classList.remove('loading');
+        button.innerHTML = originalText;
+    }
+    
+    /**
+     * Show success toast notification
+     */
+    showSuccessToast(message) {
+        this.showToast(message, 'success');
+    }
+    
+    /**
+     * Show error toast notification
+     */
+    showErrorToast(message) {
+        this.showToast(message, 'error');
+    }
+    
+    /**
+     * Generic toast notification
+     */
+    showToast(message, type = 'info') {
+        const toastClass = type === 'success' ? 'toast-success' : 
+                          type === 'error' ? 'toast-error' : 'toast-info';
+        
+        const toastIcon = type === 'success' ? 'check-circle' : 
+                         type === 'error' ? 'exclamation-circle' : 'info-circle';
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${toastClass}`;
+        toast.innerHTML = `
+            <i class="fas fa-${toastIcon}"></i>
+            <span>${message}</span>
+        `;
+        
+        // Add to page
+        document.body.appendChild(toast);
+        
+        // Animate in
+        setTimeout(() => toast.classList.add('show'), 100);
+        
+        // Auto remove
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    setupFormValidation() {
+        const form = document.getElementById('productEditForm');
+        
+        // Real-time validation
+        form.querySelectorAll('input, textarea, select').forEach(field => {
+            field.addEventListener('blur', () => this.validateField(field));
+            field.addEventListener('input', () => this.clearFieldError(field));
+        });
+    }
+
+    setupImageUpload() {
+        const uploadArea = document.getElementById('imageUploadArea');
+        const uploadInput = document.getElementById('imageUploadInput');
+        const uploadBtn = document.querySelector('.upload-btn');
+
+        // Click to upload
+        uploadBtn?.addEventListener('click', () => uploadInput?.click());
+        uploadArea?.addEventListener('click', () => uploadInput?.click());
+
+        // File input change
+        uploadInput?.addEventListener('change', (e) => {
+            this.handleImageFiles(e.target.files);
+        });
+
+        // Drag and drop
+        uploadArea?.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea?.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea?.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            this.handleImageFiles(e.dataTransfer.files);
+        });
+
+        // Remove image handlers
+        this.setupImageRemovalHandlers();
+    }
+
+    setupDynamicSections() {
+        // Bulk pricing
+        document.getElementById('addBulkPrice')?.addEventListener('click', () => {
+            this.addBulkPriceRow();
+        });
+
+        // Specifications
+        document.getElementById('addSpecification')?.addEventListener('click', () => {
+            this.addSpecificationRow();
+        });
+
+        // Setup removal handlers
+        this.setupRemovalHandlers();
+    }
+
+    setupAutoSave() {
+        if (this.autoSaveEnabled) {
+            this.autoSaveInterval = setInterval(() => {
+                if (this.isDirty) {
+                    this.autoSaveData();
+                }
+            }, 30000); // Auto-save every 30 seconds
+        }
+    }
+
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case 's':
+                        e.preventDefault();
+                        this.submitForm();
+                        break;
+                    case 'ArrowRight':
+                        if (e.altKey) {
+                            e.preventDefault();
+                            this.nextStep();
+                        }
+                        break;
+                    case 'ArrowLeft':
+                        if (e.altKey) {
+                            e.preventDefault();
+                            this.prevStep();
+                        }
+                        break;
+                }
+            }
+        });
+    }
+
+    setupFormChangeTracking() {
+        const form = document.getElementById('productEditForm');
+        form?.addEventListener('input', () => {
+            this.isDirty = true;
+            this.updateSaveIndicator();
+        });
+
+        // Warn before leaving if unsaved changes
+        window.addEventListener('beforeunload', (e) => {
+            if (this.isDirty) {
+                e.preventDefault();
+                e.returnValue = 'Saqlanmagan o\'zgarishlar bor. Sahifani tark etishni xohlaysizmi?';
+            }
+        });
+    }
+
+    nextStep() {
+        if (this.validateCurrentStep()) {
+            if (this.currentStep < this.totalSteps) {
+                this.goToStep(this.currentStep + 1);
+            }
+        }
+    }
+
+    prevStep() {
+        if (this.currentStep > 1) {
+            this.goToStep(this.currentStep - 1);
+        }
+    }
+
+    goToStep(stepNumber) {
+        if (stepNumber < 1 || stepNumber > this.totalSteps) return;
+
+        // Hide current step
+        document.querySelector(`.form-step[data-step="${this.currentStep}"]`)?.classList.remove('active');
+        document.querySelector(`.step[data-step="${this.currentStep}"]`)?.classList.remove('active');
+
+        // Show new step
+        document.querySelector(`.form-step[data-step="${stepNumber}"]`)?.classList.add('active');
+        document.querySelector(`.step[data-step="${stepNumber}"]`)?.classList.add('active');
+
+        this.currentStep = stepNumber;
+
+        // Update navigation
+        this.updateNavigation();
+        this.updateProgressBar();
+
+        // Update step info
+        document.querySelector('.current-step').textContent = this.currentStep;
+    }
+
+    updateNavigation() {
+        const prevBtn = document.getElementById('prevStep');
+        const nextBtn = document.getElementById('nextStep');
+        const submitBtn = document.getElementById('submitForm');
+
+        if (this.currentStep === 1) {
+            prevBtn.style.display = 'none';
+        } else {
+            prevBtn.style.display = 'block';
+        }
+
+        if (this.currentStep === this.totalSteps) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'block';
+        } else {
+            nextBtn.style.display = 'block';
+            submitBtn.style.display = 'none';
+        }
+    }
+
+    updateProgressBar() {
+        const progressBar = document.querySelector('.progress-fill');
+        const percentage = (this.currentStep / this.totalSteps) * 100;
+        progressBar.style.width = `${percentage}%`;
+    }
+
+    validateCurrentStep() {
+        const currentStepElement = document.querySelector(`.form-step[data-step="${this.currentStep}"]`);
+        const requiredFields = currentStepElement.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!this.validateField(field)) {
+                isValid = false;
+            }
+        });
+
+        return isValid;
+    }
+
+    validateField(field) {
+        const value = field.value.trim();
+        const fieldName = field.name;
+        const rules = this.validationRules[fieldName];
+
+        if (!rules) return true;
+
+        let isValid = true;
+        let errorMessage = '';
+
+        // Required validation
+        if (rules.required && !value) {
+            isValid = false;
+            errorMessage = 'Bu maydon to\'ldirilishi shart';
+        }
+
+        // Length validation
+        if (value && rules.minLength && value.length < rules.minLength) {
+            isValid = false;
+            errorMessage = `Kamida ${rules.minLength} ta belgi kiriting`;
+        }
+
+        if (value && rules.maxLength && value.length > rules.maxLength) {
+            isValid = false;
+            errorMessage = `Maksimal ${rules.maxLength} ta belgi`;
+        }
+
+        // Pattern validation
+        if (value && rules.pattern && !rules.pattern.test(value)) {
+            isValid = false;
+            errorMessage = rules.patternMessage || 'Noto\'g\'ri format';
+        }
+
+        // Custom validators
+        if (value && rules.custom) {
+            const customResult = rules.custom(value);
+            if (customResult !== true) {
+                isValid = false;
+                errorMessage = customResult;
+            }
+        }
+
+        this.displayFieldValidation(field, isValid, errorMessage);
+        return isValid;
+    }
+
+    displayFieldValidation(field, isValid, errorMessage) {
+        const wrapper = field.closest('.form-group');
+        const errorElement = wrapper?.querySelector('.validation-message');
+
+        if (!wrapper || !errorElement) return;
+
+        if (isValid) {
+            wrapper.classList.remove('error');
+            wrapper.classList.add('valid');
+            errorElement.textContent = '';
+        } else {
+            wrapper.classList.remove('valid');
+            wrapper.classList.add('error');
+            errorElement.textContent = errorMessage;
+        }
+    }
+
+    clearFieldError(field) {
+        const wrapper = field.closest('.form-group');
+        wrapper?.classList.remove('error');
+    }
+
+    setupValidationRules() {
+        return {
+            'name': {
+                required: true,
+                minLength: 3,
+                maxLength: 200
+            },
+            'description': {
+                required: true,
+                minLength: 10,
+                maxLength: 2000
+            },
+            'pricing.basePrice': {
+                required: true,
+                custom: (value) => {
+                    const num = parseFloat(value);
+                    if (isNaN(num) || num <= 0) {
+                        return 'Musbat son kiriting';
+                    }
+                    return true;
+                }
+            },
+            'pricing.minimumOrderQuantity': {
+                required: true,
+                custom: (value) => {
+                    const num = parseInt(value);
+                    if (isNaN(num) || num < 1) {
+                        return 'Kamida 1 bo\'lishi kerak';
+                    }
+                    return true;
+                }
+            }
+        };
+    }
+
+    async handleImageFiles(files) {
+        const maxFiles = 10;
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+        const validFiles = Array.from(files).filter(file => {
+            if (!allowedTypes.includes(file.type)) {
+                this.showError(`Noto'g'ri fayl turi: ${file.name}`);
+                return false;
+            }
+            if (file.size > maxSize) {
+                this.showError(`Fayl juda katta: ${file.name}`);
+                return false;
+            }
+            return true;
+        });
+
+        if (validFiles.length === 0) return;
+
+        const currentImageCount = document.querySelectorAll('.image-item').length;
+        if (currentImageCount + validFiles.length > maxFiles) {
+            this.showError(`Maksimal ${maxFiles} ta rasm yuklash mumkin`);
+            return;
+        }
+
+        try {
+            this.showUploadProgress(true);
+            const uploadedUrls = await this.uploadImages(validFiles);
+            this.addImagesToPreview(uploadedUrls);
+            this.showUploadProgress(false);
+            this.showSuccess(`${uploadedUrls.length} ta rasm yuklandi`);
+        } catch (error) {
+            this.showUploadProgress(false);
+            this.showError('Rasmlarni yuklashda xatolik: ' + error.message);
+        }
+    }
+
+    async uploadImages(files) {
+        const formData = new FormData();
+        files.forEach(file => formData.append('images', file));
+
+        const response = await fetch(productEditData.apiEndpoints.uploadImages, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        });
+
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.message || 'Upload failed');
+        }
+
+        return result.data.urls;
+    }
+
+    addImagesToPreview(imageUrls) {
+        const currentImages = document.getElementById('currentImages');
+        let imagesGrid = currentImages.querySelector('.images-grid');
+        
+        if (!imagesGrid) {
+            imagesGrid = document.createElement('div');
+            imagesGrid.className = 'images-grid';
+            currentImages.appendChild(imagesGrid);
+        }
+
+        imageUrls.forEach((url, index) => {
+            const imageItem = this.createImagePreview(url, false);
+            imagesGrid.appendChild(imageItem);
+        });
+
+        this.setupImageRemovalHandlers();
+    }
+
+    createImagePreview(imageUrl, isPrimary = false) {
+        const imageItem = document.createElement('div');
+        imageItem.className = 'image-item';
+        imageItem.dataset.imageUrl = imageUrl;
+
+        imageItem.innerHTML = `
+            <div class="image-wrapper">
+                <img src="${imageUrl}" alt="Product Image" loading="lazy">
+                <div class="image-overlay">
+                    <button type="button" class="btn-sm btn-ghost set-primary" title="Asosiy qilish">
+                        <i class="fas fa-star"></i>
+                    </button>
+                    <button type="button" class="btn-sm btn-ghost remove-image" title="O'chirish">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                ${isPrimary ? '<div class="primary-badge">Asosiy</div>' : ''}
+            </div>
+        `;
+
+        return imageItem;
+    }
+
+    setupImageRemovalHandlers() {
+        document.querySelectorAll('.remove-image').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const imageItem = e.target.closest('.image-item');
+                this.removeImage(imageItem);
+            });
+        });
+
+        document.querySelectorAll('.set-primary').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const imageItem = e.target.closest('.image-item');
+                this.setPrimaryImage(imageItem);
+            });
+        });
+    }
+
+    removeImage(imageItem) {
+        if (confirm('Rasmni o\'chirishni xohlaysizmi?')) {
+            imageItem.remove();
+            this.isDirty = true;
+        }
+    }
+
+    setPrimaryImage(imageItem) {
+        // Remove primary badge from all images
+        document.querySelectorAll('.primary-badge').forEach(badge => badge.remove());
+        
+        // Add primary badge to selected image
+        const primaryBadge = document.createElement('div');
+        primaryBadge.className = 'primary-badge';
+        primaryBadge.textContent = 'Asosiy';
+        imageItem.querySelector('.image-wrapper').appendChild(primaryBadge);
+
+        // Move to first position
+        const imagesGrid = imageItem.closest('.images-grid');
+        imagesGrid.insertBefore(imageItem, imagesGrid.firstChild);
+
+        this.isDirty = true;
+    }
+
+    showUploadProgress(show) {
+        const progressElement = document.getElementById('uploadProgress');
+        progressElement.style.display = show ? 'block' : 'none';
+    }
+
+    addBulkPriceRow() {
+        const list = document.getElementById('bulkPricingList');
+        const index = list.children.length;
+        
+        const row = document.createElement('div');
+        row.className = 'bulk-price-item';
+        row.dataset.index = index;
+        
+        row.innerHTML = `
+            <div class="bulk-inputs">
+                <input type="number" name="pricing.bulkPricing[${index}].minQuantity" placeholder="Min miqdor" class="form-input small">
+                <span>-</span>
+                <input type="number" name="pricing.bulkPricing[${index}].maxQuantity" placeholder="Max miqdor" class="form-input small">
+                <input type="number" name="pricing.bulkPricing[${index}].price" placeholder="Narx (USD)" step="0.01" class="form-input small">
+                <input type="number" name="pricing.bulkPricing[${index}].discount" placeholder="Chegirma %" class="form-input small">
+            </div>
+            <button type="button" class="btn-sm btn-ghost remove-bulk-price">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        
+        list.appendChild(row);
+        this.setupRemovalHandlers();
+    }
+
+    addSpecificationRow() {
+        const list = document.getElementById('specificationsList');
+        const index = list.children.length;
+        
+        const row = document.createElement('div');
+        row.className = 'specification-item';
+        row.dataset.index = index;
+        
+        row.innerHTML = `
+            <div class="spec-inputs">
+                <input type="text" name="specifications[${index}].name" placeholder="Xususiyat nomi (Masalan: Material)" class="form-input">
+                <input type="text" name="specifications[${index}].value" placeholder="Qiymati (Masalan: 100% Paxta)" class="form-input">
+                <input type="text" name="specifications[${index}].unit" placeholder="O'lchov (Masalan: %, kg, m)" class="form-input small">
+            </div>
+            <button type="button" class="btn-sm btn-ghost remove-specification">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        
+        list.appendChild(row);
+        this.setupRemovalHandlers();
+    }
+
+    setupRemovalHandlers() {
+        document.querySelectorAll('.remove-bulk-price').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.target.closest('.bulk-price-item').remove();
+                this.reindexBulkPricing();
+            });
+        });
+
+        document.querySelectorAll('.remove-specification').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.target.closest('.specification-item').remove();
+                this.reindexSpecifications();
+            });
+        });
+    }
+
+    reindexBulkPricing() {
+        document.querySelectorAll('.bulk-price-item').forEach((item, index) => {
+            item.dataset.index = index;
+            item.querySelectorAll('input').forEach(input => {
+                const name = input.name.replace(/\[\d+\]/, `[${index}]`);
+                input.name = name;
+            });
+        });
+    }
+
+    reindexSpecifications() {
+        document.querySelectorAll('.specification-item').forEach((item, index) => {
+            item.dataset.index = index;
+            item.querySelectorAll('input').forEach(input => {
+                const name = input.name.replace(/\[\d+\]/, `[${index}]`);
+                input.name = name;
+            });
+        });
+    }
+
+    async submitForm(e) {
+        if (e) e.preventDefault();
+
+        if (!this.validateForm()) {
+            this.showError('Formani to\'ldirish paytida xatoliklar bor');
+            return;
+        }
+
+        try {
+            this.showLoading(true);
+            
+            const formData = this.collectFormData();
+            const response = await this.updateProduct(formData);
+            
+            this.showLoading(false);
+            this.isDirty = false;
+            
+            this.showSuccess('Mahsulot muvaffaqiyatli yangilandi!');
+            
+            // Redirect after successful update
+            setTimeout(() => {
+                window.location.href = '/manufacturer/marketplace';
+            }, 2000);
+            
+        } catch (error) {
+            this.showLoading(false);
+            console.error('❌ Form submission failed:', error);
+            
+            // Enhanced error handling with specific messages
+            let errorMessage = 'Xatolik yuz berdi: ' + error.message;
+            
+            if (error.message.includes('validation')) {
+                errorMessage = 'Ma\'lumotlarni tekshirishda xatolik. Barcha majburiy maydonlarni to\'ldiring va qayta urinib ko\'rinang.';
+            } else if (error.message.includes('inventory.availableStock')) {
+                errorMessage = 'Inventar ma\'lumotlarida xatolik. Mavjud miqdor ko\'rsatilishi kerak.';
+            } else if (error.message.includes('inventory.unit')) {
+                errorMessage = 'Inventar o\'lchov birligi ko\'rsatilishi kerak.';
+            } else if (error.message.includes('Cast to ObjectId')) {
+                errorMessage = 'Kategoriya noto\'g\'ri tanlangan. Iltimos, kategoriyani qayta tanlang.';
+            }
+            
+            this.showError(errorMessage);
+        }
+    }
+
+    validateForm() {
+        let isValid = true;
+        
+        for (let step = 1; step <= this.totalSteps; step++) {
+            const stepElement = document.querySelector(`.form-step[data-step="${step}"]`);
+            const requiredFields = stepElement.querySelectorAll('[required]');
+            
+            requiredFields.forEach(field => {
+                if (!this.validateField(field)) {
+                    isValid = false;
+                }
+            });
+        }
+        
+        return isValid;
+    }
+
+    collectFormData() {
+        const form = document.getElementById('productEditForm');
+        const formData = new FormData(form);
+        const data = {};
+
+        // Convert FormData to nested object
+        for (let [key, value] of formData.entries()) {
+            this.setNestedProperty(data, key, value);
+        }
+
+        // Handle ObjectId fields - remove empty strings to prevent cast errors
+        ['category', 'subcategory'].forEach(field => {
+            if (data[field] === '' || data[field] === null || data[field] === undefined) {
+                delete data[field];
+            }
+        });
+
+        // Ensure inventory fields are complete
+        if (data.inventory) {
+            // If totalStock is provided but availableStock is missing, calculate it
+            if (data.inventory.totalStock && !data.inventory.availableStock) {
+                data.inventory.availableStock = data.inventory.totalStock - (data.inventory.reservedStock || 0);
+            }
+            
+            // Ensure unit is set
+            if (!data.inventory.unit) {
+                data.inventory.unit = 'pieces';
+            }
+        }
+
+        // Ensure pricing fields are properly typed
+        if (data.pricing) {
+            // Convert string numbers to proper types
+            if (data.pricing.basePrice) {
+                data.pricing.basePrice = parseFloat(data.pricing.basePrice) || 0;
+            }
+            if (data.pricing.minimumOrderQuantity) {
+                data.pricing.minimumOrderQuantity = parseInt(data.pricing.minimumOrderQuantity) || 1;
+            }
+            if (data.pricing.maximumOrderQuantity && data.pricing.maximumOrderQuantity !== '') {
+                data.pricing.maximumOrderQuantity = parseInt(data.pricing.maximumOrderQuantity);
+            } else {
+                delete data.pricing.maximumOrderQuantity;
+            }
+            
+            // Ensure currency is set
+            if (!data.pricing.currency) {
+                data.pricing.currency = 'USD';
+            }
+        }
+
+        // Collect images
+        const imageUrls = Array.from(document.querySelectorAll('.image-item')).map(item => 
+            item.dataset.imageUrl
+        );
+        data.images = imageUrls;
+
+        // Collect shipping methods
+        const shippingMethods = Array.from(document.querySelectorAll('input[name="shipping.methods"]:checked'))
+            .map(input => input.value);
+        if (shippingMethods.length > 0) {
+            data.shipping = data.shipping || {};
+            data.shipping.methods = shippingMethods;
+        }
+
+        console.log('📋 Enhanced form data collected:', data);
+        return data;
+    }
+
+    setNestedProperty(obj, path, value) {
+        const keys = path.split(/[\.\[\]]+/).filter(key => key);
+        let current = obj;
+
+        for (let i = 0; i < keys.length - 1; i++) {
+            const key = keys[i];
+            if (!(key in current)) {
+                current[key] = isNaN(keys[i + 1]) ? {} : [];
+            }
+            current = current[key];
+        }
+
+        const lastKey = keys[keys.length - 1];
+        if (Array.isArray(current)) {
+            current[parseInt(lastKey)] = value;
+        } else {
+            current[lastKey] = value;
+        }
+    }
+
+    async updateProduct(data) {
+        console.log('🚀 Sending product update request:', data);
+        
+        try {
+            const response = await fetch(productEditData.apiEndpoints.updateProduct, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(data),
+                credentials: 'same-origin'
+            });
+
+            const result = await response.json();
+            console.log('📥 Server response:', result);
+            
+            if (!result.success) {
+                // Enhanced error handling for different error types
+                if (result.error && result.error.includes('Cast to ObjectId failed')) {
+                    throw new Error('Kategoriya maydoni noto\'g\'ri. Iltimos, kategoriyani qayta tanlang.');
+                } else if (result.error && result.error.includes('validation')) {
+                    throw new Error('Ma\'lumotlarni tekshirishda xatolik. Barcha majburiy maydonlarni to\'ldiring.');
+                } else {
+                    throw new Error(result.message || 'Mahsulotni yangilashda xatolik yuz berdi');
+                }
+            }
+
+            console.log('✅ Product updated successfully');
+            return result.data;
+        } catch (error) {
+            console.error('❌ Product update failed:', error);
+            throw error;
+        }
+    }
+
+    async autoSaveData() {
+        try {
+            const formData = this.collectFormData();
+            // Save to localStorage as draft
+            localStorage.setItem(`product_draft_${this.product._id}`, JSON.stringify({
+                data: formData,
+                timestamp: Date.now()
+            }));
+            
+            this.showAutoSaveIndicator();
+        } catch (error) {
+            console.error('Auto-save failed:', error);
+        }
+    }
+
+    showAutoSaveIndicator() {
+        // Show brief auto-save indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'auto-save-indicator';
+        indicator.textContent = 'Avtomatik saqlandi';
+        document.body.appendChild(indicator);
+        
+        setTimeout(() => indicator.remove(), 2000);
+    }
+
+    updateSaveIndicator() {
+        // Update UI to show unsaved changes
+        const title = document.querySelector('.page-title');
+        if (title && !title.textContent.includes('*')) {
+            title.textContent += ' *';
+        }
+    }
+
+    showLoading(show) {
+        const submitBtn = document.getElementById('submitForm');
+        if (show) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saqlanmoqda...';
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Saqlash';
+        }
+    }
+
+    showSuccess(message) {
+        this.showToast(message, 'success');
+    }
+
+    showError(message) {
+        this.showToast(message, 'error');
+    }
+
+    showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        
+        Object.assign(toast.style, {
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            color: 'white',
+            zIndex: '9999',
+            fontSize: '14px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            backgroundColor: type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6',
+            animation: 'slideInRight 0.3s ease-out'
+        });
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Cleanup
+    destroy() {
+        if (this.autoSaveInterval) {
+            clearInterval(this.autoSaveInterval);
+        }
+    }
+}
+
+// Professional SVG Placeholder - Industry Standard
+const PROFESSIONAL_PLACEHOLDER_SVG = 'data:image/svg+xml;base64,' + btoa(`
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#f3f4f6"/>
+  <g fill="#9ca3af" text-anchor="middle" dominant-baseline="middle">
+    <text x="50%" y="45%" font-family="Arial, sans-serif" font-size="16" font-weight="500">Product</text>
+    <text x="50%" y="60%" font-family="Arial, sans-serif" font-size="14">Image</text>
+  </g>
+  <circle cx="100" cy="35" r="8" fill="#d1d5db"/>
+  <path d="M70 80 L130 80 L110 60 Z" fill="#d1d5db"/>
+</svg>
+`);
+
+// Professional Mock Image System - Category-Based Images
+const PROFESSIONAL_MOCK_IMAGES = {
+    // Textile & Cotton Products
+    'textiles': [
+        'data:image/svg+xml;base64,' + btoa(`<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="fabric" patternUnits="userSpaceOnUse" width="20" height="20"><rect width="20" height="20" fill="#f8fafc"/><circle cx="10" cy="10" r="2" fill="#3b82f6"/></pattern></defs><rect width="300" height="300" fill="url(#fabric)"/><rect x="50" y="50" width="200" height="200" fill="#e2e8f0" stroke="#3b82f6" stroke-width="3"/><text x="150" y="160" text-anchor="middle" font-family="Arial" font-size="18" fill="#1e40af" font-weight="bold">TEXTILE</text><text x="150" y="180" text-anchor="middle" font-family="Arial" font-size="14" fill="#64748b">Premium Fabric</text></svg>`),
+        'data:image/svg+xml;base64,' + btoa(`<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="300" fill="#f1f5f9"/><rect x="30" y="80" width="240" height="140" fill="#3b82f6" rx="10"/><rect x="50" y="100" width="200" height="100" fill="#1d4ed8" rx="5"/><text x="150" y="140" text-anchor="middle" font-family="Arial" font-size="16" fill="white" font-weight="bold">COTTON</text><text x="150" y="160" text-anchor="middle" font-family="Arial" font-size="12" fill="#bfdbfe">100% Organic</text></svg>`)
+    ],
+    // Food & Agriculture
+    'food': [
+        'data:image/svg+xml;base64,' + btoa(`<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="300" fill="#fef3c7"/><circle cx="150" cy="150" r="80" fill="#f59e0b" opacity="0.2"/><rect x="120" y="120" width="60" height="60" fill="#d97706" rx="5"/><text x="150" y="145" text-anchor="middle" font-family="Arial" font-size="14" fill="white" font-weight="bold">FOOD</text><text x="150" y="160" text-anchor="middle" font-family="Arial" font-size="10" fill="white">Premium Quality</text><circle cx="150" cy="80" r="15" fill="#f59e0b"/><circle cx="100" cy="200" r="10" fill="#d97706"/><circle cx="200" cy="220" r="12" fill="#f59e0b"/></svg>`),
+        'data:image/svg+xml;base64,' + btoa(`<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="300" fill="#ecfdf5"/><rect x="50" y="100" width="200" height="100" fill="#10b981" rx="10"/><text x="150" y="140" text-anchor="middle" font-family="Arial" font-size="18" fill="white" font-weight="bold">ORGANIC</text><text x="150" y="160" text-anchor="middle" font-family="Arial" font-size="12" fill="#86efac">Fresh & Natural</text><circle cx="80" cy="70" r="8" fill="#059669"/><circle cx="220" cy="230" r="6" fill="#10b981"/></svg>`)
+    ],
+    // Electronics & Technology
+    'electronics': [
+        'data:image/svg+xml;base64,' + btoa(`<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="300" fill="#f8fafc"/><rect x="50" y="80" width="200" height="140" fill="#1e293b" rx="10"/><rect x="70" y="100" width="160" height="100" fill="#0f172a" rx="5"/><circle cx="90" cy="120" r="3" fill="#22d3ee"/><circle cx="110" cy="120" r="3" fill="#ef4444"/><circle cx="130" cy="120" r="3" fill="#10b981"/><rect x="80" y="140" width="140" height="40" fill="#334155" rx="3"/><text x="150" y="160" text-anchor="middle" font-family="Arial" font-size="12" fill="#64748b">ELECTRONICS</text></svg>`),
+        'data:image/svg+xml;base64,' + btoa(`<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="300" fill="#fef2f2"/><rect x="80" y="60" width="140" height="180" fill="#dc2626" rx="15"/><rect x="100" y="80" width="100" height="60" fill="#991b1b" rx="5"/><text x="150" y="110" text-anchor="middle" font-family="Arial" font-size="12" fill="white" font-weight="bold">LED PANEL</text><circle cx="150" cy="180" r="20" fill="#fee2e2"/><circle cx="150" cy="180" r="15" fill="#dc2626"/></svg>`)
+    ],
+    // General/Default Products
+    'general': [
+        'data:image/svg+xml;base64,' + btoa(`<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="300" fill="#f1f5f9"/><rect x="75" y="75" width="150" height="150" fill="#e2e8f0" stroke="#64748b" stroke-width="2" rx="10"/><rect x="100" y="100" width="100" height="100" fill="#94a3b8" rx="5"/><text x="150" y="145" text-anchor="middle" font-family="Arial" font-size="14" fill="white" font-weight="bold">PRODUCT</text><text x="150" y="160" text-anchor="middle" font-family="Arial" font-size="10" fill="white">B2B Quality</text></svg>`),
+        'data:image/svg+xml;base64,' + btoa(`<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="300" fill="#fafafa"/><polygon points="150,50 250,150 150,250 50,150" fill="#6366f1" opacity="0.8"/><polygon points="150,80 220,150 150,220 80,150" fill="#4f46e5"/><text x="150" y="145" text-anchor="middle" font-family="Arial" font-size="12" fill="white" font-weight="bold">PREMIUM</text><text x="150" y="160" text-anchor="middle" font-family="Arial" font-size="8" fill="#c7d2fe">Manufacturing</text></svg>`)
+    ],
+    // Machinery & Industrial
+    'machinery': [
+        'data:image/svg+xml;base64,' + btoa(`<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="300" fill="#f9fafb"/><rect x="50" y="100" width="200" height="100" fill="#374151" rx="5"/><circle cx="100" cy="150" r="20" fill="#6b7280"/><circle cx="200" cy="150" r="20" fill="#6b7280"/><rect x="120" y="140" width="60" height="20" fill="#9ca3af" rx="3"/><text x="150" y="240" text-anchor="middle" font-family="Arial" font-size="14" fill="#374151" font-weight="bold">MACHINERY</text></svg>`),
+        'data:image/svg+xml;base64,' + btoa(`<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="300" fill="#f0f9ff"/><rect x="70" y="80" width="160" height="140" fill="#0ea5e9" rx="8"/><rect x="90" y="100" width="120" height="100" fill="#0284c7" rx="5"/><circle cx="110" cy="130" r="8" fill="#7dd3fc"/><circle cx="150" cy="130" r="8" fill="#7dd3fc"/><circle cx="190" cy="130" r="8" fill="#7dd3fc"/><text x="150" y="250" text-anchor="middle" font-family="Arial" font-size="12" fill="#0369a1" font-weight="bold">INDUSTRIAL</text></svg>`)
+    ]
+};
+
+// Generate mock image based on category and product info
+function generateMockImage(category, productId, productName) {
+    // Categorize based on product name and category
+    let imageCategory = 'general';
+    
+    if (category) {
+        // Handle both string and object categories
+        let categoryString = '';
+        if (typeof category === 'string') {
+            categoryString = category;
+        } else if (typeof category === 'object' && category !== null) {
+            categoryString = category.name || category._id || String(category);
+        } else {
+            categoryString = String(category);
+        }
+        const cat = categoryString.toLowerCase();
+        if (cat.includes('textile') || cat.includes('fabric') || cat.includes('cotton') || cat.includes('yarn')) {
+            imageCategory = 'textiles';
+        } else if (cat.includes('food') || cat.includes('agriculture') || cat.includes('organic') || cat.includes('grain')) {
+            imageCategory = 'food';
+        } else if (cat.includes('electronic') || cat.includes('led') || cat.includes('display') || cat.includes('tech')) {
+            imageCategory = 'electronics';
+        } else if (cat.includes('machinery') || cat.includes('industrial') || cat.includes('equipment')) {
+            imageCategory = 'machinery';
+        }
+    }
+    
+    // Also check product name for better categorization
+    if (productName) {
+        const name = productName.toLowerCase();
+        if (name.includes('cotton') || name.includes('fabric') || name.includes('textile')) {
+            imageCategory = 'textiles';
+        } else if (name.includes('flour') || name.includes('wheat') || name.includes('food') || name.includes('organic')) {
+            imageCategory = 'food';
+        } else if (name.includes('led') || name.includes('display') || name.includes('panel') || name.includes('electronic')) {
+            imageCategory = 'electronics';
+        } else if (name.includes('machine') || name.includes('industrial') || name.includes('equipment')) {
+            imageCategory = 'machinery';
+        }
+    }
+    
+    // Get images for the category
+    const categoryImages = PROFESSIONAL_MOCK_IMAGES[imageCategory] || PROFESSIONAL_MOCK_IMAGES['general'];
+    
+    // Use product ID to consistently select the same image for the same product
+    const imageIndex = productId ? 
+        Math.abs(productId.toString().split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % categoryImages.length :
+        Math.floor(Math.random() * categoryImages.length);
+    
+    return categoryImages[imageIndex];
+}
+
+// ENHANCED Professional Image Error Handler - Senior Software Engineer Pattern
+function handleImageError(img) {
+    if (img.dataset.errorHandled) return; // Prevent infinite loop
+    
+    console.warn('🚨 Image error handler triggered for:', {
+        src: img.src,
+        className: img.className,
+        productName: img.dataset.productName || 'Unknown'
+    });
+    
+    img.dataset.errorHandled = 'true';
+    img.onerror = null;
+    
+    // CASE 1: Real image failed - convert to mock image (including modal real images)
+    if (img.classList.contains('product-real-image') || img.classList.contains('modal-real-image')) {
+        console.log('🔄 Converting failed real image to mock image...');
+        
+        const category = img.dataset.category || 'general';
+        const productId = img.dataset.productId || '';
+        const productName = img.dataset.productName || '';
+        
+        // Remove real image class and add mock image class
+        img.classList.remove('product-real-image', 'modal-real-image');
+        img.classList.add('mock-product-image', 'modal-mock-image', 'converted-from-real');
+        
+        // Generate mock image
+        const mockSrc = generateMockImage(category, productId, productName);
+        img.src = mockSrc;
+        
+        console.log(`✅ Real image converted to mock: ${productName} (${category})`);
+        return;
+    }
+    
+    // CASE 2: Mock image failed - use backup mock image (including modal mock images)
+    if (img.classList.contains('mock-product-image') || img.classList.contains('modal-mock-image')) {
+        console.log('🔄 Mock image failed, using backup...');
+        
+        const category = img.dataset.category || 'general';
+        const productId = img.dataset.productId || '';
+        const productName = img.dataset.productName || '';
+        
+        // Try different mock image from the same category
+        const categoryImages = PROFESSIONAL_MOCK_IMAGES[category] || PROFESSIONAL_MOCK_IMAGES['general'];
+        const backupIndex = (parseInt(productId.slice(-2), 16) || 1) % categoryImages.length;
+        const backupSrc = categoryImages[backupIndex];
+        
+        img.src = backupSrc;
+        img.classList.add('backup-mock-image');
+        
+        console.log(`✅ Backup mock image loaded: ${productName}`);
+        return;
+    }
+    
+    // CASE 3: Everything failed - use professional SVG placeholder
+    console.log('🔄 Using professional SVG placeholder as final fallback...');
+    img.src = PROFESSIONAL_PLACEHOLDER_SVG;
+    img.classList.add('final-placeholder');
+    
+    // CASE 4: Even SVG failed - show CSS placeholder
+    img.onerror = function() {
+        console.error('💥 All image fallbacks failed, using CSS placeholder');
+        this.style.display = 'none';
+        
+        // Create CSS placeholder if it doesn't exist
+        let placeholder = this.nextElementSibling;
+        if (!placeholder || !placeholder.classList.contains('product-image-placeholder')) {
+            placeholder = document.createElement('div');
+            placeholder.className = 'product-image-placeholder';
+            placeholder.innerHTML = `
+                <i class="fas fa-image"></i>
+                <span>No Image Available</span>
+            `;
+            this.parentNode.insertBefore(placeholder, this.nextSibling);
+        }
+        
+        placeholder.style.display = 'flex';
+    };
+}
+
+/**
+ * Product Modal Manager for Edit Page
+ */
+class ProductModalManager {
+    constructor() {
+        this.modal = null;
+        this.modalBody = null;
+        this.isInitialized = false;
+        this.logger = console;
+    }
+
+    init() {
+        try {
+            this.modal = document.getElementById('productDetailsModal');
+            this.modalBody = document.getElementById('modalBody');
+            
+            if (!this.modal || !this.modalBody) {
+                this.logger.error('❌ Modal elements not found');
+                return false;
+            }
+            
+            this.setupEventListeners();
+            this.isInitialized = true;
+            this.logger.log('✅ Product Modal Manager initialized');
+            return true;
+            
+        } catch (error) {
+            this.logger.error('❌ Modal manager initialization error:', error);
+            return false;
+        }
+    }
+
+    setupEventListeners() {
+        // Close modal button
+        const closeBtn = document.getElementById('closeModal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.closeModal());
+        }
+
+        // Close modal on overlay click
+        this.modal.addEventListener('click', (e) => {
+            if (e.target === this.modal) {
+                this.closeModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.modal.classList.contains('active')) {
+                this.closeModal();
+            }
+        });
+
+        // Preview button functionality
+        const previewBtn = document.getElementById('previewBtn');
+        if (previewBtn) {
+            previewBtn.addEventListener('click', () => {
+                const productId = this.getProductIdFromUrl();
+                if (productId) {
+                    this.showProductDetails(productId);
+                } else {
+                    this.showError('Mahsulot ID topilmadi');
+                }
+            });
+        }
+    }
+
+    getProductIdFromUrl() {
+        const urlParts = window.location.pathname.split('/');
+        const editIndex = urlParts.indexOf('edit');
+        return editIndex !== -1 && editIndex + 1 < urlParts.length ? urlParts[editIndex + 1] : null;
+    }
+
+    async showProductDetails(productId) {
+        try {
+            this.logger.log(`👁️ Showing product details for: ${productId}`);
+            
+            if (!this.modal || !this.modalBody) {
+                this.showError('Modal topilmadi');
+                return;
+            }
+
+            // Show modal with loading state
+            this.modal.classList.add('active');
+            this.modalBody.innerHTML = `
+                <div class="loading-content">
+                    <div class="loading-spinner"></div>
+                    <p>Ma'lumot yuklanmoqda...</p>
+                </div>
+            `;
+
+            // Fetch product details
+            const response = await fetch(`/manufacturer/api/products/${productId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                const product = result.data;
+                
+                try {
+                    const htmlContent = this.generateProductDetailsHTML(product);
+                    this.modalBody.innerHTML = htmlContent;
+                } catch (htmlError) {
+                    console.error('🚨 HTML yaratishda xatolik:', htmlError);
+                    this.modalBody.innerHTML = `
+                        <div class="error-content">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>HTML yaratishda xatolik: ${htmlError.message}</p>
+                        </div>
+                    `;
+                }
+            } else {
+                this.modalBody.innerHTML = `
+                    <div class="error-content">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>${result.message || 'Mahsulot ma\'lumotlarini yuklashda xatolik'}</p>
+                    </div>
+                `;
+            }
+
+        } catch (error) {
+            this.logger.error('❌ Show product details error:', error);
+            if (this.modalBody) {
+                this.modalBody.innerHTML = `
+                    <div class="error-content">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Ma'lumotlarni yuklashda xatolik yuz berdi: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    generateProductDetailsHTML(product) {
+        // Helper function to safely get category string
+        const getCategoryString = (category) => {
+            if (typeof category === 'string') {
+                return category;
+            } else if (typeof category === 'object' && category !== null) {
+                return category.name || category._id || 'general';
+            }
+            return 'general';
+        };
+        
+        const formatPrice = (pricing) => {
+            if (!pricing || !pricing.basePrice) return 'Narx so\'raladi';
+            const currency = pricing.currency === 'USD' ? '$' : pricing.currency;
+            return `${currency}${pricing.basePrice.toLocaleString()}`;
+        };
+
+        const formatSpecs = (specifications) => {
+            if (!specifications || specifications.length === 0) return '<p>Texnik xususiyatlar ko\'rsatilmagan</p>';
+            return specifications.map(spec => 
+                `<div class="spec-row">
+                    <span class="spec-name">${spec.name}</span>
+                    <span class="spec-value">${spec.value}${spec.unit ? ' ' + spec.unit : ''}</span>
+                </div>`
+            ).join('');
+        };
+
+        return `
+            <div class="product-details-content">
+                <!-- Product Header -->
+                <div class="modal-product-header">
+                    <div class="modal-product-image">
+                        ${product.images && product.images.length > 0 ? 
+                            `<img src="${typeof product.images[0] === 'string' ? product.images[0] : product.images[0].url || product.images[0]}" 
+                                alt="${product.name}" 
+                                class="modal-real-image"
+                                data-category="${getCategoryString(product.category)}"
+                                data-product-id="${product._id}"
+                                data-product-name="${product.name || 'Nomsiz mahsulot'}"
+                                onerror="handleImageError(this)">` :
+                            `<img 
+                                src="${(() => {
+                                    const mockSrc = generateMockImage(getCategoryString(product.category), product._id, product.name);
+                                    return mockSrc;
+                                })()}" 
+                                alt="${product.name}" 
+                                class="modal-mock-image" 
+                                data-category="${getCategoryString(product.category)}"
+                                data-product-id="${product._id}"
+                                data-product-name="${product.name || 'Nomsiz mahsulot'}"
+                                onerror="handleImageError(this)"
+                            >`
+                        }
+                    </div>
+                    <div class="modal-product-info">
+                        <h3 class="modal-product-title">${product.name || 'Nomsiz mahsulot'}</h3>
+                        <p class="modal-product-category">
+                            <i class="fas fa-tag"></i>
+                            ${product.category?.name || product.category || 'Kategoriyasiz'}
+                        </p>
+                        <div class="modal-product-id">ID: ${product._id.toString().slice(-8).toUpperCase()}</div>
+                        <div class="modal-product-price">
+                            <span class="price-large">${formatPrice(product.pricing)}</span>
+                            ${product.pricing?.minimumOrderQuantity ? 
+                                `<span class="moq-large">Eng kam: ${product.pricing.minimumOrderQuantity.toLocaleString()} dona</span>` : 
+                                '<span class="moq-large">Eng kam: 100 dona</span>'
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Description -->
+                ${product.description ? 
+                    `<div class="modal-section">
+                        <h4 class="section-title">Ta'rif</h4>
+                        <p class="product-description">${product.description}</p>
+                    </div>` : ''
+                }
+
+                <!-- Specifications -->
+                <div class="modal-section">
+                    <h4 class="section-title">Texnik xususiyatlar</h4>
+                    <div class="specifications-grid">
+                        ${formatSpecs(product.specifications)}
+                    </div>
+                </div>
+
+                <!-- Inventory & Shipping -->
+                <div class="modal-sections-grid">
+                    <div class="modal-section">
+                        <h4 class="section-title">Ombor holati</h4>
+                        <div class="inventory-info">
+                            <div class="inventory-item">
+                                <span class="inventory-label">Umumiy:</span>
+                                <span class="inventory-value">${product.inventory?.totalStock?.toLocaleString() || '0'} ${product.inventory?.unit || 'dona'}</span>
+                            </div>
+                            <div class="inventory-item">
+                                <span class="inventory-label">Mavjud:</span>
+                                <span class="inventory-value">${product.inventory?.availableStock?.toLocaleString() || '0'} ${product.inventory?.unit || 'dona'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-section">
+                        <h4 class="section-title">Yetkazish</h4>
+                        <div class="shipping-info">
+                            ${product.shipping?.leadTime ? 
+                                `<div class="shipping-item">
+                                    <span class="shipping-label">Muddat:</span>
+                                    <span class="shipping-value">${product.shipping.leadTime.min}-${product.shipping.leadTime.max} kun</span>
+                                </div>` : ''
+                            }
+                            ${product.shipping?.weight ? 
+                                `<div class="shipping-item">
+                                    <span class="shipping-label">Og'irlik:</span>
+                                    <span class="shipping-value">${product.shipping.weight} kg</span>
+                                </div>` : ''
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Stats -->
+                <div class="modal-section">
+                    <h4 class="section-title">Statistika</h4>
+                    <div class="modal-stats-grid">
+                        <div class="modal-stat">
+                            <i class="fas fa-eye"></i>
+                            <div class="stat-info">
+                                <span class="stat-value">${(product.views || 0).toLocaleString()}</span>
+                                <span class="stat-label">Ko'rishlar</span>
+                            </div>
+                        </div>
+                        <div class="modal-stat">
+                            <i class="fas fa-star"></i>
+                            <div class="stat-info">
+                                <span class="stat-value">${product.rating || 4.5}</span>
+                                <span class="stat-label">Reyting</span>
+                            </div>
+                        </div>
+                        <div class="modal-stat">
+                            <i class="fas fa-shopping-cart"></i>
+                            <div class="stat-info">
+                                <span class="stat-value">${product.orderCount || 0}</span>
+                                <span class="stat-label">Buyurtmalar</span>
+                            </div>
+                        </div>
+                        <div class="modal-stat">
+                            <i class="fas fa-calendar-plus"></i>
+                            <div class="stat-info">
+                                <span class="stat-value">${product.createdAt ? new Date(product.createdAt).toLocaleDateString('uz-UZ') : 'Noma\'lum'}</span>
+                                <span class="stat-label">Yaratilgan</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="modal-actions">
+                    <button class="btn-modal btn-outline" onclick="document.getElementById('productDetailsModal').classList.remove('active')">
+                        <i class="fas fa-times"></i>
+                        Yopish
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    closeModal() {
+        if (this.modal) {
+            this.modal.classList.remove('active');
+        }
+    }
+
+    showError(message) {
+        console.error(message);
+        // You can implement toast notifications here if needed
+    }
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎯 Product Edit Page - Professional Initialization Starting...');
+    
+    try {
+        // Validate required data
+        if (!productEditData || !productEditData.product) {
+            console.error('❌ Product edit data missing!');
+            return;
+        }
+        
+        console.log('📋 Product data loaded:', productEditData.product.name);
+        
+        // Initialize header functionality
+        if (window.ManufacturerHeader) {
+            window.manufacturerHeader = new ManufacturerHeader();
+            console.log('✅ Manufacturer Header initialized');
+        }
+        
+        // Initialize dashboard functionality
+        if (window.ManufacturerDashboard) {
+            const dashboardOptions = {
+                userId: productEditData.user.id,
+                userName: productEditData.user.name,
+                companyName: productEditData.user.companyName,
+                currentPage: 'products'
+            };
+            
+            window.manufacturerDashboard = new ManufacturerDashboard(dashboardOptions);
+            window.manufacturerDashboard.init().catch(console.warn);
+            console.log('✅ Manufacturer Dashboard initialized');
+        }
+        
+        // Initialize product edit manager
+        window.productEditManager = new ProductEditManager();
+        console.log('✅ Product Edit Manager initialized');
+        
+        // Initialize modal functionality
+        window.productModalManager = new ProductModalManager();
+        window.productModalManager.init();
+        console.log('✅ Product Modal Manager initialized');
+        
+        console.log('🎊 Product Edit Page - All systems ready!');
+        
+    } catch (error) {
+        console.error('❌ Product Edit Page initialization failed:', error);
+        
+        // Show user-friendly error message
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger';
+        errorDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+        errorDiv.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-exclamation-circle"></i>
+                <strong>Sahifa yuklanishida xatolik!</strong>
+            </div>
+            <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem;">Sahifani qayta yuklang yoki administrator bilan bog'laning.</p>
+        `;
+        document.body.appendChild(errorDiv);
+        
+        // Auto remove after 10 seconds
+        setTimeout(() => errorDiv.remove(), 10000);
+    }
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    window.productEditManager?.destroy();
+});
+</script>
+
+<style>
+/* =============================================== */
+/* PRODUCT EDIT PAGE STYLES */
+/* =============================================== */
+
+/* Product Header */
+.product-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.breadcrumb-link {
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.breadcrumb-link:hover {
+    color: white;
+}
+
+.breadcrumb-separator {
+    font-size: 0.75rem;
+    opacity: 0.6;
+}
+
+.breadcrumb-current {
+    color: white;
+    font-weight: 500;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.page-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.header-actions button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.5);
+    color: white;
+}
+
+.btn-outline:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: white;
+}
+
+.btn-secondary {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.btn-primary {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+}
+
+/* Main Container */
+.product-edit-container {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+    align-items: start;
+}
+
+/* Form Container */
+.form-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Multi-step Form */
+.multi-step-form {
+    position: relative;
+}
+
+.form-progress {
+    padding: 2rem;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.progress-steps::before {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-color);
+    z-index: 1;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.step-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.2;
+    transition: color 0.3s ease;
+}
+
+.step.active .step-number {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.step.active .step-label {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.progress-bar {
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+/* Form Steps - Optimized Animation */
+.form-step {
+    display: none;
+    padding: 2rem;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-step.active {
+    display: block;
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    animation: smoothSlideIn 0.3s ease-out forwards;
+}
+
+/* Smooth slide animation */
+@keyframes smoothSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(15px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.step-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.step-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.step-description {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Form Grid */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.form-label.required::after {
+    content: '*';
+    color: #ef4444;
+    margin-left: 0.25rem;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group.error .form-input,
+.form-group.error .form-textarea,
+.form-group.error .form-select {
+    border-color: #ef4444;
+}
+
+.form-group.valid .form-input,
+.form-group.valid .form-textarea,
+.form-group.valid .form-select {
+    border-color: #10b981;
+}
+
+.validation-message {
+    font-size: 0.75rem;
+    color: #ef4444;
+    margin-top: 0.25rem;
+}
+
+.form-hint {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin-top: 0.25rem;
+}
+
+/* Special Input Types */
+.price-input-wrapper {
+    position: relative;
+}
+
+.price-currency {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.price-input {
+    padding-left: 2rem;
+}
+
+.form-input.small {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.dimensions-inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dimensions-inputs span {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+/* Dynamic Sections */
+.bulk-pricing-section,
+.specifications-section,
+.inventory-section {
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.section-header h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-sm.btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.btn-sm.btn-outline:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--primary-color);
+}
+
+.btn-sm.btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+}
+
+.btn-sm.btn-ghost:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Bulk Pricing */
+.bulk-price-item,
+.specification-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+}
+
+.bulk-inputs,
+.spec-inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.bulk-inputs span {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+/* Image Upload */
+.image-upload-section {
+    margin-bottom: 2rem;
+}
+
+.upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 2rem;
+}
+
+.upload-area:hover,
+.upload-area.drag-over {
+    border-color: var(--primary-color);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--text-tertiary);
+    margin-bottom: 1rem;
+}
+
+.upload-area h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.upload-area p {
+    color: var(--text-secondary);
+    margin: 0 0 1rem 0;
+}
+
+.upload-requirements {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin-bottom: 1.5rem !important;
+}
+
+.upload-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+/* Current Images */
+.images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.image-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.image-item:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    
+}
+
+.image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-item:hover .image-overlay {
+    opacity: 1;
+}
+
+.image-item:hover i.fa-star {
+  color: #f59e0b;
+}
+.image-item:hover i.fa-trash {
+  color: #ef4444;
+}
+
+.image-overlay .btn-sm {
+    background: rgba(255,255,255,0.9);
+    color: var(--text-primary);
+    padding: 0.5rem;
+    border-radius: 6px;
+}
+
+.primary-badge {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    background: #f59e0b;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Upload Progress */
+.upload-progress {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.progress-text {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.progress-percentage {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Shipping Methods */
+.shipping-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+    content: '✓';
+    position: absolute;
+    top: -2px;
+    left: 3px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Form Navigation */
+.form-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+}
+
+.nav-info {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.current-step {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.btn-success {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    background: #059669;
+    transform: translateY(-2px);
+}
+
+/* Sidebar */
+.sidebar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.analytics-card,
+.quick-actions-card,
+.status-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card-header {
+    background: var(--bg-secondary);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+/* Analytics Grid */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.analytics-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+}
+
+.analytics-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+}
+
+.analytics-icon.views { background: #3b82f6; }
+.analytics-icon.orders { background: #10b981; }
+.analytics-icon.revenue { background: #f59e0b; }
+.analytics-icon.conversion { background: #8b5cf6; }
+
+.analytics-info {
+    flex: 1;
+}
+
+.analytics-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.analytics-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+/* Quick Actions */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.prev-step{
+  padding: 8px;
+  border-radius: 5px;
+  display: block;
+  align-content: center;
+}
+
+.action-btn:hover {
+    background: var(--bg-secondary);
+    border-color: var(--primary-color);
+}
+
+.action-btn.danger {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.action-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+}
+
+/* Status Controls */
+.status-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.control-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+}
+
+/* Professional Toggle Switch Styles - Senior Software Engineer Design */
+.toggle-switch {
+    position: relative;
+    width: 56px;
+    height: 32px;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.toggle-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+    pointer-events: none;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 32px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 24px;
+    width: 24px;
+    left: 2px;
+    bottom: 2px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 
+        0 3px 12px rgba(0, 0, 0, 0.15),
+        0 1px 4px rgba(0, 0, 0, 0.1);
+    transform: translateX(0) scale(1);
+}
+
+.toggle-slider:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    width: 3px;
+    height: 3px;
+    background: #94a3b8;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 1;
+}
+
+/* Checked State - Professional Green Activation */
+.toggle-switch input:checked + .toggle-slider {
+    background: linear-gradient(135deg, var(--primary-color, #10b981) 0%, #059669 100%);
+    border-color: var(--primary-color, #10b981);
+    box-shadow: 
+        inset 0 2px 4px rgba(16, 185, 129, 0.3),
+        0 0 16px rgba(16, 185, 129, 0.2),
+        0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(24px) scale(1.05);
+    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-switch input:checked + .toggle-slider:after {
+    left: auto;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    opacity: 1;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+}
+
+/* Professional Hover Effects */
+.toggle-switch:hover .toggle-slider {
+    transform: scale(1.02);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.1),
+        0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.toggle-switch:hover input:checked + .toggle-slider {
+    box-shadow: 
+        inset 0 2px 4px rgba(16, 185, 129, 0.3),
+        0 0 20px rgba(16, 185, 129, 0.3),
+        0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-switch:hover .toggle-slider:before {
+    transform: translateX(0) scale(1.1);
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-switch:hover input:checked + .toggle-slider:before {
+    transform: translateX(24px) scale(1.15);
+}
+
+/* Focus State for Accessibility */
+.toggle-switch input:focus + .toggle-slider {
+    outline: 2px solid var(--primary-color, #3b82f6);
+    outline-offset: 2px;
+}
+
+/* Disabled State */
+.toggle-switch input:disabled + .toggle-slider {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border-color: #e2e8f0;
+}
+
+.toggle-switch input:disabled + .toggle-slider:before {
+    background: #e2e8f0;
+    box-shadow: none;
+}
+
+/* Dark Mode Professional Styling */
+[data-theme="dark"] .toggle-slider {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+    border-color: #4b5563;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.3),
+        0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .toggle-slider:before {
+    background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] .toggle-slider:after {
+    background: #6b7280;
+}
+
+[data-theme="dark"] .toggle-switch input:checked + .toggle-slider {
+    background: linear-gradient(135deg, var(--primary-color, #10b981) 0%, #059669 100%);
+    box-shadow: 
+        inset 0 2px 4px rgba(16, 185, 129, 0.4),
+        0 0 16px rgba(16, 185, 129, 0.3),
+        0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .toggle-switch input:checked + .toggle-slider:before {
+    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+}
+
+[data-theme="dark"] .toggle-switch input:checked + .toggle-slider:after {
+    background: rgba(255, 255, 255, 0.95);
+}
+
+/* Professional Animation Keyframes */
+@keyframes professional-toggle-on {
+    0% {
+        transform: translateX(0) scale(1);
+    }
+    50% {
+        transform: translateX(12px) scale(1.15);
+    }
+    100% {
+        transform: translateX(24px) scale(1.05);
+    }
+}
+
+@keyframes professional-toggle-off {
+    0% {
+        transform: translateX(24px) scale(1.05);
+    }
+    50% {
+        transform: translateX(12px) scale(1.15);
+    }
+    100% {
+        transform: translateX(0) scale(1);
+    }
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    animation: professional-toggle-on 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.toggle-switch input:not(:checked) + .toggle-slider:before {
+    animation: professional-toggle-off 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.control-info {
+    flex: 1;
+}
+
+.control-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.control-description {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* Stock Status */
+.stock-status {
+    text-align: center;
+    padding: 0.75rem;
+}
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-indicator.in_stock {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.status-indicator.low_stock {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.status-indicator.out_of_stock {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* Auto-save Indicator */
+.auto-save-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    z-index: 9999;
+    animation: slideInUp 0.3s ease-out;
+}
+
+/* Animations */
+@keyframes slideInUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideOutRight {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100px); opacity: 0; }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .product-edit-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .sidebar-container {
+        order: -1;
+    }
+    
+    .analytics-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .progress-steps {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .step-label {
+        display: none;
+    }
+    
+    .analytics-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .bulk-inputs,
+    .spec-inputs {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .dimensions-inputs {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-header {
+        padding: 1.5rem;
+    }
+    
+    .form-step {
+        padding: 1rem;
+    }
+    
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .images-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Dark Mode Compatibility */
+[data-theme="dark"] .product-header {
+    background: linear-gradient(135deg, #1e40af, #7c3aed);
+}
+
+[data-theme="dark"] .upload-area {
+    border-color: var(--border-color);
+    background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .upload-area:hover,
+[data-theme="dark"] .upload-area.drag-over {
+    border-color: var(--primary-color);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+/* Dark Mode - Form Select & Options */
+[data-theme="dark"] .form-select {
+    background: var(--bg-secondary, #1f2937);
+    border-color: var(--border-color, #374151);
+    color: var(--text-primary, #f9fafb);
+}
+
+[data-theme="dark"] .form-select:focus {
+    border-color: var(--color-primary, #3b82f6);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background: var(--bg-secondary, #1f2937);
+}
+
+[data-theme="dark"] .form-select option {
+    background: var(--bg-secondary, #1f2937);
+    color: var(--text-primary, #f9fafb);
+    padding: 0.5rem;
+}
+
+[data-theme="dark"] .form-select option:hover,
+[data-theme="dark"] .form-select option:focus {
+    background: var(--color-primary, #3b82f6);
+    color: white;
+}
+
+[data-theme="dark"] .form-select option:checked {
+    background: var(--color-primary, #3b82f6);
+    color: white;
+    font-weight: 600;
+}
+
+/* Professional Toast Notifications - Senior Software Engineer Design */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 320px;
+    max-width: 500px;
+    padding: 16px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 10000;
+    transform: translateX(100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast i {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.toast span {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.toast-success {
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    border-color: #10b981;
+    color: #065f46;
+}
+
+.toast-success i {
+    color: #10b981;
+}
+
+.toast-error {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-color: #ef4444;
+    color: #991b1b;
+}
+
+.toast-error i {
+    color: #ef4444;
+}
+
+.toast-info {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-color: #3b82f6;
+    color: #1e40af;
+}
+
+.toast-info i {
+    color: #3b82f6;
+}
+
+/* Dark Mode Toast Notifications */
+[data-theme="dark"] .toast {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+}
+
+[data-theme="dark"] .toast-success {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+    border-color: #10b981;
+    color: #d1fae5;
+}
+
+[data-theme="dark"] .toast-error {
+    background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+    border-color: #ef4444;
+    color: #fecaca;
+}
+
+[data-theme="dark"] .toast-info {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    border-color: #3b82f6;
+    color: #dbeafe;
+}
+
+/* Professional Validation Error Modal */
+.validation-error-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    animation: fadeIn 0.3s ease;
+}
+
+.validation-errors-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.25),
+        0 10px 20px rgba(0, 0, 0, 0.1);
+    animation: slideInUp 0.3s ease;
+}
+
+.error-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #fef2f2;
+}
+
+.error-header i {
+    font-size: 28px;
+    color: #ef4444;
+}
+
+.error-header h3 {
+    color: #991b1b;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.error-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px 0;
+}
+
+.error-list li {
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #991b1b;
+    font-weight: 500;
+    position: relative;
+    padding-left: 40px;
+}
+
+.error-list li::before {
+    content: "•";
+    position: absolute;
+    left: 16px;
+    color: #ef4444;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.error-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Professional Publish Success Modal */
+.publish-success-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    animation: fadeIn 0.3s ease;
+}
+
+.publish-success-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.25),
+        0 10px 20px rgba(0, 0, 0, 0.1);
+    animation: slideInUp 0.3s ease;
+}
+
+.success-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f0fdf4;
+}
+
+.success-header i {
+    font-size: 48px;
+    color: #10b981;
+    margin-bottom: 12px;
+}
+
+.success-header h3 {
+    color: #065f46;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.success-content {
+    margin-bottom: 24px;
+}
+
+.success-content p {
+    color: #374151;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.success-content a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.success-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+/* Button Loading State */
+.btn.loading {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.btn.loading i.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Modal Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dark Mode Modal Styles */
+[data-theme="dark"] .validation-errors-modal,
+[data-theme="dark"] .publish-success-modal {
+    background: #1f2937;
+    color: #f9fafb;
+}
+
+[data-theme="dark"] .error-header {
+    border-bottom-color: #374151;
+}
+
+[data-theme="dark"] .error-header h3 {
+    color: #fecaca;
+}
+
+[data-theme="dark"] .error-list li {
+    background: #374151;
+    border-color: #4b5563;
+    color: #fecaca;
+}
+
+[data-theme="dark"] .success-header {
+    border-bottom-color: #374151;
+}
+
+[data-theme="dark"] .success-header h3 {
+    color: #d1fae5;
+}
+
+[data-theme="dark"] .success-content p {
+    color: #d1d5db;
+}
+
+/* Responsive Toast Notifications */
+@media (max-width: 768px) {
+    .toast {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+        max-width: none;
+    }
+    
+    .validation-errors-modal,
+    .publish-success-modal {
+        margin: 20px;
+        width: calc(100% - 40px);
+        padding: 24px;
+    }
+    
+    .error-header h3,
+    .success-header h3 {
+        font-size: 18px;
+    }
+    
+    .success-header i {
+        font-size: 36px;
+    }
+}
+</style>
+
+<!-- Product Details Modal -->
+<div class="modal-overlay" id="productDetailsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Mahsulot ma'lumotlari</h2>
+      <button class="modal-close" id="closeModal">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- Dinamik kontent shu yerga yuklanadi -->
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>Ma'lumot yuklanmoqda...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -154,15 +154,15 @@
             </div>
           <% } %>
 
-          <form action="/auth/login" method="POST" id="loginForm">
+          <form action="/auth/login" method="POST" id="loginForm" class="needs-validation" novalidate>
             <!-- CSRF Token -->
             <input type="hidden" name="csrfToken" value="<%= csrfToken || '' %>">
             <div class="row gy-4">
               <div class="col-12">
-                <label for="identifier" class="form-label mb-2 font-18 font-heading fw-600"><%= t('auth.emailOrTaxNumber') %></label>
+                <label for="email" class="form-label mb-2 font-18 font-heading fw-600"><%= t('auth.email') || 'Email Address' %></label>
                 <div class="position-relative">
-                  <input type="text" class="common-input common-input--bg common-input--withIcon" id="identifier" name="identifier"
-                    placeholder="<%= t('auth.emailOrTaxNumberPlaceholder') %>" required>
+                  <input type="email" class="common-input common-input--bg common-input--withIcon" id="email" name="email"
+                    placeholder="<%= t('auth.emailPlaceholder') || 'Enter your email address' %>" required>
                   <span class="input-icon"><img src="/assets/images/icons/envelope-icon.svg" alt=""></span>
                 </div>
               </div>
@@ -208,7 +208,7 @@
               <div class="col-sm-12 mb-0">
                 <div class="have-account">
                   <p class="text font-14"><%= t('auth.newToMarket') %> <a class="link text-main text-decoration-underline fw-500"
-                      href="/register"><%= t('auth.signUp') %></a></p>
+                      href="/auth/register"><%= t('auth.signUp') %></a></p>
                 </div>
               </div>
             </div>
@@ -247,7 +247,11 @@
   <!-- Password Toggle JavaScript -->
   <script src="/js/login-password-toggle.js"></script>
   
-  <!-- Login Handler JavaScript removed - using simple form submission -->
+  <!-- Enhanced Multi-Dashboard Login JavaScript -->
+  <script src="/js/multi-dashboard-login.js"></script>
+  
+  <!-- Legacy Login Handler (Backward Compatibility) -->
+  <script src="/js/login-handler.js"></script>
 
   <!-- Google Translate removed - using i18next instead -->
 

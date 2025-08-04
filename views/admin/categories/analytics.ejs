@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="<%= typeof lng !== 'undefined' ? lng : 'uz' %>" class="theme-transition">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category Analytics Dashboard - SLEX Admin</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="/assets/css/line-awesome.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/admin/css/admin-dashboard.css">
+    <link rel="stylesheet" href="/admin/css/dashboard-components.css">
+    <link rel="stylesheet" href="/admin/css/categories-management.css">
+    
+    <!-- Chart.js for advanced analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+</head>
+
+<body class="admin-layout theme-transition" data-theme="light">
+
+    <%- include('../partials/header', { 
+        title: 'Category Analytics Dashboard - SLEX Admin',
+        lng: typeof currentLang !== 'undefined' ? currentLang : 'uz',
+        admin: admin, 
+        user: user,
+        breadcrumb: [
+            { title: 'Dashboard', url: '/admin' },
+            { title: 'Categories', url: '/admin/categories' },
+            { title: 'Analytics' }
+        ]
+    }) %>
+    
+    <%- include('../partials/sidebar', { 
+        admin: admin, 
+        user: user, 
+        currentPage: 'categories',
+        stats: typeof stats !== 'undefined' ? stats : {}
+    }) %>
+    
+    <!-- Main Content -->
+    <main class="admin-main">
+        <div class="admin-content">
+            
+            <!-- Analytics Dashboard Content -->
+            <div class="analytics-container">
+                
+                <!-- Page Header -->
+                <div class="page-header animate-fade-in">
+                    <div class="page-header-content">
+                        <div class="page-title-section">
+                            <h1 class="page-title">
+                                <i class="las la-chart-line text-primary"></i>
+                                Category Analytics Dashboard
+                            </h1>
+                            <p class="page-subtitle">
+                                Comprehensive analytics, insights, and business intelligence for category performance across the SLEX B2B marketplace
+                            </p>
+                        </div>
+                        <div class="page-actions">
+                            <select class="form-select" id="dateRangeSelect">
+                                <option value="7d">Last 7 Days</option>
+                                <option value="30d" selected>Last 30 Days</option>
+                                <option value="90d">Last 90 Days</option>
+                                <option value="1y">Last Year</option>
+                            </select>
+                            <button class="btn btn-outline-primary" onclick="exportAnalyticsReport()">
+                                <i class="las la-download"></i>
+                                Export Report
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="refreshAnalytics()">
+                                <i class="las la-sync-alt"></i>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overview Statistics -->
+                <div class="analytics-overview">
+                    <div class="overview-cards">
+                        <div class="overview-card primary">
+                            <div class="card-icon">
+                                <i class="las la-folder-open"></i>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-value" id="totalCategoriesAnalytics">0</div>
+                                <div class="card-label">Total Categories</div>
+                                <div class="card-change positive">
+                                    <i class="las la-arrow-up"></i>
+                                    <span id="categoriesGrowth">+0%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overview-card success">
+                            <div class="card-icon">
+                                <i class="las la-boxes"></i>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-value" id="totalProductsAnalytics">0</div>
+                                <div class="card-label">Total Products</div>
+                                <div class="card-change positive">
+                                    <i class="las la-arrow-up"></i>
+                                    <span id="productsGrowth">+0%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overview-card warning">
+                            <div class="card-icon">
+                                <i class="las la-dollar-sign"></i>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-value" id="totalRevenueAnalytics">$0</div>
+                                <div class="card-label">Total Revenue</div>
+                                <div class="card-change positive">
+                                    <i class="las la-arrow-up"></i>
+                                    <span id="revenueGrowth">+0%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overview-card info">
+                            <div class="card-icon">
+                                <i class="las la-industry"></i>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-value" id="totalManufacturersAnalytics">0</div>
+                                <div class="card-label">Active Manufacturers</div>
+                                <div class="card-change positive">
+                                    <i class="las la-arrow-up"></i>
+                                    <span id="manufacturersGrowth">+0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Charts Row -->
+                <div class="analytics-charts-row">
+                    
+                    <!-- Category Performance Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                <i class="las la-chart-bar"></i>
+                                Category Performance Trends
+                            </h3>
+                            <div class="chart-actions">
+                                <select class="form-select-sm" id="performanceMetric">
+                                    <option value="revenue">Revenue</option>
+                                    <option value="products">Products</option>
+                                    <option value="orders">Orders</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="categoryPerformanceChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Category Distribution Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                <i class="las la-chart-pie"></i>
+                                Category Distribution
+                            </h3>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="categoryDistributionChart"></canvas>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <!-- Top Categories Table -->
+                <div class="analytics-table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">
+                            <i class="las la-crown"></i>
+                            Top Performing Categories
+                        </h3>
+                        <div class="table-actions">
+                            <select class="form-select-sm" id="topCategoriesMetric">
+                                <option value="revenue">By Revenue</option>
+                                <option value="products">By Products</option>
+                                <option value="popularity">By Popularity</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-body">
+                        <table class="analytics-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Category</th>
+                                    <th>Level</th>
+                                    <th>Products</th>
+                                    <th>Revenue</th>
+                                    <th>Manufacturers</th>
+                                    <th>Growth</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topCategoriesTableBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Category Hierarchy Analysis -->
+                <div class="analytics-hierarchy-card">
+                    <div class="hierarchy-header">
+                        <h3 class="hierarchy-title">
+                            <i class="las la-sitemap"></i>
+                            Category Hierarchy Analysis
+                        </h3>
+                    </div>
+                    <div class="hierarchy-body">
+                        <div class="hierarchy-levels">
+                            <div class="level-analysis">
+                                <div class="level-header">
+                                    <span class="level-label">Root Categories (Level 0)</span>
+                                    <span class="level-count" id="level0Count">0</span>
+                                </div>
+                                <div class="level-metrics">
+                                    <div class="metric">
+                                        <span class="metric-label">Avg Products</span>
+                                        <span class="metric-value" id="level0AvgProducts">0</span>
+                                    </div>
+                                    <div class="metric">
+                                        <span class="metric-label">Avg Revenue</span>
+                                        <span class="metric-value" id="level0AvgRevenue">$0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="level-analysis">
+                                <div class="level-header">
+                                    <span class="level-label">Level 1 Categories</span>
+                                    <span class="level-count" id="level1Count">0</span>
+                                </div>
+                                <div class="level-metrics">
+                                    <div class="metric">
+                                        <span class="metric-label">Avg Products</span>
+                                        <span class="metric-value" id="level1AvgProducts">0</span>
+                                    </div>
+                                    <div class="metric">
+                                        <span class="metric-label">Avg Revenue</span>
+                                        <span class="metric-value" id="level1AvgRevenue">$0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="level-analysis">
+                                <div class="level-header">
+                                    <span class="level-label">Deeper Levels (2+)</span>
+                                    <span class="level-count" id="deeperLevelsCount">0</span>
+                                </div>
+                                <div class="level-metrics">
+                                    <div class="metric">
+                                        <span class="metric-label">Avg Products</span>
+                                        <span class="metric-value" id="deeperLevelsAvgProducts">0</span>
+                                    </div>
+                                    <div class="metric">
+                                        <span class="metric-label">Avg Revenue</span>
+                                        <span class="metric-value" id="deeperLevelsAvgRevenue">$0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay d-none" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="loading-text" id="loadingText">Loading analytics...</div>
+        </div>
+    </div>
+
+<!-- Scripts -->
+<script src="/assets/js/jquery-3.7.1.min.js"></script>
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+
+<!-- Admin Dashboard Core Scripts -->
+<script src="/admin/js/dashboard.js"></script>
+
+<!-- Category Analytics JavaScript -->
+<script src="/admin/js/category-analytics.js"></script>
+
+<!-- Initialize Analytics -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof CategoryAnalytics !== 'undefined') {
+            window.categoryAnalytics = new CategoryAnalytics();
+            window.categoryAnalytics.init();
+        }
+    });
+
+    function refreshAnalytics() {
+        if (window.categoryAnalytics) {
+            window.categoryAnalytics.refreshAllData();
+        }
+    }
+
+    function exportAnalyticsReport() {
+        if (window.categoryAnalytics) {
+            window.categoryAnalytics.exportReport();
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -64,6 +64,16 @@ const adminSchema = new mongoose.Schema({
     default: null
   },
   
+  lastLoginIP: {
+    type: String,
+    default: null
+  },
+  
+  lastLoginUserAgent: {
+    type: String,
+    default: null
+  },
+  
   loginAttempts: {
     type: Number,
     default: 0

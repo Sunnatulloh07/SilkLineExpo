@@ -281,6 +281,62 @@ class JWTAuthMiddleware {
     };
 
     /**
+     * Manufacturer only middleware
+     */
+    manufacturerOnly = (req, res, next) => {
+        this.authenticate(req, res, (err) => {
+            if (err) return next(err);
+            
+            // Check if user is authenticated
+            if (!req.user) {
+                return this.handleUnauthorized(req, res);
+            }
+            
+            // Check if user is manufacturer company admin
+            if (req.user.userType === 'user' && 
+                req.user.role === 'company_admin' && 
+                req.user.companyType === 'manufacturer') {
+                return next();
+            }
+            
+            // Check if user is admin or super admin (they have access too)
+            if (req.user.userType === 'admin' && ['admin', 'super_admin'].includes(req.user.role)) {
+                return next();
+            }
+            
+            return this.handleForbidden(req, res, 'Manufacturer access required');
+        });
+    };
+
+    /**
+     * Distributor only middleware
+     */
+    distributorOnly = (req, res, next) => {
+        this.authenticate(req, res, (err) => {
+            if (err) return next(err);
+            
+            // Check if user is authenticated
+            if (!req.user) {
+                return this.handleUnauthorized(req, res);
+            }
+            
+            // Check if user is distributor company admin
+            if (req.user.userType === 'user' && 
+                req.user.role === 'company_admin' && 
+                req.user.companyType === 'distributor') {
+                return next();
+            }
+            
+            // Check if user is admin or super admin (they have access too)
+            if (req.user.userType === 'admin' && ['admin', 'super_admin'].includes(req.user.role)) {
+                return next();
+            }
+            
+            return this.handleForbidden(req, res, 'Distributor access required');
+        });
+    };
+
+    /**
      * Refresh tokens and update cookies with enhanced error handling
      */
     async refreshTokens(req, res, refreshToken) {
@@ -516,6 +572,8 @@ module.exports = {
     adminOnly: jwtAuth.adminOnly,
     superAdminOnly: jwtAuth.superAdminOnly,
     companyAdminOnly: jwtAuth.companyAdminOnly,
+    manufacturerOnly: jwtAuth.manufacturerOnly,
+    distributorOnly: jwtAuth.distributorOnly,
     logout: jwtAuth.logout,
     redirectIfAuthenticated: jwtAuth.redirectIfAuthenticated,
     securityHeaders: jwtAuth.securityHeaders,

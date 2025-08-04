@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="<%= typeof currentLang !== 'undefined' ? currentLang : 'uz' %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Title -->
+    <title><%= title %> - SLEX Manufacturer Dashboard</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Professional Manufacturing Dashboard - SLEX B2B Platform">
+    <meta name="keywords" content="manufacturing, production, dashboard, b2b, silk road">
+    <meta name="author" content="SLEX Platform">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/assets/images/logo/favicon.png">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:;">
+    
+    <!-- CSS Dependencies -->
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="/assets/css/fontawesome-all.min.css">
+    
+    <!-- Line Awesome Icons -->
+    <link rel="stylesheet" href="/assets/css/line-awesome.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js for Analytics -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css">
+    
+    <!-- Core Dashboard Styles -->
+    <link rel="stylesheet" href="/admin/css/dashboard-common.css">
+    <link rel="stylesheet" href="/admin/css/dashboard-components.css">
+    
+    <!-- Manufacturer-Specific Styles -->
+    <link rel="stylesheet" href="/css/manufacturer/manufacturer-dashboard.css">
+    <link rel="stylesheet" href="/css/manufacturer/manufacturer-components.css">
+    
+    <!-- Bootstrap Override for Manufacturer Theme -->
+    <style>
+        /* Temporary inline styles to ensure visibility */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        
+        .manufacturer-dashboard {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .dashboard-header {
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            margin: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .header-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .header-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card-trend {
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .card-trend.positive {
+            color: #059669;
+        }
+        
+        .card-icon {
+            font-size: 2rem;
+            color: #7c3aed;
+            margin-bottom: 1rem;
+        }
+    </style>
+    
+    <!-- Theme Variables -->
+    <style>
+        :root {
+            /* Manufacturer Theme Colors */
+            --manufacturer-primary: #7c3aed;
+            --manufacturer-secondary: #06b6d4;
+            --manufacturer-accent: #ef4444;
+            --manufacturer-success: #10b981;
+            --manufacturer-warning: #f59e0b;
+            --manufacturer-info: #3b82f6;
+            
+            /* Gradients */
+            --manufacturer-gradient: linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%);
+            --manufacturer-card-gradient: linear-gradient(135deg, #7c3aed15 0%, #06b6d415 100%);
+            
+            /* Shadows */
+            --manufacturer-shadow: 0 4px 6px -1px rgba(124, 58, 237, 0.1);
+            --manufacturer-shadow-lg: 0 10px 15px -3px rgba(124, 58, 237, 0.1);
+            
+            /* Typography */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        /* Dark Mode Support */
+        [data-theme="dark"] {
+            --manufacturer-primary: #8b5cf6;
+            --manufacturer-secondary: #22d3ee;
+            --manufacturer-accent: #f87171;
+        }
+    </style>
+    
+    <!-- Progressive Web App -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#7c3aed">
+    
+    <!-- iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="SLEX Manufacturer">
+</head>
+
+<body class="manufacturer-dashboard" data-theme="light">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <div class="loading-text">Initializing Manufacturer Dashboard...</div>
+    </div>
+
+    <!-- Dashboard Wrapper -->
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <%- include('partials/sidebar', { currentPage: currentPage, user: user }) %>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <%- include('partials/header', { title: title, user: user }) %>
+            
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="page-breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="/manufacturer/dashboard">
+                                <i class="las la-home"></i> Dashboard
+                            </a>
+                        </li>
+                        <% if (currentPage !== 'dashboard') { %>
+                            <li class="breadcrumb-item active" aria-current="page">
+                                <%= title %>
+                            </li>
+                        <% } %>
+                    </ol>
+                </nav>
+                
+                <!-- Main Content Area -->
+                <div class="content-area">
+                    <%- body %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for Mobile -->
+    <div class="sidebar-overlay"></div>
+    
+    <!-- Floating Action Button -->
+    <div class="fab-container">
+        <button class="fab fab-primary" id="quickActionsBtn" title="Quick Actions">
+            <i class="las la-plus"></i>
+        </button>
+        <div class="fab-menu" id="fabMenu">
+            <a href="#" class="fab-item" title="New Production Order">
+                <i class="las la-industry"></i>
+            </a>
+            <a href="#" class="fab-item" title="Quality Check">
+                <i class="las la-check-circle"></i>
+            </a>
+            <a href="#" class="fab-item" title="Equipment Status">
+                <i class="las la-cogs"></i>
+            </a>
+            <a href="#" class="fab-item" title="Quick Report">
+                <i class="las la-chart-bar"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;"></div>
+
+    <!-- JavaScript Dependencies -->
+    <!-- jQuery -->
+    <script src="/assets/js/jquery-3.7.1.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <!-- ApexCharts for Advanced Visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+    
+    <!-- Core Dashboard Scripts -->
+    <script src="/admin/js/token-manager.js"></script>
+    <script src="/admin/js/dashboard-common.js"></script>
+    
+    <!-- Manufacturer Dashboard Scripts -->
+    <script src="/js/manufacturer/manufacturer-dashboard.js"></script>
+    <script src="/js/manufacturer/manufacturer-common.js"></script>
+    
+    <!-- Page-Specific Scripts -->
+    <% if (currentPage === 'dashboard') { %>
+        <script src="/js/manufacturer/dashboard-widgets.js"></script>
+        <script src="/js/manufacturer/production-metrics.js"></script>
+    <% } else if (currentPage === 'production') { %>
+        <script src="/js/manufacturer/production-management.js"></script>
+    <% } else if (currentPage === 'products') { %>
+        <script src="/js/manufacturer/product-development.js"></script>
+    <% } else if (currentPage === 'analytics') { %>
+        <script src="/js/manufacturer/business-intelligence.js"></script>
+    <% } %>
+    
+    <!-- PWA Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            });
+        }
+    </script>
+    
+    <!-- Initialize Dashboard -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize manufacturer dashboard
+            if (typeof ManufacturerDashboard !== 'undefined') {
+                const dashboard = new ManufacturerDashboard({
+                    currentPage: '<%= currentPage %>',
+                    userId: '<%= user.userId %>',
+                    userName: '<%= user.name %>',
+                    companyName: '<%= user.companyName || "Manufacturer" %>',
+                    theme: localStorage.getItem('manufacturer-theme') || 'light'
+                });
+                
+                dashboard.init();
+                
+                // Make globally available
+                window.manufacturerDashboard = dashboard;
+            }
+            
+            // Hide loading screen
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+            }, 800);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,578 @@
+/**
+ * Professional Products Modal CSS
+ * Senior Software Engineer Level Implementation with Dark Mode Support
+ */
+
+/* ===============================================
+   PRODUCT MODAL OVERLAY & BASE STYLES
+   =============================================== */
+.product-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--products-modal-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-in-out;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.product-modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.product-modal {
+    background: var(--products-modal-bg);
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: hidden;
+    transform: scale(0.95) translateY(20px);
+    transition: all 0.3s ease-in-out;
+    border: 1px solid var(--products-border-primary);
+}
+
+.product-modal-overlay.show .product-modal {
+    transform: scale(1) translateY(0);
+}
+
+/* ===============================================
+   MODAL HEADER
+   =============================================== */
+.product-modal .modal-header {
+    padding: 24px 32px 20px;
+    border-bottom: 2px solid var(--products-border-primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--products-bg-primary);
+    border-radius: 16px 16px 0 0;
+}
+
+.product-modal .modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--products-text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.product-modal .modal-title i {
+    color: var(--products-primary);
+    font-size: 1.75rem;
+}
+
+.product-modal .modal-close {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    color: var(--products-text-muted);
+    transition: all 0.2s ease;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.product-modal .modal-close:hover {
+    background: var(--products-bg-hover);
+    color: var(--products-text-primary);
+    transform: scale(1.1);
+}
+
+/* ===============================================
+   MODAL BODY & FORM SECTIONS
+   =============================================== */
+.product-modal .modal-body {
+    padding: 0;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--products-bg-secondary);
+}
+
+.product-modal .form-section {
+    padding: 32px;
+    border-bottom: 1px solid var(--products-border-primary);
+    background: var(--products-bg-primary);
+    margin-bottom: 1px;
+}
+
+.product-modal .form-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.product-modal .section-header {
+    margin-bottom: 24px;
+}
+
+.product-modal .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--products-text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.product-modal .section-title i {
+    color: var(--products-primary);
+    font-size: 1.5rem;
+}
+
+/* ===============================================
+   FORM GRID & GROUPS
+   =============================================== */
+.product-modal .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.product-modal .form-grid.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.product-modal .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.product-modal .form-label {
+    font-weight: 600;
+    color: var(--products-text-primary);
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.product-modal .form-label.required::after {
+    content: '*';
+    color: var(--products-danger);
+    font-weight: bold;
+}
+
+.product-modal .form-control {
+    padding: 12px 16px;
+    border: 2px solid var(--products-border-primary);
+    border-radius: 8px;
+    background: var(--products-bg-secondary);
+    color: var(--products-text-primary);
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    min-height: 44px;
+}
+
+.product-modal .form-control:focus {
+    outline: none;
+    border-color: var(--products-primary);
+    box-shadow: 0 0 0 3px var(--products-primary-light);
+    background: var(--products-bg-primary);
+}
+
+.product-modal .form-control::placeholder {
+    color: var(--products-text-muted);
+}
+
+.product-modal .form-control.is-invalid {
+    border-color: var(--products-danger);
+    box-shadow: 0 0 0 3px var(--products-danger-light);
+}
+
+.product-modal .form-feedback {
+    font-size: 0.85rem;
+    margin-top: 4px;
+    min-height: 20px;
+}
+
+.product-modal .form-feedback.invalid-feedback {
+    color: var(--products-danger);
+    font-weight: 500;
+}
+
+.product-modal textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+/* ===============================================
+   SETTINGS GRID & TOGGLES
+   =============================================== */
+.product-modal .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.product-modal .setting-item {
+    background: var(--products-bg-secondary);
+    border: 2px solid var(--products-border-primary);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s ease;
+}
+
+.product-modal .setting-item:hover {
+    border-color: var(--products-primary);
+    background: var(--products-bg-hover);
+}
+
+.product-modal .setting-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.product-modal .setting-toggle {
+    position: relative;
+    width: 48px;
+    height: 24px;
+    background: var(--products-border-secondary);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.product-modal .setting-toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.product-modal input[type="checkbox"] {
+    display: none;
+}
+
+.product-modal input[type="checkbox"]:checked + .setting-toggle {
+    background: var(--products-primary);
+}
+
+.product-modal input[type="checkbox"]:checked + .setting-toggle::after {
+    transform: translateX(24px);
+}
+
+.product-modal .setting-text {
+    flex: 1;
+}
+
+.product-modal .setting-text strong {
+    display: block;
+    color: var(--products-text-primary);
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.product-modal .setting-text small {
+    color: var(--products-text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+/* ===============================================
+   MODAL FOOTER
+   =============================================== */
+.product-modal .modal-footer {
+    padding: 24px 32px;
+    border-top: 2px solid var(--products-border-primary);
+    background: var(--products-bg-primary);
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
+    align-items: center;
+    border-radius: 0 0 16px 16px;
+}
+
+.product-modal .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    height: 44px;
+}
+
+.product-modal .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.product-modal .btn-primary {
+    background: var(--products-primary);
+    border-color: var(--products-primary);
+    color: white;
+}
+
+.product-modal .btn-primary:hover:not(:disabled) {
+    background: var(--products-primary-hover);
+    border-color: var(--products-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.product-modal .btn-secondary {
+    background: transparent;
+    border-color: var(--products-border-secondary);
+    color: var(--products-text-secondary);
+}
+
+.product-modal .btn-secondary:hover:not(:disabled) {
+    background: var(--products-bg-hover);
+    border-color: var(--products-border-hover);
+    color: var(--products-text-primary);
+    transform: translateY(-1px);
+}
+
+/* ===============================================
+   LOADING STATES & ANIMATIONS
+   =============================================== */
+.product-modal .animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ===============================================
+   DARK MODE STYLES
+   =============================================== */
+[data-theme="dark"] .product-modal-overlay {
+    background: var(--products-modal-overlay);
+}
+
+[data-theme="dark"] .product-modal {
+    background: var(--products-modal-bg);
+    border-color: var(--products-border-primary);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .product-modal .modal-header {
+    background: var(--products-bg-primary);
+    border-bottom-color: var(--products-border-primary);
+}
+
+[data-theme="dark"] .product-modal .modal-title {
+    color: var(--products-text-primary);
+}
+
+[data-theme="dark"] .product-modal .modal-close {
+    color: var(--products-text-muted);
+}
+
+[data-theme="dark"] .product-modal .modal-close:hover {
+    background: var(--products-bg-hover);
+    color: var(--products-text-primary);
+}
+
+[data-theme="dark"] .product-modal .modal-body {
+    background: var(--products-bg-secondary);
+}
+
+[data-theme="dark"] .product-modal .form-section {
+    background: var(--products-bg-primary);
+    border-bottom-color: var(--products-border-primary);
+}
+
+[data-theme="dark"] .product-modal .section-title {
+    color: var(--products-text-primary);
+}
+
+[data-theme="dark"] .product-modal .form-label {
+    color: var(--products-text-primary);
+}
+
+[data-theme="dark"] .product-modal .form-control {
+    background: var(--products-bg-secondary);
+    color: var(--products-text-primary);
+    border-color: var(--products-border-primary);
+}
+
+[data-theme="dark"] .product-modal .form-control:focus {
+    background: var(--products-bg-primary);
+    border-color: var(--products-primary);
+    box-shadow: 0 0 0 3px var(--products-primary-light);
+}
+
+[data-theme="dark"] .product-modal .form-control::placeholder {
+    color: var(--products-text-muted);
+}
+
+[data-theme="dark"] .product-modal .form-control.is-invalid {
+    border-color: var(--products-danger);
+    box-shadow: 0 0 0 3px var(--products-danger-light);
+}
+
+[data-theme="dark"] .product-modal .form-feedback.invalid-feedback {
+    color: var(--products-danger);
+}
+
+[data-theme="dark"] .product-modal .setting-item {
+    background: var(--products-bg-secondary);
+    border-color: var(--products-border-primary);
+}
+
+[data-theme="dark"] .product-modal .setting-item:hover {
+    background: var(--products-bg-hover);
+    border-color: var(--products-primary);
+}
+
+[data-theme="dark"] .product-modal .setting-toggle {
+    background: var(--products-border-secondary);
+}
+
+[data-theme="dark"] .product-modal input[type="checkbox"]:checked + .setting-toggle {
+    background: var(--products-primary);
+}
+
+[data-theme="dark"] .product-modal .setting-text strong {
+    color: var(--products-text-primary);
+}
+
+[data-theme="dark"] .product-modal .setting-text small {
+    color: var(--products-text-secondary);
+}
+
+[data-theme="dark"] .product-modal .modal-footer {
+    background: var(--products-bg-primary);
+    border-top-color: var(--products-border-primary);
+}
+
+[data-theme="dark"] .product-modal .btn-secondary {
+    border-color: var(--products-border-secondary);
+    color: var(--products-text-secondary);
+}
+
+[data-theme="dark"] .product-modal .btn-secondary:hover:not(:disabled) {
+    background: var(--products-bg-hover);
+    border-color: var(--products-border-hover);
+    color: var(--products-text-primary);
+}
+
+/* ===============================================
+   RESPONSIVE DESIGN
+   =============================================== */
+@media (max-width: 768px) {
+    .product-modal-overlay {
+        padding: 10px;
+    }
+    
+    .product-modal {
+        max-width: calc(100vw - 20px);
+        max-height: calc(100vh - 20px);
+    }
+    
+    .product-modal .modal-header,
+    .product-modal .modal-footer {
+        padding: 20px;
+    }
+    
+    .product-modal .form-section {
+        padding: 24px 20px;
+    }
+    
+    .product-modal .form-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .product-modal .form-grid.grid-2 {
+        grid-template-columns: 1fr;
+    }
+    
+    .product-modal .modal-footer {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .product-modal .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-modal .modal-header {
+        padding: 16px;
+    }
+    
+    .product-modal .modal-title {
+        font-size: 1.25rem;
+    }
+    
+    .product-modal .form-section {
+        padding: 20px 16px;
+    }
+    
+    .product-modal .section-title {
+        font-size: 1.125rem;
+    }
+    
+    .product-modal .form-control {
+        padding: 10px 12px;
+        min-height: 40px;
+    }
+}
+
+/* ===============================================
+   ACCESSIBILITY ENHANCEMENTS
+   =============================================== */
+@media (prefers-reduced-motion: reduce) {
+    .product-modal-overlay,
+    .product-modal,
+    .product-modal .btn,
+    .product-modal .form-control,
+    .product-modal .setting-toggle {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* Focus indicators for keyboard navigation */
+.product-modal .modal-close:focus-visible,
+.product-modal .btn:focus-visible,
+.product-modal .form-control:focus-visible {
+    outline: 2px solid var(--products-primary);
+    outline-offset: 2px;
+}
+
+/* End of Products Modal CSS */

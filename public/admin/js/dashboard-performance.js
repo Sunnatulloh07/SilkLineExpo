@@ -10,6 +10,7 @@ class DashboardPerformanceOptimizer {
     this.pendingRequests = new Map();
     this.loadingStates = new Map();
     this.disabled = false;
+    this.tokenManagerReady = false;
     
     // Check if dashboard performance is disabled
     if (window.DISABLE_DASHBOARD_PERFORMANCE) {
@@ -23,17 +24,178 @@ class DashboardPerformanceOptimizer {
       slowUpdateInterval: 30000,  // 30 seconds for less critical
       requestTimeout: 10000,      // 10 second timeout
       retryAttempts: 3,
-      retryDelay: 2000
+      retryDelay: 2000,
+      tokenManagerTimeout: 5000  // Wait max 5s for token manager
     };
+    
+    // Setup token manager integration
+    this.setupTokenManagerIntegration();
   }
 
   /**
-   * Professional Fast Data Loading with Cache
+   * SETUP TOKEN MANAGER INTEGRATION
+   */
+  setupTokenManagerIntegration() {
+    // Check if token manager is already ready
+    if (window.tokenManager && window.tokenManager.isReady) {
+      this.tokenManagerReady = true;
+      console.log('✅ Token Manager already ready for dashboard');
+      return;
+    }
+    
+    // Listen for token manager ready event
+    window.addEventListener('tokenManagerReady', () => {
+      this.tokenManagerReady = true;
+      console.log('✅ Token Manager ready - dashboard can proceed');
+    }, { once: true });
+  }
+
+  /**
+   * WAIT FOR TOKEN MANAGER WITH TIMEOUT
+   */
+  async waitForTokenManager() {
+    if (this.tokenManagerReady || (window.tokenManager && window.tokenManager.isReady)) {
+      this.tokenManagerReady = true;
+      return;
+    }
+    
+    console.log('⏳ Waiting for Token Manager...');
+    
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        console.log('⏰ Token Manager wait timeout - proceeding anyway');
+        resolve();
+      }, this.config.tokenManagerTimeout);
+      
+      window.addEventListener('tokenManagerReady', () => {
+        clearTimeout(timeout);
+        this.tokenManagerReady = true;
+        console.log('✅ Token Manager ready for dashboard');
+        resolve();
+      }, { once: true });
+    });
+  }
+
+  /**
+   * CHECK IF CIRCUIT BREAKER IS OPEN
+   */
+  isCircuitBreakerOpen() {
+    try {
+      return window.tokenManager && 
+             window.tokenManager.circuitBreaker && 
+             window.tokenManager.circuitBreaker.state === 'OPEN';
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * GET CIRCUIT BREAKER STATE INFO
+   */
+  getCircuitBreakerInfo() {
+    try {
+      if (!window.tokenManager || !window.tokenManager.circuitBreaker) {
+        return { state: 'UNKNOWN', timeUntilReset: 0 };
+      }
+      
+      const cb = window.tokenManager.circuitBreaker;
+      const timeUntilReset = cb.state === 'OPEN' ? 
+        (cb.resetTimeout - (Date.now() - cb.lastFailureTime)) : 0;
+      
+      return {
+        state: cb.state,
+        failures: cb.failures,
+        timeUntilReset: Math.max(0, timeUntilReset)
+      };
+    } catch (error) {
+           return { state: 'ERROR', timeUntilReset: 0 };
+     }
+   }
+
+   /**
+    * HANDLE CIRCUIT BREAKER OPEN STATE
+    */
+   handleCircuitBreakerOpen(cbInfo) {
+     // Stop all timers and intervals to prevent further requests
+     try {
+       // Clear any existing intervals
+       if (this.smartUpdateInterval) {
+         clearInterval(this.smartUpdateInterval);
+         this.smartUpdateInterval = null;
+       }
+       
+       // Schedule restart after circuit breaker resets
+       if (cbInfo.timeUntilReset > 0) {
+         console.log(`⏰ Dashboard will resume in ${Math.round(cbInfo.timeUntilReset/1000)} seconds`);
+         setTimeout(() => {
+           if (!this.isCircuitBreakerOpen()) {
+             console.log('🔄 Circuit breaker reset - resuming dashboard updates');
+             this.resumeDashboardUpdates();
+           }
+         }, cbInfo.timeUntilReset + 1000); // Add 1s buffer
+       }
+     } catch (error) {
+       console.error('❌ Error handling circuit breaker:', error);
+     }
+   }
+
+   /**
+    * RESUME DASHBOARD UPDATES AFTER CIRCUIT BREAKER RESET
+    */
+       resumeDashboardUpdates() {
+      try {
+        if (!this.smartUpdateInterval && !this.disabled && !this.isCircuitBreakerOpen()) {
+          console.log('✅ Resuming dashboard smart updates');
+          this.startSmartUpdates();
+        }
+      } catch (error) {
+        console.error('❌ Error resuming dashboard updates:', error);
+      }
+    }
+
+    /**
+     * CLEANUP ALL INTERVALS
+     */
+    cleanup() {
+      try {
+        if (this.smartUpdateInterval) {
+          clearInterval(this.smartUpdateInterval);
+          this.smartUpdateInterval = null;
+        }
+        if (this.mediumUpdateInterval) {
+          clearInterval(this.mediumUpdateInterval);
+          this.mediumUpdateInterval = null;
+        }
+        console.log('🧹 Dashboard intervals cleaned up');
+      } catch (error) {
+        console.error('❌ Error cleaning up intervals:', error);
+      }
+    }
+
+  /**
+   * Professional Fast Data Loading with Cache - TOKEN MANAGER AWARE
    */
   async loadDashboardDataFast(priority = 'high') {
     if (this.disabled) {
       console.log('🚫 Dashboard performance optimizer is disabled');
       return null;
+    }
+    
+    // CHECK CIRCUIT BREAKER FIRST
+    if (this.isCircuitBreakerOpen()) {
+      const cbInfo = this.getCircuitBreakerInfo();
+      console.log(`🚫 Dashboard: Circuit breaker ${cbInfo.state} - skipping data load (reset in ${Math.round(cbInfo.timeUntilReset/1000)}s)`);
+      this.handleCircuitBreakerOpen(cbInfo);
+      return null;
+    }
+    
+    // WAIT FOR TOKEN MANAGER IF NOT READY
+    if (!this.tokenManagerReady) {
+      try {
+        await this.waitForTokenManager();
+      } catch (error) {
+        console.log('⚠️ Token Manager not ready, proceeding with caution');
+      }
     }
     
     const cacheKey = `dashboard_stats_${priority}`;
@@ -69,9 +231,16 @@ class DashboardPerformanceOptimizer {
   }
 
   /**
-   * Fetch with automatic retry and timeout
+   * Fetch with automatic retry and timeout - CIRCUIT BREAKER AWARE
    */
   async fetchWithRetry(url, options = {}, attempt = 1) {
+    // CHECK CIRCUIT BREAKER BEFORE ANY ATTEMPT
+    if (this.isCircuitBreakerOpen()) {
+      const cbInfo = this.getCircuitBreakerInfo();
+      console.log(`🚫 Dashboard: Circuit breaker ${cbInfo.state} - blocking request (reset in ${Math.round(cbInfo.timeUntilReset/1000)}s)`);
+      throw new Error(`Circuit breaker ${cbInfo.state} - dashboard requests suspended`);
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), options.timeout || 10000);
 
@@ -92,6 +261,13 @@ class DashboardPerformanceOptimizer {
       
     } catch (error) {
       clearTimeout(timeoutId);
+      
+      // CHECK CIRCUIT BREAKER BEFORE RETRY
+      if (this.isCircuitBreakerOpen()) {
+        const cbInfo = this.getCircuitBreakerInfo();
+        console.log(`🚫 Dashboard: Circuit breaker ${cbInfo.state} during retry - stopping (reset in ${Math.round(cbInfo.timeUntilReset/1000)}s)`);
+        throw new Error(`Circuit breaker ${cbInfo.state} - retry suspended`);
+      }
       
       if (attempt < this.config.retryAttempts) {
         console.warn(`⚠️ Attempt ${attempt} failed, retrying in ${this.config.retryDelay}ms...`);

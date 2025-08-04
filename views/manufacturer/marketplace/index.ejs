@@ -1,0 +1,692 @@
+<%- include('../partials/header', { title: title, lng: lng, user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'marketplace' }) %>
+
+<!-- Main Content -->
+<main class="admin-main">
+  <div class="admin-content">
+    
+    <!-- B2B Marketplace Header -->
+    <div class="marketplace-header animate-fade-in">
+      <div class="header-content">
+        <div class="header-title-section">
+          <h1 class="page-title">
+            <i class="fas fa-store-alt"></i>
+            B2B Marketplace
+          </h1>
+          <p class="page-subtitle">Sizning mahsulotlaringizni global B2B bozorida taqdim eting</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-primary" id="addProductBtn">
+            <i class="fas fa-plus"></i>
+            Mahsulot qo'shish
+          </button>
+          <button class="btn-outline" id="marketplaceAnalyticsBtn">
+            <i class="fas fa-chart-bar"></i>
+            Analitika
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Marketplace Metrics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg">
+      
+      <!-- Total Views -->
+      <div class="stat-card info animate-fade-in" data-metric="views">
+        <div class="stat-header">
+          <h3 class="stat-title">Umumiy ko'rishlar</h3>
+          <div class="stat-icon info">
+            <i class="fas fa-eye"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="metric-value" id="totalViewsValue">
+            <span class="loading-placeholder">...</span>
+          </span>
+        </div>
+        <div class="stat-change positive">
+          <i class="fas fa-arrow-up stat-change-icon"></i>
+          <span class="metric-trend">+<%= marketplaceMetrics?.growth?.views || 15 %>% bu oy</span>
+        </div>
+      </div>
+
+      <!-- Conversion Rate -->
+      <div class="stat-card success animate-fade-in" data-metric="conversion">
+        <div class="stat-header">
+          <h3 class="stat-title">Konversiya darajasi</h3>
+          <div class="stat-icon success">
+            <i class="fas fa-chart-line"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="metric-value" id="conversionRateValue">
+            <span class="loading-placeholder">...</span>
+          </span>
+        </div>
+        <div class="stat-change positive">
+          <i class="fas fa-arrow-up stat-change-icon"></i>
+          <span class="metric-trend">+<%= marketplaceMetrics?.growth?.orders || 12 %>% o'sish</span>
+        </div>
+      </div>
+
+      <!-- Inquiry Response Rate -->
+      <div class="stat-card warning animate-fade-in" data-metric="response">
+        <div class="stat-header">
+          <h3 class="stat-title">Javob berish darajasi</h3>
+          <div class="stat-icon warning">
+            <i class="fas fa-reply"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="metric-value" id="responseRateValue">
+            <span class="loading-placeholder">...</span>
+          </span>
+        </div>
+        <div class="stat-change positive">
+          <i class="fas fa-arrow-up stat-change-icon"></i>
+          <span class="metric-trend">+<%= marketplaceMetrics?.growth?.inquiries || 8 %>% yaxshilandi</span>
+        </div>
+      </div>
+
+      <!-- Marketplace Ranking -->
+      <div class="stat-card primary animate-fade-in" data-metric="ranking">
+        <div class="stat-header">
+          <h3 class="stat-title">Bozor reytingi</h3>
+          <div class="stat-icon primary">
+            <i class="fas fa-trophy"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="metric-value" id="marketplaceRankingValue">
+            <% if (typeof marketplaceMetrics !== 'undefined' && marketplaceMetrics.marketplaceRanking) { %>
+              <%= marketplaceMetrics.marketplaceRanking %>
+            <% } else { %>
+              <span class="loading-placeholder">...</span>
+            <% } %>
+          </span>
+        </div>
+        <div class="stat-change neutral">
+          <i class="fas fa-arrow-right stat-change-icon"></i>
+          <span class="metric-trend">Barqaror pozitsiya</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-lg mb-lg">
+      
+      <!-- Featured Products Section -->
+      <div class="col-span-2">
+        <div class="widget-card animate-fade-in">
+          <div class="widget-header">
+            <h3 class="widget-title">
+              <i class="fas fa-star"></i>
+              Tavsiya etiladigan mahsulotlar
+            </h3>
+            <div class="widget-actions">
+              <button class="btn-sm btn-ghost" id="refreshProductsBtn">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+              <a href="/manufacturer/products" class="widget-action-link">
+                Barchasini ko'rish
+              </a>
+            </div>
+          </div>
+          <div class="widget-body">
+            <div class="products-grid" id="featuredProductsGrid">
+              
+              <% if (typeof featuredProducts !== 'undefined' && featuredProducts.length > 0) { %>
+                <% featuredProducts.forEach(function(product, index) { %>
+                  <div class="b2b-product-card animate-slide-up" data-product="<%= product._id || '' %>" data-animation-delay="<%= index * 0.1 %>">
+                    
+                    <!-- Product Image Section - PROFESSIONAL RESPONSIVE DESIGN -->
+                    <div class="product-image-section">
+                      <div class="product-image">
+                        <% 
+                          // SENIOR SOFTWARE ENGINEER LOGIC - Robust Image URL Extraction
+                          let hasValidImage = false;
+                          let imageUrl = '';
+                          
+                          if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+                            const firstImage = product.images[0];
+                            
+                            if (typeof firstImage === 'string' && firstImage.trim() !== '') {
+                              imageUrl = firstImage.trim();
+                              hasValidImage = true;
+                            } else if (typeof firstImage === 'object' && firstImage !== null) {
+                              if (firstImage.url && firstImage.url.trim() !== '') {
+                                imageUrl = firstImage.url.trim();
+                                hasValidImage = true;
+                              } else if (typeof firstImage === 'string' && firstImage.trim() !== '') {
+                                imageUrl = firstImage.trim();
+                                hasValidImage = true;
+                              }
+                            }
+                          }
+                          
+                          // Server-side debugging will be handled in backend logs
+                        %>
+                        
+                        <% if (hasValidImage) { %>
+                          <!-- Real Product Image -->
+                          <img 
+                            src="<%= imageUrl %>" 
+                            alt="<%= product.title || product.name || 'Product Image' %>" 
+                            class="product-real-image"
+                            data-product-id="<%= product._id || '' %>"
+                            data-product-name="<%= (product.title || product.name || 'Product').replace(/'/g, '').substring(0, 30) %>"
+                            data-category="<%= typeof product.category === 'string' ? product.category : (product.category && product.category.name ? product.category.name : (product.category && product.category._id ? product.category._id : 'general')) %>"
+                            data-image-type="real"
+                            data-image-source="<%= imageUrl.substring(0, 30) %>..."
+                            data-has-images="<%= product.images ? product.images.length : 0 %>"
+                            onerror="handleImageError(this)" 
+                            loading="lazy"
+                          >
+                        <% } else { %>
+                          <!-- Mock Image for Products without Valid Images -->
+                          <img 
+                            src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PGcgZmlsbD0iIzljYTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+PHRleHQgeD0iNTAlIiB5PSI0NSUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgZm9udC13ZWlnaHQ9IjUwMCI+TG9hZGluZy4uLjwvdGV4dD48L2c+PC9zdmc+" 
+                            alt="<%= product.title || product.name || 'Product Image' %>" 
+                            class="mock-product-image loading-placeholder" 
+                            data-category="<%= typeof product.category === 'string' ? product.category : (product.category && product.category.name ? product.category.name : (product.category && product.category._id ? product.category._id : 'general')) %>"
+                            data-product-id="<%= product._id || '' %>"
+                            data-product-name="<%= (product.title || product.name || 'Product').replace(/'/g, '').substring(0, 30) %>"
+                            data-image-type="mock"
+                            data-has-images="<%= product.images ? product.images.length : 0 %>"
+                            data-needs-mock="true"
+                            loading="lazy"
+                          >
+                        <% } %>
+                      </div>
+                      
+                      <!-- Professional Badges - Top Left -->
+                      <div class="product-badges">
+                        <% if (product.badges && product.badges.length > 0) { %>
+                          <% product.badges.slice(0, 2).forEach(function(badge) { %>
+                            <div class="product-badge badge-<%= badge.color %>">
+                              <i class="fas fa-<%= badge.type === 'featured' ? 'star' : badge.type === 'bestseller' ? 'crown' : badge.type === 'certified' ? 'certificate' : 'fire' %>"></i>
+                              <%= badge.label %>
+                            </div>
+                          <% }) %>
+                        <% } %>
+                      </div>
+
+                      <!-- View Details Button - Top Right -->
+                      <button class="view-details-btn" data-action="view-details" data-product-id="<%= product._id || '' %>" title="To'liq ma'lumot">
+                        <i class="fas fa-eye"></i>
+                      </button>
+
+                      <!-- Stock Status - Bottom Right -->
+                      <div class="stock-status stock-<%= product.availabilityInfo?.status || 'available' %>">
+                        <i class="fas fa-<%= product.availabilityInfo?.status === 'available' ? 'check-circle' : product.availabilityInfo?.status === 'limited' ? 'exclamation-triangle' : 'times-circle' %>"></i>
+                        <%= product.availabilityInfo?.message || 'Mavjud' %>
+                      </div>
+                    </div>
+
+                    <!-- Essential Product Info - Clean & Simple -->
+                    <div class="product-info-section">
+                      
+                      <!-- Product Header -->
+                      <div class="product-header">
+                        <h3 class="product-title" title="<%= product.title || product.name || 'Unnamed Product' %>">
+                          <%= (product.title || product.name || 'Unnamed Product') %>
+                        </h3>
+                        <div class="product-id">ID: <%= product._id.toString().slice(-8).toUpperCase() %></div>
+                      </div>
+
+                      <!-- Category -->
+                      <div class="product-category-desc">
+                        <div class="product-category">
+                          <i class="fas fa-tag"></i>
+                          <%= typeof product.category === 'string' ? product.category : (product.category && product.category.name ? product.category.name : (product.category && product.category._id ? product.category._id : 'Kategoriyasiz')) %>
+                        </div>
+                      </div>
+
+                      <!-- Essential Pricing - Clean Display -->
+                      <div class="product-pricing-section">
+                        <div class="pricing-main">
+                          <div class="price-display">
+                            <% if (product.priceDisplay) { %>
+                              <span class="price-amount price-<%= product.priceDisplay.type %>">
+                                <%= product.priceDisplay.display %>
+                              </span>
+                              <% if (product.priceDisplay.type === 'range') { %>
+                                <span class="price-note">Dona uchun</span>
+                              <% } %>
+                            <% } else { %>
+                              <span class="price-amount price-quote">Narx so'raladi</span>
+                            <% } %>
+                          </div>
+                          
+                          <div class="pricing-details">
+                            <div class="moq-info">
+                              <span class="moq-label">Eng kam:</span>
+                              <span class="moq-value"><%= (product.moq || 100).toLocaleString() %> dona</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Essential Metrics - 3 Key Stats -->
+                      <div class="product-metrics">
+                        <div class="metric-item">
+                          <i class="fas fa-star <%= (product.rating && product.rating > 0) ? 'text-yellow-400' : 'text-gray-300' %>"></i>
+                          <span><%= (product.rating && product.rating > 0) ? product.rating.toFixed(1) : '0.0' %></span>
+                        </div>
+                        <div class="metric-item">
+                          <i class="fas fa-eye"></i>
+                          <span><%= (product.views || 0) > 999 ? Math.floor((product.views || 0) / 1000) + 'K' : (product.views || 0) %></span>
+                        </div>
+                        <div class="metric-item">
+                          <i class="fas fa-shopping-cart"></i>
+                          <span><%= product.orderCount || 0 %></span>
+                        </div>
+                      </div>
+
+                      <!-- Essential Action Buttons -->
+                      <div class="product-actions">
+                        <button class="btn-action btn-primary" data-action="edit" data-product-id="<%= product._id || '' %>">
+                          <i class="fas fa-edit"></i>
+                          <span>Tahrirlash</span>
+                        </button>
+                        <button class="btn-action btn-secondary" data-action="stats" data-product-id="<%= product._id || '' %>">
+                          <i class="fas fa-chart-line"></i>
+                          <span>Statistika</span>
+                        </button>
+                      </div>
+
+                    </div>
+                  </div>
+                <% }) %>
+              <% } else { %>
+                <div class="empty-state">
+                  <div class="empty-icon">
+                    <i class="fas fa-box-open"></i>
+                  </div>
+                  <h3 class="empty-title">Mahsulotlar topilmadi</h3>
+                  <p class="empty-description">Marketplace'da ko'rsatish uchun mahsulot qo'shing</p>
+                  <button class="btn-primary" onclick="window.location.href='/manufacturer/products/add';">
+                    <i class="fas fa-plus"></i>
+                    Birinchi mahsulotni qo'shish
+                  </button>
+                </div>
+              <% } %>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="col-span-1">
+        
+        <!-- Recent Inquiries -->
+        <div class="widget-card animate-fade-in mb-lg">
+          <div class="widget-header">
+            <h3 class="widget-title">
+              <i class="fas fa-envelope-open"></i>
+              So'nggi so'rovlar
+            </h3>
+            <a href="/manufacturer/inquiries" class="widget-action-link">
+              Barchasini ko'rish
+            </a>
+          </div>
+          <div class="widget-body">
+            <div class="inquiries-list" id="recentInquiriesList">
+              
+              <% if (typeof recentInquiries !== 'undefined' && recentInquiries.length > 0) { %>
+                <% recentInquiries.forEach(function(inquiry) { %>
+                  <div class="inquiry-item priority-<%= inquiry.priority || 'medium' %>" data-inquiry="<%= inquiry.id || '' %>">
+                    <div class="inquiry-header">
+                      <div class="company-info">
+                        <div class="company-avatar">
+                          <%= (inquiry.company || 'U').charAt(0) %>
+                        </div>
+                        <div class="company-details">
+                          <h4 class="company-name"><%= inquiry.company || 'Noma\'lum kompaniya' %></h4>
+                          <span class="inquiry-time">
+                            <%= inquiry.createdAt ? new Date(inquiry.createdAt).toLocaleDateString('uz-UZ') : 'Bugun' %>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="inquiry-priority priority-<%= inquiry.priority || 'medium' %>">
+                        <% if (inquiry.priority === 'high') { %>
+                          <i class="fas fa-exclamation-circle"></i>
+                          Shoshilinch
+                        <% } else if (inquiry.priority === 'medium') { %>
+                          <i class="fas fa-circle"></i>
+                          O'rta
+                        <% } else { %>
+                          <i class="fas fa-circle"></i>
+                          Oddiy
+                        <% } %>
+                      </div>
+                    </div>
+                    <div class="inquiry-content">
+                      <p class="inquiry-product">
+                        <i class="fas fa-cube"></i>
+                        <%= inquiry.product || 'Umumiy so\'rov' %>
+                      </p>
+                      <div class="inquiry-details">
+                        <span class="quantity">
+                          <i class="fas fa-sort-numeric-up"></i>
+                          <%= inquiry.quantity || 'So\'raladi' %>
+                        </span>
+                        <span class="budget">
+                          <i class="fas fa-dollar-sign"></i>
+                          <%= inquiry.budget || 'Muhokama' %>
+                        </span>
+                      </div>
+                      <p class="inquiry-message">
+                        <%= inquiry.message ? (inquiry.message.length > 80 ? inquiry.message.substring(0, 80) + '...' : inquiry.message) : 'So\'rov xabari' %>
+                      </p>
+                    </div>
+                    <div class="inquiry-actions">
+                      <button class="btn-sm btn-primary" data-action="respond" data-inquiry-id="<%= inquiry.id || '' %>">
+                        <i class="fas fa-reply"></i>
+                        Javob berish
+                      </button>
+                      <button class="btn-sm btn-outline" data-action="quote" data-inquiry-id="<%= inquiry.id || '' %>">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        Taklif
+                      </button>
+                    </div>
+                  </div>
+                <% }) %>
+              <% } else { %>
+                <div class="empty-inquiries">
+                  <div class="empty-icon">
+                    <i class="fas fa-inbox"></i>
+                  </div>
+                  <p class="empty-text">Yangi so'rovlar yo'q</p>
+                </div>
+              <% } %>
+              
+            </div>
+          </div>
+        </div>
+
+        <!-- Marketplace Performance -->
+        <div class="widget-card animate-fade-in">
+          <div class="widget-header">
+            <h3 class="widget-title">
+              <i class="fas fa-chart-pie"></i>
+              Bozor ko'rsatkichlari
+            </h3>
+          </div>
+          <div class="widget-body">
+            <div class="performance-metrics">
+              
+              <div class="performance-item">
+                <div class="performance-icon visibility">
+                  <i class="fas fa-eye"></i>
+                </div>
+                <div class="performance-info">
+                  <span class="performance-label">Ko'rinish</span>
+                  <span class="performance-value high">
+                    <%= marketplaceMetrics?.visibility || 'Yuqori' %>
+                  </span>
+                </div>
+              </div>
+
+              <div class="performance-item">
+                <div class="performance-icon competitive">
+                  <i class="fas fa-medal"></i>
+                </div>
+                <div class="performance-info">
+                  <span class="performance-label">Raqobat ballari</span>
+                  <span class="performance-value score">
+                    <%= marketplaceMetrics?.competitiveScore || 75 %>/100
+                  </span>
+                </div>
+              </div>
+
+              <div class="performance-item">
+                <div class="performance-icon growth">
+                  <i class="fas fa-trending-up"></i>
+                </div>
+                <div class="performance-info">
+                  <span class="performance-label">O'sish sur'ati</span>
+                  <span class="performance-value positive">
+                    +<%= marketplaceMetrics?.growth?.views || 15 %>%
+                  </span>
+                </div>
+              </div>
+
+            </div>
+            
+            <!-- Quick Analytics Chart -->
+            <div class="mini-chart" id="performanceChart">
+              <canvas id="performanceChartCanvas" width="280" height="120"></canvas>
+            </div>
+            
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Competitor Analysis Section -->
+    <div class="widget-card animate-fade-in">
+      <div class="widget-header">
+        <h3 class="widget-title">
+          <i class="fas fa-users-cog"></i>
+          Raqobat tahlili
+        </h3>
+        <div class="widget-actions">
+          <button class="btn-sm btn-ghost" id="refreshCompetitorBtn">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+          <button class="btn-sm btn-outline" id="detailedAnalysisBtn">
+            <i class="fas fa-chart-area"></i>
+            Batafsil tahlil
+          </button>
+        </div>
+      </div>
+      <div class="widget-body">
+        <div class="competitor-grid">
+          
+          <!-- Market Position -->
+          <div class="competitor-card">
+            <div class="competitor-header">
+              <h4 class="competitor-title">Bozordagi pozitsiya</h4>
+              <div class="position-badge position-<%= (competitorAnalysis?.marketPosition || 'good').toLowerCase() %>">
+                <%= competitorAnalysis?.marketPosition || 'Yaxshi' %>
+              </div>
+            </div>
+            <div class="competitor-content">
+              <div class="position-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Raqobatchilar</span>
+                  <span class="stat-value"><%= competitorAnalysis?.competitorCount || 20 %></span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Narx raqobati</span>
+                  <span class="stat-value"><%= competitorAnalysis?.priceCompetitiveness || 'O\'rtacha' %></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Strengths -->
+          <div class="competitor-card">
+            <div class="competitor-header">
+              <h4 class="competitor-title">Kuchli tomonlar</h4>
+              <div class="strengths-count">
+                <%= (competitorAnalysis?.strengths || []).length %> ta
+              </div>
+            </div>
+            <div class="competitor-content">
+              <ul class="strengths-list">
+                <% if (competitorAnalysis && competitorAnalysis.strengths) { %>
+                  <% competitorAnalysis.strengths.forEach(function(strength) { %>
+                    <li class="strength-item">
+                      <i class="fas fa-check-circle"></i>
+                      <%= strength %>
+                    </li>
+                  <% }) %>
+                <% } else { %>
+                  <li class="strength-item">
+                    <i class="fas fa-check-circle"></i>
+                    Sifatli mahsulotlar
+                  </li>
+                  <li class="strength-item">
+                    <i class="fas fa-check-circle"></i>
+                    Tez yetkazib berish
+                  </li>
+                <% } %>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Opportunities -->
+          <div class="competitor-card">
+            <div class="competitor-header">
+              <h4 class="competitor-title">Imkoniyatlar</h4>
+              <div class="opportunities-count">
+                <%= (competitorAnalysis?.opportunities || []).length %> ta
+              </div>
+            </div>
+            <div class="competitor-content">
+              <ul class="opportunities-list">
+                <% if (competitorAnalysis && competitorAnalysis.opportunities) { %>
+                  <% competitorAnalysis.opportunities.forEach(function(opportunity) { %>
+                    <li class="opportunity-item">
+                      <i class="fas fa-lightbulb"></i>
+                      <%= opportunity %>
+                    </li>
+                  <% }) %>
+                <% } else { %>
+                  <li class="opportunity-item">
+                    <i class="fas fa-lightbulb"></i>
+                    Mahsulot assortimentini kengaytirish
+                  </li>
+                  <li class="opportunity-item">
+                    <i class="fas fa-lightbulb"></i>
+                    Marketing faolligini oshirish
+                  </li>
+                <% } %>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Product Details Modal -->
+<div class="modal-overlay" id="productDetailsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Mahsulot ma'lumotlari</h2>
+      <button class="modal-close" id="closeModal">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- Dinamik kontent shu yerga yuklanadi -->
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>Ma'lumot yuklanmoqda...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Server Data for JavaScript -->
+<script type="application/json" id="marketplace-data">
+<%- JSON.stringify({
+  marketplaceMetrics: marketplaceMetrics || {},
+  featuredProducts: featuredProducts || [],
+  recentInquiries: recentInquiries || [],
+  competitorAnalysis: competitorAnalysis || {},
+  user: {
+    id: user._id || '',
+    name: user.name || 'Ishlab chiqaruvchi',
+    companyName: user.companyName || 'Ishlab chiqarish kompaniyasi'
+  }
+}) %>
+</script>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Core JavaScript Dependencies -->
+<script src="/assets/js/jquery-3.7.1.min.js"></script>
+<script src="/assets/js/boostrap.bundle.min.js"></script>
+
+<!-- Manufacturer Dashboard Core -->
+<script src="/js/manufacturer/dashboard-init.js"></script>
+
+<!-- Professional Unified Header Management -->
+<script src="/js/manufacturer/manufacturer-header.js"></script>
+
+<!-- Complete Manufacturer Dashboard Functionality -->
+<script src="/js/manufacturer/manufacturer-dashboard.js"></script>
+
+<!-- Professional Marketplace Functionality -->
+<script src="/js/manufacturer/manufacture-marketplace.js"></script>
+
+<!-- Real Data Loading Script -->
+<script>
+  // Load real marketplace data
+  async function loadMarketplaceData() {
+    try {
+      console.log('📊 Loading real marketplace data...');
+      
+      const response = await fetch('/manufacturer/api/marketplace-metrics');
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📊 Marketplace data received:', data);
+        
+        // Update KPI values
+        updateMarketplaceKPIs(data);
+        
+      } else {
+        console.error('❌ Failed to load marketplace data');
+      }
+    } catch (error) {
+      console.error('❌ Error loading marketplace data:', error);
+    }
+  }
+
+  // Update marketplace KPIs
+  function updateMarketplaceKPIs(data) {
+    // Update Total Views
+    const totalViewsElement = document.getElementById('totalViewsValue');
+    if (totalViewsElement) {
+      totalViewsElement.innerHTML = data.totalViews !== undefined ? data.totalViews.toLocaleString() : '0';
+    }
+    
+    // Update Conversion Rate
+    const conversionRateElement = document.getElementById('conversionRateValue');
+    if (conversionRateElement) {
+      conversionRateElement.innerHTML = data.conversionRate || '0%';
+    }
+    
+    // Update Response Rate
+    const responseRateElement = document.getElementById('responseRateValue');
+    if (responseRateElement) {
+      responseRateElement.innerHTML = data.inquiryResponseRate || '0%';
+    }
+    
+    console.log('✅ Marketplace KPIs updated with real data');
+  }
+
+  // Initialize marketplace functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🛍️ Initializing B2B Marketplace...');
+    
+    // Load real marketplace data
+    loadMarketplaceData();
+    
+    console.log('✅ B2B Marketplace initialized successfully');
+  });
+</script>
+
+</body>
+</html>
