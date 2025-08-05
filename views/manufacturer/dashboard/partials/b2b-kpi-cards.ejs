@@ -11,16 +11,11 @@
     </div>
     <div class="stat-value">
       <span class="kpi-value" id="totalSalesValue">
-        <% if (typeof stats !== 'undefined' && stats.totalSales) { %>
-          $<%= stats.totalSales.toLocaleString() %>
-        <% } else { %>
-          <span class="loading-placeholder">...</span>
-        <% } %>
+        <span class="loading-placeholder">...</span>
       </span>
     </div>
-    <div class="stat-change positive">
-      <i class="fas fa-arrow-up stat-change-icon"></i>
-      <span class="kpi-trend">+12.5% o'tgan oydan</span>
+    <div class="stat-change" id="totalSalesTrend">
+      <span class="kpi-trend">Ma'lumot yuklanmoqda...</span>
     </div>
   </div>
   
@@ -34,16 +29,11 @@
     </div>
     <div class="stat-value">
       <span class="kpi-value" id="activeOrdersValue">
-        <% if (typeof stats !== 'undefined' && stats.activeOrders) { %>
-          <%= stats.activeOrders.toLocaleString() %>
-        <% } else { %>
-          <span class="loading-placeholder">...</span>
-        <% } %>
+        <span class="loading-placeholder">...</span>
       </span>
     </div>
-    <div class="stat-change positive">
-      <i class="fas fa-arrow-up stat-change-icon"></i>
-      <span class="kpi-trend">+3 ta yangi</span>
+    <div class="stat-change" id="activeOrdersTrend">
+      <span class="kpi-trend">Ma'lumot yuklanmoqda...</span>
     </div>
   </div>
   
@@ -57,16 +47,11 @@
     </div>
     <div class="stat-value">
       <span class="kpi-value" id="totalProductsValue">
-        <% if (typeof stats !== 'undefined' && stats.totalProducts) { %>
-          <%= stats.totalProducts.toLocaleString() %>
-        <% } else { %>
-          <span class="loading-placeholder">...</span>
-        <% } %>
+        <span class="loading-placeholder">...</span>
       </span>
     </div>
-    <div class="stat-change positive">
-      <i class="fas fa-arrow-up stat-change-icon"></i>
-      <span class="kpi-trend">+8 ta yangi</span>
+    <div class="stat-change" id="totalProductsTrend">
+      <span class="kpi-trend">Ma'lumot yuklanmoqda...</span>
     </div>
   </div>
   
@@ -80,15 +65,11 @@
     </div>
     <div class="stat-value">
       <span class="kpi-value" id="inquiriesValue">
-        <% if (typeof stats !== 'undefined' && stats.inquiries) { %>
-          <%= stats.inquiries.toLocaleString() %>
-        <% } else { %>
-          <span class="loading-placeholder">...</span>
-        <% } %>
+        <span class="loading-placeholder">...</span>
       </span>
     </div>
-    <div class="stat-change">
-      <span class="kpi-trend">Javob kutmoqda</span>
+    <div class="stat-change" id="inquiriesTrend">
+      <span class="kpi-trend">Ma'lumot yuklanmoqda...</span>
     </div>
   </div>
   

@@ -2419,6 +2419,7 @@
 
 .stat-item {
     display: flex;
+    gap: 0.5rem;
     justify-content: space-between;
     align-items: center;
 }
@@ -2625,10 +2626,6 @@ img[data-error-handled="true"] {
 /* Smooth sidebar collapse animations */
 .admin-sidebar.collapsed {
     transform: translateX(0);
-}
-
-.admin-main.sidebar-collapsed {
-    margin-left: var(--sidebar-collapsed-width, 70px);
 }
 
 .admin-header.sidebar-collapsed {

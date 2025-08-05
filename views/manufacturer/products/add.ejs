@@ -1,0 +1,4320 @@
+<%- include('../partials/header', { title: title, lng: lng, user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'products' }) %>
+
+<!-- Main Content -->
+<main class="admin-main">
+  <div class="admin-content">
+    
+    <!-- Product Add Header -->
+    <div class="product-header animate-fade-in">
+      <div class="header-content">
+        <div class="header-title-section">
+          <div class="breadcrumb">
+            <a href="/manufacturer/dashboard" class="breadcrumb-link">Dashboard</a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <a href="/manufacturer/marketplace" class="breadcrumb-link">Marketplace</a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <span class="breadcrumb-current">Yangi mahsulot qo'shish</span>
+          </div>
+          <h1 class="page-title">
+            <i class="fas fa-plus-circle"></i>
+            Yangi mahsulot qo'shish
+          </h1>
+          <p class="page-subtitle">Professional B2B marketplace uchun yangi mahsulot yaratish</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-outline" id="previewBtn">
+            <i class="fas fa-eye"></i>
+            Oldindan ko'rish
+          </button>
+          <button class="btn-secondary" id="saveAsDraftBtn">
+            <i class="fas fa-save"></i>
+            Qoralama sifatida saqlash
+          </button>
+          <button class="btn-primary" id="publishBtn">
+            <i class="fas fa-rocket"></i>
+            Chop etish
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Professional Error Message Alert with Dark Mode -->
+    <% if (locals.errorMessage) { %>
+      <div class="alert alert-warning animate-fade-in professional-alert">
+        <div class="alert-content">
+          <div class="alert-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="alert-message">
+            <strong>Diqqat!</strong> <%= errorMessage %>
+          </div>
+          <button class="alert-close" onclick="this.parentElement.parentElement.remove()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="product-edit-container">
+      <!-- Left Side: Form -->
+      <div class="form-container">
+        
+        <!-- Multi-step Form -->
+        <form id="productAddForm" class="multi-step-form" novalidate>
+          
+          <!-- Progress Indicator -->
+          <div class="form-progress animate-fade-in">
+            <div class="progress-steps">
+              <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Asosiy ma'lumotlar</div>
+              </div>
+              <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Narxlar va MOQ</div>
+              </div>
+              <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">Texnik xususiyatlar</div>
+              </div>
+              <div class="step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-label">Rasmlar</div>
+              </div>
+              <div class="step" data-step="5">
+                <div class="step-number">5</div>
+                <div class="step-label">Yetkazib berish</div>
+              </div>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 20%;"></div>
+            </div>
+          </div>
+
+          <!-- Step 1: Basic Information -->
+          <div class="form-step active" data-step="1">
+            <div class="step-header">
+              <h3>Asosiy ma'lumotlar</h3>
+              <p class="step-description">Mahsulot haqida umumiy ma'lumotlarni kiriting</p>
+            </div>
+            
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label for="productName" class="form-label required">
+                  <i class="fas fa-tag"></i>
+                  Mahsulot nomi
+                </label>
+                <input 
+                  type="text" 
+                  id="productName" 
+                  name="name" 
+                  class="form-input" 
+                  value=""
+                  placeholder="Masalan: Premium Paxta Mato" 
+                  required
+                  maxlength="200"
+                >
+                <div class="form-hint">Xaridorlarga tushunarligi uchun aniq va tavsiflovchi nom kiriting</div>
+                <div class="validation-message"></div>
+              </div>
+              
+              <div class="form-group">
+                <label for="category" class="form-label required">
+                  <i class="fas fa-th-large"></i>
+                  Kategoriya
+                </label>
+                <select id="category" name="category" class="form-select" required>
+                  <option value="">Kategoriyani tanlang...</option>
+                  <% categories.forEach(function(cat) { %>
+                    <option value="<%= cat._id %>" 
+                            data-level="<%= cat.level || 0 %>"
+                            data-category-name="<%= cat.displayName || cat.name %>"
+                            <% if (cat.description) { %>title="<%= cat.description %>"<% } %>>
+                      <%= cat.displayName || cat.name %>
+                    </option>
+                  <% }) %>
+                </select>
+                <div class="validation-message"></div>
+              </div>
+              
+              <div class="form-group">
+                <label for="productStatus" class="form-label">
+                  <i class="fas fa-toggle-on"></i>
+                  Mahsulot holati
+                </label>
+                <select id="productStatus" name="status" class="form-select">
+                  <option value="draft" selected>Qoralama</option>
+                  <option value="active">Faol</option>
+                  <option value="inactive">Nofaol</option>
+                </select>
+              </div>
+              
+              <div class="form-group full-width">
+                <label for="shortDescription" class="form-label">
+                  <i class="fas fa-align-left"></i>
+                  Qisqacha tavsif
+                </label>
+                <textarea 
+                  id="shortDescription" 
+                  name="shortDescription" 
+                  class="form-textarea" 
+                  rows="3" 
+                  placeholder="Mahsulot haqida qisqacha ma'lumot..."
+                  maxlength="500"
+                ></textarea>
+                <div class="form-hint">Qidiruv natijalarida ko'rsetiladi (maksimal 500 belgi)</div>
+              </div>
+              
+              <div class="form-group full-width">
+                <label for="description" class="form-label required">
+                  <i class="fas fa-file-text"></i>
+                  Batafsil tavsif
+                </label>
+                <textarea 
+                  id="description" 
+                  name="description" 
+                  class="form-textarea rich-editor" 
+                  rows="6" 
+                  placeholder="Mahsulot haqida batafsil ma'lumot, xususiyatlari, ishlatilishi..."
+                  required
+                  maxlength="2000"
+                ></textarea>
+                <div class="form-hint">Xaridorlarga to'liq ma'lumot berish uchun batafsil yozing</div>
+                <div class="validation-message"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Pricing & MOQ -->
+          <div class="form-step" data-step="2">
+            <div class="step-header">
+              <h3>Narxlar va miqdor</h3>
+              <p class="step-description">Narx siyosati va minimum buyurtma miqdorini belgilang</p>
+            </div>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="basePrice" class="form-label required">
+                  <i class="fas fa-dollar-sign"></i>
+                  Bazaviy narx (USD)
+                </label>
+                <div class="price-input-wrapper">
+                  <span class="price-currency">$</span>
+                  <input 
+                    type="number" 
+                    id="basePrice" 
+                    name="pricing.basePrice" 
+                    class="form-input price-input" 
+                    step="0.01" 
+                    min="0"
+                    value=""
+                    placeholder="0.00"
+                    required
+                  >
+                </div>
+                <div class="validation-message"></div>
+              </div>
+              
+              <div class="form-group">
+                <label for="priceType" class="form-label">
+                  <i class="fas fa-hand-holding-usd"></i>
+                  Narx turi
+                </label>
+                <select id="priceType" name="pricing.priceType" class="form-select">
+                  <option value="fixed">Qat'iy narx</option>
+                  <option value="negotiable">Kelishiladi</option>
+                  <option value="quote_based">Taklif asosida</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="minOrderQty" class="form-label required">
+                  <i class="fas fa-sort-numeric-up"></i>
+                  Minimum buyurtma miqdori (MOQ)
+                </label>
+                <input 
+                  type="number" 
+                  id="minOrderQty" 
+                  name="pricing.minimumOrderQuantity" 
+                  class="form-input" 
+                  min="1"
+                  value=""
+                  placeholder="100"
+                  required
+                >
+                <div class="form-hint">Eng kam buyurtma miqdori</div>
+                <div class="validation-message"></div>
+              </div>
+              
+              <div class="form-group">
+                <label for="maxOrderQty" class="form-label">
+                  <i class="fas fa-sort-numeric-down"></i>
+                  Maksimum buyurtma miqdori
+                </label>
+                <input 
+                  type="number" 
+                  id="maxOrderQty" 
+                  name="pricing.maximumOrderQuantity" 
+                  class="form-input" 
+                  min="1"
+                  value=""
+                  placeholder="10000"
+                >
+                <div class="form-hint">Bo'sh qoldirish - cheklovsiz</div>
+              </div>
+            </div>
+            
+            <!-- Bulk Pricing Section -->
+            <div class="bulk-pricing-section">
+              <div class="section-header">
+                <h4>
+                  <i class="fas fa-layer-group"></i>
+                  Ulgurji narxlari
+                </h4>
+                <button type="button" class="btn-sm btn-outline" id="addBulkPrice">
+                  <i class="fas fa-plus"></i>
+                  Qo'shish
+                </button>
+              </div>
+              
+              <div class="bulk-pricing-list" id="bulkPricingList">
+                <!-- Dynamic bulk pricing rows will be added here -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Technical Specifications -->
+          <div class="form-step" data-step="3">
+            <div class="step-header">
+              <h3>Texnik xususiyatlar</h3>
+              <p class="step-description">Mahsulot parametrlari va texnik ko'rsatkichlar</p>
+            </div>
+            
+            <div class="specifications-section">
+              <div class="section-header">
+                <h4>
+                  <i class="fas fa-cogs"></i>
+                  Mahsulot spetsifikatsiyalari
+                </h4>
+                <button type="button" class="btn-sm btn-outline" id="addSpecification">
+                  <i class="fas fa-plus"></i>
+                  Qo'shish
+                </button>
+              </div>
+              
+              <div class="specifications-list" id="specificationsList">
+                <!-- Dynamic specification rows will be added here -->
+              </div>
+            </div>
+            
+            <!-- Inventory Section -->
+            <div class="inventory-section">
+              <div class="section-header">
+                <h4>
+                  <i class="fas fa-warehouse"></i>
+                  Ombor ma'lumotlari
+                </h4>
+              </div>
+              
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="stockQuantity" class="form-label">
+                    <i class="fas fa-boxes"></i>
+                    Mavjud miqdor
+                  </label>
+                  <input 
+                    type="number" 
+                    id="stockQuantity" 
+                    name="inventory.totalStock" 
+                    class="form-input" 
+                    min="0"
+                    value=""
+                    placeholder="1000"
+                  >
+                </div>
+                
+                <div class="form-group">
+                  <label for="lowStockThreshold" class="form-label">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Kam qolgan chegara
+                  </label>
+                  <input 
+                    type="number" 
+                    id="lowStockThreshold" 
+                    name="inventory.lowStockThreshold" 
+                    class="form-input" 
+                    min="0"
+                    value=""
+                    placeholder="100"
+                  >
+                  <div class="form-hint">Bu miqdordan kam qolganda ogohlantirish</div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="inventoryUnit" class="form-label">
+                    <i class="fas fa-ruler"></i>
+                    O'lchov birligi
+                  </label>
+                  <select 
+                    id="inventoryUnit" 
+                    name="inventory.unit" 
+                    class="form-select"
+                  >
+                    <option value="pieces" selected>Dona (pieces)</option>
+                    <option value="kg">Kilogram (kg)</option>
+                    <option value="meters">Metr (m)</option>
+                    <option value="liters">Litr (l)</option>
+                    <option value="boxes">Quti (boxes)</option>
+                    <option value="rolls">Rulon (rolls)</option>
+                  </select>
+                  <div class="form-hint">Mahsulot qanday o'lchov birligida hisoblanadi</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Images -->
+          <div class="form-step" data-step="4">
+            <div class="step-header">
+              <h3>Mahsulot rasmlari</h3>
+              <p class="step-description">Yuqori sifatli rasmlar mahsulot sotuvini oshiradi</p>
+            </div>
+            
+            <div class="image-upload-section">
+              <!-- Image Upload Area -->
+              <div class="upload-area" id="imageUploadArea">
+                <div class="upload-placeholder">
+                  <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                  <h4>Rasmlarni yuklash</h4>
+                  <p>Rasmlarni bu yerga sudrab oling yoki fayllarni tanlash uchun bosing</p>
+                  <p class="upload-requirements">
+                    Maksimal 10 ta rasm • JPG, PNG, WebP • Har biri 5MB gacha
+                  </p>
+                  <button type="button" class="btn-outline upload-btn">
+                    <i class="fas fa-folder-open"></i>
+                    Fayllarni tanlash
+                  </button>
+                </div>
+                <input 
+                  type="file" 
+                  id="imageUploadInput" 
+                  multiple 
+                  accept="image/jpeg,image/png,image/webp"
+                  style="display: none;"
+                >
+              </div>
+              
+              <!-- Preview Images -->
+              <div class="current-images" id="currentImages">
+                <!-- Uploaded images will appear here -->
+              </div>
+              
+              <!-- Upload Progress -->
+              <div class="upload-progress" id="uploadProgress" style="display: none;">
+                <div class="progress-info">
+                  <span class="progress-text">Yuklanmoqda...</span>
+                  <span class="progress-percentage">0%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 5: Shipping & Delivery -->
+          <div class="form-step" data-step="5">
+            <div class="step-header">
+              <h3>Yetkazib berish</h3>
+              <p class="step-description">Yetkazib berish parametrlari va muddatlar</p>
+            </div>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="leadTime" class="form-label">
+                  <i class="fas fa-clock"></i>
+                  Tayyorlash muddati
+                </label>
+                <select id="leadTime" name="shipping.leadTime" class="form-select">
+                  <option value="1-3">1-3 kun</option>
+                  <option value="3-7" selected>3-7 kun</option>
+                  <option value="7-15">7-15 kun</option>
+                  <option value="15-30">15-30 kun</option>
+                  <option value="custom">Kelishiladi</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="shippingWeight" class="form-label">
+                  <i class="fas fa-weight"></i>
+                  Og'irligi (kg)
+                </label>
+                <input 
+                  type="number" 
+                  id="shippingWeight" 
+                  name="shipping.weight" 
+                  class="form-input" 
+                  step="0.1" 
+                  min="0"
+                  value=""
+                  placeholder="1.5"
+                >
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-cube"></i>
+                  O'lchamlar
+                </label>
+                <div class="dimensions-inputs">
+                  <input 
+                    type="number" 
+                    name="shipping.dimensions.length" 
+                    class="form-input small" 
+                    placeholder="Uzunlik"
+                    value=""
+                  >
+                  <span>×</span>
+                  <input 
+                    type="number" 
+                    name="shipping.dimensions.width" 
+                    class="form-input small" 
+                    placeholder="Kenglik"
+                    value=""
+                  >
+                  <span>×</span>
+                  <input 
+                    type="number" 
+                    name="shipping.dimensions.height" 
+                    class="form-input small" 
+                    placeholder="Balandlik"
+                    value=""
+                  >
+                  <select 
+                    name="shipping.dimensions.unit" 
+                    class="form-select small"
+                    style="max-width: 70px; margin-left: 8px;"
+                  >
+                    <option value="cm" selected>cm</option>
+                    <option value="inch">inch</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="packagingType" class="form-label">
+                  <i class="fas fa-box"></i>
+                  Qadoqlash turi
+                </label>
+                <select id="packagingType" name="shipping.packagingType" class="form-select">
+                  <option value="">Tanlang...</option>
+                  <option value="Box">Quti</option>
+                  <option value="Bag">Xalta</option>
+                  <option value="Carton">Karton</option>
+                  <option value="Pallet">Pallet</option>
+                  <option value="Roll">Rulon</option>
+                  <option value="Bundle">Bog'lam</option>
+                  <option value="Custom">Boshqa</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="shippingClass" class="form-label">
+                  <i class="fas fa-shipping-fast"></i>
+                  Yetkazib berish klassi
+                </label>
+                <select id="shippingClass" name="shipping.shippingClass" class="form-select">
+                  <option value="">Tanlang...</option>
+                  <option value="standard" selected>Standart</option>
+                  <option value="fragile">Mo'rt (ehtiyotkorlik bilan)</option>
+                  <option value="hazardous">Xavfli materiallar</option>
+                  <option value="perishable">Tez buziladigan</option>
+                  <option value="oversized">Katta hajmli</option>
+                </select>
+              </div>
+              
+              <div class="form-group full-width">
+                <label class="form-label">
+                  <i class="fas fa-shipping-fast"></i>
+                  Yetkazib berish usullari
+                </label>
+                <div class="shipping-methods">
+                  <label class="checkbox-label">
+                    <input 
+                      type="checkbox" 
+                      name="shipping.methods" 
+                      value="standard"
+                      checked
+                    >
+                    <span class="checkmark"></span>
+                    Standart yetkazib berish
+                  </label>
+                  <label class="checkbox-label">
+                    <input 
+                      type="checkbox" 
+                      name="shipping.methods" 
+                      value="express"
+                    >
+                    <span class="checkmark"></span>
+                    Tezkor yetkazib berish
+                  </label>
+                  <label class="checkbox-label">
+                    <input 
+                      type="checkbox" 
+                      name="shipping.methods" 
+                      value="pickup"
+                    >
+                    <span class="checkmark"></span>
+                    O'zi olib ketish
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Navigation -->
+          <div class="form-navigation">
+            <button type="button" class="btn-outline prev-step" id="prevStep" style="display: none;">
+              <i class="fas fa-arrow-left"></i>
+              Orqaga
+            </button>
+            <div class="nav-info">
+              <span class="current-step">1</span> / <span class="total-steps">5</span>
+            </div>
+            <button type="button" class="btn-primary" id="nextStep">
+              Keyingi
+              <i class="fas fa-arrow-right"></i>
+            </button>
+            <button type="submit" class="btn-success" id="submitForm" style="display: none;">
+              <i class="fas fa-save"></i>
+              Yaratish
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Side: Quick Actions & Guide -->
+      <div class="sidebar-container">
+        <!-- Creation Guide -->
+        <div class="creation-guide-card animate-fade-in">
+          <div class="card-header">
+            <h4>
+              <i class="fas fa-lightbulb"></i>
+              Yaratish bo'yicha maslahatlar
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="guide-tips">
+              <div class="tip-item">
+                <i class="fas fa-star tip-icon"></i>
+                <div class="tip-content">
+                  <h5>Sifatli rasmlar</h5>
+                  <p>Yuqori sifatli mahsulot rasmlari sotuvni 60% ga oshiradi</p>
+                </div>
+              </div>
+              <div class="tip-item">
+                <i class="fas fa-edit tip-icon"></i>
+                <div class="tip-content">
+                  <h5>Batafsil tavsif</h5>
+                  <p>Mahsulot xususiyatlarini to'liq va aniq kiriting</p>
+                </div>
+              </div>
+              <div class="tip-item">
+                <i class="fas fa-dollar-sign tip-icon"></i>
+                <div class="tip-content">
+                  <h5>Raqobatbardosh narx</h5>
+                  <p>Bozor narxlarini tahlil qiling va MOQ ni to'g'ri belgilang</p>
+                </div>
+              </div>
+              <div class="tip-item">
+                <i class="fas fa-shipping-fast tip-icon"></i>
+                <div class="tip-content">
+                  <h5>Yetkazish ma'lumotlari</h5>
+                  <p>Aniq yetkazib berish muddati va usullarini ko'rsating</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions-card animate-fade-in">
+          <div class="card-header">
+            <h4>
+              <i class="fas fa-bolt"></i>
+              Tezkor amallar
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="action-buttons">
+              <button class="action-btn" id="templateBtn">
+                <i class="fas fa-clipboard"></i>
+                <span>Shablon yuklash</span>
+              </button>
+              <button class="action-btn" id="categoryGuideBtn">
+                <i class="fas fa-th-large"></i>
+                <span>Kategoriya bo'yicha yordam</span>
+              </button>
+              <button class="action-btn" id="marketResearchBtn">
+                <i class="fas fa-chart-line"></i>
+                <span>Bozor tahlili</span>
+              </button>
+              <button class="action-btn" id="bulkUploadBtn">
+                <i class="fas fa-upload"></i>
+                <span>Ommaviy yuklash</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status & Progress -->
+        <div class="progress-card animate-fade-in">
+          <div class="card-header">
+            <h4>
+              <i class="fas fa-tasks"></i>
+              Yaratish jarayoni
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="progress-checklist">
+              <div class="progress-item" id="progress-step-1">
+                <i class="fas fa-circle-notch progress-icon"></i>
+                <span>Asosiy ma'lumotlar</span>
+                <div class="progress-status">0%</div>
+              </div>
+              <div class="progress-item" id="progress-step-2">
+                <i class="far fa-circle progress-icon"></i>
+                <span>Narx va miqdor</span>
+                <div class="progress-status">0%</div>
+              </div>
+              <div class="progress-item" id="progress-step-3">
+                <i class="far fa-circle progress-icon"></i>
+                <span>Texnik xususiyatlar</span>
+                <div class="progress-status">0%</div>
+              </div>
+              <div class="progress-item" id="progress-step-4">
+                <i class="far fa-circle progress-icon"></i>
+                <span>Rasmlar</span>
+                <div class="progress-status">0%</div>
+              </div>
+              <div class="progress-item" id="progress-step-5">
+                <i class="far fa-circle progress-icon"></i>
+                <span>Yetkazib berish</span>
+                <div class="progress-status">0%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Server Data for JavaScript -->
+<script type="application/json" id="product-add-data">
+    <%- JSON.stringify({
+      categories: categories,
+      user: {
+        id: user._id || '',
+        name: user.name || 'Manufacturer',
+        companyName: user.companyName || 'Manufacturing Company'
+      },
+      apiEndpoints: {
+        createProduct: '/manufacturer/api/products/create',
+        uploadImages: '/manufacturer/api/products/upload-images',
+        saveDraft: '/manufacturer/api/products/save-draft',
+        publishProduct: '/manufacturer/api/products/publish'
+      }
+    }) %>
+    </script>
+    
+    <!-- Core JavaScript Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/assets/js/jquery-3.7.1.min.js"></script>
+    <script src="/assets/js/boostrap.bundle.min.js"></script>
+    
+    <!-- Professional Unified Header Management -->
+    <script src="/js/manufacturer/manufacturer-header.js"></script>
+    
+    <!-- Complete Manufacturer Dashboard Functionality -->
+    <script src="/js/manufacturer/manufacturer-dashboard.js"></script>
+    
+    <!-- Server Data for JavaScript -->
+    <script id="product-add-data" type="application/json">
+    {
+      "categories": <%- JSON.stringify(categories || []) %>,
+      "apiEndpoints": {
+        "createProduct": "/manufacturer/api/products/create",
+        "saveDraft": "/manufacturer/api/products/save-draft",
+        "publishProduct": "/manufacturer/api/products/publish",
+        "uploadImages": "/manufacturer/api/products/upload-images"
+      },
+      "maxImageSize": 5242880,
+      "allowedImageTypes": ["image/jpeg", "image/png", "image/webp"],
+      "maxImagesCount": 10
+    }
+    </script>
+    
+    <!-- Product Add JavaScript -->
+    <script>
+    // Get server data
+    const productAddData = JSON.parse(document.getElementById('product-add-data').textContent);
+    
+    /**
+     * Professional B2B Product Add Manager
+     * Senior Software Engineer implementation for new product creation
+     */
+    class ProductAddManager {
+        constructor() {
+            this.currentStep = 1;
+            this.totalSteps = 5;
+            this.isDirty = false;
+            this.autoSaveEnabled = true;
+            this.autoSaveInterval = null;
+            this.validationRules = this.setupValidationRules();
+            this.uploadedImages = [];
+            this.stepProgress = {
+                1: 0, 2: 0, 3: 0, 4: 0, 5: 0
+            };
+            
+            this.init();
+        }
+    
+        init() {
+            console.log('🏭 Initializing Product Add Manager...');
+            
+            try {
+                this.setupFormNavigation();
+                console.log('✅ Form navigation setup complete');
+                
+                this.setupFormValidation();
+                console.log('✅ Form validation setup complete');
+                
+                this.setupImageUpload();
+                console.log('✅ Image upload setup complete');
+                
+                this.setupDynamicSections();
+                console.log('✅ Dynamic sections setup complete');
+                
+                this.setupAutoSave();
+                console.log('✅ Auto-save setup complete');
+                
+                this.setupKeyboardShortcuts();
+                console.log('✅ Keyboard shortcuts setup complete');
+                
+                this.setupFormChangeTracking();
+                console.log('✅ Form change tracking setup complete');
+                
+                this.setupProgressTracking();
+                console.log('✅ Progress tracking setup complete');
+                
+                // Setup quick action buttons
+                this.setupQuickActions();
+                console.log('✅ Quick actions setup complete');
+                
+                console.log('✅ Product Add Manager fully initialized');
+            } catch (error) {
+                console.error('❌ Product Add Manager initialization failed:', error);
+                throw error;
+            }
+        }
+    
+        setupFormNavigation() {
+            console.log('🔄 Setting up form navigation...');
+            
+            const nextBtn = document.getElementById('nextStep');
+            const prevBtn = document.getElementById('prevStep');
+            const submitBtn = document.getElementById('submitForm');
+    
+            console.log('Navigation buttons found:', { 
+                nextBtn: !!nextBtn, 
+                prevBtn: !!prevBtn, 
+                submitBtn: !!submitBtn 
+            });
+    
+            nextBtn?.addEventListener('click', () => {
+                console.log('Next button clicked');
+                this.nextStep();
+            });
+            
+            prevBtn?.addEventListener('click', () => {
+                console.log('Previous button clicked');
+                this.prevStep();
+            });
+            
+            submitBtn?.addEventListener('click', (e) => {
+                console.log('Submit button clicked');
+                this.submitForm(e);
+            });
+    
+            // Step indicators
+            const stepElements = document.querySelectorAll('.step[data-step]');
+            console.log('Step indicators found:', stepElements.length);
+            
+            stepElements.forEach(step => {
+                step.addEventListener('click', (e) => {
+                    const stepNum = parseInt(e.currentTarget.dataset.step);
+                    console.log('Step indicator clicked:', stepNum);
+                    this.goToStep(stepNum);
+                });
+            });
+            
+            // Draft/Publish Button Event Listeners
+            this.setupDraftPublishButtons();
+        }
+        
+        setupDraftPublishButtons() {
+            const saveAsDraftBtn = document.getElementById('saveAsDraftBtn');
+            const publishBtn = document.getElementById('publishBtn');
+            
+            // Save as Draft functionality
+            saveAsDraftBtn?.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await this.saveAsDraft();
+            });
+            
+            // Publish functionality
+            publishBtn?.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await this.publishProduct();
+            });
+        }
+        
+        async saveAsDraft() {
+            try {
+                console.log('💾 Saving product as draft...');
+                
+                const saveAsDraftBtn = document.getElementById('saveAsDraftBtn');
+                this.setButtonLoading(saveAsDraftBtn, 'Saqlanmoqda...');
+                
+                const formData = this.collectFormData();
+                formData.status = 'draft';
+                
+                const response = await fetch(productAddData.apiEndpoints.saveDraft, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    this.isDirty = false;
+                    this.showSuccessToast('Mahsulot qoralama sifatida saqlandi');
+                    console.log('✅ Product saved as draft successfully');
+                    
+                    // Optionally redirect to edit page
+                    setTimeout(() => {
+                        window.location.href = `/manufacturer/products/edit/${result.data.productId}`;
+                    }, 1500);
+                } else {
+                    this.showErrorToast(result.message || 'Qoralama saqlashda xatolik yuz berdi');
+                    console.error('❌ Save as draft failed:', result.message);
+                }
+                
+            } catch (error) {
+                console.error('❌ Save as draft error:', error);
+                this.showErrorToast('Qoralama saqlashda xatolik yuz berdi');
+            } finally {
+                const saveAsDraftBtn = document.getElementById('saveAsDraftBtn');
+                this.resetButtonLoading(saveAsDraftBtn, '<i class="fas fa-save"></i> Qoralama sifatida saqlash');
+            }
+        }
+        
+        async publishProduct() {
+            try {
+                console.log('🚀 Publishing product...');
+                
+                const publishBtn = document.getElementById('publishBtn');
+                this.setButtonLoading(publishBtn, 'Chop etilmoqda...');
+                
+                const formData = this.collectFormData();
+                
+                // Validate form before publishing
+                const validationResult = this.validateFormForPublishing(formData);
+                
+                if (!validationResult.isValid) {
+                    this.showValidationErrors(validationResult.errors);
+                    return;
+                }
+                
+                formData.status = 'active';
+                
+                const response = await fetch(productAddData.apiEndpoints.publishProduct, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    this.isDirty = false;
+                    this.showPublishSuccessMessage(result.data);
+                    console.log('✅ Product published successfully');
+                } else {
+                    if (result.errors && result.errors.length > 0) {
+                        this.showValidationErrors(result.errors);
+                    } else {
+                        this.showErrorToast(result.message || 'Chop etishda xatolik yuz berdi');
+                    }
+                    console.error('❌ Publish failed:', result.message);
+                }
+                
+            } catch (error) {
+                console.error('❌ Publish error:', error);
+                this.showErrorToast('Chop etishda xatolik yuz berdi');
+            } finally {
+                const publishBtn = document.getElementById('publishBtn');
+                this.resetButtonLoading(publishBtn, '<i class="fas fa-rocket"></i> Chop etish');
+            }
+        }
+        
+        validateFormForPublishing(formData) {
+            const errors = [];
+            
+            // Required field validations
+            if (!formData.name || formData.name.trim().length < 3) {
+                errors.push('Mahsulot nomi kamida 3 ta belgidan iborat bo\'lishi kerak');
+            }
+            
+            if (!formData.description || formData.description.trim().length < 20) {
+                errors.push('Mahsulot ta\'rif kamida 20 ta belgidan iborat bo\'lishi kerak');
+            }
+            
+            if (!formData.category) {
+                errors.push('Kategoriya tanlanishi shart');
+            }
+            
+            if (!formData.pricing?.basePrice || formData.pricing.basePrice <= 0) {
+                errors.push('Asosiy narx 0 dan katta bo\'lishi kerak');
+            }
+            
+            if (!formData.pricing?.minimumOrderQuantity || formData.pricing.minimumOrderQuantity <= 0) {
+                errors.push('Eng kam buyurtma miqdori 0 dan katta bo\'lishi kerak');
+            }
+            
+            if (!formData.inventory?.totalStock || formData.inventory.totalStock <= 0) {
+                errors.push('Umumiy ombor miqdori 0 dan katta bo\'lishi kerak');
+            }
+            
+            if (!formData.inventory?.unit) {
+                errors.push('O\'lchov birligi tanlanishi shart');
+            }
+            
+            // Check for uploaded images
+            const hasImages = (formData.images && formData.images.length > 0) || 
+                             (document.querySelectorAll('.image-preview-item').length > 0);
+            
+            if (!hasImages) {
+                errors.push('Kamida bitta mahsulot rasmi yuklash shart');
+            }
+            
+            return {
+                isValid: errors.length === 0,
+                errors: errors
+            };
+        }
+        
+        showValidationErrors(errors) {
+            const errorsList = errors.map(error => `<li>${error}</li>`).join('');
+            
+            const errorHtml = `
+                <div class="validation-errors-modal">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-exclamation-triangle"></i>Quyidagi maydonlarni to'ldiring</h3>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="error-header">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Formani to'ldirish kerak:</h3>
+                        </div>
+                        <ul class="error-list">
+                            ${errorsList}
+                        </ul>
+                        <div class="error-actions">
+                            <button class="btn btn-primary" onclick="this.parentElement.parentElement.parentElement.parentElement.remove()">
+                                <i class="fas fa-check"></i>
+                                Tushunarli
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'validation-error-overlay';
+            errorDiv.innerHTML = errorHtml;
+            
+            // Add click outside to close functionality
+            errorDiv.addEventListener('click', (e) => {
+                if (e.target === errorDiv) {
+                    errorDiv.remove();
+                }
+            });
+            
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                if (errorDiv && errorDiv.parentElement) {
+                    errorDiv.remove();
+                }
+            }, 10000);
+        }
+        
+        showPublishSuccessMessage(data) {
+            const successHtml = `
+                <div class="publish-success-modal">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-check-circle"></i>Mahsulot yaratildi!</h3>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="success-header">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Mahsulot muvaffaqiyatli yaratildi!</h3>
+                        </div>
+                        <div class="success-content">
+                            <p>Sizning mahsulotingiz endi marketplace da ko'rinadi va xaridorlar uni topishi mumkin.</p>
+                            ${data.marketplaceUrl ? 
+                                `<a href="${data.marketplaceUrl}" class="btn btn-outline" target="_blank">
+                                    <i class="fas fa-external-link-alt"></i> Marketplace da ko'rish
+                                </a>` : ''
+                            }
+                        </div>
+                        <div class="success-actions">
+                            <button class="btn btn-success" onclick="window.location.href='/manufacturer/marketplace'">
+                                <i class="fas fa-store"></i>
+                                Marketplace ga o'tish
+                            </button>
+                            <button class="btn btn-primary" onclick="window.location.href='/manufacturer/products/add'">
+                                <i class="fas fa-plus"></i>
+                                Yana mahsulot qo'shish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const successDiv = document.createElement('div');
+            successDiv.className = 'publish-success-overlay';
+            successDiv.innerHTML = successHtml;
+            
+            // Add click outside to close functionality
+            successDiv.addEventListener('click', (e) => {
+                if (e.target === successDiv) {
+                    successDiv.remove();
+                }
+            });
+            
+            document.body.appendChild(successDiv);
+        }
+    
+        setupProgressTracking() {
+            console.log('📊 Setting up real-time progress tracking...');
+            
+            // Initial progress calculation
+            this.updateStepProgress();
+            
+            // Monitor form completion for each step with real-time updates
+            const progressInterval = setInterval(() => {
+                this.updateStepProgress();
+            }, 1000); // Every 1 second for real-time feel
+            
+            // Store interval for cleanup
+            this.progressInterval = progressInterval;
+            
+            // Also update on input changes for immediate feedback
+            document.addEventListener('input', (e) => {
+                if (e.target.matches('input, select, textarea')) {
+                    setTimeout(() => this.updateStepProgress(), 100);
+                }
+            });
+            
+            // Update on form changes
+            document.addEventListener('change', (e) => {
+                if (e.target.matches('input, select, textarea')) {
+                    setTimeout(() => this.updateStepProgress(), 100);
+                }
+            });
+        }
+    
+        updateStepProgress() {
+            let totalCompletion = 0;
+            let totalSteps = this.totalSteps;
+            
+            // Step 1: Basic Information (Critical - weighted 30%)
+            const step1Fields = ['name', 'category', 'description'];
+            const step1Completion = this.calculateStepCompletion(1, step1Fields);
+            this.updateProgressItem(1, step1Completion);
+            this.stepProgress[1] = step1Completion;
+    
+            // Step 2: Pricing (Critical - weighted 25%)
+            const step2Fields = ['pricing.basePrice', 'pricing.minimumOrderQuantity'];
+            const step2Completion = this.calculateStepCompletion(2, step2Fields);
+            this.updateProgressItem(2, step2Completion);
+            this.stepProgress[2] = step2Completion;
+    
+            // Step 3: Specifications (Important - weighted 20%)
+            const step3Fields = ['inventory.unit', 'specifications.material', 'specifications.color'];
+            const step3Completion = this.calculateStepCompletion(3, step3Fields);
+            this.updateProgressItem(3, step3Completion);
+            this.stepProgress[3] = step3Completion;
+    
+            // Step 4: Images (Important - weighted 15%)
+            const uploadedCount = this.uploadedImages.length;
+            const step4Completion = uploadedCount > 0 ? 
+                Math.min(100, (uploadedCount / 3) * 100) : 0; // 3 images = 100%
+            this.updateProgressItem(4, step4Completion);
+            this.stepProgress[4] = step4Completion;
+    
+            // Step 5: Shipping (Optional - weighted 10%)
+            const step5Fields = ['shipping.leadTime', 'shipping.cost'];
+            const step5Completion = this.calculateStepCompletion(5, step5Fields);
+            this.updateProgressItem(5, step5Completion);
+            this.stepProgress[5] = step5Completion;
+            
+            // Calculate weighted overall progress
+            const weights = [0.30, 0.25, 0.20, 0.15, 0.10];
+            totalCompletion = this.stepProgress[1] * weights[0] + 
+                             this.stepProgress[2] * weights[1] + 
+                             this.stepProgress[3] * weights[2] + 
+                             this.stepProgress[4] * weights[3] + 
+                             this.stepProgress[5] * weights[4];
+            
+            // Update overall progress indicators
+            this.updateOverallProgress(Math.round(totalCompletion));
+            
+            // Update completion status in sidebar
+            this.updateCompletionStatus(Math.round(totalCompletion));
+            
+            // Show readiness notifications
+            this.checkReadinessNotifications(totalCompletion);
+        }
+    
+        calculateStepCompletion(stepNum, requiredFields) {
+            const form = document.getElementById('productAddForm');
+            let completedFields = 0;
+            let totalWeight = 0;
+            let completedWeight = 0;
+    
+            requiredFields.forEach(fieldName => {
+                const field = form.querySelector(`[name="${fieldName}"]`);
+                const isRequired = field?.hasAttribute('required');
+                const weight = isRequired ? 2 : 1; // Required fields have double weight
+                
+                totalWeight += weight;
+                
+                if (field && field.value.trim()) {
+                    completedWeight += weight;
+                    completedFields++;
+                }
+            });
+    
+            // If no fields defined, return 0
+            if (totalWeight === 0) return 0;
+            
+            // Calculate weighted completion percentage
+            const completion = Math.round((completedWeight / totalWeight) * 100);
+            
+            // Log progress for debugging
+            console.log(`📋 Step ${stepNum} progress: ${completion}% (${completedFields}/${requiredFields.length} fields)`);
+            
+            return completion;
+        }
+    
+        updateProgressItem(stepNum, completion) {
+            const progressItem = document.getElementById(`progress-step-${stepNum}`);
+            const icon = progressItem.querySelector('.progress-icon');
+            const status = progressItem.querySelector('.progress-status');
+    
+            status.textContent = `${completion}%`;
+    
+            if (completion === 100) {
+                icon.className = 'fas fa-check-circle progress-icon completed';
+                progressItem.classList.add('completed');
+            } else if (completion > 0) {
+                icon.className = 'fas fa-circle-notch progress-icon in-progress';
+                progressItem.classList.add('in-progress');
+                progressItem.classList.remove('completed');
+            } else {
+                icon.className = 'far fa-circle progress-icon';
+                progressItem.classList.remove('completed', 'in-progress');
+            }
+        }
+    
+        setupQuickActions() {
+            console.log('🎯 Setting up quick actions...');
+            
+            const templateBtn = document.getElementById('templateBtn');
+            const categoryGuideBtn = document.getElementById('categoryGuideBtn');
+            const marketResearchBtn = document.getElementById('marketResearchBtn');
+            const bulkUploadBtn = document.getElementById('bulkUploadBtn');
+    
+            console.log('Quick action buttons found:', {
+                templateBtn: !!templateBtn,
+                categoryGuideBtn: !!categoryGuideBtn,
+                marketResearchBtn: !!marketResearchBtn,
+                bulkUploadBtn: !!bulkUploadBtn
+            });
+    
+            // Template loading
+            templateBtn?.addEventListener('click', () => {
+                console.log('Template button clicked');
+                this.loadTemplate();
+            });
+    
+            // Category guide
+            categoryGuideBtn?.addEventListener('click', () => {
+                console.log('Category guide button clicked');
+                this.showCategoryGuide();
+            });
+    
+            // Market research
+            marketResearchBtn?.addEventListener('click', () => {
+                console.log('Market research button clicked');
+                this.showMarketResearch();
+            });
+    
+            // Bulk upload
+            bulkUploadBtn?.addEventListener('click', () => {
+                console.log('Bulk upload button clicked');
+                window.location.href = '/manufacturer/products/bulk-upload';
+            });
+        }
+    
+        loadTemplate() {
+            // Show template selection modal
+            const templates = [
+                { name: 'Paxta mato', category: 'textiles', price: 45 },
+                { name: 'Ipak mato', category: 'textiles', price: 120 },
+                { name: 'Jun mato', category: 'textiles', price: 85 }
+            ];
+    
+            const templateHtml = templates.map(template => 
+                `<div class="template-item" onclick="window.productAddManager.applyTemplate('${template.name}', '${template.category}', ${template.price})">
+                    <h4>${template.name}</h4>
+                    <p>Kategoriya: ${template.category}</p>
+                    <p>Taxminiy narx: $${template.price}</p>
+                </div>`
+            ).join('');
+    
+            const modalHtml = `
+                <div class="template-modal">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-clipboard-list"></i>Shablon tanlang</h3>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        ${templateHtml}
+                    </div>
+                </div>
+            `;
+    
+            const modalDiv = document.createElement('div');
+            modalDiv.className = 'template-modal-overlay';
+            modalDiv.innerHTML = modalHtml;
+            
+            // Add click outside to close functionality
+            modalDiv.addEventListener('click', (e) => {
+                if (e.target === modalDiv) {
+                    modalDiv.remove();
+                }
+            });
+            
+            document.body.appendChild(modalDiv);
+        }
+    
+        applyTemplate(name, category, price) {
+            // Apply template data to form
+            document.querySelector('[name="name"]').value = name;
+            document.querySelector('[name="pricing.basePrice"]').value = price;
+            
+            // Close modal
+            document.querySelector('.template-modal-overlay')?.remove();
+            
+            this.showSuccessToast('Shablon muvaffaqiyatli qo\'llandi');
+            this.isDirty = true;
+        }
+    
+        showCategoryGuide() {
+            // Show category selection guide
+            const guideHtml = `
+                <div class="category-guide-modal">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-question-circle"></i>Kategoriya bo'yicha yordam</h3>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="category-tips">
+                            <h4>To'g'ri kategoriya tanlash:</h4>
+                            <ul>
+                                <li><strong>Tekstil mahsulotlari</strong> - matolar, ip, gazlama</li>
+                                <li><strong>Kiyim aksessuarlari</strong> - tugma, fermuar, tasma</li>
+                                <li><strong>Kimyoviy moddalar</strong> - bo'yoq, kimyoviy preparatlar</li>
+                                <li><strong>Mashina va uskunalar</strong> - tikuv mashinasi, asboblar</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+    
+            const modalDiv = document.createElement('div');
+            modalDiv.className = 'category-guide-overlay';
+            modalDiv.innerHTML = guideHtml;
+            
+            // Add click outside to close functionality
+            modalDiv.addEventListener('click', (e) => {
+                if (e.target === modalDiv) {
+                    modalDiv.remove();
+                }
+            });
+            
+            document.body.appendChild(modalDiv);
+        }
+    
+        showMarketResearch() {
+            // Show market research modal
+            const researchHtml = `
+                <div class="category-guide-modal">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-chart-line"></i>Bozor tahlili</h3>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="category-tips">
+                            <h4>Bozor tendentsiyalari:</h4>
+                            <ul>
+                                <li><strong>Tekstil eksporti</strong> - 25% o'sish prognozi</li>
+                                <li><strong>Paxta mahsulotlari</strong> - yuqori talab</li>
+                                <li><strong>Ekologik mahsulotlar</strong> - yangi trend</li>
+                                <li><strong>B2B onlayn savdo</strong> - tez rivojlanmoqda</li>
+                            </ul>
+                            <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.875rem;">
+                                <strong>Tavsiya:</strong> Mahsulotingizni bozor ehtiyojlariga moslashtiring
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+    
+            const modalDiv = document.createElement('div');
+            modalDiv.className = 'category-guide-overlay';
+            modalDiv.innerHTML = researchHtml;
+            
+            // Add click outside to close functionality
+            modalDiv.addEventListener('click', (e) => {
+                if (e.target === modalDiv) {
+                    modalDiv.remove();
+                }
+            });
+            
+            document.body.appendChild(modalDiv);
+        }
+    
+    
+    
+        // Include all other methods from edit page (setupFormValidation, setupImageUpload, etc.)
+        // ... (same implementation as edit page with minor modifications)
+    
+        setupFormValidation() {
+            const form = document.getElementById('productAddForm');
+            
+            // Real-time validation
+            form.querySelectorAll('input, textarea, select').forEach(field => {
+                field.addEventListener('blur', () => this.validateField(field));
+                field.addEventListener('input', () => this.clearFieldError(field));
+            });
+        }
+    
+        setupImageUpload() {
+            const uploadArea = document.getElementById('imageUploadArea');
+            const uploadInput = document.getElementById('imageUploadInput');
+            const uploadBtn = document.querySelector('.upload-btn');
+    
+            // Click to upload
+            uploadBtn?.addEventListener('click', () => uploadInput?.click());
+            uploadArea?.addEventListener('click', () => uploadInput?.click());
+    
+            // File input change
+            uploadInput?.addEventListener('change', (e) => {
+                this.handleImageFiles(e.target.files);
+            });
+    
+            // Drag and drop
+            uploadArea?.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+    
+            uploadArea?.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+    
+            uploadArea?.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                this.handleImageFiles(e.dataTransfer.files);
+            });
+        }
+    
+        async handleImageFiles(files) {
+            const maxFiles = 10;
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    
+            const validFiles = Array.from(files).filter(file => {
+                if (!allowedTypes.includes(file.type)) {
+                    this.showErrorToast(`Noto'g'ri fayl turi: ${file.name}`);
+                    return false;
+                }
+                if (file.size > maxSize) {
+                    this.showErrorToast(`Fayl juda katta: ${file.name}`);
+                    return false;
+                }
+                return true;
+            });
+    
+            if (validFiles.length === 0) return;
+    
+            const currentImageCount = this.uploadedImages.length;
+            if (currentImageCount + validFiles.length > maxFiles) {
+                this.showErrorToast(`Maksimal ${maxFiles} ta rasm yuklash mumkin`);
+                return;
+            }
+    
+            try {
+                this.showUploadProgress(true);
+                const uploadedUrls = await this.uploadImages(validFiles);
+                this.uploadedImages.push(...uploadedUrls);
+                this.addImagesToPreview(uploadedUrls);
+                this.showUploadProgress(false);
+                this.showSuccessToast(`${uploadedUrls.length} ta rasm yuklandi`);
+                this.isDirty = true;
+            } catch (error) {
+                this.showUploadProgress(false);
+                this.showErrorToast('Rasmlarni yuklashda xatolik: ' + error.message);
+            }
+        }
+    
+        async uploadImages(files) {
+            const formData = new FormData();
+            files.forEach(file => formData.append('images', file));
+    
+            const response = await fetch(productAddData.apiEndpoints.uploadImages, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            });
+    
+            const result = await response.json();
+            if (!result.success) {
+                throw new Error(result.message || 'Upload failed');
+            }
+    
+            return result.data.urls;
+        }
+    
+        addImagesToPreview(imageUrls) {
+            const currentImages = document.getElementById('currentImages');
+            let imagesGrid = currentImages.querySelector('.images-grid');
+            
+            if (!imagesGrid) {
+                imagesGrid = document.createElement('div');
+                imagesGrid.className = 'images-grid';
+                currentImages.appendChild(imagesGrid);
+            }
+    
+            imageUrls.forEach((url, index) => {
+                const imageItem = this.createImagePreview(url, index === 0 && this.uploadedImages.length === 1);
+                imagesGrid.appendChild(imageItem);
+            });
+    
+            this.setupImageRemovalHandlers();
+        }
+    
+        createImagePreview(imageUrl, isPrimary = false) {
+            const imageItem = document.createElement('div');
+            imageItem.className = 'image-item';
+            imageItem.dataset.imageUrl = imageUrl;
+    
+            imageItem.innerHTML = `
+                <div class="image-wrapper">
+                    <img src="${imageUrl}" alt="Product Image" loading="lazy">
+                    <div class="image-overlay">
+                        <button type="button" class="btn-sm btn-ghost set-primary" title="Asosiy qilish">
+                            <i class="fas fa-star"></i>
+                        </button>
+                        <button type="button" class="btn-sm btn-ghost remove-image" title="O'chirish">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    ${isPrimary ? '<div class="primary-badge">Asosiy</div>' : ''}
+                </div>
+            `;
+    
+            return imageItem;
+        }
+    
+        setupImageRemovalHandlers() {
+            document.querySelectorAll('.remove-image').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const imageItem = e.target.closest('.image-item');
+                    this.removeImage(imageItem);
+                });
+            });
+    
+            document.querySelectorAll('.set-primary').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const imageItem = e.target.closest('.image-item');
+                    this.setPrimaryImage(imageItem);
+                });
+            });
+        }
+    
+        removeImage(imageItem) {
+            if (confirm('Rasmni o\'chirishni xohlaysizmi?')) {
+                const imageUrl = imageItem.dataset.imageUrl;
+                this.uploadedImages = this.uploadedImages.filter(url => url !== imageUrl);
+                imageItem.remove();
+                this.isDirty = true;
+            }
+        }
+    
+        setPrimaryImage(imageItem) {
+            // Remove primary badge from all images
+            document.querySelectorAll('.primary-badge').forEach(badge => badge.remove());
+            
+            // Add primary badge to selected image
+            const primaryBadge = document.createElement('div');
+            primaryBadge.className = 'primary-badge';
+            primaryBadge.textContent = 'Asosiy';
+            imageItem.querySelector('.image-wrapper').appendChild(primaryBadge);
+    
+            // Move to first position
+            const imagesGrid = imageItem.closest('.images-grid');
+            imagesGrid.insertBefore(imageItem, imagesGrid.firstChild);
+    
+            this.isDirty = true;
+        }
+    
+        showUploadProgress(show) {
+            const progressElement = document.getElementById('uploadProgress');
+            progressElement.style.display = show ? 'block' : 'none';
+        }
+    
+        setupDynamicSections() {
+            // Bulk pricing
+            document.getElementById('addBulkPrice')?.addEventListener('click', () => {
+                this.addBulkPriceRow();
+            });
+    
+            // Specifications
+            document.getElementById('addSpecification')?.addEventListener('click', () => {
+                this.addSpecificationRow();
+            });
+    
+            this.setupRemovalHandlers();
+        }
+    
+        addBulkPriceRow() {
+            const list = document.getElementById('bulkPricingList');
+            const index = list.children.length;
+            
+            const row = document.createElement('div');
+            row.className = 'bulk-price-item';
+            row.dataset.index = index;
+            
+            row.innerHTML = `
+                <div class="bulk-inputs">
+                    <input type="number" name="pricing.bulkPricing[${index}].minQuantity" placeholder="Min miqdor" class="form-input small">
+                    <span>-</span>
+                    <input type="number" name="pricing.bulkPricing[${index}].maxQuantity" placeholder="Max miqdor" class="form-input small">
+                    <input type="number" name="pricing.bulkPricing[${index}].price" placeholder="Narx (USD)" step="0.01" class="form-input small">
+                    <input type="number" name="pricing.bulkPricing[${index}].discount" placeholder="Chegirma %" class="form-input small">
+                </div>
+                <button type="button" class="btn-sm btn-ghost remove-bulk-price">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            
+            list.appendChild(row);
+            this.setupRemovalHandlers();
+        }
+    
+        addSpecificationRow() {
+            const list = document.getElementById('specificationsList');
+            const index = list.children.length;
+            
+            const row = document.createElement('div');
+            row.className = 'specification-item';
+            row.dataset.index = index;
+            
+            row.innerHTML = `
+                <div class="spec-inputs">
+                    <input type="text" name="specifications[${index}].name" placeholder="Xususiyat nomi (Masalan: Material)" class="form-input">
+                    <input type="text" name="specifications[${index}].value" placeholder="Qiymati (Masalan: 100% Paxta)" class="form-input">
+                    <input type="text" name="specifications[${index}].unit" placeholder="O'lchov (Masalan: %, kg, m)" class="form-input small">
+                </div>
+                <button type="button" class="btn-sm btn-ghost remove-specification">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            
+            list.appendChild(row);
+            this.setupRemovalHandlers();
+        }
+    
+        setupRemovalHandlers() {
+            document.querySelectorAll('.remove-bulk-price').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.target.closest('.bulk-price-item').remove();
+                    this.reindexBulkPricing();
+                });
+            });
+    
+            document.querySelectorAll('.remove-specification').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.target.closest('.specification-item').remove();
+                    this.reindexSpecifications();
+                });
+            });
+        }
+    
+        reindexBulkPricing() {
+            document.querySelectorAll('.bulk-price-item').forEach((item, index) => {
+                item.dataset.index = index;
+                item.querySelectorAll('input').forEach(input => {
+                    const name = input.name.replace(/\[\d+\]/, `[${index}]`);
+                    input.name = name;
+                });
+            });
+        }
+    
+        reindexSpecifications() {
+            document.querySelectorAll('.specification-item').forEach((item, index) => {
+                item.dataset.index = index;
+                item.querySelectorAll('input').forEach(input => {
+                    const name = input.name.replace(/\[\d+\]/, `[${index}]`);
+                    input.name = name;
+                });
+            });
+        }
+    
+        setupAutoSave() {
+            if (this.autoSaveEnabled) {
+                this.autoSaveInterval = setInterval(() => {
+                    if (this.isDirty) {
+                        this.autoSaveData();
+                    }
+                }, 30000);
+            }
+        }
+    
+        setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch (e.key) {
+                        case 's':
+                            e.preventDefault();
+                            this.saveAsDraft();
+                            break;
+                        case 'ArrowRight':
+                            if (e.altKey) {
+                                e.preventDefault();
+                                this.nextStep();
+                            }
+                            break;
+                        case 'ArrowLeft':
+                            if (e.altKey) {
+                                e.preventDefault();
+                                this.prevStep();
+                            }
+                            break;
+                    }
+                }
+            });
+        }
+    
+        setupFormChangeTracking() {
+            const form = document.getElementById('productAddForm');
+            form?.addEventListener('input', () => {
+                this.isDirty = true;
+                this.updateSaveIndicator();
+            });
+    
+            window.addEventListener('beforeunload', (e) => {
+                if (this.isDirty) {
+                    e.preventDefault();
+                    e.returnValue = 'Saqlanmagan o\'zgarishlar bor. Sahifani tark etishni xohlaysizmi?';
+                }
+            });
+        }
+    
+        nextStep() {
+            if (this.validateCurrentStep()) {
+                if (this.currentStep < this.totalSteps) {
+                    this.goToStep(this.currentStep + 1);
+                }
+            }
+        }
+    
+        prevStep() {
+            if (this.currentStep > 1) {
+                this.goToStep(this.currentStep - 1);
+            }
+        }
+    
+        goToStep(stepNumber) {
+            if (stepNumber < 1 || stepNumber > this.totalSteps) return;
+    
+            // Hide current step
+            document.querySelector(`.form-step[data-step="${this.currentStep}"]`)?.classList.remove('active');
+            document.querySelector(`.step[data-step="${this.currentStep}"]`)?.classList.remove('active');
+    
+            // Show new step
+            document.querySelector(`.form-step[data-step="${stepNumber}"]`)?.classList.add('active');
+            document.querySelector(`.step[data-step="${stepNumber}"]`)?.classList.add('active');
+    
+            this.currentStep = stepNumber;
+    
+            // Update navigation
+            this.updateNavigation();
+            this.updateProgressBar();
+    
+            // Update step info
+            const currentStepElement = document.querySelector('.current-step');
+            if (currentStepElement) {
+                currentStepElement.textContent = this.currentStep;
+            }
+        }
+    
+        updateNavigation() {
+            const prevBtn = document.getElementById('prevStep');
+            const nextBtn = document.getElementById('nextStep');
+            const submitBtn = document.getElementById('submitForm');
+    
+            if (this.currentStep === 1) {
+                prevBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'block';
+            }
+    
+            if (this.currentStep === this.totalSteps) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+        }
+    
+        updateProgressBar() {
+            const progressBar = document.querySelector('.progress-fill');
+            if (progressBar) {
+                const percentage = (this.currentStep / this.totalSteps) * 100;
+                progressBar.style.width = `${percentage}%`;
+            }
+        }
+    
+        validateCurrentStep() {
+            console.log(`🔍 Validating step ${this.currentStep}...`);
+            
+            const currentStepElement = document.querySelector(`.form-step[data-step="${this.currentStep}"]`);
+            if (!currentStepElement) {
+                console.log('❌ Step element not found');
+                return false;
+            }
+            
+            const requiredFields = currentStepElement.querySelectorAll('[required]');
+            console.log(`Found ${requiredFields.length} required fields in step ${this.currentStep}`);
+            
+            let isValid = true;
+            let invalidFields = [];
+    
+            requiredFields.forEach(field => {
+                const fieldValid = this.validateField(field);
+                if (!fieldValid) {
+                    isValid = false;
+                    invalidFields.push(field.name || field.id || 'unnamed field');
+                }
+            });
+    
+            if (!isValid) {
+                console.log('❌ Step validation failed. Invalid fields:', invalidFields);
+                this.showErrorToast(`Iltimos, barcha majburiy maydonlarni to'ldiring: ${invalidFields.join(', ')}`);
+                
+                // Highlight first invalid field
+                const firstInvalidField = currentStepElement.querySelector('[required]:invalid, .form-group.error [required]');
+                if (firstInvalidField) {
+                    firstInvalidField.focus();
+                    firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            } else {
+                console.log(`✅ Step ${this.currentStep} validation passed`);
+            }
+    
+            return isValid;
+        }
+    
+        validateField(field) {
+            const value = field.value.trim();
+            const fieldName = field.name;
+            const rules = this.validationRules[fieldName];
+    
+            if (!rules) return true;
+    
+            let isValid = true;
+            let errorMessage = '';
+    
+            // Required validation
+            if (rules.required && !value) {
+                isValid = false;
+                errorMessage = 'Bu maydon to\'ldirilishi shart';
+            }
+    
+            // Length validation
+            if (value && rules.minLength && value.length < rules.minLength) {
+                isValid = false;
+                errorMessage = `Kamida ${rules.minLength} ta belgi kiriting`;
+            }
+    
+            if (value && rules.maxLength && value.length > rules.maxLength) {
+                isValid = false;
+                errorMessage = `Maksimal ${rules.maxLength} ta belgi`;
+            }
+    
+            // Pattern validation
+            if (value && rules.pattern && !rules.pattern.test(value)) {
+                isValid = false;
+                errorMessage = rules.patternMessage || 'Noto\'g\'ri format';
+            }
+    
+            // Custom validators
+            if (value && rules.custom) {
+                const customResult = rules.custom(value);
+                if (customResult !== true) {
+                    isValid = false;
+                    errorMessage = customResult;
+                }
+            }
+    
+            this.displayFieldValidation(field, isValid, errorMessage);
+            return isValid;
+        }
+    
+        displayFieldValidation(field, isValid, errorMessage) {
+            const wrapper = field.closest('.form-group');
+            const errorElement = wrapper?.querySelector('.validation-message');
+    
+            if (!wrapper || !errorElement) return;
+    
+            if (isValid) {
+                wrapper.classList.remove('error');
+                wrapper.classList.add('valid');
+                errorElement.textContent = '';
+            } else {
+                wrapper.classList.remove('valid');
+                wrapper.classList.add('error');
+                errorElement.textContent = errorMessage;
+            }
+        }
+    
+        clearFieldError(field) {
+            const wrapper = field.closest('.form-group');
+            wrapper?.classList.remove('error');
+        }
+    
+        setupValidationRules() {
+            return {
+                'name': {
+                    required: true,
+                    minLength: 3,
+                    maxLength: 200
+                },
+                'description': {
+                    required: true,
+                    minLength: 10,
+                    maxLength: 2000
+                },
+                'pricing.basePrice': {
+                    required: true,
+                    custom: (value) => {
+                        const num = parseFloat(value);
+                        if (isNaN(num) || num <= 0) {
+                            return 'Musbat son kiriting';
+                        }
+                        return true;
+                    }
+                },
+                'pricing.minimumOrderQuantity': {
+                    required: true,
+                    custom: (value) => {
+                        const num = parseInt(value);
+                        if (isNaN(num) || num < 1) {
+                            return 'Kamida 1 bo\'lishi kerak';
+                        }
+                        return true;
+                    }
+                }
+            };
+        }
+    
+        async submitForm(e) {
+            if (e) e.preventDefault();
+    
+            if (!this.validateForm()) {
+                this.showErrorToast('Formani to\'ldirish paytida xatoliklar bor');
+                return;
+            }
+    
+            try {
+                this.showLoading(true);
+                
+                const formData = this.collectFormData();
+                const response = await this.createProduct(formData);
+                
+                this.showLoading(false);
+                this.isDirty = false;
+                
+                this.showSuccessToast('Mahsulot muvaffaqiyatli yaratildi!');
+                
+                // Redirect to marketplace
+                setTimeout(() => {
+                    window.location.href = '/manufacturer/marketplace';
+                }, 2000);
+                
+            } catch (error) {
+                this.showLoading(false);
+                console.error('❌ Form submission failed:', error);
+                this.showErrorToast('Xatolik yuz berdi: ' + error.message);
+            }
+        }
+    
+        validateForm() {
+            let isValid = true;
+            
+            for (let step = 1; step <= this.totalSteps; step++) {
+                const stepElement = document.querySelector(`.form-step[data-step="${step}"]`);
+                const requiredFields = stepElement.querySelectorAll('[required]');
+                
+                requiredFields.forEach(field => {
+                    if (!this.validateField(field)) {
+                        isValid = false;
+                    }
+                });
+            }
+            
+            return isValid;
+        }
+    
+        collectFormData() {
+            const form = document.getElementById('productAddForm');
+            const formData = new FormData(form);
+            const data = {};
+    
+            // Convert FormData to nested object
+            for (let [key, value] of formData.entries()) {
+                this.setNestedProperty(data, key, value);
+            }
+    
+            // Handle ObjectId fields
+            ['category', 'subcategory'].forEach(field => {
+                if (data[field] === '' || data[field] === null || data[field] === undefined) {
+                    delete data[field];
+                }
+            });
+    
+            // Ensure inventory fields are complete
+            if (data.inventory) {
+                if (data.inventory.totalStock && !data.inventory.availableStock) {
+                    data.inventory.availableStock = data.inventory.totalStock - (data.inventory.reservedStock || 0);
+                }
+                
+                if (!data.inventory.unit) {
+                    data.inventory.unit = 'pieces';
+                }
+            }
+    
+            // Ensure pricing fields are properly typed
+            if (data.pricing) {
+                if (data.pricing.basePrice) {
+                    data.pricing.basePrice = parseFloat(data.pricing.basePrice) || 0;
+                }
+                if (data.pricing.minimumOrderQuantity) {
+                    data.pricing.minimumOrderQuantity = parseInt(data.pricing.minimumOrderQuantity) || 1;
+                }
+                if (data.pricing.maximumOrderQuantity && data.pricing.maximumOrderQuantity !== '') {
+                    data.pricing.maximumOrderQuantity = parseInt(data.pricing.maximumOrderQuantity);
+                } else {
+                    delete data.pricing.maximumOrderQuantity;
+                }
+                
+                if (!data.pricing.currency) {
+                    data.pricing.currency = 'USD';
+                }
+            }
+    
+            // Add uploaded images
+            data.images = this.uploadedImages;
+    
+            // Collect shipping methods
+            const shippingMethods = Array.from(document.querySelectorAll('input[name="shipping.methods"]:checked'))
+                .map(input => input.value);
+            if (shippingMethods.length > 0) {
+                data.shipping = data.shipping || {};
+                data.shipping.methods = shippingMethods;
+            }
+    
+            console.log('📋 Form data collected for new product:', data);
+            return data;
+        }
+    
+        setNestedProperty(obj, path, value) {
+            const keys = path.split(/[\.\[\]]+/).filter(key => key);
+            let current = obj;
+    
+            for (let i = 0; i < keys.length - 1; i++) {
+                const key = keys[i];
+                if (!(key in current)) {
+                    current[key] = isNaN(keys[i + 1]) ? {} : [];
+                }
+                current = current[key];
+            }
+    
+            const lastKey = keys[keys.length - 1];
+            if (Array.isArray(current)) {
+                current[parseInt(lastKey)] = value;
+            } else {
+                current[lastKey] = value;
+            }
+        }
+    
+        async createProduct(data) {
+            console.log('🚀 Creating new product:', data);
+            
+            try {
+                const response = await fetch(productAddData.apiEndpoints.createProduct, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(data),
+                    credentials: 'same-origin'
+                });
+    
+                const result = await response.json();
+                console.log('📥 Server response:', result);
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'Mahsulot yaratishda xatolik yuz berdi');
+                }
+    
+                console.log('✅ Product created successfully');
+                return result.data;
+            } catch (error) {
+                console.error('❌ Product creation failed:', error);
+                throw error;
+            }
+        }
+    
+        async autoSaveData() {
+            try {
+                const formData = this.collectFormData();
+                // Save to localStorage as draft
+                localStorage.setItem(`product_draft_new`, JSON.stringify({
+                    data: formData,
+                    timestamp: Date.now()
+                }));
+                
+                this.showAutoSaveIndicator();
+            } catch (error) {
+                console.error('Auto-save failed:', error);
+            }
+        }
+    
+        showAutoSaveIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'auto-save-indicator professional-auto-save';
+            indicator.innerHTML = `
+                <div class="auto-save-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <span class="auto-save-text">Avtomatik saqlandi</span>
+            `;
+            
+            // Professional auto-save styling
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            
+            Object.assign(indicator.style, {
+                position: 'fixed',
+                bottom: '20px',
+                left: '20px',
+                padding: '12px 16px',
+                borderRadius: '10px',
+                zIndex: '9998',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                color: isDark ? '#d1d5db' : '#374151',
+                border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                animation: 'slideInUp 0.3s ease-out'
+            });
+            
+            // Style components
+            const icon = indicator.querySelector('.auto-save-icon');
+            const text = indicator.querySelector('.auto-save-text');
+            
+            Object.assign(icon.style, {
+                color: '#10b981',
+                fontSize: '16px'
+            });
+            
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => {
+                indicator.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => indicator.remove(), 300);
+            }, 2500);
+        }
+    
+        updateSaveIndicator() {
+            const title = document.querySelector('.page-title');
+            if (title && !title.textContent.includes('*')) {
+                title.textContent += ' *';
+            }
+        }
+    
+        showLoading(show) {
+            const submitBtn = document.getElementById('submitForm');
+            if (show) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Yaratilmoqda...';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Yaratish';
+            }
+        }
+    
+        setButtonLoading(button, text) {
+            if (!button) return;
+            
+            button.disabled = true;
+            button.classList.add('loading');
+            button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${text}`;
+        }
+        
+        resetButtonLoading(button, originalText) {
+            if (!button) return;
+            
+            button.disabled = false;
+            button.classList.remove('loading');
+            button.innerHTML = originalText;
+        }
+    
+        showSuccessToast(message) {
+            this.showToast(message, 'success');
+        }
+    
+        showErrorToast(message) {
+            this.showToast(message, 'error');
+        }
+    
+        showInfoToast(message) {
+            this.showToast(message, 'info');
+        }
+    
+        showToast(message, type = 'info') {
+            const toastClass = type === 'success' ? 'toast-success' : 
+                              type === 'error' ? 'toast-error' : 'toast-info';
+            
+            const toastIconClass = type === 'success' ? 'check-circle' : 
+                             type === 'error' ? 'exclamation-circle' : 'info-circle';
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${toastClass} professional-toast`;
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas fa-${toastIconClass}"></i>
+                </div>
+                <div class="toast-content">
+                    <span class="toast-message">${message}</span>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            // Professional toast styles
+            Object.assign(toast.style, {
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                padding: '0',
+                borderRadius: '12px',
+                zIndex: '9999',
+                minWidth: '300px',
+                maxWidth: '400px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                animation: 'slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                overflow: 'hidden',
+                border: '1px solid',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+            });
+            
+            // Dynamic colors based on type and theme
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            
+            if (type === 'success') {
+                toast.style.backgroundColor = isDark ? '#065f46' : '#d1fae5';
+                toast.style.borderColor = isDark ? '#10b981' : '#059669';
+                toast.style.color = isDark ? '#34d399' : '#065f46';
+            } else if (type === 'error') {
+                toast.style.backgroundColor = isDark ? '#7f1d1d' : '#fee2e2';
+                toast.style.borderColor = isDark ? '#ef4444' : '#dc2626';
+                toast.style.color = isDark ? '#f87171' : '#7f1d1d';
+            } else {
+                toast.style.backgroundColor = isDark ? '#1e3a8a' : '#dbeafe';
+                toast.style.borderColor = isDark ? '#3b82f6' : '#2563eb';
+                toast.style.color = isDark ? '#60a5fa' : '#1e3a8a';
+            }
+            
+            // Style toast components
+            const toastIconElement = toast.querySelector('.toast-icon');
+            const toastContent = toast.querySelector('.toast-content');
+            const toastClose = toast.querySelector('.toast-close');
+            
+            Object.assign(toastIconElement.style, {
+                padding: '16px',
+                fontSize: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            });
+            
+            Object.assign(toastContent.style, {
+                flex: '1',
+                padding: '16px 8px 16px 0',
+                fontSize: '14px',
+                fontWeight: '500',
+                lineHeight: '1.4'
+            });
+            
+            Object.assign(toastClose.style, {
+                padding: '8px',
+                marginRight: '8px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                borderRadius: '6px',
+                fontSize: '12px',
+                opacity: '0.7',
+                transition: 'all 0.3s ease',
+                color: 'inherit'
+            });
+            
+            toastClose.addEventListener('mouseenter', () => {
+                toastClose.style.opacity = '1';
+                toastClose.style.backgroundColor = 'rgba(0,0,0,0.1)';
+            });
+            
+            toastClose.addEventListener('mouseleave', () => {
+                toastClose.style.opacity = '0.7';
+                toastClose.style.backgroundColor = 'transparent';
+            });
+            
+            document.body.appendChild(toast);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.style.animation = 'slideOutRight 0.4s ease-out';
+                    setTimeout(() => toast.remove(), 400);
+                }
+            }, 5000);
+        }
+    
+        updateOverallProgress(percentage) {
+            const overallProgressBar = document.querySelector('.overall-progress-bar');
+            const overallProgressText = document.querySelector('.overall-progress-text');
+            
+            if (overallProgressBar) {
+                overallProgressBar.style.width = `${percentage}%`;
+                overallProgressBar.style.background = percentage >= 80 ? 
+                    'linear-gradient(90deg, #10b981, #059669)' : 
+                    percentage >= 50 ? 
+                    'linear-gradient(90deg, #f59e0b, #d97706)' : 
+                    'linear-gradient(90deg, #ef4444, #dc2626)';
+            }
+            
+            if (overallProgressText) {
+                overallProgressText.textContent = `${percentage}%`;
+            }
+        }
+        
+        updateCompletionStatus(percentage) {
+            const statusElement = document.querySelector('.completion-status');
+            const statusText = document.querySelector('.completion-status-text');
+            
+            if (statusElement && statusText) {
+                if (percentage >= 90) {
+                    statusElement.className = 'completion-status status-ready';
+                    statusText.textContent = 'Chop etishga tayyor';
+                } else if (percentage >= 70) {
+                    statusElement.className = 'completion-status status-almost';
+                    statusText.textContent = 'Deyarli tayyor';
+                } else if (percentage >= 40) {
+                    statusElement.className = 'completion-status status-progress';
+                    statusText.textContent = 'Jarayonda';
+                } else {
+                    statusElement.className = 'completion-status status-start';
+                    statusText.textContent = 'Boshlang\'ich';
+                }
+            }
+        }
+        
+        checkReadinessNotifications(percentage) {
+            // Show notification when user reaches milestones
+            const milestones = [25, 50, 75, 90];
+            const currentMilestone = milestones.find(m => 
+                percentage >= m && (this.lastNotifiedMilestone || 0) < m
+            );
+            
+            if (currentMilestone) {
+                this.lastNotifiedMilestone = currentMilestone;
+                
+                if (currentMilestone === 25) {
+                    this.showSuccessToast('🎯 Yaxshi boshlanish! 25% tayyor');
+                } else if (currentMilestone === 50) {
+                    this.showSuccessToast('🚀 Yarim yo\'l bosib o\'tildi! 50% tayyor');
+                } else if (currentMilestone === 75) {
+                    this.showSuccessToast('⭐ Ajoyib! 75% tayyor');
+                } else if (currentMilestone === 90) {
+                    this.showSuccessToast('🎉 Chop etishga deyarli tayyor! 90% tayyor');
+                }
+            }
+        }
+    
+        // Cleanup
+        destroy() {
+            if (this.autoSaveInterval) {
+                clearInterval(this.autoSaveInterval);
+            }
+            if (this.progressInterval) {
+                clearInterval(this.progressInterval);
+            }
+        }
+    }
+    
+    // Initialize Product Add Manager
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            window.productAddManager = new ProductAddManager();
+            console.log('✅ Product Add Manager initialized successfully');
+        } catch (error) {
+            console.error('❌ Failed to initialize Product Add Manager:', error);
+        }
+    });
+    </script>
+<!-- Professional CSS - Edit Page Compatible Styles -->
+<link rel="stylesheet" href="/css/b2b-marketplace-cards.css">
+<link rel="stylesheet" href="/css/manufacturer-dashboard.css">
+<link rel="stylesheet" href="/css/professional-register-enhancement.css">
+
+<!-- Professional Add Page Styles - Edit Page Compatible with Dark Mode -->
+<style>
+/* ===== CSS VARIABLES - PROFESSIONAL COLOR SYSTEM ===== */
+:root {
+  /* Light theme variables - primary colors */
+  --color-primary: #3b82f6;
+  --color-secondary: #8b5cf6;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #06b6d4;
+  
+  /* Light theme - backgrounds */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-elevated: #ffffff;
+  --bg-card: #ffffff;
+  --bg-modal: #ffffff;
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+  
+  /* Light theme - text colors */
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --text-inverse: #ffffff;
+  
+  /* Light theme - borders */
+  --border-color: #e5e7eb;
+  --border-light: #f3f4f6;
+  --border-dark: #d1d5db;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== DARK MODE VARIABLES ===== */
+[data-theme="dark"] {
+  /* Dark theme - primary colors (keep same) */
+  --color-primary: #60a5fa;
+  --color-secondary: #a78bfa;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-info: #22d3ee;
+  
+  /* Dark theme - backgrounds */
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-elevated: #1f2937;
+  --bg-card: #1f2937;
+  --bg-modal: #1f2937;
+  --bg-overlay: rgba(0, 0, 0, 0.8);
+  
+  /* Dark theme - text colors */
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --text-inverse: #111827;
+  
+  /* Dark theme - borders */
+  --border-color: #374151;
+  --border-light: #4b5563;
+  --border-dark: #6b7280;
+  
+  /* Dark theme shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+/* ===== PROFESSIONAL ALERT SYSTEM WITH DARK MODE ===== */
+.professional-alert {
+  margin: 1.5rem 0;
+  border-radius: 12px;
+  border: 1px solid var(--color-warning);
+  background: linear-gradient(135deg, 
+    rgba(245, 158, 11, 0.1) 0%, 
+    rgba(251, 191, 36, 0.05) 100%);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  position: relative;
+}
+
+.professional-alert::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--color-warning);
+}
+
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1rem 1rem 1.5rem;
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--color-warning);
+  font-size: 1.125rem;
+}
+
+.alert-message {
+  flex: 1;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.alert-message strong {
+  font-weight: 600;
+  color: var(--color-warning);
+}
+
+.alert-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+}
+
+.alert-close:hover {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--color-warning);
+  transform: scale(1.1);
+}
+
+/* Dark mode alert */
+[data-theme="dark"] .professional-alert {
+  background: linear-gradient(135deg, 
+    rgba(251, 191, 36, 0.15) 0%, 
+    rgba(245, 158, 11, 0.08) 100%);
+  border-color: var(--color-warning);
+}
+
+[data-theme="dark"] .alert-icon {
+  background: rgba(251, 191, 36, 0.2);
+}
+
+[data-theme="dark"] .alert-close:hover {
+  background: rgba(251, 191, 36, 0.2);
+}
+
+/* ===== FORM CONTAINER STYLES ===== */
+.product-edit-container {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 1024px) {
+  .product-edit-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* ===== FORM STYLES ===== */
+.form-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.multi-step-form {
+  padding: 0;
+}
+
+/* ===== PROGRESS INDICATOR - EDIT PAGE STYLE ===== */
+.form-progress {
+  padding: 2rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.progress-steps::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--border-color);
+  z-index: 1;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.step.active .step-number {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.step-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  color: var(--text-secondary);
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+}
+
+.step.active .step-label {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.step.completed .step-number {
+  background: var(--color-success);
+  color: white;
+  border-color: var(--color-success);
+}
+
+.step.completed .step-label {
+  color: var(--color-success);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* ===== FORM STEPS ===== */
+.form-step {
+  display: none;
+  padding: 2rem;
+  animation: fadeInSlide 0.5s ease;
+}
+
+.form-step.active {
+  display: block;
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.step-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.step-header h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.step-description {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.975rem;
+}
+
+/* ===== FORM GRID SYSTEM ===== */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+/* ===== FORM INPUTS ===== */
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.form-label.required::after {
+  content: '*';
+  color: var(--color-danger);
+  margin-left: 0.25rem;
+}
+
+.form-label i {
+  color: var(--color-primary);
+  font-size: 0.875rem;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.validation-message {
+  font-size: 0.75rem;
+  color: var(--color-danger);
+  margin-top: 0.25rem;
+}
+
+/* ===== FORM VALIDATION STATES ===== */
+.form-group.error .form-input,
+.form-group.error .form-select,
+.form-group.error .form-textarea {
+  border-color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.form-group.valid .form-input,
+.form-group.valid .form-select,
+.form-group.valid .form-textarea {
+  border-color: var(--color-success);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+/* ===== PRICING INPUTS ===== */
+.price-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.price-currency {
+  position: absolute;
+  left: 1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  z-index: 1;
+}
+
+.price-input {
+  padding-left: 2.5rem;
+}
+
+/* ===== DYNAMIC SECTIONS ===== */
+.bulk-pricing-section,
+.specifications-section,
+.inventory-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.section-header h4 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.section-header i {
+  color: var(--color-primary);
+}
+
+/* ===== BULK PRICING ===== */
+.bulk-price-item,
+.specification-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.bulk-inputs,
+.spec-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.bulk-inputs span {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.form-input.small {
+  min-width: 100px;
+  max-width: 140px;
+}
+
+/* ===== IMAGE UPLOAD ===== */
+.image-upload-section {
+  padding: 2rem;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+}
+
+.upload-area {
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 3rem 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: var(--bg-card);
+}
+
+.upload-area:hover,
+.upload-area.drag-over {
+  border-color: var(--color-primary);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.upload-icon {
+  font-size: 3rem;
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+}
+
+.upload-placeholder h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.upload-placeholder p {
+  margin: 0 0 1rem 0;
+  color: var(--text-secondary);
+}
+
+.upload-requirements {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+/* ===== IMAGES GRID ===== */
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.image-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+}
+
+.image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.image-item:hover .image-overlay {
+  opacity: 1;
+}
+
+.primary-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: var(--color-success);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ===== DIMENSIONS INPUT ===== */
+.dimensions-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dimensions-inputs span {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ===== SHIPPING METHODS ===== */
+.shipping-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.checkbox-label:hover {
+  border-color: var(--color-primary);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+}
+
+.checkmark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-color);
+  border-radius: 3px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* ===== FORM NAVIGATION ===== */
+.form-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem;
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-light);
+}
+
+.nav-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.current-step {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* ===== BUTTONS ===== */
+.btn-outline,
+.btn-primary,
+.btn-secondary,
+.btn-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 44px;
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.btn-outline:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #2563eb 100%);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, var(--color-secondary) 0%, #7c3aed 100%);
+  color: white;
+  border-color: var(--color-secondary);
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--color-success) 0%, #059669 100%);
+  color: white;
+  border-color: var(--color-success);
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  min-height: 36px;
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-ghost:hover {
+  background: var(--color-danger);
+  color: white;
+  border-color: var(--color-danger);
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sidebar-container .card-header {
+  padding: 1.5rem;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.sidebar-container .card-header h4 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.sidebar-container .card-header i {
+  color: var(--color-primary);
+}
+
+.sidebar-container .card-body {
+  padding: 1.5rem;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.action-btn:hover {
+  border-color: var(--color-primary);
+  background: rgba(59, 130, 246, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn i {
+  font-size: 1.25rem;
+  color: var(--color-primary);
+}
+
+.action-btn span {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .product-edit-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .progress-steps {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .step-label {
+    display: none;
+  }
+  
+  .form-navigation {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .bulk-inputs,
+  .spec-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .dimensions-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .images-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .form-step {
+    padding: 1rem;
+  }
+  
+  .form-progress {
+    padding: 1rem;
+  }
+  
+  .step-number {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+  
+  .bulk-price-item,
+  .specification-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .upload-area {
+    padding: 2rem 1rem;
+  }
+  
+  .upload-icon {
+    font-size: 2rem;
+  }
+}
+/* Creation Guide Card */
+.creation-guide-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.guide-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  border-left: 3px solid var(--color-primary);
+}
+
+.tip-icon {
+  color: var(--color-primary);
+  font-size: 1.125rem;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.tip-content h5 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tip-content p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Progress Card */
+.progress-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.progress-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.progress-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg-elevated);
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.progress-item.completed {
+  background: rgba(16, 185, 129, 0.1);
+  border-left: 3px solid var(--color-success);
+}
+
+.progress-item.in-progress {
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid var(--color-primary);
+}
+
+.progress-icon {
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.progress-item.completed .progress-icon {
+  color: var(--color-success);
+}
+
+.progress-item.in-progress .progress-icon {
+  color: var(--color-primary);
+  animation: spin 2s linear infinite;
+}
+
+.progress-status {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.progress-item.completed .progress-status {
+  color: var(--color-success);
+}
+
+.progress-item.in-progress .progress-status {
+  color: var(--color-primary);
+}
+
+/* ===== PROFESSIONAL MODAL SYSTEM WITH DARK MODE ===== */
+.template-modal-overlay,
+.category-guide-overlay,
+.validation-error-overlay,
+.publish-success-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 1rem;
+}
+
+.template-modal,
+.category-guide-modal,
+.validation-errors-modal,
+.publish-success-modal {
+  background: var(--bg-modal);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 0;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  animation: slideInUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+/* Dark mode modal enhancements */
+[data-theme="dark"] .template-modal,
+[data-theme="dark"] .category-guide-modal,
+[data-theme="dark"] .validation-errors-modal,
+[data-theme="dark"] .publish-success-modal {
+  background: var(--bg-modal);
+  border-color: var(--border-light);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+}
+
+/* ===== MODAL HEADER WITH DARK MODE ===== */
+.modal-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
+  position: relative;
+}
+
+.modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.modal-header h3 i {
+  color: var(--color-primary);
+  font-size: 1.125rem;
+}
+
+.modal-header button {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-header button:hover {
+  background: var(--color-danger);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* ===== MODAL BODY WITH ENHANCED STYLING ===== */
+.modal-body {
+  padding: 2rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--bg-card);
+}
+
+/* Professional scrollbar styling */
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Dark mode modal header & body */
+[data-theme="dark"] .modal-header {
+  background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
+  border-bottom-color: var(--border-light);
+}
+
+[data-theme="dark"] .modal-body {
+  background: var(--bg-card);
+}
+
+[data-theme="dark"] .modal-body::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .modal-body::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+}
+
+[data-theme="dark"] .modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* ===== TEMPLATE ITEMS WITH DARK MODE ===== */
+.template-item {
+  padding: 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--bg-elevated);
+  position: relative;
+  overflow: hidden;
+}
+
+.template-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--color-primary);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+.template-item:hover {
+  border-color: var(--color-primary);
+  background: var(--bg-card);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.template-item:hover::before {
+  transform: scaleY(1);
+}
+
+.template-item h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.template-item h4::before {
+  content: '📦';
+  font-size: 1rem;
+}
+
+.template-item p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Dark mode template items */
+[data-theme="dark"] .template-item {
+  background: var(--bg-elevated);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .template-item:hover {
+  background: var(--bg-card);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== ERROR MODAL WITH DARK MODE ===== */
+.error-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(251, 191, 36, 0.05) 100%);
+  border-radius: 8px;
+  border-left: 4px solid var(--color-warning);
+}
+
+.error-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.error-header i {
+  color: var(--color-warning);
+  font-size: 1.5rem;
+  animation: pulse 2s infinite;
+}
+
+.error-list {
+  margin: 1.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.error-list li {
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-elevated);
+  border-radius: 6px;
+  border-left: 3px solid var(--color-danger);
+  position: relative;
+}
+
+.error-list li::before {
+  content: '⚠️';
+  margin-right: 0.5rem;
+}
+
+/* ===== SUCCESS MODAL WITH DARK MODE ===== */
+.success-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
+  border-radius: 8px;
+  border-left: 4px solid var(--color-success);
+}
+
+.success-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.success-header i {
+  color: var(--color-success);
+  font-size: 1.75rem;
+  animation: bounce 1s ease-in-out;
+}
+
+.success-content {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.success-content p {
+  margin: 0 0 1rem 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ===== MODAL ACTIONS WITH DARK MODE ===== */
+.error-actions,
+.success-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Dark mode enhancements */
+[data-theme="dark"] .error-header {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
+  border-left-color: var(--color-warning);
+}
+
+[data-theme="dark"] .success-header {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%);
+  border-left-color: var(--color-success);
+}
+
+[data-theme="dark"] .error-list li {
+  background: var(--bg-elevated);
+  border-left-color: var(--color-danger);
+}
+
+[data-theme="dark"] .success-content {
+  background: var(--bg-elevated);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .error-actions,
+[data-theme="dark"] .success-actions {
+  border-top-color: var(--border-color);
+}
+
+/* ===== CATEGORY GUIDE MODAL WITH DARK MODE ===== */
+.category-tips {
+  padding: 1rem;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.category-tips h4 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.category-tips h4::before {
+  content: '📋';
+  font-size: 1rem;
+}
+
+.category-tips ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style: none;
+}
+
+.category-tips li {
+  margin-bottom: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  position: relative;
+}
+
+.category-tips li::before {
+  content: '▶️';
+  position: absolute;
+  left: -1.25rem;
+  top: 0;
+}
+
+.category-tips strong {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* Dark mode category guide */
+[data-theme="dark"] .category-tips {
+  background: var(--bg-elevated);
+  border-color: var(--border-color);
+}
+
+/* ===== PROFESSIONAL ANIMATIONS ===== */
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: scale(0.95);
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.7; 
+    transform: scale(1.05);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: scale(1);
+  }
+  40%, 43% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(1.05);
+  }
+  90% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--color-primary);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--color-primary), 0 0 30px var(--color-primary);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* ===== PROFESSIONAL TOAST STYLES WITH DARK MODE ===== */
+.professional-toast {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.professional-toast .toast-icon i {
+  animation: bounceIn 0.6s ease;
+}
+
+.professional-toast .toast-close:hover {
+  transform: scale(1.1);
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== PROFESSIONAL AUTO-SAVE INDICATOR ===== */
+.professional-auto-save {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.professional-auto-save .auto-save-icon i {
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* ===== PROFESSIONAL HEADER WITH GRADIENT - EDIT PAGE STYLE ===== */
+.product-header {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .product-header {
+  background: linear-gradient(135deg, #1e40af, #7c3aed);
+  color: white;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.header-title-section h1 {
+  margin: 0;
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-title-section h1 i {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.75rem;
+}
+
+.page-subtitle {
+  margin: 0.5rem 0 0 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
+.breadcrumb-link {
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.breadcrumb-link:hover {
+  color: white;
+}
+
+.breadcrumb-separator {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  color: rgba(255,255,255,0.6);
+}
+
+.breadcrumb-current {
+  color: white;
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.header-actions button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+/* Dark mode form progress */
+[data-theme="dark"] .form-progress {
+  background: var(--bg-secondary);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .progress-steps::before {
+  background: var(--border-color);
+}
+
+[data-theme="dark"] .step-number {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .step.active .step-number {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+[data-theme="dark"] .step-label {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .step.active .step-label {
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .progress-bar {
+  background: var(--border-color);
+}
+
+[data-theme="dark"] .progress-fill {
+  background: var(--color-primary);
+}
+
+/* ===== HEADER BUTTON SYSTEM - EDIT PAGE STYLE ===== */
+.header-actions .btn-outline {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.5);
+  color: white;
+}
+
+.header-actions .btn-outline:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: white;
+}
+
+.header-actions .btn-secondary {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+}
+
+.header-actions .btn-secondary:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.header-actions .btn-primary {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+}
+
+.header-actions .btn-primary:hover {
+  background: rgba(255,255,255,0.3);
+  transform: translateY(-2px);
+}
+
+/* ===== GENERAL BUTTON SYSTEM WITH DARK MODE ===== */
+.btn-outline,
+.btn-primary,
+.btn-secondary,
+.btn-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 46px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* General button styles (for non-header buttons) */
+.form-container .btn-outline,
+.sidebar .btn-outline,
+.modal .btn-outline {
+  background: transparent;
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.form-container .btn-outline:hover,
+.sidebar .btn-outline:hover,
+.modal .btn-outline:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--bg-elevated);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.form-container .btn-primary,
+.sidebar .btn-primary,
+.modal .btn-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #2563eb 100%);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.form-container .btn-primary:hover,
+.sidebar .btn-primary:hover,
+.modal .btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+}
+
+.form-container .btn-secondary,
+.sidebar .btn-secondary,
+.modal .btn-secondary {
+  background: linear-gradient(135deg, var(--color-secondary) 0%, #7c3aed 100%);
+  color: white;
+  border-color: var(--color-secondary);
+}
+
+.form-container .btn-secondary:hover,
+.sidebar .btn-secondary:hover,
+.modal .btn-secondary:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--color-success) 0%, #059669 100%);
+  color: white;
+  border-color: var(--color-success);
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* Loading state for buttons */
+.btn-outline.loading,
+.btn-primary.loading,
+.btn-secondary.loading,
+.btn-success.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.btn-outline.loading i,
+.btn-primary.loading i,
+.btn-secondary.loading i,
+.btn-success.loading i {
+  animation: spin 1s linear infinite;
+}
+
+/* Dark mode general buttons */
+[data-theme="dark"] .form-container .btn-outline,
+[data-theme="dark"] .sidebar .btn-outline,
+[data-theme="dark"] .modal .btn-outline {
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .form-container .btn-outline:hover,
+[data-theme="dark"] .sidebar .btn-outline:hover,
+[data-theme="dark"] .modal .btn-outline:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--bg-elevated);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+</style>

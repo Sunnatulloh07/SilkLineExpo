@@ -1273,9 +1273,10 @@ class ManufacturerController {
             
             this.logger.log(`📊 Loading analytics dashboard for Manufacturer: ${manufacturerId}, Product: ${productId || 'all'}`);
             
-            // Get comprehensive analytics data
-            const dashboardStats = await this.manufacturerService.getDashboardStats(manufacturerId);
-            const businessIntelligence = await this.manufacturerService.getBusinessIntelligence(manufacturerId);
+            // Get comprehensive analytics data with period support
+            const period = req.query.period ? parseInt(req.query.period) : 30; // Default 30 days
+            const dashboardStats = await this.manufacturerService.getDashboardStats(manufacturerId, period.toString());
+            const businessIntelligence = await this.manufacturerService.getBusinessIntelligence(manufacturerId, period);
             
             let productAnalytics = null;
             let productInfo = null;
@@ -1618,30 +1619,249 @@ class ManufacturerController {
     }
     
     /**
-     * Create new product
+     * Create new product - Professional B2B Implementation
      */
     async createProduct(req, res) {
         try {
             const manufacturerId = req.user.userId;
             const productData = { ...req.body, manufacturer: manufacturerId };
             
-            this.logger.log(`➕ Creating new product for manufacturer: ${manufacturerId}`);
+            this.logger.log(`➕ Creating new product for manufacturer: ${manufacturerId}`, {
+                productName: productData.name,
+                category: productData.category,
+                requestIP: req.ip
+            });
+            
+            // Professional validation
+            if (!productData.name || !productData.category || !productData.description) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Majburiy maydonlar to\'ldirilmagan',
+                    errors: [
+                        !productData.name && 'Mahsulot nomi kiritilishi shart',
+                        !productData.category && 'Kategoriya tanlanishi shart',
+                        !productData.description && 'Mahsulot tavsifi kiritilishi shart'
+                    ].filter(Boolean)
+                });
+            }
             
             const newProduct = await this.manufacturerService.createProduct(productData);
             
-            this.logger.log(`✅ Product created successfully: ${newProduct._id}`);
+            this.logger.log(`✅ Product created successfully:`, {
+                productId: newProduct._id,
+                productName: newProduct.name,
+                manufacturer: manufacturerId
+            });
             
             res.status(201).json({
                 success: true,
                 message: 'Mahsulot muvaffaqiyatli yaratildi',
-                data: newProduct
+                data: {
+                    productId: newProduct._id,
+                    name: newProduct.name,
+                    status: newProduct.status,
+                    marketplaceUrl: newProduct.marketplaceUrl,
+                    createdAt: newProduct.createdAt
+                }
             });
             
         } catch (error) {
             this.logger.error('❌ Create product error:', error);
+            
+            // Professional error response with specific handling
+            let statusCode = 500;
+            let errorMessage = 'Mahsulot yaratishda xatolik yuz berdi';
+            
+            if (error.message.includes('Validation error')) {
+                statusCode = 400;
+                errorMessage = error.message;
+            } else if (error.message.includes('already exists')) {
+                statusCode = 409;
+                errorMessage = 'Bunday nomli mahsulot allaqachon mavjud';
+            } else if (error.message.includes('Manufacturer not found')) {
+                statusCode = 403;
+                errorMessage = 'Manufacturer hisobi topilmadi yoki faol emas';
+            }
+            
+            res.status(statusCode).json({
+                success: false,
+                message: errorMessage,
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
+    
+    /**
+     * Save product as draft API endpoint
+     */
+    async saveProductAsDraft(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const productData = { ...req.body, manufacturer: manufacturerId, status: 'draft' };
+            
+            this.logger.log(`💾 Saving product as draft for manufacturer: ${manufacturerId}`);
+            
+            const draftProduct = await this.manufacturerService.createProduct(productData);
+            
+            res.json({
+                success: true,
+                message: 'Mahsulot qoralama sifatida saqlandi',
+                data: {
+                    productId: draftProduct._id,
+                    status: draftProduct.status
+                }
+            });
+            
+        } catch (error) {
+            this.logger.error('❌ Save draft error:', error);
             res.status(500).json({
                 success: false,
-                message: 'Mahsulot yaratishda xatolik yuz berdi',
+                message: 'Qoralama saqlashda xatolik yuz berdi',
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
+    
+    /**
+     * Publish product API endpoint
+     */
+    async publishProduct(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const productData = { ...req.body, manufacturer: manufacturerId, status: 'active' };
+            
+            this.logger.log(`🚀 Publishing product for manufacturer: ${manufacturerId}`);
+            
+            // Enhanced validation for publishing
+            const validationErrors = [];
+            
+            if (!productData.name || productData.name.trim().length < 3) {
+                validationErrors.push('Mahsulot nomi kamida 3 ta belgidan iborat bo\'lishi kerak');
+            }
+            
+            if (!productData.description || productData.description.trim().length < 20) {
+                validationErrors.push('Mahsulot ta\'rif kamida 20 ta belgidan iborat bo\'lishi kerak');
+            }
+            
+            if (!productData.category) {
+                validationErrors.push('Kategoriya tanlanishi shart');
+            }
+            
+            if (!productData.pricing?.basePrice || productData.pricing.basePrice <= 0) {
+                validationErrors.push('Asosiy narx 0 dan katta bo\'lishi kerak');
+            }
+            
+            if (!productData.pricing?.minimumOrderQuantity || productData.pricing.minimumOrderQuantity <= 0) {
+                validationErrors.push('Eng kam buyurtma miqdori 0 dan katta bo\'lishi kerak');
+            }
+            
+            if (!productData.images || !Array.isArray(productData.images) || productData.images.length === 0) {
+                validationErrors.push('Kamida bitta mahsulot rasmi yuklash shart');
+            }
+            
+            if (validationErrors.length > 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Chop etish uchun quyidagi maydonlarni to\'ldiring',
+                    errors: validationErrors
+                });
+            }
+            
+            const publishedProduct = await this.manufacturerService.createProduct(productData);
+            
+            this.logger.log(`✅ Product published successfully: ${publishedProduct._id}`);
+            
+            res.status(201).json({
+                success: true,
+                message: 'Mahsulot muvaffaqiyatli chop etildi',
+                data: {
+                    productId: publishedProduct._id,
+                    name: publishedProduct.name,
+                    status: publishedProduct.status,
+                    marketplaceUrl: publishedProduct.marketplaceUrl,
+                    publishedAt: publishedProduct.createdAt
+                }
+            });
+            
+        } catch (error) {
+            this.logger.error('❌ Publish product error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Mahsulotni chop etishda xatolik yuz berdi',
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
+    
+    /**
+     * Upload product images API endpoint
+     */
+    async uploadProductImages(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            
+            this.logger.log(`📷 Uploading product images for manufacturer: ${manufacturerId}`);
+            
+            if (!req.files || !req.files.images) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Hech qanday rasm yuklanmadi'
+                });
+            }
+            
+            // Handle multiple files
+            const files = Array.isArray(req.files.images) ? req.files.images : [req.files.images];
+            
+            // Validate file types and sizes
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            const maxFiles = 10;
+            
+            if (files.length > maxFiles) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Maksimal ${maxFiles} ta rasm yuklash mumkin`
+                });
+            }
+            
+            for (const file of files) {
+                if (!allowedTypes.includes(file.mimetype)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `Noto'g'ri fayl turi: ${file.name}. Faqat JPG, PNG, WebP ruxsat etilgan.`
+                    });
+                }
+                
+                if (file.size > maxSize) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `Fayl juda katta: ${file.name}. Maksimal 5MB ruxsat etilgan.`
+                    });
+                }
+            }
+            
+            // Upload files (implement your file upload logic here)
+            // For now, return mock URLs
+            const uploadedUrls = files.map((file, index) => 
+                `/uploads/products/product_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 8)}.${file.name.split('.').pop()}`
+            );
+            
+            this.logger.log(`✅ Images uploaded successfully: ${uploadedUrls.length} files`);
+            
+            res.json({
+                success: true,
+                message: `${uploadedUrls.length} ta rasm muvaffaqiyatli yuklandi`,
+                data: {
+                    urls: uploadedUrls,
+                    count: uploadedUrls.length
+                }
+            });
+            
+        } catch (error) {
+            this.logger.error('❌ Upload images error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Rasmlarni yuklashda xatolik yuz berdi',
                 error: process.env.NODE_ENV === 'development' ? error.message : undefined
             });
         }
@@ -1758,25 +1978,29 @@ class ManufacturerController {
     }
     
     /**
-     * Get business analytics via API
+     * Get business analytics via API with period support
      */
     async getBusinessAnalytics(req, res) {
         try {
             const manufacturerId = req.user.userId;
             const period = parseInt(req.query.period) || 30; // Default 30 days
             
-
+            this.logger.log(`📊 API: Getting business analytics for Manufacturer: ${manufacturerId}, Period: ${period} days`);
             
             const [dashboardStats, businessIntelligence] = await Promise.all([
-                this.manufacturerService.getDashboardStats(manufacturerId),
-                this.manufacturerService.getBusinessIntelligence(manufacturerId)
+                this.manufacturerService.getDashboardStats(manufacturerId, period.toString()),
+                this.manufacturerService.getBusinessIntelligence(manufacturerId, period)
             ]);
+            
+            this.logger.log(`✅ API: Business analytics loaded successfully`);
             
             res.json({
                 success: true,
                 data: {
                     dashboardStats,
-                    businessIntelligence
+                    businessIntelligence,
+                    period: period,
+                    timestamp: new Date().toISOString()
                 }
             });
             

@@ -34,31 +34,19 @@
       <div class="status-metrics">
         <div class="status-metric">
           <div class="status-metric-value" id="marketplaceActivity">
-            <% if (typeof stats !== 'undefined' && stats.marketplaceActivity) { %>
-              <%= stats.marketplaceActivity %>%
-            <% } else { %>
-              <span class="loading-placeholder">...</span>
-            <% } %>
+            <span class="loading-placeholder">...</span>
           </div>
           <div class="status-metric-label">Marketplace faollik</div>
         </div>
         <div class="status-metric">
           <div class="status-metric-value" id="inquiryConversion">
-            <% if (typeof stats !== 'undefined' && stats.inquiryConversion) { %>
-              <%= stats.inquiryConversion %>%
-            <% } else { %>
-              <span class="loading-placeholder">...</span>
-            <% } %>
+            <span class="loading-placeholder">...</span>
           </div>
           <div class="status-metric-label">So'rov konversiyasi</div>
         </div>
         <div class="status-metric">
           <div class="status-metric-value" id="activeDistributors">
-            <% if (typeof stats !== 'undefined' && stats.activeDistributors) { %>
-              <%= stats.activeDistributors.toLocaleString() %>
-            <% } else { %>
-              <span class="loading-placeholder">...</span>
-            <% } %>
+            <span class="loading-placeholder">...</span>
           </div>
           <div class="status-metric-label">Faol distributorlar</div>
         </div>
@@ -167,7 +155,7 @@
         <div class="widget-body">
           <div class="top-products-list" id="topProductsList">
             <!-- Top Products will be loaded here dynamically -->
-            <div class="loading-placeholder">
+            <div class="loading-placeholder" id="topProductsLoader">
               <div class="loading-spinner"></div>
               <p>Top mahsulotlar yuklanmoqda...</p>
             </div>
@@ -188,7 +176,7 @@
         <div class="widget-body">
           <div class="orders-list" id="recentOrdersList">
             <!-- Recent Orders will be loaded here dynamically -->
-            <div class="loading-placeholder">
+            <div class="loading-placeholder" id="recentOrdersLoader">
               <div class="loading-spinner"></div>
               <p>So'nggi buyurtmalar yuklanmoqda...</p>
             </div>
@@ -211,85 +199,13 @@
           <a href="/manufacturer/inquiries" class="view-all-link">Barchasini ko'rish</a>
         </div>
         <div class="widget-content">
-          
-          <div class="inquiry-card urgent-priority">
-            <div class="inquiry-info">
-              <div class="company-section">
-                <div class="company-logo-placeholder">
-                  <i class="fas fa-building"></i>
-                </div>
-                <div class="company-details">
-                  <h4 class="company-title">Tashkent Textiles Co.</h4>
-                  <span class="inquiry-timestamp">2 soat oldin</span>
-                </div>
-              </div>
-              <div class="priority-label urgent">Shoshilinch</div>
-            </div>
-            <div class="inquiry-message">
-              <p>1000m premium paxta mato kerak. Minimum narx va yetkazib berish vaqti?</p>
-              <div class="order-specs">
-                <span class="spec-tag">MOQ: 1000m</span>
-                <span class="spec-tag">Budget: $50,000</span>
-              </div>
-            </div>
-            <div class="inquiry-buttons">
-              <button class="btn-respond">Javob berish</button>
-              <button class="btn-quote">Narx yuborish</button>
+          <div class="inquiry-list" id="distributorInquiriesList">
+            <!-- Distributor Inquiries will be loaded here dynamically -->
+            <div class="loading-placeholder" id="inquiriesLoader">
+              <div class="loading-spinner"></div>
+              <p>Distributorlar so'rovlari yuklanmoqda...</p>
             </div>
           </div>
-          
-          <div class="inquiry-card new-priority">
-            <div class="inquiry-info">
-              <div class="company-section">
-                <div class="company-logo-placeholder">
-                  <i class="fas fa-building"></i>
-                </div>
-                <div class="company-details">
-                  <h4 class="company-title">Samarkand Distribution</h4>
-                  <span class="inquiry-timestamp">5 soat oldin</span>
-                </div>
-              </div>
-              <div class="priority-label new">Yangi</div>
-            </div>
-            <div class="inquiry-message">
-              <p>Ipak aralash matolar uchun ulgurji narxlar kerak. Namuna olish mumkinmi?</p>
-              <div class="order-specs">
-                <span class="spec-tag">MOQ: 500m</span>
-                <span class="spec-tag">Namuna: Ha</span>
-              </div>
-            </div>
-            <div class="inquiry-buttons">
-              <button class="btn-respond">Javob berish</button>
-              <button class="btn-quote">Catalog yuborish</button>
-            </div>
-          </div>
-          
-          <div class="inquiry-card followup-priority">
-            <div class="inquiry-info">
-              <div class="company-section">
-                <div class="company-logo-placeholder">
-                  <i class="fas fa-building"></i>
-                </div>
-                <div class="company-details">
-                  <h4 class="company-title">Bukhara Wholesale</h4>
-                  <span class="inquiry-timestamp">1 kun oldin</span>
-                </div>
-              </div>
-              <div class="priority-label followup">Kuzatuv</div>
-            </div>
-            <div class="inquiry-message">
-              <p>Jun matolari buyurtmasi holati qanday? Qachon tayyor bo'ladi?</p>
-              <div class="order-specs">
-                <span class="spec-tag">Order: #ORD-2024-003</span>
-                <span class="spec-tag">Status: Ishlanmoqda</span>
-              </div>
-            </div>
-            <div class="inquiry-buttons">
-              <button class="btn-respond">Yangilanish yuborish</button>
-              <button class="btn-quote">Tracking berish</button>
-            </div>
-          </div>
-          
         </div>
       </div>
 
@@ -310,80 +226,26 @@
           </div>
         </div>
         <div class="widget-body">
-          <div class="chat-preview-list">
-            
-            <div class="chat-preview unread">
-              <div class="chat-avatar">
-                <div class="chat-avatar-placeholder">
-                  <i class="fas fa-user-circle"></i>
-                </div>
-                <div class="online-indicator"></div>
-              </div>
-              <div class="chat-content">
-                <div class="chat-header">
-                  <h4 class="chat-company">Tashkent Textiles Co.</h4>
-                  <span class="chat-time">5 daqiqa oldin</span>
-                </div>
-                <p class="chat-message">Yangi buyurtma bo'yicha gaplashsak bo'ladimi?</p>
-                <div class="chat-meta">
-                  <span class="message-count">3</span>
-                  <span class="typing-indicator">yozmoqda...</span>
-                </div>
-              </div>
+          <div class="chat-preview-list" id="chatPreviewsList">
+            <!-- Chat previews will be loaded here dynamically -->
+            <div class="loading-placeholder" id="chatLoader">
+              <div class="loading-spinner"></div>
+              <p>Muloqot ma'lumotlari yuklanmoqda...</p>
             </div>
-            
-            <div class="chat-preview">
-              <div class="chat-avatar">
-                <div class="chat-avatar-placeholder">
-                  <i class="fas fa-user-circle"></i>
-                </div>
-                <div class="away-indicator"></div>
-              </div>
-              <div class="chat-content">
-                <div class="chat-header">
-                  <h4 class="chat-company">Samarkand Distribution</h4>
-                  <span class="chat-time">1 soat oldin</span>
-                </div>
-                <p class="chat-message">Catalog yuborib berasizmi?</p>
-                <div class="chat-meta">
-                  <span class="read-indicator">O'qildi</span>
-                </div>
-              </div>
-            </div>
-            
-            <div class="chat-preview">
-              <div class="chat-avatar">
-                <div class="chat-avatar-placeholder">
-                  <i class="fas fa-user-circle"></i>
-                </div>
-                <div class="offline-indicator"></div>
-              </div>
-              <div class="chat-content">
-                <div class="chat-header">
-                  <h4 class="chat-company">Bukhara Wholesale</h4>
-                  <span class="chat-time">3 soat oldin</span>
-                </div>
-                <p class="chat-message">Rahmat, shartnoma imzolandi!</p>
-                <div class="chat-meta">
-                  <span class="read-indicator">Javob berildi</span>
-                </div>
-              </div>
-            </div>
-            
           </div>
           
           <div class="communication-stats">
             <div class="stat-item">
               <span class="stat-label">Faol suhbatlar</span>
-              <span class="stat-value">8</span>
+              <span class="stat-value" id="activeChatsStat">...</span>
             </div>
             <div class="stat-item">
               <span class="stat-label">O'rtacha javob vaqti</span>
-              <span class="stat-value">15 daqiqa</span>
+              <span class="stat-value" id="responseTimeStat">...</span>
             </div>
             <div class="stat-item">
               <span class="stat-label">Bugungi xabarlar</span>
-              <span class="stat-value">24</span>
+              <span class="stat-value" id="todayMessagesStat">...</span>
             </div>
           </div>
         </div>
@@ -410,7 +272,9 @@
                 </div>
                 <div class="summary-info">
                   <h4 class="summary-title">Normal zaxira</h4>
-                  <span class="summary-count">127 mahsulot</span>
+                  <span class="summary-count" id="normalStockCount">
+                    <span class="loading-placeholder">...</span>
+                  </span>
                 </div>
               </div>
               
@@ -420,7 +284,9 @@
                 </div>
                 <div class="summary-info">
                   <h4 class="summary-title">Kam qoldiq</h4>
-                  <span class="summary-count">15 mahsulot</span>
+                  <span class="summary-count" id="lowStockCount">
+                    <span class="loading-placeholder">...</span>
+                  </span>
                 </div>
               </div>
               
@@ -430,7 +296,9 @@
                 </div>
                 <div class="summary-info">
                   <h4 class="summary-title">Tugagan</h4>
-                  <span class="summary-count">3 mahsulot</span>
+                  <span class="summary-count" id="outOfStockCount">
+                    <span class="loading-placeholder">...</span>
+                  </span>
                 </div>
               </div>
             </div>
@@ -438,37 +306,9 @@
             <!-- Critical Stock Items -->
             <div class="critical-stock">
               <h4 class="section-title">Diqqat talab qiladi</h4>
-              
-              <div class="stock-item critical">
-                <div class="item-info">
-                  <h5 class="item-name">Premium paxta matosi</h5>
-                  <p class="item-sku">SKU: PCT-001</p>
-                </div>
-                <div class="item-stock">
-                  <span class="stock-level danger">3 rulon</span>
-                  <span class="stock-action">Buyurtma berish</span>
-                </div>
-              </div>
-              
-              <div class="stock-item low">
-                <div class="item-info">
-                  <h5 class="item-name">Ipak aralash mato</h5>
-                  <p class="item-sku">SKU: SLK-002</p>
-                </div>
-                <div class="item-stock">
-                  <span class="stock-level warning">12 rulon</span>
-                  <span class="stock-action">Kuzatuv</span>
-                </div>
-              </div>
-              
-              <div class="stock-item low">
-                <div class="item-info">
-                  <h5 class="item-name">Jun aralash mato</h5>
-                  <p class="item-sku">SKU: WOL-003</p>
-                </div>
-                <div class="item-stock">
-                  <span class="stock-level warning">8 rulon</span>
-                  <span class="stock-action">Kuzatuv</span>
+              <div class="critical-items-container" id="criticalItemsList">
+                <div class="loading-placeholder-item">
+                  <div class="loading-placeholder">Kritik mahsulotlar yuklanmoqda...</div>
                 </div>
               </div>
             </div>
@@ -485,649 +325,7 @@
 <!-- ApexCharts (Local - CSP Safe) -->
 <script src="/assets/js/apexchart.js"></script>
 
-<!-- Dashboard Charts Script -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Initializing Dashboard Charts...');
-    
-    // Check if ApexCharts is available
-    if (typeof ApexCharts === 'undefined') {
-        console.error('❌ ApexCharts not loaded');
-        return;
-    }
-    
-    console.log('✅ ApexCharts is available');
-    
-    // B2B Sales Analytics Chart
-    const salesChartElement = document.getElementById('salesChart');
-    
-    if (salesChartElement) {
-        console.log('📊 Sales chart element found');
-        
-        // Replace canvas with div for ApexCharts
-        const chartContainer = salesChartElement.parentElement;
-        const newChartElement = document.createElement('div');
-        newChartElement.id = 'salesChart';
-        newChartElement.style.height = '300px';
-        chartContainer.replaceChild(newChartElement, salesChartElement);
-        
-        // Get real chart data from backend
-        let chartData = {
-            labels: ['1 hafta', '2 hafta', '3 hafta', '4 hafta', '5 hafta'],
-            sales: [0, 0, 0, 0, 0],
-            orders: [0, 0, 0, 0, 0],
-            views: [0, 0, 0, 0, 0]
-        };
-        
-        // Fetch real data from backend
-        async function fetchChartData() {
-            try {
-                const response = await fetch('/manufacturer/api/dashboard-stats');
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('📊 Real dashboard data received:', data);
-                    
-                    // Use real chart data if available
-                    if (data && data.chartData) {
-                        chartData = {
-                            labels: data.chartData.labels || chartData.labels,
-                            sales: data.chartData.sales || chartData.sales,
-                            orders: data.chartData.orders || chartData.orders,
-                            views: data.chartData.views || chartData.views
-                        };
-                        
-                        console.log('📈 Real chart data loaded:', chartData);
-                        
-                        // Update chart if already rendered
-                        if (window.salesChartInstance) {
-                            window.salesChartInstance.updateSeries([
-                                {
-                                    name: 'B2B Savdo hajmi',
-                                    data: chartData.sales
-                                },
-                                {
-                                    name: 'Distributorlar so\'rovlari',
-                                    data: chartData.orders
-                                },
-                                {
-                                    name: 'Marketplace ko\'rishlar',
-                                    data: chartData.views
-                                }
-                            ]);
-                            
-                            console.log('✅ Chart updated with real data');
-                        }
-                    } else {
-                        console.warn('⚠️ No chart data in response, using fallback');
-                    }
-                }
-            } catch (error) {
-                console.error('❌ Error fetching chart data:', error);
-            }
-        }
-        
-        // Fetch real data
-        fetchChartData();
-        
-        // Create ApexCharts instance
-        const salesChart = new ApexCharts(newChartElement, {
-            chart: {
-                type: 'line',
-                height: 300,
-                toolbar: {
-                    show: false
-                },
-                animations: {
-                    enabled: true,
-                    easing: 'easeinout',
-                    speed: 800
-                }
-            },
-            series: [{
-                name: 'B2B Savdo hajmi',
-                data: chartData.sales,
-                color: '#3b82f6'
-            }, {
-                name: 'Distributorlar so\'rovlari',
-                data: chartData.orders,
-                color: '#8b5cf6'
-            }, {
-                name: 'Marketplace ko\'rishlar',
-                data: chartData.views,
-                color: '#06b6d4'
-            }],
-            xaxis: {
-                categories: chartData.labels,
-                labels: {
-                    style: {
-                        colors: '#6b7280'
-                    }
-                }
-            },
-            yaxis: [{
-                title: {
-                    text: 'Savdo hajmi ($)',
-                    style: {
-                        color: '#6b7280'
-                    }
-                },
-                labels: {
-                    formatter: function(value) {
-                        return '$' + (value / 1000) + 'K';
-                    },
-                    style: {
-                        colors: '#6b7280'
-                    }
-                }
-            }, {
-                opposite: true,
-                title: {
-                    text: 'So\'rovlar & Ko\'rishlar',
-                    style: {
-                        color: '#6b7280'
-                    }
-                },
-                labels: {
-                    formatter: function(value) {
-                        return value.toLocaleString();
-                    },
-                    style: {
-                        colors: '#6b7280'
-                    }
-                }
-            }],
-            grid: {
-                show: true,
-                borderColor: '#e5e7eb',
-                strokeDashArray: 5,
-                xaxis: {
-                    lines: {
-                        show: true
-                    }
-                },
-                yaxis: {
-                    lines: {
-                        show: true
-                    }
-                }
-            },
-            stroke: {
-                curve: 'smooth',
-                width: 3
-            },
-            fill: {
-                type: 'gradient',
-                gradient: {
-                    shade: 'light',
-                    type: 'vertical',
-                    shadeIntensity: 0.1,
-                    gradientToColors: undefined,
-                    inverseColors: true,
-                    opacityFrom: 0.8,
-                    opacityTo: 0.2,
-                    stops: [0, 100]
-                }
-            },
-            markers: {
-                size: 5,
-                colors: ['#3b82f6', '#8b5cf6', '#06b6d4'],
-                strokeColors: '#ffffff',
-                strokeWidth: 2,
-                hover: {
-                    size: 7
-                }
-            },
-            tooltip: {
-                shared: true,
-                intersect: false,
-                y: {
-                    formatter: function(value, { seriesIndex }) {
-                        if (seriesIndex === 0) {
-                            return '$' + value.toLocaleString();
-                        }
-                        return value.toLocaleString();
-                    }
-                }
-            },
-            legend: {
-                position: 'bottom',
-                horizontalAlign: 'center',
-                labels: {
-                    colors: '#6b7280'
-                }
-            },
-            noData: {
-                text: 'Ma\'lumot mavjud emas',
-                align: 'center',
-                verticalAlign: 'middle',
-                style: {
-                    color: '#6b7280',
-                    fontSize: '14px'
-                }
-            }
-        });
-        
-        // Render the chart
-        salesChart.render();
-        console.log('✅ Sales chart rendered successfully');
-        
-        // Store chart instance for potential updates
-        window.salesChartInstance = salesChart;
-        
-    } else {
-        console.error('❌ Sales chart element not found');
-    }
-    
-    // Chart period filter functionality
-    const chartPeriodFilter = document.getElementById('chartPeriodFilter');
-    if (chartPeriodFilter) {
-        chartPeriodFilter.addEventListener('change', async function() {
-            const period = this.value;
-            console.log('📊 Chart period changed to:', period);
-            
-            try {
-                // Fetch new data based on period
-                const response = await fetch(`/manufacturer/api/dashboard-stats?period=${period}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('📊 New period data received:', data);
-                    
-                    // Update chart with new data
-                    if (window.salesChartInstance && data) {
-                        // Update chart with real period data
-                        if (data && data.chartData) {
-                            const newChartData = {
-                                labels: data.chartData.labels || chartData.labels,
-                                sales: data.chartData.sales || chartData.sales,
-                                orders: data.chartData.orders || chartData.orders,
-                                views: data.chartData.views || chartData.views
-                            };
-                            
-                            // Update chart series with real data
-                            window.salesChartInstance.updateSeries([
-                                {
-                                    name: 'B2B Savdo hajmi',
-                                    data: newChartData.sales
-                                },
-                                {
-                                    name: 'Distributorlar so\'rovlari',
-                                    data: newChartData.orders
-                                },
-                                {
-                                    name: 'Marketplace ko\'rishlar',
-                                    data: newChartData.views
-                                }
-                            ]);
-                            
-                            // Update local chart data
-                            chartData = newChartData;
-                            
-                            console.log('📈 Chart updated with real period data:', newChartData);
-                        }
-                        
-                        console.log('✅ Chart updated with new period data');
-                    }
-                }
-            } catch (error) {
-                console.error('❌ Error fetching period data:', error);
-            }
-        });
-    }
-    
-    // Refresh chart functionality
-    const refreshChart = document.getElementById('refreshChart');
-    if (refreshChart) {
-        refreshChart.addEventListener('click', function() {
-            console.log('🔄 Refreshing chart...');
-            if (window.salesChartInstance) {
-                window.salesChartInstance.render();
-            }
-        });
-    }
-    
-    console.log('🎉 Dashboard charts initialization completed');
-    
-    // Load real dashboard data
-    loadDashboardData();
-    
-    // Load additional dashboard sections
-    loadDistributorInquiries();
-    loadCommunicationCenter();
-    loadInventoryManagement();
-});
 
-// Load real dashboard data
-async function loadDashboardData() {
-    try {
-        console.log('📊 Loading real dashboard data...');
-        
-        const response = await fetch('/manufacturer/api/dashboard-stats');
-        if (response.ok) {
-            const data = await response.json();
-            console.log('📊 Dashboard data received:', data);
-            
-            // Load top products
-            if (data.topProducts) {
-                loadTopProducts(data.topProducts);
-            }
-            
-            // Load recent orders
-            if (data.recentOrders) {
-                loadRecentOrders(data.recentOrders);
-            }
-            
-        } else {
-            console.error('❌ Failed to load dashboard data');
-        }
-    } catch (error) {
-        console.error('❌ Error loading dashboard data:', error);
-    }
-}
-
-// Load top products (only products with real ratings)
-function loadTopProducts(products) {
-    const container = document.getElementById('topProductsList');
-    if (!container) return;
-    
-    console.log('📊 Loading top products with real ratings:', products);
-    
-    if (!products || products.length === 0) {
-        container.innerHTML = '<div class="no-data">Top mahsulotlar mavjud emas</div>';
-        console.log('📊 No top products with real ratings found');
-        return;
-    }
-    
-    const productsHTML = products.map(product => {
-        // Since backend filters for real ratings only, use rating directly
-        const realRating = product.rating;
-        const ratingDisplay = realRating.toFixed(1);
-        const starClass = 'text-yellow-400'; // All products have real ratings
-        
-        console.log(`📊 Top Product: "${product.name}" - Rating: ${realRating}, Display: ${ratingDisplay}`);
-        
-        return `
-        <div class="product-item">
-            <div class="product-info">
-                <div class="product-rank">#${product.rank}</div>
-                <div class="product-details">
-                    <h4 class="product-name">${product.name}</h4>
-                    <p class="product-sales">${product.formattedQuantity} sotildi</p>
-                </div>
-            </div>
-            <div class="product-stats">
-                <span class="revenue">${product.formattedRevenue}</span>
-                <div class="rating">
-                    <i class="fas fa-star ${starClass}"></i> 
-                    ${ratingDisplay}
-                </div>
-            </div>
-        </div>
-    `;
-    }).join('');
-    
-    container.innerHTML = productsHTML;
-    console.log('✅ Top products with real ratings loaded:', products.length);
-}
-
-// Load recent orders
-function loadRecentOrders(orders) {
-    const container = document.getElementById('recentOrdersList');
-    if (!container) return;
-    
-    if (orders.length === 0) {
-        container.innerHTML = '<div class="no-data">So\'nggi buyurtmalar mavjud emas</div>';
-        return;
-    }
-    
-    const ordersHTML = orders.map(order => `
-        <div class="order-item">
-            <div class="order-header">
-                <span class="order-id">${order.id}</span>
-                <span class="order-date">${order.formattedDate}</span>
-            </div>
-            <div class="order-body">
-                <h4 class="order-product">${order.product} - ${order.quantity}${order.unit}</h4>
-                <div class="order-client">
-                    <i class="fas fa-store"></i> ${order.distributor}
-                </div>
-                <div class="order-amount">${order.formattedAmount}</div>
-            </div>
-            <div class="order-footer">
-                <span class="status-badge ${order.statusClass}">${getStatusText(order.status)}</span>
-                <div class="order-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${order.progress}%"></div>
-                    </div>
-                    <span class="progress-text">${order.progress}%</span>
-                </div>
-            </div>
-        </div>
-    `).join('');
-    
-    container.innerHTML = ordersHTML;
-    console.log('✅ Recent orders loaded:', orders.length);
-}
-
-// Get status text in Uzbek
-function getStatusText(status) {
-    const statusMap = {
-        'pending': 'Tasdiqlash kutilmoqda',
-        'confirmed': 'Tasdiqlangan',
-        'processing': 'Ishlov berilmoqda',
-        'shipped': 'Yuborildi',
-        'delivered': 'Yetkazildi',
-        'cancelled': 'Bekor qilindi'
-    };
-    return statusMap[status] || status;
-}
-
-// Load distributor inquiries
-async function loadDistributorInquiries() {
-    try {
-        console.log('📋 Loading distributor inquiries...');
-        
-        const response = await fetch('/manufacturer/api/distributor-inquiries');
-        if (response.ok) {
-            const data = await response.json();
-            console.log('📋 Inquiries data received:', data);
-            
-            if (data.inquiries && data.inquiries.length > 0) {
-                renderInquiries(data.inquiries);
-            } else {
-                console.log('📋 No real inquiries found, using fallback');
-            }
-        }
-    } catch (error) {
-        console.error('❌ Error loading inquiries:', error);
-    }
-}
-
-// Render inquiries
-function renderInquiries(inquiries) {
-    const container = document.querySelector('.widget-content');
-    if (!container) return;
-    
-    const inquiriesHTML = inquiries.map(inquiry => `
-        <div class="inquiry-card ${inquiry.priority}-priority">
-            <div class="inquiry-info">
-                <div class="company-section">
-                    <div class="company-logo-placeholder">
-                        <i class="fas fa-building"></i>
-                    </div>
-                    <div class="company-details">
-                        <h4 class="company-title">${inquiry.companyName}</h4>
-                        <span class="inquiry-timestamp">${formatTimeAgo(inquiry.timestamp)}</span>
-                    </div>
-                </div>
-                <div class="priority-label ${inquiry.priority}">${getPriorityText(inquiry.priority)}</div>
-            </div>
-            <div class="inquiry-message">
-                <p>${inquiry.message}</p>
-                <div class="order-specs">
-                    ${inquiry.specs.map(spec => `<span class="spec-tag">${spec}</span>`).join('')}
-                </div>
-            </div>
-            <div class="inquiry-buttons">
-                <button class="btn-respond">Javob berish</button>
-                <button class="btn-quote">Narx yuborish</button>
-            </div>
-        </div>
-    `).join('');
-    
-    container.innerHTML = inquiriesHTML;
-    console.log('✅ Inquiries rendered:', inquiries.length);
-}
-
-// Load communication center
-async function loadCommunicationCenter() {
-    try {
-        console.log('💬 Loading communication center...');
-        
-        const response = await fetch('/manufacturer/api/communication-center');
-        if (response.ok) {
-            const data = await response.json();
-            console.log('💬 Communication data received:', data);
-            
-            if (data.chatPreviews && data.chatPreviews.length > 0) {
-                renderChatPreviews(data.chatPreviews);
-                updateCommunicationStats(data.stats);
-            }
-        }
-    } catch (error) {
-        console.error('❌ Error loading communication center:', error);
-    }
-}
-
-// Render chat previews
-function renderChatPreviews(chats) {
-    const container = document.querySelector('.chat-preview-list');
-    if (!container) return;
-    
-    const chatsHTML = chats.map(chat => `
-        <div class="chat-preview ${chat.isUnread ? 'unread' : ''}">
-            <div class="chat-avatar">
-                <div class="chat-avatar-placeholder">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <div class="${chat.status}-indicator"></div>
-            </div>
-            <div class="chat-content">
-                <div class="chat-header">
-                    <h4 class="chat-company">${chat.companyName}</h4>
-                    <span class="chat-time">${formatTimeAgo(chat.lastMessageTime)}</span>
-                </div>
-                <p class="chat-message">${chat.lastMessage}</p>
-                <div class="chat-meta">
-                    ${chat.isUnread ? `<span class="message-count">${chat.messageCount}</span>` : ''}
-                    ${chat.isTyping ? '<span class="typing-indicator">yozmoqda...</span>' : '<span class="read-indicator">O\'qildi</span>'}
-                </div>
-            </div>
-        </div>
-    `).join('');
-    
-    container.innerHTML = chatsHTML;
-    console.log('✅ Chat previews rendered:', chats.length);
-}
-
-// Update communication stats
-function updateCommunicationStats(stats) {
-    const statItems = document.querySelectorAll('.communication-stats .stat-item .stat-value');
-    if (statItems.length >= 3) {
-        statItems[0].textContent = stats.activeChats;
-        statItems[1].textContent = stats.averageResponseTime;
-        statItems[2].textContent = stats.todayMessages;
-    }
-}
-
-// Load inventory management
-async function loadInventoryManagement() {
-    try {
-        console.log('📦 Loading inventory management...');
-        
-        const response = await fetch('/manufacturer/api/inventory-management');
-        if (response.ok) {
-            const data = await response.json();
-            console.log('📦 Inventory data received:', data);
-            
-            if (data.stockSummary) {
-                renderInventorySummary(data.stockSummary);
-                renderCriticalItems(data.criticalItems);
-            }
-        }
-    } catch (error) {
-        console.error('❌ Error loading inventory:', error);
-    }
-}
-
-// Render inventory summary
-function renderInventorySummary(summary) {
-    const summaryItems = document.querySelectorAll('.stock-summary .summary-item');
-    if (summaryItems.length >= 3) {
-        // Normal stock
-        summaryItems[0].querySelector('.summary-count').textContent = `${summary.normal.count} mahsulot`;
-        
-        // Low stock
-        summaryItems[1].querySelector('.summary-count').textContent = `${summary.low.count} mahsulot`;
-        
-        // Out of stock
-        summaryItems[2].querySelector('.summary-count').textContent = `${summary.outOfStock.count} mahsulot`;
-    }
-}
-
-// Render critical items
-function renderCriticalItems(items) {
-    const container = document.querySelector('.critical-stock');
-    if (!container) return;
-    
-    const itemsHTML = items.map(item => `
-        <div class="stock-item ${item.level}">
-            <div class="item-info">
-                <h5 class="item-name">${item.name}</h5>
-                <p class="item-sku">SKU: ${item.sku}</p>
-            </div>
-            <div class="item-stock">
-                <span class="stock-level ${item.level}">${item.currentStock} rulon</span>
-                <span class="stock-action">${item.action}</span>
-            </div>
-        </div>
-    `).join('');
-    
-    // Find the critical stock container and replace content after the title
-    const criticalContainer = container.querySelector('.section-title');
-    if (criticalContainer) {
-        const itemsContainer = document.createElement('div');
-        itemsContainer.innerHTML = itemsHTML;
-        container.appendChild(itemsContainer);
-    }
-}
-
-// Helper functions
-function formatTimeAgo(timestamp) {
-    const now = new Date();
-    const time = new Date(timestamp);
-    const diffMs = now - time;
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    
-    if (diffMinutes < 60) {
-        return `${diffMinutes} daqiqa oldin`;
-    } else if (diffHours < 24) {
-        return `${diffHours} soat oldin`;
-    } else {
-        const diffDays = Math.floor(diffHours / 24);
-        return `${diffDays} kun oldin`;
-    }
-}
-
-function getPriorityText(priority) {
-    const priorityMap = {
-        'urgent': 'Shoshilinch',
-        'new': 'Yangi',
-        'followup': 'Kuzatuv'
-    };
-    return priorityMap[priority] || priority;
-}
-</script>
 
 <!-- <script src="/admin/js/dashboard.js"></script> -->
 
@@ -1144,126 +342,6 @@ function getPriorityText(priority) {
 <!-- Manufacturer Specific Scripts -->
 <script src="/js/manufacturer/manufacturer-dashboard.js"></script>
 
-<script>
-// Initialize Manufacturer Dashboard
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize header functionality
-    if (window.ManufacturerHeader) {
-        window.manufacturerHeader = new ManufacturerHeader();
-    }
-
-    function initializeResponsiveHandlers() {
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const sidebar = document.querySelector('.admin-sidebar');
-            const adminMain = document.querySelector('.admin-main');
-            const adminHeader = document.querySelector('.admin-header');
-            
-            if (!sidebarToggle || !sidebar || !adminMain) {
-                console.warn('⚠️ Sidebar elements not found');
-                return;
-            }
-            
-            console.log('🔧 Setting up sidebar toggle - DASHBOARD CONSISTENT...');
-            
-            // Restore sidebar state from localStorage (EXACT Dashboard approach)
-            const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            
-            // Apply EXACT Dashboard-style classes
-            if (isSidebarCollapsed) {
-                sidebar.classList.add('collapsed');
-                adminMain.classList.add('sidebar-collapsed');
-                adminHeader?.classList.add('sidebar-collapsed');
-                console.log('📁 Restored collapsed sidebar state (Dashboard Consistent)');
-            } else {
-                sidebar.classList.remove('collapsed');
-                adminMain.classList.remove('sidebar-collapsed');
-                adminHeader?.classList.remove('sidebar-collapsed');
-                console.log('📂 Restored expanded sidebar state (Dashboard Consistent)');
-            }
-            
-            // Remove any existing event listeners by cloning
-            const newSidebarToggle = sidebarToggle.cloneNode(true);
-            sidebarToggle.parentNode.replaceChild(newSidebarToggle, sidebarToggle);
-            
-            // Add Dashboard-compatible event listener
-            newSidebarToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                console.log('📱 Sidebar toggle clicked (Dashboard Compatible)');
-                
-                const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
-                console.log('🔍 Currently collapsed:', isCurrentlyCollapsed);
-                
-                if (isCurrentlyCollapsed) {
-                    // Expand sidebar - EXACT Dashboard approach
-                    sidebar.classList.remove('collapsed');
-                    adminMain.classList.remove('sidebar-collapsed');
-                    adminHeader?.classList.remove('sidebar-collapsed');
-                    localStorage.setItem('sidebarCollapsed', 'false');
-                    console.log('📂 Sidebar expanded (Dashboard Consistent)');
-                } else {
-                    // Collapse sidebar - EXACT Dashboard approach
-                    sidebar.classList.add('collapsed');
-                    adminMain.classList.add('sidebar-collapsed');
-                    adminHeader?.classList.add('sidebar-collapsed');
-                    localStorage.setItem('sidebarCollapsed', 'true');
-                    console.log('📁 Sidebar collapsed (Dashboard Consistent)');
-                }
-                
-                // Debug final computed styles
-                setTimeout(() => {
-                    const computedStyle = window.getComputedStyle(adminMain);
-                    console.log('🔍 Final margin-left:', computedStyle.marginLeft);
-                    console.log('🔍 Final width:', computedStyle.width);
-                    console.log('🔍 Sidebar classes:', sidebar.className);
-                    console.log('🔍 Main classes:', adminMain.className);
-                }, 100);
-            });
-            
-            // Handle mobile responsiveness (Dashboard approach)
-            if (window.innerWidth <= 1024) {
-                console.log('📱 Mobile mode detected - Dashboard mobile behavior');
-                // Mobile logic will be handled by existing CSS media queries
-                // No additional mobile event listeners needed - dashboard approach
-            }
-            
-            console.log('✅ Dashboard-compatible sidebar functionality initialized');
-        }
-    
-
-        // Initialize responsive handlers (enhanced)
-        initializeResponsiveHandlers();
-
-    const dashboardOptions = {
-        userId: '<%= typeof user !== "undefined" && user._id ? user._id : "" %>',
-        userName: '<%= typeof user !== "undefined" && user.name ? user.name.replace(/"/g, "&quot;") : "Manufacturer" %>',
-        companyName: '<%= typeof user !== "undefined" && user.companyName ? user.companyName.replace(/"/g, "&quot;") : "Manufacturing Company" %>',
-        currentPage: 'dashboard'
-    };
-    
-    // Force initialize with real data
-    window.manufacturerDashboard = new ManufacturerDashboard(dashboardOptions);
-    
-    // Initialize and force data load
-    window.manufacturerDashboard.init().then(() => {
-        console.log('✅ Dashboard initialized, forcing data update...');
-        
-        // Force immediate KPI update with server data if available
-        const serverStats = JSON.parse('<%= JSON.stringify(JSON.stringify(stats || {})) %>');
-        if (serverStats && Object.keys(serverStats).length > 0) {
-            console.log('🔄 Updating KPIs with server data:', serverStats);
-            window.manufacturerDashboard.updateKPICards(serverStats);
-        }
-        
-        // Force API refresh after 2 seconds
-        setTimeout(() => {
-            console.log('🔄 Forcing API data refresh...');
-            window.manufacturerDashboard.loadDashboardStats();
-        }, 2000);
-    });
-});
-</script>
 
 <style>
 /* Loading placeholder styles */
@@ -1331,6 +409,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
 [data-theme="dark"] .chat-avatar-placeholder {
     background: linear-gradient(135deg, #34d399, #10b981);
+}
+
+/* No data state styles */
+.no-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+    min-height: 200px;
+    color: #6b7280;
+}
+
+.no-data-icon {
+    font-size: 3rem;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+}
+
+.no-data h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.no-data p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #6b7280;
+    max-width: 300px;
+}
+
+/* Dark theme adjustments for no-data */
+[data-theme="dark"] .no-data {
+    color: #9ca3af;
+}
+
+[data-theme="dark"] .no-data-icon {
+    color: #4b5563;
+}
+
+[data-theme="dark"] .no-data h4 {
+    color: #d1d5db;
+}
+
+[data-theme="dark"] .no-data p {
+    color: #9ca3af;
 }
 </style>
 

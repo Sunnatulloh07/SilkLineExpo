@@ -292,6 +292,10 @@ router.get("/api/production/schedule", boundMethods.getProductionSchedule);
 
 // ===== PRODUCT DEVELOPMENT API ROUTES =====
 router.get("/api/products/pipeline", boundMethods.getProductPipeline);
+router.post("/api/products/create", authenticate, manufacturerOnly, validateManufacturerApiAccess, boundMethods.createProduct);
+router.post("/api/products/save-draft", authenticate, manufacturerOnly, validateManufacturerApiAccess, boundMethods.saveProductAsDraft);
+router.post("/api/products/publish", authenticate, manufacturerOnly, validateManufacturerApiAccess, boundMethods.publishProduct);
+router.post("/api/products/upload-images", authenticate, manufacturerOnly, validateManufacturerApiAccess, boundMethods.uploadProductImages);
 router.post("/api/products", boundMethods.createProduct);
 router.put("/api/products/:productId/status", boundMethods.updateProductStatus);
 router.get(

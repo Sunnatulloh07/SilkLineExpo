@@ -67,9 +67,9 @@
             <div class="stat-value">
               <span class="metric-value">$<%= productAnalytics.totalRevenue || 0 %></span>
             </div>
-            <div class="stat-change positive">
-              <i class="fas fa-arrow-up"></i>
-              +<%= productAnalytics.revenueGrowth || 0 %>% o'sish
+            <div class="stat-change <%= (productAnalytics.revenueGrowth || 0) >= 0 ? 'positive' : 'negative' %>">
+              <i class="fas fa-arrow-<%= (productAnalytics.revenueGrowth || 0) >= 0 ? 'up' : 'down' %>"></i>
+              <%= (productAnalytics.revenueGrowth || 0) >= 0 ? '+' : '' %><%= productAnalytics.revenueGrowth || 0 %>% <%= (productAnalytics.revenueGrowth || 0) >= 0 ? 'o\'sish' : 'pasayish' %>
             </div>
           </div>
 
@@ -84,9 +84,9 @@
             <div class="stat-value">
               <span class="metric-value"><%= productAnalytics.totalOrders || 0 %></span>
             </div>
-            <div class="stat-change positive">
-              <i class="fas fa-arrow-up"></i>
-              +<%= productAnalytics.orderGrowth || 0 %>% o'sish
+            <div class="stat-change <%= (productAnalytics.orderGrowth || 0) >= 0 ? 'positive' : 'negative' %>">
+              <i class="fas fa-arrow-<%= (productAnalytics.orderGrowth || 0) >= 0 ? 'up' : 'down' %>"></i>
+              <%= (productAnalytics.orderGrowth || 0) >= 0 ? '+' : '' %><%= productAnalytics.orderGrowth || 0 %>% <%= (productAnalytics.orderGrowth || 0) >= 0 ? 'o\'sish' : 'pasayish' %>
             </div>
           </div>
 
@@ -101,8 +101,8 @@
             <div class="stat-value">
               <span class="metric-value"><%= productAnalytics.totalCustomers || 0 %></span>
             </div>
-            <div class="stat-change neutral">
-              <i class="fas fa-minus"></i>
+            <div class="stat-change <%= (productAnalytics.retentionRate || 0) >= 50 ? 'positive' : ((productAnalytics.retentionRate || 0) >= 25 ? 'neutral' : 'negative') %>">
+              <i class="fas fa-<%= (productAnalytics.retentionRate || 0) >= 50 ? 'arrow-up' : ((productAnalytics.retentionRate || 0) >= 25 ? 'minus' : 'arrow-down') %>"></i>
               <%= productAnalytics.retentionRate || 0 %>% saqlanish
             </div>
           </div>
@@ -275,9 +275,13 @@
                 <% } %>
               </span>
             </div>
-            <div class="stat-change positive">
-              <i class="fas fa-arrow-up"></i>
-              O'sish tendentsiyasi
+            <div class="stat-change <%= (dashboardStats && dashboardStats.overview && dashboardStats.overview.revenueGrowth || 0) >= 0 ? 'positive' : 'negative' %>">
+              <i class="fas fa-arrow-<%= (dashboardStats && dashboardStats.overview && dashboardStats.overview.revenueGrowth || 0) >= 0 ? 'up' : 'down' %>"></i>
+              <% if (dashboardStats && dashboardStats.overview && dashboardStats.overview.revenueGrowth !== undefined) { %>
+                <%= (dashboardStats.overview.revenueGrowth || 0) >= 0 ? '+' : '' %><%= dashboardStats.overview.revenueGrowth %>% <%= (dashboardStats.overview.revenueGrowth || 0) >= 0 ? 'o\'sish' : 'pasayish' %>
+              <% } else { %>
+                O'sish tendentsiyasi
+              <% } %>
             </div>
           </div>
 
@@ -300,7 +304,11 @@
             </div>
             <div class="stat-change neutral">
               <i class="fas fa-minus"></i>
-              Barqaror
+              <% if (dashboardStats && dashboardStats.overview && dashboardStats.overview.totalProducts > 0) { %>
+                Faol mahsulotlar
+              <% } else { %>
+                Barqaror
+              <% } %>
             </div>
           </div>
 
@@ -321,9 +329,13 @@
                 <% } %>
               </span>
             </div>
-            <div class="stat-change positive">
-              <i class="fas fa-arrow-up"></i>
-              Faol
+            <div class="stat-change <%= (dashboardStats && dashboardStats.overview && dashboardStats.overview.totalOrders || 0) > 0 ? 'positive' : 'neutral' %>">
+              <i class="fas fa-<%= (dashboardStats && dashboardStats.overview && dashboardStats.overview.totalOrders || 0) > 0 ? 'arrow-up' : 'minus' %>"></i>
+              <% if (dashboardStats && dashboardStats.overview && dashboardStats.overview.totalOrders > 0) { %>
+                Faol buyurtmalar
+              <% } else { %>
+                Buyurtma yo'q
+              <% } %>
             </div>
           </div>
 
@@ -344,9 +356,13 @@
                 <% } %>
               </span>
             </div>
-            <div class="stat-change positive">
-              <i class="fas fa-arrow-up"></i>
-              Yaxshi
+            <div class="stat-change <%= (dashboardStats && dashboardStats.overview && dashboardStats.overview.activeCustomers || 0) > 0 ? 'positive' : 'neutral' %>">
+              <i class="fas fa-<%= (dashboardStats && dashboardStats.overview && dashboardStats.overview.activeCustomers || 0) > 0 ? 'arrow-up' : 'minus' %>"></i>
+              <% if (dashboardStats && dashboardStats.overview && dashboardStats.overview.activeCustomers > 0) { %>
+                <%= dashboardStats.overview.activeCustomers %> faol mijoz
+              <% } else { %>
+                Mijoz yo'q
+              <% } %>
             </div>
           </div>
 
