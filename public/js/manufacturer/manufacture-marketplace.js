@@ -1359,82 +1359,17 @@ function initializeImageErrorHandling() {
     });
 }
 
-// EXACT Dashboard-Compatible Responsive Handlers - Senior Software Engineer
+// NOTE: Sidebar toggle functionality is now handled by dashboard-init.js 
+// This prevents conflicts and ensures consistent behavior across all pages
 function initializeResponsiveHandlers() {
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.querySelector('.admin-sidebar');
-    const adminMain = document.querySelector('.admin-main');
-    const adminHeader = document.querySelector('.admin-header');
+    console.log('🔧 MARKETPLACE: Sidebar toggle delegated to dashboard-init.js for consistency');
     
-    if (!sidebarToggle || !sidebar || !adminMain) {
-        console.warn('⚠️ Sidebar elements not found in Marketplace');
-        return;
-    }
-    
-    console.log('🔧 Setting up MARKETPLACE sidebar toggle - DASHBOARD CONSISTENT...');
-    
-    // Restore sidebar state from localStorage (EXACT Dashboard approach)
-    const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    
-    // Apply EXACT Dashboard-style classes
-    if (isSidebarCollapsed) {
-        sidebar.classList.add('collapsed');
-        adminMain.classList.add('sidebar-collapsed');
-        adminHeader?.classList.add('sidebar-collapsed');
-        console.log('📁 Restored collapsed sidebar state (Marketplace - Dashboard Consistent)');
-    } else {
-        sidebar.classList.remove('collapsed');
-        adminMain.classList.remove('sidebar-collapsed');
-        adminHeader?.classList.remove('sidebar-collapsed');
-        console.log('📂 Restored expanded sidebar state (Marketplace - Dashboard Consistent)');
-    }
-    
-    // Remove any existing event listeners by cloning
-    const newSidebarToggle = sidebarToggle.cloneNode(true);
-    sidebarToggle.parentNode.replaceChild(newSidebarToggle, sidebarToggle);
-    
-    // Add Dashboard-compatible event listener
-    newSidebarToggle.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        console.log('📱 MARKETPLACE Sidebar toggle clicked (Dashboard Compatible)');
-        
-        const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
-        console.log('🔍 Currently collapsed:', isCurrentlyCollapsed);
-        
-        if (isCurrentlyCollapsed) {
-            // Expand sidebar - EXACT Dashboard approach
-            sidebar.classList.remove('collapsed');
-            adminMain.classList.remove('sidebar-collapsed');
-            adminHeader?.classList.remove('sidebar-collapsed');
-            localStorage.setItem('sidebarCollapsed', 'false');
-            console.log('📂 MARKETPLACE Sidebar expanded (Dashboard Consistent)');
-        } else {
-            // Collapse sidebar - EXACT Dashboard approach
-            sidebar.classList.add('collapsed');
-            adminMain.classList.add('sidebar-collapsed');
-            adminHeader?.classList.add('sidebar-collapsed');
-            localStorage.setItem('sidebarCollapsed', 'true');
-            console.log('📁 MARKETPLACE Sidebar collapsed (Dashboard Consistent)');
-        }
-        
-        // Debug final computed styles
-        setTimeout(() => {
-            const computedStyle = window.getComputedStyle(adminMain);
-            console.log('🔍 MARKETPLACE Final margin-left:', computedStyle.marginLeft);
-            console.log('🔍 MARKETPLACE Final width:', computedStyle.width);
-            console.log('🔍 MARKETPLACE Sidebar classes:', sidebar.className);
-            console.log('🔍 MARKETPLACE Main classes:', adminMain.className);
-        }, 100);
-    });
-    
-    // Handle mobile responsiveness (Dashboard approach)
+    // Only handle marketplace-specific responsive behavior here
     if (window.innerWidth <= 1024) {
-        console.log('📱 MARKETPLACE Mobile mode detected - Dashboard mobile behavior');
+        console.log('📱 MARKETPLACE Mobile mode detected');
     }
     
-    console.log('✅ MARKETPLACE Dashboard-compatible sidebar functionality initialized');
+    console.log('✅ MARKETPLACE responsive handlers initialized (sidebar delegated)');
 }
 
 // ENHANCED Mock Images System - Professional B2B Implementation
@@ -1867,53 +1802,25 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
-    // EXACT DASHBOARD-INIT.JS SIDEBAR PATTERN
+    // SIDEBAR FUNCTIONALITY DELEGATED TO DASHBOARD-INIT.JS
     function initSidebar() {
-        const sidebar = document.querySelector('.admin-sidebar');
-        const main = document.querySelector('.admin-main');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        console.log('🔧 MARKETPLACE: Sidebar functionality is handled by dashboard-init.js');
+        console.log('🔧 MARKETPLACE: Checking if dashboard-init.js sidebar is initialized...');
         
-        // Desktop sidebar toggle (EXACT Dashboard-init.js Pattern)
-        if (sidebarToggle && sidebar && main) {
-            // Restore saved state
-            const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            if (isCollapsed) {
-                sidebar.classList.add('collapsed');
-                main.classList.add('sidebar-collapsed');
-            }
+        // Verify that dashboard-init.js has set up the sidebar
+        if (!window.sidebarInitialized) {
+            console.warn('⚠️ MARKETPLACE: dashboard-init.js sidebar not initialized yet');
             
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('collapsed');
-                main.classList.toggle('sidebar-collapsed');
-                
-                // Save state
-                const collapsed = sidebar.classList.contains('collapsed');
-                localStorage.setItem('sidebarCollapsed', collapsed);
-            });
-        }
-        
-        // Mobile menu toggle (EXACT Dashboard-init.js Pattern)
-        if (mobileMenuToggle && sidebar) {
-            mobileMenuToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('open');
-                
-                // Create overlay if not exists
-                let overlay = document.querySelector('.sidebar-overlay');
-                if (!overlay) {
-                    overlay = document.createElement('div');
-                    overlay.className = 'sidebar-overlay';
-                    document.body.appendChild(overlay);
+            // Wait for dashboard-init.js to initialize, then report status
+            setTimeout(() => {
+                if (window.sidebarInitialized) {
+                    console.log('✅ MARKETPLACE: dashboard-init.js sidebar now initialized');
+                } else {
+                    console.error('❌ MARKETPLACE: dashboard-init.js sidebar failed to initialize');
                 }
-                
-                overlay.classList.toggle('active');
-                
-                // Close on overlay click
-                overlay.addEventListener('click', function() {
-                    sidebar.classList.remove('open');
-                    overlay.classList.remove('active');
-                });
-            });
+            }, 1000);
+        } else {
+            console.log('✅ MARKETPLACE: dashboard-init.js sidebar already initialized');
         }
     }
     

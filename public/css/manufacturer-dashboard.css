@@ -140,7 +140,7 @@
   width: var(--sidebar-width);
   background: var(--bg-card);
   border-right: 1px solid var(--border-color);
-  transition: width 0.3s ease;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: fixed;
   height: 100vh;
   z-index: 1000;
@@ -155,30 +155,35 @@
 .admin-main {
   flex: 1;
   margin-left: var(--sidebar-width);
-  transition: margin-left 0.3s ease;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-height: 100vh;
 }
 
-/* Header Adjustments */
+/* Header Adjustments - JAVASCRIPT CONTROLLED */
 .admin-header {
   position: fixed;
   top: 0;
-  left: var(--sidebar-width);
+  left: 280px; /* Default expanded position */
   right: 0;
   z-index: 999;
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-color);
   height: var(--header-height);
-  transition: left 0.3s ease;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Header responsive to sidebar - Admin dashboard pattern */
+/* CSS backup rules (in case JavaScript fails) */
+.admin-sidebar.collapsed ~ .admin-main .admin-header {
+  left: 64px;
+}
+
+/* Ensure header positioning is consistent across pages */
 .admin-header.sidebar-collapsed {
-  left: var(--sidebar-collapsed-width);
+  left: 64px !important;
 }
 
-.admin-main.sidebar-collapsed .admin-header {
-  left: var(--sidebar-collapsed-width);
+.admin-header:not(.sidebar-collapsed) {
+  left: 280px !important;
 }
 
 /* Adjust main content for fixed header */
@@ -496,6 +501,20 @@
     margin-left: 0 !important;
   }
   
+  .admin-header {
+    left: 0 !important;
+  }
+  
+  /* Hide desktop-only elements on mobile */
+  .desktop-only {
+    display: none !important;
+  }
+  
+  /* Show mobile-only elements */
+  .mobile-only {
+    display: flex !important;
+  }
+  
   /* Mobile Overlay */
   .sidebar-overlay {
     position: fixed;
@@ -510,6 +529,19 @@
   
   .sidebar-overlay.active {
     display: block;
+  }
+}
+
+/* Desktop responsive */
+@media (min-width: 1025px) {
+  /* Hide mobile-only elements on desktop */
+  .mobile-only {
+    display: none !important;
+  }
+  
+  /* Show desktop-only elements */
+  .desktop-only {
+    display: flex !important;
   }
 }
 

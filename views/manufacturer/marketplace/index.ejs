@@ -619,17 +619,73 @@
 <script src="/assets/js/jquery-3.7.1.min.js"></script>
 <script src="/assets/js/boostrap.bundle.min.js"></script>
 
-<!-- Manufacturer Dashboard Core -->
+<!-- Manufacturer Dashboard Core (Primary sidebar handler) -->
 <script src="/js/manufacturer/dashboard-init.js"></script>
 
-<!-- Professional Unified Header Management -->
+<!-- Professional Unified Header Management (Secondary - defers to dashboard-init) -->
 <script src="/js/manufacturer/manufacturer-header.js"></script>
 
-<!-- Complete Manufacturer Dashboard Functionality -->
-<script src="/js/manufacturer/manufacturer-dashboard.js"></script>
-
-<!-- Professional Marketplace Functionality -->
+<!-- Professional Marketplace Functionality (Sidebar handling delegated) -->
 <script src="/js/manufacturer/manufacture-marketplace.js"></script>
+
+<!-- Comprehensive Sidebar & Header Debug Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔍 MARKETPLACE: Starting comprehensive debug...');
+    
+    setTimeout(() => {
+        // Check all elements
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.admin-sidebar');
+        const adminMain = document.querySelector('.admin-main');
+        const adminHeader = document.querySelector('.admin-header');
+        
+        console.log('🔍 MARKETPLACE Elements:');
+        console.log('  - sidebarToggle:', !!sidebarToggle);
+        console.log('  - sidebar:', !!sidebar);
+        console.log('  - adminMain:', !!adminMain);
+        console.log('  - adminHeader:', !!adminHeader);
+        
+        if (adminHeader) {
+            console.log('  - adminHeader current left:', adminHeader.style.left);
+            console.log('  - adminHeader computed left:', window.getComputedStyle(adminHeader).left);
+            console.log('  - adminHeader classes:', adminHeader.classList.toString());
+        }
+        
+        if (sidebar) {
+            console.log('  - sidebar classes:', sidebar.classList.toString());
+        }
+        
+        console.log('  - sidebarInitialized:', !!window.sidebarInitialized);
+        
+        // Test event listener existence
+        if (sidebarToggle) {
+            console.log('🧪 Testing sidebar toggle click...');
+            
+            // Add our own test listener to see what happens
+            sidebarToggle.addEventListener('click', function() {
+                console.log('🖱️ MARKETPLACE: Sidebar toggle clicked - our listener');
+                setTimeout(() => {
+                    if (adminHeader) {
+                        console.log('📐 MARKETPLACE: Header left after click:', adminHeader.style.left);
+                        console.log('📐 MARKETPLACE: Header classes after click:', adminHeader.classList.toString());
+                    }
+                }, 100);
+            });
+        }
+        
+        // Listen for the sidebarToggled event
+        window.addEventListener('sidebarToggled', function(e) {
+            console.log('📡 MARKETPLACE: Received sidebarToggled event:', e.detail);
+            const adminHeader = document.querySelector('.admin-header');
+            if (adminHeader) {
+                console.log('📐 MARKETPLACE: Header position before event handling:', adminHeader.style.left);
+            }
+        });
+        
+    }, 1500);
+});
+</script>
 
 <!-- Real Data Loading Script -->
 <script>

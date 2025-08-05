@@ -67,57 +67,62 @@ class ManufacturerHeader {
     }
 
     /**
-     * Sidebar Toggle for Mobile/Desktop
+     * Sidebar Toggle - Mobile Only (Desktop handled by dashboard-init.js)
      */
     initSidebarToggle() {
-        const mobileToggle = document.getElementById('mobileMenuToggle');
-        const desktopToggle = document.getElementById('sidebarToggle');
-        const sidebar = document.querySelector('.admin-sidebar');
-        const main = document.querySelector('.admin-main');
-
-        if (mobileToggle && sidebar) {
-            mobileToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('open');
-                main.classList.toggle('sidebar-open');
-            });
-
-            // Close sidebar on outside click (mobile)
-            main.addEventListener('click', (e) => {
-                if (window.innerWidth <= 1024 && sidebar.classList.contains('open')) {
-                    if (!e.target.closest('.admin-sidebar') && !e.target.closest('#mobileMenuToggle')) {
-                        sidebar.classList.remove('open');
-                        main.classList.remove('sidebar-open');
-                    }
-                }
-            });
-        }
-
-        if (desktopToggle && sidebar) {
-            desktopToggle.addEventListener('click', () => {
-                const adminHeader = document.querySelector('.admin-header');
-                
-                sidebar.classList.toggle('collapsed');
-                main.classList.toggle('sidebar-collapsed');
-                
-                // MUHIM: Header'ni ham yangilash kerak!
-                if (adminHeader) {
-                    adminHeader.classList.toggle('sidebar-collapsed');
-                }
-                
-                localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-            });
-
-            // Restore sidebar state
-            const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        // Desktop toggle is handled by dashboard-init.js to avoid conflicts
+        // This only handles mobile functionality and state synchronization
+        
+        // Listen for sidebar state changes from dashboard-init.js and update header position
+        window.addEventListener('sidebarToggled', (e) => {
+            const collapsed = e.detail.collapsed;
             const adminHeader = document.querySelector('.admin-header');
             
+            console.log('🔄 HEADER: Sidebar state changed:', collapsed ? 'collapsed' : 'expanded');
+            
+            if (adminHeader) {
+                if (collapsed) {
+                    adminHeader.classList.add('sidebar-collapsed');
+                    console.log('📐 HEADER: Added sidebar-collapsed class');
+                } else {
+                    adminHeader.classList.remove('sidebar-collapsed');
+                    console.log('📐 HEADER: Removed sidebar-collapsed class');
+                }
+            } else {
+                console.warn('⚠️ HEADER: Admin header element not found');
+            }
+        });
+        
+        // Sync sidebar state when this script loads (for page navigation)
+        if (typeof window.syncSidebarState === 'function') {
+            window.syncSidebarState();
+        } else {
+            // Fallback if dashboard-init.js hasn't loaded yet
+            this.syncSidebarState();
+        }
+    }
+    
+    /**
+     * Sync sidebar state from localStorage
+     */
+    syncSidebarState() {
+        const sidebar = document.querySelector('.admin-sidebar');
+        const main = document.querySelector('.admin-main');
+        const adminHeader = document.querySelector('.admin-header');
+        const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        
+        if (sidebar && main) {
             if (isCollapsed) {
                 sidebar.classList.add('collapsed');
                 main.classList.add('sidebar-collapsed');
-                
-                // MUHIM: Header'ni ham yangilash kerak!
                 if (adminHeader) {
                     adminHeader.classList.add('sidebar-collapsed');
+                }
+            } else {
+                sidebar.classList.remove('collapsed');
+                main.classList.remove('sidebar-collapsed');
+                if (adminHeader) {
+                    adminHeader.classList.remove('sidebar-collapsed');
                 }
             }
         }
@@ -401,6 +406,25 @@ class ManufacturerHeader {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
     window.manufacturerHeader = new ManufacturerHeader();
+    
+    // Sync sidebar state on page load
+    setTimeout(() => {
+        if (typeof window.syncSidebarState === 'function') {
+            window.syncSidebarState();
+        }
+    }, 100);
+});
+
+// Sync state when navigating between pages
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        // Page was loaded from cache
+        setTimeout(() => {
+            if (typeof window.syncSidebarState === 'function') {
+                window.syncSidebarState();
+            }
+        }, 100);
+    }
 });
 
 // Global functions for onclick handlers
