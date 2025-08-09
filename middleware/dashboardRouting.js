@@ -69,15 +69,17 @@ class DashboardRoutingMiddleware {
             // Extract and verify token
             const tokens = TokenService.extractTokensFromRequest(req);
             
+
             if (!tokens.accessToken) {
+                this.logger.warn(`⚠️ Auth Guard: No access token for ${req.path}`);
                 return this.redirectToLogin(req, res, 'Authentication required');
             }
 
             const verification = TokenService.verifyAccessToken(tokens.accessToken);
+
             
             if (!verification.valid) {
-                this.logger.warn(`⚠️ Auth Guard: Invalid token for ${req.path}`);
-                return this.redirectToLogin(req, res, 'Session expired. Please login again.');
+                  return this.redirectToLogin(req, res, 'Session expired. Please login again.');
             }
 
             // Attach user info to request with debug logging

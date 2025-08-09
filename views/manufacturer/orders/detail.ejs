@@ -1,0 +1,2571 @@
+<%- include('../partials/header', { title: 'Buyurtma Tafsilotlari', lng: lng || 'uz', user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'orders' }) %>
+
+<!-- Enhanced CSS Imports - Professional Order Detail Page -->
+<link rel="stylesheet" href="/css/products-management-redesign.css">
+<link rel="stylesheet" href="/css/products-table-view.css">
+<link rel="stylesheet" href="/css/orders-management.css">
+<link rel="stylesheet" href="/css/order-detail.css">
+<link rel="stylesheet" href="/css/order-comments.css">
+<link rel="stylesheet" href="/css/manufacturer-cards.css">
+<link rel="stylesheet" href="/css/manufacturer-theme.css">
+
+<!-- ✨ PROFESSIONAL ORDER DETAIL DESIGN - DARK MODE COMPATIBLE ✨ -->
+<style>
+  /* CSS VARIABLES FOR DARK MODE SUPPORT */
+  :root {
+    --order-bg-primary: #ffffff;
+    --order-bg-secondary: #f8fafc;
+    --order-bg-elevated: #ffffff;
+    --order-border: #e2e8f0;
+    --order-border-light: #f1f5f9;
+    --order-text-primary: #0f172a;
+    --order-text-secondary: #475569;
+    --order-text-muted: #64748b;
+    --order-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --order-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --order-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --order-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+    --order-primary: #3b82f6;
+    --order-primary-dark: #1d4ed8;
+    --order-success: #10b981;
+    --order-warning: #f59e0b;
+    --order-error: #ef4444;
+    --order-info: #06b6d4;
+  }
+
+  /* DARK MODE VARIABLES */
+  [data-theme="dark"] {
+    --order-bg-primary: #0f172a;
+    --order-bg-secondary: #1e293b;
+    --order-bg-elevated: #334155;
+    --order-border: #334155;
+    --order-border-light: #475569;
+    --order-text-primary: #f8fafc;
+    --order-text-secondary: #cbd5e1;
+    --order-text-muted: #94a3b8;
+    --order-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --order-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+    --order-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+    --order-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4);
+  }
+
+  /* DISABLE ANIMATION CONFLICTS BUT KEEP STABLE LAYOUT */
+  .order-detail-header,
+  .order-detail-content,
+  .animate-fade-in,
+  .animate-slide-up {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+  }
+
+  /* PROFESSIONAL ORDER DETAIL HEADER */
+  .order-detail-header {
+    background: var(--order-bg-elevated);
+    border: 1px solid var(--order-border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--order-shadow-lg);
+    backdrop-filter: blur(10px);
+    background: linear-gradient(135deg, var(--order-bg-elevated) 0%, var(--order-bg-secondary) 100%);
+  }
+
+  .order-detail-breadcrumb {
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .breadcrumb-link {
+    color: var(--order-text-muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    background: var(--order-bg-secondary);
+    border: 1px solid var(--order-border-light);
+  }
+
+  .breadcrumb-link:hover {
+    color: var(--order-primary);
+    background: var(--order-primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--order-shadow-md);
+  }
+
+  .breadcrumb-separator {
+    color: var(--order-text-muted);
+    font-size: 0.75rem;
+  }
+
+  .breadcrumb-current {
+    color: var(--order-text-primary);
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  .order-detail-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .order-detail-title {
+    color: var(--order-text-primary);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .order-detail-title i {
+    color: var(--order-primary);
+    font-size: 1.75rem;
+  }
+
+  .order-detail-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .order-detail-id {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    background: var(--order-bg-secondary);
+    color: var(--order-text-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--order-border);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .order-detail-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* PROFESSIONAL KPI CARDS */
+  .order-kpi-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .kpi-card {
+    background: var(--order-bg-elevated);
+    border: 1px solid var(--order-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--order-shadow-md);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--order-primary) 0%, var(--order-primary-dark) 100%);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--order-shadow-xl);
+    border-color: var(--order-primary);
+  }
+
+  .kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--order-primary) 0%, var(--order-primary-dark) 100%);
+    color: white;
+    font-size: 1.25rem;
+  }
+
+  .kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--order-text-primary);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+  }
+
+  .kpi-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--order-text-secondary);
+    margin: 0 0 0.25rem 0;
+  }
+
+  .kpi-meta {
+    font-size: 0.75rem;
+    color: var(--order-text-muted);
+    font-weight: 500;
+  }
+
+  /* MAIN CONTENT GRID */
+  .order-main-grid {
+    display: grid !important;
+    grid-template-columns: 2fr 1fr !important;
+    gap: 2rem !important;
+    margin-bottom: 2rem !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .order-main-left,
+  .order-main-right {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* PROFESSIONAL INFO CARDS */
+  .info-card {
+    background: var(--order-bg-elevated) !important;
+    border: 1px solid var(--order-border) !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    box-shadow: var(--order-shadow-md) !important;
+    transition: all 0.3s ease !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--order-shadow-lg);
+    border-color: var(--order-primary);
+  }
+
+  .info-card-header {
+    background: var(--order-bg-secondary) !important;
+    border-bottom: 1px solid var(--order-border) !important;
+    padding: 1.25rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  .info-card-title {
+    color: var(--order-text-primary);
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .info-card-title i {
+    color: var(--order-primary);
+    font-size: 1rem;
+  }
+
+  .info-card-content {
+    padding: 1.5rem !important;
+    color: var(--order-text-secondary);
+  }
+
+  /* CUSTOMER PROFILE STYLING */
+  .customer-profile {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .customer-avatar-large {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--order-primary) 0%, var(--order-primary-dark) 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .customer-details {
+    flex: 1;
+  }
+
+  .customer-company {
+    color: var(--order-text-primary);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .customer-contact-person {
+    color: var(--order-text-secondary);
+    font-size: 0.875rem;
+    margin: 0 0 1rem 0;
+  }
+
+  .customer-contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--order-text-secondary);
+    font-size: 0.875rem;
+  }
+
+  .contact-item i {
+    color: var(--order-text-muted);
+    width: 16px;
+    text-align: center;
+  }
+
+  /* MESSAGE AVATAR PLACEHOLDER */
+  .message-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--order-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  /* ORDER ITEMS SECTION STYLING */
+  .order-items-section {
+    background: var(--order-bg-elevated);
+    border: 1px solid var(--order-border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--order-shadow-md);
+    margin-bottom: 2rem;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    animation: none !important;
+  }
+
+  .products-table-header {
+    background: var(--order-bg-secondary);
+    border-bottom: 1px solid var(--order-border);
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .products-table-title {
+    color: var(--order-text-primary);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .products-table-title i {
+    color: var(--order-primary);
+    font-size: 1.125rem;
+  }
+
+  .items-count {
+    color: var(--order-text-muted);
+    font-weight: 500;
+  }
+
+  .products-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .products-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .products-table th {
+    background: var(--order-bg-secondary);
+    color: var(--order-text-primary);
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--order-border);
+    font-size: 0.875rem;
+  }
+
+  .products-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--order-border-light);
+    color: var(--order-text-secondary);
+    vertical-align: top;
+  }
+
+  .products-table tr:hover {
+    background: var(--order-bg-secondary);
+  }
+
+  .item-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--order-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  .product-info {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .product-image {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .product-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .product-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--order-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--order-text-muted);
+  }
+
+  .product-title {
+    color: var(--order-text-primary);
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+    font-size: 0.875rem;
+  }
+
+  .product-description {
+    color: var(--order-text-muted);
+    font-size: 0.75rem;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  /* STATUS HISTORY TIMELINE */
+  .status-history-section {
+    background: var(--order-bg-elevated);
+    border: 1px solid var(--order-border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--order-shadow-md);
+    margin-bottom: 2rem;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    animation: none !important;
+  }
+
+  .history-header {
+    background: var(--order-bg-secondary);
+    border-bottom: 1px solid var(--order-border);
+    padding: 1.5rem;
+  }
+
+  .history-title {
+    color: var(--order-text-primary);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .history-title i {
+    color: var(--order-primary);
+    font-size: 1.125rem;
+  }
+
+  .timeline-container {
+    padding: 2rem;
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    position: relative;
+  }
+
+  .timeline-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 48px;
+    bottom: -2rem;
+    width: 2px;
+    background: var(--order-border);
+  }
+
+  .timeline-marker {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--order-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .timeline-content {
+    flex: 1;
+    background: var(--order-bg-secondary);
+    border: 1px solid var(--order-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+
+  .timeline-status {
+    color: var(--order-text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .timeline-date {
+    color: var(--order-text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .timeline-user {
+    color: var(--order-text-secondary);
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* NOTES SECTION */
+  .notes-section {
+    background: var(--order-bg-elevated);
+    border: 1px solid var(--order-border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--order-shadow-md);
+    margin-bottom: 2rem;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    animation: none !important;
+  }
+
+  .notes-header {
+    background: var(--order-bg-secondary);
+    border-bottom: 1px solid var(--order-border);
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .notes-title {
+    color: var(--order-text-primary);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .notes-title i {
+    color: var(--order-primary);
+    font-size: 1.125rem;
+  }
+
+  .notes-container {
+    padding: 2rem;
+  }
+
+  .note-item {
+    background: var(--order-bg-secondary);
+    border: 1px solid var(--order-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .note-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+
+  .note-author {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .author-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--order-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  .author-name {
+    color: var(--order-text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .note-date {
+    color: var(--order-text-muted);
+    font-size: 0.75rem;
+  }
+
+  .note-content {
+    color: var(--order-text-secondary);
+    line-height: 1.5;
+  }
+
+  .note-content p {
+    margin: 0;
+  }
+
+  /* FORM ELEMENTS */
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-label {
+    display: block;
+    color: var(--order-text-primary);
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-select,
+  .form-input,
+  .form-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--order-border);
+    border-radius: 8px;
+    background: var(--order-bg-primary);
+    color: var(--order-text-primary);
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+  }
+
+  .form-select:focus,
+  .form-input:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: var(--order-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  /* BUTTONS */
+  .products-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .products-btn-primary {
+    background: var(--order-primary);
+    color: white;
+  }
+
+  .products-btn-primary:hover {
+    background: var(--order-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--order-shadow-md);
+  }
+
+  .products-btn-secondary {
+    background: var(--order-bg-secondary);
+    color: var(--order-text-primary);
+    border: 1px solid var(--order-border);
+  }
+
+  .products-btn-secondary:hover {
+    background: var(--order-border);
+  }
+
+  .products-btn-outline {
+    background: transparent;
+    color: var(--order-primary);
+    border: 1px solid var(--order-primary);
+  }
+
+  .products-btn-outline:hover {
+    background: var(--order-primary);
+    color: white;
+  }
+
+  /* STATUS BADGES */
+  .status-badge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .status-pending {
+    background: rgba(251, 191, 36, 0.1);
+    color: #f59e0b;
+    border: 1px solid rgba(251, 191, 36, 0.2);
+  }
+
+  .status-confirmed {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+
+  .status-processing {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  .status-manufacturing {
+    background: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .status-ready_to_ship {
+    background: rgba(6, 182, 212, 0.1);
+    color: #06b6d4;
+    border: 1px solid rgba(6, 182, 212, 0.2);
+  }
+
+  .status-shipped {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+
+  .status-delivered {
+    background: rgba(34, 197, 94, 0.15);
+    color: #16a34a;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  .status-completed {
+    background: rgba(34, 197, 94, 0.2);
+    color: #15803d;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+  }
+
+  .status-cancelled {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  /* PRIORITY BADGES */
+  .priority-high {
+    color: var(--order-error) !important;
+  }
+
+  .priority-medium {
+    color: var(--order-warning) !important;
+  }
+
+  .priority-low {
+    color: var(--order-success) !important;
+  }
+
+  /* PAYMENT STATUS */
+  .payment-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .payment-status.status-paid {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+  }
+
+  .payment-status.status-pending {
+    background: rgba(251, 191, 36, 0.1);
+    color: #f59e0b;
+  }
+
+  .payment-status.status-failed {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+
+  .payment-status.status-refunded {
+    background: rgba(156, 163, 175, 0.1);
+    color: #6b7280;
+  }
+
+  /* ITEM STATUS BADGES */
+  .item-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+
+  .item-status-badge.status-pending {
+    background: rgba(251, 191, 36, 0.1);
+    color: #f59e0b;
+  }
+
+  .item-status-badge.status-confirmed {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+  }
+
+  .item-status-badge.status-in_production {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+  }
+
+  .item-status-badge.status-ready {
+    background: rgba(6, 182, 212, 0.1);
+    color: #06b6d4;
+  }
+
+  .item-status-badge.status-shipped {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+  }
+
+  .item-status-badge.status-delivered {
+    background: rgba(34, 197, 94, 0.15);
+    color: #16a34a;
+  }
+
+  /* CATEGORY BADGE */
+  .category-badge {
+    background: var(--order-bg-secondary);
+    color: var(--order-text-secondary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border: 1px solid var(--order-border);
+  }
+
+  .category-badge i {
+    font-size: 0.625rem;
+  }
+
+  /* SKU CODE */
+  .sku-code {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    background: var(--order-bg-secondary);
+    color: var(--order-text-secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid var(--order-border);
+  }
+
+  /* QUICK ACTION BUTTONS */
+  .quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .quick-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--order-bg-secondary);
+    border: 1px solid var(--order-border);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-align: center;
+    color: var(--order-text-secondary);
+  }
+
+  .quick-action-btn:hover {
+    background: var(--order-primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--order-shadow-md);
+  }
+
+  .quick-action-btn i {
+    font-size: 1.25rem;
+  }
+
+  .quick-action-btn span {
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  /* MODALS */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.hidden {
+    display: none;
+  }
+
+  .modal-container {
+    background: var(--order-bg-elevated);
+    border: 1px solid var(--order-border);
+    border-radius: 16px;
+    max-width: 500px;
+    width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--order-shadow-xl);
+  }
+
+  .modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--order-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--order-bg-secondary);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modal-title {
+    color: var(--order-text-primary);
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .modal-title i {
+    color: var(--order-primary);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--order-text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .modal-close:hover {
+    background: var(--order-bg-secondary);
+    color: var(--order-text-primary);
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+  }
+
+  .modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--order-border);
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    background: var(--order-bg-secondary);
+    border-radius: 0 0 16px 16px;
+  }
+
+  /* EMPTY STATES */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--order-text-muted);
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  .empty-state h4 {
+    color: var(--order-text-secondary);
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .empty-state p {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+
+  .timeline-empty,
+  .notes-empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--order-text-muted);
+  }
+
+  .timeline-empty i,
+  .notes-empty i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  .timeline-empty h4,
+  .notes-empty h4 {
+    color: var(--order-text-secondary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .timeline-empty p,
+  .notes-empty p {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+
+  /* PRICE & QUANTITY STYLING */
+  .quantity-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+  }
+
+  .quantity-value {
+    color: var(--order-text-primary);
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .quantity-unit {
+    color: var(--order-text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .price-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.125rem;
+  }
+
+  .unit-price {
+    color: var(--order-text-primary);
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  .price-unit {
+    color: var(--order-text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .total-price {
+    text-align: right;
+  }
+
+  .total-amount {
+    color: var(--order-text-primary);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  /* ITEM ACTION BUTTONS */
+  .item-actions {
+    display: flex;
+    gap: 0.375rem;
+    justify-content: center;
+  }
+
+  .item-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid var(--order-border);
+    background: var(--order-bg-secondary);
+    color: var(--order-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+  }
+
+  .item-action-btn:hover {
+    background: var(--order-primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--order-shadow-sm);
+  }
+
+  .item-action-btn.danger {
+    color: var(--order-error);
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+
+  .item-action-btn.danger:hover {
+    background: var(--order-error);
+    color: white;
+  }
+
+  /* CARD ACTION BUTTONS */
+  .card-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .card-action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--order-border);
+    background: var(--order-bg-primary);
+    color: var(--order-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+  }
+
+  .card-action-btn:hover {
+    background: var(--order-primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--order-shadow-sm);
+  }
+
+  /* INFO GRID STYLING */
+  .info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .info-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .info-label {
+    color: var(--order-text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  .info-value {
+    color: var(--order-text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .order-number {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    background: var(--order-bg-secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--order-border);
+  }
+
+  .deadline-value {
+    color: var(--order-warning);
+    font-weight: 600;
+  }
+
+  .countdown-value {
+    color: var(--order-info);
+    font-weight: 600;
+  }
+
+  /* PAYMENT SUMMARY */
+  .payment-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .payment-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+  }
+
+  .payment-row:not(:last-child) {
+    border-bottom: 1px solid var(--order-border-light);
+  }
+
+  .payment-label {
+    color: var(--order-text-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .payment-value {
+    color: var(--order-text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .payment-row.total-row {
+    border-top: 2px solid var(--order-border);
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .total-amount {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--order-text-primary);
+  }
+
+  .total-amount small {
+    font-size: 0.75rem;
+    color: var(--order-text-muted);
+    font-weight: 500;
+    margin-left: 0.25rem;
+  }
+
+  /* STATUS UPDATE SECTION */
+  .status-current {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--order-bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--order-border);
+  }
+
+  .current-status-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .current-status-label {
+    color: var(--order-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .status-update-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .w-full {
+    width: 100%;
+  }
+
+  /* PRIORITY BADGE */
+  .priority-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  .priority-badge.priority-high {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--order-error);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .priority-badge.priority-medium {
+    background: rgba(251, 191, 36, 0.1);
+    color: var(--order-warning);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+  }
+
+  .priority-badge.priority-low {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--order-success);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+
+  /* LOADING STATES */
+  .loading-shimmer {
+    background: linear-gradient(90deg, 
+      var(--order-bg-secondary) 25%, 
+      var(--order-border) 50%, 
+      var(--order-bg-secondary) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    height: 1em;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* TOAST CONTAINER */
+  .toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* RESPONSIVE DESIGN */
+  @media (max-width: 1024px) {
+    .order-main-grid {
+      grid-template-columns: 1fr !important;
+      gap: 1.5rem !important;
+    }
+    
+    .order-kpi-cards {
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+    
+    .order-detail-header {
+      padding: 1.5rem;
+    }
+    
+    .order-detail-title {
+      font-size: 1.75rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .order-kpi-cards {
+      grid-template-columns: 1fr;
+    }
+    
+    .order-detail-actions {
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    .order-detail-meta {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .products-table-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .timeline-container {
+      padding: 1rem;
+    }
+
+    .notes-container {
+      padding: 1rem;
+    }
+  }
+</style>
+
+<!-- Order Detail Variables for JavaScript -->
+<script type="application/json" id="order-data"><%- JSON.stringify(order) %></script>
+<script>
+  console.log('🚀 Order Detail Page Loading...');
+  console.log('📄 Page URL:', window.location.href);
+  console.log('🏷️ Page Title:', document.title);
+  
+  // Load order data from JSON script tag
+  try {
+    const orderDataScript = document.getElementById('order-data');
+    console.log('📜 Order data script element:', orderDataScript);
+    
+    if (!orderDataScript) {
+      throw new Error('Order data script element not found');
+    }
+    
+    const rawData = orderDataScript.textContent;
+    console.log('📝 Raw order data length:', rawData.length);
+    console.log('📝 Raw order data preview:', rawData.substring(0, 200) + '...');
+    
+    window.orderData = JSON.parse(rawData);
+    window.currentOrderId = '<%= order._id %>';
+    
+    console.log('✅ Order data loaded successfully:');
+    console.log('📋 Order ID:', window.orderData._id);
+    console.log('📋 Order Number:', window.orderData.orderNumber);
+    console.log('📋 Order Status:', window.orderData.status);
+    console.log('📋 Order Items Count:', window.orderData.items?.length || 0);
+    
+    if (window.orderData.items?.length > 0) {
+      console.log('📦 First item:', window.orderData.items[0]);
+    }
+    
+  } catch (error) {
+    console.error('❌ Failed to parse order data:', error);
+    console.error('❌ Error details:', error.message);
+    window.orderData = {};
+  }
+  
+  // Debug DOM ready
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ DOM loaded');
+    console.log('🔍 Checking main elements:');
+    console.log('- order-main-grid:', document.querySelector('.order-main-grid'));
+    console.log('- order-main-left:', document.querySelector('.order-main-left'));
+    console.log('- order-main-right:', document.querySelector('.order-main-right'));
+    console.log('- info-cards:', document.querySelectorAll('.info-card').length);
+    console.log('- order-items-section:', document.querySelector('.order-items-section'));
+    console.log('- products-table:', document.querySelector('.products-table'));
+    console.log('- table tbody rows:', document.querySelectorAll('.products-table tbody tr').length);
+    
+    // Check if data is being rendered correctly
+    const itemsCount = document.querySelector('.items-count');
+    if (itemsCount) {
+      console.log('📊 Items count text:', itemsCount.textContent);
+    }
+    
+    const tableRows = document.querySelectorAll('.item-row');
+    console.log('📋 Table rows found:', tableRows.length);
+    
+    if (tableRows.length > 0) {
+      console.log('📋 First row data:', {
+        itemNumber: tableRows[0].querySelector('.item-number')?.textContent,
+        productTitle: tableRows[0].querySelector('.product-title')?.textContent,
+        sku: tableRows[0].querySelector('.sku-code')?.textContent,
+        category: tableRows[0].querySelector('.category-badge')?.textContent,
+        quantity: tableRows[0].querySelector('.quantity-value')?.textContent,
+        price: tableRows[0].querySelector('.unit-price')?.textContent
+      });
+    }
+    
+    // Check for empty state
+    const emptyRow = document.querySelector('.empty-row');
+    if (emptyRow) {
+      console.log('⚠️ Empty state is showing');
+    }
+  });
+</script>
+
+<!-- Main Content -->
+<main class="admin-main">
+  <div class="admin-content">
+    
+         <!-- Order Detail Header -->
+     <div class="order-detail-header">
+      <div class="order-detail-breadcrumb">
+        <a href="/manufacturer/orders" class="breadcrumb-link">
+          <i class="fas fa-arrow-left"></i>
+          Buyurtmalar
+        </a>
+        <i class="fas fa-chevron-right breadcrumb-separator"></i>
+        <span class="breadcrumb-current">Buyurtma #<%= order.orderNumber || order._id.toString().slice(-8).toUpperCase() %></span>
+      </div>
+      
+      <div class="order-detail-title-section">
+        <h1 class="order-detail-title">
+          <i class="fas fa-clipboard-list"></i>
+          Buyurtma Tafsilotlari
+        </h1>
+        <div class="order-detail-meta">
+          <span class="order-detail-id">#<%= order.orderNumber || order._id.toString().slice(-8).toUpperCase() %></span>
+          <span class="status-badge status-<%= order.status || 'pending' %>">
+            <%= order.status === 'pending' ? '📋 Kutayotgan' :
+                order.status === 'confirmed' ? '✅ Tasdiqlangan' :
+                order.status === 'processing' ? '⚙️ Jarayonda' :
+                order.status === 'manufacturing' ? '🏭 Ishlab chiqarilmoqda' :
+                order.status === 'quality_check' ? '🔍 Sifat nazorati' :
+                order.status === 'ready_to_ship' ? '📦 Yuborishga tayyor' :
+                order.status === 'shipped' ? '🚚 Yo\'lda' :
+                order.status === 'out_for_delivery' ? '🏃‍♂️ Yetkazib berishda' :
+                order.status === 'delivered' ? '🏆 Yetkazildi' :
+                order.status === 'completed' ? '💯 Yakunlandi' :
+                order.status === 'cancelled' ? '❌ Bekor qilindi' : '❓ Noma\'lum' %>
+          </span>
+        </div>
+      </div>
+      
+      <div class="order-detail-actions">
+        <button class="products-btn products-btn-outline" id="printOrderBtn">
+          <i class="fas fa-print"></i>
+          Chop etish
+        </button>
+        <button class="products-btn products-btn-secondary" id="duplicateOrderBtn" data-order-id="<%= order._id %>">
+          <i class="fas fa-copy"></i>
+          Nusxalash
+        </button>
+        <button class="products-btn products-btn-primary" id="contactCustomerBtn" data-order-id="<%= order._id %>">
+          <i class="fas fa-comments"></i>
+          Mijoz bilan aloqa
+        </button>
+      </div>
+    </div>
+
+         <!-- Order Detail Content -->
+     <div class="order-detail-content">
+      
+      <!-- KPI Cards Summary -->
+      <div class="order-kpi-cards">
+        <div class="kpi-card">
+          <div class="kpi-icon">
+            <i class="fas fa-dollar-sign"></i>
+          </div>
+          <div class="kpi-content">
+            <h3 class="kpi-value">$<%= (order.totalAmount || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></h3>
+            <p class="kpi-label">Umumiy Summa</p>
+            <span class="kpi-meta"><%= order.currency || 'USD' %></span>
+          </div>
+        </div>
+        
+        <div class="kpi-card">
+          <div class="kpi-icon">
+            <i class="fas fa-boxes"></i>
+          </div>
+          <div class="kpi-content">
+            <h3 class="kpi-value"><%= order.items?.length || 0 %></h3>
+            <p class="kpi-label">Mahsulot Turlari</p>
+            <span class="kpi-meta"><%= order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0 %> dona</span>
+          </div>
+        </div>
+        
+        <div class="kpi-card">
+          <div class="kpi-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="kpi-content">
+            <h3 class="kpi-value">
+              <% if (order.deadline) { %>
+                <%= Math.ceil((new Date(order.deadline) - new Date()) / (1000 * 60 * 60 * 24)) %>
+              <% } else { %>
+                --
+              <% } %>
+            </h3>
+            <p class="kpi-label">Qolgan Kunlar</p>
+            <span class="kpi-meta">Muddat: <%= order.deadline ? new Date(order.deadline).toLocaleDateString('uz-UZ') : 'Belgilanmagan' %></span>
+          </div>
+        </div>
+        
+        <div class="kpi-card">
+          <div class="kpi-icon priority-<%= order.priority || 'medium' %>">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="kpi-content">
+            <h3 class="kpi-value priority-<%= order.priority || 'medium' %>">
+              <%= order.priority === 'high' ? 'Yuqori' :
+                  order.priority === 'medium' ? 'O\'rta' :
+                  order.priority === 'low' ? 'Past' : 'O\'rta' %>
+            </h3>
+            <p class="kpi-label">Muhimlik Darajasi</p>
+            <span class="kpi-meta"><%= order.type || 'B2B' %></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="order-main-grid">
+        
+        <!-- Left Column -->
+        <div class="order-main-left">
+          
+          <!-- Customer Information Card -->
+          <div class="info-card customer-card">
+            <div class="info-card-header">
+              <h3 class="info-card-title">
+                <i class="fas fa-building"></i>
+                Mijoz Ma'lumotlari
+              </h3>
+              <div class="card-actions">
+                <button class="card-action-btn" id="contactCustomerBtn" title="Aloqa">
+                  <i class="fas fa-phone"></i>
+                </button>
+                <button class="card-action-btn" id="sendEmailBtn" title="Email yuborish">
+                  <i class="fas fa-envelope"></i>
+                </button>
+              </div>
+            </div>
+            <div class="info-card-content">
+              <div class="customer-profile">
+                <div class="customer-avatar-large">
+                  <%= (order.buyer?.companyName || order.buyer?.name || 'C').charAt(0).toUpperCase() %>
+                </div>
+                <div class="customer-details">
+                  <h4 class="customer-company"><%= order.buyer?.companyName || 'Company Name' %></h4>
+                  <p class="customer-contact-person"><%= order.buyer?.name || 'Contact Person' %></p>
+                  
+                  <div class="customer-contact-info">
+                    <div class="contact-item">
+                      <i class="fas fa-envelope"></i>
+                      <span><%= order.buyer?.email || 'email@example.com' %></span>
+                    </div>
+                    <% if (order.buyer?.phone) { %>
+                    <div class="contact-item">
+                      <i class="fas fa-phone"></i>
+                      <span><%= order.buyer.phone %></span>
+                    </div>
+                    <% } %>
+                    <% if (order.buyer?.address) { %>
+                    <div class="contact-item">
+                      <i class="fas fa-map-marker-alt"></i>
+                      <span><%= order.buyer.address %></span>
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Information Card -->
+          <div class="info-card order-info-card">
+            <div class="info-card-header">
+              <h3 class="info-card-title">
+                <i class="fas fa-info-circle"></i>
+                Buyurtma Ma'lumotlari
+              </h3>
+            </div>
+            <div class="info-card-content">
+              <div class="info-grid">
+                <div class="info-row">
+                  <div class="info-item">
+                    <span class="info-label">Buyurtma raqami:</span>
+                    <span class="info-value order-number">#<%= order.orderNumber || order._id.toString().slice(-8).toUpperCase() %></span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Turi:</span>
+                    <span class="info-value"><%= order.type || 'B2B' %></span>
+                  </div>
+                </div>
+                
+                <div class="info-row">
+                  <div class="info-item">
+                    <span class="info-label">Yaratilgan sana:</span>
+                    <span class="info-value"><%= new Date(order.createdAt).toLocaleDateString('uz-UZ') %></span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Yaratilgan vaqt:</span>
+                    <span class="info-value"><%= new Date(order.createdAt).toLocaleTimeString('uz-UZ', {hour: '2-digit', minute: '2-digit'}) %></span>
+                  </div>
+                </div>
+                
+                <% if (order.deadline) { %>
+                <div class="info-row">
+                  <div class="info-item">
+                    <span class="info-label">Tugash muddati:</span>
+                    <span class="info-value deadline-value"><%= new Date(order.deadline).toLocaleDateString('uz-UZ') %></span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Qolgan vaqt:</span>
+                    <span class="info-value countdown-value">
+                      <%= Math.ceil((new Date(order.deadline) - new Date()) / (1000 * 60 * 60 * 24)) %> kun
+                    </span>
+                  </div>
+                </div>
+                <% } %>
+                
+                <div class="info-row">
+                  <div class="info-item">
+                    <span class="info-label">Muhimlik darajasi:</span>
+                    <span class="info-value priority-badge priority-<%= order.priority || 'medium' %>">
+                      <%= order.priority === 'high' ? 'Yuqori' :
+                          order.priority === 'medium' ? 'O\'rta' :
+                          order.priority === 'low' ? 'Past' : 'O\'rta' %>
+                    </span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Joriy holat:</span>
+                    <span class="info-value">
+                      <span class="status-badge status-<%= order.status || 'pending' %>">
+                        <%= order.status === 'pending' ? '📋 Kutayotgan' :
+                            order.status === 'confirmed' ? '✅ Tasdiqlangan' :
+                            order.status === 'processing' ? '⚙️ Jarayonda' :
+                            order.status === 'manufacturing' ? '🏭 Ishlab chiqarilmoqda' :
+                            order.status === 'quality_check' ? '🔍 Sifat nazorati' :
+                            order.status === 'ready_to_ship' ? '📦 Yuborishga tayyor' :
+                            order.status === 'shipped' ? '🚚 Yo\'lda' :
+                            order.status === 'out_for_delivery' ? '🏃‍♂️ Yetkazib berishda' :
+                            order.status === 'delivered' ? '🏆 Yetkazildi' :
+                            order.status === 'completed' ? '💯 Yakunlandi' :
+                            order.status === 'cancelled' ? '❌ Bekor qilindi' : '❓ Noma\'lum' %>
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Information Card -->
+          <div class="info-card payment-info-card">
+            <div class="info-card-header">
+              <h3 class="info-card-title">
+                <i class="fas fa-credit-card"></i>
+                To'lov Ma'lumotlari
+              </h3>
+            </div>
+            <div class="info-card-content">
+              <div class="payment-summary">
+                <div class="payment-row">
+                  <span class="payment-label">To'lov usuli:</span>
+                  <span class="payment-value"><%= order.paymentMethod || 'Bank Transfer' %></span>
+                </div>
+                <div class="payment-row">
+                  <span class="payment-label">To'lov holati:</span>
+                  <span class="payment-value">
+                    <span class="payment-status status-<%= order.paymentStatus || 'pending' %>">
+                      <%= order.paymentStatus === 'paid' ? 'To\'langan' :
+                          order.paymentStatus === 'pending' ? 'Kutayotgan' :
+                          order.paymentStatus === 'failed' ? 'Muvaffaqiyatsiz' :
+                          order.paymentStatus === 'refunded' ? 'Qaytarilgan' : 'Kutayotgan' %>
+                    </span>
+                  </span>
+                </div>
+                <div class="payment-row total-row">
+                  <span class="payment-label">Umumiy summa:</span>
+                  <span class="payment-value total-amount">
+                    $<%= (order.totalAmount || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %>
+                    <small><%= order.currency || 'USD' %></small>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column -->
+        <div class="order-main-right">
+          
+          <!-- Status Management Card -->
+          <div class="info-card status-management-card">
+            <div class="info-card-header">
+              <h3 class="info-card-title">
+                <i class="fas fa-tasks"></i>
+                Holat Boshqaruvi
+              </h3>
+            </div>
+            <div class="info-card-content">
+              <div class="status-current">
+                <div class="current-status-display">
+                  <span class="current-status-label">Joriy holat:</span>
+                  <span class="status-badge status-<%= order.status || 'pending' %>">
+                    <%= order.status === 'pending' ? 'Kutayotgan' :
+                        order.status === 'confirmed' ? 'Tasdiqlangan' :
+                        order.status === 'processing' ? 'Jarayonda' :
+                        order.status === 'manufacturing' ? 'Ishlab chiqarilmoqda' :
+                        order.status === 'ready_to_ship' ? 'Jo\'natishga tayyor' :
+                        order.status === 'shipped' ? 'Jo\'natilgan' :
+                        order.status === 'delivered' ? 'Yetkazilgan' :
+                        order.status === 'completed' ? 'Yakunlangan' :
+                        order.status === 'cancelled' ? 'Bekor qilingan' : 'Noma\'lum' %>
+                  </span>
+                </div>
+              </div>
+              
+              <div class="status-update-section">
+                <div class="form-group">
+                  <label class="form-label">Buyurtma holatini o'zgartirish:</label>
+                  <select class="form-select status-select" id="orderStatusSelect" data-order-id="<%= order._id %>">
+                    <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>
+                      📋 Kutayotgan - Yangi buyurtma qabul qilindi
+                    </option>
+                    <option value="confirmed" <%= order.status === 'confirmed' ? 'selected' : '' %>>
+                      ✅ Tasdiqlangan - Buyurtma tasdiqlandi
+                    </option>
+                    <option value="processing" <%= order.status === 'processing' ? 'selected' : '' %>>
+                      ⚙️ Jarayonda - Buyurtma tayyorlanmoqda
+                    </option>
+                    <option value="manufacturing" <%= order.status === 'manufacturing' ? 'selected' : '' %>>
+                      🏭 Ishlab chiqarilmoqda - Mahsulotlar tayyorlanmoqda
+                    </option>
+                    <option value="quality_check" <%= order.status === 'quality_check' ? 'selected' : '' %>>
+                      🔍 Sifat nazorati - Mahsulotlar tekshirilmoqda
+                    </option>
+                    <option value="ready_to_ship" <%= order.status === 'ready_to_ship' ? 'selected' : '' %>>
+                      📦 Yuborishga tayyor - Buyurtma yuborishga tayyor
+                    </option>
+                    <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>
+                      🚚 Yo'lda - Buyurtma yo'lga chiqdi
+                    </option>
+                    <option value="out_for_delivery" <%= order.status === 'out_for_delivery' ? 'selected' : '' %>>
+                      🏃‍♂️ Yetkazib berishda - Kuryer yetkazib bermoqda
+                    </option>
+                    <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>
+                      🏆 Yetkazildi - Buyurtma yetkazib berildi
+                    </option>
+                    <option value="completed" <%= order.status === 'completed' ? 'selected' : '' %>>
+                      💯 Yakunlandi - Buyurtma muvaffaqiyatli yakunlandi
+                    </option>
+                    <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>
+                      ❌ Bekor qilindi - Buyurtma bekor qilindi
+                    </option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Holat o'zgarishi haqida izoh:</label>
+                  <textarea class="form-textarea" id="statusNote" rows="3" placeholder="Mijozga bildirilishi uchun holat o'zgarishi haqida qo'shimcha ma'lumot kiriting..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="notifyCustomer" checked>
+                    <label for="notifyCustomer" style="font-size: 0.875rem; margin: 0;">Mijozga xabar berish (email/SMS)</label>
+                  </div>
+                </div>
+                
+                <button class="products-btn products-btn-primary w-full" id="updateStatusBtn" data-order-id="<%= order._id %>">
+                  <i class="fas fa-sync-alt"></i>
+                  Holatni Yangilash va Xabar Berish
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions Card -->
+          <div class="info-card quick-actions-card">
+            <div class="info-card-header">
+              <h3 class="info-card-title">
+                <i class="fas fa-bolt"></i>
+                Tezkor Amallar
+              </h3>
+            </div>
+            <div class="info-card-content">
+              <div class="quick-actions-grid">
+                <button class="quick-action-btn" id="addNoteBtn" data-order-id="<%= order._id %>">
+                  <i class="fas fa-sticky-note"></i>
+                  <span>Izoh qo'shish</span>
+                </button>
+                
+                <button class="quick-action-btn" id="contactCustomerBtn2">
+                  <i class="fas fa-comments"></i>
+                  <span>Mijoz bilan aloqa</span>
+                </button>
+                
+                <button class="quick-action-btn" id="printOrderBtn2">
+                  <i class="fas fa-print"></i>
+                  <span>Chop etish</span>
+                </button>
+                
+                <button class="quick-action-btn" id="duplicateOrderBtn2" data-order-id="<%= order._id %>">
+                  <i class="fas fa-copy"></i>
+                  <span>Nusxalash</span>
+                </button>
+                
+                <button class="quick-action-btn" id="exportOrderBtn">
+                  <i class="fas fa-download"></i>
+                  <span>Export</span>
+                </button>
+                
+                <button class="quick-action-btn" id="shareOrderBtn">
+                  <i class="fas fa-share-alt"></i>
+                  <span>Ulashish</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Order Items Section -->
+      <div class="order-items-section">
+        <div class="products-table-container">
+          <div class="products-table-header">
+            <h3 class="products-table-title">
+              <i class="fas fa-boxes"></i>
+              Buyurtma Mahsulotlari
+              <span class="items-count">(<%= order.items?.length || 0 %> ta mahsulot)</span>
+            </h3>
+            <div class="products-table-actions">
+              <button class="products-btn products-btn-sm products-btn-outline" id="exportItemsBtn">
+                <i class="fas fa-download"></i>
+                Export
+              </button>
+              <button class="products-btn products-btn-sm products-btn-secondary" id="addItemBtn">
+                <i class="fas fa-plus"></i>
+                Mahsulot qo'shish
+              </button>
+            </div>
+          </div>
+          
+          <div class="products-table-wrapper">
+            <table class="products-table order-items-table">
+              <thead>
+                <tr>
+                  <th class="item-image-col">#</th>
+                  <th class="item-product-col">Mahsulot</th>
+                  <th class="item-sku-col">SKU</th>
+                  <th class="item-category-col">Kategoriya</th>
+                  <th class="item-quantity-col">Miqdori</th>
+                  <th class="item-price-col">Birlik Narxi</th>
+                  <th class="item-total-col">Jami Summa</th>
+                  <th class="item-status-col">Holat</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (order.items && order.items.length > 0) { %>
+                  <% order.items.forEach((item, index) => { %>
+                    <tr class="item-row" data-item-id="<%= item._id %>" data-item-index="<%= index %>">
+                      <td class="item-image-cell">
+                        <div class="item-number">
+                          <%= index + 1 %>
+                        </div>
+                      </td>
+                      
+                      <td class="item-product-cell">
+                        <div class="product-info">
+                          <div class="product-image">
+                            <% 
+                              let productImage = null;
+                              if (item.product?.images) {
+                                if (Array.isArray(item.product.images) && item.product.images.length > 0) {
+                                  const firstImage = item.product.images[0];
+                                  // Handle both object format {url: "..."} and string format
+                                  if (typeof firstImage === 'object' && firstImage.url) {
+                                    productImage = firstImage.url;
+                                  } else if (typeof firstImage === 'string') {
+                                    productImage = firstImage;
+                                  }
+                                } else if (typeof item.product.images === 'string') {
+                                  productImage = item.product.images;
+                                }
+                              }
+                              
+
+                            %>
+                            <% if (productImage) { %>
+                              <img 
+                                src="<%= productImage %>" 
+                                alt="<%= item.product?.title || item.product?.name || 'Product' %>" 
+                                class="product-thumbnail"
+                                loading="lazy"
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+                              >
+                              <div class="product-placeholder" style="display: none;">
+                                <i class="fas fa-image"></i>
+                              </div>
+                            <% } else { %>
+                              <div class="product-placeholder">
+                                <i class="fas fa-image"></i>
+                              </div>
+                            <% } %>
+                          </div>
+                          <div class="product-details">
+                            <h4 class="product-title" title="<%= item.product?.title || item.product?.name || 'Product Name' %>">
+                              <%= (item.product?.title || item.product?.name || 'Product Name').length > 40 ? 
+                                  (item.product?.title || item.product?.name || 'Product Name').substring(0, 40) + '...' :
+                                  (item.product?.title || item.product?.name || 'Product Name') %>
+                            </h4>
+                            <p class="product-description">
+                              <%= item.product?.description ? 
+                                  (item.product.description.length > 60 ? item.product.description.substring(0, 60) + '...' : item.product.description) :
+                                  'Mahsulot tavsifi mavjud emas' %>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      
+                      <td class="item-sku-cell">
+                        <span class="sku-code"><%= item.product?.sku || 'N/A' %></span>
+                      </td>
+                      
+                      <td class="item-category-cell">
+                        <span class="category-badge">
+                          <i class="fas fa-tag"></i>
+                          <%= item.product?.category?.name || item.product?.category || 'Kategoriya' %>
+                        </span>
+                      </td>
+                      
+                      <td class="item-quantity-cell">
+                        <div class="quantity-info">
+                          <span class="quantity-value"><%= item.quantity || 0 %></span>
+                          <span class="quantity-unit">dona</span>
+                        </div>
+                      </td>
+                      
+                      <td class="item-price-cell">
+                        <div class="price-info">
+                          <span class="unit-price">$<%= (item.price || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></span>
+                          <span class="price-unit">/ dona</span>
+                        </div>
+                      </td>
+                      
+                      <td class="item-total-cell">
+                        <div class="total-price">
+                          <span class="total-amount">$<%= ((item.price || 0) * (item.quantity || 0)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></span>
+                        </div>
+                      </td>
+                      
+                      <td class="item-status-cell">
+                        <span class="item-status-badge status-<%= item.status || 'pending' %>">
+                          <%= item.status === 'pending' ? 'Kutayotgan' :
+                              item.status === 'confirmed' ? 'Tasdiqlangan' :
+                              item.status === 'in_production' ? 'Ishlab chiqarilmoqda' :
+                              item.status === 'ready' ? 'Tayyor' :
+                              item.status === 'shipped' ? 'Jo\'natilgan' :
+                              item.status === 'delivered' ? 'Yetkazilgan' : 'Kutayotgan' %>
+                        </span>
+                      </td>
+                      
+
+                    </tr>
+                  <% }); %>
+                <% } else { %>
+                  <tr class="empty-row">
+                    <td colspan="8" class="empty-cell">
+                      <div class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <h4>Mahsulotlar topilmadi</h4>
+                        <p>Bu buyurtmada hech qanday mahsulot mavjud emas.</p>
+                      </div>
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+              
+              <!-- Order Summary Row -->
+              <tfoot>
+                <tr class="summary-row">
+                  <td colspan="6" class="summary-label-cell">
+                    <strong>Jami:</strong>
+                  </td>
+                  <td class="summary-total-cell">
+                    <strong class="total-summary">
+                      $<%= (order.totalAmount || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %>
+                    </strong>
+                  </td>
+                  <td class="summary-meta-cell">
+                    <span class="currency-info"><%= order.currency || 'USD' %></span>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status History Timeline -->
+      <div class="status-history-section">
+        <div class="history-header">
+          <h3 class="history-title">
+            <i class="fas fa-history"></i>
+            Buyurtma Tarixi
+          </h3>
+        </div>
+        
+        <div class="timeline-container">
+          <% if (order.statusHistory && order.statusHistory.length > 0) { %>
+            <% order.statusHistory.forEach((history, index) => { %>
+              <div class="timeline-item">
+                <div class="timeline-marker status-<%= history.status %>">
+                  <i class="fas fa-circle"></i>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <h4 class="timeline-status">
+                      <%= history.status === 'pending' ? 'Kutayotgan' :
+                          history.status === 'confirmed' ? 'Tasdiqlangan' :
+                          history.status === 'processing' ? 'Jarayonda' :
+                          history.status === 'manufacturing' ? 'Ishlab chiqarilmoqda' :
+                          history.status === 'ready_to_ship' ? 'Jo\'natishga tayyor' :
+                          history.status === 'shipped' ? 'Jo\'natilgan' :
+                          history.status === 'delivered' ? 'Yetkazilgan' :
+                          history.status === 'completed' ? 'Yakunlangan' :
+                          history.status === 'cancelled' ? 'Bekor qilingan' : 'Noma\'lum' %>
+                    </h4>
+                    <span class="timeline-date">
+                      <%= new Date(history.timestamp).toLocaleString('uz-UZ') %>
+                    </span>
+                  </div>
+                  <div class="timeline-meta">
+                    <span class="timeline-user">
+                      <i class="fas fa-user"></i>
+                      <%= history.updatedBy?.name || 'System' %>
+                    </span>
+                    <% if (history.note) { %>
+                      <p class="timeline-note"><%= history.note %></p>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <div class="timeline-empty">
+              <i class="fas fa-clock"></i>
+              <p>Hali hech qanday tarix mavjud emas.</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- OLD Notes Section - DISABLED -->
+      <!-- <div class="notes-section" style="display: none;">
+        <div class="notes-header">
+          <h3 class="notes-title">
+            <i class="fas fa-sticky-note"></i>
+            Izohlar va Eslatmalar (Eski)
+          </h3>
+          <button class="products-btn products-btn-primary" id="addNoteBtn2">
+            <i class="fas fa-plus"></i>
+            Izoh qo'shish
+          </button>
+        </div>
+        
+        <div class="notes-container">
+          <% if (order.notes && order.notes.length > 0) { %>
+            <% order.notes.forEach((note, index) => { %>
+              <div class="note-item">
+                <div class="note-header">
+                  <div class="note-author">
+                    <div class="author-avatar">
+                      <%= (note.author || 'U').charAt(0).toUpperCase() %>
+                    </div>
+                    <div class="author-info">
+                      <h4 class="author-name"><%= note.author || 'User' %></h4>
+                      <span class="note-date"><%= new Date(note.createdAt).toLocaleString('uz-UZ') %></span>
+                    </div>
+                  </div>
+                  <div class="note-actions">
+                    <button class="note-action-btn" data-action="edit-note" data-note-index="<%= index %>">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="note-action-btn danger" data-action="delete-note" data-note-index="<%= index %>">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="note-content">
+                  <p><%= note.content %></p>
+                </div>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <div class="notes-empty">
+              <i class="fas fa-sticky-note"></i>
+              <h4>Hali izohlar yo'q</h4>
+              <p>Bu buyurtma uchun birinchi izohni qo'shing.</p>
+            </div>
+          <% } %>
+        </div>
+      </div> -->
+
+    </div>
+
+    <!-- Communication Modal -->
+    <div class="modal-overlay hidden" id="communicationModal">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <i class="fas fa-comments"></i>
+            Mijoz bilan aloqa
+          </h3>
+          <button class="modal-close" id="closeCommunicationModal">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-content">
+          <form id="communicationForm">
+            <div class="form-group">
+              <label class="form-label">Xabar turi:</label>
+              <select class="form-select" id="messageType">
+                <option value="status_update">Holat yangilanishi</option>
+                <option value="question">Savol</option>
+                <option value="information">Ma'lumot</option>
+                <option value="delay_notice">Kechikish haqida xabar</option>
+                <option value="quality_update">Sifat haqida ma'lumot</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mavzu:</label>
+              <input type="text" class="form-input" id="messageSubject" placeholder="Xabar mavzusi...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Xabar matni:</label>
+              <textarea class="form-textarea" id="messageContent" rows="6" placeholder="Xabar matnini kiriting..."></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="products-btn products-btn-secondary" id="cancelCommunication">Bekor qilish</button>
+          <button class="products-btn products-btn-primary" id="sendMessage">
+            <i class="fas fa-paper-plane"></i>
+            Yuborish
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Note Modal - Marketplace Style (Working Pattern) -->
+    <div class="modal-overlay" id="addNoteModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <i class="fas fa-sticky-note"></i>
+            Buyurtmaga Izoh Qo'shish
+          </h3>
+          <button class="modal-close" id="closeNoteModal">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="noteForm">
+            <!-- Comment Type Selection -->
+            <div class="form-group">
+              <label class="form-label">Izoh turi:</label>
+              <select class="form-select" id="commentType">
+                <option value="general">Umumiy izoh</option>
+                <option value="status_update">Holat yangilanishi</option>
+                <option value="quality_note">Sifat haqida</option>
+                <option value="delivery_note">Yetkazib berish haqida</option>
+                <option value="payment_note">To'lov haqida</option>
+                <option value="internal_note">Ichki izoh (faqat biz ko'ramiz)</option>
+                <option value="customer_note">Mijoz uchun izoh</option>
+              </select>
+            </div>
+
+            <!-- Visibility Selection -->
+            <div class="form-group">
+              <label class="form-label">Ko'rinish:</label>
+              <select class="form-select" id="commentVisibility">
+                <option value="public">Hammaga ko'rsatish</option>
+                <option value="internal">Faqat bizning jamoamiz ko'radi</option>
+                <option value="customer">Faqat mijoz ko'radi</option>
+              </select>
+            </div>
+
+            <!-- Priority Selection -->
+            <div class="form-group">
+              <label class="form-label">Muhimlik darajasi:</label>
+              <select class="form-select" id="commentPriority">
+                <option value="normal">Oddiy</option>
+                <option value="low">Past</option>
+                <option value="high">Yuqori</option>
+                <option value="urgent">Shoshilinch</option>
+              </select>
+            </div>
+
+            <!-- Comment Content -->
+            <div class="form-group">
+              <label class="form-label">Izoh matni: <span class="text-danger">*</span></label>
+              <textarea 
+                class="form-textarea" 
+                id="noteContent" 
+                rows="6" 
+                placeholder="Izoh matnini batafsil kiriting..."
+                maxlength="2000"
+                required
+              ></textarea>
+              <small class="form-help">
+                <span id="charCount">0</span>/2000 belgi
+              </small>
+            </div>
+
+            <!-- Additional Options -->
+            <div class="form-group">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="notifyCustomer">
+                <label class="form-check-label" for="notifyCustomer">
+                  Mijozga bildirishnoma yuborish
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="products-btn products-btn-secondary" id="cancelNote" type="button">
+            <i class="fas fa-times"></i>
+            Bekor qilish
+          </button>
+          <button class="products-btn products-btn-primary" id="saveNote" type="submit">
+            <i class="fas fa-save"></i>
+            <span class="btn-text">Saqlash</span>
+            <span class="btn-loading hidden">
+              <i class="fas fa-spinner fa-spin"></i>
+              Saqlanmoqda...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comments Display Section -->
+    <div class="order-comments-section" id="orderCommentsSection">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-comments"></i>
+          Buyurtma Izohlar <span class="comments-count" id="commentsCount">(0)</span>
+        </h3>
+        <button class="products-btn products-btn-outline products-btn-sm" id="refreshCommentsBtn">
+          <i class="fas fa-sync-alt"></i>
+          Yangilash
+        </button>
+      </div>
+      
+      <div class="comments-filters">
+        <select class="filter-select" id="filterByType">
+          <option value="">Barcha turlar</option>
+          <option value="general">Umumiy</option>
+          <option value="status_update">Holat yangilanishi</option>
+          <option value="quality_note">Sifat</option>
+          <option value="delivery_note">Yetkazib berish</option>
+          <option value="payment_note">To'lov</option>
+          <option value="internal_note">Ichki</option>
+          <option value="customer_note">Mijoz uchun</option>
+        </select>
+        
+        <select class="filter-select" id="filterByPriority">
+          <option value="">Barcha muhimlik</option>
+          <option value="urgent">Shoshilinch</option>
+          <option value="high">Yuqori</option>
+          <option value="normal">Oddiy</option>
+          <option value="low">Past</option>
+        </select>
+      </div>
+
+      <div class="comments-list" id="commentsList">
+        <div class="loading-state" id="commentsLoading">
+          <i class="fas fa-spinner fa-spin"></i>
+          Izohlar yuklanmoqda...
+        </div>
+        <div class="empty-state hidden" id="commentsEmpty">
+          <i class="fas fa-comment-slash"></i>
+          <p>Hozircha izohlar yo'q</p>
+          <button class="products-btn products-btn-primary" id="addFirstComment">
+            <i class="fas fa-plus"></i>
+            Birinchi izohni qo'shish
+          </button>
+        </div>
+      </div>
+
+      <div class="comments-pagination hidden" id="commentsPagination">
+        <button class="products-btn products-btn-outline" id="loadMoreComments">
+          <i class="fas fa-chevron-down"></i>
+          Ko'proq yuklash
+        </button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Toast Notification Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- Marketplace Style Modal CSS -->
+<style>
+/* MARKETPLACE STYLE MODAL - WORKING PATTERN FROM PRODUCT PAGE */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(5px) !important;
+  z-index: 999999 !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  opacity: 0 !important;
+  transition: all 0.3s ease !important;
+}
+
+.modal-overlay.active {
+  display: flex !important;
+  opacity: 1 !important;
+}
+
+.modal-overlay .modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 95%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.modal-overlay.active .modal-content {
+  transform: translateY(0);
+}
+
+.modal-overlay .modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-overlay .modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.modal-overlay .modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.modal-overlay .modal-close:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.modal-overlay .modal-body {
+  padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+</style>
+
+<!-- Enhanced JavaScript -->
+<script src="/js/manufacturer/toast-system.js"></script>
+<script src="/js/manufacturer/modal-system.js"></script>
+<script src="/js/manufacturer/order-detail.js"></script>
+<script src="/js/manufacturer/order-comments.js"></script>
+
+<%- include('../partials/footer') %>

@@ -274,8 +274,7 @@ categorySchema.index({ 'metrics.totalProducts': -1 });
 categorySchema.index({ 'metrics.popularityScore': -1 });
 categorySchema.index({ createdAt: -1 });
 categorySchema.index({ updatedAt: -1 });
-// Additional indexes for better query performance
-categorySchema.index({ path: 1 });
+// Additional indexes for better query performance  
 categorySchema.index({ level: 1, 'settings.sortOrder': 1 });
 categorySchema.index({ status: 1, 'settings.isFeatured': -1 });
 categorySchema.index({ createdBy: 1, status: 1 });

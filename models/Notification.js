@@ -150,7 +150,6 @@ notificationSchema.index({ recipientId: 1, recipientType: 1, createdAt: -1 });
 notificationSchema.index({ status: 1, createdAt: -1 });
 notificationSchema.index({ type: 1, priority: 1 });
 notificationSchema.index({ readAt: 1, isRead: 1 });
-notificationSchema.index({ expiresAt: 1 });
 
 // TTL index for expired notifications
 notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });

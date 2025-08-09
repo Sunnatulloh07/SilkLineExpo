@@ -131,16 +131,24 @@ router.get('/me', (req, res) => {
  */
 router.post('/refresh-token', async (req, res) => {
   try {
+    console.log('🔄 Refresh token request received');
     const TokenService = require('../services/TokenService');
     const tokens = TokenService.extractTokensFromRequest(req);
 
     if (!tokens.refreshToken) {
+      console.log('❌ Refresh token not found in request');
       return res.status(401).json({
         success: false,
-        message: "Refresh token not found"
+        message: "Refresh token not found",
+        code: "NO_REFRESH_TOKEN",
+        debug: process.env.NODE_ENV !== 'production' ? {
+          cookiesReceived: req.cookies ? Object.keys(req.cookies) : [],
+          authHeader: req.headers.authorization ? 'Present' : 'Missing'
+        } : undefined
       });
     }
 
+    console.log('🔍 Attempting to refresh with token');
     const refreshResult = await TokenService.refreshAccessToken(
       tokens.refreshToken,
       { 
@@ -150,10 +158,12 @@ router.post('/refresh-token', async (req, res) => {
     );
 
     if (!refreshResult.success) {
+      console.log('❌ Token refresh failed:', refreshResult.message || refreshResult.error);
       TokenService.clearAuthCookies(res);
       return res.status(401).json({
         success: false,
-        message: "Token refresh failed"
+        message: refreshResult.message || refreshResult.error || "Token refresh failed",
+        code: "REFRESH_FAILED"
       });
     }
 
@@ -247,6 +257,66 @@ router.use((error, req, res, next) => {
     message: errorMessage,
     ...(isDevelopment && { stack: error.stack })
   });
+});
+
+/**
+ * GET /debug/token-status - Debug token status (development only)
+ */
+router.get('/debug/token-status', (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ message: 'Not found' });
+  }
+
+  try {
+    const TokenService = require('../services/TokenService');
+    const tokens = TokenService.extractTokensFromRequest(req);
+    
+    const debugInfo = {
+      timestamp: new Date().toISOString(),
+      cookies: req.cookies || {},
+      headers: {
+        authorization: req.headers.authorization || null,
+        'user-agent': req.headers['user-agent'],
+        'x-requested-with': req.headers['x-requested-with']
+      },
+      tokens: {
+        hasAccessToken: !!tokens.accessToken,
+        hasRefreshToken: !!tokens.refreshToken,
+        hasSessionId: !!tokens.sessionId,
+        accessTokenPreview: tokens.accessToken ? tokens.accessToken.substring(0, 20) + '...' : null,
+        refreshTokenPreview: tokens.refreshToken ? tokens.refreshToken.substring(0, 20) + '...' : null
+      }
+    };
+
+    // Try to decode access token if present
+    if (tokens.accessToken) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const payload = jwt.decode(tokens.accessToken);
+        debugInfo.tokenPayload = {
+          userId: payload?.userId,
+          userType: payload?.userType,
+          exp: payload?.exp,
+          iat: payload?.iat,
+          expiresAt: payload?.exp ? new Date(payload.exp * 1000).toISOString() : null,
+          isExpired: payload?.exp ? (payload.exp * 1000) < Date.now() : null
+        };
+      } catch (decodeError) {
+        debugInfo.tokenDecodeError = decodeError.message;
+      }
+    }
+
+    res.json({
+      success: true,
+      debug: debugInfo
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
 });
 
 module.exports = router;

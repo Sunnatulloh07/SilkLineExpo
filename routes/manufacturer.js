@@ -7,6 +7,7 @@
 const express = require("express");
 const multer = require("multer");
 const ManufacturerControllerClass = require("../controllers/ManufacturerController");
+const ManufacturerOrdersController = require("../controllers/ManufacturerOrdersController");
 const { authenticate, manufacturerOnly } = require("../middleware/jwtAuth");
 const {
   manufacturerOnly: enhancedManufacturerOnly,
@@ -249,6 +250,20 @@ const boundMethods = {
   getCompetitorAnalysis: ManufacturerController.getCompetitorAnalysis.bind(
     ManufacturerController
   ),
+
+  // Orders Management
+  showOrdersPage: ManufacturerOrdersController.showOrdersPage.bind(
+    ManufacturerOrdersController
+  ),
+  showOrderDetails: ManufacturerOrdersController.showOrderDetails.bind(
+    ManufacturerOrdersController
+  ),
+  showOrderEdit: ManufacturerOrdersController.showOrderEdit.bind(
+    ManufacturerOrdersController
+  ),
+  debugOrderData: ManufacturerOrdersController.debugOrderData.bind(
+    ManufacturerOrdersController
+  ),
 };
 
 const router = express.Router();
@@ -267,6 +282,10 @@ router.get("/dashboard", boundMethods.showDashboard);
 router.get("/marketplace", boundMethods.showMarketplace);
 router.get("/production", boundMethods.showProduction);
 router.get("/products", boundMethods.showProducts);
+router.get("/orders", boundMethods.showOrdersPage);
+router.get("/orders/:orderId", boundMethods.showOrderDetails);
+router.get("/orders/:orderId/debug", boundMethods.debugOrderData);
+router.get("/orders/:orderId/edit", boundMethods.showOrderEdit);
 router.get("/distribution", boundMethods.showDistribution);
 router.get("/sales", boundMethods.showSales);
 router.get("/operations", boundMethods.showOperations);
@@ -460,5 +479,11 @@ router.post(
   validateManufacturerApiAccess,
   boundMethods.publishProduct
 );
+
+// ===== MARKETPLACE API ROUTES =====
+// Include marketplace specific routes
+router.use('/api/manufacturer/products', require('./api/manufacturer-products'));
+router.use('/api/manufacturer/orders', require('./api/manufacturer-orders'));
+router.use('/api/manufacturer/orders', require('./api/manufacturer-orders-detail'));
 
 module.exports = router;

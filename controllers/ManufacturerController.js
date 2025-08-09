@@ -125,22 +125,82 @@ class ManufacturerController {
     }
 
     /**
-     * Render product development page
+     * Render products management page
      */
     async showProducts(req, res) {
         try {
             const manufacturerId = req.user.userId;
+            this.logger.log(`🔍 Products page: manufacturerId = ${manufacturerId}, user:`, req.user);
+            
+            // Get filters from query
+            const filters = {
+                search: req.query.search || '',
+                status: req.query.status || 'all',
+                category: req.query.category || 'all',
+                marketplaceStatus: req.query.marketplaceStatus || 'all',
+                sortBy: req.query.sortBy || 'createdAt',
+                sortOrder: req.query.sortOrder || 'desc'
+            };
+
+            // Pagination
+            const page = parseInt(req.query.page) || 1;
+            const limit = 12;
+
+            // Get products with filters and pagination
+            let result, categories, productStats;
+            
+            try {
+                result = await this.manufacturerService.getProductsWithFilters(
+                    manufacturerId, 
+                    filters, 
+                    { page, limit }
+                );
+            } catch (err) {
+                this.logger.error('❌ Error getting products:', err);
+                result = { products: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0, itemsPerPage: limit, hasNext: false, hasPrev: false } };
+            }
+
+            try {
+                categories = await this.manufacturerService.getActiveCategories();
+            } catch (err) {
+                this.logger.error('❌ Error getting categories:', err);
+                categories = [];
+            }
+
+            try {
+                productStats = await this.manufacturerService.getProductStatistics(manufacturerId);
+            } catch (err) {
+                this.logger.error('❌ Error getting product stats:', err);
+                productStats = {
+                    totalProducts: 0,
+                    activeProducts: 0,
+                    draftProducts: 0,
+                    inactiveProducts: 0,
+                    marketplaceProducts: 0,
+                    lowStockProducts: 0
+                };
+            }
 
             res.render('manufacturer/products/index', {
-                title: 'Product Development',
+                title: 'Mahsulotlar Boshqaruvi',
                 currentPage: 'products',
                 user: req.user,
+                lng: req.query.lng || 'uz',
+                products: result.products,
+                pagination: result.pagination,
+                filters: filters,
+                categories: categories,
+                productStats: productStats,
                 layout: 'manufacturer/layout'
             });
 
         } catch (error) {
             this.logger.error('❌ Products page error:', error);
-            res.status(500).render('error', { message: 'Failed to load products page' });
+            res.status(500).json({ 
+                error: true, 
+                message: 'Mahsulotlar sahifasini yuklashda xatolik', 
+                details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+            });
         }
     }
 

@@ -98,7 +98,7 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: [
       'draft', 'pending', 'confirmed', 'processing', 'manufacturing',
-      'ready_to_ship', 'shipped', 'in_transit', 'delivered', 
+      'ready_to_ship', 'shipped', 'out_for_delivery', 'in_transit', 'delivered', 
       'completed', 'cancelled', 'refunded', 'disputed'
     ],
     default: 'pending'

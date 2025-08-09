@@ -6182,6 +6182,299 @@ class ManufacturerService {
 
         return Math.min(score, 100); // Cap at 100
     }
+
+    /**
+     * Get products with advanced filtering and pagination
+     * @param {String} manufacturerId - Manufacturer MongoDB ObjectId
+     * @param {Object} filters - Filter options
+     * @param {Object} pagination - Pagination options
+     * @returns {Object} Products with pagination
+     */
+    async getProductsWithFilters(manufacturerId, filters = {}, pagination = {}) {
+        try {
+            const startTime = Date.now();
+            this.logger.log(`🔍 Getting filtered products for manufacturer: ${manufacturerId}`);
+            this.logger.log(`📋 Filters:`, filters);
+            this.logger.log(`📄 Pagination:`, pagination);
+
+            // Validate manufacturer ID
+            if (!ObjectId.isValid(manufacturerId)) {
+                throw new Error('Invalid manufacturer ID format');
+            }
+
+            const manufacturerObjectId = new ObjectId(manufacturerId);
+            const { page = 1, limit = 12 } = pagination;
+            const skip = (page - 1) * limit;
+
+            // Build query
+            let query = { manufacturer: manufacturerObjectId };
+
+            // Search filter
+            if (filters.search && filters.search.trim()) {
+                query.$or = [
+                    { name: { $regex: filters.search, $options: 'i' } },
+                    { description: { $regex: filters.search, $options: 'i' } },
+                    { shortDescription: { $regex: filters.search, $options: 'i' } }
+                ];
+            }
+
+            // Status filter
+            if (filters.status && filters.status !== 'all') {
+                query.status = filters.status;
+            }
+
+            // Category filter
+            if (filters.category && filters.category !== 'all') {
+                if (ObjectId.isValid(filters.category)) {
+                    query.category = new ObjectId(filters.category);
+                }
+            }
+
+            // Marketplace status filter (using visibility field)
+            if (filters.marketplaceStatus && filters.marketplaceStatus !== 'all') {
+                if (filters.marketplaceStatus === 'published') {
+                    query.visibility = 'public';
+                } else if (filters.marketplaceStatus === 'unpublished') {
+                    query.$or = [
+                        { visibility: { $ne: 'public' } },
+                        { visibility: { $exists: false } }
+                    ];
+                }
+            }
+
+            // Build sort options
+            let sortOptions = {};
+            const sortBy = filters.sortBy || 'createdAt';
+            const sortOrder = filters.sortOrder === 'asc' ? 1 : -1;
+            sortOptions[sortBy] = sortOrder;
+
+            // Execute aggregation pipeline
+            const pipeline = [
+                { $match: query },
+                {
+                    $lookup: {
+                        from: 'categories',
+                        localField: 'category',
+                        foreignField: '_id',
+                        as: 'category'
+                    }
+                },
+                {
+                    $unwind: {
+                        path: '$category',
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $addFields: {
+                        lowStock: {
+                            $lt: [
+                                { $ifNull: ['$inventory.availableStock', 0] },
+                                { $ifNull: ['$inventory.lowStockThreshold', 10] }
+                            ]
+                        }
+                    }
+                },
+                { $sort: sortOptions },
+                { $skip: skip },
+                { $limit: limit }
+            ];
+
+            this.logger.log(`🔍 MongoDB Query:`, JSON.stringify(query, null, 2));
+            this.logger.log(`🔍 Aggregation Pipeline:`, JSON.stringify(pipeline, null, 2));
+
+            // Execute queries
+            const [products, totalCount] = await Promise.all([
+                Product.aggregate(pipeline),
+                Product.countDocuments(query)
+            ]);
+
+            this.logger.log(`📊 Query Results: ${products.length} products found, total count: ${totalCount}`);
+
+            // Calculate pagination info
+            const totalPages = Math.ceil(totalCount / limit);
+            const pagination_result = {
+                currentPage: page,
+                totalPages,
+                totalItems: totalCount,
+                itemsPerPage: limit,
+                hasNext: page < totalPages,
+                hasPrev: page > 1
+            };
+
+            const duration = Date.now() - startTime;
+            this.trackPerformance('getProductsWithFilters', duration);
+
+            this.logger.log(`✅ Retrieved ${products.length} filtered products in ${duration}ms`);
+            
+            return {
+                products,
+                pagination: pagination_result
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Get filtered products error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get active categories for filter dropdown
+     * @returns {Array} Active categories
+     */
+    async getActiveCategories() {
+        try {
+            const startTime = Date.now();
+            const cacheKey = 'active_categories';
+
+            // Check cache first
+            const cachedData = this.getCachedData(cacheKey);
+            if (cachedData) {
+                this.trackPerformance('getActiveCategories', Date.now() - startTime, true);
+                return cachedData;
+            }
+
+            // Query active categories
+            const categories = await Category.find({
+                status: 'active',
+                'settings.isActive': true
+            })
+            .select('name description slug settings')
+            .sort({ name: 1 })
+            .lean();
+
+            // Cache the result
+            this.cache.set(cacheKey, {
+                data: categories,
+                timestamp: Date.now()
+            });
+
+            const duration = Date.now() - startTime;
+            this.trackPerformance('getActiveCategories', duration);
+
+            this.logger.log(`✅ Retrieved ${categories.length} active categories in ${duration}ms`);
+            return categories;
+
+        } catch (error) {
+            this.logger.error('❌ Get active categories error:', error);
+            // Return empty array as fallback
+            return [];
+        }
+    }
+
+    /**
+     * Get comprehensive product statistics for manufacturer
+     * @param {String} manufacturerId - Manufacturer MongoDB ObjectId
+     * @returns {Object} Product statistics
+     */
+    async getProductStatistics(manufacturerId) {
+        try {
+            const startTime = Date.now();
+            this.logger.log(`📊 Getting product statistics for manufacturer: ${manufacturerId}`);
+
+            // Validate manufacturer ID
+            if (!ObjectId.isValid(manufacturerId)) {
+                throw new Error('Invalid manufacturer ID format');
+            }
+
+            const manufacturerObjectId = new ObjectId(manufacturerId);
+            const cacheKey = `product_stats_${manufacturerId}`;
+
+            // Check cache first
+            const cachedData = this.getCachedData(cacheKey);
+            if (cachedData) {
+                this.trackPerformance('getProductStatistics', Date.now() - startTime, true);
+                return cachedData;
+            }
+
+            // Build aggregation pipeline
+            const pipeline = [
+                { $match: { manufacturer: manufacturerObjectId } },
+                {
+                    $group: {
+                        _id: null,
+                        totalProducts: { $sum: 1 },
+                        activeProducts: {
+                            $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] }
+                        },
+                        draftProducts: {
+                            $sum: { $cond: [{ $eq: ['$status', 'draft'] }, 1, 0] }
+                        },
+                        inactiveProducts: {
+                            $sum: { $cond: [{ $eq: ['$status', 'inactive'] }, 1, 0] }
+                        },
+                        marketplaceProducts: {
+                            $sum: { $cond: [{ $eq: ['$visibility', 'public'] }, 1, 0] }
+                        },
+                        lowStockProducts: {
+                            $sum: {
+                                $cond: [
+                                    {
+                                        $lt: [
+                                            { $ifNull: ['$inventory.availableStock', 0] },
+                                            { $ifNull: ['$inventory.lowStockThreshold', 10] }
+                                        ]
+                                    },
+                                    1,
+                                    0
+                                ]
+                            }
+                        },
+                        averagePrice: { $avg: '$pricing.basePrice' },
+                        totalInventoryValue: {
+                            $sum: {
+                                $multiply: [
+                                    { $ifNull: ['$inventory.availableStock', 0] },
+                                    { $ifNull: ['$pricing.basePrice', 0] }
+                                ]
+                            }
+                        }
+                    }
+                }
+            ];
+
+            const [stats] = await Product.aggregate(pipeline);
+
+            // Default stats if no products found
+            const productStats = stats || {
+                totalProducts: 0,
+                activeProducts: 0,
+                draftProducts: 0,
+                inactiveProducts: 0,
+                marketplaceProducts: 0,
+                lowStockProducts: 0,
+                averagePrice: 0,
+                totalInventoryValue: 0
+            };
+
+            // Cache the result
+            this.cache.set(cacheKey, {
+                data: productStats,
+                timestamp: Date.now()
+            });
+
+            const duration = Date.now() - startTime;
+            this.trackPerformance('getProductStatistics', duration);
+
+            this.logger.log(`✅ Retrieved product statistics in ${duration}ms`);
+            return productStats;
+
+        } catch (error) {
+            this.logger.error('❌ Get product statistics error:', error);
+            
+            // Return default stats as fallback
+            return {
+                totalProducts: 0,
+                activeProducts: 0,
+                draftProducts: 0,
+                inactiveProducts: 0,
+                marketplaceProducts: 0,
+                lowStockProducts: 0,
+                averagePrice: 0,
+                totalInventoryValue: 0
+            };
+        }
+    }
 }
 
 module.exports = ManufacturerService;

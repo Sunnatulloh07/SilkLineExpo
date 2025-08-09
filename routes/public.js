@@ -8,6 +8,11 @@ const AuthControllerClass = require('../controllers/AuthController');
 
 const router = express.Router();
 
+// Database models
+const Product = require('../models/Product');
+const User = require('../models/User');
+const mongoose = require('mongoose');
+
 // Create AuthController instance and bind methods
 const AuthController = new AuthControllerClass();
 const boundAuthMethods = {
@@ -36,33 +41,72 @@ router.get('/all-product', (req, res) => {
 });
 
 // Product Details
-router.get('/product-details', (req, res) => {
-  const productId = req.query.id;
-  const countryName = req.query.country;
-  const companyName = req.query.company;
-  
-  let product = null;
-  let company = null;
-  let country = null;
-  
-  // Find product in data
-  if (productId && countryName && companyName) {
-    country = data.countries.find(c => c.name === countryName);
-    if (country) {
-      company = country.companies.find(comp => comp.name === companyName);
-      if (company) {
-        product = company.products.find(prod => prod.id == productId);
+router.get('/product-details', async (req, res) => {
+  try {
+    const productId = req.query.id;
+    const countryName = req.query.country;
+    const companyName = req.query.company;
+    
+    let product = null;
+    let company = null;
+    let country = null;
+    
+    // Try to get product from database first
+    if (productId && mongoose.Types.ObjectId.isValid(productId)) {
+      try {
+        product = await Product.findById(productId)
+          .populate('category', 'name slug')
+          .populate('manufacturer', 'companyName email phone country')
+          .lean();
+        
+        if (product) {
+          // Extract company info from manufacturer
+          company = product.manufacturer;
+          country = { name: company?.country || 'Unknown' };
+          
+          // Increment view count
+          await Product.findByIdAndUpdate(productId, {
+            $inc: { 'analytics.views': 1 }
+          });
+        }
+      } catch (dbError) {
+        console.warn('Database product lookup failed:', dbError.message);
       }
     }
+    
+    // Fallback to static data if database lookup fails
+    if (!product && productId && countryName && companyName) {
+      country = data.countries.find(c => c.name === countryName);
+      if (country) {
+        company = country.companies.find(comp => comp.name === companyName);
+        if (company) {
+          product = company.products.find(prod => prod.id == productId);
+        }
+      }
+    }
+    
+    res.render('pages/product-details', { 
+      title: product ? `${product.title || product.name} - Silk Line Expo` : req.t('products.productDetails') + ' - Silk Line Expo',
+      data: data,
+      product: product,
+      company: company,
+      country: country,
+      // Pass product ID for comments system
+      productId: productId
+    });
+    
+  } catch (error) {
+    console.error('Error in product details route:', error);
+    res.render('pages/product-details', { 
+      title: req.t('products.productDetails') + ' - Silk Line Expo',
+      data: data,
+      product: null,
+      company: null,
+      country: null,
+      productId: null,
+      error: 'Product not found'
+    });
   }
-  
-  res.render('pages/product-details', { 
-    title: product ? `${product.title} - Silk Line Expo` : req.t('products.productDetails') + ' - Silk Line Expo',
-    data: data,
-    product: product,
-    company: company,
-    country: country
-  });
 });
 
 // Partner Countries

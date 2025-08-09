@@ -1,0 +1,1043 @@
+<%- include('../partials/header', { title: title, lng: lng || 'uz', user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'products' }) %>
+
+<!-- Enhanced CSS Imports - Marketplace Style -->
+<link rel="stylesheet" href="/css/products-management-redesign.css">
+  <link rel="stylesheet" href="/css/products-table-view.css">
+  <link rel="stylesheet" href="/css/products-card-view.css">
+  <link rel="stylesheet" href="/css/products-marketplace-enhancements.css">
+  <link rel="stylesheet" href="/css/manufacturer-cards.css">
+  <link rel="stylesheet" href="/css/manufacturer-theme.css">
+  <link rel="stylesheet" href="/css/toast-notifications.css">
+  <link rel="stylesheet" href="/css/modal-system.css">
+
+<!-- Main Content -->
+<main class="admin-main">
+  <div class="admin-content">
+    
+    <!-- Marketplace-Style Products Header -->
+    <div class="products-header animate-fade-in">
+      <div class="products-header-content">
+        <div class="products-title-section">
+          <h1 class="products-main-title">
+            <i class="fas fa-store-alt"></i>
+            Mahsulotlar Boshqaruvi
+          </h1>
+          <p class="products-subtitle">Professional B2B mahsulotlar boshqaruvi va Sotuv tizimiga integratsiyasi</p>
+        </div>
+        <div class="products-header-actions">
+          <button class="products-btn products-btn-primary" id="addProductBtn">
+            <i class="fas fa-plus"></i>
+            Yangi Mahsulot
+          </button>
+          <button class="products-btn products-btn-outline" id="bulkActionsBtn">
+            <i class="fas fa-tasks"></i>
+            Ommaviy Amallar
+          </button>
+          <button class="products-btn products-btn-secondary" id="exportProductsBtn">
+            <i class="fas fa-download"></i>
+            Export
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced B2B KPI Cards - Dashboard Style (4 Cards) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg">
+      
+      <!-- Total Products -->
+      <div class="stat-card primary animate-fade-in" data-kpi="totalProducts">
+        <div class="stat-header">
+          <h3 class="stat-title">Jami Mahsulotlar</h3>
+          <div class="stat-icon primary">
+            <i class="fas fa-boxes"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="metric-value" id="totalProductsValue">
+            <span class="loading-placeholder">...</span>
+          </span>
+        </div>
+        <div class="stat-change positive">
+          <i class="fas fa-arrow-up stat-change-icon"></i>
+          <span class="metric-trend">Barcha mahsulotlar</span>
+        </div>
+      </div>
+
+      <!-- Active Products -->
+      <div class="stat-card success animate-fade-in" data-kpi="activeProducts">
+        <div class="stat-header">
+          <h3 class="stat-title">Faol Mahsulotlar</h3>
+          <div class="stat-icon success">
+            <i class="fas fa-check-circle"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="metric-value" id="activeProductsValue">
+            <span class="loading-placeholder">...</span>
+          </span>
+        </div>
+        <div class="stat-change positive">
+          <i class="fas fa-arrow-up stat-change-icon"></i>
+          <span class="metric-trend">Sotuvda mavjud</span>
+        </div>
+      </div>
+
+      <!-- Marketplace Products -->
+      <div class="stat-card info animate-fade-in" data-kpi="marketplaceProducts">
+        <div class="stat-header">
+          <h3 class="stat-title">Marketplace da</h3>
+          <div class="stat-icon info">
+            <i class="fas fa-store-alt"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="metric-value" id="marketplaceProductsValue">
+            <span class="loading-placeholder">...</span>
+          </span>
+        </div>
+        <div class="stat-change positive">
+          <i class="fas fa-arrow-up stat-change-icon"></i>
+          <span class="metric-trend">Ommaviy savdo</span>
+        </div>
+      </div>
+
+      <!-- Draft Products -->
+      <div class="stat-card warning animate-fade-in" data-kpi="draftProducts">
+        <div class="stat-header">
+          <h3 class="stat-title">Qoralama Mahsulotlar</h3>
+          <div class="stat-icon warning">
+            <i class="fas fa-edit"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="metric-value" id="draftProductsValue">
+            <span class="loading-placeholder">...</span>
+          </span>
+        </div>
+        <div class="stat-change neutral">
+          <i class="fas fa-arrow-right stat-change-icon"></i>
+          <span class="metric-trend">Tayyorlanmoqda</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Professional Filters Container -->
+    <div class="products-filters-container">
+      <div class="products-filters-header">
+        <h3 class="products-filters-title">
+          <i class="fas fa-filter"></i>
+          Filtr va Qidiruv
+        </h3>
+        <div class="products-filters-actions">
+          <button class="products-btn products-btn-sm products-btn-secondary" id="resetFiltersBtn">
+            <i class="fas fa-undo"></i>
+            Reset
+          </button>
+          <button class="products-btn products-btn-sm products-btn-outline" id="advancedFiltersBtn">
+            <i class="fas fa-cog"></i>
+            Kengaytirilgan
+          </button>
+        </div>
+      </div>
+      <div class="products-filters-body">
+        <form id="filtersForm" class="products-filters-form">
+          
+          <!-- Search Input -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Qidiruv</label>
+            <div class="products-search-wrapper">
+              <i class="fas fa-search products-search-icon"></i>
+              <input 
+                type="text" 
+                id="searchInput" 
+                name="search" 
+                placeholder="Mahsulot nomi, tavsifi..."
+                value="<%= filters.search || '' %>"
+                class="products-form-input search"
+              >
+            </div>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Holat</label>
+            <select name="status" id="statusFilter" class="products-form-select">
+              <option value="all" <%= filters.status === 'all' ? 'selected' : '' %>>Barcha holatlar</option>
+              <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Faol</option>
+              <option value="draft" <%= filters.status === 'draft' ? 'selected' : '' %>>Qoralama</option>
+              <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>>Nofaol</option>
+              <option value="discontinued" <%= filters.status === 'discontinued' ? 'selected' : '' %>>To'xtatilgan</option>
+            </select>
+          </div>
+
+          <!-- Category Filter -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Kategoriya</label>
+            <select name="category" id="categoryFilter" class="products-form-select">
+              <option value="all">Barcha kategoriyalar</option>
+              <% if (categories && categories.length > 0) { %>
+                <% categories.forEach(category => { %>
+                  <option value="<%= category._id %>" <%= filters.category && filters.category.toString() === category._id.toString() ? 'selected' : '' %>>
+                    <%= category.name %>
+                  </option>
+                <% }) %>
+              <% } %>
+            </select>
+          </div>
+
+          <!-- Marketplace Status -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Sotuvda</label>
+            <select name="marketplace" id="marketplaceFilter" class="products-form-select">
+              <option value="all" <%= filters.marketplaceStatus === 'all' ? 'selected' : '' %>>Barchasi</option>
+              <option value="published" <%= filters.marketplaceStatus === 'published' ? 'selected' : '' %>>Nashr etilgan</option>
+              <option value="unpublished" <%= filters.marketplaceStatus === 'unpublished' ? 'selected' : '' %>>Nashr etilmagan</option>
+            </select>
+          </div>
+
+          <!-- Sort Options -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Saralash</label>
+            <select name="sortBy" id="sortFilter" class="products-form-select">
+              <option value="createdAt" <%= filters.sortBy === 'createdAt' ? 'selected' : '' %>>Yaratilgan vaqt</option>
+              <option value="name" <%= filters.sortBy === 'name' ? 'selected' : '' %>>Nomi</option>
+              <option value="analytics.views" <%= filters.sortBy === 'analytics.views' ? 'selected' : '' %>>Ko'rishlar</option>
+              <option value="analytics.orders" <%= filters.sortBy === 'analytics.orders' ? 'selected' : '' %>>Buyurtmalar</option>
+              <option value="inventory.availableStock" <%= filters.sortBy === 'inventory.availableStock' ? 'selected' : '' %>>Zaxira</option>
+            </select>
+          </div>
+
+          <!-- Sort Order -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Tartib</label>
+            <select name="sortOrder" id="sortOrderFilter" class="products-form-select">
+              <option value="desc" <%= filters.sortOrder === 'desc' ? 'selected' : '' %>>Kamayish tartibida</option>
+              <option value="asc" <%= filters.sortOrder === 'asc' ? 'selected' : '' %>>O'sish tartibida</option>
+            </select>
+          </div>
+          
+          <div class="products-filters-submit">
+            <button type="submit" class="products-btn products-btn-primary" id="searchFiltersBtn">
+              <i class="fas fa-search"></i>
+              Qidiruv
+            </button>
+            <button type="button" class="products-btn products-btn-secondary" id="clearFiltersBtn">
+              <i class="fas fa-times"></i>
+              Tozalash
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Products Container -->
+    <div class="products-main-container">
+      <div class="products-content-header">
+        <h3 class="products-content-title">
+          <i class="fas fa-box-open"></i>
+          Mahsulotlar
+          <% if (pagination && pagination.totalItems) { %>
+            <span class="products-count"><%= pagination.totalItems %> ta</span>
+          <% } %>
+        </h3>
+        <div class="products-content-actions">
+          <div class="products-view-toggle">
+            <button class="products-view-btn" data-view="card" title="Card ko'rinish">
+              <i class="fas fa-th"></i>
+              <span>Cards</span>
+            </button>
+            <button class="products-view-btn active" data-view="table" title="Table ko'rinish">
+              <i class="fas fa-list"></i>
+              <span>Table</span>
+            </button>
+          </div>
+          <button class="products-btn products-btn-sm products-btn-secondary" id="refreshProductsBtn">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+      
+      <% if (products && products.length > 0) { %>
+        
+        <!-- CARD VIEW -->
+        <div class="products-view-container hidden" id="cardView">
+          <div class="products-cards-grid">
+            <% products.forEach((product, index) => { %>
+              <div class="product-card card-fade-in" data-product-id="<%= product._id %>" data-animation-delay="<%= (index % 6) * 0.1 %>">
+                
+                <!-- Card Selection Checkbox -->
+                <input type="checkbox" class="card-select-checkbox" data-product-id="<%= product._id %>">
+                
+                <!-- Product Image -->
+                <div class="card-image-section">
+                  <div class="card-product-image">
+                    <% if (product.images && product.images.length > 0) { %>
+                      <img 
+                        src="<%= product.images[0].url %>" 
+                        alt="<%= product.name %>"
+                        class="card-product-img"
+                        loading="lazy"
+                        onerror="this.src='/images/placeholder-product.png'"
+                      >
+                    <% } else { %>
+                      <div class="card-image-placeholder">
+                        <i class="fas fa-image"></i>
+                        <span>Rasm yo'q</span>
+                      </div>
+                    <% } %>
+                  </div>
+                  
+                  <!-- Status Badges -->
+                  <div class="card-badges">
+                    <span class="card-status-badge status-<%= product.status %>">
+                      <%= product.status === 'active' ? 'Faol' : 
+                          product.status === 'draft' ? 'Qoralama' : 
+                          product.status === 'inactive' ? 'Nofaol' : 'To\'xtatilgan' %>
+                    </span>
+                    <% if (product.visibility === 'public') { %>
+                      <span class="card-marketplace-badge published">
+                        <i class="fas fa-globe"></i>
+                        Sotuvda
+                      </span>
+                    <% } %>
+                    <% if (product.lowStock) { %>
+                      <span class="card-stock-badge low-stock">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Kam zaxira
+                      </span>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Product Info -->
+                <div class="card-product-info">
+                  <div class="card-product-header">
+                    <h3 class="card-product-title" title="<%= product.name %>">
+                      <%= product.name %>
+                    </h3>
+                    <div class="card-product-id">ID: <%= product._id.toString().slice(-8).toUpperCase() %></div>
+                  </div>
+
+                  <div class="card-product-category">
+                    <i class="fas fa-tag"></i>
+                    <%= product.category ? product.category.name : 'Kategoriyasiz' %>
+                  </div>
+
+                  <div class="card-product-description">
+                    <%= product.shortDescription || (product.description ? product.description.substring(0, 100) + '...' : 'Tavsif mavjud emas') %>
+                  </div>
+
+                  <!-- Product Metrics -->
+                  <div class="card-product-metrics">
+                    <div class="card-metric-item">
+                      <i class="fas fa-eye card-metric-icon"></i>
+                      <span class="card-metric-value"><%= product.analytics?.views || 0 %></span>
+                    </div>
+                    <div class="card-metric-item">
+                      <i class="fas fa-envelope card-metric-icon"></i>
+                      <span class="card-metric-value"><%= product.analytics?.inquiries || 0 %></span>
+                    </div>
+                    <div class="card-metric-item">
+                      <i class="fas fa-shopping-cart card-metric-icon"></i>
+                      <span class="card-metric-value"><%= product.analytics?.orders || 0 %></span>
+                    </div>
+                    <div class="card-metric-item">
+                      <i class="fas fa-warehouse card-metric-icon"></i>
+                      <span class="card-metric-value"><%= product.inventory?.availableStock || 0 %></span>
+                    </div>
+                  </div>
+
+                  <!-- Pricing Info -->
+                  <div class="card-product-pricing">
+                    <div class="card-price-main">
+                      <span class="card-price-amount">
+                        <%= (product.pricing?.basePrice || 0).toFixed(2) %> UZS
+                      </span>
+                      <span class="card-price-unit">
+                        /<%= product.inventory?.unit || 'dona' %>
+                      </span>
+                    </div>
+                    <div class="card-price-moq">
+                      Min: <%= product.pricing?.minimumOrderQuantity || 1 %> <%= product.inventory?.unit || 'dona' %>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Product Actions -->
+                <div class="card-product-actions">
+                  <div class="card-primary-actions">
+                    <button class="card-action-btn btn-primary" data-action="edit" data-product-id="<%= product._id %>">
+                      <i class="fas fa-edit"></i>
+                      <span>Tahrirlash</span>
+                    </button>
+                    <button class="card-action-btn btn-secondary" data-action="analytics" data-product-id="<%= product._id %>">
+                      <i class="fas fa-chart-line"></i>
+                      <span>Statistika</span>
+                    </button>
+                  </div>
+                  
+                  <div class="card-secondary-actions">
+                    <% if (product.visibility === 'public') { %>
+                      <button class="card-marketplace-toggle unpublish" data-action="unpublish" data-product-id="<%= product._id %>">
+                        <i class="fas fa-eye-slash"></i>
+                        <span>Sotuvdan o'chirish</span>
+                      </button>
+                    <% } else { %>
+                      <button class="card-marketplace-toggle publish" data-action="publish" data-product-id="<%= product._id %>">
+                        <i class="fas fa-globe"></i>
+                        <span>Sotuvga qo'shish</span>
+                      </button>
+                    <% } %>
+                    
+                    <div class="card-more-actions">
+                      <button class="card-more-toggle" data-product-id="<%= product._id %>">
+                        <i class="fas fa-ellipsis-h"></i>
+                      </button>
+                      <div class="card-more-menu hidden">
+                        <button class="card-more-item" data-action="duplicate" data-product-id="<%= product._id %>">
+                          <i class="fas fa-copy"></i>
+                          Nusxalash
+                        </button>
+                        <button class="card-more-item" data-action="archive" data-product-id="<%= product._id %>">
+                          <i class="fas fa-archive"></i>
+                          Arxivlash
+                        </button>
+                        <button class="card-more-item danger" data-action="delete" data-product-id="<%= product._id %>">
+                          <i class="fas fa-trash"></i>
+                          O'chirish
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            <% }) %>
+          </div>
+        </div>
+
+        <!-- TABLE VIEW -->
+        <div class="products-view-container" id="tableView">
+          <div class="products-table-container">
+            <div class="products-table-header">
+              <h3 class="products-table-title">
+                <i class="fas fa-table"></i>
+                Mahsulotlar Jadvali
+              </h3>
+              <div class="products-table-actions">
+                <button class="products-btn products-btn-sm products-btn-outline" id="selectAllProductsBtn">
+                  <i class="fas fa-check-square"></i>
+                  Hammasini tanlash
+                </button>
+                <button class="products-btn products-btn-sm products-btn-secondary" id="exportTableBtn">
+                  <i class="fas fa-file-excel"></i>
+                  Excel Export
+                </button>
+              </div>
+            </div>
+            <div class="products-table-wrapper">
+              <table class="products-table">
+                <thead>
+                  <tr>
+                    <th class="table-cell-select">
+                      <input type="checkbox" class="table-checkbox" id="selectAllCheckbox">
+                    </th>
+                    <th class="sortable" data-sort="name">Mahsulot</th>
+                    <th class="sortable" data-sort="status">Holat</th>
+                    <th class="sortable" data-sort="category">Kategoriya</th>
+                    <th class="sortable" data-sort="pricing.basePrice">Narx</th>
+                    <th class="sortable" data-sort="inventory.availableStock">Zaxira</th>
+                    <th class="sortable" data-sort="analytics.views">Statistika</th>
+                    <th>Sotuv</th>  
+                    <th>Amallar</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% products.forEach((product, index) => { %>
+                    <tr data-product-id="<%= product._id %>">
+                      <td>
+                        <input type="checkbox" class="table-checkbox" data-product-id="<%= product._id %>">
+                      </td>
+                      <td>
+                        <div class="table-product-info">
+                          <div class="table-product-image">
+                            <% if (product.images && product.images.length > 0) { %>
+                              <img 
+                                src="<%= product.images[0].url %>" 
+                                alt="<%= product.name %>"
+                                loading="lazy"
+                                onerror="this.src='/images/placeholder-product.png'"
+                              >
+                            <% } else { %>
+                              <i class="fas fa-image table-product-placeholder"></i>
+                            <% } %>
+                          </div>
+                          <div class="table-product-details">
+                            <h4 class="table-product-name"><%= product.name %></h4>
+                            <span class="table-product-id">ID: <%= product._id.toString().slice(-8).toUpperCase() %></span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="table-status-badge status-<%= product.status %>">
+                          <%= product.status === 'active' ? 'Faol' : 
+                              product.status === 'draft' ? 'Qoralama' : 
+                              product.status === 'inactive' ? 'Nofaol' : 'To\'xtatilgan' %>
+                        </span>
+                      </td>
+                      <td>
+                        <div class="table-category">
+                          <i class="fas fa-tag"></i>
+                          <%= product.category ? product.category.name : 'Kategoriyasiz' %>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="table-price">
+                          <span class="table-price-main"><%= (product.pricing?.basePrice || 0).toFixed(2) %> UZS</span>
+                          <span class="table-price-unit">/<%= product.inventory?.unit || 'dona' %></span>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="table-stock">
+                          <span class="table-stock-amount"><%= product.inventory?.availableStock || 0 %></span>
+                          <span class="table-stock-level <%= product.lowStock ? 'low' : 'high' %>">
+                            <%= product.lowStock ? 'Kam' : 'Yetarli' %>
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="table-metrics">
+                          <div class="table-metric">
+                            <span class="table-metric-value"><%= product.analytics?.views || 0 %></span>
+                            <span class="table-metric-label">Views</span>
+                          </div>
+                          <div class="table-metric">
+                            <span class="table-metric-value"><%= product.analytics?.orders || 0 %></span>
+                            <span class="table-metric-label">Orders</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <% if (product.visibility === 'public') { %>
+                          <span class="table-marketplace-badge published">
+                            <i class="fas fa-check"></i>
+                            Nashr etilgan
+                          </span>
+                        <% } else { %>
+                          <span class="table-marketplace-badge unpublished">
+                            <i class="fas fa-times"></i>
+                            Nashr etilmagan
+                          </span>
+                        <% } %>
+                      </td>
+                      <td>
+                        <div class="table-actions">
+                          <button class="table-action-btn info" data-action="view" data-product-id="<%= product._id %>" title="Ko'rish">
+                            <i class="fas fa-eye"></i>
+                          </button>
+                          <button class="table-action-btn primary" data-action="edit" data-product-id="<%= product._id %>" title="Tahrirlash">
+                            <i class="fas fa-edit"></i>
+                          </button>
+                          <div class="table-more-actions">
+                            <button class="table-action-btn dropdown-toggle" data-product-id="<%= product._id %>" title="Boshqa amallar">
+                              <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div class="table-more-menu hidden">
+                              <!-- Marketplace Actions -->
+                              <% if (product.visibility === 'public') { %>
+                                <button class="table-more-item warning" data-action="unpublish" data-product-id="<%= product._id %>">
+                                  <i class="fas fa-eye-slash"></i>
+                                  Sotuvdan olib tashlash
+                                </button>
+                              <% } else { %>
+                                <% if (product.status === 'active') { %>
+                                  <button class="table-more-item success" data-action="publish" data-product-id="<%= product._id %>">
+                                    <i class="fas fa-globe"></i>
+                                    Sotuvga chiqarish
+                                  </button>
+                                <% } else { %>
+                                  <button class="table-more-item" data-action="publish" data-product-id="<%= product._id %>">
+                                    <i class="fas fa-globe"></i>
+                                    Sotuvga chiqarish
+                                    <small class="text-muted">(avtomatik faollashtiriladi)</small>
+                                  </button>
+                                <% } %>
+                              <% } %>
+                              <div class="dropdown-divider"></div>
+                              <!-- Other Actions -->
+                              <button class="table-more-item" data-action="analytics" data-product-id="<%= product._id %>">
+                                <i class="fas fa-chart-line"></i>
+                                Statistika
+                              </button>
+                              <button class="table-more-item" data-action="duplicate" data-product-id="<%= product._id %>">
+                                <i class="fas fa-copy"></i>
+                                Nusxalash
+                              </button>
+                              <button class="table-more-item" data-action="status-change" data-product-id="<%= product._id %>">
+                                <i class="fas fa-toggle-on"></i>
+                                Holat o'zgartirish
+                              </button>
+                              <button class="table-more-item" data-action="archive" data-product-id="<%= product._id %>">
+                                <i class="fas fa-archive"></i>
+                                Arxivlash
+                              </button>
+                              <div class="dropdown-divider"></div>
+                              <button class="table-more-item danger" data-action="delete" data-product-id="<%= product._id %>">
+                                <i class="fas fa-trash"></i>
+                                O'chirish
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-pagination">
+              <div class="table-pagination-info">
+                <span><%= ((pagination.currentPage - 1) * pagination.itemsPerPage) + 1 %>-<%= Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems) %></span>
+                dan <span><%= pagination.totalItems %></span> ta ko'rsatilmoqda
+              </div>
+              <div class="table-pagination-controls">
+                <% if (pagination.hasPrev) { %>
+                  <a href="?page=<%= pagination.currentPage - 1 %><% const queryString = Object.keys(filters || {}).map(key => filters[key] && filters[key] !== 'all' ? `${key}=${encodeURIComponent(filters[key])}` : '').filter(Boolean).join('&'); %><%= queryString ? '&' + queryString : '' %>" class="table-pagination-btn">
+                    <i class="fas fa-chevron-left"></i>
+                  </a>
+                <% } %>
+                
+                <% for (let i = Math.max(1, pagination.currentPage - 2); i <= Math.min(pagination.totalPages, pagination.currentPage + 2); i++) { %>
+                  <a href="?page=<%= i %><% const queryString = Object.keys(filters || {}).map(key => filters[key] && filters[key] !== 'all' ? `${key}=${encodeURIComponent(filters[key])}` : '').filter(Boolean).join('&'); %><%= queryString ? '&' + queryString : '' %>" 
+                     class="table-pagination-btn <%= i === pagination.currentPage ? 'active' : '' %>">
+                    <%= i %>
+                  </a>
+                <% } %>
+
+                <% if (pagination.hasNext) { %>
+                  <a href="?page=<%= pagination.currentPage + 1 %><% const queryString = Object.keys(filters || {}).map(key => filters[key] && filters[key] !== 'all' ? `${key}=${encodeURIComponent(filters[key])}` : '').filter(Boolean).join('&'); %><%= queryString ? '&' + queryString : '' %>" class="table-pagination-btn">
+                    <i class="fas fa-chevron-right"></i>
+                  </a>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      <% } else { %>
+        <!-- Empty State -->
+        <div class="table-empty">
+          <div class="table-empty-icon">
+            <i class="fas fa-box-open"></i>
+          </div>
+          <h3 class="table-empty-title">Mahsulotlar topilmadi</h3>
+          <p class="table-empty-description">
+            <% if (filters.search || filters.status !== 'all' || filters.category !== 'all' || filters.marketplaceStatus !== 'all') { %>
+              Filtr shartlariga mos mahsulot topilmadi. Filtrlarni o'zgartirib ko'ring.
+            <% } else { %>
+              Hali birorta mahsulot qo'shilmagan. Birinchi mahsulotingizni qo'shing.
+            <% } %>
+          </p>
+          <div class="table-empty-actions">
+            <% if (filters.search || filters.status !== 'all' || filters.category !== 'all' || filters.marketplaceStatus !== 'all') { %>
+              <button class="products-btn products-btn-outline" id="clearAllFiltersBtn">
+                <i class="fas fa-filter"></i>
+                Filtrlarni tozalash
+              </button>
+            <% } %>
+            <button class="products-btn products-btn-primary" id="addFirstProductBtn">
+              <i class="fas fa-plus"></i>
+              Birinchi mahsulot qo'shish
+            </button>
+          </div>
+        </div>
+      <% } %>
+      
+    </div>
+
+  </div>
+</main>
+
+<!-- Bulk Actions Modal -->
+<div class="modal-overlay hidden" id="bulkActionsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Ommaviy Amallar</h2>
+      <button class="modal-close" data-modal="bulkActionsModal">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="bulk-actions-list">
+        <button class="bulk-action-item" data-action="publish-selected">
+          <i class="fas fa-globe"></i>
+          <div class="action-info">
+            <h4>Marketplace ga joylashtirish</h4>
+            <p>Tanlangan mahsulotlarni marketplace da nashr etish</p>
+          </div>
+        </button>
+        <button class="bulk-action-item" data-action="unpublish-selected">
+          <i class="fas fa-eye-slash"></i>
+          <div class="action-info">
+            <h4>Marketplace dan olib tashlash</h4>
+            <p>Tanlangan mahsulotlarni marketplace dan yashirish</p>
+          </div>
+        </button>
+        <button class="bulk-action-item" data-action="activate-selected">
+          <i class="fas fa-play"></i>
+          <div class="action-info">
+            <h4>Faollashtirish</h4>
+            <p>Tanlangan mahsulotlarni faol holatga o'tkazish</p>
+          </div>
+        </button>
+        <button class="bulk-action-item" data-action="deactivate-selected">
+          <i class="fas fa-pause"></i>
+          <div class="action-info">
+            <h4>Nofaollashtirish</h4>
+            <p>Tanlangan mahsulotlarni nofaol holatga o'tkazish</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Success/Error Messages -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Server Data for JavaScript -->
+<script type="application/json" id="products-data">
+<%- JSON.stringify({
+  products: products || [],
+  pagination: pagination || {},
+  filters: filters || {},
+  stats: productStats || {},
+  user: {
+    id: user._id || '',
+    name: user.name || 'Manufacturer',
+    permissions: user.permissions || []
+  }
+}) %>
+</script>
+
+<!-- Dashboard Initialization - Theme & Core Functions -->
+<script src="/js/manufacturer/dashboard-init.js"></script>
+
+<!-- MARKETPLACE STYLE MODAL - SIMPLE AND WORKING -->
+<div class="modal-overlay" id="productDetailsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Mahsulot ma'lumotlari</h2>
+      <button class="modal-close" id="closeProductModal">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="productDetailsContent">
+      <!-- Dinamik kontent shu yerga yuklanadi -->
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>Ma'lumot yuklanmoqda...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Product Delete Confirmation Modal -->
+<div class="modal fade" id="deleteProductModal" tabindex="-1" role="dialog" aria-labelledby="deleteProductModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteProductModalLabel">
+          <i class="fas fa-trash-alt"></i>
+          Mahsulotni O'chirish
+        </h5>
+        <button type="button" class="btn-close btn-close-white" onclick="hideModal('deleteProductModal')" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i>
+          <strong>Diqqat!</strong> Bu amalni bekor qilib bo'lmaydi.
+        </div>
+        <p>Ushbu mahsulotni o'chirmoqchimisiz?</p>
+        <div class="product-delete-info" id="deleteProductInfo">
+          <!-- Product info will be populated here -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="hideModal('deleteProductModal')">
+          <i class="fas fa-times"></i>
+          Bekor qilish
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+          <i class="fas fa-trash-alt"></i>
+          O'chirish
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Status Change Modal -->
+<div class="modal fade" id="statusChangeModal" tabindex="-1" role="dialog" aria-labelledby="statusChangeModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="statusChangeModalLabel">
+          <i class="fas fa-toggle-on"></i>
+          Mahsulot Holatini O'zgartirish
+        </h5>
+        <button type="button" class="btn-close" onclick="hideModal('statusChangeModal')" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="statusChangeForm">
+          <div class="mb-3">
+            <label for="newStatus" class="form-label">Yangi holat:</label>
+            <select class="form-select" id="newStatus" name="status" required>
+              <option value="">Holatni tanlang</option>
+              <option value="active">✅ Faol</option>
+              <option value="inactive">⏸️ Nofaol</option>
+              <option value="draft">📝 Qoralama</option>
+              <option value="archived">📦 Arxivlangan</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="statusReason" class="form-label">Sabab (ixtiyoriy):</label>
+            <textarea class="form-control" id="statusReason" name="reason" rows="3" placeholder="Holat o'zgarishining sababini kiriting..."></textarea>
+          </div>
+          <input type="hidden" id="statusProductId" name="productId">
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="hideModal('statusChangeModal')">
+          <i class="fas fa-times"></i>
+          Bekor qilish
+        </button>
+        <button type="submit" form="statusChangeForm" class="btn btn-primary" id="statusChangeSubmitBtn">
+          <i class="fas fa-save"></i>
+          Saqlash
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Marketplace Publish Modal -->
+<div class="modal fade" id="marketplaceModal" tabindex="-1" role="dialog" aria-labelledby="marketplaceModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="marketplaceModalLabel">
+          <i class="fas fa-store"></i>
+          Sotuvga Chiqarish
+        </h5>
+        <button type="button" class="btn-close" onclick="hideModal('marketplaceModal')" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="marketplaceForm">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <strong>Ma'lumot:</strong> Mahsulot sotuvga chiqarilgandan so'ng, uni barcha foydalanuvchilar ko'ra oladi.
+          </div>
+          
+          <div class="mb-3">
+            <label for="marketplacePrice" class="form-label">Sotuv narxi:</label>
+            <div class="input-group">
+              <input type="number" class="form-control" id="marketplacePrice" name="price" step="0.01" min="0" required>
+              <span class="input-group-text">UZS</span>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="marketplaceQuantity" class="form-label">Mavjud miqdor:</label>
+            <input type="number" class="form-control" id="marketplaceQuantity" name="quantity" min="1" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="marketplaceDiscount" class="form-label">Chegirma (%):</label>
+            <input type="number" class="form-control" id="marketplaceDiscount" name="discount" min="0" max="100" value="0">
+          </div>
+          
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="featuredProduct" name="featured">
+            <label class="form-check-label" for="featuredProduct">
+              ⭐ Tavsiya etilgan mahsulot
+            </label>
+          </div>
+          
+          <input type="hidden" id="marketplaceProductId" name="productId">
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="hideModal('marketplaceModal')">
+          <i class="fas fa-times"></i>
+          Bekor qilish
+        </button>
+        <button type="submit" form="marketplaceForm" class="btn btn-success" id="marketplaceSubmitBtn">
+          <i class="fas fa-upload"></i>
+          Sotuvga Chiqarish
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Duplicate Product Modal -->
+<div class="modal fade" id="duplicateModal" tabindex="-1" role="dialog" aria-labelledby="duplicateModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="duplicateModalLabel">
+          <i class="fas fa-copy"></i>
+          Mahsulotni Nusxalash
+        </h5>
+        <button type="button" class="btn-close" onclick="hideModal('duplicateModal')" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="duplicateForm">
+          <div class="mb-3">
+            <label for="duplicateName" class="form-label">Yangi mahsulot nomi:</label>
+            <input type="text" class="form-control" id="duplicateName" name="name" required>
+          </div>
+          <div class="mb-3">
+            <label for="duplicateCode" class="form-label">Yangi mahsulot kodi:</label>
+            <input type="text" class="form-control" id="duplicateCode" name="code" required>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="duplicateImages" name="includeImages" checked>
+            <label class="form-check-label" for="duplicateImages">
+              Rasmlarni ham nusxalash
+            </label>
+          </div>
+          <input type="hidden" id="duplicateProductId" name="productId">
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="hideModal('duplicateModal')">
+          <i class="fas fa-times"></i>
+          Bekor qilish
+        </button>
+        <button type="submit" form="duplicateForm" class="btn btn-primary" id="duplicateSubmitBtn">
+          <i class="fas fa-copy"></i>
+          Nusxalash
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11;">
+  <!-- Toasts will be dynamically added here -->
+</div>
+
+  <!-- Bootstrap 5 JavaScript -->
+  <script src="/assets/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Real Data Loading Script -->
+  <script>
+    // Load real products statistics
+    async function loadProductsData() {
+      try {
+        console.log('📊 Loading real products data...');
+        
+        const response = await fetch('/api/manufacturer/products/stats', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getCookie('accessToken')}`
+          },
+          credentials: 'same-origin'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('📊 Products data received:', data);
+          
+          // Update KPI values
+          updateProductsKPIs(data);
+          
+        } else {
+          console.error('❌ Failed to load products data');
+          // Use fallback static data
+          updateProductsKPIs({
+            totalProducts: 0,
+            activeProducts: 0,
+            marketplaceProducts: 0,
+            draftProducts: 0
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error loading products data:', error);
+        // Use fallback static data
+        updateProductsKPIs({
+          totalProducts: 0,
+          activeProducts: 0,
+          marketplaceProducts: 0,
+          draftProducts: 0
+        });
+      }
+    }
+
+    // Update products KPIs with real data
+    function updateProductsKPIs(data) {
+      // Update Total Products
+      const totalProductsElement = document.getElementById('totalProductsValue');
+      if (totalProductsElement) {
+        totalProductsElement.innerHTML = data.totalProducts !== undefined ? data.totalProducts.toLocaleString() : '0';
+      }
+      
+      // Update Active Products
+      const activeProductsElement = document.getElementById('activeProductsValue');
+      if (activeProductsElement) {
+        activeProductsElement.innerHTML = data.activeProducts !== undefined ? data.activeProducts.toLocaleString() : '0';
+      }
+      
+      // Update Marketplace Products
+      const marketplaceProductsElement = document.getElementById('marketplaceProductsValue');
+      if (marketplaceProductsElement) {
+        marketplaceProductsElement.innerHTML = data.marketplaceProducts !== undefined ? data.marketplaceProducts.toLocaleString() : '0';
+      }
+      
+      // Update Draft Products
+      const draftProductsElement = document.getElementById('draftProductsValue');
+      if (draftProductsElement) {
+        draftProductsElement.innerHTML = data.draftProducts !== undefined ? data.draftProducts.toLocaleString() : '0';
+      }
+      
+      console.log('✅ Products KPIs updated with real data');
+    }
+
+    // Get cookie helper function
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
+    // Initialize products page functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('📦 Initializing Products Management...');
+      
+      // Load real products data
+      loadProductsData();
+      
+      console.log('✅ Products Management initialized successfully');
+    });
+  </script>
+  
+  <!-- Enhanced Products Management JavaScript -->
+  <script src="/js/manufacturer/products-management-enhanced.js"></script>
+
+</body>
+</html>

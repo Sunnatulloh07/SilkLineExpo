@@ -91,6 +91,68 @@ router.get('/logout',
 );
 
 /**
+ * GET /auth/me - Get current user information
+ * Returns authenticated user's profile data
+ */
+router.get('/me', 
+    authRateLimit,
+    async (req, res) => {
+        try {
+            const TokenService = require('../services/TokenService');
+            const tokens = TokenService.extractTokensFromRequest(req);
+            
+            if (!tokens.accessToken) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Not authenticated',
+                    error: 'NO_TOKEN'
+                });
+            }
+            
+            const accessTokenResult = TokenService.verifyAccessToken(tokens.accessToken);
+            
+            if (!accessTokenResult.valid) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Invalid or expired token',
+                    error: 'INVALID_TOKEN'
+                });
+            }
+            
+            const { payload } = accessTokenResult;
+            
+            return res.json({
+                success: true,
+                data: {
+                    user: {
+                        id: payload.userId,
+                        name: payload.name,
+                        email: payload.email,
+                        role: payload.role,
+                        userType: payload.userType,
+                        permissions: payload.permissions || [],
+                        companyName: payload.companyName,
+                        isActive: payload.isActive !== false
+                    },
+                    token: {
+                        expiresAt: payload.exp,
+                        issuedAt: payload.iat
+                    }
+                }
+            });
+            
+        } catch (error) {
+            console.error('❌ /auth/me error:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Internal server error',
+                error: 'SERVER_ERROR'
+            });
+        }
+    }
+);
+
+/**
  * GET /auth/check - Check authentication status
  * Returns current user info and appropriate dashboard route
  */

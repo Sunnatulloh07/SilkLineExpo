@@ -4894,7 +4894,7 @@ class AdminService {
         throw new Error('Invalid order ID format');
       }
 
-      const validStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'completed', 'cancelled'];
+      const validStatuses = ['pending', 'confirmed', 'processing', 'manufacturing', 'ready_to_ship', 'shipped', 'out_for_delivery', 'delivered', 'completed', 'cancelled'];
       if (!validStatuses.includes(newStatus)) {
         throw new Error('Invalid status value');
       }

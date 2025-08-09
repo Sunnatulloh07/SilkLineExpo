@@ -71,7 +71,6 @@ class AuthService {
           country: newUser.country,
           companyType: newUser.companyType
         });
-        console.log('✅ Admin notification created for new user registration:', newUser.email);
       } catch (notificationError) {
         console.error('❌ Failed to create admin notification:', notificationError);
         // Don't fail the registration if notification fails
@@ -154,7 +153,11 @@ class AuthService {
         userType: userType,
         preferredLanguage: user.preferredLanguage,
         sessionToken,
-        rememberMe
+        rememberMe,
+        
+        // CRITICAL: Add company-specific fields for JWT token payload
+        companyType: userType === 'user' ? user.companyType : undefined,
+        companyName: userType === 'user' ? user.companyName : undefined
       };
 
     } catch (error) {

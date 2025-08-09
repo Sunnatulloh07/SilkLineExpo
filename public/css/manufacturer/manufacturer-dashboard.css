@@ -69,6 +69,88 @@
 }
 
 /* ===============================================
+   DARK MODE - PRODUCTS PAGE STYLES
+   =============================================== */
+[data-theme="dark"] .products-table {
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .products-table th {
+  background-color: #334155;
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .products-table td {
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .products-table tbody tr:hover {
+  background-color: #334155;
+}
+
+[data-theme="dark"] .products-card {
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .products-stat-card {
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .products-filters-panel {
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .products-form-select,
+[data-theme="dark"] .products-form-input {
+  background-color: #334155;
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .products-btn-primary {
+  background-color: var(--manufacturer-primary);
+  border-color: var(--manufacturer-primary);
+}
+
+[data-theme="dark"] .products-btn-secondary {
+  background-color: #334155;
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .table-action-btn.info {
+  background-color: #0891b2;
+  color: white;
+}
+
+[data-theme="dark"] .table-action-btn.info:hover {
+  background-color: #0e7490;
+}
+
+[data-theme="dark"] .modal-content {
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal-header {
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-footer {
+  border-color: var(--border-color);
+}
+
+/* ===============================================
    BASE LAYOUT
    =============================================== */
 .manufacturer-dashboard {

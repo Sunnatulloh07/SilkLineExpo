@@ -266,6 +266,11 @@ class JWTAuthController {
         email: authResult.user.email,
         name: authResult.user.name,
         permissions: authResult.user.permissions || [],
+        
+        // CRITICAL: Add company-specific fields for proper dashboard routing
+        companyType: authResult.userType === 'user' ? authResult.user.companyType : undefined,
+        companyName: authResult.userType === 'user' ? authResult.user.companyName : undefined,
+        companyId: authResult.userType === 'user' ? authResult.user._id.toString() : undefined
       };
 
       const tokens = TokenService.generateTokenPair(tokenPayload);

@@ -53,6 +53,9 @@
       --header-brand-text: 'Manufacturing';
     }
   </style>
+  
+  <!-- JWT Token Manager - Auto refresh tokens -->
+  <script src="/js/auth-token-manager.js"></script>
 </head>
 
 <body class="theme-transition">
@@ -162,7 +165,9 @@
             </div>
             <div class="dropdown-content">
               <div class="message-item unread">
-                <img src="/images/default-avatar.png" alt="Avatar" class="message-avatar">
+                <div class="message-avatar-placeholder">
+                  <i class="fas fa-user"></i>
+                </div>
                 <div class="message-content">
                   <h4 class="message-sender">Tashkent Textiles Co.</h4>
                   <p class="message-text">500m paxta mato narxi qancha?</p>
@@ -170,7 +175,9 @@
                 </div>
               </div>
               <div class="message-item unread">
-                <img src="/images/default-avatar.png" alt="Avatar" class="message-avatar">
+                <div class="message-avatar-placeholder">
+                  <i class="fas fa-user"></i>
+                </div>
                 <div class="message-content">
                   <h4 class="message-sender">Samarkand Distribution</h4>
                   <p class="message-text">Buyurtma #1234 qachon tayyor?</p>
@@ -178,7 +185,9 @@
                 </div>
               </div>
               <div class="message-item">
-                <img src="/images/default-avatar.png" alt="Avatar" class="message-avatar">
+                <div class="message-avatar-placeholder">
+                  <i class="fas fa-user"></i>
+                </div>
                 <div class="message-content">
                   <h4 class="message-sender">Bukhara Wholesale</h4>
                   <p class="message-text">Namuna olish mumkinmi?</p>

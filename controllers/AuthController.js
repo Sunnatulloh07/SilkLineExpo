@@ -165,7 +165,6 @@ class AuthController {
 
       // Input validation
       if (!loginIdentifier || !password) {
-        console.log('🔍 DEBUG: Missing required fields - identifier:', !!loginIdentifier, 'password:', !!password);
         const t = req.t || ((key) => key);
         return this.sendError(res, 400, t('login.errors.requiredFields'));
       }
@@ -230,7 +229,12 @@ class AuthController {
         role: authResult.role || 'company_admin',
         email: authResult.email,
         name: authResult.name,
-        permissions: [] // Add permissions if needed
+        permissions: [], // Add permissions if needed
+        
+        // CRITICAL: Add company-specific fields for proper dashboard routing
+        companyType: authResult.companyType,
+        companyName: authResult.companyName,
+        companyId: authResult.userId.toString() // Company users use userId as companyId
       };
 
       // Generate tokens using TokenService
@@ -260,8 +264,6 @@ class AuthController {
 
       // Determine redirect URL based on role
       const redirectUrl = this.getRedirectUrl(authResult.userType, authResult.role);
-
-      console.log(`✅ Login successful for ${loginIdentifier} (${authResult.userType})`);
 
       // Success response
       const t = req.t || ((key) => key);
@@ -297,17 +299,10 @@ class AuthController {
    */
   async adminLogin(req, res) {
     try {
-      console.log('🔍 DEBUG: Admin login request received:', {
-        body: req.body,
-        headers: req.headers['content-type']
-      });
-      
       // Extract identifier from email field for backward compatibility
       if (req.body.email && !req.body.identifier) {
         req.body.identifier = req.body.email;
       }
-      
-      console.log('🔍 DEBUG: Processing admin login with identifier:', req.body.identifier);
       return await this.login(req, res);
     } catch (error) {
       console.error('🔥 Admin login error:', error);

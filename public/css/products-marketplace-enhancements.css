@@ -1,0 +1,298 @@
+/**
+ * Marketplace-Style Enhancements for Products Page
+ * B2B Professional Design System
+ * Dark Mode Compatible
+ */
+
+/* ===== MARKETPLACE ANIMATIONS ===== */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  0% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideInFromRight 0.5s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s ease-out;
+}
+
+/* Staggered animations */
+.products-stat-card:nth-child(1) { animation-delay: 0.1s; }
+.products-stat-card:nth-child(2) { animation-delay: 0.2s; }
+.products-stat-card:nth-child(3) { animation-delay: 0.3s; }
+.products-stat-card:nth-child(4) { animation-delay: 0.4s; }
+.products-stat-card:nth-child(5) { animation-delay: 0.5s; }
+
+/* ===== MARKETPLACE LOADING STATES ===== */
+.loading-skeleton {
+  background: linear-gradient(90deg, 
+    var(--bg-secondary) 0%, 
+    var(--bg-tertiary) 50%, 
+    var(--bg-secondary) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.loading-placeholder {
+  display: inline-block;
+  width: 60px;
+  height: 24px;
+  background: var(--loading-skeleton, #f3f4f6);
+  border-radius: 4px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ===== MARKETPLACE BADGES ===== */
+.marketplace-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: 12px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.marketplace-badge.featured {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.marketplace-badge.new {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.marketplace-badge.trending {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.5); }
+  100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.8); }
+}
+
+/* ===== ENHANCED HOVER EFFECTS ===== */
+.marketplace-hover {
+  position: relative;
+  overflow: hidden;
+}
+
+.marketplace-hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.1) 50%, 
+    transparent 100%
+  );
+  transition: left 0.5s ease;
+}
+
+.marketplace-hover:hover::before {
+  left: 100%;
+}
+
+/* ===== PROFESSIONAL STATUS INDICATORS ===== */
+.status-indicator {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.status-indicator::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: statusPulse 2s infinite;
+}
+
+@keyframes statusPulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.status-indicator.active::before { background: #10b981; }
+.status-indicator.inactive::before { background: #ef4444; }
+.status-indicator.draft::before { background: #f59e0b; }
+
+/* ===== MARKETPLACE TOOLTIPS ===== */
+.marketplace-tooltip {
+  position: relative;
+  cursor: help;
+}
+
+.marketplace-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+  box-shadow: var(--shadow-lg);
+}
+
+.marketplace-tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+/* ===== ENHANCED BUTTONS ===== */
+.marketplace-button {
+  position: relative;
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: var(--space-3) var(--space-5);
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.marketplace-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.marketplace-button:hover::before {
+  left: 100%;
+}
+
+.marketplace-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* ===== DARK MODE ENHANCEMENTS ===== */
+[data-theme="dark"] .loading-skeleton {
+  background: linear-gradient(90deg, 
+    var(--bg-secondary) 0%, 
+    var(--bg-tertiary) 50%, 
+    var(--bg-secondary) 100%
+  );
+}
+
+[data-theme="dark"] .loading-placeholder {
+  background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .marketplace-tooltip::after {
+  background: var(--bg-elevated);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .marketplace-hover::before {
+  background: linear-gradient(
+    90deg, 
+    transparent 0%, 
+    rgba(168, 85, 247, 0.1) 50%, 
+    transparent 100%
+  );
+}
+
+/* ===== RESPONSIVE ENHANCEMENTS ===== */
+@media (max-width: 768px) {
+  .marketplace-badge {
+    font-size: 0.65rem;
+    padding: 2px var(--space-1);
+  }
+  
+  .marketplace-button {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-sm);
+  }
+  
+  .marketplace-tooltip::after {
+    font-size: 0.65rem;
+    padding: var(--space-1) var(--space-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .animate-fade-in,
+  .animate-slide-in,
+  .animate-scale-in {
+    animation: none; /* Disable animations on mobile for performance */
+  }
+}

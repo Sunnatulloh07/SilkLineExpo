@@ -421,7 +421,7 @@ class TokenManager {
     }
 
     /**
-     * Handle refresh token failure
+     * Handle refresh token failure - ✅ TUZATILDI: Kamroq aggressive
      */
     async handleRefreshFailure(error) {
         this.retryCount++;
@@ -435,8 +435,20 @@ class TokenManager {
             
             return this.refreshToken();
         } else {
-            this.log('❌ Max retries exceeded - redirecting to login');
-            await this.redirectToLogin();
+            // ✅ FIXED: Redirectni darhol qilmaslik
+            this.log('⚠️ Max retries exceeded - but keeping session active');
+            
+            // Reset retry count for future attempts
+            this.retryCount = 0;
+            
+            // ✅ FIXED: 5 daqiqadan keyin qayta urinish
+            setTimeout(() => {
+                this.log('🔄 Attempting token refresh after cooldown period');
+                this.checkAndRefreshToken();
+            }, 5 * 60 * 1000); // 5 daqiqa
+            
+            // ✅ Session auth bilan ishlashga ruxsat ber
+            this.log('📝 Falling back to session-based authentication');
         }
     }
 

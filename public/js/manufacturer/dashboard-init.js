@@ -6,36 +6,106 @@
 (function() {
     'use strict';
     
-    // Theme Management
+    // Development mode detection
+    const isDevelopment = (function() {
+        return window.location.hostname === 'localhost' || 
+               window.location.hostname === '127.0.0.1' || 
+               window.location.hostname.includes('dev') ||
+               localStorage.getItem('debug_mode') === 'true';
+    })();
+    
+    // Safe console wrapper
+    const safeConsole = {
+        log: function(...args) {
+            if (isDevelopment && typeof console !== 'undefined' && console.log) {
+                console.log(...args);
+            }
+        },
+        warn: function(...args) {
+            if (typeof console !== 'undefined' && console.warn) {
+                console.warn(...args);
+            }
+        },
+        error: function(...args) {
+            if (typeof console !== 'undefined' && console.error) {
+                console.error(...args);
+            }
+        }
+    };
+    
+    // Theme Management with Error Handling
     function initTheme() {
-        const savedTheme = localStorage.getItem('dashboard-theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        
-        // Update theme icon
-        const themeToggle = document.getElementById('themeToggle');
-        if (themeToggle) {
-            const icon = themeToggle.querySelector('i');
-            if (icon) {
-                icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        try {
+            // Safe localStorage access with fallback
+            let savedTheme = 'light';
+            try {
+                savedTheme = localStorage.getItem('dashboard-theme') || 'light';
+            } catch (e) {
+                safeConsole.warn('localStorage not available, using default theme:', e.message);
             }
             
-            // Theme toggle handler
-            themeToggle.addEventListener('click', function() {
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            // Safe DOM attribute setting
+            if (document.documentElement) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            }
+            
+            // Update theme icon with error checking
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                updateThemeIcon(themeToggle, savedTheme);
                 
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('dashboard-theme', newTheme);
-                
-                // Update icon
-                const icon = this.querySelector('i');
-                if (icon) {
-                    icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-                }
-                
-                // Dispatch event
-                window.dispatchEvent(new CustomEvent('themeChanged', { detail: newTheme }));
-            });
+                // Theme toggle handler with error handling
+                themeToggle.addEventListener('click', function() {
+                    try {
+                        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                        
+                        // Apply theme
+                        document.documentElement.setAttribute('data-theme', newTheme);
+                        
+                        // Save to localStorage with fallback
+                        try {
+                            localStorage.setItem('dashboard-theme', newTheme);
+                        } catch (e) {
+                            safeConsole.warn('Failed to save theme to localStorage:', e.message);
+                        }
+                        
+                        // Update icon
+                        updateThemeIcon(this, newTheme);
+                        
+                        // Dispatch event safely
+                        if (window.dispatchEvent && typeof CustomEvent !== 'undefined') {
+                            window.dispatchEvent(new CustomEvent('themeChanged', { detail: newTheme }));
+                        }
+                        
+                    } catch (error) {
+                        safeConsole.error('Theme toggle failed:', error);
+                        // Fallback - ensure at least light theme is applied
+                        document.documentElement.setAttribute('data-theme', 'light');
+                    }
+                });
+            } else {
+                safeConsole.warn('Theme toggle button not found');
+            }
+            
+        } catch (error) {
+            safeConsole.error('Theme initialization failed:', error);
+            // Fallback to light theme
+            if (document.documentElement) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        }
+    }
+    
+    // Helper function to update theme icon safely
+    function updateThemeIcon(toggleElement, theme) {
+        try {
+            const icon = toggleElement.querySelector('i');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+        } catch (error) {
+            safeConsole.warn('Failed to update theme icon:', error);
         }
     }
     
@@ -60,6 +130,15 @@
         if (languageToggle && languageMenu) {
             languageToggle.addEventListener('click', function(e) {
                 e.stopPropagation();
+                
+                // Close all other dropdowns first
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    if (menu !== languageMenu) {
+                        menu.classList.add('hidden');
+                    }
+                });
+                
+                // Toggle language dropdown
                 languageMenu.classList.toggle('hidden');
             });
             
@@ -79,17 +158,26 @@
         }
     }
     
-    // Dropdown Management
+    // Dropdown Management - PROFESSIONAL HEADER SYSTEM
     function initDropdowns() {
-        // Close dropdowns on outside click
+        // Close dropdowns on outside click - ENHANCED
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.header-dropdown') && 
                 !e.target.closest('.header-user-dropdown') &&
-                !e.target.closest('.language-selector-wrapper')) {
+                !e.target.closest('.language-dropdown') &&
+                !e.target.closest('#languageToggle') &&
+                !e.target.closest('#languageMenu')) {
                 
+                // Close all dropdowns including language menu
                 document.querySelectorAll('.dropdown-menu').forEach(menu => {
                     menu.classList.add('hidden');
                 });
+                
+                // Specifically close language menu
+                const languageMenu = document.getElementById('languageMenu');
+                if (languageMenu) {
+                    languageMenu.classList.add('hidden');
+                }
             }
         });
         
@@ -100,6 +188,21 @@
         if (userProfileToggle && profileDropdown) {
             userProfileToggle.addEventListener('click', function(e) {
                 e.stopPropagation();
+                
+                // Close all other dropdowns first
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    if (menu !== profileDropdown) {
+                        menu.classList.add('hidden');
+                    }
+                });
+                
+                // Close language menu specifically
+                const languageMenu = document.getElementById('languageMenu');
+                if (languageMenu) {
+                    languageMenu.classList.add('hidden');
+                }
+                
+                // Toggle profile dropdown
                 profileDropdown.classList.toggle('hidden');
             });
         }
@@ -111,6 +214,21 @@
         if (alertsBtn && alertsDropdown) {
             alertsBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
+                
+                // Close all other dropdowns first
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    if (menu !== alertsDropdown) {
+                        menu.classList.add('hidden');
+                    }
+                });
+                
+                // Close language menu specifically
+                const languageMenu = document.getElementById('languageMenu');
+                if (languageMenu) {
+                    languageMenu.classList.add('hidden');
+                }
+                
+                // Toggle alerts dropdown
                 alertsDropdown.classList.toggle('hidden');
             });
         }
@@ -122,6 +240,21 @@
         if (notificationsBtn && notificationsDropdown) {
             notificationsBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
+                
+                // Close all other dropdowns first
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    if (menu !== notificationsDropdown) {
+                        menu.classList.add('hidden');
+                    }
+                });
+                
+                // Close language menu specifically
+                const languageMenu = document.getElementById('languageMenu');
+                if (languageMenu) {
+                    languageMenu.classList.add('hidden');
+                }
+                
+                // Toggle notifications dropdown
                 notificationsDropdown.classList.toggle('hidden');
             });
         }
@@ -133,6 +266,21 @@
         if (messagesBtn && messagesDropdown) {
             messagesBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
+                
+                // Close all other dropdowns first
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    if (menu !== messagesDropdown) {
+                        menu.classList.add('hidden');
+                    }
+                });
+                
+                // Close language menu specifically
+                const languageMenu = document.getElementById('languageMenu');
+                if (languageMenu) {
+                    languageMenu.classList.add('hidden');
+                }
+                
+                // Toggle messages dropdown
                 messagesDropdown.classList.toggle('hidden');
             });
         }

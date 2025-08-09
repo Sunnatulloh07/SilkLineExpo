@@ -90,6 +90,11 @@ class JWTAuthMiddleware {
                 req.user = accessTokenResult.payload;
                 req.sessionId = tokens.sessionId;
                 
+                // Ensure compatibility: map userId to _id for MongoDB consistency
+                if (req.user.userId && !req.user._id) {
+                    req.user._id = req.user.userId;
+                }
+                
                 // Update last activity for security monitoring
                 if (req.user && req.user.userId) {
                     req.user.lastActivity = new Date();
@@ -109,10 +114,12 @@ class JWTAuthMiddleware {
                         req.user = refreshResult.user;
                         req.sessionId = refreshResult.sessionId;
                         
-                        console.log(`✅ Token refresh successful for user: ${req.user.userId}`);
+                        // Ensure compatibility: map userId to _id for MongoDB consistency
+                        if (req.user.userId && !req.user._id) {
+                            req.user._id = req.user.userId;
+                        }
+                        
                         return next();
-                    } else {
-                        console.log(`❌ Token refresh failed: ${refreshResult.error}`);
                     }
                 } catch (refreshError) {
                     console.error(`❌ Token refresh error: ${refreshError.message}`);
@@ -381,8 +388,7 @@ class JWTAuthMiddleware {
                     lastActivity: new Date()
                 };
 
-                console.log(`✅ Token refresh successful for user: ${userPayload.userId} (${userPayload.userType})`);
-                
+
                 return {
                     success: true,
                     user: userPayload,
@@ -391,7 +397,6 @@ class JWTAuthMiddleware {
                 };
             }
             
-            console.log(`❌ Token refresh failed: ${refreshResult.error}`);
             return { 
                 success: false, 
                 error: refreshResult.error || 'Token refresh failed',
@@ -526,12 +531,55 @@ class JWTAuthMiddleware {
         try {
             const tokens = TokenService.extractTokensFromRequest(req);
             
+
+            
             if (tokens.accessToken) {
                 const accessTokenResult = TokenService.verifyAccessToken(tokens.accessToken);
                 
+                
                 if (accessTokenResult.valid) {
                     const userType = accessTokenResult.payload.userType;
-                    const redirectPath = userType === 'admin' ? '/admin/dashboard' : '/dashboard';
+                    const role = accessTokenResult.payload.role;
+                    const companyType = accessTokenResult.payload.companyType;
+                    const userId = accessTokenResult.payload.userId;
+                    
+        
+                    // Determine correct dashboard path with enhanced logic
+                    let redirectPath = '/dashboard'; // Default fallback
+                    
+                    if (userType === 'admin') {
+                        redirectPath = '/admin/dashboard';
+                    } else if (userType === 'user' && role === 'company_admin') {
+                        // If companyType is available, use it
+                        if (companyType === 'manufacturer') {
+                            redirectPath = '/manufacturer/dashboard';
+                        } else if (companyType === 'distributor') {
+                            redirectPath = '/distributor/dashboard';
+                        } else if (companyType === 'both') {
+                            // Default to manufacturer for "both" type companies
+                            redirectPath = '/manufacturer/dashboard';
+                        } else {
+                            // FALLBACK: If companyType is undefined/missing, fetch from database
+                            try {
+                                const User = require('../models/User');
+                                const user = await User.findById(userId).select('companyType');
+                                
+                                if (user && user.companyType) {
+                                    if (user.companyType === 'manufacturer' || user.companyType === 'both') {
+                                        redirectPath = '/manufacturer/dashboard';
+                                    } else if (user.companyType === 'distributor') {
+                                        redirectPath = '/distributor/dashboard';
+                                    }
+                                } else {
+                                    redirectPath = '/manufacturer/dashboard';
+                                }
+                            } catch (dbError) {
+                                console.error(`DB lookup failed for user ${userId}:`, dbError);
+                                redirectPath = '/manufacturer/dashboard'; // Safe default
+                            }
+                        }
+                    }
+                    
                     return res.redirect(redirectPath);
                 }
             }

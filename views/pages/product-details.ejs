@@ -1,6 +1,9 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
 
+<!-- Comments System Styles -->
+<link rel="stylesheet" href="/css/product-comments.css">
+
     <!-- ======================== Breadcrumb Two Section Start ===================== -->
     <section class="breadcrumb border-bottom p-0 d-block section-bg position-relative z-index-1">
 
@@ -65,23 +68,273 @@
         <div class="row gy-4">
           <div class="col-12">
             <!-- Product Details Content Start -->
-            <div class="product-details" id="product-details">
-              <div class="product-details__thumb" id="product-details__thumb">
-                <!-- product img -->
-                <img id="product-image" src="/assets/images/thumbs/product-details.png" alt="">
-              </div>
+                          <div class="product-details" id="product-details">
+                <div class="row">
+                  <div class="col-lg-6">
+                    <div class="product-details__thumb" id="product-details__thumb">
+                      <!-- product img -->
+                      <% if (product && product.images && product.images.length > 0) { %>
+                        <img id="product-image" src="<%= product.images[0].url || product.images[0] %>" alt="<%= product.title || product.name %>">
+                      <% } else { %>
+                        <img id="product-image" src="/assets/images/thumbs/product-details.png" alt="Product Image">
+                      <% } %>
+                    </div>
+                  </div>
+                  
+                  <div class="col-lg-6">
+                    <div class="product-info">
+                      <% if (product) { %>
+                        <h2 class="product-title mb-3"><%= product.title || product.name || 'Product Name' %></h2>
+                        
+                        <% if (company) { %>
+                          <div class="company-info mb-3">
+                            <h5 class="text-primary">
+                              <i class="fas fa-building me-2"></i>
+                              <%= company.companyName || company.name %>
+                            </h5>
+                            <% if (country) { %>
+                              <p class="text-muted">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                <%= country.name %>
+                              </p>
+                            <% } %>
+                          </div>
+                        <% } %>
+                        
+                        <% if (product.pricing && product.pricing.basePrice) { %>
+                          <div class="price-info mb-3">
+                            <h4 class="text-success">
+                              $<%= product.pricing.basePrice.toLocaleString() %>
+                              <% if (product.pricing.unit) { %>
+                                <small class="text-muted">/ <%= product.pricing.unit %></small>
+                              <% } %>
+                            </h4>
+                          </div>
+                        <% } %>
+                        
+                        <% if (product.category) { %>
+                          <div class="category-info mb-3">
+                            <span class="badge bg-primary">
+                              <%= product.category.name || product.category %>
+                            </span>
+                          </div>
+                        <% } %>
+                        
+                        <% if (product.analytics && product.analytics.averageRating && product.analytics.averageRating > 0) { %>
+                          <div class="rating-info mb-3">
+                            <div class="d-flex align-items-center">
+                              <div class="stars me-2">
+                                <% for (let i = 1; i <= 5; i++) { %>
+                                  <i class="<%= i <= Math.round(product.analytics.averageRating) ? 'fas' : 'far' %> fa-star text-warning"></i>
+                                <% } %>
+                              </div>
+                              <span class="rating-text">
+                                <%= product.analytics.averageRating.toFixed(1) %> 
+                                (<%= product.analytics.totalReviews || 0 %> izoh)
+                              </span>
+                            </div>
+                          </div>
+                        <% } %>
+                        
+                        <div class="action-buttons">
+                          <button class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-shopping-cart me-2"></i>
+                            Buyurtma berish
+                          </button>
+                          <button class="btn btn-outline-success btn-lg">
+                            <i class="fas fa-phone me-2"></i>
+                            Bog'lanish
+                          </button>
+                        </div>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
 
-              <!-- product information -->
-              <p id="product-description" class="product-details__desc">
-                <!-- description bu yerga yoziladi -->
-              </p>
-            </div>
+                <!-- product description -->
+                <div class="row mt-5">
+                  <div class="col-12">
+                    <h4 class="mb-3">Mahsulot haqida</h4>
+                    <p id="product-description" class="product-details__desc">
+                      <% if (product && product.description) { %>
+                        <%= product.description %>
+                      <% } else { %>
+                        Bu mahsulot haqida batafsil ma'lumot hozircha mavjud emas.
+                      <% } %>
+                    </p>
+                    
+                    <% if (product && product.specifications && Object.keys(product.specifications).length > 0) { %>
+                      <div class="specifications mt-4">
+                        <h5 class="mb-3">Texnik xususiyatlari</h5>
+                        <div class="table-responsive">
+                          <table class="table table-striped">
+                            <% for (const [key, value] of Object.entries(product.specifications)) { %>
+                              <tr>
+                                <td class="fw-bold"><%= key %></td>
+                                <td><%= value %></td>
+                              </tr>
+                            <% } %>
+                          </table>
+                        </div>
+                      </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
             <!-- Product Details Content End -->
           </div>
         </div>
       </div>
     </div>
     <!-- ======================= Product Details Section End ==================== -->
+
+    <!-- ======================= Comments Section Start ==================== -->
+    <div class="comments-wrapper mt-32 padding-b-60">
+      <div class="container container-two">
+        <div class="row">
+          <div class="col-12">
+            
+            <!-- Comments Header -->
+            <div class="comments-header mb-4">
+              <div class="d-flex justify-content-between align-items-center">
+                <h3 class="comments-title">
+                  <i class="fas fa-comments me-2"></i>
+                  Izohlar va Baholar
+                  <span class="comments-count badge bg-primary ms-2" id="comments-count">0</span>
+                </h3>
+                <div class="rating-summary" id="rating-summary">
+                  <div class="rating-stars">
+                    <span class="rating-average">0.0</span>
+                    <div class="stars ms-2">
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comment Form -->
+            <div class="comment-form-wrapper mb-5" id="comment-form-wrapper">
+              <!-- Login prompt for unauthenticated users -->
+              <div class="login-prompt d-none" id="login-prompt">
+                <div class="alert alert-info">
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle me-3"></i>
+                    <div>
+                      <h6 class="mb-1">Izoh qoldirish uchun tizimga kiring</h6>
+                      <p class="mb-2">Mahsulot haqida fikr bildirish va baho berish uchun hisob yaratishingiz yoki kirishingiz kerak.</p>
+                      <a href="/auth/login" class="btn btn-primary btn-sm me-2">
+                        <i class="fas fa-sign-in-alt me-1"></i>
+                        Kirish
+                      </a>
+                      <a href="/auth/register" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-user-plus me-1"></i>
+                        Ro'yxatdan o'tish
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card" id="comment-form-card">
+                <div class="card-header">
+                  <h5 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>
+                    Izoh qo'shish
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <form id="comment-form">
+                    <div class="row">
+                      <div class="col-md-6 mb-3">
+                        <label for="comment-rating" class="form-label">Baho berish</label>
+                        <div class="rating-input" id="rating-input">
+                          <input type="radio" name="rating" value="5" id="star5">
+                          <label for="star5" title="5 yulduz"><i class="fas fa-star"></i></label>
+                          <input type="radio" name="rating" value="4" id="star4">
+                          <label for="star4" title="4 yulduz"><i class="fas fa-star"></i></label>
+                          <input type="radio" name="rating" value="3" id="star3">
+                          <label for="star3" title="3 yulduz"><i class="fas fa-star"></i></label>
+                          <input type="radio" name="rating" value="2" id="star2">
+                          <label for="star2" title="2 yulduz"><i class="fas fa-star"></i></label>
+                          <input type="radio" name="rating" value="1" id="star1">
+                          <label for="star1" title="1 yulduz"><i class="fas fa-star"></i></label>
+                        </div>
+                      </div>
+                      <div class="col-md-6 mb-3">
+                        <label for="comment-type" class="form-label">Izoh turi</label>
+                        <select class="form-select" id="comment-type" name="type">
+                          <option value="review">Sharh</option>
+                          <option value="question">Savol</option>
+                          <option value="feedback">Fikr-mulohaza</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="comment-content" class="form-label">Izoh matni</label>
+                      <textarea 
+                        class="form-control" 
+                        id="comment-content" 
+                        name="content" 
+                        rows="4" 
+                        placeholder="Bu mahsulot haqida fikringizni yozing..."
+                        maxlength="1000"
+                        required
+                      ></textarea>
+                      <div class="form-text">
+                        <small class="text-muted">
+                          <span id="char-count">0</span>/1000 belgi
+                        </small>
+                      </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Izohingiz moderatsiyadan o'tgach ko'rsatiladi
+                      </small>
+                      <button type="submit" class="btn btn-primary" id="submit-comment">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        Izoh yuborish
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comments List -->
+            <div class="comments-list" id="comments-list">
+              <div class="text-center py-5" id="loading-comments">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Yuklanmoqda...</span>
+                </div>
+                <p class="mt-2 text-muted">Izohlar yuklanmoqda...</p>
+              </div>
+              
+              <div class="text-center py-5 d-none" id="no-comments">
+                <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Hozircha izohlar yo'q</h5>
+                <p class="text-muted">Birinchi bo'lib izoh qoldiring!</p>
+              </div>
+            </div>
+
+            <!-- Load More Button -->
+            <div class="text-center mt-4 d-none" id="load-more-wrapper">
+              <button class="btn btn-outline-primary" id="load-more-btn">
+                <i class="fas fa-chevron-down me-2"></i>
+                Ko'proq yuklash
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ======================= Comments Section End ==================== -->
 
     <!-- ======================== Brand Section Start ========================= -->
     <div class="brand ">
@@ -92,5 +345,15 @@
       </div>
     </div>
     <!-- ======================== Brand Section End ========================= -->
+
+<!-- Set product ID for JavaScript -->
+<% if (productId) { %>
+  <script>
+    window.productId = '<%= productId %>';
+  </script>
+<% } %>
+
+<!-- Comments System JavaScript -->
+<script src="/js/product-comments.js"></script>
 
 <%- include('../partials/footer') %>

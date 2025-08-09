@@ -16,7 +16,7 @@ class EmailService {
    */
   async initialize() {
     if (!this.emailEnabled) {
-      console.warn('Email service disabled - SMTP configuration not found');
+      console.log('ℹ️ Email service disabled - SMTP configuration not found');
       return;
     }
 

@@ -14,15 +14,22 @@ class TokenService {
         this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || this.generateSecureSecret();
         
         // Token expiration times
-        this.accessTokenExpiry = process.env.JWT_ACCESS_EXPIRY || '15m'; // 15 minutes
-        this.refreshTokenExpiry = process.env.JWT_REFRESH_EXPIRY || '3d'; // 3 days
+        this.accessTokenExpiry = process.env.JWT_ACCESS_EXPIRY || '30m'; // 30 minutes
+        this.refreshTokenExpiry = process.env.JWT_REFRESH_EXPIRY || '7d'; // 7 days
         
         // Cookie settings
         this.cookieOptions = {
             httpOnly: false, // Allow JavaScript access for API calls
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            path: '/'
+            path: '/',
+            domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined,
+            // Add maxAge for token cookies
+            maxAge: {
+                access: 30 * 60 * 1000, // 30 minutes
+                refresh: 7 * 24 * 60 * 60 * 1000, // 7 days
+                session: 7 * 24 * 60 * 60 * 1000  // 7 days
+            }
         };
         
         // Token blacklist for logout (in production use Redis)
@@ -281,19 +288,28 @@ class TokenService {
             }
 
             // Check if user is still active
-            if (userData.accountStatus !== 'active') {
+            if (userData.status !== 'active') {
                 throw new Error('User account is not active');
             }
 
-            // Generate new token pair
-            const newTokens = this.generateTokenPair({
+            // Generate new token pair with complete payload
+            const tokenPayload = {
                 userId: userData._id,
                 userType: payload.userType,
                 role: userData.role,
                 email: userData.email,
-                name: userData.name,
+                name: userData.name || userData.companyName,
                 permissions: userData.permissions || []
-            });
+            };
+
+            // CRITICAL: Add company-specific fields for company users
+            if (payload.userType === 'user') {
+                tokenPayload.companyType = userData.companyType;
+                tokenPayload.companyName = userData.companyName;
+                tokenPayload.companyId = userData._id.toString();
+            }
+
+            const newTokens = this.generateTokenPair(tokenPayload);
 
             // Blacklist old refresh token
             this.blacklistToken(refreshToken);
@@ -306,6 +322,7 @@ class TokenService {
         } catch (error) {
             return {
                 success: false,
+                message: error.message,
                 error: error.message
             };
         }
@@ -316,22 +333,24 @@ class TokenService {
      */
     setAuthCookies(res, tokens) {
         try {
-            // Access token cookie (shorter expiry)
+            // ✅ FIXED: Cookie expiry muammosi tuzatildi
+            
+            // Access token cookie - JWT expiry bilan mos kelishi uchun biroz ko'proq vaqt
             res.cookie('accessToken', tokens.accessToken, {
                 ...this.cookieOptions,
-                maxAge: 15 * 60 * 1000 // 15 minutes
+                maxAge: 30 * 60 * 1000 // ✅ 30 daqiqa (JWT 15min + 15min buffer)
             });
 
-            // Refresh token cookie (longer expiry)
+            // Refresh token cookie - JWT expiry bilan mos kelishi uchun biroz ko'proq vaqt
             res.cookie('refreshToken', tokens.refreshToken, {
                 ...this.cookieOptions,
-                maxAge: 3 * 24 * 60 * 60 * 1000 // 3 days
+                maxAge: 7 * 24 * 60 * 60 * 1000 // ✅ 7 kun (JWT 3kun + 4kun buffer)
             });
 
-            // Session ID cookie (for additional security)
+            // Session ID cookie - refresh token bilan bir xil
             res.cookie('sessionId', tokens.sessionId, {
                 ...this.cookieOptions,
-                maxAge: 3 * 24 * 60 * 60 * 1000 // 3 days
+                maxAge: 7 * 24 * 60 * 60 * 1000 // ✅ 7 kun
             });
 
             return true;
@@ -345,9 +364,17 @@ class TokenService {
      */
     clearAuthCookies(res) {
         try {
-            res.clearCookie('accessToken', this.cookieOptions);
-            res.clearCookie('refreshToken', this.cookieOptions);
-            res.clearCookie('sessionId', this.cookieOptions);
+            // For clearCookie, we only need path and domain, not maxAge
+            const clearOptions = {
+                httpOnly: this.cookieOptions.httpOnly,
+                secure: this.cookieOptions.secure,
+                sameSite: this.cookieOptions.sameSite,
+                path: this.cookieOptions.path || '/'
+            };
+            
+            res.clearCookie('accessToken', clearOptions);
+            res.clearCookie('refreshToken', clearOptions);
+            res.clearCookie('sessionId', clearOptions);
             return true;
         } catch (error) {
             throw new Error(`Failed to clear auth cookies: ${error.message}`);
@@ -355,15 +382,19 @@ class TokenService {
     }
 
     /**
-     * Extract tokens from request
+     * Extract tokens from request - Enhanced with debugging
      */
     extractTokensFromRequest(req) {
-        return {
+        const tokens = {
             accessToken: req.cookies?.accessToken || 
                         req.headers.authorization?.replace('Bearer ', ''),
             refreshToken: req.cookies?.refreshToken,
             sessionId: req.cookies?.sessionId
         };
+        
+
+        
+        return tokens;
     }
 
     /**

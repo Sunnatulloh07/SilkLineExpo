@@ -1963,7 +1963,7 @@ class AdminController {
   static getOrderStatusUpdateValidationRules() {
     return [
       param('orderId').isMongoId().withMessage('Invalid order ID format'),
-      body('status').isIn(['pending', 'confirmed', 'processing', 'shipped', 'completed', 'cancelled']).withMessage('Invalid status value'),
+      body('status').isIn(['pending', 'confirmed', 'processing', 'manufacturing', 'ready_to_ship', 'shipped', 'out_for_delivery', 'delivered', 'completed', 'cancelled']).withMessage('Invalid status value'),
       body('notes').optional().isLength({ min: 3, max: 500 }).withMessage('Notes must be between 3-500 characters')
     ];
   }

@@ -17,10 +17,7 @@ const PORT = process.env.PORT || 3005;
 
 // Database connection (optional - can work without MongoDB for now)
 if (process.env.MONGODB_URI) {
-  mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
+  mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('✅ Connected to MongoDB');
   })
@@ -226,6 +223,22 @@ app.use('/auth-old', jwtAuthRoutes);
 
 // Authentication API routes (for API clients)
 app.use('/api/auth', authRoutes);
+
+// Manufacturer Products API routes
+app.use('/api/manufacturer/products', require('./routes/api/manufacturer-products'));
+
+// Manufacturer Orders API routes
+app.use('/api/manufacturer/orders', require('./routes/api/manufacturer-orders'));
+app.use('/api/manufacturer/orders', require('./routes/api/manufacturer-orders-detail'));
+
+// Comments API routes
+app.use('/api', require('./routes/api/comments'));
+app.use('/api', require('./routes/api/order-comments'));
+
+
+
+// Countries API routes
+app.use('/api/countries', require('./routes/api/countries'));
 
 // Public API routes  
 app.use('/api', apiRoutes);

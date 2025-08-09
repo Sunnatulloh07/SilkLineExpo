@@ -295,6 +295,21 @@ const productSchema = new mongoose.Schema({
   isFeatured: {
     type: Boolean,
     default: false
+  },
+  
+  // Marketplace Information
+  publishedAt: {
+    type: Date,
+    index: true
+  },
+  
+  unpublishedAt: {
+    type: Date
+  },
+  
+  marketplaceCategory: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category'
   }
   
 }, {
