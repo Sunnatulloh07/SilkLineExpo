@@ -6,7 +6,7 @@
 
 class GlobalThemeManager {
     constructor() {
-        this.currentTheme = localStorage.getItem('slex_theme') || this.getSystemTheme();
+        this.currentTheme = localStorage.getItem('dashboard-theme') || this.getSystemTheme();
         this.currentLanguage = localStorage.getItem('slex_language') || this.getBrowserLanguage();
         this.supportedLanguages = this.getSupportedLanguages();
         
@@ -77,7 +77,7 @@ class GlobalThemeManager {
     toggleTheme() {
         this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
         this.applyTheme();
-        localStorage.setItem('slex_theme', this.currentTheme);
+        localStorage.setItem('dashboard-theme', this.currentTheme);
         
         // Show feedback
         this.showToast(
@@ -91,7 +91,7 @@ class GlobalThemeManager {
         if (['light', 'dark'].includes(theme)) {
             this.currentTheme = theme;
             this.applyTheme();
-            localStorage.setItem('slex_theme', theme);
+            localStorage.setItem('dashboard-theme', theme);
         }
     }
 
@@ -196,7 +196,7 @@ class GlobalThemeManager {
         // System theme change detection
         if (window.matchMedia) {
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                if (!localStorage.getItem('slex_theme')) {
+                if (!localStorage.getItem('dashboard-theme')) {
                     this.currentTheme = e.matches ? 'dark' : 'light';
                     this.applyTheme();
                 }
@@ -282,7 +282,7 @@ class GlobalThemeManager {
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 // Reapply theme when page becomes visible (in case it changed in another tab)
-                const savedTheme = localStorage.getItem('slex_theme');
+                const savedTheme = localStorage.getItem('dashboard-theme');
                 if (savedTheme && savedTheme !== this.currentTheme) {
                     this.currentTheme = savedTheme;
                     this.applyTheme();

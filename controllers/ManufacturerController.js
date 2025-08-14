@@ -130,7 +130,6 @@ class ManufacturerController {
     async showProducts(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            this.logger.log(`🔍 Products page: manufacturerId = ${manufacturerId}, user:`, req.user);
             
             // Get filters from query
             const filters = {
@@ -156,21 +155,18 @@ class ManufacturerController {
                     { page, limit }
                 );
             } catch (err) {
-                this.logger.error('❌ Error getting products:', err);
                 result = { products: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0, itemsPerPage: limit, hasNext: false, hasPrev: false } };
             }
 
             try {
                 categories = await this.manufacturerService.getActiveCategories();
             } catch (err) {
-                this.logger.error('❌ Error getting categories:', err);
                 categories = [];
             }
 
             try {
                 productStats = await this.manufacturerService.getProductStatistics(manufacturerId);
             } catch (err) {
-                this.logger.error('❌ Error getting product stats:', err);
                 productStats = {
                     totalProducts: 0,
                     activeProducts: 0,
@@ -195,11 +191,119 @@ class ManufacturerController {
             });
 
         } catch (error) {
-            this.logger.error('❌ Products page error:', error);
             res.status(500).json({ 
                 error: true, 
                 message: 'Mahsulotlar sahifasini yuklashda xatolik', 
                 details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+            });
+        }
+    }
+
+    /**
+     * Render product add page with categories and form data
+     */
+    async showAddProduct(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const lng = this.getLanguagePreference(req);
+            
+           // Get categories for the form
+            let categories = [];
+            try {
+                categories = await this.manufacturerService.getActiveCategories();
+            } catch (error) {
+                categories = [];
+            }
+
+            res.render('manufacturer/products/add', {
+                title: 'Yangi mahsulot qo\'shish',
+                lng: lng,
+                currentPage: 'products',
+                user: req.user,
+                categories: categories
+            });
+
+        } catch (error) {
+            res.status(500).render('manufacturer/error', {
+                title: 'Xatolik',
+                lng: this.getLanguagePreference(req),
+                user: req.user,
+                errorMessage: 'Sahifani yuklashda xatolik yuz berdi'
+            });
+        }
+    }
+
+    /**
+     * Render product edit page with existing product data
+     */
+    async showEditProduct(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const productId = req.params.id;
+            const lng = this.getLanguagePreference(req);
+            
+     
+
+            if (!productId) {
+                return res.status(400).render('manufacturer/error', {
+                    title: 'Xatolik',
+                    lng: lng,
+                    user: req.user,
+                    errorMessage: 'Mahsulot ID kiritilmagan'
+                });
+            }
+
+            // Get product data, categories, and analytics in parallel
+            let productData, categories, analytics;
+            
+            try {
+                const [product, categoriesResult, analyticsResult] = await Promise.all([
+                    this.manufacturerService.getProductById(productId, manufacturerId),
+                    this.manufacturerService.getActiveCategories(),
+                    this.manufacturerService.getProductAnalytics(productId, manufacturerId)
+                ]);
+                
+                productData = product;
+                categories = categoriesResult;
+                analytics = analyticsResult;
+                
+            } catch (error) {
+                  
+                // Provide fallback data
+                productData = null;
+                categories = [];
+                analytics = {
+                    views: { total: 0, thisMonth: 0, change: 0 },
+                    inquiries: { total: 0, thisMonth: 0, change: 0 },
+                    orders: { total: 0, thisMonth: 0, change: 0 }
+                };
+            }
+
+            if (!productData) {
+                return res.status(404).render('manufacturer/error', {
+                    title: 'Mahsulot topilmadi',
+                    lng: lng,
+                    user: req.user,
+                    errorMessage: 'Mahsulot topilmadi yoki ruxsat yo\'q'
+                });
+            }
+
+            res.render('manufacturer/products/edit', {
+                title: 'Mahsulotni tahrirlash',
+                lng: lng,
+                currentPage: 'products',
+                user: req.user,
+                product: productData,
+                categories: categories,
+                analytics: analytics
+            });
+
+        } catch (error) {
+            res.status(500).render('manufacturer/error', {
+                title: 'Xatolik',
+                lng: this.getLanguagePreference(req),
+                user: req.user,
+                errorMessage: 'Mahsulotni yuklashda xatolik yuz berdi'
             });
         }
     }
@@ -219,8 +323,7 @@ class ManufacturerController {
             });
 
         } catch (error) {
-            this.logger.error('❌ Distribution page error:', error);
-            res.status(500).render('error', { message: 'Failed to load distribution page' });
+             res.status(500).render('error', { message: 'Failed to load distribution page' });
         }
     }
 
@@ -239,8 +342,7 @@ class ManufacturerController {
             });
 
         } catch (error) {
-            this.logger.error('❌ Sales page error:', error);
-            res.status(500).render('error', { message: 'Failed to load sales page' });
+             res.status(500).render('error', { message: 'Failed to load sales page' });
         }
     }
 
@@ -259,8 +361,7 @@ class ManufacturerController {
             });
 
         } catch (error) {
-            this.logger.error('❌ Operations page error:', error);
-            res.status(500).render('error', { message: 'Failed to load operations page' });
+             res.status(500).render('error', { message: 'Failed to load operations page' });
         }
     }
 
@@ -272,8 +373,7 @@ class ManufacturerController {
     async showMarketplace(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            this.logger.log(`🛍️ Marketplace page request from manufacturer: ${manufacturerId}`);
-
+            
             // Get marketplace data for professional display
             const [
                 dashboardStats,
@@ -303,8 +403,7 @@ class ManufacturerController {
             });
 
         } catch (error) {
-            this.logger.error('❌ Marketplace page error:', error);
-            
+             
             // Render page with fallback data instead of error page
             res.render('manufacturer/marketplace/index', {
                 title: 'B2B Marketplace',
@@ -341,17 +440,380 @@ class ManufacturerController {
     async showSettings(req, res) {
         try {
             const manufacturerId = req.user.userId;
+            
+            // Get full user data including companyLogo for initial display
+            const fullUserData = await this.manufacturerService.getManufacturerSettings(manufacturerId);
+            
+            // Merge with req.user for backwards compatibility
+            const userData = {
+                ...req.user,
+                ...fullUserData
+            };
+
+            this.logger.log(`⚙️ Rendering settings page for: ${userData.companyName || userData.email}`);
+            this.logger.log(`🖼️ Company logo in user data:`, userData.companyLogo);
 
             res.render('manufacturer/settings/index', {
                 title: 'Settings',
                 currentPage: 'settings',
-                user: req.user,
+                user: userData,
                 layout: 'manufacturer/layout'
             });
 
         } catch (error) {
             this.logger.error('❌ Settings page error:', error);
             res.status(500).render('error', { message: 'Failed to load settings page' });
+        }
+    }
+
+    // ===============================================
+    // SETTINGS API METHODS
+    // ===============================================
+
+    /**
+     * Load manufacturer settings data
+     * GET /manufacturer/settings/load
+     */
+    async loadSettings(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            this.logger.log(`⚙️ Loading settings for manufacturer: ${manufacturerId}`);
+
+            const settingsData = await this.manufacturerService.getManufacturerSettings(manufacturerId);
+
+            res.json({
+                success: true,
+                data: settingsData,
+                timestamp: new Date().toISOString()
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Load settings error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to load settings data',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Save company information
+     * PUT /manufacturer/settings/company
+     */
+    async saveCompanyInfo(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const companyData = req.body;
+
+            this.logger.log(`💼 Saving company info for manufacturer: ${manufacturerId}`);
+
+            // Validate required fields
+            const requiredFields = ['companyName', 'activityType', 'taxNumber'];
+            for (const field of requiredFields) {
+                if (!companyData[field]) {
+                    return res.status(400).json({
+                        success: false,
+                        error: `${field} is required`
+                    });
+                }
+            }
+
+            // Additional validation
+            if (companyData.companyName && companyData.companyName.trim().length < 2) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Company name must be at least 2 characters'
+                });
+            }
+
+            if (companyData.taxNumber && !/^\d{6,20}$/.test(companyData.taxNumber.trim())) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Tax number must be 6-20 digits'
+                });
+            }
+
+            if (companyData.establishedYear) {
+                const year = parseInt(companyData.establishedYear);
+                const currentYear = new Date().getFullYear();
+                if (year < 1900 || year > currentYear) {
+                    return res.status(400).json({
+                        success: false,
+                        error: `Established year must be between 1900 and ${currentYear}`
+                    });
+                }
+            }
+
+            if (companyData.companyDescription && companyData.companyDescription.trim().length > 500) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Company description must not exceed 500 characters'
+                });
+            }
+
+            const result = await this.manufacturerService.updateCompanyInfo(manufacturerId, companyData);
+
+            res.json({
+                success: true,
+                message: 'Kompaniya ma\'lumotlari muvaffaqiyatli saqlandi',
+                data: result
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Save company info error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to save company information',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Save contact information
+     * PUT /manufacturer/settings/contact
+     */
+    async saveContactInfo(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const contactData = req.body;
+
+            this.logger.log(`📞 Saving contact info for manufacturer: ${manufacturerId}`);
+
+            // Validate email format
+            if (contactData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactData.email)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid email format'
+                });
+            }
+
+            const result = await this.manufacturerService.updateContactInfo(manufacturerId, contactData);
+
+            res.json({
+                success: true,
+                message: 'Aloqa ma\'lumotlari muvaffaqiyatli saqlandi',
+                data: result
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Save contact info error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to save contact information',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Save business information
+     * PUT /manufacturer/settings/business
+     */
+    async saveBusinessInfo(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const businessData = req.body;
+
+            this.logger.log(`🏭 Saving business info for manufacturer: ${manufacturerId}`);
+
+            const result = await this.manufacturerService.updateBusinessInfo(manufacturerId, businessData);
+
+            res.json({
+                success: true,
+                message: 'Biznes ma\'lumotlari muvaffaqiyatli saqlandi',
+                data: result
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Save business info error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to save business information',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Change password
+     * PUT /manufacturer/settings/change-password
+     */
+    async changePassword(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const { currentPassword, newPassword } = req.body;
+
+            this.logger.log(`🔐 Password change request for manufacturer: ${manufacturerId}`);
+
+            // Validate required fields
+            if (!currentPassword || !newPassword) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Current password and new password are required'
+                });
+            }
+
+            // Validate password strength
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+            if (!passwordRegex.test(newPassword)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Password must be at least 8 characters with uppercase, lowercase, and number'
+                });
+            }
+
+            const result = await this.manufacturerService.changePassword(manufacturerId, currentPassword, newPassword);
+
+            res.json({
+                success: true,
+                message: 'Parol muvaffaqiyatli o\'zgartirildi'
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Change password error:', error);
+            
+            if (error.message === 'Invalid current password') {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Joriy parol noto\'g\'ri'
+                });
+            }
+
+            res.status(500).json({
+                success: false,
+                error: 'Failed to change password',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Save preferences
+     * PUT /manufacturer/settings/preferences
+     */
+    async savePreferences(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const preferences = req.body;
+
+            this.logger.log(`⚙️ Saving preferences for manufacturer: ${manufacturerId}`);
+
+            const result = await this.manufacturerService.updatePreferences(manufacturerId, preferences);
+
+            res.json({
+                success: true,
+                message: 'Sozlamalar muvaffaqiyatli saqlandi',
+                data: result
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Save preferences error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to save preferences',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Save integrations
+     * PUT /manufacturer/settings/integrations
+     */
+    async saveIntegrations(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const integrations = req.body;
+
+            this.logger.log(`🔌 Saving integrations for manufacturer: ${manufacturerId}`);
+
+            const result = await this.manufacturerService.updateIntegrations(manufacturerId, integrations);
+
+            res.json({
+                success: true,
+                message: 'Integratsiyalar muvaffaqiyatli saqlandi',
+                data: result
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Save integrations error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to save integrations',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Upload company logo
+     * POST /manufacturer/settings/upload-logo
+     */
+    async uploadLogo(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            
+            this.logger.log(`📷 Logo upload request for manufacturer: ${manufacturerId}`);
+            this.logger.log(`📁 File received:`, {
+                filename: req.file?.filename,
+                originalname: req.file?.originalname,
+                size: req.file?.size,
+                mimetype: req.file?.mimetype
+            });
+
+            if (!req.file) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'No file uploaded'
+                });
+            }
+
+            const result = await this.manufacturerService.uploadCompanyLogo(manufacturerId, req.file);
+
+            res.json({
+                success: true,
+                message: 'Logo muvaffaqiyatli yuklandi',
+                data: {
+                    logoUrl: result.logoUrl,
+                    filename: result.filename
+                }
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Logo upload error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to upload logo',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Auto-save settings
+     * PUT /manufacturer/settings/auto-save
+     */
+    async autoSaveSettings(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const { tab, data } = req.body;
+
+            // Silent auto-save, no detailed logging
+            await this.manufacturerService.autoSaveSettings(manufacturerId, tab, data);
+
+            res.json({
+                success: true,
+                timestamp: new Date().toISOString()
+            });
+
+        } catch (error) {
+            // Silent failure for auto-save
+            res.json({
+                success: false,
+                error: 'Auto-save failed'
+            });
         }
     }
 
@@ -955,8 +1417,19 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
             this.logger.log(`🔍 Getting distributor inquiries for manufacturer: ${manufacturerId}`);
+            this.logger.log(`🔍 User object:`, {
+                userId: req.user.userId,
+                role: req.user.role,
+                companyName: req.user.companyName
+            });
 
             const inquiriesData = await this.manufacturerService.getDistributorInquiries(manufacturerId);
+
+            this.logger.log(`🔍 Controller received inquiries data:`, {
+                totalCount: inquiriesData.totalCount,
+                inquiriesCount: inquiriesData.inquiries?.length,
+                unreadCount: inquiriesData.unreadCount
+            });
 
             res.json({
                 success: true,
@@ -980,10 +1453,9 @@ class ManufacturerController {
     async getCommunicationCenter(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            this.logger.log(`💬 Getting communication center for manufacturer: ${manufacturerId}`);
+               const communicationData = await this.manufacturerService.getCommunicationCenter(manufacturerId);
 
-            const communicationData = await this.manufacturerService.getCommunicationCenter(manufacturerId);
-
+            
             res.json({
                 success: true,
                 data: communicationData,
@@ -1613,8 +2085,7 @@ class ManufacturerController {
             const productId = req.params.id;
             const manufacturerId = req.user.userId;
             
-            this.logger.log(`📦 Getting product: ${productId} for manufacturer: ${manufacturerId}`);
-            
+           
             const product = await this.manufacturerService.getProductForEdit(productId, manufacturerId);
             
             if (!product) {
@@ -1630,7 +2101,6 @@ class ManufacturerController {
             });
             
         } catch (error) {
-            this.logger.error('❌ Get product error:', error);
             res.status(500).json({
                 success: false,
                 message: 'Mahsulotni olishda xatolik yuz berdi',
@@ -1640,7 +2110,7 @@ class ManufacturerController {
     }
     
     /**
-     * Update product
+     * Update product - OPTIMIZED for Image Management
      */
     async updateProduct(req, res) {
         try {
@@ -1648,9 +2118,49 @@ class ManufacturerController {
             const manufacturerId = req.user.userId;
             const updateData = req.body;
             
-            this.logger.log(`🔄 Updating product: ${productId} for manufacturer: ${manufacturerId}`);
             
-            // Validate and update product
+            // Extract image data for separate processing
+            const imageData = updateData.imageData;
+            delete updateData.imageData; // Remove from main update data
+            
+           
+            // Step 1: Handle image cleanup first (delete unused images)
+            if (imageData?.deletedImages?.length > 0) {
+                try {
+                    await this.cleanupDeletedImages(imageData.deletedImages);
+                    } catch (cleanupError) {
+                     // Don't fail the whole operation for cleanup errors
+                }
+            }
+            
+            // Step 2: Process temporary images if any
+            let newImageUrls = [];
+            if (imageData?.temporaryImages?.length > 0) {
+                try {
+                    // Note: This requires the actual files to be uploaded separately
+                    // For now, we'll just prepare the metadata
+                    } catch (uploadError) {
+                    }
+            }
+            
+            // Step 3: Prepare final image array for product
+            const finalImages = [
+                // Keep existing images (not deleted)
+                ...(imageData?.existingImages || []).map(img => ({
+                    url: img.url,
+                    alt: img.alt,
+                    isPrimary: img.isPrimary
+                })),
+                // Add new uploaded images (when implemented)
+                ...newImageUrls
+            ];
+            
+            // Add final images to update data
+            if (finalImages.length > 0) {
+                updateData.images = finalImages;
+            }
+            
+            // Step 4: Update product with optimized data
             const updatedProduct = await this.manufacturerService.updateProduct(productId, manufacturerId, updateData);
             
             if (!updatedProduct) {
@@ -1660,37 +2170,251 @@ class ManufacturerController {
                 });
             }
             
-            this.logger.log(`✅ Product updated successfully: ${productId}`);
             
             res.json({
                 success: true,
                 message: 'Mahsulot muvaffaqiyatli yangilandi',
-                data: updatedProduct
+                data: {
+                    product: updatedProduct,
+                    imageOperations: {
+                        deletedCount: imageData?.deletedImages?.length || 0,
+                        newImagesCount: imageData?.temporaryImages?.length || 0,
+                        finalImagesCount: finalImages.length
+                    }
+                }
             });
             
         } catch (error) {
-            this.logger.error('❌ Update product error:', error);
+            
+            // Enhanced error response
+            let errorMessage = 'Mahsulotni yangilashda xatolik yuz berdi';
+            if (error.message.includes('PayloadTooLargeError')) {
+                errorMessage = 'Ma\'lumot hajmi juda katta. Rasmlar sonini kamaytiring.';
+            } else if (error.message.includes('request entity too large')) {
+                errorMessage = 'Yuborilgan ma\'lumot hajmi juda katta.';
+            }
+            
             res.status(500).json({
                 success: false,
-                message: 'Mahsulotni yangilashda xatolik yuz berdi',
+                message: errorMessage,
                 error: process.env.NODE_ENV === 'development' ? error.message : undefined
             });
         }
     }
+
+    /**
+     * Cleanup deleted images helper method
+     */
+    async cleanupDeletedImages(deletedImages) {
+        const fs = require('fs').promises;
+        const path = require('path');
+        let deletedCount = 0;
+        
+        for (const imgData of deletedImages) {
+            try {
+                if (imgData.url && imgData.type === 'existing') {
+                    const filename = path.basename(imgData.url);
+                    const filePath = path.join(__dirname, '../public/uploads/products', filename);
+                    
+                    try {
+                        await fs.access(filePath);
+                        await fs.unlink(filePath);
+                        deletedCount++;
+                        this.logger.log(`🗑️ Deleted: ${filename}`);
+                    } catch (fileError) {
+                        if (fileError.code !== 'ENOENT') {
+                            this.logger.warn(`⚠️ Could not delete ${filename}:`, fileError.message);
+                        }
+                    }
+                }
+            } catch (error) {
+                this.logger.warn(`⚠️ Error processing deleted image:`, error.message);
+            }
+        }
+        
+        return deletedCount;
+    }
     
     /**
      * Create new product - Professional B2B Implementation
+     */
+    /**
+     * Upload product images (Legacy method for immediate upload)
+     */
+    async uploadProductImages(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            
+            if (!req.files || req.files.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Rasm fayllari topilmadi'
+                });
+            }
+            
+            this.logger.log(`📤 Uploading ${req.files.length} product images for manufacturer: ${manufacturerId}`);
+            
+            const imageUrls = req.files.map(file => `/uploads/products/${file.filename}`);
+            
+            res.status(200).json({
+                success: true,
+                message: 'Rasmlar muvaffaqiyatli yuklandi',
+                data: {
+                    urls: imageUrls
+                }
+            });
+            
+        } catch (error) {
+            this.logger.error('❌ Upload product images error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Rasmlarni yuklashda xatolik yuz berdi',
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
+
+    /**
+     * PROFESSIONAL Final Image Upload for optimized workflow
+     * Used by professional image management system
+     */
+    async uploadImagesFinal(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            
+            if (!req.files || req.files.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Rasm fayllari topilmadi'
+                });
+            }
+            
+            this.logger.log(`📤 FINAL: Uploading ${req.files.length} images for manufacturer: ${manufacturerId}`);
+            
+            // Debug file information
+            req.files.forEach((file, index) => {
+                this.logger.log(`📁 File ${index + 1}: ${file.originalname} → ${file.filename}`);
+            });
+            
+            // Process images with metadata
+            const processedImages = req.files.map((file, index) => {
+                const metadata = {
+                    alt: req.body[`metadata[${index}][alt]`] || '',
+                    isPrimary: req.body[`metadata[${index}][isPrimary]`] === 'true'
+                };
+                
+                return {
+                    url: `/uploads/products/${file.filename}`,
+                    alt: metadata.alt,
+                    isPrimary: metadata.isPrimary,
+                    filename: file.originalname,
+                    size: file.size,
+                    mimeType: file.mimetype
+                };
+            });
+            
+            this.logger.log(`✅ Processed ${processedImages.length} images with metadata`);
+            this.logger.log(`🔗 Generated URLs:`, processedImages.map(img => img.url));
+            
+            const response = {
+                success: true,
+                message: 'Rasmlar muvaffaqiyatli yuklandi',
+                data: processedImages
+            };
+            
+            this.logger.log('📤 Sending upload response:', JSON.stringify(response, null, 2));
+            
+            res.status(200).json(response);
+            
+        } catch (error) {
+            this.logger.error('❌ Final image upload error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Rasmlarni yuklashda xatolik yuz berdi',
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
+
+    /**
+     * Delete unused images from server
+     * Used by professional image management system for cleanup
+     */
+    async deleteUnusedImages(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const { imageUrls } = req.body;
+            
+            if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'O\'chiriladigan rasmlar ro\'yxati topilmadi'
+                });
+            }
+            
+            this.logger.log(`🗑️ Deleting ${imageUrls.length} unused images for manufacturer: ${manufacturerId}`);
+            
+            const fs = require('fs').promises;
+            const path = require('path');
+            let deletedCount = 0;
+            
+            for (const imageUrl of imageUrls) {
+                try {
+                    // Extract filename from URL (e.g., "/uploads/products/image.jpg" -> "image.jpg")
+                    const filename = imageUrl.split('/').pop();
+                    const filePath = path.join(__dirname, '../public/uploads/products', filename);
+                    
+                    // Check if file exists and delete it
+                    await fs.unlink(filePath);
+                    deletedCount++;
+                    this.logger.log(`✅ Deleted file: ${filename}`);
+                } catch (fileError) {
+                    this.logger.error(`❌ Failed to delete file: ${imageUrl}`, fileError);
+                    // Continue with other files even if one fails
+                }
+            }
+            
+            this.logger.log(`✅ Cleanup completed: ${deletedCount}/${imageUrls.length} files deleted`);
+            
+            res.status(200).json({
+                success: true,
+                message: `${deletedCount} ta rasm o'chirildi`,
+                data: {
+                    requested: imageUrls.length,
+                    deleted: deletedCount
+                }
+            });
+            
+        } catch (error) {
+            this.logger.error('❌ Delete unused images error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Rasmlarni o\'chirishda xatolik yuz berdi',
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
+
+    /**
+     * Create new product - OPTIMIZED for Professional Image Management
      */
     async createProduct(req, res) {
         try {
             const manufacturerId = req.user.userId;
             const productData = { ...req.body, manufacturer: manufacturerId };
             
-            this.logger.log(`➕ Creating new product for manufacturer: ${manufacturerId}`, {
+            this.logger.log(`➕ OPTIMIZED: Creating new product for manufacturer: ${manufacturerId}`, {
                 productName: productData.name,
                 category: productData.category,
                 requestIP: req.ip
             });
+            
+            // Extract image data for separate processing
+            const imageData = productData.imageData;
+            delete productData.imageData; // Remove from main product data
+            
+            this.logger.log(`📊 Image operations: ${imageData?.temporaryImages?.length || 0} new, ${imageData?.existingImages?.length || 0} existing`);
+            this.logger.log(`🔍 Full imageData structure:`, JSON.stringify(imageData, null, 2));
             
             // Professional validation
             if (!productData.name || !productData.category || !productData.description) {
@@ -1705,12 +2429,35 @@ class ManufacturerController {
                 });
             }
             
+            // Step 1: Prepare final image array for product creation
+            const finalImages = [
+                // Add existing images (already uploaded)
+                ...(imageData?.existingImages || []).map(img => ({
+                    url: img.url,
+                    alt: img.alt,
+                    isPrimary: img.isPrimary
+                }))
+                // Note: temporaryImages are handled separately by frontend upload process
+            ];
+            
+            this.logger.log(`🔍 Prepared finalImages:`, JSON.stringify(finalImages, null, 2));
+            
+            // Add final images to product data
+            if (finalImages.length > 0) {
+                productData.images = finalImages;
+                this.logger.log(`✅ Added ${finalImages.length} images to productData`);
+            } else {
+                this.logger.log(`⚠️ No images to add - finalImages.length = 0`);
+            }
+            
+            // Step 2: Create product with optimized data
             const newProduct = await this.manufacturerService.createProduct(productData);
             
             this.logger.log(`✅ Product created successfully:`, {
                 productId: newProduct._id,
                 productName: newProduct.name,
-                manufacturer: manufacturerId
+                manufacturer: manufacturerId,
+                imagesCount: finalImages.length
             });
             
             res.status(201).json({
@@ -1721,18 +2468,24 @@ class ManufacturerController {
                     name: newProduct.name,
                     status: newProduct.status,
                     marketplaceUrl: newProduct.marketplaceUrl,
-                    createdAt: newProduct.createdAt
+                    createdAt: newProduct.createdAt,
+                    imagesCount: finalImages.length
                 }
             });
             
         } catch (error) {
-            this.logger.error('❌ Create product error:', error);
+            this.logger.error('❌ Optimized create product error:', error);
             
             // Professional error response with specific handling
             let statusCode = 500;
             let errorMessage = 'Mahsulot yaratishda xatolik yuz berdi';
             
-            if (error.message.includes('Validation error')) {
+            // Enhanced error handling for different error types
+            if (error.message.includes('PayloadTooLargeError')) {
+                errorMessage = 'Ma\'lumot hajmi juda katta. Rasmlar sonini kamaytiring.';
+            } else if (error.message.includes('request entity too large')) {
+                errorMessage = 'Yuborilgan ma\'lumot hajmi juda katta.';
+            } else if (error.message.includes('Validation error')) {
                 statusCode = 400;
                 errorMessage = error.message;
             } else if (error.message.includes('already exists')) {
@@ -1900,11 +2653,17 @@ class ManufacturerController {
                 }
             }
             
-            // Upload files (implement your file upload logic here)
-            // For now, return mock URLs
-            const uploadedUrls = files.map((file, index) => 
-                `/uploads/products/product_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 8)}.${file.name.split('.').pop()}`
-            );
+            // Upload files using proper file upload service
+            const uploadedUrls = await Promise.all(files.map(async (file, index) => {
+                try {
+                    // Use your file upload service here (AWS S3, local storage, etc.)
+                    const result = await this.manufacturerService.uploadProductImage(manufacturerId, file);
+                    return result.url;
+                } catch (error) {
+                    this.logger.error(`❌ File upload error for file ${index}:`, error);
+                    throw new Error(`File upload failed for ${file.name}`);
+                }
+            }));
             
             this.logger.log(`✅ Images uploaded successfully: ${uploadedUrls.length} files`);
             
@@ -1964,13 +2723,13 @@ class ManufacturerController {
     }
     
     /**
-     * Upload product images
+     * Upload product images - LEGACY METHOD (immediate upload)
      */
     async uploadProductImages(req, res) {
         try {
             const manufacturerId = req.user.userId;
             
-            this.logger.log(`📸 Uploading product images for manufacturer: ${manufacturerId}`);
+            this.logger.log(`📸 LEGACY: Uploading product images for manufacturer: ${manufacturerId}`);
             
             if (!req.files || req.files.length === 0) {
                 return res.status(400).json({
@@ -1981,7 +2740,7 @@ class ManufacturerController {
             
             const imageUrls = await this.manufacturerService.uploadProductImages(req.files);
             
-            this.logger.log(`✅ Images uploaded successfully: ${imageUrls.length} files`);
+            this.logger.log(`✅ Legacy images uploaded successfully: ${imageUrls.length} files`);
             
             res.json({
                 success: true,
@@ -1993,10 +2752,134 @@ class ManufacturerController {
             });
             
         } catch (error) {
-            this.logger.error('❌ Upload images error:', error);
+            this.logger.error('❌ Legacy upload images error:', error);
             res.status(500).json({
                 success: false,
                 message: 'Rasmlarni yuklashda xatolik yuz berdi',
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
+
+    /**
+     * PROFESSIONAL Final Image Upload - Called when saving product
+     * Only uploads images when user actually saves the product
+     */
+    async uploadImagesFinal(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            
+            if (!req.files || req.files.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Rasmlar yuklanmadi'
+                });
+            }
+            
+            this.logger.log(`🎯 FINAL UPLOAD: Processing ${req.files.length} images for manufacturer: ${manufacturerId}`);
+            
+            const uploadedImages = [];
+            
+            // Process each image with metadata
+            for (let i = 0; i < req.files.length; i++) {
+                const file = req.files[i];
+                const altText = req.body[`imageAlt_${i}`] || '';
+                const isPrimary = req.body[`isPrimary_${i}`] === 'true';
+                
+                const imageData = {
+                    url: `/uploads/products/${file.filename}`,
+                    alt: altText,
+                    isPrimary: isPrimary,
+                    uploadDate: new Date(),
+                    originalName: file.originalname,
+                    size: file.size,
+                    mimeType: file.mimetype
+                };
+                
+                uploadedImages.push(imageData);
+                this.logger.log(`✅ Processed: ${file.originalname} (${isPrimary ? 'PRIMARY' : 'secondary'})`);
+            }
+            
+            res.json({
+                success: true,
+                message: `${uploadedImages.length} ta rasm muvaffaqiyatli yuklandi`,
+                data: {
+                    images: uploadedImages,
+                    urls: uploadedImages.map(img => img.url) // Legacy compatibility
+                }
+            });
+            
+        } catch (error) {
+            this.logger.error('❌ Final image upload error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Rasmlarni final upload qilishda xatolik',
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
+
+    /**
+     * PROFESSIONAL Image Cleanup - Delete unused images
+     */
+    async deleteUnusedImages(req, res) {
+        try {
+            const { imageUrls } = req.body;
+            const manufacturerId = req.user.userId;
+            
+            if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
+                return res.json({
+                    success: true,
+                    message: 'Hech qanday rasm o\'chirilmadi',
+                    data: { deletedCount: 0 }
+                });
+            }
+            
+            this.logger.log(`🗑️ CLEANUP: Deleting ${imageUrls.length} unused images for manufacturer: ${manufacturerId}`);
+            
+            const fs = require('fs').promises;
+            const path = require('path');
+            let deletedCount = 0;
+            const errors = [];
+            
+            for (const imageUrl of imageUrls) {
+                try {
+                    // Extract filename from URL
+                    const filename = path.basename(imageUrl);
+                    const filePath = path.join(__dirname, '../public/uploads/products', filename);
+                    
+                    // Check if file exists and delete
+                    try {
+                        await fs.access(filePath);
+                        await fs.unlink(filePath);
+                        deletedCount++;
+                        this.logger.log(`✅ Deleted: ${filename}`);
+                    } catch (fileError) {
+                        if (fileError.code !== 'ENOENT') { // File not found is OK
+                            errors.push(`Failed to delete ${filename}: ${fileError.message}`);
+                        }
+                    }
+                    
+                } catch (error) {
+                    errors.push(`Error processing ${imageUrl}: ${error.message}`);
+                }
+            }
+            
+            res.json({
+                success: true,
+                message: `${deletedCount} ta rasm o'chirildi`,
+                data: {
+                    deletedCount,
+                    totalRequested: imageUrls.length,
+                    errors: errors.length > 0 ? errors : undefined
+                }
+            });
+            
+        } catch (error) {
+            this.logger.error('❌ Image cleanup error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Rasmlarni o\'chirishda xatolik',
                 error: process.env.NODE_ENV === 'development' ? error.message : undefined
             });
         }
@@ -2134,6 +3017,191 @@ class ManufacturerController {
                 success: false,
                 message: 'Biznes hisobotini eksport qilishda xatolik',
                 error: error.message
+            });
+        }
+    }
+
+    // ===============================================
+    // PROFILE METHODS
+    // ===============================================
+
+    /**
+     * Show profile page
+     * GET /manufacturer/profile
+     */
+    async showProfile(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+
+            res.render('manufacturer/profile/index', {
+                title: 'Kompaniya Profili',
+                currentPage: 'profile',
+                user: req.user,
+                layout: 'manufacturer/layout'
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Profile page error:', error);
+            res.status(500).render('error', { message: 'Failed to load profile page' });
+        }
+    }
+
+    /**
+     * Show support page
+     * GET /manufacturer/support
+     */
+    async showSupport(req, res) {
+        try {
+            res.render('manufacturer/support/index', {
+                title: 'Qo\'llab-quvvatlash',
+                currentPage: 'support',
+                user: req.user,
+                layout: 'manufacturer/layout'
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Support page error:', error);
+            res.status(500).render('error', { message: 'Failed to load support page' });
+        }
+    }
+
+    /**
+     * Show shipping page
+     * GET /manufacturer/shipping
+     */
+    async showShipping(req, res) {
+        try {
+            res.render('manufacturer/shipping/index', {
+                title: 'Yetkazib berish',
+                currentPage: 'shipping',
+                user: req.user,
+                layout: 'manufacturer/layout'
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Shipping page error:', error);
+            res.status(500).render('error', { message: 'Failed to load shipping page' });
+        }
+    }
+
+    /**
+     * Show inventory page
+     * GET /manufacturer/inventory
+     */
+    async showInventory(req, res) {
+        try {
+            res.render('manufacturer/inventory/index', {
+                title: 'Ombor boshqaruvi',
+                currentPage: 'inventory',
+                user: req.user,
+                layout: 'manufacturer/layout'
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Inventory page error:', error);
+            res.status(500).render('error', { message: 'Failed to load inventory page' });
+        }
+    }
+
+    /**
+     * Get profile data
+     * GET /manufacturer/profile/api/data
+     */
+    async getProfileData(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            this.logger.log(`👤 Loading profile data for manufacturer: ${manufacturerId}`);
+
+            const profileData = await this.manufacturerService.getProfileData(manufacturerId);
+
+            res.json({
+                success: true,
+                data: profileData,
+                timestamp: new Date().toISOString()
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Get profile data error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to load profile data',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Get recent products
+     * GET /manufacturer/profile/api/recent-products
+     */
+    async getRecentProducts(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            
+            const products = await this.manufacturerService.getRecentProducts(manufacturerId, 5);
+
+            res.json({
+                success: true,
+                data: products
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Get recent products error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to load recent products',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Get recent orders
+     * GET /manufacturer/profile/api/recent-orders
+     */
+    async getRecentOrders(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            
+            const orders = await this.manufacturerService.getRecentOrders(manufacturerId, 5);
+
+            res.json({
+                success: true,
+                data: orders
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Get recent orders error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to load recent orders',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Get chart data for analytics
+     * GET /manufacturer/profile/api/chart-data
+     */
+    async getChartData(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const { period = '30' } = req.query;
+            
+            const chartData = await this.manufacturerService.getChartData(manufacturerId, period);
+
+            res.json({
+                success: true,
+                data: chartData
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Get chart data error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to load chart data',
+                message: error.message
             });
         }
     }

@@ -665,8 +665,14 @@ async function loadDistributorInquiries() {
     if (response.ok) {
       const data = await response.json();
       console.log("📋 Inquiries data received:", data);
+      console.log("🔍 Data structure:", {
+        success: data.success,
+        inquiriesCount: data.data?.inquiries?.length,
+        totalCount: data.data?.totalCount,
+        unreadCount: data.data?.unreadCount
+      });
 
-      const inquiries = data.inquiries || data || [];
+      const inquiries = data.data?.inquiries || data.inquiries || data || [];
 
       if (inquiries.length > 0) {
         renderInquiries(inquiries);
@@ -1470,24 +1476,40 @@ class ManufacturerDashboard {
    * Set theme
    */
   setTheme(theme) {
-    document.body.setAttribute("data-theme", theme);
-    localStorage.setItem("manufacturer-theme", theme);
+    // Use Universal Theme Manager if available
+    if (window.UniversalTheme) {
+      window.UniversalTheme.setTheme(theme);
+      this.options.theme = theme;
+      console.log('🎨 Dashboard: Using Universal Theme Manager to set theme:', theme);
+    } else {
+      // Fallback implementation - use documentElement instead of body for consistency
+      document.documentElement.setAttribute("data-theme", theme);
+      document.body.setAttribute("data-theme", theme); // Keep for backwards compatibility
+      localStorage.setItem("manufacturer-theme", theme);
 
-    if (this.elements.themeIcon) {
-      this.elements.themeIcon.className =
-        theme === "dark" ? "las la-sun" : "las la-moon";
+      if (this.elements.themeIcon) {
+        this.elements.themeIcon.className =
+          theme === "dark" ? "las la-sun" : "las la-moon";
+      }
+
+      this.options.theme = theme;
+      console.log('🎨 Dashboard: Fallback theme set to:', theme);
     }
-
-    this.options.theme = theme;
   }
 
   /**
    * Toggle theme
    */
   toggleTheme() {
-    const currentTheme = this.options.theme;
-    const newTheme = currentTheme === "light" ? "dark" : "light";
-    this.setTheme(newTheme);
+    // Use Universal Theme Manager if available
+    if (window.UniversalTheme) {
+      window.UniversalTheme.toggleTheme();
+      this.options.theme = window.UniversalTheme.getTheme();
+    } else {
+      const currentTheme = this.options.theme;
+      const newTheme = currentTheme === "light" ? "dark" : "light";
+      this.setTheme(newTheme);
+    }
   }
 
   /**
@@ -2253,8 +2275,13 @@ class ManufacturerDashboard {
         inquiriesElement.innerHTML = stats.inquiries.toLocaleString();
         inquiriesElement.classList.add("updated");
         this.logger.log(`✅ Inquiries updated: ${stats.inquiries}`);
+        this.logger.log(`🔍 Dashboard inquiry data:`, { 
+          totalInquiries: stats.inquiries, 
+          newInquiries: stats.overview?.newInquiries 
+        });
       } else {
         this.logger.warn("❌ Inquiries element not found or no data");
+        this.logger.log("🔍 Available stats:", stats);
       }
 
       // Update platform status metrics

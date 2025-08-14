@@ -6,6 +6,9 @@
 const express = require('express');
 const router = express.Router();
 
+// Note: public-products routes are now mounted separately in app.js under /api/public
+// const publicProductsRoutes = require('./api/public-products');
+
 // Load static data
 const data = require('../public/data.json');
 
@@ -133,5 +136,9 @@ function applyProductFilters(products, { category, search }) {
   
   return filtered;
 }
+
+// ===== PROFESSIONAL PUBLIC PRODUCTS API =====
+// NOTE: Public products routes are now mounted directly in app.js under /api/public
+// This was moved to prevent authentication middleware conflicts
 
 module.exports = router;

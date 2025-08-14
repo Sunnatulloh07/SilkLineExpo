@@ -9,6 +9,8 @@ class OrderDetailManager {
         this.orderId = this.getOrderIdFromUrl();
         this.originalOrderData = window.orderData || {};
         this.hasUnsavedChanges = false;
+        this.editingCommentId = null;  // Track editing state
+        this.editingCommentData = null;  // Store original comment data
         
         this.init();
     }
@@ -16,6 +18,9 @@ class OrderDetailManager {
     init() {
         console.log('🚀 Initializing Order Detail Manager...');
         console.log('📦 Order Data:', this.originalOrderData);
+        
+        // Make this instance globally available for inter-component communication
+        window.orderDetailManager = this;
         
         // Disable animation conflicts immediately
         this.disableConflictingAnimations();
@@ -63,6 +68,9 @@ class OrderDetailManager {
                 charCount.textContent = e.target.value.length;
             }
         });
+
+        // Checkbox interaction handlers
+        this.setupCheckboxHandlers();
 
         // Advanced Modal Event Listeners (Product Page Pattern)
         this.setupAdvancedModalListeners();
@@ -619,11 +627,8 @@ class OrderDetailManager {
         window.showToast('Mahsulot nusxalash funksiyasi tez orada qo\'shiladi', 'info');
     }
 
-    // Communication Modal
-    openCommunicationModal() {
-        document.getElementById('communicationModal')?.classList.remove('hidden');
-        document.getElementById('messageSubject')?.focus();
-    }
+    // Communication Modal - Redirect to messaging page
+    // Note: This method is superseded by the main openCommunicationModal method below
 
     closeCommunicationModal() {
         document.getElementById('communicationModal')?.classList.add('hidden');
@@ -677,19 +682,7 @@ class OrderDetailManager {
         }
     }
 
-    // Notes Modal - Marketplace Style (Working Pattern)
-    openNoteModal() {
-        const modal = document.getElementById('addNoteModal');
-        if (modal) {
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Prevent body scroll
-            
-            // Focus on content after modal is shown
-            setTimeout(() => {
-                document.getElementById('noteContent')?.focus();
-            }, 100);
-        }
-    }
+
 
     closeNoteModal() {
         const modal = document.getElementById('addNoteModal');
@@ -702,20 +695,7 @@ class OrderDetailManager {
         }
     }
 
-    clearNoteForm() {
-        // Clear all form fields
-        document.getElementById('noteContent').value = '';
-        document.getElementById('commentType').value = 'general';
-        document.getElementById('commentVisibility').value = 'public';
-        document.getElementById('commentPriority').value = 'normal';
-        document.getElementById('notifyCustomer').checked = false;
-        
-        // Reset character count if exists
-        const charCount = document.getElementById('charCount');
-        if (charCount) {
-            charCount.textContent = '0';
-        }
-    }
+
 
     async saveOrderNote() {
         // Get form data from enhanced comment form
@@ -847,16 +827,7 @@ class OrderDetailManager {
         });
     }
 
-    showLoading(context) {
-        console.log(`⏳ Loading: ${context}`);
-        // Add loading states to relevant elements
-        document.body.classList.add('loading');
-    }
-
-    hideLoading(context) {
-        console.log(`✅ Loading complete: ${context}`);
-        document.body.classList.remove('loading');
-    }
+    // Loading methods moved to bottom of class for consistency
 
     showToast(message, type = 'info') {
         // Create toast notification
@@ -907,14 +878,10 @@ class OrderDetailManager {
 
     // COMMUNICATION METHODS
     openCommunicationModal() {
-        console.log('📞 Opening communication modal...');
-        const modal = document.getElementById('communicationModal');
-        if (modal) {
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        } else {
-            window.showToast('Communication modal elementi topilmadi', 'error');
-        }
+        console.log('💬 Redirecting to messaging page for order:', this.orderId);
+        
+        // Professional B2B messaging redirect
+        window.location.href = `/manufacturer/messages/order/${this.orderId}`;
     }
 
     closeCommunicationModal() {
@@ -1024,8 +991,9 @@ class OrderDetailManager {
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
             
-            // Focus on content after modal is shown
+            // Focus on content after modal is shown and setup checkbox handlers
             setTimeout(() => {
+                this.setupCheckboxHandlers();
                 document.getElementById('noteContent')?.focus();
             }, 100);
         } else {
@@ -1041,15 +1009,25 @@ class OrderDetailManager {
             modal.classList.remove('active');
             document.body.style.overflow = '';
             this.clearNoteForm();
+            this.resetModalToAddMode();
         }
     }
 
     clearNoteForm() {
-        document.getElementById('noteContent').value = '';
-        document.getElementById('commentType').value = 'general';
-        document.getElementById('commentVisibility').value = 'public';
-        document.getElementById('commentPriority').value = 'normal';
-        document.getElementById('notifyCustomer').checked = false;
+        console.log('🧹 Clearing note form...');
+        
+        // Clear all form fields
+        const noteContent = document.getElementById('noteContent');
+        const commentType = document.getElementById('commentType');
+        const commentVisibility = document.getElementById('commentVisibility');
+        const commentPriority = document.getElementById('commentPriority');
+        const notifyCustomer = document.getElementById('notifyCustomer');
+        
+        if (noteContent) noteContent.value = '';
+        if (commentType) commentType.value = 'general';
+        if (commentVisibility) commentVisibility.value = 'public';
+        if (commentPriority) commentPriority.value = 'normal';
+        if (notifyCustomer) notifyCustomer.checked = false;
         
         const charCount = document.getElementById('charCount');
         if (charCount) { 
@@ -1063,35 +1041,80 @@ class OrderDetailManager {
         const visibility = document.getElementById('commentVisibility')?.value || 'public';
         const priority = document.getElementById('commentPriority')?.value || 'normal';
         const notifyCustomer = document.getElementById('notifyCustomer')?.checked || false;
+        const editingCommentId = document.getElementById('editingCommentId')?.value;
 
+        // Enhanced content validation
         if (!content) {
             window.showToast('Izoh matnini kiriting', 'warning');
+            document.getElementById('noteContent')?.focus();
             return;
         }
 
+        if (content.length > 2000) {
+            window.showToast('Izoh matni 2000 belgidan oshmasligi kerak', 'warning');
+            document.getElementById('noteContent')?.focus();
+            return;
+        }
+
+        if (content.length < 5) {
+            window.showToast('Izoh matni kamida 5 belgidan iborat bo\'lishi kerak', 'warning');
+            document.getElementById('noteContent')?.focus();
+            return;
+        }
+
+        // Determine if this is edit or create operation
+        const isEditing = editingCommentId && editingCommentId.trim() !== '';
+        const method = isEditing ? 'PUT' : 'POST';
+        const url = isEditing 
+            ? `/api/order-comments/${editingCommentId}` 
+            : `/api/orders/${this.orderId}/comments`;
+        
+        const successMessage = isEditing 
+            ? 'Izoh muvaffaqiyatli yangilandi' 
+            : 'Izoh muvaffaqiyatli qo\'shildi';
+
+        console.log(isEditing ? '✏️ Updating comment...' : '💾 Creating new comment...', {
+            method,
+            url,
+            commentId: editingCommentId
+        });
+
         try {
             this.showLoading('save-note');
+            
+            // Update loading text
+            const loadingText = document.getElementById('saveLoadingText');
+            if (loadingText) {
+                loadingText.textContent = isEditing ? 'Yangilanmoqda...' : 'Saqlanmoqda...';
+            }
 
-            const response = await fetch(`/api/orders/${this.orderId}/comments`, {
-                method: 'POST',
+            const requestData = {
+                content,
+                type,
+                visibility,
+                priority
+            };
+
+            // Include notifyCustomer for both new and edited comments
+            requestData.notifyCustomer = notifyCustomer;
+
+            const response = await fetch(url, {
+                method,
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
-                body: JSON.stringify({
-                    content,
-                    type,
-                    visibility,
-                    priority,
-                    notifyCustomer
-                })
+                body: JSON.stringify(requestData)
             });
 
             const data = await response.json();
 
             if (data.success) {
                 this.closeNoteModal();
-                window.showToast('Izoh muvaffaqiyatli qo\'shildi', 'success');
+                window.showToast(successMessage, 'success');
+                
+                // Reset modal state
+                this.resetModalToAddMode();
                 
                 // Refresh comments if order-comments manager exists
                 if (window.orderComments && window.orderComments.refreshComments) {
@@ -1101,11 +1124,11 @@ class OrderDetailManager {
                     setTimeout(() => location.reload(), 1000);
                 }
             } else {
-                throw new Error(data.message || 'Failed to save note');
+                throw new Error(data.message || `Failed to ${isEditing ? 'update' : 'save'} note`);
             }
         } catch (error) {
-            console.error('❌ Error saving note:', error);
-            window.showToast('Izoh saqlashda xatolik', 'error');
+            console.error(`❌ Error ${isEditing ? 'updating' : 'saving'} note:`, error);
+            window.showToast(`Izohni ${isEditing ? 'yangilashda' : 'saqlashda'} xatolik`, 'error');
         } finally {
             this.hideLoading('save-note');
         }
@@ -1210,6 +1233,355 @@ class OrderDetailManager {
         console.log('📋 Duplicating item:', itemIndex);
         window.showToast('Mahsulot nusxalash funksiyasi tez orada qo\'shiladi', 'info');
         // TODO: Implement item duplication
+    }
+
+    /**
+     * Open modal in edit mode for existing comment
+     */
+    openEditCommentModal(commentId, commentData) {
+        console.log('✏️ Opening edit modal for comment:', commentId);
+        
+        this.editingCommentId = commentId;
+        this.editingCommentData = { ...commentData };
+        
+        // Update modal title and button text
+        const modalTitle = document.getElementById('noteModalTitleText');
+        const saveIcon = document.getElementById('saveNoteIcon');
+        const saveText = document.getElementById('saveNoteText');
+        const editingField = document.getElementById('editingCommentId');
+        
+        if (modalTitle) modalTitle.textContent = 'Izohni Tahrirlash';
+        if (saveIcon) {
+            saveIcon.className = 'fas fa-edit';
+        }
+        if (saveText) saveText.textContent = 'Yangilash';
+        if (editingField) editingField.value = commentId;
+        
+        // Open modal first
+        const modal = document.getElementById('addNoteModal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            setTimeout(() => {
+                // Setup checkbox handlers first
+                this.setupCheckboxHandlers();
+                
+                // Then fill form with existing data
+                this.fillEditForm(commentData);
+                
+                // Focus on content
+                document.getElementById('noteContent')?.focus();
+                
+                console.log('🔄 Edit modal setup complete: handlers -> fill form -> focus');
+            }, 100);
+        }
+    }
+
+    /**
+     * Reset modal to add mode
+     */
+    resetModalToAddMode() {
+        console.log('🔄 Resetting modal to add mode');
+        
+        this.editingCommentId = null;
+        this.editingCommentData = null;
+        
+        // Update modal title and button text
+        const modalTitle = document.getElementById('noteModalTitleText');
+        const saveIcon = document.getElementById('saveNoteIcon');
+        const saveText = document.getElementById('saveNoteText');
+        const editingField = document.getElementById('editingCommentId');
+        
+        if (modalTitle) modalTitle.textContent = 'Buyurtmaga Izoh Qo\'shish';
+        if (saveIcon) {
+            saveIcon.className = 'fas fa-save';
+        }
+        if (saveText) saveText.textContent = 'Saqlash';
+        if (editingField) editingField.value = '';
+    }
+
+    /**
+     * Fill form with comment data for editing
+     */
+    fillEditForm(commentData) {
+        console.log('📝 Filling edit form with data:', commentData);
+        
+        const noteContent = document.getElementById('noteContent');
+        const commentType = document.getElementById('commentType');
+        const commentVisibility = document.getElementById('commentVisibility');
+        const commentPriority = document.getElementById('commentPriority');
+        const notifyCustomer = document.getElementById('notifyCustomer');
+        
+        if (noteContent) noteContent.value = commentData.content || '';
+        if (commentType) commentType.value = commentData.type || 'general';
+        if (commentVisibility) commentVisibility.value = commentData.visibility || 'public';
+        if (commentPriority) commentPriority.value = commentData.priority || 'normal';
+        
+        // For edit mode, set notification checkbox to unchecked by default
+        // This allows user to decide whether to notify customer about the update
+        if (notifyCustomer) {
+            console.log('🔍 Before reset - checkbox checked:', notifyCustomer.checked);
+            console.log('🔍 Checkbox element:', notifyCustomer);
+            console.log('🔍 Checkbox parent element:', notifyCustomer.parentElement);
+            
+            notifyCustomer.checked = false;
+            
+            // Force visual update for custom checkbox
+            const customCheckboxWrapper = notifyCustomer.closest('.custom-checkbox');
+            const checkmark = customCheckboxWrapper?.querySelector('.checkmark');
+            const checkboxLabel = customCheckboxWrapper?.querySelector('.checkbox-label');
+            
+            if (customCheckboxWrapper) {
+                console.log('🎨 Updating custom checkbox visual state');
+                
+                // Remove checked styling
+                customCheckboxWrapper.classList.remove('checked');
+                if (checkmark) {
+                    checkmark.style.backgroundColor = '#fff';
+                    checkmark.style.borderColor = '#ddd';
+                }
+                if (checkboxLabel) {
+                    checkboxLabel.style.color = '#333';
+                    checkboxLabel.style.fontWeight = 'normal';
+                }
+            }
+            
+            // Update visual state using our method
+            this.updateCustomCheckboxVisual(notifyCustomer);
+            
+            // Trigger change event
+            notifyCustomer.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            console.log('📧 After reset - checkbox checked:', notifyCustomer.checked);
+            console.log('✅ Edit mode: Notification checkbox reset (user can choose to notify about update)');
+        } else {
+            console.log('❌ Notification checkbox element not found in edit mode');
+        }
+        
+        // Update character count
+        const charCount = document.getElementById('charCount');
+        if (charCount && noteContent) {
+            charCount.textContent = noteContent.value.length;
+        }
+    }
+
+    /**
+     * Professional comment deletion with confirmation
+     */
+    async deleteComment(commentId) {
+        console.log('🗑️ Attempting to delete comment:', commentId);
+        
+        // Professional confirmation dialog
+        const confirmed = await this.showDeleteConfirmation();
+        if (!confirmed) {
+            console.log('❌ Delete cancelled by user');
+            return;
+        }
+        
+        try {
+            this.showLoading('delete-comment');
+            
+            const response = await fetch(`/api/order-comments/${commentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.showToast('Izoh muvaffaqiyatli o\'chirildi', 'success');
+                
+                // Refresh comments
+                if (window.orderComments && window.orderComments.refreshComments) {
+                    window.orderComments.refreshComments();
+                } else {
+                    setTimeout(() => location.reload(), 1000);
+                }
+            } else {
+                throw new Error(data.message || 'Failed to delete comment');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error deleting comment:', error);
+            window.showToast('Izohni o\'chirishda xatolik yuz berdi', 'error');
+        } finally {
+            this.hideLoading('delete-comment');
+        }
+    }
+
+    /**
+     * Show professional delete confirmation modal
+     */
+    async showDeleteConfirmation() {
+        return new Promise((resolve) => {
+            // Create custom confirmation modal
+            const confirmHtml = `
+                <div class="modal-overlay active" id="deleteConfirmModal" style="z-index: 1000000;">
+                    <div class="modal-content" style="max-width: 400px;">
+                        <div class="modal-header">
+                            <h3 class="modal-title">
+                                <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
+                                Izohni O'chirish
+                            </h3>
+                        </div>
+                        <div class="modal-body">
+                            <p>Haqiqatan ham bu izohni o'chirmoqchimisiz?</p>
+                            <p><small style="color: #666;">Bu amal qaytarib bo'lmaydi.</small></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="products-btn products-btn-secondary" id="cancelDelete">
+                                <i class="fas fa-times"></i>
+                                Bekor qilish
+                            </button>
+                            <button class="products-btn products-btn-danger" id="confirmDelete">
+                                <i class="fas fa-trash"></i>
+                                Ha, O'chirish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add to DOM
+            document.body.insertAdjacentHTML('beforeend', confirmHtml);
+            
+            const modal = document.getElementById('deleteConfirmModal');
+            const confirmBtn = document.getElementById('confirmDelete');
+            const cancelBtn = document.getElementById('cancelDelete');
+            
+            const cleanup = () => {
+                if (modal) modal.remove();
+            };
+            
+            confirmBtn.addEventListener('click', () => {
+                cleanup();
+                resolve(true);
+            });
+            
+            cancelBtn.addEventListener('click', () => {
+                cleanup();
+                resolve(false);
+            });
+            
+            // Close on overlay click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    cleanup();
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    /**
+     * Setup checkbox event handlers
+     */
+    setupCheckboxHandlers() {
+        // Direct checkbox handling
+        const notifyCheckbox = document.getElementById('notifyCustomer');
+        if (notifyCheckbox) {
+            // Remove any existing listeners
+            notifyCheckbox.removeEventListener('click', this.handleCheckboxClick);
+            notifyCheckbox.removeEventListener('change', this.handleCheckboxChange);
+            
+            // Add fresh listeners
+            notifyCheckbox.addEventListener('click', this.handleCheckboxClick.bind(this));
+            notifyCheckbox.addEventListener('change', this.handleCheckboxChange.bind(this));
+            
+            console.log('✅ Checkbox handlers setup complete');
+        } else {
+            console.warn('⚠️ notifyCustomer checkbox not found');
+        }
+
+        // Also handle label clicks
+        const notifyLabel = document.querySelector('label[for="notifyCustomer"]');
+        if (notifyLabel) {
+            notifyLabel.addEventListener('click', (e) => {
+                // Let the browser handle the natural label->checkbox interaction
+                console.log('🏷️ Label clicked, checkbox should toggle');
+            });
+        }
+    }
+
+    /**
+     * Handle checkbox click events
+     */
+    handleCheckboxClick(event) {
+        const checkbox = event.target;
+        console.log('🖱️ Checkbox clicked:', {
+            id: checkbox.id,
+            checked: checkbox.checked,
+            disabled: checkbox.disabled
+        });
+        
+        // Ensure the checkbox state is properly set
+        if (!checkbox.disabled) {
+            // Force the checked state to be explicit
+            setTimeout(() => {
+                console.log('✅ Checkbox state after click:', checkbox.checked);
+            }, 10);
+        }
+    }
+
+    /**
+     * Handle checkbox change events
+     */
+    handleCheckboxChange(event) {
+        const checkbox = event.target;
+        console.log('🔄 Checkbox changed:', {
+            id: checkbox.id,
+            checked: checkbox.checked,
+            value: checkbox.value
+        });
+        
+        // Update custom checkbox visual state
+        this.updateCustomCheckboxVisual(checkbox);
+        
+        // Visual feedback
+        if (checkbox.checked) {
+            console.log('🔔 Customer notification enabled');
+        } else {
+            console.log('🔕 Customer notification disabled');
+        }
+    }
+
+    /**
+     * Update custom checkbox visual state
+     */
+    updateCustomCheckboxVisual(checkbox) {
+        const customCheckboxWrapper = checkbox.closest('.custom-checkbox');
+        const checkmark = customCheckboxWrapper?.querySelector('.checkmark');
+        const checkboxLabel = customCheckboxWrapper?.querySelector('.checkbox-label');
+        
+        if (customCheckboxWrapper && checkmark) {
+            console.log('🎨 Updating custom checkbox visual for:', checkbox.id, 'checked:', checkbox.checked);
+            
+            if (checkbox.checked) {
+                // Checked state
+                checkmark.style.backgroundColor = '#007bff';
+                checkmark.style.borderColor = '#007bff';
+                if (checkboxLabel) {
+                    checkboxLabel.style.color = '#007bff';
+                    checkboxLabel.style.fontWeight = '500';
+                }
+                console.log('✅ Applied checked styling');
+            } else {
+                // Unchecked state
+                checkmark.style.backgroundColor = '#fff';
+                checkmark.style.borderColor = '#ddd';
+                if (checkboxLabel) {
+                    checkboxLabel.style.color = '#333';
+                    checkboxLabel.style.fontWeight = 'normal';
+                }
+                console.log('❌ Applied unchecked styling');
+            }
+        } else {
+            console.warn('⚠️ Custom checkbox elements not found for visual update');
+        }
     }
 }
 

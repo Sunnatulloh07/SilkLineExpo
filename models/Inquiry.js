@@ -111,7 +111,7 @@ const inquirySchema = new mongoose.Schema({
   // Status Management
   status: {
     type: String,
-    enum: ['open', 'responded', 'negotiating', 'quoted', 'accepted', 'rejected', 'expired', 'converted'],
+    enum: ['open', 'responded', 'negotiating', 'quoted', 'accepted', 'rejected', 'expired', 'converted', 'archived'],
     default: 'open'
   },
   

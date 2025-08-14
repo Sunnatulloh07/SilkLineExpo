@@ -9,7 +9,7 @@
 
     // ============================== Light & Dark Mode Js Start=====================
     const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
-    const currentTheme = localStorage.getItem('theme');
+    const currentTheme = localStorage.getItem('dashboard-theme');
 
     if (currentTheme) {
       document.documentElement.setAttribute('data-theme', currentTheme);
@@ -21,11 +21,11 @@
     function switchTheme(e) {
       if (e.target.checked) {
         document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
+        localStorage.setItem('dashboard-theme', 'dark');
       }
       else {
         document.documentElement.setAttribute('data-theme', 'light');
-        localStorage.setItem('theme', 'light');
+        localStorage.setItem('dashboard-theme', 'light');
       }
     }
     toggleSwitch.addEventListener('change', switchTheme, false);
@@ -991,17 +991,13 @@
   // ==========================================
 
   // ========================= Preloader Js Start =====================
-(function () { 
-  /** Loader’ni yashirish funksiyasi */ 
-  const hideLoader = () => { 
-    const el = document.querySelector('.loader-mask'); 
-    if (!el) return; 
-    // jQuery ishlatsangiz: 
-    // $(el).fadeOut(); 
-    // Vanilla JS: 
-    el.style.opacity = 0; 
-    setTimeout(() => el.style.display = 'none', 300); // animatsiya tugaganda butunlay yashirish 
-  }; 
+  // Preloader completely disabled for better performance
+  (function () { 
+    // Immediately remove any preloader elements if they exist
+    const hideLoader = () => { 
+      const elements = document.querySelectorAll('.loader-mask, .loader, .preloader'); 
+      elements.forEach(el => el && el.remove());
+    }; 
  
   /* DOM tayyor bo'lgach, 100ms ga taymer qo'yamiz */ 
   document.addEventListener('DOMContentLoaded', () => { 

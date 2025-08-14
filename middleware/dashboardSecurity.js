@@ -40,8 +40,7 @@ class DashboardSecurityMiddleware {
     validateDashboardAccess = (dashboardType) => {
         return async (req, res, next) => {
             try {
-                this.logger.log(`🔒 Dashboard access validation: ${dashboardType} for ${req.path}`);
-
+            
                 // Extract and verify token
                 const tokens = TokenService.extractTokensFromRequest(req);
                 
@@ -113,7 +112,6 @@ class DashboardSecurityMiddleware {
                     return this.handleUnauthorized(req, res, 'User account no longer exists or is inactive');
                 }
 
-                this.logger.log(`✅ Dashboard access granted: ${dashboardType} for user ${payload.userId}`);
                 next();
 
             } catch (error) {

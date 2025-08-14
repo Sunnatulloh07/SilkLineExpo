@@ -1,0 +1,273 @@
+<%- include('../partials/header', { title: 'Ombor boshqaruvi', lng: lng || 'uz', user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'inventory' }) %>
+
+<!-- Inventory Page Meta Tags -->
+<meta name="description" content="Professional ombor boshqaruvi tizimi - SLEX platformasida mahsulotlar omborini kuzatuv, inventarizatsiya va boshqaruv. Real-time monitoring va analitika.">
+<meta name="keywords" content="ombor, inventory, warehouse, mahsulot, boshqaruv, SLEX, B2B, professional">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Ombor Boshqaruvi - SLEX">
+<meta property="og:description" content="Professional ombor boshqaruvi tizimi ishlab chiqilmoqda. Zamonaviy inventarizatsiya va kuzatuv yechimlari.">
+<meta property="og:type" content="website">
+
+<!-- Inventory Page CSS -->
+<link rel="stylesheet" href="/css/manufacturer/inventory.css">
+
+<!-- Main Content -->
+<main class="admin-main" role="main" aria-label="Ombor boshqaruvi sahifasi">
+  <div class="admin-content">
+    
+    <div id="main-content" class="inventory-container animate-fade-in">
+      <!-- Development Card -->
+      <div class="development-card">
+        <div class="development-icon">
+          <div class="icon-wrapper">
+            <i class="fas fa-warehouse"></i>
+            <div class="icon-pulse"></div>
+          </div>
+        </div>
+        
+        <h1 class="development-title">Ishlab chiqilmoqda</h1>
+        <p class="development-subtitle">Ombor Boshqaruvi Tizimi - Professional Inventarizatsiya va Mahsulot Kuzatuvi</p>
+        
+        <div class="development-description">
+          <p>
+            Bizning zamonaviy ombor boshqaruvi tizimimiz ishlab chiqilmoqda. 
+            Bu tizim sizning mahsulotlaringizni samarali kuzatish, inventarizatsiya 
+            qilish va boshqarish uchun barcha zamonaviy vositalarni taqdim etadi.
+          </p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+          <div class="feature-item">
+            <i class="fas fa-boxes"></i>
+            <span>Real-time inventarizatsiya</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-chart-bar"></i>
+            <span>Statistika va hisobotlar</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-qrcode"></i>
+            <span>QR/Barcode skanerlash</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-bell"></i>
+            <span>Avtomatik ogohlantirishlar</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-mobile-alt"></i>
+            <span>Mobil ilovalar</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-analytics"></i>
+            <span>Tahlil va prognozlash</span>
+          </div>
+        </div>
+
+        <!-- Development Actions -->
+        <div class="development-actions">
+          <button class="dev-btn dev-btn-primary" 
+                  id="subscribeUpdatesBtn"
+                  type="button"
+                  aria-label="Ombor tizimi yangilanishlariga obuna bo'lish">
+            <i class="fas fa-bell" aria-hidden="true"></i>
+            Yangilanishlardan xabardor bo'ling
+          </button>
+          <button class="dev-btn dev-btn-outline" 
+                  id="contactInventoryBtn"
+                  type="button"
+                  aria-label="Ombor tizimi bilan bog'lanish">
+            <i class="fas fa-phone" aria-hidden="true"></i>
+            Aloqa qiling
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress Section -->
+      <div class="progress-section">
+        <div class="progress-header">
+          <h3>Ishlab chiqish jarayoni</h3>
+          <span class="progress-percentage">78%</span>
+        </div>
+        <div class="progress-bar" role="progressbar" aria-valuenow="78" aria-valuemin="0" aria-valuemax="100" aria-label="Ishlab chiqish jarayoni">
+          <div class="progress-fill" data-progress="78"></div>
+        </div>
+        
+        <!-- Development Stages -->
+        <div class="development-stages" role="list">
+          <div class="stage completed" role="listitem" tabindex="0" aria-label="Loyihalash: Tizim arxitekturasi yaratildi - tugallangan">
+            <div class="stage-icon">
+              <i class="fas fa-check" aria-hidden="true"></i>
+            </div>
+            <div class="stage-content">
+              <h4>Loyihalash</h4>
+              <p>Ombor tizimi arxitekturasi yaratildi</p>
+            </div>
+          </div>
+          
+          <div class="stage completed" role="listitem" tabindex="0" aria-label="Dizayn: UI/UX dizayni tayyor - tugallangan">
+            <div class="stage-icon">
+              <i class="fas fa-check" aria-hidden="true"></i>
+            </div>
+            <div class="stage-content">
+              <h4>Dizayn</h4>
+              <p>Interface va user experience dizayni</p>
+            </div>
+          </div>
+          
+          <div class="stage active" role="listitem" tabindex="0" aria-label="Rivojlantirish: Database va API yaratilmoqda - jarayonda">
+            <div class="stage-icon">
+              <i class="fas fa-cog fa-spin" aria-hidden="true"></i>
+            </div>
+            <div class="stage-content">
+              <h4>Rivojlantirish</h4>
+              <p>Database va API yaratilmoqda</p>
+            </div>
+          </div>
+          
+          <div class="stage" role="listitem" tabindex="0" aria-label="Sinov: Beta versiya sinovlari - rejalashtirilgan">
+            <div class="stage-icon">
+              <i class="fas fa-flask" aria-hidden="true"></i>
+            </div>
+            <div class="stage-content">
+              <h4>Sinov</h4>
+              <p>Tizim sinovlari va optimizatsiya</p>
+            </div>
+          </div>
+          
+          <div class="stage" role="listitem" tabindex="0" aria-label="Ishga tushirish: Production ga chiqarish - rejalashtirilgan">
+            <div class="stage-icon">
+              <i class="fas fa-rocket" aria-hidden="true"></i>
+            </div>
+            <div class="stage-content">
+              <h4>Ishga tushirish</h4>
+              <p>Production muhitiga joylashtirish</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inventory Features Preview -->
+      <div class="features-preview">
+        <h3 class="features-title">Rejalashtirilgan funksiyalar</h3>
+        <div class="features-grid-large" role="list">
+          <div class="feature-card" role="listitem" tabindex="0" aria-label="Real-time monitoring: Ombordagi mahsulotlarni real-time kuzatuv">
+            <div class="feature-icon">
+              <i class="fas fa-eye" aria-hidden="true"></i>
+            </div>
+            <h4>Real-time Monitoring</h4>
+            <p>Ombordagi mahsulotlarni real-time kuzatuv va holat tahlili</p>
+            <ul>
+              <li>Mahsulot miqdorini kuzatuv</li>
+              <li>Avtomatik ogohlantirishlar</li>
+              <li>Holat indikatorlari</li>
+            </ul>
+          </div>
+
+          <div class="feature-card" role="listitem" tabindex="0" aria-label="Smart inventarizatsiya: QR/Barcode texnologiyasi bilan avtomatik inventarizatsiya">
+            <div class="feature-icon">
+              <i class="fas fa-qrcode" aria-hidden="true"></i>
+            </div>
+            <h4>Smart Inventarizatsiya</h4>
+            <p>QR/Barcode texnologiyasi bilan avtomatik inventarizatsiya</p>
+            <ul>
+              <li>QR kod generatsiyasi</li>
+              <li>Mobil skaner ilovasi</li>
+              <li>Avtomatik hisobotlar</li>
+            </ul>
+          </div>
+
+          <div class="feature-card" role="listitem" tabindex="0" aria-label="Analitika va prognozlash: Ma'lumotlar tahlili va kelajak uchun prognozlar">
+            <div class="feature-icon">
+              <i class="fas fa-chart-line" aria-hidden="true"></i>
+            </div>
+            <h4>Analitika va Prognozlash</h4>
+            <p>Ma'lumotlar tahlili va kelajak uchun prognozlar</p>
+            <ul>
+              <li>Statistik tahlillar</li>
+              <li>Trend analizi</li>
+              <li>AI yordamida prognozlash</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Warehouse Management Benefits -->
+      <div class="benefits-section">
+        <h3 class="benefits-title">Ombor boshqaruvi afzalliklari</h3>
+        <div class="benefits-grid">
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <h4>Vaqt tejash</h4>
+            <p>Avtomatik tizim orqali 60% gacha vaqt tejash</p>
+          </div>
+          
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <i class="fas fa-dollar-sign"></i>
+            </div>
+            <h4>Xarajat kamaytirish</h4>
+            <p>Samarali boshqaruv orqali 30% xarajat kamaytirish</p>
+          </div>
+          
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h4>Xatolarni kamaytirish</h4>
+            <p>Avtomatik tizim orqali inson xatolarini minimallash</p>
+          </div>
+          
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <i class="fas fa-chart-pie"></i>
+            </div>
+            <h4>To'liq nazorat</h4>
+            <p>Barcha jarayonlar ustidan to'liq nazorat va kuzatuv</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Temporary Contact Section -->
+      <div class="contact-section">
+        <h3 class="contact-title">Hozircha bizning asosiy raqamlarimizga murojaat qiling</h3>
+        <div class="contact-cards" role="list">
+          <div class="contact-card" role="listitem" tabindex="0" aria-label="Telefon aloqasi: +998 71 123 45 67">
+            <div class="contact-icon">
+              <i class="fas fa-phone" aria-hidden="true"></i>
+            </div>
+            <h4>Telefon aloqasi</h4>
+            <p>+998 71 123 45 67</p>
+            <small>Ish kunlari 9:00 - 18:00</small>
+          </div>
+
+          <div class="contact-card" role="listitem" tabindex="0" aria-label="Email: inventory@silkline.uz">
+            <div class="contact-icon">
+              <i class="fas fa-envelope" aria-hidden="true"></i>
+            </div>
+            <h4>Email</h4>
+            <p>inventory@silkline.uz</p>
+            <small>24/7 xizmat</small>
+          </div>
+
+          <div class="contact-card" role="listitem" tabindex="0" aria-label="Texnik yordam: tez orada">
+            <div class="contact-icon">
+              <i class="fas fa-headset" aria-hidden="true"></i>
+            </div>
+            <h4>Texnik yordam</h4>
+            <p>Live support</p>
+            <small>Tez orada</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer', { user: user }) %>
+
+<!-- Inventory Page JavaScript -->
+<script src="/js/manufacturer/inventory.js"></script>

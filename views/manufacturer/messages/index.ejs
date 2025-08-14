@@ -1,0 +1,266 @@
+<%- include('../partials/header', { title: 'Biznes Xabarlari', lng: lng || 'uz', user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'messages' }) %>
+
+<!-- Professional CSS Imports - Matching Orders Page Architecture -->
+<link rel="stylesheet" href="/css/products-management-redesign.css">
+<link rel="stylesheet" href="/css/products-table-view.css">
+<link rel="stylesheet" href="/css/orders-management.css">
+<link rel="stylesheet" href="/css/manufacturer-cards.css">
+<link rel="stylesheet" href="/css/manufacturer-theme.css">
+<link rel="stylesheet" href="/css/toast-notifications.css">
+<link rel="stylesheet" href="/css/modal-system.css">
+<link rel="stylesheet" href="/css/manufacturer/messages.css">
+
+<!-- Main Content -->
+<main class="admin-main">
+  <div class="admin-content">
+    
+    <!-- Professional B2B Messages Header -->
+    <div class="orders-header animate-fade-in">
+      <div class="orders-header-content">
+        <div class="orders-title-section">
+          <h1 class="orders-main-title">
+            <i class="fas fa-comments"></i>
+            Biznes Xabarlari
+          </h1>
+          <p class="orders-subtitle">Professional B2B aloqa tizimi va hamkorlik boshqaruvi</p>
+        </div>
+        <div class="orders-header-actions">
+          <button class="orders-btn orders-btn-primary" id="newConversationBtn">
+            <i class="fas fa-plus"></i>
+            Yangi Suhbat
+          </button>
+          <button class="orders-btn orders-btn-outline" id="exportMessagesBtn">
+            <i class="fas fa-download"></i>
+            Eksport
+          </button>
+          <button class="orders-btn orders-btn-secondary" id="refreshMessagesBtn">
+            <i class="fas fa-sync-alt"></i>
+            Yangilash
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Professional Filters Container - Messages Style -->
+    <div class="products-filters-container">
+      <div class="products-filters-header">
+        <h3 class="products-filters-title">
+          <i class="fas fa-filter"></i>
+          Filtr va Qidiruv
+        </h3>
+        <div class="products-filters-actions">
+          <button class="products-btn products-btn-sm products-btn-secondary" id="resetMessagesFiltersBtn">
+            <i class="fas fa-undo"></i>
+            Reset
+          </button>
+          <button class="products-btn products-btn-sm products-btn-outline" id="advancedMessagesFiltersBtn">
+            <i class="fas fa-cog"></i>
+            Kengaytirilgan
+          </button>
+        </div>
+      </div>
+      <div class="products-filters-body">
+        <form id="messagesFiltersForm" class="products-filters-form">
+          
+          <!-- Search Input -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Qidiruv</label>
+            <div class="products-search-wrapper">
+              <i class="fas fa-search products-search-icon"></i>
+              <input 
+                type="text" 
+                id="messagesSearchInput" 
+                name="search" 
+                placeholder="Hamkor nomi, buyurtma ID..."
+                class="products-form-input search"
+              >
+            </div>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Holat</label>
+            <select name="status" id="messagesStatusFilter" class="products-form-select">
+              <option value="">Barcha holatlar</option>
+              <option value="active">Faol</option>
+              <option value="read">O'qilgan</option>
+              <option value="archived">Arxivlangan</option>
+            </select>
+          </div>
+
+          <!-- Order Status Filter -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Buyurtma Holati</label>
+            <select name="orderStatus" id="messagesOrderStatusFilter" class="products-form-select">
+              <option value="">Barcha buyurtmalar</option>
+              <option value="pending">Kutayotgan</option>
+              <option value="confirmed">Tasdiqlangan</option>
+              <option value="processing">Jarayonda</option>
+              <option value="manufacturing">Ishlab chiqarilmoqda</option>
+              <option value="ready_to_ship">Jo'natishga tayyor</option>
+              <option value="shipped">Jo'natilgan</option>
+              <option value="delivered">Yetkazilgan</option>
+              <option value="completed">Yakunlangan</option>
+              <option value="cancelled">Bekor qilingan</option>
+            </select>
+          </div>
+
+          <!-- Date Range Filter -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Sana oralig'i</label>
+            <select name="dateRange" id="messagesDateRangeFilter" class="products-form-select">
+              <option value="">Barcha vaqt</option>
+              <option value="today">Bugun</option>
+              <option value="week">Bu hafta</option>
+              <option value="month">Bu oy</option>
+              <option value="quarter">Bu chorak</option>
+              <option value="year">Bu yil</option>
+              <option value="custom">Maxsus oraliq</option>
+            </select>
+          </div>
+
+          <!-- Partner Filter -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Hamkor</label>
+            <select name="partner" id="messagesPartnerFilter" class="products-form-select">
+              <option value="">Barcha hamkorlar</option>
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <!-- Sort Options -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Saralash</label>
+            <select name="sortBy" id="messagesSortFilter" class="products-form-select">
+              <option value="lastMessageAt">Oxirgi xabar vaqti</option>
+              <option value="partner">Hamkor nomi</option>
+              <option value="orderNumber">Buyurtma ID</option>
+              <option value="unreadCount">O'qilmagan xabarlar</option>
+            </select>
+          </div>
+
+          <!-- Sort Order -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Tartib</label>
+            <select name="sortOrder" id="messagesSortOrderFilter" class="products-form-select">
+              <option value="desc">Kamayish tartibida</option>
+              <option value="asc">O'sish tartibida</option>
+            </select>
+          </div>
+          
+          <div class="products-filters-submit">
+            <button type="submit" class="products-btn products-btn-primary" id="searchMessagesFiltersBtn">
+              <i class="fas fa-search"></i>
+              Qidiruv
+            </button>
+            <button type="button" class="products-btn products-btn-secondary" id="clearMessagesFiltersBtn">
+              <i class="fas fa-times"></i>
+              Tozalash
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Messages Container -->
+    <div class="products-main-container">
+      <div class="products-content-header">
+        <h3 class="products-content-title">
+          <i class="fas fa-inbox"></i>
+          Suhbatlar
+          <span class="products-count" id="conversationsCountText">
+            <%= conversations ? conversations.length : 0 %>
+          </span>
+        </h3>
+        <div class="products-content-actions">
+          <!-- Actions moved to table header -->
+        </div>
+      </div>
+      
+      <!-- TABLE VIEW - Loading State -->
+      <div class="products-view-container" id="messagesTableView">
+        <div class="products-table-container">
+          <div class="products-table-header">
+            <h4 class="products-table-title">
+              <i class="fas fa-table"></i>
+              Xabarlar jadvali
+            </h4>
+            <div class="products-table-actions">
+              <button class="products-btn products-btn-sm products-btn-secondary" id="refreshConversationsBtn" title="Xabarlarni yangilash">
+                <i class="fas fa-sync-alt"></i>
+                Yangilash
+              </button>
+              <button class="products-btn products-btn-sm products-btn-outline" id="selectAllConversationsBtn">
+                <i class="fas fa-check-square"></i>
+                Barchasini belgilash
+              </button>
+              <button class="products-btn products-btn-sm products-btn-secondary" id="bulkConversationsActionsBtn">
+                <i class="fas fa-tasks"></i>
+                Ommaviy amallar
+              </button>
+            </div>
+          </div>
+          
+          <div class="products-table-wrapper">
+            <table class="products-table orders-table" id="conversationsTable">
+              <thead>
+                <tr>
+                  <th class="table-checkbox-col">
+                    <input type="checkbox" id="selectAllConversations" class="table-checkbox">
+                  </th>
+                  <th class="partner-col sortable" data-sort="partner">
+                    Biznes Hamkor
+                    <i class="fas fa-sort sort-icon"></i>
+                  </th>
+                  <th class="order-id-col sortable" data-sort="order">
+                    Buyurtma ID
+                    <i class="fas fa-sort sort-icon"></i>
+                  </th>
+                  <th class="message-col">
+                    Oxirgi Xabar
+                  </th>
+                  <th class="date-col sortable" data-sort="time">
+                    Sana
+                    <i class="fas fa-sort sort-icon"></i>
+                  </th>
+                  <th class="status-col sortable" data-sort="status">
+                    Holat
+                    <i class="fas fa-sort sort-icon"></i>
+                  </th>
+                  <th class="actions-col">Amallar</th>
+                </tr>
+              </thead>
+              <tbody id="conversationsTableBody">
+                <!-- Table content will be loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Professional Pagination - Products Page Style -->
+          <div class="table-pagination" id="messagesPagination" style="display: none;">
+            <div class="table-pagination-info">
+              <span id="paginationInfo">1-dan 0-gacha, jami 0 ta ko'rsatilmoqda</span>
+            </div>
+            <div class="table-pagination-controls" id="paginationControls">
+              <!-- Pagination buttons will be inserted here -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+
+  </div>
+</main>
+
+<!-- Dashboard Initialization -->
+<script src="/js/manufacturer/dashboard-init.js"></script>
+
+<!-- Professional Messages Page JavaScript -->
+<script src="/js/manufacturer/messages.js"></script>
+
+
+</body>
+</html>

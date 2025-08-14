@@ -307,14 +307,14 @@
   <!-- Global Variables for Manufacturer Dashboard -->
   <script>
     // Set global debug mode
-    window.DEBUG_MODE = <%= process.env.NODE_ENV !== 'production' %>;
+    window.DEBUG_MODE = "<%= process.env.NODE_ENV !== 'production' %>";
     
     // Manufacturer dashboard configuration
     window.MANUFACTURER_CONFIG = {
       apiBaseUrl: '/api/manufacturer',
       toastTimeout: 5000,
       autoSaveInterval: 30000,
-      theme: localStorage.getItem('manufacturer-theme') || 'light'
+      theme: localStorage.getItem('dashboard-theme') || localStorage.getItem('dashboard-theme') || localStorage.getItem('dashboard-theme') || 'light'
     };
     
     // Global toast notification system
@@ -355,9 +355,15 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log('🏭 Manufacturer Dashboard Initialized');
       
-      // Apply saved theme
-      if (window.MANUFACTURER_CONFIG.theme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
+      // Apply saved theme with proper sync
+      const savedTheme = window.MANUFACTURER_CONFIG.theme;
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        // Sync all theme keys for consistency
+        localStorage.setItem('dashboard-theme', savedTheme);
+        localStorage.setItem('dashboard-theme', savedTheme);
+        localStorage.setItem('dashboard-theme', savedTheme);
       }
       
       // Initialize global components

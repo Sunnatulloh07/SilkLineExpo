@@ -1,0 +1,179 @@
+<%- include('../partials/header', { title: title, lng: lng || 'uz', user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'support' }) %>
+
+<!-- Enhanced CSS Imports - Professional Support Style -->
+<link rel="stylesheet" href="/css/products-management-redesign.css">
+<link rel="stylesheet" href="/css/orders-management.css">
+<link rel="stylesheet" href="/css/manufacturer-cards.css">
+<link rel="stylesheet" href="/css/manufacturer-theme.css">
+<link rel="stylesheet" href="/css/toast-notifications.css">
+<link rel="stylesheet" href="/css/manufacturer/support.css">
+
+<!-- Main Content -->
+<main class="admin-main">
+  <div class="admin-content">
+    
+    <!-- Professional Support Header -->
+    <!-- <div class="orders-header animate-fade-in">
+      <div class="orders-header-content">
+        <div class="orders-title-section">
+          <h1 class="orders-main-title">
+            <i class="fas fa-headset"></i>
+            Qo'llab-quvvatlash
+          </h1>
+          <p class="orders-subtitle">Yordam va texnik qo'llab-quvvatlash markazi</p>
+        </div>
+        <div class="orders-header-actions">
+          <button class="orders-btn orders-btn-outline" id="contactSupportBtn">
+            <i class="fas fa-envelope"></i>
+            Bog'lanish
+          </button>
+          <button class="orders-btn orders-btn-secondary" id="faqBtn">
+            <i class="fas fa-question-circle"></i>
+            Savol-Javob
+          </button>
+        </div>
+      </div>
+    </div> -->
+
+    <!-- Under Development Section -->
+    <div class="support-main-content animate-fade-in">
+      <div class="development-container">
+        
+        <!-- Main Development Card -->
+        <div class="development-card">
+          <div class="development-icon">
+            <div class="icon-wrapper">
+              <i class="fas fa-tools"></i>
+              <div class="icon-pulse"></div>
+            </div>
+          </div>
+          
+          <div class="development-content">
+            <h2 class="development-title">Ishlab chiqilmoqda</h2>
+            <p class="development-subtitle">Qo'llab-quvvatlash markazi hozirda rivojlantirilmoqda</p>
+            
+            <div class="development-description">
+              <p>
+                Biz sizga eng yaxshi qo'llab-quvvatlash tajribasini taqdim etish uchun ishlamoqdamiz. 
+                Tez orada quyidagi xizmatlar mavjud bo'ladi:
+              </p>
+              
+              <div class="features-grid">
+                <div class="feature-item">
+                  <i class="fas fa-headset"></i>
+                  <span>24/7 Texnik Yordam</span>
+                </div>
+                <div class="feature-item">
+                  <i class="fas fa-comments"></i>
+                  <span>Jonli Chat</span>
+                </div>
+                <div class="feature-item">
+                  <i class="fas fa-book"></i>
+                  <span>Bilim Bazasi</span>
+                </div>
+                <div class="feature-item">
+                  <i class="fas fa-video"></i>
+                  <span>Video Qo'llanmalar</span>
+                </div>
+                <div class="feature-item">
+                  <i class="fas fa-ticket-alt"></i>
+                  <span>Tiket Tizimi</span>
+                </div>
+                <div class="feature-item">
+                  <i class="fas fa-phone"></i>
+                  <span>Telefon Qo'llab-quvvatlash</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="development-actions">
+              <button class="dev-btn dev-btn-primary" id="subscribeUpdatesBtn">
+                <i class="fas fa-bell"></i>
+                Yangiliklar uchun obuna bo'ling
+              </button>
+              <button class="dev-btn dev-btn-outline" id="temporaryContactBtn">
+                <i class="fas fa-envelope"></i>
+                Hozircha bog'lanish
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="progress-section">
+          <div class="progress-header">
+            <h3>Rivojlanish jarayoni</h3>
+            <span class="progress-percentage">75%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 75%"></div>
+          </div>
+          <div class="progress-stages">
+            <div class="stage completed">
+              <i class="fas fa-check"></i>
+              <span>Loyihalash</span>
+            </div>
+            <div class="stage completed">
+              <i class="fas fa-check"></i>
+              <span>Ishlab chiqish</span>
+            </div>
+            <div class="stage active">
+              <i class="fas fa-cog fa-spin"></i>
+              <span>Test qilish</span>
+            </div>
+            <div class="stage">
+              <i class="fas fa-rocket"></i>
+              <span>Ishga tushirish</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Temporary Contact Info -->
+        <div class="temp-contact-section">
+          <div class="contact-cards">
+            <div class="contact-card">
+              <div class="contact-icon">
+                <i class="fas fa-envelope"></i>
+              </div>
+              <div class="contact-info">
+                <h4>Email orqali</h4>
+                <p>support@silkline.uz</p>
+                <small>24 soat ichida javob</small>
+              </div>
+            </div>
+            
+            <div class="contact-card">
+              <div class="contact-icon">
+                <i class="fas fa-phone"></i>
+              </div>
+              <div class="contact-info">
+                <h4>Telefon orqali</h4>
+                <p>+998 78 777-77-77</p>
+                <small>Du-Juma 9:00-18:00</small>
+              </div>
+            </div>
+            
+            <div class="contact-card">
+              <div class="contact-icon">
+                <i class="fab fa-telegram"></i>
+              </div>
+              <div class="contact-info">
+                <h4>Telegram</h4>
+                <p>@silkline_support</p>
+                <small>Tezkor javob</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Professional JavaScript -->
+<script src="/js/manufacturer/support.js"></script>
+
+<%- include('../partials/footer') %>

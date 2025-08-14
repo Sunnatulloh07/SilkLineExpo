@@ -1,0 +1,5 @@
+<svg width="100" height="40" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100" height="40" fill="#FFC107" rx="8"/>
+  <text x="50" y="16" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle">Express24</text>
+  <text x="50" y="30" font-family="Arial, sans-serif" font-size="8" fill="#666" text-anchor="middle">Delivery</text>
+</svg>

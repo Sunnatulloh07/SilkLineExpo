@@ -32,6 +32,7 @@ if (process.env.MONGODB_URI) {
 // Initialize services
 const FileService = require('./services/FileService');
 const EmailService = require('./services/EmailService');
+const NotificationService = require('./services/NotificationService');
 
 // Initialize file service directories
 FileService.initializeDirectories().catch(console.error);
@@ -69,9 +70,14 @@ app.use(cors());
 // Logging middleware
 app.use(morgan('combined'));
 
-// Body parsing middleware
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+// Body parsing middleware - ENHANCED for B2B Image Management
+app.use(bodyParser.urlencoded({ 
+  extended: false,
+  limit: '50mb' // Increased for base64 image data
+}));
+app.use(bodyParser.json({
+  limit: '50mb' // Increased for base64 image data
+}));
 app.use(cookieParser());
 
 // Session middleware
@@ -88,9 +94,21 @@ app.use(session({
 // i18next middleware
 app.use(middleware.handle(i18next));
 
+// Expose auth context to views (safe fallbacks)
+app.use((req, res, next) => {
+  res.locals.currentUser = req.user || req.session?.user || null;
+  res.locals.currentUserRole = (req.session && req.session.role) || (req.user && req.user.role) || null;
+  next();
+});
+
 // View engine setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+// Image request rate limiting middleware
+// const ImageRequestLimiter = require('./middleware/imageRequestLimiter');
+// const imageRequestLimiter = new ImageRequestLimiter();
+// app.use(imageRequestLimiter.middleware());
 
 // Static files middleware
 app.use(express.static(path.join(__dirname, 'public')));
@@ -116,25 +134,39 @@ const dashboardRoutes = require('./routes/dashboard');
 
 // Make i18next available to all views
 app.use((req, res, next) => {
-  // Get current language from cookie or default to 'uz'
-  const currentLang = req.cookies.i18next || 'uz';
-  
+  // Unified language resolution: query -> selectedLanguage cookie -> i18next cookie -> detector -> default
+  const resolvedLang = req.query.lng 
+    || req.cookies.selectedLanguage 
+    || req.cookies.i18next 
+    || req.language 
+    || 'uz';
+
+  // Persist resolved language into detector cookie for consistency
+  if (resolvedLang && req.cookies.i18next !== resolvedLang) {
+    res.cookie('i18next', resolvedLang, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: false, path: '/' });
+  }
+  if (resolvedLang && req.cookies.selectedLanguage !== resolvedLang) {
+    res.cookie('selectedLanguage', resolvedLang, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: false, path: '/' });
+  }
+
   // Set i18next language for this request
-  i18next.changeLanguage(currentLang);
-  
+  i18next.changeLanguage(resolvedLang);
+
   // Create translation function
   res.locals.t = (key, options = {}) => {
     try {
-      return i18next.t(key, { lng: currentLang, ...options });
+      return i18next.t(key, { lng: resolvedLang, ...options });
     } catch (error) {
       console.error('Translation error for key:', key, error);
       return key;
     }
   };
-  
-  res.locals.lng = currentLang;
+
+  res.locals.lng = resolvedLang;
   res.locals.languages = ['uz', 'en', 'ru', 'fa', 'tr', 'zh'];
-  
+  // Expose current URL for language redirect links
+  res.locals.currentUrl = req.originalUrl;
+
   next();
 });
 
@@ -221,26 +253,36 @@ app.use('/auth', multiDashboardRoutes);
 app.use('/auth-legacy', authRoutes);
 app.use('/auth-old', jwtAuthRoutes);
 
+// ===== PUBLIC API ROUTES FIRST (NO AUTHENTICATION) =====
+// Request timing middleware for performance monitoring
+const requestTiming = require('./middleware/requestTiming');
+app.use('/api/public', requestTiming);
+
+// Public Products API routes (NO AUTHENTICATION REQUIRED)
+const publicProductsRoutes = require('./routes/api/public-products');
+app.use('/api/public', publicProductsRoutes);
+
+// Countries API routes (Public)
+app.use('/api/countries', require('./routes/api/countries'));
+
+// ===== PROTECTED API ROUTES =====
 // Authentication API routes (for API clients)
 app.use('/api/auth', authRoutes);
 
-// Manufacturer Products API routes
+// Manufacturer Products API routes (Protected)
 app.use('/api/manufacturer/products', require('./routes/api/manufacturer-products'));
 
-// Manufacturer Orders API routes
+// Manufacturer Orders API routes (Protected)
 app.use('/api/manufacturer/orders', require('./routes/api/manufacturer-orders'));
 app.use('/api/manufacturer/orders', require('./routes/api/manufacturer-orders-detail'));
 
-// Comments API routes
-app.use('/api', require('./routes/api/comments'));
-app.use('/api', require('./routes/api/order-comments'));
+// Comments API routes (Protected)
+// app.use('/api', require('./routes/api/comments'));
+// app.use('/api', require('./routes/api/order-comments'));
+app.use('/api/comments', require('./routes/api/comments'));
+app.use('/api/order-comments', require('./routes/api/order-comments'));
 
-
-
-// Countries API routes
-app.use('/api/countries', require('./routes/api/countries'));
-
-// Public API routes  
+// ===== PROTECTED API ROUTES =====
 app.use('/api', apiRoutes);
 
 // Legacy route redirects

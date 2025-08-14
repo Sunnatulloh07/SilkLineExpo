@@ -42,11 +42,32 @@
         </ul>
         <div class="header-right__inner d-lg-none my-3 gap-1 d-flex flx-align">
 
-          <a href="/login" class="btn btn-main pill">
-            <span class="icon-left icon">
-              <img src="/assets/images/icons/user.svg" alt="<%= t('common.userIconAlt') %>">
-            </span><%= t('nav.createAccount') %>
-          </a>
+          <% if (!currentUser) { %>
+            <a href="/auth/login" class="btn btn-main pill">
+              <span class="icon-left icon">
+                <img src="/assets/images/icons/user.svg" alt="<%= t('common.userIconAlt') %>">
+              </span><%= t('nav.createAccount') %>
+            </a>
+          <% } else { %>
+            <div class="user-menu dropdown">
+              <button class="user-menu-btn" type="button">
+                <img class="user-avatar" src="<%= currentUser.avatarUrl || currentUser.companyLogo?.url || '/assets/images/icons/user.svg' %>" alt="avatar" onerror="this.src='/assets/images/icons/user.svg'">
+                <span class="user-name d-none d-xl-inline"><%= currentUser.username || currentUser.companyName || 'Account' %></span>
+                <i class="las la-angle-down"></i>
+              </button>
+              <div class="user-dropdown">
+                <% if (currentUserRole === 'manufacturer') { %>
+                  <a class="user-dropdown__item" href="/manufacturer"><i class="las la-tachometer-alt"></i> <span>Dashboard</span></a>
+                <% } else { %>
+                  <a class="user-dropdown__item" href="/distributor"><i class="las la-user-circle"></i> <span>Profile</span></a>
+                <% } %>
+                <a class="user-dropdown__item" href="/favorites"><i class="las la-heart"></i> <span><%= t('nav.favorites') || 'Favorites' %></span></a>
+                <a class="user-dropdown__item" href="/cart"><i class="las la-shopping-cart"></i> <span><%= t('nav.cart') || 'Cart' %></span></a>
+                <div class="user-dropdown__divider"></div>
+                <a class="user-dropdown__item" href="/auth/logout"><i class="las la-sign-out-alt"></i> <span><%= t('nav.logout') || 'Logout' %></span></a>
+              </div>
+            </div>
+          <% } %>
           <!-- Custom Language Selector - Mobile -->
           <div class="custom-lang-selector" data-type="mobile">
             <div class="lang-btn">
@@ -56,22 +77,22 @@
               <i class="las la-angle-down lang-arrow"></i>
             </div>
             <div class="lang-dropdown">
-              <a href="/language/en" class="lang-option <%= lng === 'en' ? 'active' : '' %>" data-lang="en">
+              <a href="/language/en?redirect=<%= encodeURIComponent(currentUrl) %>" class="lang-option <%= lng === 'en' ? 'active' : '' %>" data-lang="en">
                 <span>English</span>
               </a>
-              <a href="/language/uz" class="lang-option <%= lng === 'uz' ? 'active' : '' %>" data-lang="uz">
+              <a href="/language/uz?redirect=<%= encodeURIComponent(currentUrl) %>" class="lang-option <%= lng === 'uz' ? 'active' : '' %>" data-lang="uz">
                 <span>O'zbekcha</span>
               </a>
-              <a href="/language/ru" class="lang-option <%= lng === 'ru' ? 'active' : '' %>" data-lang="ru">
+              <a href="/language/ru?redirect=<%= encodeURIComponent(currentUrl) %>" class="lang-option <%= lng === 'ru' ? 'active' : '' %>" data-lang="ru">
                 <span>Русский</span>
               </a>
-              <a href="/language/tr" class="lang-option <%= lng === 'tr' ? 'active' : '' %>" data-lang="tr">
+              <a href="/language/tr?redirect=<%= encodeURIComponent(currentUrl) %>" class="lang-option <%= lng === 'tr' ? 'active' : '' %>" data-lang="tr">
                 <span>Türkçe</span>
               </a>
-              <a href="/language/fa" class="lang-option <%= lng === 'fa' ? 'active' : '' %>" data-lang="fa">
+              <a href="/language/fa?redirect=<%= encodeURIComponent(currentUrl) %>" class="lang-option <%= lng === 'fa' ? 'active' : '' %>" data-lang="fa">
                 <span>فارسی</span>
               </a>
-              <a href="/language/zh" class="lang-option <%= lng === 'zh' ? 'active' : '' %>" data-lang="zh">
+              <a href="/language/zh?redirect=<%= encodeURIComponent(currentUrl) %>" class="lang-option <%= lng === 'zh' ? 'active' : '' %>" data-lang="zh">
                 <span>中文</span>
               </a>
             </div>
@@ -136,11 +157,32 @@
                   </div>
                 </label>
               </div>
-              <a href="/auth/register" class="btn btn-main pill">
-                <span class="icon-left icon">
-                  <img src="/assets/images/icons/user.svg" alt="<%= t('common.userIconAlt') %>">
-                </span><%= t('nav.createAccount') %>
-              </a>
+              <% if (!currentUser) { %>
+                <a href="/auth/login" class="btn btn-main pill">
+                  <span class="icon-left icon">
+                    <img src="/assets/images/icons/user.svg" alt="<%= t('common.userIconAlt') %>">
+                  </span><%= t('nav.login') %>
+                </a>
+              <% } else { %>
+                <div class="user-menu dropdown">
+                  <button class="user-menu-btn" type="button">
+                    <img class="user-avatar" src="<%= currentUser.avatarUrl || currentUser.companyLogo?.url || '/assets/images/icons/user.svg' %>" alt="avatar" onerror="this.src='/assets/images/icons/user.svg'">
+                    <span class="user-name d-none d-xl-inline"><%= currentUser.username || currentUser.companyName || 'Account' %></span>
+                    <i class="las la-angle-down"></i>
+                  </button>
+                  <div class="user-dropdown">
+                    <% if (currentUserRole === 'manufacturer') { %>
+                      <a class="user-dropdown__item" href="/manufacturer"><i class="las la-tachometer-alt"></i> <span>Dashboard</span></a>
+                    <% } else { %>
+                      <a class="user-dropdown__item" href="/distributor"><i class="las la-user-circle"></i> <span>Profile</span></a>
+                    <% } %>
+                    <a class="user-dropdown__item" href="/favorites"><i class="las la-heart"></i> <span><%= t('nav.favorites') || 'Favorites' %></span></a>
+                    <a class="user-dropdown__item" href="/cart"><i class="las la-shopping-cart"></i> <span><%= t('nav.cart') || 'Cart' %></span></a>
+                    <div class="user-dropdown__divider"></div>
+                    <a class="user-dropdown__item" href="/auth/logout"><i class="las la-sign-out-alt"></i> <span><%= t('nav.logout') || 'Logout' %></span></a>
+                  </div>
+                </div>
+              <% } %>
               <!-- Custom Language Selector - Desktop -->
               <div class="custom-lang-selector" data-type="desktop">
                 <div class="lang-btn">
@@ -149,22 +191,22 @@
                   <i class="las la-angle-down lang-arrow"></i>
                 </div>
                 <div class="lang-dropdown">
-                  <a href="/language/en" class="lang-option <%= lng === 'en' ? 'active' : '' %>" data-lang="en">
+                  <a href="/language/en?redirect=<%= encodeURIComponent(currentUrl) %>" class="lang-option <%= lng === 'en' ? 'active' : '' %>" data-lang="en">
                     <span>English</span>
                   </a>
-                  <a href="/language/uz" class="lang-option <%= lng === 'uz' ? 'active' : '' %>" data-lang="uz">
+                  <a href="/language/uz?redirect=<%= encodeURIComponent(currentUrl) %>" class="lang-option <%= lng === 'uz' ? 'active' : '' %>" data-lang="uz">
                     <span>O'zbekcha</span>
                   </a>
-                  <a href="/language/ru" class="lang-option <%= lng === 'ru' ? 'active' : '' %>" data-lang="ru">
+                  <a href="/language/ru?redirect=<%= encodeURIComponent(currentUrl) %>" class="lang-option <%= lng === 'ru' ? 'active' : '' %>" data-lang="ru">
                     <span>Русский</span>
                   </a>
-                  <a href="/language/tr" class="lang-option <%= lng === 'tr' ? 'active' : '' %>" data-lang="tr">
+                  <a href="/language/tr?redirect=<%= encodeURIComponent(currentUrl) %>" class="lang-option <%= lng === 'tr' ? 'active' : '' %>" data-lang="tr">
                     <span>Türkçe</span>
                   </a>
-                  <a href="/language/fa" class="lang-option <%= lng === 'fa' ? 'active' : '' %>" data-lang="fa">
+                  <a href="/language/fa?redirect=<%= encodeURIComponent(currentUrl) %>" class="lang-option <%= lng === 'fa' ? 'active' : '' %>" data-lang="fa">
                     <span>فارسی</span>
                   </a>
-                  <a href="/language/zh" class="lang-option <%= lng === 'zh' ? 'active' : '' %>" data-lang="zh">
+                  <a href="/language/zh?redirect=<%= encodeURIComponent(currentUrl) %>" class="lang-option <%= lng === 'zh' ? 'active' : '' %>" data-lang="zh">
                     <span>中文</span>
                   </a>
                 </div>

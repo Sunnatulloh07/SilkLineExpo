@@ -40,20 +40,30 @@ router.get('/orders/:orderId/comments/statistics', OrderCommentController.getCom
 // ===== INDIVIDUAL COMMENT ROUTES =====
 
 /**
- * PUT /api/comments/:commentId
- * Update an existing comment
+ * PUT /api/order-comments/:commentId
+ * Update an existing order comment
  * Body: { content?, type?, visibility?, priority?, status? }
  */
-router.put('/comments/:commentId',
+router.put('/order-comments/:commentId',
     OrderCommentController.getUpdateValidationRules(),
     OrderCommentController.updateComment
 );
 
 /**
- * DELETE /api/comments/:commentId
- * Delete a comment and its replies
+ * DELETE /api/order-comments/:commentId
+ * Delete an order comment and its replies
  */
-router.delete('/comments/:commentId', OrderCommentController.deleteComment);
+router.delete('/order-comments/:commentId', 
+    OrderCommentController.deleteComment
+);
+
+/**
+ * GET /api/order-comments/:commentId
+ * Get a specific order comment by ID
+ */
+router.get('/order-comments/:commentId', 
+    OrderCommentController.getCommentById
+);
 
 /**
  * POST /api/comments/:commentId/flag

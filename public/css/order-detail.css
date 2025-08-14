@@ -650,7 +650,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-4);
 }
 
 .products-table-title {
@@ -682,7 +681,6 @@
   width: 100%;
   background: var(--bg-elevated);
   border: 1px solid var(--border-light);
-  border-radius: 12px;
   overflow: hidden;
 }
 

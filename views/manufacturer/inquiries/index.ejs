@@ -1,0 +1,629 @@
+<%- include('../partials/header', { title: 'Biznes So\'rovlari', lng: lng || 'uz', user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'inquiries' }) %>
+
+<!-- Enhanced CSS Imports - Professional B2B Inquiries Style -->
+<link rel="stylesheet" href="/css/products-management-redesign.css">
+<link rel="stylesheet" href="/css/products-table-view.css">
+<link rel="stylesheet" href="/css/orders-management.css">
+<link rel="stylesheet" href="/css/manufacturer-cards.css">
+<link rel="stylesheet" href="/css/manufacturer-theme.css">
+<link rel="stylesheet" href="/css/toast-notifications.css">
+<link rel="stylesheet" href="/css/modal-system.css">
+<link rel="stylesheet" href="/css/manufacturer/inquiries.css">
+
+<!-- Main Content -->
+<main class="admin-main">
+  <div class="admin-content">
+    
+    <!-- Professional B2B Inquiries Header -->
+    <div class="orders-header animate-fade-in">
+      <div class="orders-header-content">
+        <div class="orders-title-section">
+          <h1 class="orders-main-title">
+            <i class="fas fa-envelope-open-text"></i>
+            Biznes So'rovlari
+          </h1>
+          <p class="orders-subtitle">Professional B2B so'rovlar boshqaruvi va mijozlar bilan aloqa markazi</p>
+        </div>
+        <div class="orders-header-actions">
+          <button class="orders-btn orders-btn-primary" id="createQuoteTemplateBtn">
+            <i class="fas fa-file-invoice-dollar"></i>
+            Taklif Shablon
+          </button>
+          <button class="orders-btn orders-btn-outline" id="exportInquiriesBtn">
+            <i class="fas fa-download"></i>
+            Export Hisobot
+          </button>
+          <button class="orders-btn orders-btn-secondary" id="refreshInquiriesBtn">
+            <i class="fas fa-sync-alt"></i>
+            Yangilash
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Professional B2B KPI Cards - Inquiries Analytics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg">
+      
+      <!-- Total Inquiries -->
+      <div class="stat-card primary animate-fade-in" data-kpi="totalInquiries">
+        <div class="stat-header">
+          <h3 class="stat-title">Jami So'rovlar</h3>
+          <div class="stat-icon primary">
+            <i class="fas fa-envelope-open"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="metric-value" id="totalInquiriesValue">
+            <span class="loading-placeholder">...</span>
+          </span>
+        </div>
+        <div class="stat-change positive">
+          <i class="fas fa-arrow-up stat-change-icon"></i>
+          <span class="metric-trend">Barcha so'rovlar</span>
+        </div>
+      </div>
+
+      <!-- New Inquiries -->
+      <div class="stat-card success animate-fade-in" data-kpi="newInquiries">
+        <div class="stat-header">
+          <h3 class="stat-title">Yangi So'rovlar</h3>
+          <div class="stat-icon success">
+            <i class="fas fa-bell"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="metric-value" id="newInquiriesValue">
+            <span class="loading-placeholder">...</span>
+          </span>
+        </div>
+        <div class="stat-change positive">
+          <i class="fas fa-arrow-up stat-change-icon"></i>
+          <span class="metric-trend">Javob kutmoqda</span>
+        </div>
+      </div>
+
+      <!-- Response Rate -->
+      <div class="stat-card info animate-fade-in" data-kpi="responseRate">
+        <div class="stat-header">
+          <h3 class="stat-title">Javob Berish %</h3>
+          <div class="stat-icon info">
+            <i class="fas fa-chart-pie"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="metric-value" id="responseRateValue">
+            <span class="loading-placeholder">...</span>
+          </span>
+        </div>
+        <div class="stat-change positive">
+          <i class="fas fa-arrow-up stat-change-icon"></i>
+          <span class="metric-trend">Bu oy</span>
+        </div>
+      </div>
+
+      <!-- Conversion Rate -->
+      <div class="stat-card warning animate-fade-in" data-kpi="conversionRate">
+        <div class="stat-header">
+          <h3 class="stat-title">Konversiya %</h3>
+          <div class="stat-icon warning">
+            <i class="fas fa-handshake"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="metric-value" id="conversionRateValue">
+            <span class="loading-placeholder">...</span>
+          </span>
+        </div>
+        <div class="stat-change neutral">
+          <i class="fas fa-arrow-right stat-change-icon"></i>
+          <span class="metric-trend">So'rov → Buyurtma</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Professional Filters Container - Inquiries Style -->
+    <div class="products-filters-container">
+      <div class="products-filters-header">
+        <h3 class="products-filters-title">
+          <i class="fas fa-filter"></i>
+          Filtr va Qidiruv
+        </h3>
+        <div class="products-filters-actions">
+          <button class="products-btn products-btn-sm products-btn-secondary" id="resetInquiriesFiltersBtn">
+            <i class="fas fa-undo"></i>
+            Reset
+          </button>
+          <button class="products-btn products-btn-sm products-btn-outline" id="advancedInquiriesFiltersBtn">
+            <i class="fas fa-cog"></i>
+            Kengaytirilgan
+          </button>
+        </div>
+      </div>
+      <div class="products-filters-body">
+        <form id="inquiriesFiltersForm" class="products-filters-form">
+          
+          <!-- Search Input -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Qidiruv</label>
+            <div class="products-search-wrapper">
+              <i class="fas fa-search products-search-icon"></i>
+              <input 
+                type="text" 
+                id="inquiriesSearchInput" 
+                name="search" 
+                placeholder="Kompaniya nomi, mahsulot, so'rov ID..."
+                class="products-form-input search"
+              >
+            </div>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Holat</label>
+            <select name="status" id="inquiriesStatusFilter" class="products-form-select">
+              <option value="">Barcha holatlar</option>
+              <option value="open">Ochiq</option>
+              <option value="responded">Javob berilgan</option>
+              <option value="negotiating">Muzokaralar</option>
+              <option value="quoted">Taklif yuborilgan</option>
+              <option value="accepted">Qabul qilingan</option>
+              <option value="rejected">Rad etilgan</option>
+              <option value="expired">Muddati tugagan</option>
+              <option value="converted">Buyurtmaga aylantirilgan</option>
+            </select>
+          </div>
+
+          <!-- Priority Filter -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Muhimlik</label>
+            <select name="priority" id="inquiriesPriorityFilter" class="products-form-select">
+              <option value="">Barcha muhimliklar</option>
+              <option value="urgent">Shoshilinch</option>
+              <option value="high">Yuqori</option>
+              <option value="medium">O'rta</option>
+              <option value="low">Past</option>
+            </select>
+          </div>
+
+          <!-- Date Range Filter -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Sana oralig'i</label>
+            <select name="dateRange" id="inquiriesDateRangeFilter" class="products-form-select">
+              <option value="">Barcha vaqt</option>
+              <option value="today">Bugun</option>
+              <option value="week">Bu hafta</option>
+              <option value="month">Bu oy</option>
+              <option value="quarter">Bu chorak</option>
+              <option value="year">Bu yil</option>
+              <option value="custom">Maxsus oraliq</option>
+            </select>
+          </div>
+
+          <!-- Budget Range Filter -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Byudjet oralig'i</label>
+            <select name="budget" id="inquiriesBudgetFilter" class="products-form-select">
+              <option value="">Barcha byudjetlar</option>
+              <option value="0-1000">$0 - $1,000</option>
+              <option value="1000-5000">$1,000 - $5,000</option>
+              <option value="5000-10000">$5,000 - $10,000</option>
+              <option value="10000-50000">$10,000 - $50,000</option>
+              <option value="50000+">$50,000+</option>
+            </select>
+          </div>
+
+          <!-- Product Category Filter -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Mahsulot kategoriyasi</label>
+            <select name="category" id="inquiriesCategoryFilter" class="products-form-select">
+              <option value="">Barcha kategoriyalar</option>
+              <option value="cotton">Paxta matolari</option>
+              <option value="silk">Ipak matolari</option>
+              <option value="wool">Jun matolari</option>
+              <option value="synthetic">Sintetik matolar</option>
+              <option value="technical">Texnik matolar</option>
+            </select>
+          </div>
+
+          <!-- Sort Options -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Saralash</label>
+            <select name="sortBy" id="inquiriesSortFilter" class="products-form-select">
+              <option value="createdAt">Yaratilgan vaqt</option>
+              <option value="priority">Muhimlik</option>
+              <option value="budgetRange">Byudjet</option>
+              <option value="status">Holat</option>
+              <option value="companyName">Kompaniya nomi</option>
+            </select>
+          </div>
+
+          <!-- Sort Order -->
+          <div class="products-filter-group">
+            <label class="products-filter-label">Tartib</label>
+            <select name="sortOrder" id="inquiriesSortOrderFilter" class="products-form-select">
+              <option value="desc">Kamayish tartibida</option>
+              <option value="asc">O'sish tartibida</option>
+            </select>
+          </div>
+          
+          <div class="products-filters-submit">
+            <button type="submit" class="products-btn products-btn-primary" id="searchInquiriesFiltersBtn">
+              <i class="fas fa-search"></i>
+              Qidiruv
+            </button>
+            <button type="button" class="products-btn products-btn-secondary" id="clearInquiriesFiltersBtn">
+              <i class="fas fa-times"></i>
+              Tozalash
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Inquiries Container -->
+    <div class="products-main-container">
+      <div class="products-content-header">
+        <h3 class="products-content-title">
+          <i class="fas fa-clipboard-list"></i>
+          So'rovlar
+          <span class="products-count" id="inquiriesCountText">
+            <%= inquiries ? inquiries.length : 0 %>
+          </span>
+        </h3>
+        <div class="products-content-actions">
+          <div class="products-view-toggle">
+            <button class="products-view-btn" data-view="cards" title="Card ko'rinish" id="cardsViewBtn">
+              <i class="fas fa-th"></i>
+              <span>Cards</span>
+            </button>
+            <button class="products-view-btn active" data-view="table" title="Table ko'rinish" id="tableViewBtn">
+              <i class="fas fa-list"></i>
+              <span>Table</span>
+            </button>
+            <button class="products-view-btn" data-view="kanban" title="Kanban ko'rinish" id="kanbanViewBtn">
+              <i class="fas fa-columns"></i>
+              <span>Kanban</span>
+            </button>
+          </div>
+          <button class="products-btn products-btn-sm products-btn-secondary" id="refreshInquiriesBtn2">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- TABLE VIEW - Professional Inquiries Management -->
+      <div class="products-view-container" id="inquiriesTableView">
+        <div class="products-table-container">
+          <div class="products-table-header">
+            <h4 class="products-table-title">
+              <i class="fas fa-table"></i>
+              So'rovlar jadvali
+            </h4>
+            <div class="products-table-actions">
+              <button class="products-btn products-btn-sm products-btn-secondary" id="refreshInquiriesTableBtn" title="So'rovlarni yangilash">
+                <i class="fas fa-sync-alt"></i>
+                Yangilash
+              </button>
+              <button class="products-btn products-btn-sm products-btn-outline" id="selectAllInquiriesBtn">
+                <i class="fas fa-check-square"></i>
+                Barchasini belgilash
+              </button>
+              <button class="products-btn products-btn-sm products-btn-secondary" id="bulkInquiriesActionsBtn">
+                <i class="fas fa-tasks"></i>
+                Ommaviy amallar
+              </button>
+            </div>
+          </div>
+          
+          <div class="products-table-wrapper">
+            <table class="products-table inquiries-table" id="inquiriesTable">
+              <thead>
+                <tr>
+                  <th class="table-checkbox-col">
+                    <input type="checkbox" id="selectAllInquiries" class="table-checkbox">
+                  </th>
+                  <th class="inquiry-id-col sortable" data-sort="inquiryNumber">
+                    So'rov ID
+                    <i class="fas fa-sort sort-icon"></i>
+                  </th>
+                  <th class="customer-col sortable" data-sort="inquirer">
+                    Mijoz / Kompaniya
+                    <i class="fas fa-sort sort-icon"></i>
+                  </th>
+                  <th class="product-col">
+                    Mahsulot / Xizmat
+                  </th>
+                  <th class="quantity-col sortable" data-sort="requestedQuantity">
+                    Miqdor
+                    <i class="fas fa-sort sort-icon"></i>
+                  </th>
+                  <th class="budget-col sortable" data-sort="budgetRange">
+                    Byudjet
+                    <i class="fas fa-sort sort-icon"></i>
+                  </th>
+                  <th class="date-col sortable" data-sort="createdAt">
+                    Sana
+                    <i class="fas fa-sort sort-icon"></i>
+                  </th>
+                  <th class="status-col sortable" data-sort="status">
+                    Holat
+                    <i class="fas fa-sort sort-icon"></i>
+                  </th>
+                  <th class="priority-col sortable" data-sort="priority">
+                    Muhimlik
+                    <i class="fas fa-sort sort-icon"></i>
+                  </th>
+                  <th class="actions-col">Amallar</th>
+                </tr>
+              </thead>
+              <tbody id="inquiriesTableBody">
+                <!-- Table content will be loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Professional Pagination -->
+          <div class="table-pagination" id="inquiriesPagination" style="display: none;">
+            <div class="table-pagination-info">
+              <span id="inquiriesPaginationInfo">1-dan 0-gacha, jami 0 ta ko'rsatilmoqda</span>
+            </div>
+            <div class="table-pagination-controls" id="inquiriesPaginationControls">
+              <!-- Pagination buttons will be inserted here -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- Professional Inquiry Response Modal -->
+<div class="modal-overlay" id="inquiryResponseModal">
+  <div class="modal-content inquiry-modal">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-reply"></i>
+        So'rovga Javob Berish
+      </h3>
+      <button class="modal-close" id="closeInquiryResponseModal">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="inquiryResponseForm">
+        
+        <!-- Inquiry Summary -->
+        <div class="inquiry-summary-card">
+          <div class="inquiry-summary-header">
+            <h4>So'rov ma'lumotlari</h4>
+            <span class="inquiry-id" id="modalInquiryId">#INQ-2024-001</span>
+          </div>
+          <div class="inquiry-summary-content">
+            <div class="summary-row">
+              <span class="summary-label">Mijoz:</span>
+              <span class="summary-value" id="modalCustomerName">Toshkent Textile Distribution</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Mahsulot:</span>
+              <span class="summary-value" id="modalProductName">Premium Cotton Fabric</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Miqdor:</span>
+              <span class="summary-value" id="modalQuantity">500 metr</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Byudjet:</span>
+              <span class="summary-value" id="modalBudget">$5,000 - $10,000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Response Type -->
+        <div class="form-group">
+          <label class="form-label">Javob turi</label>
+          <div class="response-type-selector">
+            <label class="response-type-option">
+              <input type="radio" name="responseType" value="quick_response" checked>
+              <div class="response-type-content">
+                <i class="fas fa-comment-alt"></i>
+                <span>Tezkor javob</span>
+              </div>
+            </label>
+            <label class="response-type-option">
+              <input type="radio" name="responseType" value="detailed_quote">
+              <div class="response-type-content">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Batafsil taklif</span>
+              </div>
+            </label>
+            <label class="response-type-option">
+              <input type="radio" name="responseType" value="custom_proposal">
+              <div class="response-type-content">
+                <i class="fas fa-handshake"></i>
+                <span>Maxsus taklif</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Quick Response Section -->
+        <div class="response-section" id="quickResponseSection">
+          <div class="form-group">
+            <label class="form-label">Tezkor javob <span class="required">*</span></label>
+            <textarea id="quickResponseMessage" name="quickResponseMessage" class="form-control" rows="4" placeholder="Mijozga javobingizni yozing..." required></textarea>
+          </div>
+        </div>
+
+        <!-- Detailed Quote Section -->
+        <div class="response-section hidden" id="detailedQuoteSection">
+          <div class="quote-builder">
+            <h4 class="quote-builder-title">
+              <i class="fas fa-calculator"></i>
+              Narx taklifini yaratish
+            </h4>
+            
+            <div class="quote-grid">
+              <div class="form-group">
+                <label class="form-label">Birlik narxi (USD) <span class="required">*</span></label>
+                <input type="number" id="unitPrice" name="unitPrice" class="form-control" placeholder="0.00" step="0.01" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Minimal miqdor (MOQ)</label>
+                <input type="number" id="minimumQuantity" name="minimumQuantity" class="form-control" placeholder="100">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Yetkazib berish narxi</label>
+                <input type="number" id="shippingCost" name="shippingCost" class="form-control" placeholder="0.00" step="0.01">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Taklif amal qilish muddati</label>
+                <select id="quoteValidityDays" name="quoteValidityDays" class="form-control">
+                  <option value="7">7 kun</option>
+                  <option value="14" selected>14 kun</option>
+                  <option value="30">30 kun</option>
+                  <option value="60">60 kun</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Calculated Total -->
+            <div class="quote-summary">
+              <div class="quote-summary-row">
+                <span>Mahsulot narxi:</span>
+                <span id="calculatedProductPrice">$0.00</span>
+              </div>
+              <div class="quote-summary-row">
+                <span>Yetkazib berish:</span>
+                <span id="calculatedShippingPrice">$0.00</span>
+              </div>
+              <div class="quote-summary-row total">
+                <span>Jami summa:</span>
+                <span id="calculatedTotalPrice">$0.00</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Shartlar va qo'shimcha ma'lumotlar</label>
+              <textarea id="quoteTerms" name="quoteTerms" class="form-control" rows="3" placeholder="To'lov shartlari, yetkazib berish muddati va boshqa shartlar..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Proposal Section -->
+        <div class="response-section hidden" id="customProposalSection">
+          <div class="form-group">
+            <label class="form-label">Maxsus taklif matn <span class="required">*</span></label>
+            <textarea id="customProposalMessage" name="customProposalMessage" class="form-control" rows="6" placeholder="Mijozga maxsus taklifingizni yozing..." required></textarea>
+          </div>
+          
+          <!-- Professional File Upload Section -->
+          <div class="form-group">
+            <label class="form-label">Qo'shimcha hujjatlar</label>
+            <div id="fileDropZone" class="file-drop-zone">
+              <input type="file" id="responseAttachments" name="responseAttachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv" style="display: none;">
+              <div class="file-upload-content">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h4>Fayllarni yuklash</h4>
+                <p>Fayllarni sudrab olib keling yoki bosing</p>
+                <small>PDF, Word, Excel, Rasmlar (maksimal 10MB)</small>
+              </div>
+            </div>
+            <div id="attachmentsList" class="attachments-list"></div>
+            <div id="fileCounter" class="file-counter">Fayl tanlanmagan</div>
+          </div>
+        </div>
+
+        <!-- Follow-up Settings -->
+        <div class="form-group">
+          <label class="form-label">Kuzatuv sozlamalari</label>
+          <div class="follow-up-options">
+            <label class="checkbox-option">
+              <input type="checkbox" id="scheduleFollowUp" checked>
+              <span>Avtomatik kuzatuv belgilash</span>
+            </label>
+            <div class="follow-up-settings" id="followUpSettings">
+              <select id="followUpDays" class="form-control">
+                <option value="3">3 kun ichida</option>
+                <option value="7" selected>1 hafta ichida</option>
+                <option value="14">2 hafta ichida</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="orders-btn orders-btn-secondary" id="cancelInquiryResponse">Bekor qilish</button>
+          <button type="button" class="orders-btn orders-btn-outline" id="saveAsDraft">Draft saqlaش</button>
+          <button type="submit" class="orders-btn orders-btn-primary">
+            <i class="fas fa-paper-plane"></i>
+            Javob yuborish
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Quote Modal -->
+<div class="modal-overlay" id="quickQuoteModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-bolt"></i>
+        Tezkor Taklif Yuborish
+      </h3>
+      <button class="modal-close" id="closeQuickQuoteModal">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="quickQuoteForm">
+        <div class="form-group">
+          <label class="form-label">Birlik narxi (USD) <span class="required">*</span></label>
+          <input type="number" id="quickUnitPrice" name="quickUnitPrice" class="form-control" placeholder="0.00" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Jami summa (USD)</label>
+          <input type="number" id="quickTotalPrice" name="quickTotalPrice" class="form-control" placeholder="0.00" step="0.01" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amal qilish muddati</label>
+          <select id="quickValidityDays" name="quickValidityDays" class="form-control">
+            <option value="7">7 kun</option>
+            <option value="14">14 kun</option>
+            <option value="30" selected>30 kun</option>
+            <option value="60">60 kun</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Qisqa izoh</label>
+          <textarea id="quickNote" name="quickNote" class="form-control" rows="3" placeholder="Taklifingiz haqida qisqa ma'lumot..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="orders-btn orders-btn-secondary" id="cancelQuickQuote">Bekor qilish</button>
+          <button type="submit" class="orders-btn orders-btn-primary">
+            <i class="fas fa-paper-plane"></i>
+            Yuborish
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11;">
+  <!-- Toasts will be dynamically added here -->
+</div>
+
+<!-- Dashboard Initialization -->
+<script src="/js/manufacturer/dashboard-init.js"></script>
+<script src="/js/manufacturer/inquiries.js"></script>
+
+</body>
+</html>
+

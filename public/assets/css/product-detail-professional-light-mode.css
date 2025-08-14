@@ -1,0 +1,766 @@
+/* =========================================================================
+   LIGHT MODE COMPREHENSIVE STYLING - MISSING ELEMENTS
+   All elements that were missing proper light mode styles
+   ========================================================================= */
+
+/* ==================== PRICING SECTION - LIGHT MODE ==================== */
+
+.pricing-section {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.pricing-section:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+}
+
+.price-container {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.main-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.price-amount {
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 1.875rem;
+  line-height: 1.2;
+}
+
+.price-currency {
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 1.125rem;
+}
+
+.price-unit {
+  color: #4b5563;
+  font-weight: 400;
+  font-size: 1rem;
+}
+
+/* ==================== BULK PRICING - LIGHT MODE ==================== */
+
+.bulk-pricing-section {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.bulk-pricing-title {
+  color: #111827;
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bulk-pricing-title i {
+  color: #2563eb;
+}
+
+.bulk-pricing-table {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.bulk-tier {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.bulk-tier:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  transform: translateX(4px);
+}
+
+.tier-quantity {
+  color: #111827;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* ==================== STOCK & LEAD TIME - LIGHT MODE ==================== */
+
+.stock-quantity {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin: 1rem 0;
+}
+
+.available-quantity {
+  color: #15803d;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.lead-time {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: #1f2937;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lead-time i {
+  color: #0891b2;
+  font-size: 1.125rem;
+}
+
+/* ==================== QUANTITY SECTION - LIGHT MODE ==================== */
+
+.quantity-section {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.quantity-label {
+  color: #111827;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  width: fit-content;
+}
+
+.quantity-btn {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  width: 40px;
+  height: 40px;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.quantity-btn:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+.quantity-btn:active {
+  transform: scale(0.95);
+}
+
+.quantity-input {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #111827;
+  text-align: center;
+  border-radius: 0.375rem;
+  margin: 0 0.5rem;
+  padding: 0.5rem 0.75rem;
+  min-width: 80px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.quantity-input:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ==================== ACTION BUTTONS - LIGHT MODE ==================== */
+
+.action-buttons {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin: 2rem 0;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.action-buttons .btn {
+  margin: 0.5rem;
+  min-width: 200px;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-buttons .inquiry-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: none;
+  color: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.action-buttons .inquiry-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.action-buttons .chat-btn {
+  background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+  border: none;
+  color: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.action-buttons .chat-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.action-buttons .sample-btn {
+  background: transparent;
+  border: 2px solid #3b82f6;
+  color: #2563eb;
+}
+
+.action-buttons .sample-btn:hover {
+  background: #2563eb;
+  color: #ffffff;
+  transform: translateY(-3px);
+}
+
+/* ==================== SHIPPING SECTION - LIGHT MODE ==================== */
+
+.shipping-section {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.section-title {
+  color: #111827;
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title i {
+  color: #2563eb;
+  font-size: 1.25rem;
+}
+
+.shipping-details {
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.shipping-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.shipping-detail:last-child {
+  border-bottom: none;
+}
+
+
+.detail-label {
+  color: #4b5563;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.detail-value {
+  color: #111827;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.shipping-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.detail-item {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.detail-item:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+  border-color: #93c5fd;
+}
+
+.detail-item .label {
+  color: #4b5563;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.detail-item .value {
+  color: #111827;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* ==================== SUPPLIER SECTION - LIGHT MODE ==================== */
+
+.supplier-section {
+  background: #f9fafb;
+  padding: 4rem 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.section-main-title {
+  color: #111827;
+  text-align: center;
+  margin-bottom: 3rem;
+  font-weight: 700;
+  font-size: 1.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.section-main-title i {
+  color: #2563eb;
+  font-size: 1.875rem;
+}
+
+.supplier-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.supplier-card:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  transform: translateY(-4px);
+}
+
+.supplier-header {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.supplier-logo {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.supplier-info {
+  flex: 1;
+}
+
+.supplier-name {
+  color: #111827;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.supplier-verification {
+  margin-bottom: 0.5rem;
+}
+
+.verification-badge {
+  background: #f3f4f6;
+  color: #374151;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+}
+
+.verification-badge.verified {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.supplier-location {
+  color: #4b5563;
+  font-weight: 500;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.supplier-location i {
+  color: #2563eb;
+}
+
+/* ==================== SUPPLIER STATS - LIGHT MODE ==================== */
+
+.supplier-stats {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.stat-item:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+  border-color: #93c5fd;
+}
+
+.stat-label {
+  color: #4b5563;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  display: block;
+  font-weight: 500;
+}
+
+.stat-value {
+  color: #111827;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.rating-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.rating-display.small {
+  font-size: 0.875rem;
+}
+
+.rating-score {
+  color: #111827;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+/* ==================== SUPPLIER ACTIONS - LIGHT MODE ==================== */
+
+.supplier-actions {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.supplier-actions .btn {
+  margin: 0.5rem;
+  min-width: 180px;
+}
+
+.contact-supplier-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: none;
+  color: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.contact-supplier-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* ==================== SUPPLIER DESCRIPTION - LIGHT MODE ==================== */
+
+.supplier-description {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.supplier-description p {
+  color: #374151;
+  line-height: 1.6;
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* ==================== SUPPLIER CREDENTIALS - LIGHT MODE ==================== */
+
+.supplier-credentials {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.credential-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e5e7eb;
+  color: #1f2937;
+  transition: all 0.2s ease;
+}
+
+.credential-item:last-child {
+  border-bottom: none;
+}
+
+.credential-item:hover {
+  background: #eff6ff;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.credential-item i {
+  color: #2563eb;
+  margin-right: 0.75rem;
+  width: 20px;
+  text-align: center;
+  font-size: 1.125rem;
+}
+
+.credential-item span {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+/* ==================== DETAILED INFO SECTION - LIGHT MODE ==================== */
+
+.detailed-info-section {
+  background: #ffffff;
+  padding: 4rem 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ==================== KEY FEATURES - LIGHT MODE ==================== */
+
+.key-features {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.key-features h4 {
+  color: #111827;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.features-list li {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  color: #1f2937;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.features-list li:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  transform: translateX(8px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* .features-list li:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: #2563eb;
+} */
+
+.features-list li strong {
+  color: #1d4ed8;
+  margin-right: 0.5rem;
+  font-weight: 600;
+}
+
+/* ==================== SPECIFICATIONS DETAILED - LIGHT MODE ==================== */
+
+.specifications-detailed {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.specifications-detailed h3 {
+  color: #111827;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.specs-table {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* ==================== SHIPPING PAYMENT CONTENT - LIGHT MODE ==================== */
+
+.shipping-payment-content {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.shipping-payment-content h3 {
+  color: #111827;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+/* ==================== RESPONSIVE ADJUSTMENTS - LIGHT MODE ==================== */
+
+@media (max-width: 768px) {
+  .supplier-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .supplier-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons .btn {
+    min-width: auto;
+    width: 100%;
+    margin: 0.25rem 0;
+  }
+  
+  .shipping-details-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .quantity-controls {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ======================== END COMPREHENSIVE LIGHT MODE STYLES ======================== */

@@ -38,11 +38,19 @@ class ManufacturerHeader {
      * Theme Toggle Functionality
      */
     initThemeToggle() {
+        // Check if Universal Theme Manager is available
+        if (window.UniversalTheme) {
+            console.log('🎨 Header: Using Universal Theme Manager');
+            // Universal Theme Manager will handle theme toggle
+            return;
+        }
+
+        // Fallback implementation
         const themeToggle = document.getElementById('themeToggle');
         if (!themeToggle) return;
 
         // Get saved theme or default to light
-        const savedTheme = localStorage.getItem('manufacturer-theme') || 'light';
+        const savedTheme = localStorage.getItem('dashboard-theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
         this.updateThemeIcon(savedTheme);
 
@@ -51,7 +59,7 @@ class ManufacturerHeader {
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             
             document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('manufacturer-theme', newTheme);
+            localStorage.setItem('dashboard-theme', newTheme);
             this.updateThemeIcon(newTheme);
             
             // Trigger theme change event

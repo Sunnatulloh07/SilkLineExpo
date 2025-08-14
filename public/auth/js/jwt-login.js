@@ -572,7 +572,7 @@ class LanguageSelector {
 class AuthThemeHandler {
     constructor() {
         this.toggle = document.getElementById('themeToggle');
-        this.currentTheme = localStorage.getItem('theme') || 'light';
+        this.currentTheme = localStorage.getItem('dashboard-theme') || 'light';
         this.init();
     }
 
@@ -586,7 +586,7 @@ class AuthThemeHandler {
     toggleTheme() {
         this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
         this.applyTheme();
-        localStorage.setItem('theme', this.currentTheme);
+        localStorage.setItem('dashboard-theme', this.currentTheme);
     }
 
     applyTheme() {

@@ -93,7 +93,7 @@
 <!-- jQuery library js -->
 <script src="/assets/js/jquery-3.7.1.min.js"></script>
 <!-- Bootstrap js -->
-<script src="/assets/js/boostrap.bundle.min.js"></script>
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
 <!-- Slick js -->
 <script src="/assets/js/slick.min.js"></script>
 <!-- magnific popup -->
@@ -108,18 +108,36 @@
 <script src="/assets/js/apexchart.js"></script>
 <!-- Main js -->
 <script src="/assets/js/main.js"></script>
-<!-- Countries js -->
-<script src="/assets/js/countries.js"></script>
-<!-- Products js -->
-<script src="/assets/js/products.js"></script>
-<!-- Country company js -->
-<script src="/assets/js/country-company.js"></script>
-<!-- All products js -->
-<script src="/assets/js/all-procuts.js"></script>
-<!-- About company js -->
-<script src="/assets/js/about-company.js"></script>
-<!-- Product details js -->
-<script src="/assets/js/product-details.js"></script>
+<!-- Essential JavaScript for all pages -->
+<script>
+// Only load scripts that are needed and check for required elements
+if (document.querySelector('.products-container') || document.querySelector('#product-grid')) {
+  const script = document.createElement('script');
+  script.src = '/assets/js/products.js';
+  document.head.appendChild(script);
+}
+
+if (document.querySelector('.country-cards') || document.querySelector('#country-container')) {
+  const script1 = document.createElement('script');
+  script1.src = '/assets/js/countries.js';
+  document.head.appendChild(script1);
+  
+  const script2 = document.createElement('script');
+  script2.src = '/assets/js/country-company.js';
+  document.head.appendChild(script2);
+}
+
+// Old all-products script removed - now using page-specific professional script
+
+if (document.querySelector('.about-company-page') || document.querySelector('#about-section')) {
+  const script = document.createElement('script');
+  script.src = '/assets/js/about-company.js';
+  document.head.appendChild(script);
+}
+
+// Product details script is loaded directly in the page template
+// No need for conditional loading here to avoid duplicate loading
+</script>
 
 <!-- Custom Language Selector JavaScript -->
 <script src="/js/custom-lang-selector.js"></script>

@@ -258,7 +258,7 @@ class OrderCommentsManager {
 
             const result = await response.json();
 
-            if (result.success) {
+           if (result.success) {
                 if (page === 1) {
                     this.displayComments(result.data.comments);
                 } else {
@@ -279,7 +279,6 @@ class OrderCommentsManager {
             }
 
         } catch (error) {
-            console.error('Error loading comments:', error);
             this.showError('Izohlarni yuklashda xatolik yuz berdi');
         } finally {
             this.loading = false;
@@ -321,6 +320,7 @@ class OrderCommentsManager {
     createCommentElement(comment) {
         const div = document.createElement('div');
         div.className = 'comment-item';
+        div.setAttribute('data-comment-id', comment._id);
         div.dataset.commentId = comment._id;
 
         const typeLabels = {
@@ -350,7 +350,8 @@ class OrderCommentsManager {
         div.innerHTML = `
             <div class="comment-header">
                 <div class="comment-author">
-                    <img src="/assets/images/avatars/default.png" alt="" class="author-avatar">
+                    <img src="/assets/images/avatars/default.png" alt="" class="author-avatar" 
+                         onerror="this.src='/assets/images/thumbs/profile-info-img.png'; this.onerror=null;">
                     <div class="author-info">
                         <span class="author-name">${this.escapeHtml(comment.author?.name || comment.author?.companyName || 'Unknown')}</span>
                         <span class="comment-time">${this.formatDate(comment.createdAt)}</span>
@@ -405,13 +406,175 @@ class OrderCommentsManager {
     }
 
     canEditComment(comment) {
-        // Simple check - in real app, check user permissions
+        // Professional permission check - only allow editing own comments
+        const currentUser = window.currentUser || {};
+        const authorId = comment.author?._id || comment.author?.id;
+        const currentUserId = currentUser.userId || currentUser._id;
+        
+        // Admin can edit all comments regardless of time
+        if (currentUser.userType === 'admin') return true;
+        
+        // Check if user is the author
+        const isAuthor = authorId && currentUserId && (authorId === currentUserId);
+        if (!isAuthor) return false;
+        
+        // For non-admin authors: check time restriction (24 hours)
+        if (comment.createdAt) {
+            const commentDate = new Date(comment.createdAt);
+            const now = new Date();
+            const hoursSinceCreated = (now - commentDate) / (1000 * 60 * 60);
+            
+            // Only allow editing within 24 hours for non-admin users
+            return hoursSinceCreated <= 24;
+        }
+        
+        // If no creation date available, allow edit (fallback)
         return true;
     }
 
     canDeleteComment(comment) {
-        // Simple check - in real app, check user permissions
-        return true;
+        // Professional permission check - only allow deleting own comments or admin
+        const currentUser = window.currentUser || {};
+        const authorId = comment.author?._id || comment.author?.id;
+        const currentUserId = currentUser.userId || currentUser._id;
+        
+        // Admin can delete all, user can only delete their own
+        if (currentUser.userType === 'admin') return true;
+        if (authorId && currentUserId && authorId === currentUserId) return true;
+        
+        return false;
+    }
+
+    // Old editComment method removed - using the improved async version below
+
+    /**
+     * Delete comment with confirmation
+     */
+    deleteComment(commentId) {
+        // Use OrderDetailManager's delete method if available
+        if (window.orderDetailManager && window.orderDetailManager.deleteComment) {
+            window.orderDetailManager.deleteComment(commentId);
+        } else {
+            // Fallback to direct delete method
+            this.directDeleteComment(commentId);
+        }
+    }
+
+    /**
+     * Direct delete method as fallback
+     */
+    async directDeleteComment(commentId) {
+        if (!confirm('Izohni o\'chirishga ishonchingiz komilmi?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/order-comments/${commentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'include'
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                window.showToast('Izoh muvaffaqiyatli o\'chirildi', 'success');
+                // Refresh comments
+                this.loadComments();
+            } else {
+                window.showToast(result.message || 'Izohni o\'chirishda xatolik', 'error');
+            }
+        } catch (error) {
+            console.error('❌ Error deleting comment:', error);
+            window.showToast('Tarmoq xatoligi', 'error');
+        }
+    }
+
+    /**
+     * Fetch comment data for editing
+     */
+    async fetchCommentData(commentId) {
+        try {
+            // Validate commentId
+            if (!commentId || typeof commentId !== 'string') {
+                throw new Error('Invalid comment ID');
+            }
+
+            // First try to find in current comments list
+            const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+            if (commentElement) {
+                // Extract data from DOM (if available)
+                const content = commentElement.querySelector('.comment-content p')?.textContent?.trim();
+                const typeBadge = commentElement.querySelector('.comment-type-badge');
+                const priorityBadge = commentElement.querySelector('.comment-priority-badge');
+                const visibilityIcon = commentElement.querySelector('.comment-visibility-icon');
+                
+                if (content && content.length > 0) {
+                    const extractedData = {
+                        _id: commentId,
+                        content: content,
+                        type: typeBadge?.classList[1] || 'general',
+                        priority: priorityBadge?.classList[1]?.replace('priority-', '') || 'normal',
+                        visibility: this.extractVisibilityFromIcon(visibilityIcon) || 'public'
+                    };
+                    return extractedData;
+                }
+            }
+            
+            // Fallback: Fetch from API
+            const response = await fetch(`/api/order-comments/${commentId}`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error('Comment not found');
+                } else if (response.status === 403) {
+                    throw new Error('Access denied to this comment');
+                } else {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.data && data.data.comment) {
+                return data.data.comment;
+            } else {
+                throw new Error(data.message || 'Invalid response format');
+            }
+            
+        } catch (error) {
+            // Show user-friendly error message
+            if (error.message.includes('not found')) {
+                window.showToast('Izoh topilmadi', 'error');
+            } else if (error.message.includes('Access denied')) {
+                window.showToast('Bu izohga ruxsat yo\'q', 'error');
+            } else {
+                window.showToast('Izoh ma\'lumotlarini olishda xatolik', 'error');
+            }
+            
+            return null;
+        }
+    }
+
+    /**
+     * Extract visibility from icon classes
+     */
+    extractVisibilityFromIcon(iconElement) {
+        if (!iconElement) return 'public';
+        
+        const classes = iconElement.className;
+        if (classes.includes('fa-lock')) return 'private';
+        if (classes.includes('fa-eye-slash')) return 'internal';
+        if (classes.includes('fa-shield')) return 'admin';
+        return 'public';
     }
 
     updatePagination(pagination) {
@@ -555,41 +718,114 @@ class OrderCommentsManager {
     // Public methods for external calls
     async replyToComment(commentId) {
         // Implementation for reply functionality
-        console.log('Reply to comment:', commentId);
     }
 
     async editComment(commentId) {
-        // Implementation for edit functionality
-        console.log('Edit comment:', commentId);
-    }
-
-    async deleteComment(commentId) {
-        if (!confirm('Izohni o\'chirishga ishonchingiz komilmi?')) {
+          // Find comment data
+        const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+        
+        if (!commentElement) {
+            window.showToast('Izoh topilmadi', 'error');
             return;
         }
-
+        
         try {
-            const response = await fetch(`/api/comments/${commentId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+            const commentData = await this.fetchCommentData(commentId);
+            
+            if (commentData) {
+                // Use OrderDetailManager's edit modal
+                if (window.orderDetailManager && window.orderDetailManager.openEditCommentModal) {
+                    window.orderDetailManager.openEditCommentModal(commentId, commentData);
+                } else {
+                    this.openFallbackEditModal(commentId, commentData);
                 }
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                this.showSuccess('Izoh muvaffaqiyatli o\'chirildi');
-                this.refreshComments();
             } else {
-                throw new Error(result.message || 'Izohni o\'chirishda xatolik');
+                window.showToast('Izoh ma\'lumotlari olinmadi', 'error');
             }
-
         } catch (error) {
-            console.error('Error deleting comment:', error);
-            this.showError(error.message || 'Izohni o\'chirishda xatolik yuz berdi');
+            console.error('❌ Error in editComment:', error);
+            window.showToast('Izohni tahrirlashda xatolik', 'error');
         }
     }
+
+    /**
+     * Fallback edit modal if OrderDetailManager not available
+     */
+    openFallbackEditModal(commentId, commentData) {
+        
+        // Try to find and use the existing modal
+        const modal = document.getElementById('addNoteModal');
+        if (modal) {
+            // Update modal for edit mode
+            const modalTitle = document.getElementById('noteModalTitleText');
+            const editingField = document.getElementById('editingCommentId');
+            
+            if (modalTitle) modalTitle.textContent = 'Izohni Tahrirlash';
+            if (editingField) editingField.value = commentId;
+            
+            // Fill form
+            this.fillModalForm(commentData);
+            
+            // Show modal
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+        } else {
+            window.showToast('Tahrirlash modal topilmadi', 'error');
+        }
+    }
+
+    /**
+     * Fill modal form with comment data
+     */
+    fillModalForm(commentData) {
+        
+        const noteContent = document.getElementById('noteContent');
+        const commentType = document.getElementById('commentType');
+        const commentVisibility = document.getElementById('commentVisibility');
+        const commentPriority = document.getElementById('commentPriority');
+        const notifyCustomer = document.getElementById('notifyCustomer');
+        
+        if (noteContent) noteContent.value = commentData.content || '';
+        if (commentType) commentType.value = commentData.type || 'general';
+        if (commentVisibility) commentVisibility.value = commentData.visibility || 'public';
+        if (commentPriority) commentPriority.value = commentData.priority || 'normal';
+        
+        // For edit mode, notification checkbox should be unchecked by default
+        // User can decide to notify customer about the update
+        if (notifyCustomer) {
+            notifyCustomer.checked = false;
+        }
+        
+        // Update character count if available
+        const charCount = document.getElementById('charCount');
+        if (charCount && noteContent) {
+            charCount.textContent = noteContent.value.length;
+        }
+        
+        // Setup checkbox handlers for edit mode
+        this.setupEditModeCheckboxHandlers();
+    }
+
+    /**
+     * Setup checkbox handlers for edit mode
+     */
+    setupEditModeCheckboxHandlers() {
+        const notifyCheckbox = document.getElementById('notifyCustomer');
+        if (notifyCheckbox) {
+            // Remove existing listeners to prevent duplicates
+            notifyCheckbox.removeEventListener('change', this.handleEditModeCheckboxChange);
+            
+            // Add event listener for edit mode
+            this.handleEditModeCheckboxChange = (e) => {
+                // You can add additional logic here if needed
+            };
+            
+            notifyCheckbox.addEventListener('change', this.handleEditModeCheckboxChange);
+        }
+    }
+
+    // Duplicate deleteComment method removed - using the one above with proper delegation
 }
 
 // Initialize when DOM is ready - ONLY on manufacturer order detail pages

@@ -452,7 +452,7 @@
         // Initialize Theme Toggle
         function initializeThemeToggle() {
             const themeToggle = document.getElementById('themeToggle');
-            const currentTheme = localStorage.getItem('theme') || 'light';
+            const currentTheme = localStorage.getItem('dashboard-theme') || 'light';
             
             document.documentElement.setAttribute('data-theme', currentTheme);
             updateThemeIcon(currentTheme);
@@ -462,7 +462,7 @@
                 const newTheme = currentTheme === 'light' ? 'dark' : 'light';
                 
                 document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
+                localStorage.setItem('dashboard-theme', newTheme);
                 updateThemeIcon(newTheme);
                 
                 // Update charts theme

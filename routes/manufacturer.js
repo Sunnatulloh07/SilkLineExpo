@@ -8,6 +8,8 @@ const express = require("express");
 const multer = require("multer");
 const ManufacturerControllerClass = require("../controllers/ManufacturerController");
 const ManufacturerOrdersController = require("../controllers/ManufacturerOrdersController");
+const MessagingController = require("../controllers/MessagingController");
+const InquiryController = require("../controllers/InquiryController");
 const { authenticate, manufacturerOnly } = require("../middleware/jwtAuth");
 const {
   manufacturerOnly: enhancedManufacturerOnly,
@@ -18,19 +20,105 @@ const {
 const { validationResult } = require("express-validator");
 
 // Multer configuration for image uploads
+const path = require('path');
+const fs = require('fs');
+
+// Ensure upload directories exist
+const logoUploadDir = path.join(__dirname, '../public/uploads/logos');
+if (!fs.existsSync(logoUploadDir)) {
+  fs.mkdirSync(logoUploadDir, { recursive: true });
+}
+
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      // Different destinations based on field name
+      if (file.fieldname === 'logo') {
+        cb(null, logoUploadDir);
+      } else {
+        // For product images
+        const productUploadDir = path.join(__dirname, '../public/uploads/products');
+        if (!fs.existsSync(productUploadDir)) {
+          fs.mkdirSync(productUploadDir, { recursive: true });
+        }
+        cb(null, productUploadDir);
+      }
+    },
+    filename: function (req, file, cb) {
+      // Generate unique filename
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = path.extname(file.originalname);
+      
+      if (file.fieldname === 'logo') {
+        // Logo filename: logo_manufacturer_id_timestamp.ext
+        cb(null, `logo_${req.user.userId}_${uniqueSuffix}${ext}`);
+      } else {
+        // Product image filename
+        cb(null, `product_${uniqueSuffix}${ext}`);
+      }
+    }
+  }),
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
     files: 10, // Maximum 10 files
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
       cb(
-        new Error("Faqat JPG, PNG, WebP formatdagi rasmlar qabul qilinadi"),
+        new Error("Faqat JPG, PNG, GIF, WebP formatdagi rasmlar qabul qilinadi"),
+        false
+      );
+    }
+  },
+});
+
+// Multer configuration for inquiry attachments (documents, images, etc.)
+const uploadAttachments = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit per file
+    files: 5, // Maximum 5 files
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      "image/jpeg", "image/png", "image/gif", "image/webp",
+      "application/pdf", 
+      "application/msword", 
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel", 
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "text/plain", "text/csv"
+    ];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Faqat hujjat va rasm fayllari qabul qilinadi"), false);
+    }
+  },
+});
+
+// Multer configuration for messaging attachments (more flexible)
+const uploadAttachment = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit for attachments
+    files: 1, // Single file upload
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf', 'text/plain', 
+      'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(
+        new Error("File type not supported. Allowed: JPEG, PNG, GIF, WebP, PDF, TXT, DOC, DOCX"),
         false
       );
     }
@@ -57,6 +145,7 @@ const handleValidationErrors = (req, res, next) => {
 
 // Create instance and bind methods
 const ManufacturerController = new ManufacturerControllerClass();
+const inquiryController = new InquiryController();
 const boundMethods = {
   // Dashboard Views
   showDashboard: ManufacturerController.showDashboard.bind(
@@ -82,6 +171,67 @@ const boundMethods = {
     ManufacturerController
   ),
   showSettings: ManufacturerController.showSettings.bind(
+    ManufacturerController
+  ),
+
+  // Settings API methods
+  loadSettings: ManufacturerController.loadSettings.bind(
+    ManufacturerController
+  ),
+  saveCompanyInfo: ManufacturerController.saveCompanyInfo.bind(
+    ManufacturerController
+  ),
+  saveContactInfo: ManufacturerController.saveContactInfo.bind(
+    ManufacturerController
+  ),
+  saveBusinessInfo: ManufacturerController.saveBusinessInfo.bind(
+    ManufacturerController
+  ),
+  changePassword: ManufacturerController.changePassword.bind(
+    ManufacturerController
+  ),
+  savePreferences: ManufacturerController.savePreferences.bind(
+    ManufacturerController
+  ),
+  saveIntegrations: ManufacturerController.saveIntegrations.bind(
+    ManufacturerController
+  ),
+  uploadLogo: ManufacturerController.uploadLogo.bind(
+    ManufacturerController
+  ),
+  autoSaveSettings: ManufacturerController.autoSaveSettings.bind(
+    ManufacturerController
+  ),
+
+  // Profile methods
+  showProfile: ManufacturerController.showProfile.bind(
+    ManufacturerController
+  ),
+  getProfileData: ManufacturerController.getProfileData.bind(
+    ManufacturerController
+  ),
+  getRecentProducts: ManufacturerController.getRecentProducts.bind(
+    ManufacturerController
+  ),
+  getRecentOrders: ManufacturerController.getRecentOrders.bind(
+    ManufacturerController
+  ),
+  getChartData: ManufacturerController.getChartData.bind(
+    ManufacturerController
+  ),
+
+  // Support methods
+  showSupport: ManufacturerController.showSupport.bind(
+    ManufacturerController
+  ),
+
+  // Shipping methods
+  showShipping: ManufacturerController.showShipping.bind(
+    ManufacturerController
+  ),
+
+  // Inventory methods
+  showInventory: ManufacturerController.showInventory.bind(
     ManufacturerController
   ),
 
@@ -119,6 +269,12 @@ const boundMethods = {
     ManufacturerController
   ),
   uploadProductImages: ManufacturerController.uploadProductImages.bind(
+    ManufacturerController
+  ),
+  uploadImagesFinal: ManufacturerController.uploadImagesFinal.bind(
+    ManufacturerController
+  ),
+  deleteUnusedImages: ManufacturerController.deleteUnusedImages.bind(
     ManufacturerController
   ),
 
@@ -264,6 +420,21 @@ const boundMethods = {
   debugOrderData: ManufacturerOrdersController.debugOrderData.bind(
     ManufacturerOrdersController
   ),
+
+  // Inquiries Management
+  showInquiriesPage: inquiryController.showInquiriesPage.bind(inquiryController),
+  getInquiriesList: inquiryController.getInquiriesList.bind(inquiryController),
+  getInquiriesStats: inquiryController.getInquiriesStats.bind(inquiryController),
+  getInquiry: inquiryController.getInquiry.bind(inquiryController),
+  respondToInquiry: inquiryController.respondToInquiry.bind(inquiryController),
+  sendQuickQuote: inquiryController.sendQuickQuote.bind(inquiryController),
+  updateInquiryStatus: inquiryController.updateInquiryStatus.bind(inquiryController),
+  archiveInquiry: inquiryController.archiveInquiry.bind(inquiryController),
+  deleteInquiry: inquiryController.deleteInquiry.bind(inquiryController),
+  duplicateInquiry: inquiryController.duplicateInquiry.bind(inquiryController),
+  setInquiryPriority: inquiryController.setInquiryPriority.bind(inquiryController),
+  addInquiryNote: inquiryController.addInquiryNote.bind(inquiryController),
+  exportInquiry: inquiryController.exportInquiry.bind(inquiryController),
 };
 
 const router = express.Router();
@@ -291,6 +462,29 @@ router.get("/sales", boundMethods.showSales);
 router.get("/operations", boundMethods.showOperations);
 router.get("/analytics", boundMethods.showAnalytics);
 router.get("/settings", boundMethods.showSettings);
+
+// ===== SETTINGS API ROUTES =====
+router.get("/settings/load", validateManufacturerApiAccess, boundMethods.loadSettings);
+router.put("/settings/company", validateManufacturerApiAccess, boundMethods.saveCompanyInfo);
+router.put("/settings/contact", validateManufacturerApiAccess, boundMethods.saveContactInfo);
+router.put("/settings/business", validateManufacturerApiAccess, boundMethods.saveBusinessInfo);
+router.put("/settings/change-password", validateManufacturerApiAccess, boundMethods.changePassword);
+router.put("/settings/preferences", validateManufacturerApiAccess, boundMethods.savePreferences);
+router.put("/settings/integrations", validateManufacturerApiAccess, boundMethods.saveIntegrations);
+router.post("/settings/upload-logo", validateManufacturerApiAccess, upload.single('logo'), boundMethods.uploadLogo);
+router.put("/settings/auto-save", validateManufacturerApiAccess, boundMethods.autoSaveSettings);
+
+// ===== PROFILE ROUTES =====
+router.get("/profile", boundMethods.showProfile);
+router.get("/profile/api/data", validateManufacturerApiAccess, boundMethods.getProfileData);
+router.get("/profile/api/recent-products", validateManufacturerApiAccess, boundMethods.getRecentProducts);
+router.get("/profile/api/recent-orders", validateManufacturerApiAccess, boundMethods.getRecentOrders);
+router.get("/profile/api/chart-data", validateManufacturerApiAccess, boundMethods.getChartData);
+
+// ===== SUPPORT ROUTES =====
+router.get("/support", boundMethods.showSupport);
+router.get("/shipping", boundMethods.showShipping);
+router.get("/inventory", boundMethods.showInventory);
 
 // ===== DASHBOARD API ROUTES =====
 router.get("/api/dashboard-stats", boundMethods.getDashboardStats);
@@ -464,6 +658,23 @@ router.post(
   boundMethods.uploadProductImages
 );
 
+// PROFESSIONAL Image Management Endpoints
+router.post(
+  "/api/products/upload-images-final",
+  authenticate,
+  manufacturerOnly,
+  upload.array("images", 10),
+  boundMethods.uploadImagesFinal
+);
+
+router.post(
+  "/api/products/delete-images",
+  authenticate,
+  manufacturerOnly,
+  validateManufacturerApiAccess,
+  boundMethods.deleteUnusedImages
+);
+
 // Draft/Publish API Routes
 router.post(
   "/api/products/:id/save-draft",
@@ -479,6 +690,70 @@ router.post(
   validateManufacturerApiAccess,
   boundMethods.publishProduct
 );
+
+// ===== MESSAGING ROUTES =====
+// Professional B2B Communication System
+router.get('/messages', 
+  authenticate,
+  manufacturerOnly,
+  MessagingController.showMessagingPage
+);
+
+router.get('/messages/order/:orderId', 
+  authenticate,
+  manufacturerOnly,
+  MessagingController.showOrderChat
+);
+
+router.post('/messages/api/send', 
+  authenticate,
+  manufacturerOnly,
+  MessagingController.sendMessageValidation(),
+  MessagingController.sendMessage
+);
+
+// API Routes for B2B Messaging System
+router.get('/messages/api/conversations',
+  authenticate,
+  manufacturerOnly,
+  MessagingController.getConversations
+);
+
+router.get('/messages/api/order/:orderId/messages',
+  authenticate,
+  manufacturerOnly,
+  MessagingController.getOrderMessages
+);
+
+router.post('/messages/api/order/:orderId/mark-read',
+  authenticate,
+  manufacturerOnly,
+  MessagingController.markOrderMessagesAsRead
+);
+
+router.post('/messages/api/upload',
+  authenticate,
+  manufacturerOnly,
+  uploadAttachment.single('file'),
+  MessagingController.uploadAttachment
+);
+
+// ===== INQUIRIES MANAGEMENT ROUTES =====
+router.get("/inquiries", boundMethods.showInquiriesPage);
+router.get("/inquiries/api/list", validateManufacturerApiAccess, boundMethods.getInquiriesList);
+router.get("/inquiries/api/stats", validateManufacturerApiAccess, boundMethods.getInquiriesStats);
+router.get("/inquiries/api/:inquiryId", validateManufacturerApiAccess, boundMethods.getInquiry);
+router.post("/inquiries/:inquiryId/respond", validateManufacturerApiAccess, uploadAttachments.array('attachments', 5), boundMethods.respondToInquiry);
+router.post("/inquiries/:inquiryId/quick-quote", validateManufacturerApiAccess, boundMethods.sendQuickQuote);
+router.patch("/inquiries/:inquiryId/status", validateManufacturerApiAccess, boundMethods.updateInquiryStatus);
+router.patch("/inquiries/:inquiryId/priority", validateManufacturerApiAccess, boundMethods.setInquiryPriority);
+router.post("/inquiries/:inquiryId/note", validateManufacturerApiAccess, boundMethods.addInquiryNote);
+router.post("/inquiries/:inquiryId/duplicate", validateManufacturerApiAccess, boundMethods.duplicateInquiry);
+router.post("/inquiries/:inquiryId/archive", validateManufacturerApiAccess, boundMethods.archiveInquiry);
+router.get("/inquiries/:inquiryId/export", validateManufacturerApiAccess, boundMethods.exportInquiry);
+router.delete("/inquiries/:inquiryId", validateManufacturerApiAccess, boundMethods.deleteInquiry);
+
+
 
 // ===== MARKETPLACE API ROUTES =====
 // Include marketplace specific routes

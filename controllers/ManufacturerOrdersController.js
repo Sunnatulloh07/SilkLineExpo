@@ -20,8 +20,6 @@ class ManufacturerOrdersController {
             const manufacturerId = req.user?._id || req.user?.userId;
             const lng = req.session.language || 'uz';
             
-            console.log(`📋 Loading orders page for manufacturer: ${manufacturerId}`);
-            
             if (!manufacturerId) {
                 return res.redirect('/auth/login');
             }

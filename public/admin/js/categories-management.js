@@ -2105,7 +2105,7 @@ class CategoriesManagement {
 
         // Listen for storage events (theme changes from other tabs)
         window.addEventListener('storage', (event) => {
-            if (event.key === 'theme') {
+            if (event.key === 'dashboard-theme') {
                 console.log('Categories page received theme change from storage:', event.newValue);
                 this.updateModalTheme();
             }

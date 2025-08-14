@@ -201,6 +201,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['under-100k', '100k-500k', '500k-1m', '1m-5m', '5m+']
   },
+
+  // Company Description
+  description: {
+    type: String,
+    trim: true,
+    maxlength: [500, 'Company description cannot exceed 500 characters']
+  },
   
   // Note: Capabilities removed - only companyType (manufacturer/distributor) is needed
   
@@ -487,6 +494,8 @@ userSchema.methods.calculateProfileCompletion = function() {
   if (this.website) completedFields++;
   if (this.establishedYear) completedFields++;
   if (this.employeeCount) completedFields++;
+  if (this.annualRevenue) completedFields++;
+  if (this.description) completedFields++;
   if (this.companyLogo && this.companyLogo.filename) completedFields++;
   if (this.certifications && this.certifications.length > 0) completedFields++;
   if (this.businessLicense) completedFields++;

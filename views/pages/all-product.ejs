@@ -1,9 +1,10 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
 
+<main class="main-wrapper all-products-wrapper position-relative z-index-1">
+
     <!-- ======================== Breadcrumb one Section Start ===================== -->
     <section class="breadcrumb breadcrumb-one padding-y-60 section-bg position-relative z-index-1 overflow-hidden">
-
       <img src="/assets/images/gradients/breadcrumb-gradient-bg.png" alt="" class="bg--gradient">
       <img src="/assets/images/shapes/element-moon3.png" alt="" class="element one">
       <img src="/assets/images/shapes/element-moon1.png" alt="" class="element three">
@@ -12,123 +13,1443 @@
         <div class="row justify-content-center">
           <div class="col-lg-7">
             <div class="breadcrumb-one-content">
-              <h3 class="breadcrumb-one-content__title text-center mb-3 text-capitalize">8,000+ <%= t('product.products') %></h3>
-              <p class="breadcrumb-one-content__desc text-center text-black-three"><%= t('product.allProducts') %></p>
+              <h3 class="breadcrumb-one-content__title text-center mb-3 text-capitalize">
+            <span id="products-count">
+              <% 
+              const totalProducts = marketplaceProducts ? marketplaceProducts.length : 0;
+              const displayCount = totalProducts > 1000 ? Math.floor(totalProducts / 1000) + 'k+' : totalProducts.toLocaleString();
+              %>
+              <%= displayCount %>
+            </span> products available for purchase
+          </h3>
+          <p class="breadcrumb-one-content__desc text-center text-black-three">
+            All products from around the world are gathered on this page!
+            <% if (totalProducts > 0) { %>
+              <br><small class="text-muted">Showing marketplace products from <%= new Set((marketplaceProducts || []).map(p => p.manufacturer?.country).filter(Boolean)).size %> countries</small>
+                <% } %>
+          </p>
             </div>
           </div>
         </div>
       </div>
     </section>
     <!-- ======================== Breadcrumb one Section End ===================== -->
+
     <!-- ======================== All Product Section Start ====================== -->
     <section class="all-product padding-y-120">
       <div class="container container-two">
         <div class="row">
           <div class="col-lg-12">
-            <div class="filter-tab gap-3 flx-between me-auto">
-              <ul class="nav common-tab nav-pills mb-0 gap-lg-2 gap-1 products-tab" id="pills-tab" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link active" id="pills-product-tab" data-bs-toggle="pill"
-                    data-bs-target="#pills-product" type="button" role="tab" aria-controls="pills-product"
-                    aria-selected="true"><%= t('allProducts.allCategories') %></button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="pills-bestMatch-tab" data-bs-toggle="pill"
-                    data-bs-target="#pills-bestMatch" type="button" role="tab" aria-controls="pills-bestMatch"
-                    aria-selected="false">Best Match</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="pills-bestRating-tab" data-bs-toggle="pill"
-                    data-bs-target="#pills-bestRating" type="button" role="tab" aria-controls="pills-bestRating"
-                    aria-selected="false">Best Rating</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="pills-trending-tab" data-bs-toggle="pill"
-                    data-bs-target="#pills-trending" type="button" role="tab" aria-controls="pills-trending"
-                    aria-selected="false">Site Template</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="pills-bestOffers-tab" data-bs-toggle="pill"
-                    data-bs-target="#pills-bestOffers" type="button" role="tab" aria-controls="pills-bestOffers"
-                    aria-selected="false">Best Offers</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="pills-bestSelling-tab" data-bs-toggle="pill"
-                    data-bs-target="#pills-bestSelling" type="button" role="tab" aria-controls="pills-bestSelling"
-                    aria-selected="false">Best Selling</button>
-                </li>
-              </ul>
+        <!-- View Controls -->
+            <div class="filter-tab gap-3 flx-between me-auto mb-3">
+              <div class="products-tab"></div>
               <div class="list-grid d-flex align-items-center gap-2">
-                <button class="list-grid__button list-button d-sm-flex d-none text-body"><i
-                    class="las la-list"></i></button>
-                <button class="list-grid__button grid-button d-sm-flex d-none active text-body"><i
-                    class="las la-border-all"></i></button>
-                <button class="list-grid__button sidebar-btn text-body d-lg-none d-flex"><i
-                    class="las la-bars"></i></button>
+            <button class="list-grid__button list-button d-sm-flex d-none text-body">
+              <i class="las la-list"></i>
+            </button>
+            <button class="list-grid__button grid-button d-sm-flex d-none active text-body">
+              <i class="las la-border-all"></i>
+            </button>
+            <button class="list-grid__button sidebar-btn text-body d-lg-none d-flex">
+              <i class="las la-bars"></i>
+            </button>
               </div>
             </div>
-            <form action="#" class="filter-form pb-4 ">
+
+        <!-- Horizontal Filter Form -->
+        <form class="filter-form pb-4">
               <div class="row gy-3">
                 <div class="col-sm-4 col-xs-6">
                   <div class="flx-between gap-1">
-                    <label for="tag" class="form-label font-16"><%= t('common.filter') %></label>
-                    <button type="reset" class="text-body font-14"><%= t('system.clear') %></button>
+                <label for="tag" class="form-label font-16">Search</label>
+                <button type="button" class="text-body font-14 clear-search">Clear</button>
                   </div>
                   <div class="position-relative">
-                    <input type="text" class="common-input border-gray-five common-input--withLeftIcon" id="tag"
-                      placeholder="<%= t('allProducts.searchPlaceholder') %>">
-                    <span class="input-icon input-icon--left"><img src="/assets/images/icons/search-two.svg"
-                        alt=""></span>
+                <input type="text" class="common-input border-gray-five common-input--withLeftIcon" 
+                  id="tag" placeholder="Search products...">
+                <span class="input-icon input-icon--left">
+                  <img src="/assets/images/icons/search-two.svg" alt="">
+                </span>
                   </div>
                 </div>
                 <div class="col-sm-4 col-xs-6">
-                  <label for="category" class="form-label font-16"><%= t('allProducts.category') %></label>
-                  <div class="select-has-icon">
-                    <select class="form-select common-input border-gray-five" id="category">
-                      <option value="" selected disabled><%= t('allProducts.allCategories') %></option>
-                      <option value="electronics"><%= t('categories.electronics') %></option>
-                      <option value="food"><%= t('categories.food') %></option>
-                      <option value="drinks"><%= t('categories.drinks') %></option>
-                    </select>
-                    <span class="select-icon"><i class="las la-angle-down"></i></span>
+              <div class="flx-between gap-1">
+                <label for="priceRange" class="form-label font-16">Price Range</label>
+                <button type="button" class="text-body font-14 clear-price">Clear</button>
+              </div>
+              <div class="position-relative">
+                <input type="text" class="common-input border-gray-five" id="priceRange" 
+                  placeholder="Min - Max USD">
                   </div>
                 </div>
-                <div class="col-sm-4 col-xs-6">
-                  <label for="sortBy" class="form-label font-16"><%= t('allProducts.sortBy') %></label>
-                  <div class="select-has-icon">
-                    <select class="form-select common-input border-gray-five" id="sortBy">
-                      <option value="newest" selected><%= t('allProducts.newest') %></option>
-                      <option value="oldest"><%= t('allProducts.oldest') %></option>
-                      <option value="price-low"><%= t('allProducts.priceLowToHigh') %></option>
-                      <option value="price-high"><%= t('allProducts.priceHighToLow') %></option>
+            <div class="col-sm-4">
+              <div class="flx-between gap-1">
+                <label for="sortBy" class="form-label font-16">Sort By</label>
+                <button type="button" class="text-body font-14 clear-sort">Clear</button>
+              </div>
+              <div class="position-relative select-has-icon">
+                <select id="sortBy" class="common-input border-gray-five">
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="rating">Best Rating</option>
+                  <option value="popular">Most Popular</option>
                     </select>
-                    <span class="select-icon"><i class="las la-angle-down"></i></span>
                   </div>
                 </div>
               </div>
             </form>
-            <div class="tab-content" id="pills-tabContent">
-              <div class="tab-pane fade show active" id="pills-product" role="tabpanel" aria-labelledby="pills-product-tab"
-                tabindex="0">
-                <div class="row gy-4" id="product-list">
-                  <!-- Products will be loaded here dynamically -->
+
+        <!-- Results Info -->
+        <div class="results-info mb-3 text-muted">
+          <% if (marketplaceProducts && marketplaceProducts.length > 0) { %>
+            <% 
+            const totalProducts = marketplaceProducts.length;
+            const displayedProducts = Math.min(12, totalProducts);
+            %>
+            Showing 1-<%= displayedProducts %> of <%= totalProducts.toLocaleString() %> products
+            <% 
+            // Show category/country stats
+            const uniqueCategories = new Set(marketplaceProducts.map(p => p.category?.name).filter(Boolean)).size;
+            const uniqueCountries = new Set(marketplaceProducts.map(p => p.manufacturer?.country).filter(Boolean)).size;
+            %>
+            <span class="text-muted ms-2">• <%= uniqueCategories %> categories • <%= uniqueCountries %> countries</span>
+          <% } else { %>
+            <span class="loading-text">Loading products...</span>
+          <% } %>
+        </div>
+
+        <!-- Applied Filters -->
+        <div class="applied-filters mb-3"></div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-xl-3 col-lg-4">
+        <div class="filter-sidebar">
+          <button type="button" class="filter-sidebar__close p-2 position-absolute end-0 top-0 z-index-1 text-body hover-text-main font-20 d-lg-none d-block">
+            <i class="las la-times"></i>
+          </button>
+          
+          <!-- Company Categories -->
+          <div class="filter-sidebar__item">
+            <button type="button" class="filter-sidebar__button font-16 text-capitalize fw-500">
+              Company Categories
+            </button>
+            <div class="filter-sidebar__content">
+              <ul class="filter-sidebar-list" id="company-categories">
+                <!-- Categories will be loaded dynamically from API -->
+                <li class="filter-sidebar-list__item">
+                  <div class="d-flex justify-content-center align-items-center p-3">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                      <span class="visually-hidden">Loading categories...</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Manufacturers Filter -->
+          <div class="filter-sidebar__item">
+            <button type="button" class="filter-sidebar__button font-16 text-capitalize fw-500">
+              Top Manufacturers
+            </button>
+            <div class="filter-sidebar__content">
+              <ul class="filter-sidebar-list" id="top-manufacturers">
+                <!-- Manufacturers will be loaded dynamically from API -->
+                <li class="filter-sidebar-list__item">
+                  <div class="d-flex justify-content-center align-items-center p-3">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                      <span class="visually-hidden">Loading manufacturers...</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Price Range Filter -->
+          <div class="filter-sidebar__item">
+            <button type="button" class="filter-sidebar__button font-16 text-capitalize fw-500">
+              Price Range
+            </button>
+            <div class="filter-sidebar__content">
+              <div class="p-3">
+                <% 
+                // Calculate price range from marketplace products
+                let minPrice = 0, maxPrice = 1000;
+                if (marketplaceProducts && marketplaceProducts.length > 0) {
+                  const prices = marketplaceProducts
+                    .map(p => p.pricing?.basePrice)
+                    .filter(price => price && price > 0);
+                  
+                  if (prices.length > 0) {
+                    minPrice = Math.floor(Math.min(...prices));
+                    maxPrice = Math.ceil(Math.max(...prices));
+                  }
+                }
+                %>
+                
+                <div class="mb-2">
+                  <small class="text-muted">Range: $<%= minPrice.toLocaleString() %> - $<%= maxPrice.toLocaleString() %></small>
                 </div>
+                
+                <div class="mb-3">
+                  <label class="form-label">Min Price</label>
+                  <input type="number" class="form-control" id="priceMin" 
+                         placeholder="<%= minPrice %>" min="<%= minPrice %>" max="<%= maxPrice %>">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Max Price</label>
+                  <input type="number" class="form-control" id="priceMax" 
+                         placeholder="<%= maxPrice %>" min="<%= minPrice %>" max="<%= maxPrice %>">
+                </div>
+                <button type="button" class="btn btn-sm btn-primary w-100" id="applyPriceFilter">
+                  Apply Filter
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
-    <!-- ======================== All Product Section End ====================== -->
 
-    <!-- ======================== Brand Section Start ========================= -->
-    <div class="brand ">
-      <div class="container container">
-        <div id="partners-slider">
-          <div class="brand-slider"></div>
+      <!-- Main Content -->
+      <div class="col-xl-9 col-lg-8">
+        <div class="tab-content" id="pills-tabContent">
+          <div class="tab-pane fade show active" id="pills-product" role="tabpanel" 
+            aria-labelledby="pills-product-tab" tabindex="0">
+            
+            <!-- Loading Indicator -->
+            <div class="loading-indicator text-center py-5" style="display: none;">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-3 text-muted">Loading products...</p>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="row gy-4 list-grid-wrapper" id="products-container" style="min-height: 200px !important; display: flex !important; flex-wrap: wrap !important;">
+              <% if (marketplaceProducts && marketplaceProducts.length > 0) { %>
+                <% 
+                // Helper function to generate star rating
+                function generateStarRating(rating) {
+                  const fullStars = Math.floor(rating || 0);
+                  const hasHalfStar = (rating || 0) % 1 >= 0.5;
+                  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                  let starsHtml = '';
+                  
+                  for (let i = 0; i < fullStars; i++) {
+                    starsHtml += '<li class="star-rating__item font-11"><i class="fas fa-star"></i></li>';
+                  }
+                  if (hasHalfStar) {
+                    starsHtml += '<li class="star-rating__item font-11"><i class="fas fa-star-half-alt"></i></li>';
+                  }
+                  for (let i = 0; i < emptyStars; i++) {
+                    starsHtml += '<li class="star-rating__item font-11"><i class="far fa-star"></i></li>';
+                  }
+                  
+                  return starsHtml;
+                }
+                
+                // Helper function to format price
+                function formatPrice(price, currency = 'USD') {
+                  if (!price) return '$0';
+                  return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: currency
+                  }).format(price);
+                }
+                
+                // Show first 12 products (pagination will be handled by JS)
+                const displayProducts = marketplaceProducts.slice(0, 12);
+                %>
+                
+                <% displayProducts.forEach(product => { %>
+                  <% 
+                  const primaryImage = product.images?.find(img => img.isPrimary) || product.images?.[0];
+                  const imageUrl = primaryImage?.url || '/images/placeholder-product.png';
+                  const imageAlt = primaryImage?.alt || product.name;
+                  const formattedPrice = formatPrice(product.pricing?.basePrice, product.pricing?.currency);
+                  const rating = product.averageRating || 0;
+                  const reviewCount = product.reviews?.length || 0;
+                  const viewsCount = product.analytics?.views || 0;
+                  const salesText = viewsCount > 1000 ? Math.floor(viewsCount / 1000) + 'k Views' : viewsCount + ' Views';
+                  const manufacturerName = product.manufacturer?.companyName || 'Unknown';
+                  const manufacturerCountry = product.manufacturer?.country || '';
+                  const productUrl = `/product-details?id=${product._id}`;
+                  %>
+                  
+                  <div class="col-xl-4 col-lg-6 col-md-6">
+                    <div class="product-item shadow-sm">
+                      <div class="product-item__thumb d-flex">
+                        <a href="<%= productUrl %>" class="link w-100">
+                          <img src="<%= imageUrl %>" alt="<%= imageAlt %>" class="cover-img" 
+                               onerror="handleImageError(this)"
+                               onload="handleImageSuccess(this)">
+                        </a>
+                      </div>
+                      <div class="product-item__content">
+                        <h6 class="product-item__title">
+                          <a href="<%= productUrl %>" class="link"><%= product.name %></a>
+                        </h6>
+                        <div class="product-item__info flx-between gap-2">
+                          <span class="product-item__author">
+                            by 
+                            <a href="#!" class="link hover-text-decoration-underline"><%= manufacturerName %></a>
+                            <% if (manufacturerCountry) { %>
+                              <small class="text-muted">(<%= manufacturerCountry %>)</small>
+                            <% } %>
+                          </span>
+                          <div class="flx-align gap-2">
+                            <h6 class="product-item__price mb-0"><%= formattedPrice %></h6>
+                          </div>
+                        </div>
+                        <div class="product-item__bottom flx-between gap-2">
+                          <div>
+                            <span class="product-item__sales font-14 mb-2"><%= salesText %></span>
+                            <div class="d-flex align-items-center gap-1">
+                              <ul class="star-rating">
+                                <%- generateStarRating(rating) %>
+                              </ul>
+                              <span class="star-rating__text text-heading fw-500 font-14">(<%= reviewCount %>)</span>
+                            </div>
+                          </div>
+                          <a href="<%= productUrl %>" class="btn btn-outline-light btn-sm pill">View Details</a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              <% } else { %>
+                <!-- Empty state -->
+                <div class="col-12">
+                  <div class="text-center py-5">
+                    <img src="/assets/images/no-image.svg" alt="No products found" 
+                         style="max-width: 200px; opacity: 0.5;" 
+                         onerror="handleImageError(this)"
+                         onload="handleImageSuccess(this)">
+                    <h4 class="mt-3 text-muted">No products found</h4>
+                    <p class="text-muted">We're working on adding more products to our marketplace.</p>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Page navigation" class="mt-5">
+              <ul class="pagination common-pagination justify-content-center" id="pagination-container">
+                <% 
+                if (marketplaceProducts && marketplaceProducts.length > 12) {
+                  const totalPages = Math.ceil(marketplaceProducts.length / 12);
+                  const currentPage = 1;
+                %>
+                  <!-- Initial server-rendered pagination -->
+                  <li class="page-item disabled">
+                    <a class="page-link" href="#" data-page="0">
+                      <span class="icon"><i class="las la-arrow-left"></i></span> Previous
+                    </a>
+                  </li>
+                  
+                  <% for (let i = 1; i <= Math.min(5, totalPages); i++) { %>
+                    <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                      <a class="page-link" href="#" data-page="<%= i %>"><%= i %></a>
+                    </li>
+                  <% } %>
+                  
+                  <% if (totalPages > 1) { %>
+                    <li class="page-item">
+                      <a class="page-link flx-align gap-2 flex-nowrap" href="#" data-page="2">
+                        Next <span class="icon line-height-1 font-20"><i class="las la-arrow-right"></i></span>
+                      </a>
+                    </li>
+                  <% } %>
+                <% } %>
+              </ul>
+            </nav>
+          </div>
         </div>
       </div>
     </div>
-    <!-- ======================== Brand Section End ========================= -->
+  </div>
+</section>
+<!-- ======================== All Product Section End ====================== -->
+
+<!-- Pass server data to JavaScript -->
+<script id="initial-products-data" type="application/json">
+<%- JSON.stringify(marketplaceProducts || []) %>
+</script>
+
+<!-- Include Professional JavaScript -->
+<script src="/assets/js/all-products-professional-original.js"></script>
+
+<!-- Initialize AllProductsOriginalManager -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Create global instance for debugging
+    window.allProductsManager = new AllProductsOriginalManager();
+    });
+</script>
+
+<style>
+/* Enhanced Styles for All Products Page */
+
+/* Filter Form */
+.filter-form {
+  display: block !important;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-light, #f1f5f9);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.filter-form .form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.filter-form .clear-search,
+.filter-form .clear-price,
+.filter-form .clear-sort {
+  border: none;
+  background: none;
+  color: #6b7280;
+  text-decoration: underline;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.filter-form .clear-search:hover,
+.filter-form .clear-price:hover,
+.filter-form .clear-sort:hover {
+  color: #dc2626;
+}
+
+/* Filter Sidebar */
+.filter-sidebar {
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.filter-sidebar__item {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.filter-sidebar__item:last-child {
+  border-bottom: none;
+}
+
+.filter-sidebar__button {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: #f9fafb;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.filter-sidebar__button:hover {
+  background: #f3f4f6;
+}
+
+.filter-sidebar__content {
+  padding: 1rem 0;
+}
+
+.filter-sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filter-sidebar-list__item {
+  padding: 0.5rem 1.5rem;
+}
+
+.filter-sidebar-list__text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #374151;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.filter-sidebar-list__text:hover {
+  color: #3b82f6;
+}
+
+.filter-sidebar-list__text .qty {
+  background: #e5e7eb;
+  color: #6b7280;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Applied Filters */
+.applied-filters {
+  display: none;
+}
+
+.applied-filters.has-filters {
+  display: block;
+  padding: 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.applied-filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.applied-filters-title {
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.clear-all-filters {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #3b82f6;
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+}
+
+.filter-remove {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.filter-remove:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Results Info */
+.results-info {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Loading States */
+.loading-indicator {
+  padding: 3rem 0;
+}
+
+.skeleton-card {
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.skeleton-line {
+  height: 1rem;
+  background: linear-gradient(90deg, #e5e7eb 25%, #d1d5db 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+.skeleton-line.medium {
+  width: 80%;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* View Mode Toggle */
+.list-grid__button {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.list-grid__button:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.list-grid__button.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+/* Product Cards */
+.product-item {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+
+.product-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.product-item__thumb {
+  position: relative;
+  overflow: hidden;
+  height: 200px;
+}
+
+.product-item__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.product-item:hover .product-item__thumb img {
+  transform: scale(1.05);
+}
+
+/* List View */
+.list-grid-wrapper.list-view .product-item {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.list-grid-wrapper.list-view .product-item__thumb {
+  width: 200px;
+  height: 150px;
+  flex-shrink: 0;
+}
+
+.list-grid-wrapper.list-view .product-item__content {
+  flex: 1;
+  padding: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .filter-form .row > div {
+    margin-bottom: 1rem;
+  }
+  
+  .applied-filters-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .list-grid__button {
+    display: none !important;
+  }
+  
+
+  
+  .filter-sidebar {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 280px;
+    height: 100vh;
+    z-index: 1050;
+    background: white;
+    transition: left 0.3s;
+    overflow-y: auto;
+  }
+  
+  .filter-sidebar.show {
+    left: 0;
+  }
+}
+
+/* Pagination */
+.common-pagination {
+  margin-top: 2rem;
+}
+
+.common-pagination .page-link {
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  padding: 0.5rem 0.75rem;
+  margin: 0 0.125rem;
+  border-radius: 4px;
+}
+
+.common-pagination .page-link:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.common-pagination .page-item.active .page-link {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+/* Active Filter States */
+.filter-sidebar-list__text.active {
+  background: #3b82f6;
+  color: white !important;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  margin: 0 0.5rem;
+}
+
+.filter-sidebar-list__text.active .qty {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Enhanced Tab Styling */
+.nav-link.active {
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: white !important;
+}
+
+/* Form Input Focus States */
+.common-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+}
+
+/* Price Filter Success States */
+.form-control.price-applied {
+  border-color: #28a745;
+  background-color: #f8fff9;
+}
+
+/* Filter Animation */
+.filter-sidebar-list__text {
+  transition: all 0.2s ease;
+}
+
+.filter-sidebar-list__text:hover {
+  background: #f3f4f6;
+  transform: translateX(2px);
+}
+
+/* Loading States for Filters */
+.filter-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.filter-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #3b82f6;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ============================= DARK MODE STYLES START ============================= */
+/* Professional Dark Mode Implementation for All Products Page Filters & Categories */
+
+[data-theme="light"] {
+  
+  /* Main Section Background */
+  .all-product {
+    background: var(--dark-black-one) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* Breadcrumb Section - Dark Mode */
+  .breadcrumb {
+    background: var(--dark-black-two) !important;
+    border-bottom: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .breadcrumb-title {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .breadcrumb-list .breadcrumb-link {
+    color: #9ca3af !important;
+  }
+  
+  .breadcrumb-list .breadcrumb-link:hover {
+    color: hsl(var(--main)) !important;
+  }
+  
+  .breadcrumb-list .breadcrumb-link.active {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* Filter Tab Controls - Professional Dark Styling */
+  .filter-tab {
+    background: var(--dark-black-two) !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin-bottom: 2rem !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  
+
+  
+  /* View Mode Toggle Buttons - Dark */
+  .list-grid__button {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .list-grid__button:hover {
+    background: var(--dark-black-five) !important;
+    color: hsl(var(--main)) !important;
+    transform: scale(1.05) !important;
+  }
+  
+  .list-grid__button.active {
+    background: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+    border-color: hsl(var(--main)) !important;
+  }
+  
+  /* Horizontal Filter Form - Professional Dark */
+  .filter-form {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .filter-form .form-label {
+    color: hsl(var(--static-white)) !important;
+    font-weight: 600 !important;
+  }
+  
+  .filter-form .common-input {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .filter-form .common-input:focus {
+    background: var(--dark-black-three) !important;
+    border-color: hsl(var(--main)) !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.3) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .filter-form .common-input::placeholder {
+    color: #9ca3af !important;
+  }
+  
+  /* Clear buttons in filter form */
+  .filter-form .clear-search,
+  .filter-form .clear-price,
+  .filter-form .clear-sort {
+    color: #9ca3af !important;
+  }
+  
+  .filter-form .clear-search:hover,
+  .filter-form .clear-price:hover,
+  .filter-form .clear-sort:hover {
+    color: #ef4444 !important;
+  }
+  
+  /* Results Info - Dark Mode */
+  .results-info {
+    color: #9ca3af !important;
+    background: var(--dark-black-two) !important;
+    padding: 1rem !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--dark-black-five) !important;
+  }
+  
+  /* Filter Sidebar - Professional Dark */
+  .filter-sidebar {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  
+  .filter-sidebar__item {
+    border-bottom: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .filter-sidebar__button {
+    background: var(--dark-black-three) !important;
+    color: hsl(var(--static-white)) !important;
+    border-bottom: 1px solid var(--dark-black-five) !important;
+    font-weight: 600 !important;
+  }
+  
+  .filter-sidebar__button:hover {
+    background: var(--dark-black-five) !important;
+    color: hsl(var(--main)) !important;
+  }
+  
+  .filter-sidebar__content {
+    background: var(--dark-black-two) !important;
+  }
+  
+  /* Category & Manufacturer Lists - Dark */
+  .filter-sidebar-list__text {
+    color: hsl(var(--static-white)) !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .filter-sidebar-list__text:hover {
+    background: var(--dark-black-five) !important;
+    color: hsl(var(--main)) !important;
+    transform: translateX(8px) !important;
+    border-radius: 6px !important;
+  }
+  
+  .filter-sidebar-list__text.active {
+    background: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  .filter-sidebar-list__text .qty {
+    background: var(--dark-black-five) !important;
+    color: #9ca3af !important;
+    border: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .filter-sidebar-list__text.active .qty {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .filter-sidebar-list__text:hover .qty {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: hsl(var(--main)) !important;
+  }
+  
+  /* Applied Filters - Dark Mode */
+  .applied-filters {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .applied-filters-title {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .clear-all-filters {
+    color: #ef4444 !important;
+  }
+  
+  .clear-all-filters:hover {
+    color: #dc2626 !important;
+  }
+  
+  .filter-tag {
+    background: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  .filter-remove:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+  }
+  
+  /* Loading States - Dark */
+  .skeleton-card {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .skeleton-line {
+    background: linear-gradient(90deg, var(--dark-black-five) 25%, var(--dark-black-three) 50%, var(--dark-black-five) 75%) !important;
+  }
+  
+  /* Product Cards - Dark Mode */
+  .product-item {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .product-item:hover {
+    background: var(--dark-black-three) !important;
+    border-color: hsl(var(--main)) !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4) !important;
+    transform: translateY(-4px) !important;
+  }
+  
+  .product-item__content {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .product-item__title a {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .product-item__title a:hover {
+    color: hsl(var(--main)) !important;
+  }
+  
+  .product-item__price {
+    color: hsl(var(--main)) !important;
+    font-weight: 700 !important;
+  }
+  
+  /* Pagination - Dark Mode */
+  .common-pagination .page-link {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .common-pagination .page-link:hover {
+    background: var(--dark-black-five) !important;
+    border-color: hsl(var(--main)) !important;
+    color: hsl(var(--main)) !important;
+  }
+  
+  .common-pagination .page-item.active .page-link {
+    background: hsl(var(--main)) !important;
+    border-color: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4) !important;
+  }
+  
+  /* Mobile Filter Sidebar - Dark */
+  @media (max-width: 768px) {
+    .filter-sidebar.show {
+      background: var(--dark-black-one) !important;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5) !important;
+    }
+    
+    .filter-sidebar__close {
+      color: hsl(var(--static-white)) !important;
+    }
+    
+    .filter-sidebar__close:hover {
+      color: hsl(var(--main)) !important;
+    }
+  }
+  
+  /* Search Input Icon - Dark */
+  .input-icon img {
+    filter: brightness(0) saturate(100%) invert(100%) !important;
+  }
+  
+  /* Select dropdown arrow - Dark */
+  .select-has-icon::after {
+    filter: brightness(0) saturate(100%) invert(100%) !important;
+  }
+  
+  /* Enhanced Animations for Dark Mode */
+  .filter-sidebar-list__text {
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  
+  .filter-sidebar-list__text::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent) !important;
+    transition: left 0.5s !important;
+  }
+  
+  .filter-sidebar-list__text:hover::before {
+    left: 100% !important;
+  }
+  
+  /* Price Range Input Success State - Dark */
+  .form-control.price-applied {
+    border-color: #22c55e !important;
+    background-color: rgba(34, 197, 94, 0.1) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* Filter Loading Animation - Dark */
+  .filter-loading::after {
+    border-color: hsl(var(--main)) !important;
+    border-top-color: transparent !important;
+  }
+  
+  /* Text Colors for Dark Mode */
+  .text-body {
+    color: #9ca3af !important;
+  }
+  
+  .text-muted {
+    color: #6b7280 !important;
+  }
+  
+  /* Professional Gradient Overlays */
+  .filter-tab::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, hsl(var(--main)), #8b5cf6, hsl(var(--main))) !important;
+    border-radius: 12px 12px 0 0 !important;
+  }
+  
+  .filter-sidebar::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, hsl(var(--main)), #8b5cf6, hsl(var(--main))) !important;
+    border-radius: 8px 8px 0 0 !important;
+    z-index: 1 !important;
+  }
+  
+  /* Empty State - Dark Mode */
+  .text-center .text-muted {
+    color: #9ca3af !important;
+  }
+  
+  /* Main Container Background */
+  .main-wrapper {
+    background: var(--dark-black-one) !important;
+  }
+  
+  /* Container Backgrounds */
+  .container,
+  .container-two {
+    background: transparent !important;
+  }
+  
+  /* Enhanced Category Hover Effects */
+  .filter-sidebar-list__item:hover {
+    background: rgba(59, 130, 246, 0.05) !important;
+    border-radius: 6px !important;
+    margin: 0 0.5rem !important;
+    padding: 0.5rem !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  /* Professional Scrollbar for Sidebar */
+  .filter-sidebar::-webkit-scrollbar {
+    width: 8px !important;
+  }
+  
+  .filter-sidebar::-webkit-scrollbar-track {
+    background: var(--dark-black-three) !important;
+    border-radius: 4px !important;
+  }
+  
+  .filter-sidebar::-webkit-scrollbar-thumb {
+    background: var(--dark-black-five) !important;
+    border-radius: 4px !important;
+  }
+  
+  .filter-sidebar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--main)) !important;
+  }
+  
+  /* Enhanced Focus States */
+  .filter-sidebar-list__text:focus,
+  .common-input:focus,
+  .nav-link:focus {
+    outline: 2px solid hsl(var(--main)) !important;
+    outline-offset: 2px !important;
+  }
+  
+}
+/* ============================= DARK MODE STYLES END ============================= */
+
+/* ============================= EMPTY CATEGORIES & MANUFACTURERS STYLING ============================= */
+
+/* Styling for categories and manufacturers without products */
+.filter-sidebar-list__text.no-products {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.filter-sidebar-list__text.no-products:hover {
+  background: rgba(108, 117, 125, 0.1) !important;
+  transform: none !important;
+  color: #6c757d !important;
+}
+
+.filter-sidebar-list__text.no-products .qty.no-products {
+  background: #e9ecef !important;
+  color: #6c757d !important;
+  font-size: 0.7rem;
+}
+
+.filter-sidebar-list__text.no-products .text-muted {
+  font-size: 0.7rem;
+  font-style: italic;
+  color: #adb5bd !important;
+  margin-top: 2px;
+}
+
+/* Dark mode styles for empty categories/manufacturers */
+[data-theme="light"] {
+  
+  .filter-sidebar-list__text.no-products {
+    opacity: 0.5 !important;
+    cursor: default !important;
+  }
+  
+  .filter-sidebar-list__text.no-products:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    transform: none !important;
+    color: #9ca3af !important;
+  }
+  
+  .filter-sidebar-list__text.no-products .qty.no-products {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #9ca3af !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .filter-sidebar-list__text.no-products .text-muted {
+    color: #6b7280 !important;
+  }
+  
+}
+
+/* Show All / View More functionality */
+.show-more-categories,
+.show-more-manufacturers {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: #3b82f6;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.show-more-categories:hover,
+.show-more-manufacturers:hover {
+  background: #f8fafc;
+  color: #1d4ed8;
+}
+
+[data-theme="light"] .show-more-categories,
+[data-theme="light"] .show-more-manufacturers {
+  color: hsl(var(--main)) !important;
+}
+
+[data-theme="light"] .show-more-categories:hover,
+[data-theme="light"] .show-more-manufacturers:hover {
+  background: rgba(59, 130, 246, 0.1) !important;
+}
+
+</style>
+
+</main>
+
+<script>
+// Image Error Handling System - Prevents Infinite Retry Loops
+const ImageErrorHandler = {
+    maxRetries: 2,
+    retryDelay: 1000,
+    fallbackImages: [
+        '/assets/images/placeholder-product.svg',
+        '/assets/images/no-image.svg',
+        'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjgwIiByPSIyMCIgc3Ryb2tlPSIjOUNBM0FGIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KPHN0eWxlPi50ZXh0e2ZvbnQ6MTJweCBBcmlhbDtmaWxsOiM5Q0EzQUY7fTwvc3R5bGU+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0idGV4dCI+Tm8gSW1hZ2U8L3RleHQ+Cjx0ZXh0IHg9IjEwMCIgeT0iMTQwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0idGV4dCI+QXZhaWxhYmxlPC90ZXh0Pgo8L3N2Zz4K'
+    ],
+    
+    init() {
+        // Store failed images to prevent infinite loops
+        this.failedImages = new Set();
+        this.retryCount = new Map();
+      },
+    
+    handleError(img) {
+        const originalSrc = img.dataset.originalSrc || img.src;
+        const currentRetryCount = this.retryCount.get(originalSrc) || 0;
+        
+        
+        // Store original src for tracking
+        if (!img.dataset.originalSrc) {
+            img.dataset.originalSrc = originalSrc;
+        }
+        
+        // Check if we've already marked this as permanently failed
+        if (this.failedImages.has(originalSrc)) {
+           this.showFinalFallback(img);
+            return;
+        }
+        
+        // Check retry limit
+        if (currentRetryCount >= this.maxRetries) {
+            this.failedImages.add(originalSrc);
+            this.tryFallbackImage(img, 0);
+            return;
+        }
+        
+        // Increment retry count
+        this.retryCount.set(originalSrc, currentRetryCount + 1);
+        
+        setTimeout(() => {
+            img.src = originalSrc + '?retry=' + Date.now();
+        }, this.retryDelay);
+    },
+    
+    tryFallbackImage(img, fallbackIndex = 0) {
+        if (fallbackIndex >= this.fallbackImages.length) {
+            this.showFinalFallback(img);
+            return;
+        }
+        
+        const fallbackSrc = this.fallbackImages[fallbackIndex];
+        
+        // Create a test image to check if fallback works
+        const testImg = new Image();
+        testImg.onload = () => {
+            img.src = fallbackSrc;
+            img.dataset.fallbackUsed = 'true';
+        };
+        testImg.onerror = () => {
+            this.tryFallbackImage(img, fallbackIndex + 1);
+        };
+        testImg.src = fallbackSrc;
+    },
+    
+    showFinalFallback(img) {
+        // Show a CSS-only fallback
+        img.style.display = 'none';
+        
+        // Create a CSS-only placeholder
+        const placeholder = document.createElement('div');
+        placeholder.className = 'image-fallback-placeholder';
+        placeholder.style.cssText = `
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            border: 2px dashed #d1d5db;
+            position: relative;
+        `;
+        placeholder.innerHTML = `
+            <div style="text-align: center;">
+                <div style="font-size: 24px; margin-bottom: 8px;">📷</div>
+                <div>Image not available</div>
+            </div>
+        `;
+        
+        // Insert placeholder after image
+        img.parentNode.insertBefore(placeholder, img.nextSibling);
+        
+    },
+    
+    handleSuccess(img) {
+        const originalSrc = img.dataset.originalSrc || img.src;
+        
+        // Clear any retry tracking for successful images
+        if (this.retryCount.has(originalSrc)) {
+            this.retryCount.delete(originalSrc);
+        }
+        
+        // Remove any existing placeholders
+        const placeholder = img.parentNode.querySelector('.image-fallback-placeholder');
+        if (placeholder) {
+            placeholder.remove();
+        }
+        
+        // Ensure image is visible
+        img.style.display = 'block';
+    }
+};
+
+// Global functions for image handling
+function handleImageError(img) {
+    ImageErrorHandler.handleError(img);
+}
+
+function handleImageSuccess(img) {
+    ImageErrorHandler.handleSuccess(img);
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    ImageErrorHandler.init();
+    
+    // Also handle existing images that might have already failed
+    const failedImages = document.querySelectorAll('img[src*="placeholder-product.png"]');
+    failedImages.forEach(img => {
+        if (img.complete && img.naturalWidth === 0) {
+            handleImageError(img);
+        }
+    });
+});
+</script>
 
 <%- include('../partials/footer') %>

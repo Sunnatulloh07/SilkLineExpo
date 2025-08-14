@@ -19,7 +19,7 @@ Senior Software Engineer Clean Code Implementation
         }
 
         detectThemeConflicts() {
-            const themeKeys = ['theme', 'slex_theme'];
+            const themeKeys = ['dashboard-theme', 'dashboard-theme'];
             const themes = {};
             
             themeKeys.forEach(key => {
@@ -47,8 +47,8 @@ Senior Software Engineer Clean Code Implementation
             console.log(`🔧 Fixing theme conflict, using: ${preferredTheme}`);
             
             // Sync both keys
-            localStorage.setItem('theme', preferredTheme);
-            localStorage.setItem('slex_theme', preferredTheme);
+            localStorage.setItem('dashboard-theme', preferredTheme);
+            localStorage.setItem('dashboard-theme', preferredTheme);
             
             // Apply immediately
             document.documentElement.setAttribute('data-theme', preferredTheme);
@@ -69,10 +69,10 @@ Senior Software Engineer Clean Code Implementation
             localStorage.setItem = function(key, value) {
                 originalSetItem.call(this, key, value);
                 
-                if (key === 'theme' || key === 'slex_theme') {
+                if (key === 'dashboard-theme' || key === 'dashboard-theme') {
                     // Sync both keys
-                    originalSetItem.call(this, 'theme', value);
-                    originalSetItem.call(this, 'slex_theme', value);
+                    originalSetItem.call(this, 'dashboard-theme', value);
+                    originalSetItem.call(this, 'dashboard-theme', value);
                     
                     // Apply to DOM
                     document.documentElement.setAttribute('data-theme', value);
@@ -83,8 +83,8 @@ Senior Software Engineer Clean Code Implementation
         }
 
         getCurrentTheme() {
-            return localStorage.getItem('slex_theme') || 
-                   localStorage.getItem('theme') || 
+            return localStorage.getItem('dashboard-theme') || 
+                   localStorage.getItem('dashboard-theme') || 
                    'light';
         }
 
@@ -93,8 +93,8 @@ Senior Software Engineer Clean Code Implementation
             window.ThemeDebug = {
                 // Clear all theme data
                 clearThemes: () => {
-                    localStorage.removeItem('theme');
-                    localStorage.removeItem('slex_theme');
+                    localStorage.removeItem('dashboard-theme');
+                    localStorage.removeItem('dashboard-theme');
                     document.documentElement.removeAttribute('data-theme');
                     console.log('🧹 All theme data cleared');
                     window.location.reload();
@@ -107,8 +107,8 @@ Senior Software Engineer Clean Code Implementation
                         return;
                     }
                     
-                    localStorage.setItem('theme', theme);
-                    localStorage.setItem('slex_theme', theme);
+                    localStorage.setItem('dashboard-theme', theme);
+                    localStorage.setItem('dashboard-theme', theme);
                     document.documentElement.setAttribute('data-theme', theme);
                     console.log(`✅ Theme set to: ${theme}`);
                 },
@@ -116,8 +116,8 @@ Senior Software Engineer Clean Code Implementation
                 // Get current theme info
                 getThemeInfo: () => {
                     const info = {
-                        localStorage_theme: localStorage.getItem('theme'),
-                        localStorage_slex_theme: localStorage.getItem('slex_theme'),
+                        localStorage_theme: localStorage.getItem('dashboard-theme'),
+                        localStorage_slex_theme: localStorage.getItem('dashboard-theme'),
                         html_data_theme: document.documentElement.getAttribute('data-theme'),
                         body_classes: document.body.className,
                         current_theme: this.getCurrentTheme()

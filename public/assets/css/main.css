@@ -7224,7 +7224,13 @@ input[type='number'] {
 }
 
 .filter-form {
-  display: none;
+  display: block; /* Show the filter form */
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-light, #f1f5f9);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Filter Tab Css End */

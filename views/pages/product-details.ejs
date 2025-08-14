@@ -1,359 +1,4305 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
 
-<!-- Comments System Styles -->
-<link rel="stylesheet" href="/css/product-comments.css">
+<!-- Professional Alibaba-Style B2B Product Detail Page -->
+<!-- Senior Software Engineer Implementation -->
 
-    <!-- ======================== Breadcrumb Two Section Start ===================== -->
-    <section class="breadcrumb border-bottom p-0 d-block section-bg position-relative z-index-1">
+<!-- Enhanced CSS for Professional B2B Design -->
+<link rel="stylesheet" href="/assets/css/product-detail-professional.css">
+<link rel="stylesheet" href="/assets/css/product-detail-professional-light-mode.css">
 
-      <div class="breadcrumb-two">
-        <img src="/assets/images/gradients/breadcrumb-gradient-bg.png" alt="" class="bg--gradient">
-        <div class="container container-two">
-          <div class="row justify-content-center">
-            <div class="col-lg-12">
-              <div class="breadcrumb-two-content">
-                <ul class="breadcrumb-list flx-align gap-2 mb-2">
-                  <li class="breadcrumb-list__item font-14 text-body">
-                    <a href="/" class="breadcrumb-list__link text-body hover-text-main"><%= t('nav.home') %></a>
-                  </li>
-                  <li class="breadcrumb-list__item font-14 text-body">
-                    <span class="breadcrumb-list__icon font-10"><i class="fas fa-chevron-right"></i></span>
-                  </li>
-                  <li class="breadcrumb-list__item font-14 text-body">
-                    <a href="/all-product" class="breadcrumb-list__link text-body hover-text-main"><%= t('products.products') %></a>
-                  </li>
-                  <li class="breadcrumb-list__item font-14 text-body">
-                    <span class="breadcrumb-list__icon font-10"><i class="fas fa-chevron-right"></i></span>
-                  </li>
-                  <li class="breadcrumb-list__item font-14 text-body">
-                    <span class="breadcrumb-list__text"><%= t('products.productDetails') %></span>
-                  </li>
-                </ul>
+<!-- ============================= COMPREHENSIVE DARK MODE STYLES ============================= -->
+<!-- Following EXACT same pattern as all-product.ejs for consistent styling -->
+<style>
+/* Professional Dark Mode Implementation for Product Details Page */
 
-                <h3 id="product-title" class="breadcrumb-two-content__title mb-3 text-capitalize">mahsulot nomi</h3>
+[data-theme="light"] {
+  
+  /* Main Container Background */
+  .professional-product-detail {
+    background: var(--dark-black-one) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* Error State - Dark Mode */
+  .error-state-container {
+    background: var(--dark-black-one) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .error-state-content {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 12px !important;
+    padding: 3rem !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .error-title {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .error-description {
+    color: #9ca3af !important;
+  }
+  
+  .error-icon {
+    color: #ef4444 !important;
+  }
+  
+  /* Product Detail Main Section - Dark */
+  .product-detail-main {
+    background: var(--dark-black-one) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* Container Backgrounds */
+  .container {
+    background: transparent !important;
+  }
+  
+  /* Product Header Section - Dark */
+  .product-header-section {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin-bottom: 2rem !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  /* Trust Badges - Dark Mode */
+  .product-trust-badges {
+    background: transparent !important;
+  }
+  
+  .trust-badge {
+    background: var(--dark-black-three) !important;
+    color: hsl(var(--static-white)) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  .trust-badge.verified-supplier {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .trust-badge.quality-assured {
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .trust-badge.trade-assurance {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* Product Main Grid - Dark */
+  .product-main-grid {
+    background: transparent !important;
+  }
+  
+  /* Product Media Section - Dark */
+  .product-media-section {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  /* Image Gallery - Dark Mode */
+  .image-gallery-container {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+  }
+  
+  .main-image-display {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+  }
+  
+  .main-product-image {
+    background: hsl(var(--static-white)) !important;
+    border-radius: 8px !important;
+  }
+  
+  .image-placeholder {
+    background: var(--dark-black-five) !important;
+    color: #9ca3af !important;
+    border: 2px dashed var(--dark-black-five) !important;
+    border-radius: 8px !important;
+  }
+  
+  /* Image Tools - Dark */
+  .image-tools {
+    background: rgba(0, 3, 30, 0.8) !important;
+  }
+  
+  .image-tool-btn {
+    background: var(--dark-black-three) !important;
+    color: hsl(var(--static-white)) !important;
+    border: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .image-tool-btn:hover {
+    background: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* Image Thumbnails - Dark */
+  .image-thumbnails {
+    background: var(--dark-black-three) !important;
+  }
+  
+  .thumbnail-image {
+    border: 2px solid var(--dark-black-five) !important;
+  }
+  
+  .thumbnail-image.active,
+  .thumbnail-image:hover {
+    border-color: hsl(var(--main)) !important;
+  }
+  
+  /* Product Documents Section - Dark */
+  .product-documents-section {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+  }
+  
+  .document-item {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .document-item:hover {
+    background: var(--dark-black-five) !important;
+    border-color: hsl(var(--main)) !important;
+  }
+  
+  /* Product Info Section - Dark */
+  .product-info-section {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  /* Product Header - Dark */
+  .product-header {
+    background: transparent !important;
+    border-bottom: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .product-title {
+    color: hsl(var(--static-white)) !important;
+    font-weight: 700 !important;
+  }
+  
+  /* Product Rating Section - Dark */
+  .product-rating-section {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+  }
+  
+  .stars-container {
+    background: transparent !important;
+  }
+  
+  .star {
+    color: #fbbf24 !important;
+  }
+  
+  .rating-text {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* Product Stats - Dark */
+  .product-stats {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+  }
+  
+  .stat-item {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .stat-label {
+    color: #9ca3af !important;
+  }
+  
+  .stat-value {
+    color: hsl(var(--static-white)) !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Product Description - Dark */
+  .product-short-description {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    color: #9ca3af !important;
+  }
+  
+  /* Price Container - Dark */
+  .price-container {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  .price-main {
+    color: hsl(var(--main)) !important;
+    font-weight: 700 !important;
+  }
+  
+  .price-original {
+    color: #9ca3af !important;
+    text-decoration: line-through !important;
+  }
+  
+  .price-savings {
+    color: #22c55e !important;
+    font-weight: 600 !important;
+  }
+  
+  .moq-info {
+    color: #9ca3af !important;
+  }
+  
+  .bulk-pricing-info {
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: hsl(var(--main)) !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  /* Buttons - Dark Mode */
+  .btn {
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .btn-primary {
+    background: hsl(var(--main)) !important;
+    border-color: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  .btn-primary:hover {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4) !important;
+  }
+  
+  .btn-secondary {
+    background: var(--dark-black-five) !important;
+    border-color: var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .btn-secondary:hover {
+    background: var(--dark-black-three) !important;
+    border-color: hsl(var(--main)) !important;
+    color: hsl(var(--main)) !important;
+  }
+  
+  .btn-outline-primary {
+    background: transparent !important;
+    border-color: hsl(var(--main)) !important;
+    color: hsl(var(--main)) !important;
+  }
+  
+  .btn-outline-primary:hover {
+    background: hsl(var(--main)) !important;
+    border-color: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* Option Buttons - Dark */
+  .option-btn {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .option-btn:hover {
+    background: var(--dark-black-five) !important;
+    color: hsl(var(--main)) !important;
+    border-color: hsl(var(--main)) !important;
+  }
+  
+  .option-btn.active {
+    background: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+    border-color: hsl(var(--main)) !important;
+  }
+  
+  /* Supplier Profile Section - Dark */
+  .supplier-profile-section {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .supplier-header {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+  }
+  
+  .supplier-logo {
+    background: hsl(var(--static-white)) !important;
+    border: 2px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+  }
+  
+  .supplier-info h3 {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .supplier-info p {
+    color: #9ca3af !important;
+  }
+  
+  .supplier-metrics {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+  }
+  
+  .metric-item {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .metric-label {
+    color: #9ca3af !important;
+  }
+  
+  .metric-value {
+    color: hsl(var(--main)) !important;
+    font-weight: 700 !important;
+  }
+  
+  /* Detail Tabs - Dark Mode */
+  .detail-tabs-container {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .tabs-nav {
+    background: var(--dark-black-three) !important;
+    border-bottom: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .tab-btn {
+    background: transparent !important;
+    color: #9ca3af !important;
+    border: none !important;
+    border-bottom: 3px solid transparent !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .tab-btn:hover {
+    color: hsl(var(--main)) !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+  }
+  
+  .tab-btn.active {
+    color: hsl(var(--main)) !important;
+    border-bottom-color: hsl(var(--main)) !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+  }
+  
+  /* Tab Content - Dark */
+  .tab-content {
+    background: var(--dark-black-two) !important;
+    color: hsl(var(--static-white)) !important;
+    padding: 2rem !important;
+  }
+  
+  .product-description {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+    color: #9ca3af !important;
+    line-height: 1.7 !important;
+  }
+  
+  /* Specifications Table - Dark */
+  .specifications-table {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+  }
+  
+  .specifications-table th {
+    background: var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+    font-weight: 600 !important;
+    border-color: var(--dark-black-five) !important;
+  }
+  
+  .specifications-table td {
+    background: var(--dark-black-three) !important;
+    color: #9ca3af !important;
+    border-color: var(--dark-black-five) !important;
+  }
+  
+  .specifications-table tbody tr:hover {
+    background: var(--dark-black-five) !important;
+  }
+  
+  /* Shipping Info - Dark */
+  .shipping-info {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+  }
+  
+  .shipping-item {
+    border-bottom: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .shipping-label {
+    color: #9ca3af !important;
+  }
+  
+  .shipping-value {
+    color: hsl(var(--static-white)) !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Reviews Section - Dark */
+  .reviews-section {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+  }
+  
+  .review-item {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .review-author {
+    color: hsl(var(--static-white)) !important;
+    font-weight: 600 !important;
+  }
+  
+  .review-date {
+    color: #9ca3af !important;
+  }
+  
+  .review-text {
+    color: #9ca3af !important;
+    line-height: 1.6 !important;
+  }
+  
+  /* Company Tab - Dark */
+  .company-info {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+  }
+  
+  .company-item {
+    border-bottom: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .company-label {
+    color: #9ca3af !important;
+  }
+  
+  .company-value {
+    color: hsl(var(--static-white)) !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Modal - Dark Mode */
+  .modal-overlay {
+    background: rgba(0, 3, 30, 0.8) !important;
+  }
+  
+  .modal-container {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+  }
+  
+  .professional-modal {
+    border-radius: 12px !important;
+  }
+  
+  .modal-header {
+    background: var(--dark-black-three) !important;
+    border-bottom: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .modal-title {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .modal-close {
+    color: #9ca3af !important;
+  }
+  
+  .modal-close:hover {
+    color: hsl(var(--main)) !important;
+  }
+  
+  .modal-body {
+    background: var(--dark-black-two) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .modal-footer {
+    background: var(--dark-black-three) !important;
+    border-top: 1px solid var(--dark-black-five) !important;
+  }
+  
+  /* Form Elements - Dark Mode */
+  .form-group {
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .form-label {
+    color: hsl(var(--static-white)) !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .form-control,
+  .form-input,
+  .form-select,
+  .form-textarea {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+    border-radius: 6px !important;
+  }
+  
+  .form-control:focus,
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    background: var(--dark-black-three) !important;
+    border-color: hsl(var(--main)) !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.3) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .form-control::placeholder,
+  .form-input::placeholder,
+  .form-textarea::placeholder {
+    color: #9ca3af !important;
+  }
+  
+  /* Text Colors - Dark Mode */
+  .text-body {
+    color: #9ca3af !important;
+  }
+  
+  .text-muted {
+    color: #6b7280 !important;
+  }
+  
+  .text-primary {
+    color: hsl(var(--main)) !important;
+  }
+  
+  .text-success {
+    color: #22c55e !important;
+  }
+  
+  .text-warning {
+    color: #f59e0b !important;
+  }
+  
+  .text-danger {
+    color: #ef4444 !important;
+  }
+  
+  /* Border Colors - Dark Mode */
+  .border-primary {
+    border-color: hsl(var(--main)) !important;
+  }
+  
+  .border-secondary {
+    border-color: var(--dark-black-five) !important;
+  }
+  
+  /* Background Colors - Dark Mode */
+  .bg-primary {
+    background-color: hsl(var(--main)) !important;
+  }
+  
+  .bg-secondary {
+    background-color: var(--dark-black-three) !important;
+  }
+  
+  .bg-light {
+    background-color: var(--dark-black-two) !important;
+  }
+  
+  /* Toast Notifications - Dark */
+  .toast-container {
+    z-index: 9999 !important;
+  }
+  
+  .toast {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
+  }
+  
+  .toast.success {
+    background: #22c55e !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .toast.error {
+    background: #ef4444 !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .toast.warning {
+    background: #f59e0b !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .toast.info {
+    background: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* Professional Scrollbars - Dark */
+  ::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--dark-black-three) !important;
+    border-radius: 4px !important;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--dark-black-five) !important;
+    border-radius: 4px !important;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--main)) !important;
+  }
+  
+  /* Selection Colors - Dark */
+  ::selection {
+    background: rgba(59, 130, 246, 0.3) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  ::-moz-selection {
+    background: rgba(59, 130, 246, 0.3) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* Focus States - Dark */
+  *:focus {
+    outline-color: hsl(var(--main)) !important;
+  }
+  
+  .focus-visible {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+  }
+  
+  /* Loading States - Dark */
+  .loading-overlay {
+    background: rgba(0, 3, 30, 0.8) !important;
+  }
+  
+  .loading-spinner {
+    border-color: #9ca3af !important;
+    border-top-color: hsl(var(--main)) !important;
+  }
+  
+  /* ======================== MISSING ELEMENTS DARK MODE ======================== */
+  
+  /* Pricing Section - Dark */
+  .pricing-section {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .price-container {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+  }
+  
+  .main-price {
+    background: transparent !important;
+  }
+  
+  .price-amount {
+    color: hsl(var(--main)) !important;
+    font-weight: 700 !important;
+  }
+  
+  .price-currency,
+  .price-unit {
+    color: #9ca3af !important;
+  }
+  
+  /* Bulk Pricing Section - Dark */
+  .bulk-pricing-section {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+    margin-top: 1rem !important;
+  }
+  
+  .bulk-pricing-title {
+    color: hsl(var(--static-white)) !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .bulk-pricing-table {
+    background: var(--dark-black-five) !important;
+    border-radius: 6px !important;
+    padding: 1rem !important;
+  }
+  
+  .bulk-tier {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 6px !important;
+    padding: 0.75rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .tier-quantity {
+    color: hsl(var(--static-white)) !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Lead Time - Dark */
+  .lead-time {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 6px !important;
+    padding: 0.75rem 1rem !important;
+    color: hsl(var(--static-white)) !important;
+    margin-top: 1rem !important;
+  }
+  
+  .lead-time i {
+    color: hsl(var(--main)) !important;
+    margin-right: 0.5rem !important;
+  }
+  
+  /* Stock Quantity - Dark */
+  .stock-quantity {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 6px !important;
+    padding: 0.75rem !important;
+  }
+  
+  .available-quantity {
+    color: #22c55e !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Quantity Section - Dark */
+  .quantity-section {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin: 1rem 0 !important;
+  }
+  
+  .quantity-label {
+    color: hsl(var(--static-white)) !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.5rem !important;
+    display: block !important;
+  }
+  
+  .quantity-controls {
+    display: flex !important;
+    align-items: center !important;
+    background: var(--dark-black-five) !important;
+    border-radius: 6px !important;
+    padding: 0.25rem !important;
+  }
+  
+  .quantity-btn {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .quantity-btn:hover {
+    background: hsl(var(--main)) !important;
+    border-color: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .quantity-input {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+    text-align: center !important;
+    border-radius: 4px !important;
+    margin: 0 0.5rem !important;
+    padding: 0.5rem !important;
+    min-width: 80px !important;
+  }
+  
+  .quantity-input:focus {
+    background: var(--dark-black-two) !important;
+    border-color: hsl(var(--main)) !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  /* Action Buttons Container - Dark */
+  .action-buttons {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+    margin: 1.5rem 0 !important;
+  }
+  
+  .action-buttons .btn {
+    margin: 0.5rem !important;
+    min-width: 200px !important;
+  }
+  
+  .action-buttons .inquiry-btn {
+    background: hsl(var(--main)) !important;
+    border-color: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  .action-buttons .inquiry-btn:hover {
+    background: #2563eb !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4) !important;
+  }
+  
+  .action-buttons .chat-btn {
+    background: #22c55e !important;
+    border-color: #22c55e !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .action-buttons .chat-btn:hover {
+    background: #16a34a !important;
+    border-color: #16a34a !important;
+  }
+  
+  .action-buttons .sample-btn {
+    background: transparent !important;
+    border-color: hsl(var(--main)) !important;
+    color: hsl(var(--main)) !important;
+  }
+  
+  .action-buttons .sample-btn:hover {
+    background: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* Shipping Section - Dark */
+  .shipping-section {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+    margin: 1rem 0 !important;
+  }
+  
+  .section-title {
+    color: hsl(var(--static-white)) !important;
+    margin-bottom: 1rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .section-title i {
+    color: hsl(var(--main)) !important;
+    margin-right: 0.5rem !important;
+  }
+  
+  .shipping-details {
+    background: var(--dark-black-three) !important;
+    border-radius: 6px !important;
+    padding: 1rem !important;
+  }
+  
+  /* .shipping-detail {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0.75rem 0 !important;
+    border-bottom: 1px solid var(--dark-black-five) !important;
+  } */
+  
+  .shipping-detail:last-child {
+    border-bottom: none !important;
+  }
+  
+  .detail-label {
+    color: #9ca3af !important;
+    font-weight: 500 !important;
+  }
+  
+  .detail-value {
+    color: hsl(var(--static-white)) !important;
+    font-weight: 600 !important;
+  }
+  
+  .shipping-details-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+    gap: 1rem !important;
+    margin-top: 1rem !important;
+  }
+  
+  .detail-item {
+    background: var(--dark-black-five) !important;
+    border-radius: 6px !important;
+    padding: 1rem !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+  
+  .detail-item .label {
+    color: #9ca3af !important;
+    font-weight: 500 !important;
+  }
+  
+  .detail-item .value {
+    color: hsl(var(--static-white)) !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Supplier Section - Dark */
+  .supplier-section {
+    background: var(--dark-black-one) !important;
+    padding: 3rem 0 !important;
+  }
+  
+  .section-main-title {
+    color: hsl(var(--static-white)) !important;
+    text-align: center !important;
+    margin-bottom: 2rem !important;
+    font-weight: 700 !important;
+  }
+  
+  .section-main-title i {
+    color: hsl(var(--main)) !important;
+    margin-right: 0.5rem !important;
+  }
+  
+  .supplier-card {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .supplier-header {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 1.5rem !important;
+  }
+  
+  .supplier-logo {
+    background: hsl(var(--static-white)) !important;
+    border: 2px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    width: 80px !important;
+    height: 80px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  .supplier-info {
+    flex: 1 !important;
+  }
+  
+  .supplier-name {
+    color: hsl(var(--static-white)) !important;
+    margin-bottom: 0.5rem !important;
+    font-weight: 700 !important;
+  }
+  
+  .supplier-verification {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .verification-badge {
+    background: var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+    padding: 0.25rem 0.75rem !important;
+    border-radius: 4px !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .verification-badge.verified {
+    background: #22c55e !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .supplier-location {
+    color: #9ca3af !important;
+    font-weight: 500 !important;
+  }
+  
+  .supplier-location i {
+    color: hsl(var(--main)) !important;
+    margin-right: 0.5rem !important;
+  }
+  
+  /* Supplier Stats - Dark */
+  .supplier-stats {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    gap: 1rem !important;
+  }
+  
+  .stat-item {
+    text-align: center !important;
+    padding: 1rem !important;
+    background: var(--dark-black-five) !important;
+    border-radius: 6px !important;
+  }
+  
+  .stat-label {
+    color: #9ca3af !important;
+    font-size: 0.875rem !important;
+    margin-bottom: 0.5rem !important;
+    display: block !important;
+  }
+  
+  .stat-value {
+    color: hsl(var(--static-white)) !important;
+    font-weight: 700 !important;
+    font-size: 1.25rem !important;
+  }
+  
+  .rating-display {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.25rem !important;
+  }
+  
+  .rating-display.small {
+    font-size: 0.875rem !important;
+  }
+  
+  .rating-score {
+    color: hsl(var(--static-white)) !important;
+    font-weight: 600 !important;
+    margin-left: 0.5rem !important;
+  }
+  
+  /* Supplier Actions - Dark */
+  .supplier-actions {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+    margin-top: 1.5rem !important;
+    text-align: center !important;
+  }
+  
+  .supplier-actions .btn {
+    margin: 0.5rem !important;
+    min-width: 180px !important;
+  }
+  
+  .contact-supplier-btn {
+    background: hsl(var(--main)) !important;
+    border-color: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .contact-supplier-btn:hover {
+    background: #2563eb !important;
+    transform: translateY(-2px) !important;
+  }
+  
+  /* Supplier Description - Dark */
+  .supplier-description {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+    margin: 1.5rem 0 !important;
+  }
+  
+  .supplier-description p {
+    color: #9ca3af !important;
+    line-height: 1.6 !important;
+    margin: 0 !important;
+  }
+  
+  /* Supplier Credentials - Dark */
+  .supplier-credentials {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+    margin-top: 1.5rem !important;
+  }
+  
+  .credential-item {
+    display: flex !important;
+    align-items: center !important;
+    padding: 0.75rem !important;
+    background: var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .moq-section {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    padding: var(--space-3);
+    background: var(--dark-black-three);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+}
+  .credential-item i {
+    color: hsl(var(--main)) !important;
+    margin-right: 0.75rem !important;
+    width: 20px !important;
+    text-align: center !important;
+  }
+  
+  .credential-item span {
+    font-weight: 500 !important;
+  }
+  
+  /* Detailed Info Section - Dark */
+  .detailed-info-section {
+    background: var(--dark-black-one) !important;
+    padding: 3rem 0 !important;
+  }
+  
+  /* Key Features - Dark */
+  .key-features {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+    margin-bottom: 2rem !important;
+  }
+  
+  .key-features h4 {
+    color: hsl(var(--static-white)) !important;
+    margin-bottom: 1rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .features-list {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .features-list li {
+    background: var(--dark-black-five) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 6px !important;
+    padding: 0.75rem 1rem !important;
+    margin-bottom: 0.5rem !important;
+    color: hsl(var(--static-white)) !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  
+  .features-list li:hover {
+    background: var(--dark-black-three) !important;
+    border-color: hsl(var(--main)) !important;
+    transform: translateX(4px) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2) !important;
+  }
+  
 
-                <div class="breadcrumb-content flx-align gap-3">
-                  <div class="breadcrumb-content__item" id="product-company"></div>
-                  <div class="breadcrumb-content__item" id="product-sales"></div>
-                  <div class="breadcrumb-content__item">
-                    <!-- update va documentation doimiy qoladi -->
-                    <span class="icon">
-                      <img src="/assets/images/icons/check-icon.svg" alt="" class="white-version">
-                      <img src="/assets/images/icons/check-icon-white.svg" alt="" class="dark-version">
-                    </span>
-                    <span class="text">Recently Updated</span>
-                  </div>
-                  <div class="breadcrumb-content__item">
-                    <span class="icon">
-                      <img src="/assets/images/icons/check-icon.svg" alt="" class="white-version">
-                      <img src="/assets/images/icons/check-icon-white.svg" alt="" class="dark-version">
-                    </span>
-                    <span class="text">Well Documented</span>
-                  </div>
-                </div>
+  .features-list li strong {
+    color: hsl(var(--main)) !important;
+    margin-right: 0.5rem !important;
+  }
+  
+  /* Specifications Detailed - Dark */
+  .specifications-detailed {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+  }
+  
+  .specifications-detailed h3 {
+    color: hsl(var(--static-white)) !important;
+    margin-bottom: 1rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .specs-table {
+    background: var(--dark-black-five) !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+  }
+  
+  /* Shipping Payment Content - Dark */
+  .shipping-payment-content {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+  }
+  
+  .shipping-payment-content h3 {
+    color: hsl(var(--static-white)) !important;
+    margin-bottom: 1rem !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Mobile Responsive Adjustments - Dark */
+  @media (max-width: 768px) {
+    .professional-product-detail {
+      background: var(--dark-black-one) !important;
+    }
+    
+    .product-main-grid {
+      grid-template-columns: 1fr !important;
+    }
+    
+    .modal-container {
+      margin: 1rem !important;
+      max-width: calc(100% - 2rem) !important;
+    }
+    
+    .supplier-header {
+      flex-direction: column !important;
+      text-align: center !important;
+    }
+    
+    .supplier-stats {
+      grid-template-columns: 1fr !important;
+    }
+    
+    .action-buttons .btn {
+      min-width: auto !important;
+      width: 100% !important;
+      margin: 0.25rem 0 !important;
+    }
+  }
+  
+}
 
-              </div>
-            </div>
+/* ============================= DARK MODE STYLES END ============================= */
+
+/* =========================================================================
+   LIGHT MODE COMPREHENSIVE STYLING - EJS INLINE
+   Additional light mode styles for missing elements
+   ========================================================================= */
+
+/* Default Theme (Light Mode) Styles */
+:root,
+[data-theme='dark'] {
+  
+  /* ==================== PRICING SECTION - LIGHT MODE ==================== */
+  
+  .pricing-section {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .pricing-section:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+  }
+  
+  .price-container {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .main-price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .price-amount {
+    color: #2563eb;
+    font-weight: 700;
+    font-size: 1.875rem;
+    line-height: 1.2;
+  }
+  
+  .price-currency {
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 1.125rem;
+  }
+  
+  .price-unit {
+    color: #4b5563;
+    font-weight: 400;
+    font-size: 1rem;
+  }
+  
+  /* ==================== BULK PRICING - LIGHT MODE ==================== */
+  
+  .bulk-pricing-section {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-top: 1rem;
+  }
+  
+  .bulk-pricing-title {
+    color: #111827;
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .bulk-pricing-title i {
+    color: #2563eb;
+  }
+  
+  .bulk-pricing-table {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .bulk-tier {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
+  }
+  
+  .bulk-tier:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    transform: translateX(4px);
+  }
+  
+  .tier-quantity {
+    color: #111827;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  
+  /* ==================== STOCK & LEAD TIME - LIGHT MODE ==================== */
+  
+  .stock-quantity {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin: 1rem 0;
+  }
+  
+  .available-quantity {
+    color: #15803d;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  
+  .lead-time {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: #1f2937;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .lead-time i {
+    color: #0891b2;
+    font-size: 1.125rem;
+  }
+  
+  /* ==================== QUANTITY SECTION - LIGHT MODE ==================== */
+  
+  .quantity-section {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .quantity-label {
+    color: #111827;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+  
+  .quantity-controls {
+    display: flex;
+    align-items: center;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 0.25rem;
+    width: fit-content;
+  }
+  
+  .quantity-btn {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    width: 40px;
+    height: 40px;
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  
+  .quantity-btn:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+    transform: scale(1.05);
+  }
+  
+  .quantity-btn:active {
+    transform: scale(0.95);
+  }
+  
+  .quantity-input {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #111827;
+    text-align: center;
+    border-radius: 0.375rem;
+    margin: 0 0.5rem;
+    padding: 0.5rem 0.75rem;
+    min-width: 80px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+  }
+  
+  .quantity-input:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  /* ==================== ACTION BUTTONS - LIGHT MODE ==================== */
+  
+  .action-buttons {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin: 2rem 0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    text-align: center;
+  }
+  
+  .action-buttons .btn {
+    margin: 0.5rem;
+    min-width: 200px;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .action-buttons .inquiry-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border: none;
+    color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .action-buttons .inquiry-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  
+  .action-buttons .chat-btn {
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+    border: none;
+    color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .action-buttons .chat-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  
+  .action-buttons .sample-btn {
+    background: transparent;
+    border: 2px solid #3b82f6;
+    color: #2563eb !important;
+  }
+  
+  .action-buttons .sample-btn:hover {
+    background: #2563eb;
+    color: #ffffff !important;
+    transform: translateY(-3px);
+  }
+  
+  /* ==================== SHIPPING SECTION - LIGHT MODE ==================== */
+  
+  .shipping-section {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .section-title {
+    color: #111827;
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .section-title i {
+    color: #2563eb;
+    font-size: 1.25rem;
+  }
+  
+  .shipping-details {
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+  }
+  
+  /* .shipping-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+  } */
+  
+  .shipping-detail:last-child {
+    border-bottom: none;
+  }
+  
+  
+  .detail-label {
+    color: #4b5563;
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+  
+  .detail-value {
+    color: #111827;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  
+  .shipping-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .detail-item {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+  
+  .detail-item:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+    border-color: #93c5fd;
+  }
+  
+  .detail-item .label {
+    color: #4b5563;
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+  
+  .detail-item .value {
+    color: #111827;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  
+  /* ==================== SUPPLIER SECTION - LIGHT MODE ==================== */
+  
+  .supplier-section {
+    background: #f9fafb;
+    padding: 4rem 0;
+    border-top: 1px solid #e5e7eb;
+  }
+  
+  .section-main-title {
+    color: #111827;
+    text-align: center;
+    margin-bottom: 3rem;
+    font-weight: 700;
+    font-size: 1.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+  
+  .section-main-title i {
+    color: #2563eb;
+    font-size: 1.875rem;
+  }
+  
+  .supplier-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+  }
+  
+  .supplier-card:hover {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transform: translateY(-4px);
+  }
+  
+  .supplier-header {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .supplier-logo {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .supplier-info {
+    flex: 1;
+  }
+  
+  .supplier-name {
+    color: #111827;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+  
+  .supplier-verification {
+    margin-bottom: 0.5rem;
+  }
+  
+  .verification-badge {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid #d1d5db;
+  }
+  
+  .verification-badge.verified {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #bbf7d0;
+  }
+  
+  .supplier-location {
+    color: #4b5563;
+    font-weight: 500;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .supplier-location i {
+    color: #2563eb;
+  }
+  
+  /* ==================== SUPPLIER STATS - LIGHT MODE ==================== */
+  
+  .supplier-stats {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  
+  .stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+  
+  .stat-item:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+    border-color: #93c5fd;
+  }
+  
+  .stat-label {
+    color: #4b5563;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-weight: 500;
+  }
+  
+  .stat-value {
+    color: #111827;
+    font-weight: 700;
+    font-size: 1.25rem;
+  }
+  
+  .rating-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+  
+  .rating-display.small {
+    font-size: 0.875rem;
+  }
+  
+  .rating-score {
+    color: #111827;
+    font-weight: 600;
+    margin-left: 0.5rem;
+  }
+  
+  /* ==================== SUPPLIER ACTIONS - LIGHT MODE ==================== */
+  
+  .supplier-actions {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+  
+  .supplier-actions .btn {
+    margin: 0.5rem;
+    min-width: 180px;
+  }
+  
+  .contact-supplier-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border: none;
+    color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .contact-supplier-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  
+  /* ==================== SUPPLIER DESCRIPTION - LIGHT MODE ==================== */
+  
+  .supplier-description {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+  
+  .supplier-description p {
+    color: #374151;
+    line-height: 1.6;
+    margin: 0;
+    font-size: 1rem;
+  }
+  
+  /* ==================== SUPPLIER CREDENTIALS - LIGHT MODE ==================== */
+  
+  .supplier-credentials {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .credential-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #1f2937;
+    /* transition: all 0.2s ease; */
+  }
+
+  .credential-item i {
+    color: #2563eb;
+    margin-right: 0.75rem;
+    width: 20px;
+    text-align: center;
+    font-size: 1.125rem;
+  }
+  
+  .credential-item span {
+    font-weight: 500;
+    font-size: 1rem;
+  }
+  
+  /* ==================== DETAILED INFO SECTION - LIGHT MODE ==================== */
+  
+  .detailed-info-section {
+    background: #ffffff;
+    padding: 4rem 0;
+    border-top: 1px solid #e5e7eb;
+  }
+  
+  /* ==================== KEY FEATURES - LIGHT MODE ==================== */
+  
+  .key-features {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .key-features h4 {
+    color: #111827;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 1.25rem;
+  }
+  
+  .features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .features-list li {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    color: #1f2937;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  
+  .features-list li:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    transform: translateX(8px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+
+  
+  .features-list li strong {
+    color: #1d4ed8;
+    margin-right: 0.5rem;
+    font-weight: 600;
+  }
+  
+  /* ==================== SPECIFICATIONS DETAILED - LIGHT MODE ==================== */
+  
+  .specifications-detailed {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .specifications-detailed h3 {
+    color: #111827;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 1.25rem;
+  }
+  
+  .specs-table {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  
+  /* ==================== SHIPPING PAYMENT CONTENT - LIGHT MODE ==================== */
+  
+  .shipping-payment-content {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .shipping-payment-content h3 {
+    color: #111827;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 1.25rem;
+  }
+  
+  /* ==================== RESPONSIVE ADJUSTMENTS - LIGHT MODE ==================== */
+  
+  @media (max-width: 768px) {
+    .supplier-header {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+    }
+    
+    .supplier-stats {
+      grid-template-columns: 1fr;
+    }
+    
+    .action-buttons .btn {
+      min-width: auto;
+      width: 100%;
+      margin: 0.25rem 0;
+    }
+    
+    .shipping-details-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .quantity-controls {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+  
+}
+
+/* ============================= LIGHT MODE STYLES END ============================= */
+
+/* =========================================================================
+   NEW SECTIONS COMPREHENSIVE STYLING - BOTH LIGHT & DARK MODES
+   Styles for inventory, shipping, category/tags sections
+   ========================================================================= */
+
+/* Default Theme (Light Mode) Styles */
+:root,
+[data-theme='dark'] {
+  
+  /* ==================== BUSINESS METRICS - LIGHT MODE ==================== */
+  
+  .business-metrics {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .business-metrics h4 {
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .business-metrics h4 i {
+    color: #3b82f6;
+  }
+  
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+  
+  .metric-item {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+  
+  .metric-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .metric-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  
+  .metric-value {
+    color: #1f2937;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  
+  /* ==================== INVENTORY DETAILS - LIGHT MODE ==================== */
+  
+  .inventory-details {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .inventory-details h4 {
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .inventory-details h4 i {
+    color: #059669;
+  }
+  
+  .inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  
+  .inventory-item {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+  }
+  
+  .inventory-item:hover {
+    background: #f0f9ff;
+    border-color: #93c5fd;
+  }
+  
+  .inventory-label {
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+  
+  .inventory-value {
+    color: #059669;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  
+  /* ==================== SHIPPING INFO DETAILED - LIGHT MODE ==================== */
+  
+  .shipping-info-detailed {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .shipping-info-detailed h4 {
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .shipping-info-detailed h4 i {
+    color: #dc2626;
+  }
+  
+  /* ==================== CATEGORY & TAGS - LIGHT MODE ==================== */
+  
+  .product-category-tags {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .product-category-tags h4 {
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .product-category-tags h4 i {
+    color: #7c3aed;
+  }
+  
+  .category-info {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  
+  .category-label {
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+  
+  .category-badge {
+    background: #ddd6fe;
+    color: #5b21b6;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  .tags-section,
+  .keywords-section {
+    margin-bottom: 1rem;
+  }
+  
+  .tags-label,
+  .keywords-label {
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 0.875rem;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  
+  .tags-list,
+  .keywords-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .tag-item,
+  .keyword-item {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: all 0.2s ease;
+  }
+  
+  .tag-item:hover,
+  .keyword-item:hover {
+    background: #e2e8f0;
+    transform: translateY(-1px);
+  }
+  
+  .tag-item i,
+  .keyword-item i {
+    font-size: 0.75rem;
+  }
+  
+}
+
+/* Dark Mode Styles */
+[data-theme='light'] {
+  
+  /* ==================== BUSINESS METRICS - DARK MODE ==================== */
+  
+  .business-metrics {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .business-metrics h4 {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .business-metrics h4 i {
+    color: hsl(var(--main)) !important;
+  }
+  
+  .metric-item {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .metric-item:hover {
+    background: var(--dark-black-five) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .metric-label {
+    color: #9ca3af !important;
+  }
+  
+  .metric-value {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* ==================== INVENTORY DETAILS - DARK MODE ==================== */
+  
+  .inventory-details {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .inventory-details h4 {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .inventory-details h4 i {
+    color: #22c55e !important;
+  }
+  
+  .inventory-item {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .inventory-item:hover {
+    background: var(--dark-black-five) !important;
+    border-color: hsl(var(--main)) !important;
+  }
+  
+  .inventory-label {
+    color: #9ca3af !important;
+  }
+  
+  .inventory-value {
+    color: #22c55e !important;
+  }
+  
+  /* ==================== SHIPPING INFO DETAILED - DARK MODE ==================== */
+  
+  .shipping-info-detailed {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .shipping-info-detailed h4 {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .shipping-info-detailed h4 i {
+    color: #ef4444 !important;
+  }
+  
+  /* ==================== CATEGORY & TAGS - DARK MODE ==================== */
+  
+  .product-category-tags {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .product-category-tags h4 {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .product-category-tags h4 i {
+    color: #a855f7 !important;
+  }
+  
+  .category-label {
+    color: #9ca3af !important;
+  }
+  
+  .category-badge {
+    background: var(--dark-black-five) !important;
+    color: #a855f7 !important;
+  }
+  
+  .tags-label,
+  .keywords-label {
+    color: #9ca3af !important;
+  }
+  
+  .tag-item,
+  .keyword-item {
+    background: var(--dark-black-three) !important;
+    color: hsl(var(--static-white)) !important;
+    border: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .tag-item:hover,
+  .keyword-item:hover {
+    background: var(--dark-black-five) !important;
+    border-color: hsl(var(--main)) !important;
+  }
+  
+}
+
+/* ============================= NEW SECTIONS STYLES END ============================= */
+
+/* =========================================================================
+   COMPANY PROFILE TAB ENHANCED STYLING - BOTH LIGHT & DARK MODES
+   Professional styling for detailed company information
+   ========================================================================= */
+
+/* Default Theme (Light Mode) Styles */
+:root,
+[data-theme='dark'] {
+  
+  /* ==================== COMPANY VERIFICATION SECTION - LIGHT MODE ==================== */
+  
+  .company-verification-section {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .verification-status {
+    margin-bottom: 1rem;
+  }
+  
+  .verification-badge-large {
+    background: #dcfce7;
+    color: #166534;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 1rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 2px solid #bbf7d0;
+  }
+  
+  .verification-badge-large i {
+    font-size: 1.125rem;
+  }
+  
+  .experience-highlight {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .experience-highlight i {
+    color: #3b82f6;
+    font-size: 1.5rem;
+  }
+  
+  .experience-text {
+    color: #1e293b;
+    font-size: 1.125rem;
+  }
+  
+  .experience-text strong {
+    color: #3b82f6;
+    font-size: 1.25rem;
+  }
+  
+  .established-year {
+    color: #64748b;
+    font-size: 0.875rem;
+  }
+  
+  /* ==================== COMPANY DETAILS - LIGHT MODE ==================== */
+  
+  .company-details {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  
+  .detail-row:last-child {
+    border-bottom: none;
+  }
+  
+  .detail-row .label {
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 140px;
+  }
+  
+  .detail-row .label i {
+    color: #3b82f6;
+    width: 16px;
+    text-align: center;
+  }
+  
+  .detail-row .value {
+    color: #1e293b;
+    font-weight: 500;
+    text-align: right;
+    flex: 1;
+  }
+  
+  /* ==================== COMPANY PERFORMANCE - LIGHT MODE ==================== */
+  
+  .company-performance {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .company-performance h4 {
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .company-performance h4 i {
+    color: #16a34a;
+  }
+  
+  .performance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+  
+  .performance-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+  
+  .performance-item:hover {
+    background: #f0f9ff;
+    border-color: #93c5fd;
+    transform: translateY(-2px);
+  }
+  
+  .performance-label {
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  
+  .performance-value {
+    color: #1e293b;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  
+  .performance-item .rating-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  .performance-item .stars-container {
+    display: flex;
+    gap: 0.125rem;
+  }
+  
+  .performance-item .rating-score {
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  
+}
+
+/* Dark Mode Styles */
+[data-theme='light'] {
+  
+  /* ==================== COMPANY VERIFICATION SECTION - DARK MODE ==================== */
+  
+  .company-verification-section {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .verification-badge-large {
+    background: var(--dark-black-five) !important;
+    color: #22c55e !important;
+    border-color: #22c55e !important;
+  }
+  
+  .experience-highlight i {
+    color: hsl(var(--main)) !important;
+  }
+  
+  .experience-text {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .experience-text strong {
+    color: hsl(var(--main)) !important;
+  }
+  
+  .established-year {
+    color: #9ca3af !important;
+  }
+  
+  /* ==================== COMPANY DETAILS - DARK MODE ==================== */
+  
+  .company-details {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .detail-row {
+    border-bottom: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .detail-row .label {
+    color: #9ca3af !important;
+  }
+  
+  .detail-row .label i {
+    color: hsl(var(--main)) !important;
+  }
+  
+  .detail-row .value {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* ==================== COMPANY PERFORMANCE - DARK MODE ==================== */
+  
+  .company-performance {
+    background: var(--dark-black-two) !important;
+    border: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .company-performance h4 {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .company-performance h4 i {
+    color: #22c55e !important;
+  }
+  
+  .performance-item {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+  }
+  
+  .performance-item:hover {
+    background: var(--dark-black-five) !important;
+    border-color: hsl(var(--main)) !important;
+  }
+  
+  .performance-label {
+    color: #9ca3af !important;
+  }
+  
+  .performance-value {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .performance-item .rating-score {
+    color: #9ca3af !important;
+  }
+  
+}
+
+/* ============================= COMPANY PROFILE STYLES END ============================= */
+
+/* =========================================================================
+   PRODUCT ANALYTICS INTEGRATION STYLING - BOTH LIGHT & DARK MODES
+   Clean, integrated analytics display without cards, responsive design
+   ========================================================================= */
+
+/* Default Theme (Light Mode) Styles */
+:root,
+[data-theme='dark'] {
+  
+  /* ==================== ANALYTICS INTEGRATION - LIGHT MODE ==================== */
+  
+  .product-analytics-integration {
+    background: transparent;
+    margin: 1.5rem 0;
+    padding: 0;
+  }
+  
+  /* ==================== KPI LIST (ROW) - LIGHT MODE ==================== */
+  
+  .analytics-kpi-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .analytics-kpi-list .detail-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+  
+  .analytics-kpi-list .detail-item:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+  
+  .analytics-kpi-list .label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #64748b;
+    font-weight: 600;
+  }
+  
+  .analytics-kpi-list .label i {
+    color: #3b82f6;
+    width: 16px;
+    text-align: center;
+  }
+  
+  .analytics-kpi-list .value {
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 1.125rem;
+  }
+  
+  /* legacy grid removed */
+  
+  /* ==================== HORIZONTAL GRID ITEMS - LIGHT MODE ==================== */
+  
+  /* legacy grid item removed */
+  
+  /* legacy grid item removed */
+  
+  /* legacy grid item removed */
+  
+  /* ==================== GRID ITEM ICONS - LIGHT MODE ==================== */
+  
+  .grid-item-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: #ffffff;
+    flex-shrink: 0;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .views-item .grid-item-icon {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+  }
+  
+  .views-item::before {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+  }
+  
+  .orders-item .grid-item-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+  
+  .orders-item::before {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+  
+  .inquiries-item .grid-item-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+  }
+  
+  .inquiries-item::before {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+  }
+  
+  .viewers-item .grid-item-icon {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  }
+  
+  .viewers-item::before {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  }
+  
+  /* ==================== GRID ITEM CONTENT - LIGHT MODE ==================== */
+  
+  .grid-item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .grid-item-value {
+    color: #1e293b;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+  }
+  
+  .grid-item-label {
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+}
+
+/* Dark Mode Styles */
+[data-theme='light'] {
+  
+  /* ==================== ANALYTICS INTEGRATION - DARK MODE ==================== */
+  
+  .product-analytics-integration {
+    background: transparent !important;
+  }
+  
+  /* ==================== KPI LIST (ROW) - DARK MODE ==================== */
+  
+  .analytics-kpi-list .detail-item {
+    background: var(--dark-black-three) !important;
+    border: 1px solid var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .analytics-kpi-list .detail-item:hover {
+    background: var(--dark-black-five) !important;
+    border-color: var(--dark-black-four) !important;
+  }
+  
+  .analytics-kpi-list .label { color: #9ca3af !important; }
+  .analytics-kpi-list .label i { color: hsl(var(--main)) !important; }
+  .analytics-kpi-list .value { color: hsl(var(--static-white)) !important; }
+  
+  /* ==================== HORIZONTAL GRID ITEMS - DARK MODE ==================== */
+  
+  /* legacy grid item removed */
+  
+  /* legacy grid item removed */
+  
+  /* ==================== GRID ITEM CONTENT - DARK MODE ==================== */
+  
+  .grid-item-value {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .grid-item-label {
+    color: #9ca3af !important;
+  }
+  
+  /* ==================== GRID ITEM ICONS - DARK MODE ==================== */
+  
+  .views-item .grid-item-icon {
+    background: linear-gradient(135deg, hsl(var(--main)), #2563eb) !important;
+  }
+  
+  .views-item::before {
+    background: linear-gradient(135deg, hsl(var(--main)), #2563eb) !important;
+  }
+  
+  .orders-item .grid-item-icon {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+  }
+  
+  .orders-item::before {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+  }
+  
+  .inquiries-item .grid-item-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  }
+  
+  .inquiries-item::before {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  }
+  
+  .viewers-item .grid-item-icon {
+    background: linear-gradient(135deg, #a855f7, #7c3aed) !important;
+  }
+  
+  .viewers-item::before {
+    background: linear-gradient(135deg, #a855f7, #7c3aed) !important;
+  }
+  
+}
+
+/* ==================== RESPONSIVE DESIGN - ANALYTICS INTEGRATION ==================== */
+
+@media (max-width: 1024px) {
+  /* legacy grid removed */
+  
+  /* legacy grid item removed */
+  
+  .grid-item-icon {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 1rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .grid-item-value {
+    font-size: 1.25rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* legacy grid removed */
+  
+  /* legacy grid item removed */
+  
+  .grid-item-icon {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 0.875rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .grid-item-value {
+    font-size: 1.125rem !important;
+  }
+  
+  .grid-item-label {
+    font-size: 0.75rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* legacy grid removed */
+  
+  /* legacy grid item removed */
+  
+  .grid-item-icon {
+    margin-bottom: 0 !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .grid-item-content {
+    align-items: flex-start !important;
+  }
+}
+
+/* ============================= ANALYTICS INTEGRATION STYLES END ============================= */
+</style>
+
+<!-- Professional B2B Product Detail Main Container -->
+<main class="professional-product-detail">
+  
+
+
+  <% if (!product) { %>
+    <!-- Professional Error State -->
+    <section class="error-state-container">
+      <div class="container">
+        <div class="error-state-content">
+          <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h2 class="error-title"><%= t('errors.productNotFound') %></h2>
+          <p class="error-description"><%= t('errors.productNotFoundDesc') %></p>
+          <div class="error-actions">
+            <a href="/all-product" class="btn btn-primary btn-lg">
+              <i class="fas fa-arrow-left"></i>
+              <%= t('buttons.backToProducts') %>
+            </a>
+            <a href="/" class="btn btn-outline-primary btn-lg">
+              <i class="fas fa-home"></i>
+              <%= t('buttons.backToHome') %>
+            </a>
           </div>
         </div>
       </div>
-
     </section>
-    <!-- ======================== Breadcrumb Two Section End ===================== -->
+  <% } else { %>
 
-    <!-- ======================= Product Details Section Start ==================== -->
-    <div class="product-details-wrapper mt-32 padding-b-120">
-      <div class="container container-two">
-        <div class="row gy-4">
-          <div class="col-12">
-            <!-- Product Details Content Start -->
-                          <div class="product-details" id="product-details">
-                <div class="row">
-                  <div class="col-lg-6">
-                    <div class="product-details__thumb" id="product-details__thumb">
-                      <!-- product img -->
-                      <% if (product && product.images && product.images.length > 0) { %>
-                        <img id="product-image" src="<%= product.images[0].url || product.images[0] %>" alt="<%= product.title || product.name %>">
-                      <% } else { %>
-                        <img id="product-image" src="/assets/images/thumbs/product-details.png" alt="Product Image">
-                      <% } %>
-                    </div>
+    <!-- Professional Product Detail Content -->
+    <section class="product-detail-main">
+      <div class="container">
+        
+
+
+        <!-- Main Product Information Grid -->
+        <div class="product-main-grid">
+          
+          <!-- Left Column: Image Gallery & Media -->
+          <div class="product-media-section">
+            
+            <!-- Professional Image Gallery -->
+            <div class="image-gallery-container">
+              <div class="main-image-display">
+                <% if (product.images && product.images.length > 0) { %>
+                  <% 
+                    const primaryImage = product.images.find(img => img.isPrimary) || product.images[0];
+                  %>
+                  <img src="<%= primaryImage.url %>" 
+                       alt="<%= product.name %>" 
+                       class="main-product-image" 
+                       id="mainProductImage">
+                <% } else { %>
+                  <div class="image-placeholder">
+                    <i class="fas fa-image"></i>
+                    <span><%= t('product.noImageAvailable') %></span>
                   </div>
-                  
-                  <div class="col-lg-6">
-                    <div class="product-info">
-                      <% if (product) { %>
-                        <h2 class="product-title mb-3"><%= product.title || product.name || 'Product Name' %></h2>
-                        
-                        <% if (company) { %>
-                          <div class="company-info mb-3">
-                            <h5 class="text-primary">
-                              <i class="fas fa-building me-2"></i>
-                              <%= company.companyName || company.name %>
-                            </h5>
-                            <% if (country) { %>
-                              <p class="text-muted">
-                                <i class="fas fa-map-marker-alt me-2"></i>
-                                <%= country.name %>
-                              </p>
-                            <% } %>
-                          </div>
-                        <% } %>
-                        
-                        <% if (product.pricing && product.pricing.basePrice) { %>
-                          <div class="price-info mb-3">
-                            <h4 class="text-success">
-                              $<%= product.pricing.basePrice.toLocaleString() %>
-                              <% if (product.pricing.unit) { %>
-                                <small class="text-muted">/ <%= product.pricing.unit %></small>
-                              <% } %>
-                            </h4>
-                          </div>
-                        <% } %>
-                        
-                        <% if (product.category) { %>
-                          <div class="category-info mb-3">
-                            <span class="badge bg-primary">
-                              <%= product.category.name || product.category %>
+                <% } %>
+                
+                <!-- Image Tools -->
+                <div class="image-tools">
+                  <button class="image-tool-btn zoom-btn" title="<%= t('product.zoomImage') %>">
+                    <i class="fas fa-search-plus"></i>
+                  </button>
+                  <button class="image-tool-btn favorite-btn" title="<%= t('product.addToFavorites') %>">
+                    <i class="far fa-heart"></i>
+                  </button>
+                  <button class="image-tool-btn share-btn" title="<%= t('product.shareProduct') %>">
+                    <i class="fas fa-share-alt"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Thumbnail Gallery -->
+              <% if (product.images && product.images.length > 1) { %>
+                <div class="thumbnail-gallery">
+                  <% product.images.forEach((image, index) => { %>
+                    <div class="thumbnail-item <%= index === 0 ? 'active' : '' %>" 
+                         data-image="<%= image.url %>" 
+                         data-index="<%= index %>">
+                      <img src="<%= image.url %>" alt="<%= product.name %> - Image <%= index + 1 %>">
+                    </div>
+                  <% }); %>
+                </div>
+              <% } %>
+            </div>
+
+            <!-- Product Documents & Certifications -->
+            <% if ((product.documents && product.documents.length > 0) || (product.certifications && product.certifications.length > 0)) { %>
+              <div class="product-documents-section">
+                <h3 class="section-title">
+                  <i class="fas fa-file-alt"></i>
+                  <%= t('product.documentsAndCertifications') %>
+                </h3>
+                
+                <div class="documents-grid">
+                  <!-- Product Documents -->
+                  <% if (product.documents && product.documents.length > 0) { %>
+                    <% product.documents.forEach(doc => { %>
+                      <a href="<%= doc.url %>" target="_blank" class="document-item">
+                        <div class="document-icon">
+                          <% if (doc.type === 'datasheet') { %>
+                            <i class="fas fa-file-alt"></i>
+                          <% } else if (doc.type === 'certificate') { %>
+                            <i class="fas fa-certificate"></i>
+                          <% } else if (doc.type === 'manual') { %>
+                            <i class="fas fa-book"></i>
+                          <% } else if (doc.type === 'brochure') { %>
+                            <i class="fas fa-file-image"></i>
+                          <% } else { %>
+                            <i class="fas fa-file"></i>
+                          <% } %>
+                        </div>
+                        <div class="document-info">
+                          <span class="document-name"><%= doc.name %></span>
+                          <span class="document-type"><%= t('documents.' + doc.type) %></span>
+                        </div>
+                      </a>
+                    <% }); %>
+                  <% } %>
+
+                  <!-- Certifications -->
+                  <% if (product.certifications && product.certifications.length > 0) { %>
+                    <% product.certifications.forEach(cert => { %>
+                      <div class="certification-item">
+                        <div class="certification-icon">
+                          <i class="fas fa-award"></i>
+                        </div>
+                        <div class="certification-info">
+                          <span class="certification-name"><%= cert.name %></span>
+                          <span class="certification-issuer"><%= cert.issuedBy %></span>
+                          <% if (cert.expiryDate) { %>
+                            <span class="certification-validity">
+                              Valid until: <%= new Date(cert.expiryDate).toLocaleDateString() %>
                             </span>
-                          </div>
-                        <% } %>
-                        
-                        <% if (product.analytics && product.analytics.averageRating && product.analytics.averageRating > 0) { %>
-                          <div class="rating-info mb-3">
-                            <div class="d-flex align-items-center">
-                              <div class="stars me-2">
-                                <% for (let i = 1; i <= 5; i++) { %>
-                                  <i class="<%= i <= Math.round(product.analytics.averageRating) ? 'fas' : 'far' %> fa-star text-warning"></i>
-                                <% } %>
-                              </div>
-                              <span class="rating-text">
-                                <%= product.analytics.averageRating.toFixed(1) %> 
-                                (<%= product.analytics.totalReviews || 0 %> izoh)
-                              </span>
-                            </div>
-                          </div>
-                        <% } %>
-                        
-                        <div class="action-buttons">
-                          <button class="btn btn-primary btn-lg me-3">
-                            <i class="fas fa-shopping-cart me-2"></i>
-                            Buyurtma berish
-                          </button>
-                          <button class="btn btn-outline-success btn-lg">
-                            <i class="fas fa-phone me-2"></i>
-                            Bog'lanish
-                          </button>
+                          <% } %>
+                        </div>
+                      </div>
+                    <% }); %>
+                  <% } %>
+                </div>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Right Column: Product Information & Business Details -->
+          <div class="product-info-section">
+            
+            <!-- Product Title & Rating -->
+            <div class="product-header">
+              <h1 class="product-title"><%= product.name %></h1>
+              
+              <!-- Product Rating & Reviews -->
+              <div class="product-rating-section">
+                <div class="rating-display">
+                  <div class="stars-container">
+                    <% 
+                      const rating = product.averageRating || 0;
+                      const fullStars = Math.floor(rating);
+                      const hasHalfStar = (rating % 1) >= 0.5;
+                    %>
+                    <% for (let i = 1; i <= 5; i++) { %>
+                      <% if (i <= fullStars) { %>
+                        <i class="fas fa-star star-filled"></i>
+                      <% } else if (i === fullStars + 1 && hasHalfStar) { %>
+                        <i class="fas fa-star-half-alt star-half"></i>
+                      <% } else { %>
+                        <i class="far fa-star star-empty"></i>
+                      <% } %>
+                    <% } %>
+                  </div>
+                  <span class="rating-score"><%= rating.toFixed(1) %></span>
+                  <span class="rating-count">(<%= product.totalReviews || 0 %> <%= t('product.reviews') %>)</span>
+                </div>
+                
+                
+                
+
+                <!-- Business Performance Metrics -->
+                <% if (product.businessMetrics && (product.businessMetrics.totalRevenue > 0 || product.businessMetrics.totalOrdersCount > 0)) { %>
+                  <div class="business-metrics">
+                    <h4><i class="fas fa-chart-line"></i> Business Performance</h4>
+                    <div class="metrics-grid">
+                      <% if (product.businessMetrics.totalRevenue > 0) { %>
+                        <div class="metric-item">
+                          <span class="metric-label">Total Revenue</span>
+                          <span class="metric-value">$<%= product.businessMetrics.totalRevenue.toLocaleString() %></span>
+                        </div>
+                      <% } %>
+                      <% if (product.businessMetrics.totalOrdersCount > 0) { %>
+                        <div class="metric-item">
+                          <span class="metric-label">Total Orders</span>
+                          <span class="metric-value"><%= product.businessMetrics.totalOrdersCount.toLocaleString() %></span>
+                        </div>
+                      <% } %>
+                      <% if (product.businessMetrics.averageOrderValue > 0) { %>
+                        <div class="metric-item">
+                          <span class="metric-label">Avg Order Value</span>
+                          <span class="metric-value">$<%= product.businessMetrics.averageOrderValue.toFixed(2) %></span>
+                        </div>
+                      <% } %>
+                      <% if (product.businessMetrics.totalQuantitySold > 0) { %>
+                        <div class="metric-item">
+                          <span class="metric-label">Units Sold</span>
+                          <span class="metric-value"><%= product.businessMetrics.totalQuantitySold.toLocaleString() %></span>
                         </div>
                       <% } %>
                     </div>
                   </div>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Product Analytics Integration - KPI List (outside rating) -->
+            <div class="product-analytics-integration">
+              <h4 class="section-title">
+                <i class="fas fa-chart-line"></i>
+                <%= t('product.analytics') || 'Product Analytics' %>
+              </h4>
+              <div class="shipping-details-grid">
+                <!-- Views KPI Row -->
+                <div class="detail-item">
+                  <span class="label">
+                    <i class="fas fa-eye"></i>
+                    <%= t('product.views') || 'Views' %>
+                  </span>
+                  <span class="value"><%= (product.analytics?.views || 0).toLocaleString() %></span>
                 </div>
 
-                <!-- product description -->
-                <div class="row mt-5">
-                  <div class="col-12">
-                    <h4 class="mb-3">Mahsulot haqida</h4>
-                    <p id="product-description" class="product-details__desc">
-                      <% if (product && product.description) { %>
-                        <%= product.description %>
-                      <% } else { %>
-                        Bu mahsulot haqida batafsil ma'lumot hozircha mavjud emas.
-                      <% } %>
-                    </p>
-                    
-                    <% if (product && product.specifications && Object.keys(product.specifications).length > 0) { %>
-                      <div class="specifications mt-4">
-                        <h5 class="mb-3">Texnik xususiyatlari</h5>
-                        <div class="table-responsive">
-                          <table class="table table-striped">
-                            <% for (const [key, value] of Object.entries(product.specifications)) { %>
-                              <tr>
-                                <td class="fw-bold"><%= key %></td>
-                                <td><%= value %></td>
-                              </tr>
-                            <% } %>
-                          </table>
+                <!-- Orders KPI Row -->
+                <div class="detail-item">
+                  <span class="label">
+                    <i class="fas fa-shopping-cart"></i>
+                    <%= t('product.orders') || 'Orders' %>
+                  </span>
+                  <span class="value"><%= (product.analytics?.orders || 0).toLocaleString() %></span>
+                </div>
+
+                <!-- Inquiries KPI Row (if available) -->
+                <% if (product.analytics?.inquiries !== undefined) { %>
+                  <div class="detail-item">
+                    <span class="label">
+                      <i class="fas fa-envelope"></i>
+                      Inquiries
+                    </span>
+                    <span class="value"><%= (product.analytics.inquiries || 0).toLocaleString() %></span>
+                  </div>
+                <% } %>
+
+                <!-- Unique Viewers KPI Row (if available) -->
+                <% if (product.analytics?.uniqueViewers !== undefined) { %>
+                  <div class="detail-item">
+                    <span class="label">
+                      <i class="fas fa-users"></i>
+                      Unique Viewers
+                    </span>
+                    <span class="value"><%= (product.analytics.uniqueViewers || 0).toLocaleString() %></span>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Product Short Description -->
+            <% if (product.shortDescription) { %>
+              <div class="product-short-description">
+                <p><%= product.shortDescription %></p>
+              </div>
+            <% } %>
+
+            <!-- Professional Pricing Section -->
+            <div class="pricing-section">
+              <div class="price-container">
+                <div class="main-price">
+                  <span class="price-amount">$<%= (product.pricing?.basePrice || 0).toFixed(2) %></span>
+                  <span class="price-currency"><%= product.pricing?.currency || 'USD' %></span>
+                  <span class="price-unit">/ <%= product.inventory?.unit || 'piece' %></span>
+                </div>
+                
+                <% if (product.pricing?.priceType === 'negotiable') { %>
+                  <div class="price-negotiable">
+                    <i class="fas fa-handshake"></i>
+                    <%= t('product.priceNegotiable') %>
+                  </div>
+                <% } %>
+              </div>
+
+              <!-- Minimum Order Quantity -->
+              <div class="moq-section">
+                <span class="moq-label"><%= t('product.minimumOrder') %>:</span>
+                <span class="moq-value">
+                  <%= (product.pricing?.minimumOrderQuantity || 1).toLocaleString() %> 
+                  <%= product.inventory?.unit || 'pieces' %>
+                </span>
+              </div>
+
+              <!-- Bulk Pricing Tiers -->
+              <% if (product.pricing?.bulkPricing && product.pricing.bulkPricing.length > 0) { %>
+                <div class="bulk-pricing-section">
+                  <h4 class="bulk-pricing-title">
+                    <i class="fas fa-layer-group"></i>
+                    <%= t('product.bulkPricing') %>
+                  </h4>
+                  <div class="bulk-pricing-table">
+                    <% product.pricing.bulkPricing.forEach(tier => { %>
+                      <div class="bulk-tier">
+                        <div class="tier-quantity">
+                          <%= tier.minQuantity.toLocaleString() %>
+                          <% if (tier.maxQuantity) { %>
+                            - <%= tier.maxQuantity.toLocaleString() %>
+                          <% } else { %>
+                            +
+                          <% } %>
+                          <%= product.inventory?.unit || 'pieces' %>
                         </div>
+                        <div class="tier-price">
+                          $<%= tier.price.toFixed(2) %>
+                          <% if (tier.discount) { %>
+                            <span class="tier-discount">(-<%= tier.discount %>%)</span>
+                          <% } %>
+                        </div>
+                      </div>
+                    <% }); %>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+
+            <!-- Product Specifications -->
+            <% if (product.specifications && product.specifications.length > 0) { %>
+              <div class="specifications-section">
+                <h3 class="section-title">
+                  <i class="fas fa-cogs"></i>
+                  <%= t('product.specifications') %>
+                </h3>
+                <div class="specifications-grid">
+                  <% product.specifications.forEach(spec => { %>
+                    <div class="spec-item">
+                      <span class="spec-name"><%= spec.name %></span>
+                      <span class="spec-value">
+                        <%= spec.value %>
+                        <% if (spec.unit) { %><%= spec.unit %><% } %>
+                      </span>
+                    </div>
+                  <% }); %>
+                </div>
+              </div>
+            <% } %>
+
+            <!-- Stock & Availability -->
+            <div class="availability-section">
+              <div class="stock-info">
+                <div class="stock-level">
+                  <span class="stock-label"><%= t('product.availability') %>:</span>
+                  <% 
+                    const availableStock = product.inventory?.availableStock || 0;
+                    const lowStockThreshold = product.inventory?.lowStockThreshold || 10;
+                    let stockStatus = 'in-stock';
+                    let stockText = t('product.inStock');
+                    
+                    if (availableStock === 0) {
+                      stockStatus = 'out-of-stock';
+                      stockText = t('product.outOfStock');
+                    } else if (availableStock <= lowStockThreshold) {
+                      stockStatus = 'low-stock';
+                      stockText = t('product.lowStock');
+                    }
+                  %>
+                  <span class="stock-status <%= stockStatus %>">
+                    <i class="fas fa-circle"></i>
+                    <%= stockText %>
+                  </span>
+                </div>
+                
+                <% if (availableStock > 0) { %>
+                  <div class="stock-quantity">
+                    <span class="available-quantity">
+                      <%= availableStock.toLocaleString() %> <%= product.inventory?.unit || 'pieces' %> 
+                      <%= t('product.available') %>
+                    </span>
+                  </div>
+                <% } %>
+              </div>
+
+              <!-- Lead Time -->
+              <% if (product.shipping?.leadTime) { %>
+                <div class="lead-time">
+                  <i class="fas fa-clock"></i>
+                  <span><%= t('product.leadTime') %>: 
+                    <%= product.shipping.leadTime.min %>
+                    <% if (product.shipping.leadTime.max && product.shipping.leadTime.max !== product.shipping.leadTime.min) { %>
+                      - <%= product.shipping.leadTime.max %>
+                    <% } %>
+                    <%= t('product.days') %>
+                  </span>
+                </div>
+              <% } %>
+              
+              <!-- Detailed Inventory Information -->
+              <% if (product.inventory) { %>
+                <div class="inventory-details">
+                  <h4><i class="fas fa-warehouse"></i> Inventory Details</h4>
+                  <div class="inventory-grid">
+                    <% if (product.inventory.totalStock !== undefined) { %>
+                      <div class="inventory-item">
+                        <span class="inventory-label">Total Stock</span>
+                        <span class="inventory-value"><%= product.inventory.totalStock.toLocaleString() %> <%= product.inventory.unit || 'units' %></span>
+                      </div>
+                    <% } %>
+                    <% if (product.inventory.availableStock !== undefined) { %>
+                      <div class="inventory-item">
+                        <span class="inventory-label">Available Now</span>
+                        <span class="inventory-value"><%= product.inventory.availableStock.toLocaleString() %> <%= product.inventory.unit || 'units' %></span>
+                      </div>
+                    <% } %>
+                    <% if (product.inventory.reservedStock !== undefined && product.inventory.reservedStock > 0) { %>
+                      <div class="inventory-item">
+                        <span class="inventory-label">Reserved</span>
+                        <span class="inventory-value"><%= product.inventory.reservedStock.toLocaleString() %> <%= product.inventory.unit || 'units' %></span>
+                      </div>
+                    <% } %>
+                    <% if (product.inventory.lowStockThreshold !== undefined) { %>
+                      <div class="inventory-item">
+                        <span class="inventory-label">Low Stock Alert</span>
+                        <span class="inventory-value">< <%= product.inventory.lowStockThreshold.toLocaleString() %> <%= product.inventory.unit || 'units' %></span>
                       </div>
                     <% } %>
                   </div>
                 </div>
-              </div>
-            <!-- Product Details Content End -->
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- ======================= Product Details Section End ==================== -->
-
-    <!-- ======================= Comments Section Start ==================== -->
-    <div class="comments-wrapper mt-32 padding-b-60">
-      <div class="container container-two">
-        <div class="row">
-          <div class="col-12">
-            
-            <!-- Comments Header -->
-            <div class="comments-header mb-4">
-              <div class="d-flex justify-content-between align-items-center">
-                <h3 class="comments-title">
-                  <i class="fas fa-comments me-2"></i>
-                  Izohlar va Baholar
-                  <span class="comments-count badge bg-primary ms-2" id="comments-count">0</span>
-                </h3>
-                <div class="rating-summary" id="rating-summary">
-                  <div class="rating-stars">
-                    <span class="rating-average">0.0</span>
-                    <div class="stars ms-2">
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                    </div>
+              <% } %>
+              
+              <!-- Comprehensive Shipping Information -->
+              <% if (product.shipping) { %>
+                <div class="shipping-info-detailed">
+                  <h4><i class="fas fa-shipping-fast"></i> Shipping Information</h4>
+                  <div class="shipping-details-grid">
+                    <% if (product.shipping.weight !== undefined) { %>
+                      <div class="detail-item">
+                        <span class="label">Weight</span>
+                        <span class="value"><%= product.shipping.weight %> kg</span>
+                      </div>
+                    <% } %>
+                    <% if (product.shipping.dimensions) { %>
+                      <div class="detail-item">
+                        <span class="label">Dimensions</span>
+                        <span class="value">
+                          <%= product.shipping.dimensions.length %> × 
+                          <%= product.shipping.dimensions.width %> × 
+                          <%= product.shipping.dimensions.height %> 
+                          <%= product.shipping.dimensions.unit || 'cm' %>
+                        </span>
+                      </div>
+                    <% } %>
+                    <% if (product.shipping.packagingType) { %>
+                      <div class="detail-item">
+                        <span class="label">Packaging</span>
+                        <span class="value"><%= product.shipping.packagingType %></span>
+                      </div>
+                    <% } %>
+                    <% if (product.shipping.shippingClass) { %>
+                      <div class="detail-item">
+                        <span class="label">Shipping Class</span>
+                        <span class="value"><%= product.shipping.shippingClass.charAt(0).toUpperCase() + product.shipping.shippingClass.slice(1) %></span>
+                      </div>
+                    <% } %>
                   </div>
                 </div>
+              <% } %>
+              
+              <!-- Product Category & Tags -->
+              <% if (product.category || (product.tags && product.tags.length > 0) || (product.seo && product.seo.keywords && product.seo.keywords.length > 0)) { %>
+                <div class="product-category-tags">
+                  <h4><i class="fas fa-tags"></i> Category & Tags</h4>
+                  
+                  <% if (product.category) { %>
+                    <div class="category-info">
+                      <span class="category-label">Category:</span>
+                      <span class="category-badge">
+                        <i class="fas fa-folder"></i>
+                        <%= product.category.name || product.category %>
+                      </span>
+                    </div>
+                  <% } %>
+                  
+                  <% if (product.tags && product.tags.length > 0) { %>
+                    <div class="tags-section">
+                      <span class="tags-label">Tags:</span>
+                      <div class="tags-list">
+                        <% product.tags.forEach(tag => { %>
+                          <span class="tag-item">
+                            <i class="fas fa-tag"></i>
+                            <%= tag %>
+                          </span>
+                        <% }); %>
+                      </div>
+                    </div>
+                  <% } %>
+                  
+                  <% if (product.seo && product.seo.keywords && product.seo.keywords.length > 0) { %>
+                    <div class="keywords-section">
+                      <span class="keywords-label">Keywords:</span>
+                      <div class="keywords-list">
+                        <% product.seo.keywords.forEach(keyword => { %>
+                          <span class="keyword-item">
+                            <i class="fas fa-search"></i>
+                            <%= keyword %>
+                          </span>
+                        <% }); %>
+                      </div>
+                    </div>
+                  <% } %>
+                </div>
+              <% } %>
+            </div>
+
+            <!-- Professional CTA Section -->
+            <div class="cta-section">
+              <!-- Quantity Input -->
+              <div class="quantity-section">
+                <label class="quantity-label"><%= t('product.quantity') %>:</label>
+                <div class="quantity-controls">
+                  <button class="quantity-btn decrease" type="button">
+                    <i class="fas fa-minus"></i>
+                  </button>
+                  <input type="number" 
+                         class="quantity-input" 
+                         value="<%= product.pricing?.minimumOrderQuantity || 1 %>" 
+                         min="<%= product.pricing?.minimumOrderQuantity || 1 %>"
+                         <% if (product.pricing?.maximumOrderQuantity) { %>
+                           max="<%= product.pricing.maximumOrderQuantity %>"
+                         <% } %>
+                         id="productQuantity">
+                  <button class="quantity-btn increase" type="button">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="action-buttons">
+                <button class="btn btn-primary btn-lg inquiry-btn" data-product-id="<%= product._id %>">
+                  <i class="fas fa-envelope"></i>
+                  <%= t('product.sendInquiry') %>
+                </button>
+                
+                <button class="btn btn-secondary btn-lg chat-btn" data-manufacturer-id="<%= product.manufacturer?._id %>">
+                  <i class="fas fa-comments"></i>
+                  <%= t('product.chatNow') %>
+                </button>
+                
+                <button class="btn btn-outline-primary sample-btn" data-product-id="<%= product._id %>">
+                  <i class="fas fa-vial"></i>
+                  <%= t('product.requestSample') %>
+                </button>
+              </div>
+
+              <!-- Additional Options -->
+              <div class="additional-options">
+                <button class="option-btn favorite-toggle" data-product-id="<%= product._id %>">
+                  <i class="far fa-heart"></i>
+                  <%= t('product.addToFavorites') %>
+                </button>
+                
+                <button class="option-btn compare-toggle" data-product-id="<%= product._id %>">
+                  <i class="fas fa-balance-scale"></i>
+                  <%= t('product.addToCompare') %>
+                </button>
+                
+                <button class="option-btn share-product" data-product-id="<%= product._id %>">
+                  <i class="fas fa-share-alt"></i>
+                  <%= t('product.shareProduct') %>
+                </button>
               </div>
             </div>
 
-            <!-- Comment Form -->
-            <div class="comment-form-wrapper mb-5" id="comment-form-wrapper">
-              <!-- Login prompt for unauthenticated users -->
-              <div class="login-prompt d-none" id="login-prompt">
-                <div class="alert alert-info">
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-info-circle me-3"></i>
-                    <div>
-                      <h6 class="mb-1">Izoh qoldirish uchun tizimga kiring</h6>
-                      <p class="mb-2">Mahsulot haqida fikr bildirish va baho berish uchun hisob yaratishingiz yoki kirishingiz kerak.</p>
-                      <a href="/auth/login" class="btn btn-primary btn-sm me-2">
-                        <i class="fas fa-sign-in-alt me-1"></i>
-                        Kirish
-                      </a>
-                      <a href="/auth/register" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-user-plus me-1"></i>
-                        Ro'yxatdan o'tish
-                      </a>
+            <!-- Professional Shipping Information -->
+            <% if (product.shipping) { %>
+              <div class="shipping-section">
+                <h4 class="section-title">
+                  <i class="fas fa-shipping-fast"></i>
+                  <%= t('product.shippingInfo') %>
+                </h4>
+                
+                <div class="shipping-details">
+                  <% if (product.shipping.weight) { %>
+                    <div class="shipping-detail">
+                      <span class="detail-label"><%= t('product.weight') %>:</span>
+                      <span class="detail-value"><%= product.shipping.weight %> kg</span>
+                    </div>
+                  <% } %>
+                  
+                  <% if (product.shipping.dimensions) { %>
+                    <div class="shipping-detail">
+                      <span class="detail-label"><%= t('product.dimensions') %>:</span>
+                      <span class="detail-value">
+                        <%= product.shipping.dimensions.length %> × 
+                        <%= product.shipping.dimensions.width %> × 
+                        <%= product.shipping.dimensions.height %> 
+                        <%= product.shipping.dimensions.unit || 'cm' %>
+                      </span>
+                    </div>
+                  <% } %>
+                  
+                  <% if (product.shipping.packagingType) { %>
+                    <div class="shipping-detail">
+                      <span class="detail-label"><%= t('product.packaging') %>:</span>
+                      <span class="detail-value"><%= product.shipping.packagingType %></span>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Professional Supplier Information Section -->
+    <% if (product.manufacturer) { %>
+      <section class="supplier-section">
+        <div class="container">
+          <h2 class="section-main-title">
+            <i class="fas fa-industry"></i>
+            <%= t('product.supplierInfo') %>
+          </h2>
+          
+          <div class="supplier-card">
+            <div class="supplier-header">
+              <div class="supplier-logo">
+                <% if (product.manufacturer.companyLogo && product.manufacturer.companyLogo.url) { %>
+                  <img src="<%= product.manufacturer.companyLogo.url %>" alt="<%= product.manufacturer.companyName %>" onerror="this.parentElement.innerHTML='<div class=&quot;logo-placeholder&quot;><i class=&quot;fas fa-building&quot;></i></div>'">
+                <% } else { %>
+                  <div class="logo-placeholder">
+                    <i class="fas fa-building"></i>
+                  </div>
+                <% } %>
+              </div>
+              
+              <div class="supplier-info">
+                <h3 class="supplier-name"><%= product.manufacturer.companyName %></h3>
+                
+                <div class="supplier-verification">
+                  <% if (product.manufacturer.isVerified || supplierVerification.level) { %>
+                    <span class="verification-badge verified">
+                      <i class="fas fa-check-circle"></i>
+                      <%= supplierVerification.level ? supplierVerification.level.charAt(0).toUpperCase() + supplierVerification.level.slice(1) : 'Verified' %> Supplier
+                    </span>
+                  <% } %>
+                  
+                  <span class="supplier-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <%= product.manufacturer.country %>
+                    <% if (product.manufacturer.address) { %>
+                      · <%= product.manufacturer.address %>
+                    <% } %>
+                  </span>
+                </div>
+                
+                <!-- Supplier Rating & Stats -->
+                <div class="supplier-stats">
+                  <div class="stat-item">
+                    <span class="stat-label"><%= t('supplier.rating') %>:</span>
+                    <div class="rating-display small">
+                      <% 
+                        const supplierRating = product.manufacturer.averageRating || 0;
+                        const supplierFullStars = Math.floor(supplierRating);
+                        const supplierHasHalfStar = (supplierRating % 1) >= 0.5;
+                      %>
+                      <div class="stars-container">
+                        <% for (let i = 1; i <= 5; i++) { %>
+                          <% if (i <= supplierFullStars) { %>
+                            <i class="fas fa-star star-filled"></i>
+                          <% } else if (i === supplierFullStars + 1 && supplierHasHalfStar) { %>
+                            <i class="fas fa-star-half-alt star-half"></i>
+                          <% } else { %>
+                            <i class="far fa-star star-empty"></i>
+                          <% } %>
+                        <% } %>
+                      </div>
+                      <span class="rating-score"><%= supplierRating.toFixed(1) %></span>
                     </div>
                   </div>
+                  
+                  <div class="stat-item">
+                    <span class="stat-label"><%= t('supplier.totalProducts') %>:</span>
+                    <span class="stat-value"><%= (product.manufacturer.totalProducts || 0).toLocaleString() %></span>
+                  </div>
+                  
+                  <div class="stat-item">
+                    <span class="stat-label"><%= t('supplier.totalOrders') %>:</span>
+                    <span class="stat-value"><%= (product.manufacturer.totalOrders || 0).toLocaleString() %></span>
+                  </div>
+                  
+                  <% if (product.manufacturer.establishedYear) { %>
+                    <div class="stat-item">
+                      <span class="stat-label"><%= t('supplier.established') %>:</span>
+                      <span class="stat-value"><%= product.manufacturer.establishedYear %></span>
+                    </div>
+                  <% } %>
                 </div>
               </div>
               
-              <div class="card" id="comment-form-card">
-                <div class="card-header">
-                  <h5 class="mb-0">
-                    <i class="fas fa-edit me-2"></i>
-                    Izoh qo'shish
-                  </h5>
+              <!-- Supplier Actions -->
+              <div class="supplier-actions">
+                <button class="btn btn-primary contact-supplier-btn" data-supplier-id="<%= product.manufacturer._id %>">
+                  <i class="fas fa-envelope"></i>
+                  <%= t('supplier.contactSupplier') %>
+                </button>
+                
+                <a href="/supplier/<%= product.manufacturer._id %>" class="btn btn-outline-primary">
+                  <i class="fas fa-eye"></i>
+                  <%= t('supplier.viewProfile') %>
+                </a>
+              </div>
+            </div>
+            
+            <!-- Supplier Description -->
+            <% if (product.manufacturer.description) { %>
+              <div class="supplier-description">
+                <p><%= product.manufacturer.description %></p>
+              </div>
+            <% } %>
+            
+            <!-- Business License & Certifications -->
+            <div class="supplier-credentials">
+              <% if (product.manufacturer.businessLicense) { %>
+                <div class="credential-item">
+                  <i class="fas fa-certificate"></i>
+                  <span><%= t('supplier.businessLicense') %>: <%= product.manufacturer.businessLicense %></span>
                 </div>
-                <div class="card-body">
-                  <form id="comment-form">
-                    <div class="row">
-                      <div class="col-md-6 mb-3">
-                        <label for="comment-rating" class="form-label">Baho berish</label>
-                        <div class="rating-input" id="rating-input">
-                          <input type="radio" name="rating" value="5" id="star5">
-                          <label for="star5" title="5 yulduz"><i class="fas fa-star"></i></label>
-                          <input type="radio" name="rating" value="4" id="star4">
-                          <label for="star4" title="4 yulduz"><i class="fas fa-star"></i></label>
-                          <input type="radio" name="rating" value="3" id="star3">
-                          <label for="star3" title="3 yulduz"><i class="fas fa-star"></i></label>
-                          <input type="radio" name="rating" value="2" id="star2">
-                          <label for="star2" title="2 yulduz"><i class="fas fa-star"></i></label>
-                          <input type="radio" name="rating" value="1" id="star1">
-                          <label for="star1" title="1 yulduz"><i class="fas fa-star"></i></label>
+              <% } %>
+              
+              <% if (product.manufacturer.employeeCount) { %>
+                <div class="credential-item">
+                  <i class="fas fa-users"></i>
+                  <span><%= t('supplier.employees') %>: <%= product.manufacturer.employeeCount %></span>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </section>
+    <% } %>
+
+    <!-- Professional Detailed Information Tabs -->
+    <section class="detailed-info-section">
+      <div class="container">
+        <div class="detail-tabs-container">
+          
+          <!-- Tab Navigation -->
+          <nav class="detail-tabs-nav">
+            <button class="tab-btn active" data-tab="description">
+              <i class="fas fa-align-left"></i>
+              <%= t('product.description') %>
+            </button>
+            
+            <% if (product.specifications && product.specifications.length > 0) { %>
+              <button class="tab-btn" data-tab="specifications">
+                <i class="fas fa-cogs"></i>
+                <%= t('product.specifications') %>
+              </button>
+            <% } %>
+            
+            <button class="tab-btn" data-tab="shipping">
+              <i class="fas fa-shipping-fast"></i>
+              <%= t('product.shippingPayment') %>
+            </button>
+            
+            <button class="tab-btn" data-tab="reviews">
+              <i class="fas fa-star"></i>
+              <%= t('product.reviews') %> (<%= product.totalReviews || 0 %>)
+            </button>
+            
+            <% if (product.manufacturer) { %>
+              <button class="tab-btn" data-tab="company">
+                <i class="fas fa-building"></i>
+                <%= t('product.companyProfile') %>
+              </button>
+            <% } %>
+          </nav>
+
+          <!-- Tab Content -->
+          <div class="detail-tabs-content">
+            
+            <!-- Product Description Tab -->
+            <div class="tab-content active" id="description-tab">
+              <div class="description-content">
+                <h3><%= t('product.detailedDescription') %></h3>
+                <div class="product-description">
+                  <%= product.description %>
+                </div>
+                
+                <!-- Key Features -->
+                <% if (product.specifications && product.specifications.length > 0) { %>
+                  <div class="key-features">
+                    <h4><%= t('product.keyFeatures') %></h4>
+                    <ul class="features-list">
+                      <% product.specifications.slice(0, 5).forEach(spec => { %>
+                        <li>
+                          <strong><%= spec.name %>:</strong> 
+                          <%= spec.value %>
+                          <% if (spec.unit) { %><%= spec.unit %><% } %>
+                        </li>
+                      <% }); %>
+                    </ul>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Specifications Tab -->
+            <% if (product.specifications && product.specifications.length > 0) { %>
+              <div class="tab-content" id="specifications-tab">
+                <div class="specifications-detailed">
+                  <h3><%= t('product.technicalSpecifications') %></h3>
+                  <div class="specs-table">
+                    <% product.specifications.forEach(spec => { %>
+                      <div class="spec-row">
+                        <div class="spec-label"><%= spec.name %></div>
+                        <div class="spec-value">
+                          <%= spec.value %>
+                          <% if (spec.unit) { %><span class="spec-unit"><%= spec.unit %></span><% } %>
                         </div>
                       </div>
-                      <div class="col-md-6 mb-3">
-                        <label for="comment-type" class="form-label">Izoh turi</label>
-                        <select class="form-select" id="comment-type" name="type">
-                          <option value="review">Sharh</option>
-                          <option value="question">Savol</option>
-                          <option value="feedback">Fikr-mulohaza</option>
-                        </select>
+                    <% }); %>
+                  </div>
+                </div>
+              </div>
+            <% } %>
+
+            <!-- Shipping & Payment Tab -->
+            <div class="tab-content" id="shipping-tab">
+              <div class="shipping-payment-content">
+                
+                <!-- Shipping Information -->
+                <div class="shipping-info-detailed">
+                  <h3>
+                    <i class="fas fa-truck"></i>
+                    <%= t('product.shippingInformation') %>
+                  </h3>
+                  
+                  <div class="shipping-details-grid">
+                    <% if (product.shipping?.weight) { %>
+                      <div class="detail-item">
+                        <span class="label"><%= t('product.weight') %>:</span>
+                        <span class="value"><%= product.shipping.weight %> kg</span>
                       </div>
-                    </div>
-                    <div class="mb-3">
-                      <label for="comment-content" class="form-label">Izoh matni</label>
-                      <textarea 
-                        class="form-control" 
-                        id="comment-content" 
-                        name="content" 
-                        rows="4" 
-                        placeholder="Bu mahsulot haqida fikringizni yozing..."
-                        maxlength="1000"
-                        required
-                      ></textarea>
-                      <div class="form-text">
-                        <small class="text-muted">
-                          <span id="char-count">0</span>/1000 belgi
-                        </small>
+                    <% } %>
+                    
+                    <% if (product.shipping?.dimensions) { %>
+                      <div class="detail-item">
+                        <span class="label"><%= t('product.dimensions') %>:</span>
+                        <span class="value">
+                          <%= product.shipping.dimensions.length %> × 
+                          <%= product.shipping.dimensions.width %> × 
+                          <%= product.shipping.dimensions.height %> 
+                          <%= product.shipping.dimensions.unit || 'cm' %>
+                        </span>
                       </div>
+                    <% } %>
+                    
+                    <% if (product.shipping?.leadTime) { %>
+                      <div class="detail-item">
+                        <span class="label"><%= t('product.leadTime') %>:</span>
+                        <span class="value">
+                          <%= product.shipping.leadTime.min %>
+                          <% if (product.shipping.leadTime.max && product.shipping.leadTime.max !== product.shipping.leadTime.min) { %>
+                            - <%= product.shipping.leadTime.max %>
+                          <% } %>
+                          <%= t('product.days') %>
+                        </span>
+                      </div>
+                    <% } %>
+                    
+                    <% if (product.shipping?.packagingType) { %>
+                      <div class="detail-item">
+                        <span class="label"><%= t('product.packaging') %>:</span>
+                        <span class="value"><%= product.shipping.packagingType %></span>
+                      </div>
+                    <% } %>
+                  </div>
+                </div>
+
+                <!-- Payment Options -->
+                <div class="payment-info">
+                  <h3>
+                    <i class="fas fa-credit-card"></i>
+                    <%= t('product.paymentOptions') %>
+                  </h3>
+                  <div class="payment-methods">
+                    <div class="payment-method">
+                      <i class="fas fa-university"></i>
+                      <span><%= t('payment.bankTransfer') %></span>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                      <small class="text-muted">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Izohingiz moderatsiyadan o'tgach ko'rsatiladi
-                      </small>
-                      <button type="submit" class="btn btn-primary" id="submit-comment">
-                        <i class="fas fa-paper-plane me-2"></i>
-                        Izoh yuborish
-                      </button>
+                    <div class="payment-method">
+                      <i class="fas fa-credit-card"></i>
+                      <span><%= t('payment.creditCard') %></span>
                     </div>
-                  </form>
+                    <div class="payment-method">
+                      <i class="fas fa-handshake"></i>
+                      <span><%= t('payment.tradeAssurance') %></span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- Comments List -->
-            <div class="comments-list" id="comments-list">
-              <div class="text-center py-5" id="loading-comments">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Yuklanmoqda...</span>
+            <!-- Reviews Tab -->
+            <div class="tab-content" id="reviews-tab">
+              <div class="reviews-section-detailed">
+                <div class="reviews-header">
+                  <h3><%= t('product.customerReviews') %></h3>
+                  <button class="btn btn-primary write-review-btn" data-product-id="<%= product._id %>">
+                    <i class="fas fa-edit"></i>
+                    <%= t('product.writeReview') %>
+                  </button>
                 </div>
-                <p class="mt-2 text-muted">Izohlar yuklanmoqda...</p>
-              </div>
-              
-              <div class="text-center py-5 d-none" id="no-comments">
-                <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">Hozircha izohlar yo'q</h5>
-                <p class="text-muted">Birinchi bo'lib izoh qoldiring!</p>
+                
+                <!-- Reviews Summary -->
+                <div class="reviews-summary">
+                  <div class="overall-rating">
+                    <div class="rating-large">
+                      <span class="rating-number"><%= (product.averageRating || 0).toFixed(1) %></span>
+                      <div class="stars-large">
+                        <% for (let i = 1; i <= 5; i++) { %>
+                          <i class="fas fa-star <%= i <= Math.floor(product.averageRating || 0) ? 'filled' : '' %>"></i>
+                        <% } %>
+                      </div>
+                      <span class="total-reviews"><%= product.totalReviews || 0 %> <%= t('product.reviews') %></span>
+                    </div>
+                  </div>
+                  
+                  <!-- Rating Breakdown -->
+                  <div class="rating-breakdown">
+                    <% for (let stars = 5; stars >= 1; stars--) { %>
+                      <div class="rating-bar">
+                        <span class="stars-label"><%= stars %> <i class="fas fa-star"></i></span>
+                        <div class="progress-bar">
+                          <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="count">0</span>
+                      </div>
+                    <% } %>
+                  </div>
+                </div>
+                
+                <!-- Reviews List -->
+                <div class="reviews-list">
+                  <div class="no-reviews">
+                    <i class="fas fa-star"></i>
+                    <p><%= t('product.noReviewsYet') %></p>
+                    <p><%= t('product.beFirstToReview') %></p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <!-- Load More Button -->
-            <div class="text-center mt-4 d-none" id="load-more-wrapper">
-              <button class="btn btn-outline-primary" id="load-more-btn">
-                <i class="fas fa-chevron-down me-2"></i>
-                Ko'proq yuklash
-              </button>
-            </div>
-
+            <!-- Company Profile Tab -->
+            <% if (product.manufacturer) { %>
+              <div class="tab-content" id="company-tab">
+                <div class="company-profile-detailed">
+                  <div class="company-header">
+                    <div class="company-logo-large">
+                      <% if (product.manufacturer.companyLogo && product.manufacturer.companyLogo.url) { %>
+                        <img src="<%= product.manufacturer.companyLogo.url %>" alt="<%= product.manufacturer.companyName %>" onerror="this.parentElement.innerHTML='<div class=&quot;logo-placeholder-large&quot;><i class=&quot;fas fa-building&quot;></i></div>'">
+                      <% } else { %>
+                        <div class="logo-placeholder-large">
+                          <i class="fas fa-building"></i>
+                        </div>
+                      <% } %>
+                    </div>
+                    
+                    <div class="company-info-detailed">
+                      <h3><%= product.manufacturer.companyName %></h3>
+                      
+                      <!-- Company Verification & Experience -->
+                      <div class="company-verification-section">
+                        <% if (product.manufacturer.isVerified || supplierVerification.level) { %>
+                          <div class="verification-status">
+                            <span class="verification-badge-large verified">
+                              <i class="fas fa-shield-check"></i>
+                              <%= supplierVerification.level ? supplierVerification.level.charAt(0).toUpperCase() + supplierVerification.level.slice(1) : 'Verified' %> Supplier
+                            </span>
+                          </div>
+                        <% } %>
+                        
+                        <% if (product.manufacturer.establishedYear) { %>
+                          <div class="experience-highlight">
+                            <i class="fas fa-history"></i>
+                            <span class="experience-text">
+                              <strong><%= new Date().getFullYear() - product.manufacturer.establishedYear %> Years</strong> of Experience
+                            </span>
+                            <span class="established-year">Established in <%= product.manufacturer.establishedYear %></span>
+                          </div>
+                        <% } %>
+                      </div>
+                      
+                      <!-- Comprehensive Company Details -->
+                      <div class="company-details">
+                        <% if (product.manufacturer.country) { %>
+                          <div class="detail-row">
+                            <span class="label">
+                              <i class="fas fa-map-marker-alt"></i>
+                              <%= t('company.location') %>:
+                            </span>
+                            <span class="value">
+                              <%= product.manufacturer.country %>
+                              <% if (product.manufacturer.address) { %>
+                                · <%= product.manufacturer.address %>
+                              <% } %>
+                            </span>
+                          </div>
+                        <% } %>
+                        
+                        <% if (product.manufacturer.businessLicense) { %>
+                          <div class="detail-row">
+                            <span class="label">
+                              <i class="fas fa-certificate"></i>
+                              Business License:
+                            </span>
+                            <span class="value"><%= product.manufacturer.businessLicense %></span>
+                          </div>
+                        <% } %>
+                        
+                        <% if (product.manufacturer.employeeCount) { %>
+                          <div class="detail-row">
+                            <span class="label">
+                              <i class="fas fa-users"></i>
+                              <%= t('company.employees') %>:
+                            </span>
+                            <span class="value"><%= product.manufacturer.employeeCount %> employees</span>
+                          </div>
+                        <% } %>
+                        
+                        <% if (product.manufacturer.activityType) { %>
+                          <div class="detail-row">
+                            <span class="label">
+                              <i class="fas fa-industry"></i>
+                              Industry:
+                            </span>
+                            <span class="value"><%= product.manufacturer.activityType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) %></span>
+                          </div>
+                        <% } %>
+                      </div>
+                      
+                      <!-- Business Performance Stats -->
+                      <div class="company-performance">
+                        <h4><i class="fas fa-chart-line"></i> Business Performance</h4>
+                        <div class="performance-grid">
+                          <div class="performance-item">
+                            <span class="performance-label">Total Products</span>
+                            <span class="performance-value"><%= (product.manufacturer.totalProducts || 0).toLocaleString() %></span>
+                          </div>
+                          <div class="performance-item">
+                            <span class="performance-label">Total Orders</span>
+                            <span class="performance-value"><%= (product.manufacturer.totalOrders || 0).toLocaleString() %></span>
+                          </div>
+                          <% if (product.manufacturer.stats && product.manufacturer.stats.totalViews) { %>
+                            <div class="performance-item">
+                              <span class="performance-label">Profile Views</span>
+                              <span class="performance-value"><%= product.manufacturer.stats.totalViews.toLocaleString() %></span>
+                            </div>
+                          <% } %>
+                          <div class="performance-item">
+                            <span class="performance-label">Average Rating</span>
+                            <div class="rating-display">
+                              <% 
+                                const manufacturerRating = product.manufacturer.averageRating || 0;
+                                const manufacturerFullStars = Math.floor(manufacturerRating);
+                                const manufacturerHasHalfStar = (manufacturerRating % 1) >= 0.5;
+                              %>
+                              <div class="stars-container">
+                                <% for (let i = 1; i <= 5; i++) { %>
+                                  <% if (i <= manufacturerFullStars) { %>
+                                    <i class="fas fa-star star-filled"></i>
+                                  <% } else if (i === manufacturerFullStars + 1 && manufacturerHasHalfStar) { %>
+                                    <i class="fas fa-star-half-alt star-half"></i>
+                                  <% } else { %>
+                                    <i class="far fa-star star-empty"></i>
+                                  <% } %>
+                                <% } %>
+                              </div>
+                              <span class="rating-score">(<%= manufacturerRating.toFixed(1) %>)</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <% if (product.manufacturer.description) { %>
+                    <div class="company-description">
+                      <h4><%= t('company.aboutCompany') %></h4>
+                      <p><%= product.manufacturer.description %></p>
+                    </div>
+                  <% } %>
+                  
+                  <!-- Contact Information -->
+                  <div class="company-contact">
+                    <h4><%= t('company.contactInformation') %></h4>
+                    <div class="contact-details">
+                      <% if (product.manufacturer.email) { %>
+                        <div class="contact-item">
+                          <i class="fas fa-envelope"></i>
+                          <a href="mailto:<%= product.manufacturer.email %>"><%= product.manufacturer.email %></a>
+                        </div>
+                      <% } %>
+                      
+                      <% if (product.manufacturer.phone) { %>
+                        <div class="contact-item">
+                          <i class="fas fa-phone"></i>
+                          <a href="tel:<%= product.manufacturer.phone %>"><%= product.manufacturer.phone %></a>
+                        </div>
+                      <% } %>
+                      
+                      <% if (product.manufacturer.website) { %>
+                        <div class="contact-item">
+                          <i class="fas fa-globe"></i>
+                          <a href="<%= product.manufacturer.website %>" target="_blank"><%= product.manufacturer.website %></a>
+                        </div>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% } %>
           </div>
         </div>
       </div>
-    </div>
-    <!-- ======================= Comments Section End ==================== -->
+    </section>
 
-    <!-- ======================== Brand Section Start ========================= -->
-    <div class="brand ">
-      <div class="container container">
-        <div id="partners-slider">
-          <div class="brand-slider"></div>
+  <% } %>
+</main>
+
+<!-- Professional Modals -->
+
+<!-- Inquiry Modal -->
+<div class="modal-overlay" id="inquiryModal">
+  <div class="modal-container professional-modal">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-envelope"></i>
+        <%= t('modal.sendInquiry') %>
+      </h3>
+      <button class="modal-close" data-modal="inquiryModal">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <form id="inquiryForm" class="professional-form">
+        <div class="form-group">
+          <label class="form-label"><%= t('form.yourName') %> *</label>
+          <input type="text" class="form-input" name="name" required>
         </div>
-      </div>
+        
+        <div class="form-group">
+          <label class="form-label"><%= t('form.companyName') %> *</label>
+          <input type="text" class="form-input" name="company" required>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label"><%= t('form.email') %> *</label>
+            <input type="email" class="form-input" name="email" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><%= t('form.phone') %></label>
+            <input type="tel" class="form-input" name="phone">
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label"><%= t('form.quantity') %> *</label>
+            <input type="number" class="form-input" name="quantity" min="1" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><%= t('form.unit') %></label>
+            <select class="form-select" name="unit">
+              <option value="pieces"><%= t('units.pieces') %></option>
+              <option value="kg"><%= t('units.kg') %></option>
+              <option value="tons"><%= t('units.tons') %></option>
+              <option value="liters"><%= t('units.liters') %></option>
+              <option value="meters"><%= t('units.meters') %></option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label"><%= t('form.message') %> *</label>
+          <textarea class="form-textarea" name="message" rows="4" 
+                    placeholder="<%= t('form.inquiryPlaceholder') %>" required></textarea>
+        </div>
+        
+        <input type="hidden" name="productId" value="<%= product ? product._id : '' %>">
+        <input type="hidden" name="supplierId" value="<%= product && product.manufacturer ? product.manufacturer._id : '' %>">
+      </form>
     </div>
-    <!-- ======================== Brand Section End ========================= -->
+    
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-modal="inquiryModal">
+        <%= t('buttons.cancel') %>
+      </button>
+      <button type="submit" form="inquiryForm" class="btn btn-primary">
+        <i class="fas fa-paper-plane"></i>
+        <%= t('buttons.sendInquiry') %>
+      </button>
+    </div>
+  </div>
+</div>
 
-<!-- Set product ID for JavaScript -->
-<% if (productId) { %>
-  <script>
-    window.productId = '<%= productId %>';
-  </script>
-<% } %>
+<!-- Professional Success/Error Messages -->
+<div class="toast-container" id="toastContainer"></div>
 
-<!-- Comments System JavaScript -->
-<script src="/js/product-comments.js"></script>
+<!-- Professional JavaScript -->
+<script src="/assets/js/product-detail-professional.js"></script>
 
 <%- include('../partials/footer') %>

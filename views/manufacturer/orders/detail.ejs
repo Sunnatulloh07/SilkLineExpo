@@ -8,47 +8,12 @@
 <link rel="stylesheet" href="/css/order-detail.css">
 <link rel="stylesheet" href="/css/order-comments.css">
 <link rel="stylesheet" href="/css/manufacturer-cards.css">
+<link rel="stylesheet" href="/css/manufacturer-dashboard.css">
 <link rel="stylesheet" href="/css/manufacturer-theme.css">
 
 <!-- ✨ PROFESSIONAL ORDER DETAIL DESIGN - DARK MODE COMPATIBLE ✨ -->
 <style>
-  /* CSS VARIABLES FOR DARK MODE SUPPORT */
-  :root {
-    --order-bg-primary: #ffffff;
-    --order-bg-secondary: #f8fafc;
-    --order-bg-elevated: #ffffff;
-    --order-border: #e2e8f0;
-    --order-border-light: #f1f5f9;
-    --order-text-primary: #0f172a;
-    --order-text-secondary: #475569;
-    --order-text-muted: #64748b;
-    --order-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --order-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    --order-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-    --order-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-    --order-primary: #3b82f6;
-    --order-primary-dark: #1d4ed8;
-    --order-success: #10b981;
-    --order-warning: #f59e0b;
-    --order-error: #ef4444;
-    --order-info: #06b6d4;
-  }
-
-  /* DARK MODE VARIABLES */
-  [data-theme="dark"] {
-    --order-bg-primary: #0f172a;
-    --order-bg-secondary: #1e293b;
-    --order-bg-elevated: #334155;
-    --order-border: #334155;
-    --order-border-light: #475569;
-    --order-text-primary: #f8fafc;
-    --order-text-secondary: #cbd5e1;
-    --order-text-muted: #94a3b8;
-    --order-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --order-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
-    --order-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
-    --order-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4);
-  }
+  /* NOW USING STANDARD VARIABLES FROM ORDERS PAGE - CONSISTENT THEMING */
 
   /* DISABLE ANIMATION CONFLICTS BUT KEEP STABLE LAYOUT */
   .order-detail-header,
@@ -63,14 +28,14 @@
 
   /* PROFESSIONAL ORDER DETAIL HEADER */
   .order-detail-header {
-    background: var(--order-bg-elevated);
-    border: 1px solid var(--order-border);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 2rem;
     margin-bottom: 2rem;
-    box-shadow: var(--order-shadow-lg);
+    box-shadow: var(--shadow-lg);
     backdrop-filter: blur(10px);
-    background: linear-gradient(135deg, var(--order-bg-elevated) 0%, var(--order-bg-secondary) 100%);
+    background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
   }
 
   .order-detail-breadcrumb {
@@ -81,7 +46,7 @@
   }
 
   .breadcrumb-link {
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -91,25 +56,25 @@
     transition: all 0.2s ease;
     padding: 0.5rem 1rem;
     border-radius: 8px;
-    background: var(--order-bg-secondary);
+    background: var(--bg-secondary);
     border: 1px solid var(--order-border-light);
   }
 
   .breadcrumb-link:hover {
-    color: var(--order-primary);
-    background: var(--order-primary);
+    color: var(--color-primary);
+    background: var(--color-primary);
     color: white;
     transform: translateY(-1px);
     box-shadow: var(--order-shadow-md);
   }
 
   .breadcrumb-separator {
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-size: 0.75rem;
   }
 
   .breadcrumb-current {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-weight: 600;
     font-size: 0.875rem;
   }
@@ -122,7 +87,7 @@
   }
 
   .order-detail-title {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-size: 2rem;
     font-weight: 700;
     margin: 0;
@@ -132,7 +97,7 @@
   }
 
   .order-detail-title i {
-    color: var(--order-primary);
+    color: var(--color-primary);
     font-size: 1.75rem;
   }
 
@@ -145,11 +110,11 @@
 
   .order-detail-id {
     font-family: 'JetBrains Mono', 'Courier New', monospace;
-    background: var(--order-bg-secondary);
-    color: var(--order-text-secondary);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
     padding: 0.5rem 1rem;
     border-radius: 8px;
-    border: 1px solid var(--order-border);
+    border: 1px solid var(--border-color);
     font-size: 0.875rem;
     font-weight: 600;
   }
@@ -161,77 +126,7 @@
     flex-wrap: wrap;
   }
 
-  /* PROFESSIONAL KPI CARDS */
-  .order-kpi-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-
-  .kpi-card {
-    background: var(--order-bg-elevated);
-    border: 1px solid var(--order-border);
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: var(--order-shadow-md);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--order-primary) 0%, var(--order-primary-dark) 100%);
-    border-radius: 16px 16px 0 0;
-  }
-
-  .kpi-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--order-shadow-xl);
-    border-color: var(--order-primary);
-  }
-
-  .kpi-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1rem;
-    background: linear-gradient(135deg, var(--order-primary) 0%, var(--order-primary-dark) 100%);
-    color: white;
-    font-size: 1.25rem;
-  }
-
-  .kpi-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--order-text-primary);
-    margin: 0 0 0.5rem 0;
-    line-height: 1.2;
-  }
-
-  .kpi-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--order-text-secondary);
-    margin: 0 0 0.25rem 0;
-  }
-
-  .kpi-meta {
-    font-size: 0.75rem;
-    color: var(--order-text-muted);
-    font-weight: 500;
-  }
+  /* KPI CARDS NOW USE STANDARD STAT-CARD CLASSES FROM ORDERS PAGE */
 
   /* MAIN CONTENT GRID */
   .order-main-grid {
@@ -254,8 +149,8 @@
 
   /* PROFESSIONAL INFO CARDS */
   .info-card {
-    background: var(--order-bg-elevated) !important;
-    border: 1px solid var(--order-border) !important;
+    background: var(--bg-elevated) !important;
+    border: 1px solid var(--border-color) !important;
     border-radius: 16px !important;
     overflow: hidden !important;
     box-shadow: var(--order-shadow-md) !important;
@@ -269,13 +164,13 @@
 
   .info-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--order-shadow-lg);
-    border-color: var(--order-primary);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary);
   }
 
   .info-card-header {
-    background: var(--order-bg-secondary) !important;
-    border-bottom: 1px solid var(--order-border) !important;
+    background: var(--bg-secondary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
     padding: 1.25rem !important;
     display: flex !important;
     align-items: center !important;
@@ -283,7 +178,7 @@
   }
 
   .info-card-title {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-size: 1.125rem;
     font-weight: 600;
     margin: 0;
@@ -293,13 +188,13 @@
   }
 
   .info-card-title i {
-    color: var(--order-primary);
+    color: var(--color-primary);
     font-size: 1rem;
   }
 
   .info-card-content {
     padding: 1.5rem !important;
-    color: var(--order-text-secondary);
+    color: var(--text-secondary);
   }
 
   /* CUSTOMER PROFILE STYLING */
@@ -313,7 +208,7 @@
     width: 64px;
     height: 64px;
     border-radius: 16px;
-    background: linear-gradient(135deg, var(--order-primary) 0%, var(--order-primary-dark) 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--order-primary-dark) 100%);
     color: white;
     display: flex;
     align-items: center;
@@ -328,14 +223,14 @@
   }
 
   .customer-company {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-size: 1.25rem;
     font-weight: 600;
     margin: 0 0 0.5rem 0;
   }
 
   .customer-contact-person {
-    color: var(--order-text-secondary);
+    color: var(--text-secondary);
     font-size: 0.875rem;
     margin: 0 0 1rem 0;
   }
@@ -350,12 +245,12 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    color: var(--order-text-secondary);
+    color: var(--text-secondary);
     font-size: 0.875rem;
   }
 
   .contact-item i {
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     width: 16px;
     text-align: center;
   }
@@ -365,7 +260,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: var(--order-primary);
+    background: var(--color-primary);
     color: white;
     display: flex;
     align-items: center;
@@ -375,8 +270,6 @@
 
   /* ORDER ITEMS SECTION STYLING */
   .order-items-section {
-    background: var(--order-bg-elevated);
-    border: 1px solid var(--order-border);
     border-radius: 16px;
     overflow: hidden;
     box-shadow: var(--order-shadow-md);
@@ -388,8 +281,8 @@
   }
 
   .products-table-header {
-    background: var(--order-bg-secondary);
-    border-bottom: 1px solid var(--order-border);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
     padding: 1.5rem;
     display: flex;
     justify-content: space-between;
@@ -397,7 +290,7 @@
   }
 
   .products-table-title {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-size: 1.25rem;
     font-weight: 600;
     margin: 0;
@@ -407,12 +300,12 @@
   }
 
   .products-table-title i {
-    color: var(--order-primary);
+    color: var(--color-primary);
     font-size: 1.125rem;
   }
 
   .items-count {
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-weight: 500;
   }
 
@@ -427,31 +320,31 @@
   }
 
   .products-table th {
-    background: var(--order-bg-secondary);
-    color: var(--order-text-primary);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
     font-weight: 600;
     padding: 1rem;
     text-align: left;
-    border-bottom: 1px solid var(--order-border);
+    border-bottom: 1px solid var(--border-color);
     font-size: 0.875rem;
   }
 
   .products-table td {
     padding: 1rem;
     border-bottom: 1px solid var(--order-border-light);
-    color: var(--order-text-secondary);
+    color: var(--text-secondary);
     vertical-align: top;
   }
 
   .products-table tr:hover {
-    background: var(--order-bg-secondary);
+    background: var(--bg-secondary);
   }
 
   .item-number {
     width: 32px;
     height: 32px;
     border-radius: 8px;
-    background: var(--order-primary);
+    background: var(--color-primary);
     color: white;
     display: flex;
     align-items: center;
@@ -483,22 +376,22 @@
   .product-placeholder {
     width: 100%;
     height: 100%;
-    background: var(--order-bg-secondary);
+    background: var(--bg-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--order-text-muted);
+    color: var(--text-muted);
   }
 
   .product-title {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-weight: 600;
     margin: 0 0 0.25rem 0;
     font-size: 0.875rem;
   }
 
   .product-description {
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-size: 0.75rem;
     margin: 0;
     line-height: 1.4;
@@ -506,8 +399,8 @@
 
   /* STATUS HISTORY TIMELINE */
   .status-history-section {
-    background: var(--order-bg-elevated);
-    border: 1px solid var(--order-border);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     overflow: hidden;
     box-shadow: var(--order-shadow-md);
@@ -519,13 +412,13 @@
   }
 
   .history-header {
-    background: var(--order-bg-secondary);
-    border-bottom: 1px solid var(--order-border);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
     padding: 1.5rem;
   }
 
   .history-title {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-size: 1.25rem;
     font-weight: 600;
     margin: 0;
@@ -535,7 +428,7 @@
   }
 
   .history-title i {
-    color: var(--order-primary);
+    color: var(--color-primary);
     font-size: 1.125rem;
   }
 
@@ -561,14 +454,14 @@
     top: 48px;
     bottom: -2rem;
     width: 2px;
-    background: var(--order-border);
+    background: var(--border-color);
   }
 
   .timeline-marker {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: var(--order-primary);
+    background: var(--color-primary);
     color: white;
     display: flex;
     align-items: center;
@@ -581,27 +474,27 @@
 
   .timeline-content {
     flex: 1;
-    background: var(--order-bg-secondary);
-    border: 1px solid var(--order-border);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 1.25rem;
   }
 
   .timeline-status {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-size: 1rem;
     font-weight: 600;
     margin: 0 0 0.5rem 0;
   }
 
   .timeline-date {
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-size: 0.75rem;
     font-weight: 500;
   }
 
   .timeline-user {
-    color: var(--order-text-secondary);
+    color: var(--text-secondary);
     font-size: 0.875rem;
     display: flex;
     align-items: center;
@@ -610,8 +503,8 @@
 
   /* NOTES SECTION */
   .notes-section {
-    background: var(--order-bg-elevated);
-    border: 1px solid var(--order-border);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     overflow: hidden;
     box-shadow: var(--order-shadow-md);
@@ -623,8 +516,8 @@
   }
 
   .notes-header {
-    background: var(--order-bg-secondary);
-    border-bottom: 1px solid var(--order-border);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
     padding: 1.5rem;
     display: flex;
     justify-content: space-between;
@@ -632,7 +525,7 @@
   }
 
   .notes-title {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-size: 1.25rem;
     font-weight: 600;
     margin: 0;
@@ -642,7 +535,7 @@
   }
 
   .notes-title i {
-    color: var(--order-primary);
+    color: var(--color-primary);
     font-size: 1.125rem;
   }
 
@@ -651,8 +544,8 @@
   }
 
   .note-item {
-    background: var(--order-bg-secondary);
-    border: 1px solid var(--order-border);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 1rem;
@@ -679,7 +572,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: var(--order-primary);
+    background: var(--color-primary);
     color: white;
     display: flex;
     align-items: center;
@@ -689,19 +582,19 @@
   }
 
   .author-name {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-size: 0.875rem;
     font-weight: 600;
     margin: 0;
   }
 
   .note-date {
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-size: 0.75rem;
   }
 
   .note-content {
-    color: var(--order-text-secondary);
+    color: var(--text-secondary);
     line-height: 1.5;
   }
 
@@ -716,7 +609,7 @@
 
   .form-label {
     display: block;
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-weight: 600;
     font-size: 0.875rem;
     margin-bottom: 0.5rem;
@@ -727,10 +620,10 @@
   .form-textarea {
     width: 100%;
     padding: 0.75rem 1rem;
-    border: 1px solid var(--order-border);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    background: var(--order-bg-primary);
-    color: var(--order-text-primary);
+    background: var(--bg-primary);
+    color: var(--text-primary);
     font-size: 0.875rem;
     transition: all 0.2s ease;
   }
@@ -739,7 +632,7 @@
   .form-input:focus,
   .form-textarea:focus {
     outline: none;
-    border-color: var(--order-primary);
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
 
@@ -759,7 +652,7 @@
   }
 
   .products-btn-primary {
-    background: var(--order-primary);
+    background: var(--color-primary);
     color: white;
   }
 
@@ -770,23 +663,23 @@
   }
 
   .products-btn-secondary {
-    background: var(--order-bg-secondary);
-    color: var(--order-text-primary);
-    border: 1px solid var(--order-border);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
   }
 
   .products-btn-secondary:hover {
-    background: var(--order-border);
+    background: var(--border-color);
   }
 
   .products-btn-outline {
     background: transparent;
-    color: var(--order-primary);
-    border: 1px solid var(--order-primary);
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
   }
 
   .products-btn-outline:hover {
-    background: var(--order-primary);
+    background: var(--color-primary);
     color: white;
   }
 
@@ -939,8 +832,8 @@
 
   /* CATEGORY BADGE */
   .category-badge {
-    background: var(--order-bg-secondary);
-    color: var(--order-text-secondary);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
     padding: 0.25rem 0.75rem;
     border-radius: 6px;
     font-size: 0.75rem;
@@ -948,7 +841,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    border: 1px solid var(--order-border);
+    border: 1px solid var(--border-color);
   }
 
   .category-badge i {
@@ -958,13 +851,13 @@
   /* SKU CODE */
   .sku-code {
     font-family: 'JetBrains Mono', 'Courier New', monospace;
-    background: var(--order-bg-secondary);
-    color: var(--order-text-secondary);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
     font-size: 0.75rem;
     font-weight: 500;
-    border: 1px solid var(--order-border);
+    border: 1px solid var(--border-color);
   }
 
   /* QUICK ACTION BUTTONS */
@@ -980,17 +873,17 @@
     align-items: center;
     gap: 0.5rem;
     padding: 1rem;
-    background: var(--order-bg-secondary);
-    border: 1px solid var(--order-border);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     transition: all 0.2s ease;
     cursor: pointer;
     text-align: center;
-    color: var(--order-text-secondary);
+    color: var(--text-secondary);
   }
 
   .quick-action-btn:hover {
-    background: var(--order-primary);
+    background: var(--color-primary);
     color: white;
     transform: translateY(-2px);
     box-shadow: var(--order-shadow-md);
@@ -1025,8 +918,8 @@
   }
 
   .modal-container {
-    background: var(--order-bg-elevated);
-    border: 1px solid var(--order-border);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     max-width: 500px;
     width: 90vw;
@@ -1037,16 +930,16 @@
 
   .modal-header {
     padding: 1.5rem;
-    border-bottom: 1px solid var(--order-border);
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--order-bg-secondary);
+    background: var(--bg-secondary);
     border-radius: 16px 16px 0 0;
   }
 
   .modal-title {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-size: 1.125rem;
     font-weight: 600;
     margin: 0;
@@ -1056,13 +949,13 @@
   }
 
   .modal-title i {
-    color: var(--order-primary);
+    color: var(--color-primary);
   }
 
   .modal-close {
     background: none;
     border: none;
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-size: 1.25rem;
     cursor: pointer;
     padding: 0.5rem;
@@ -1071,8 +964,8 @@
   }
 
   .modal-close:hover {
-    background: var(--order-bg-secondary);
-    color: var(--order-text-primary);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
   }
 
   .modal-content {
@@ -1081,11 +974,11 @@
 
   .modal-footer {
     padding: 1.5rem;
-    border-top: 1px solid var(--order-border);
+    border-top: 1px solid var(--border-color);
     display: flex;
     gap: 0.75rem;
     justify-content: flex-end;
-    background: var(--order-bg-secondary);
+    background: var(--bg-secondary);
     border-radius: 0 0 16px 16px;
   }
 
@@ -1093,7 +986,7 @@
   .empty-state {
     text-align: center;
     padding: 3rem 2rem;
-    color: var(--order-text-muted);
+    color: var(--text-muted);
   }
 
   .empty-state i {
@@ -1103,7 +996,7 @@
   }
 
   .empty-state h4 {
-    color: var(--order-text-secondary);
+    color: var(--text-secondary);
     font-size: 1.125rem;
     font-weight: 600;
     margin: 0 0 0.5rem 0;
@@ -1118,7 +1011,7 @@
   .notes-empty {
     text-align: center;
     padding: 2rem;
-    color: var(--order-text-muted);
+    color: var(--text-muted);
   }
 
   .timeline-empty i,
@@ -1130,7 +1023,7 @@
 
   .timeline-empty h4,
   .notes-empty h4 {
-    color: var(--order-text-secondary);
+    color: var(--text-secondary);
     font-size: 1rem;
     font-weight: 600;
     margin: 0 0 0.5rem 0;
@@ -1151,13 +1044,13 @@
   }
 
   .quantity-value {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-weight: 600;
     font-size: 1rem;
   }
 
   .quantity-unit {
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-size: 0.75rem;
     font-weight: 500;
   }
@@ -1170,13 +1063,13 @@
   }
 
   .unit-price {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-weight: 600;
     font-size: 0.875rem;
   }
 
   .price-unit {
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-size: 0.75rem;
     font-weight: 500;
   }
@@ -1186,7 +1079,7 @@
   }
 
   .total-amount {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-weight: 700;
     font-size: 1rem;
   }
@@ -1202,9 +1095,9 @@
     width: 32px;
     height: 32px;
     border-radius: 6px;
-    border: 1px solid var(--order-border);
-    background: var(--order-bg-secondary);
-    color: var(--order-text-secondary);
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1214,7 +1107,7 @@
   }
 
   .item-action-btn:hover {
-    background: var(--order-primary);
+    background: var(--color-primary);
     color: white;
     transform: translateY(-1px);
     box-shadow: var(--order-shadow-sm);
@@ -1240,9 +1133,9 @@
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    border: 1px solid var(--order-border);
-    background: var(--order-bg-primary);
-    color: var(--order-text-muted);
+    border: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-muted);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1252,7 +1145,7 @@
   }
 
   .card-action-btn:hover {
-    background: var(--order-primary);
+    background: var(--color-primary);
     color: white;
     transform: translateY(-1px);
     box-shadow: var(--order-shadow-sm);
@@ -1278,7 +1171,7 @@
   }
 
   .info-label {
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -1286,17 +1179,17 @@
   }
 
   .info-value {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-size: 0.875rem;
     font-weight: 600;
   }
 
   .order-number {
     font-family: 'JetBrains Mono', 'Courier New', monospace;
-    background: var(--order-bg-secondary);
+    background: var(--bg-secondary);
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
-    border: 1px solid var(--order-border);
+    border: 1px solid var(--border-color);
   }
 
   .deadline-value {
@@ -1328,20 +1221,20 @@
   }
 
   .payment-label {
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-size: 0.875rem;
     font-weight: 500;
   }
 
   .payment-value {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-size: 0.875rem;
     font-weight: 600;
     text-align: right;
   }
 
   .payment-row.total-row {
-    border-top: 2px solid var(--order-border);
+    border-top: 2px solid var(--border-color);
     padding-top: 1rem;
     margin-top: 0.5rem;
   }
@@ -1349,12 +1242,12 @@
   .total-amount {
     font-size: 1.125rem;
     font-weight: 700;
-    color: var(--order-text-primary);
+    color: var(--text-primary);
   }
 
   .total-amount small {
     font-size: 0.75rem;
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-weight: 500;
     margin-left: 0.25rem;
   }
@@ -1363,9 +1256,9 @@
   .status-current {
     margin-bottom: 1.5rem;
     padding: 1rem;
-    background: var(--order-bg-secondary);
+    background: var(--bg-secondary);
     border-radius: 8px;
-    border: 1px solid var(--order-border);
+    border: 1px solid var(--border-color);
   }
 
   .current-status-display {
@@ -1375,7 +1268,7 @@
   }
 
   .current-status-label {
-    color: var(--order-text-secondary);
+    color: var(--text-secondary);
     font-size: 0.875rem;
     font-weight: 600;
   }
@@ -1421,9 +1314,9 @@
   /* LOADING STATES */
   .loading-shimmer {
     background: linear-gradient(90deg, 
-      var(--order-bg-secondary) 25%, 
-      var(--order-border) 50%, 
-      var(--order-bg-secondary) 75%);
+      var(--bg-secondary) 25%, 
+      var(--border-color) 50%, 
+      var(--bg-secondary) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: 4px;
@@ -1453,10 +1346,7 @@
       gap: 1.5rem !important;
     }
     
-    .order-kpi-cards {
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1rem;
-    }
+    /* KPI cards now use standard grid classes */
     
     .order-detail-header {
       padding: 1.5rem;
@@ -1468,9 +1358,7 @@
   }
 
   @media (max-width: 768px) {
-    .order-kpi-cards {
-      grid-template-columns: 1fr;
-    }
+    /* KPI cards responsive handled by grid utility classes */
     
     .order-detail-actions {
       flex-direction: column;
@@ -1634,59 +1522,84 @@
          <!-- Order Detail Content -->
      <div class="order-detail-content">
       
-      <!-- KPI Cards Summary -->
-      <div class="order-kpi-cards">
-        <div class="kpi-card">
-          <div class="kpi-icon">
-            <i class="fas fa-dollar-sign"></i>
+      <!-- Professional KPI Cards - Orders Analytics Style -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg">
+        
+        <!-- Total Amount -->
+        <div class="stat-card primary animate-fade-in">
+          <div class="stat-header">
+            <h3 class="stat-title">Umumiy Summa</h3>
+            <div class="stat-icon primary">
+              <i class="fas fa-dollar-sign"></i>
+            </div>
           </div>
-          <div class="kpi-content">
-            <h3 class="kpi-value">$<%= (order.totalAmount || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></h3>
-            <p class="kpi-label">Umumiy Summa</p>
-            <span class="kpi-meta"><%= order.currency || 'USD' %></span>
+          <div class="stat-value">
+            <span class="metric-value">$<%= (order.totalAmount || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></span>
+          </div>
+          <div class="stat-change positive">
+            <i class="fas fa-coins stat-change-icon"></i>
+            <span class="metric-trend"><%= order.currency || 'USD' %></span>
           </div>
         </div>
-        
-        <div class="kpi-card">
-          <div class="kpi-icon">
-            <i class="fas fa-boxes"></i>
+
+        <!-- Product Types -->
+        <div class="stat-card success animate-fade-in">
+          <div class="stat-header">
+            <h3 class="stat-title">Mahsulot Turlari</h3>
+            <div class="stat-icon success">
+              <i class="fas fa-boxes"></i>
+            </div>
           </div>
-          <div class="kpi-content">
-            <h3 class="kpi-value"><%= order.items?.length || 0 %></h3>
-            <p class="kpi-label">Mahsulot Turlari</p>
-            <span class="kpi-meta"><%= order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0 %> dona</span>
+          <div class="stat-value">
+            <span class="metric-value"><%= order.items?.length || 0 %></span>
+          </div>
+          <div class="stat-change positive">
+            <i class="fas fa-box stat-change-icon"></i>
+            <span class="metric-trend"><%= order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0 %> dona</span>
           </div>
         </div>
-        
-        <div class="kpi-card">
-          <div class="kpi-icon">
-            <i class="fas fa-clock"></i>
+
+        <!-- Remaining Days -->
+        <div class="stat-card warning animate-fade-in">
+          <div class="stat-header">
+            <h3 class="stat-title">Qolgan Kunlar</h3>
+            <div class="stat-icon warning">
+              <i class="fas fa-clock"></i>
+            </div>
           </div>
-          <div class="kpi-content">
-            <h3 class="kpi-value">
+          <div class="stat-value">
+            <span class="metric-value">
               <% if (order.deadline) { %>
                 <%= Math.ceil((new Date(order.deadline) - new Date()) / (1000 * 60 * 60 * 24)) %>
               <% } else { %>
                 --
               <% } %>
-            </h3>
-            <p class="kpi-label">Qolgan Kunlar</p>
-            <span class="kpi-meta">Muddat: <%= order.deadline ? new Date(order.deadline).toLocaleDateString('uz-UZ') : 'Belgilanmagan' %></span>
+            </span>
+          </div>
+          <div class="stat-change neutral">
+            <i class="fas fa-calendar stat-change-icon"></i>
+            <span class="metric-trend">Muddat: <%= order.deadline ? new Date(order.deadline).toLocaleDateString('uz-UZ') : 'Belgilanmagan' %></span>
           </div>
         </div>
-        
-        <div class="kpi-card">
-          <div class="kpi-icon priority-<%= order.priority || 'medium' %>">
-            <i class="fas fa-exclamation-triangle"></i>
+
+        <!-- Priority Level -->
+        <div class="stat-card <%= order.priority === 'high' ? 'danger' : order.priority === 'medium' ? 'info' : 'success' %> animate-fade-in">
+          <div class="stat-header">
+            <h3 class="stat-title">Muhimlik Darajasi</h3>
+            <div class="stat-icon <%= order.priority === 'high' ? 'danger' : order.priority === 'medium' ? 'info' : 'success' %>">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
           </div>
-          <div class="kpi-content">
-            <h3 class="kpi-value priority-<%= order.priority || 'medium' %>">
+          <div class="stat-value">
+            <span class="metric-value">
               <%= order.priority === 'high' ? 'Yuqori' :
                   order.priority === 'medium' ? 'O\'rta' :
                   order.priority === 'low' ? 'Past' : 'O\'rta' %>
-            </h3>
-            <p class="kpi-label">Muhimlik Darajasi</p>
-            <span class="kpi-meta"><%= order.type || 'B2B' %></span>
+            </span>
+          </div>
+          <div class="stat-change neutral">
+            <i class="fas fa-tag stat-change-icon"></i>
+            <span class="metric-trend"><%= order.type || 'B2B' %></span>
           </div>
         </div>
       </div>
@@ -2330,9 +2243,9 @@
     <div class="modal-overlay" id="addNoteModal">
       <div class="modal-content">
         <div class="modal-header">
-          <h3 class="modal-title">
+          <h3 class="modal-title" id="noteModalTitle">
             <i class="fas fa-sticky-note"></i>
-            Buyurtmaga Izoh Qo'shish
+            <span id="noteModalTitleText">Buyurtmaga Izoh Qo'shish</span>
           </h3>
           <button class="modal-close" id="closeNoteModal">
             <i class="fas fa-times"></i>
@@ -2340,6 +2253,8 @@
         </div>
         <div class="modal-body">
           <form id="noteForm">
+            <!-- Hidden field for edit mode -->
+            <input type="hidden" id="editingCommentId" value="">
             <!-- Comment Type Selection -->
             <div class="form-group">
               <label class="form-label">Izoh turi:</label>
@@ -2393,10 +2308,14 @@
 
             <!-- Additional Options -->
             <div class="form-group">
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="notifyCustomer">
-                <label class="form-check-label" for="notifyCustomer">
-                  Mijozga bildirishnoma yuborish
+              <div class="custom-checkbox-wrapper" style="margin-top: 1rem;">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="notifyCustomer" name="notifyCustomer">
+                  <span class="checkmark"></span>
+                  <span class="checkbox-label">
+                    <i class="fas fa-bell" style="margin-right: 0.25rem; color: #007bff;"></i>
+                    Mijozga bildirishnoma yuborish
+                  </span>
                 </label>
               </div>
             </div>
@@ -2408,11 +2327,11 @@
             Bekor qilish
           </button>
           <button class="products-btn products-btn-primary" id="saveNote" type="submit">
-            <i class="fas fa-save"></i>
-            <span class="btn-text">Saqlash</span>
+            <i class="fas fa-save" id="saveNoteIcon"></i>
+            <span class="btn-text" id="saveNoteText">Saqlash</span>
             <span class="btn-loading hidden">
               <i class="fas fa-spinner fa-spin"></i>
-              Saqlanmoqda...
+              <span id="saveLoadingText">Saqlanmoqda...</span>
             </span>
           </button>
         </div>
@@ -2560,12 +2479,93 @@
   overflow-y: auto;
   overflow-x: hidden;
 }
+
+/* Professional Custom Checkbox */
+.custom-checkbox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  user-select: none;
+  padding: 8px 0;
+}
+
+.custom-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.custom-checkbox .checkmark {
+  position: relative;
+  height: 20px;
+  width: 20px;
+  background-color: #fff;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  margin-right: 12px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.custom-checkbox:hover input ~ .checkmark {
+  border-color: #007bff;
+  background-color: #f8f9fa;
+}
+
+.custom-checkbox input:checked ~ .checkmark {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.custom-checkbox .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.custom-checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.custom-checkbox .checkbox-label {
+  flex: 1;
+  color: #333;
+}
+
+.custom-checkbox input:checked ~ .checkbox-label {
+  color: #007bff;
+  font-weight: 500;
+}
 </style>
 
 <!-- Enhanced JavaScript -->
 <script src="/js/manufacturer/toast-system.js"></script>
 <script src="/js/manufacturer/modal-system.js"></script>
-<script src="/js/manufacturer/order-detail.js"></script>
-<script src="/js/manufacturer/order-comments.js"></script>
+  <!-- Pass user data to frontend -->
+  <script>
+    window.currentUser = {
+      userId: '<%= user?._id || user?.userId || "" %>',
+      userType: '<%= user?.userType || "user" %>',
+      role: '<%= user?.role || "" %>',
+      companyId: '<%= user?.companyId || "" %>',
+      companyName: '<%= user?.companyName || "" %>',
+      name: '<%= user?.name || "" %>'
+    };
+    console.log('👤 Current user data loaded:', window.currentUser);
+  </script>
+  
+  <script src="/js/manufacturer/order-detail.js"></script>
+  <script src="/js/manufacturer/order-comments.js"></script>
 
 <%- include('../partials/footer') %>

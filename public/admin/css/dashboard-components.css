@@ -2595,7 +2595,7 @@
 .toast-content span {
   font-size: var(--font-size-sm);
   font-weight: 500;
-  color: var(--text-primary);
+  color: #383839;
   line-height: 1.4;
 }
 

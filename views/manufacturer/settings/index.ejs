@@ -1,0 +1,1154 @@
+<%- include('../partials/header', { title: 'Sozlamalar', lng: lng || 'uz', user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'settings' }) %>
+
+<!-- Enhanced CSS Imports - Professional Settings Style -->
+<link rel="stylesheet" href="/css/products-management-redesign.css">
+<link rel="stylesheet" href="/css/products-table-view.css">
+<link rel="stylesheet" href="/css/orders-management.css">
+<link rel="stylesheet" href="/css/manufacturer-cards.css">
+<link rel="stylesheet" href="/css/manufacturer-theme.css">
+<link rel="stylesheet" href="/css/toast-notifications.css">
+<link rel="stylesheet" href="/css/modal-system.css">
+<link rel="stylesheet" href="/css/manufacturer/settings.css">
+
+<!-- Security: CSRF Token -->
+<meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+
+<!-- Main Content -->
+<main class="admin-main">
+  <div class="admin-content">
+    
+    <!-- Professional Settings Header -->
+    <div class="orders-header animate-fade-in">
+      <div class="orders-header-content">
+        <div class="orders-title-section">
+          <h1 class="orders-main-title">
+            <i class="fas fa-cog"></i>
+            Sozlamalar
+          </h1>
+          <p class="orders-subtitle">Kompaniya ma'lumotlari va tizim sozlamalarini boshqarish</p>
+        </div>
+        <div class="orders-header-actions">
+          <button class="orders-btn orders-btn-primary" id="saveAllSettingsBtn">
+            <i class="fas fa-save"></i>
+            Barchasini Saqlash
+          </button>
+          <button class="orders-btn orders-btn-outline" id="resetSettingsBtn">
+            <i class="fas fa-undo"></i>
+            Qayta Tiklash
+          </button>
+          <button class="orders-btn orders-btn-secondary" id="exportSettingsBtn">
+            <i class="fas fa-download"></i>
+            Eksport
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Navigation Tabs -->
+    <div class="settings-nav-tabs animate-fade-in">
+      <div class="settings-tabs-container">
+        <button class="settings-tab active" data-tab="company">
+          <i class="fas fa-building"></i>
+          <span>Kompaniya</span>
+        </button>
+        <button class="settings-tab" data-tab="contact">
+          <i class="fas fa-address-book"></i>
+          <span>Aloqa</span>
+        </button>
+        <button class="settings-tab" data-tab="business">
+          <i class="fas fa-briefcase"></i>
+          <span>Biznes</span>
+        </button>
+        <button class="settings-tab" data-tab="security">
+          <i class="fas fa-shield-alt"></i>
+          <span>Xavfsizlik</span>
+        </button>
+        <button class="settings-tab" data-tab="preferences">
+          <i class="fas fa-sliders-h"></i>
+          <span>Sozlamalar</span>
+        </button>
+        <button class="settings-tab" data-tab="integrations">
+          <i class="fas fa-plug"></i>
+          <span>Integratsiyalar</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Settings Content Container -->
+    <div class="settings-content-container animate-fade-in">
+      
+      <!-- Company Information Tab -->
+      <div class="settings-tab-content active" id="company-tab">
+        <form id="companyInfoForm" class="settings-form" novalidate>
+          <div class="settings-section">
+            <div class="settings-section-header">
+              <h3 class="settings-section-title">
+                <i class="fas fa-building"></i>
+                Kompaniya Ma'lumotlari
+              </h3>
+              <p class="settings-section-subtitle">Asosiy kompaniya ma'lumotlarini tahrirlang</p>
+            </div>
+            
+            <!-- Form Messages Container -->
+            <div class="form-messages" id="companyFormMessages" style="display: none;">
+              <div class="message-content"></div>
+            </div>
+            
+            <div class="settings-form-grid">
+            <!-- Company Logo -->
+            <div class="settings-form-group full-width">
+              <label class="settings-label">Kompaniya Logotipi</label>
+              <div class="logo-upload-container">
+                <div class="current-logo">
+                  <img src="<%= (user.companyLogo && user.companyLogo.url) || '/assets/images/avatars/default-company.png' %>" 
+                       alt="<%= user.companyName || 'Company Logo' %>" 
+                       id="currentLogoPreview"
+                       onerror="this.onerror=null; this.src='/assets/images/avatars/default.png'">
+                </div>
+                <div class="logo-upload-actions">
+                  <input type="file" id="logoUpload" accept="image/*" class="hidden">
+                  <button type="button" class="orders-btn orders-btn-primary" id="logoUploadBtn">
+                    <i class="fas fa-upload"></i>
+                    Logo Yangilash
+                  </button>
+                  <small class="logo-upload-help">JPG, PNG, GIF, WebP (max 5MB)</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Company Name -->
+            <div class="settings-form-group">
+              <label class="settings-label" for="companyName">Kompaniya Nomi *</label>
+              <input type="text" id="companyName" name="companyName" class="settings-input" 
+                     value="<%= user.companyName || '' %>" 
+                     required 
+                     minlength="2" 
+                     maxlength="200"
+                     pattern="[a-zA-Z0-9\s\-&.,']+"
+                     autocomplete="organization">
+              <small class="settings-help">Rasmiy kompaniya nomi (2-200 belgi)</small>
+              <div class="field-error" style="display: none;"></div>
+            </div>
+
+            <!-- Activity Type -->
+            <div class="settings-form-group">
+              <label class="settings-label" for="activityType">Faoliyat Turi *</label>
+              <select id="activityType" name="activityType" class="settings-select" required>
+                <option value="">Tanlang...</option>
+                <option value="textiles_clothing" <%= user.activityType === 'textiles_clothing' ? 'selected' : '' %>>Tekstil va Kiyim</option>
+                <option value="food_beverages" <%= user.activityType === 'food_beverages' ? 'selected' : '' %>>Oziq-ovqat va Ichimliklar</option>
+                <option value="electronics" <%= user.activityType === 'electronics' ? 'selected' : '' %>>Elektronika</option>
+                <option value="machinery_equipment" <%= user.activityType === 'machinery_equipment' ? 'selected' : '' %>>Mashinasozlik</option>
+                <option value="chemicals" <%= user.activityType === 'chemicals' ? 'selected' : '' %>>Kimyo Sanoati</option>
+                <option value="agriculture" <%= user.activityType === 'agriculture' ? 'selected' : '' %>>Qishloq Xo'jaligi</option>
+                <option value="construction_materials" <%= user.activityType === 'construction_materials' ? 'selected' : '' %>>Qurilish Materiallari</option>
+                <option value="automotive" <%= user.activityType === 'automotive' ? 'selected' : '' %>>Avtomobil Sanoati</option>
+                <option value="other" <%= user.activityType === 'other' ? 'selected' : '' %>>Boshqa</option>
+              </select>
+            </div>
+
+            <!-- Tax Number -->
+            <div class="settings-form-group">
+              <label class="settings-label" for="taxNumber">Soliq Raqami *</label>
+              <input type="text" id="taxNumber" name="taxNumber" class="settings-input" 
+                     value="<%= user.taxNumber || '' %>" 
+                     required 
+                     minlength="6" 
+                     maxlength="20"
+                     pattern="[0-9]+"
+                     autocomplete="tax-id">
+              <small class="settings-help">INN yoki soliq to'lovchi identifikatori (6-20 raqam)</small>
+              <div class="field-error" style="display: none;"></div>
+            </div>
+
+            <!-- Established Year -->
+            <div class="settings-form-group">
+              <label class="settings-label" for="establishedYear">Tashkil Etilgan Yil</label>
+              <input type="number" id="establishedYear" name="establishedYear" class="settings-input" 
+                     value="<%= user.establishedYear || '' %>" 
+                     min="1900" 
+                     max="<%= new Date().getFullYear() %>"
+                     step="1"
+                     autocomplete="bday-year">
+              <small class="settings-help">Kompaniya tashkil etilgan yil</small>
+              <div class="field-error" style="display: none;"></div>
+            </div>
+
+            <!-- Employee Count -->
+            <div class="settings-form-group">
+              <label class="settings-label" for="employeeCount">Xodimlar Soni</label>
+              <select id="employeeCount" name="employeeCount" class="settings-select">
+                <option value="">Tanlang...</option>
+                <option value="1-10" <%= user.employeeCount === '1-10' ? 'selected' : '' %>>1-10</option>
+                <option value="11-50" <%= user.employeeCount === '11-50' ? 'selected' : '' %>>11-50</option>
+                <option value="51-200" <%= user.employeeCount === '51-200' ? 'selected' : '' %>>51-200</option>
+                <option value="201-500" <%= user.employeeCount === '201-500' ? 'selected' : '' %>>201-500</option>
+                <option value="500+" <%= user.employeeCount === '500+' ? 'selected' : '' %>>500+</option>
+              </select>
+            </div>
+
+            <!-- Annual Revenue -->
+            <div class="settings-form-group">
+              <label class="settings-label" for="annualRevenue">Yillik Aylanma</label>
+              <select id="annualRevenue" name="annualRevenue" class="settings-select">
+                <option value="">Tanlang...</option>
+                <option value="under-100k" <%= user.annualRevenue === 'under-100k' ? 'selected' : '' %>>$100K dan kam</option>
+                <option value="100k-500k" <%= user.annualRevenue === '100k-500k' ? 'selected' : '' %>>$100K - $500K</option>
+                <option value="500k-1m" <%= user.annualRevenue === '500k-1m' ? 'selected' : '' %>>$500K - $1M</option>
+                <option value="1m-5m" <%= user.annualRevenue === '1m-5m' ? 'selected' : '' %>>$1M - $5M</option>
+                <option value="5m+" <%= user.annualRevenue === '5m+' ? 'selected' : '' %>>$5M dan ko'p</option>
+              </select>
+            </div>
+
+            <!-- Company Description -->
+            <div class="settings-form-group full-width">
+              <label class="settings-label" for="companyDescription">Kompaniya Tavsifi</label>
+              <textarea id="companyDescription" name="companyDescription" class="settings-textarea" rows="4"
+                        placeholder="Kompaniyangiz haqida qisqacha ma'lumot, asosiy faoliyat yo'nalishlari va ustunliklar..."><%= user.description || '' %></textarea>
+              <small class="settings-help">Kompaniya haqida umumiy ma'lumot (maksimal 500 belgi)</small>
+            </div>
+          </div>
+
+            <div class="settings-section-actions">
+              <button type="submit" class="orders-btn orders-btn-primary" id="saveCompanyInfo">
+                <i class="fas fa-save"></i>
+                Saqlash
+              </button>
+              <button type="reset" class="orders-btn orders-btn-secondary">
+                <i class="fas fa-undo"></i>
+                Qayta Tiklash
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Contact Information Tab -->
+      <div class="settings-tab-content" id="contact-tab">
+        <form id="contactInfoForm" class="settings-form" novalidate>
+          <div class="settings-section">
+            <div class="settings-section-header">
+              <h3 class="settings-section-title">
+                <i class="fas fa-address-book"></i>
+                Aloqa Ma'lumotlari
+              </h3>
+              <p class="settings-section-subtitle">Aloqa va ijtimoiy tarmoq ma'lumotlarini boshqaring</p>
+            </div>
+            
+            <!-- Form Messages Container -->
+            <div class="form-messages" id="contactFormMessages" style="display: none;">
+              <div class="message-content"></div>
+            </div>
+            
+            <div class="settings-form-grid">
+              <!-- Email -->
+              <div class="settings-form-group">
+                <label class="settings-label" for="email">Email Manzil *</label>
+                <input type="email" id="email" name="email" class="settings-input" 
+                       value="<%= user.email || '' %>" 
+                       required 
+                       pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                       autocomplete="email">
+                <small class="settings-help">Asosiy email manzil</small>
+                <div class="field-error" style="display: none;"></div>
+              </div>
+
+              <!-- Phone -->
+              <div class="settings-form-group">
+                <label class="settings-label" for="phone">Telefon Raqami *</label>
+                <input type="tel" id="phone" name="phone" class="settings-input" 
+                       value="<%= user.phone || '' %>" 
+                       required 
+                       pattern="^\+\d{1,4}\d{6,14}$"
+                       autocomplete="tel"
+                       placeholder="+1234567890">
+                <small class="settings-help">Xalqaro format: +1 (234) 567-8900, +998 90 123 45 67, +44 20 7946 0958</small>
+                <div class="field-error" style="display: none;"></div>
+              </div>
+
+              <!-- Website -->
+              <div class="settings-form-group">
+                <label class="settings-label" for="website">Website</label>
+                <input type="url" id="website" name="website" class="settings-input" 
+                       value="<%= user.website || '' %>" 
+                       placeholder="https://example.com"
+                       pattern="https?://.*"
+                       autocomplete="url">
+                <small class="settings-help">Kompaniya web sayti</small>
+                <div class="field-error" style="display: none;"></div>
+              </div>
+
+              <!-- Address -->
+              <div class="settings-form-group full-width">
+                <label class="settings-label" for="address">To'liq Manzil *</label>
+                <textarea id="address" name="address" class="settings-textarea" rows="3" 
+                          required 
+                          minlength="10" 
+                          maxlength="500"
+                          autocomplete="street-address"><%= user.address || '' %></textarea>
+                <small class="settings-help">To'liq pochta manzili (10-500 belgi)</small>
+                <div class="field-error" style="display: none;"></div>
+              </div>
+
+            <!-- Country -->
+            <div class="settings-form-group">
+              <label class="settings-label" for="country">Mamlakat *</label>
+              <select id="country" name="country" class="settings-select" required>
+                <option value="">Tanlang...</option>
+                <option value="Uzbekistan" <%= user.country === 'Uzbekistan' ? 'selected' : '' %>>O'zbekiston</option>
+                <option value="Kazakhstan" <%= user.country === 'Kazakhstan' ? 'selected' : '' %>>Qozog'iston</option>
+                <option value="Kyrgyzstan" <%= user.country === 'Kyrgyzstan' ? 'selected' : '' %>>Qirg'iziston</option>
+                <option value="Tajikistan" <%= user.country === 'Tajikistan' ? 'selected' : '' %>>Tojikiston</option>
+                <option value="Turkmenistan" <%= user.country === 'Turkmenistan' ? 'selected' : '' %>>Turkmaniston</option>
+              </select>
+            </div>
+
+            <!-- City -->
+            <div class="settings-form-group">
+              <label class="settings-label" for="city">Shahar *</label>
+              <input type="text" id="city" name="city" class="settings-input" 
+                     value="<%= user.city || '' %>" required>
+            </div>
+          </div>
+
+          <!-- Social Media Section -->
+          <div class="settings-subsection">
+            <h4 class="settings-subsection-title">
+              <i class="fas fa-share-alt"></i>
+              Ijtimoiy Tarmoqlar
+            </h4>
+            
+            <div class="settings-form-grid">
+              <!-- LinkedIn -->
+              <div class="settings-form-group">
+                <label class="settings-label" for="linkedin">LinkedIn</label>
+                <div class="input-with-icon">
+                  <i class="fab fa-linkedin"></i>
+                  <input type="url" id="linkedin" name="socialMedia.linkedin" class="settings-input" 
+                         value="<%= user.socialMedia?.linkedin || '' %>" placeholder="https://linkedin.com/company/...">
+                </div>
+              </div>
+
+              <!-- Facebook -->
+              <div class="settings-form-group">
+                <label class="settings-label" for="facebook">Facebook</label>
+                <div class="input-with-icon">
+                  <i class="fab fa-facebook"></i>
+                  <input type="url" id="facebook" name="socialMedia.facebook" class="settings-input" 
+                         value="<%= user.socialMedia?.facebook || '' %>" placeholder="https://facebook.com/...">
+                </div>
+              </div>
+
+              <!-- Instagram -->
+              <div class="settings-form-group">
+                <label class="settings-label" for="instagram">Instagram</label>
+                <div class="input-with-icon">
+                  <i class="fab fa-instagram"></i>
+                  <input type="url" id="instagram" name="socialMedia.instagram" class="settings-input" 
+                         value="<%= user.socialMedia?.instagram || '' %>" placeholder="https://instagram.com/...">
+                </div>
+              </div>
+
+              <!-- Telegram -->
+              <div class="settings-form-group">
+                <label class="settings-label" for="telegram">Telegram</label>
+                <div class="input-with-icon">
+                  <i class="fab fa-telegram"></i>
+                  <input type="text" id="telegram" name="socialMedia.telegram" class="settings-input" 
+                         value="<%= user.socialMedia?.telegram || '' %>" placeholder="@username">
+                </div>
+              </div>
+            </div>
+          </div>
+
+            <div class="settings-section-actions">
+              <button type="submit" class="orders-btn orders-btn-primary" id="saveContactInfo">
+                <i class="fas fa-save"></i>
+                Saqlash
+              </button>
+              <button type="reset" class="orders-btn orders-btn-secondary">
+                <i class="fas fa-undo"></i>
+                Qayta Tiklash
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Business Information Tab -->
+      <div class="settings-tab-content" id="business-tab">
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3 class="settings-section-title">
+              <i class="fas fa-briefcase"></i>
+              Biznes Ma'lumotlari
+            </h3>
+            <p class="settings-section-subtitle">Biznes litsenziyalari va huquqiy ma'lumotlar</p>
+          </div>
+          
+          <div class="settings-form-grid">
+            <!-- Business License -->
+            <div class="settings-form-group">
+              <label class="settings-label" for="businessLicense">Biznes Litsenziya</label>
+              <input type="text" id="businessLicense" name="businessLicense" class="settings-input" 
+                     value="<%= user.businessLicense || '' %>">
+              <small class="settings-help">Biznes faoliyati litsenziya raqami</small>
+            </div>
+
+            <!-- Company Type -->
+            <div class="settings-form-group">
+              <label class="settings-label" for="companyType">Kompaniya Turi</label>
+              <select id="companyType" name="companyType" class="settings-select" disabled>
+                <option value="manufacturer" <%= user.companyType === 'manufacturer' ? 'selected' : '' %>>Ishlab Chiqaruvchi</option>
+                <option value="distributor" <%= user.companyType === 'distributor' ? 'selected' : '' %>>Distribyutor</option>
+              </select>
+              <small class="settings-help">Kompaniya turi o'zgartirib bo'lmaydi</small>
+            </div>
+
+            <!-- Status -->
+            <div class="settings-form-group">
+              <label class="settings-label" for="status">Akkaunt Holati</label>
+              <div class="status-display">
+                <span class="status-badge status-<%= user.status %>">
+                  <% if (user.status === 'active') { %>
+                    <i class="fas fa-check-circle"></i> Faol
+                  <% } else if (user.status === 'pending') { %>
+                    <i class="fas fa-clock"></i> Kutilmoqda
+                  <% } else if (user.status === 'blocked') { %>
+                    <i class="fas fa-ban"></i> Bloklangan
+                  <% } else if (user.status === 'suspended') { %>
+                    <i class="fas fa-pause"></i> To'xtatilgan
+                  <% } %>
+                </span>
+              </div>
+              <small class="settings-help">Akkaunt holatini admin boshqaradi</small>
+            </div>
+          </div>
+
+          <!-- Manufacturing Capabilities Section -->
+          <div class="settings-subsection">
+            <h4 class="settings-subsection-title">
+              <i class="fas fa-industry"></i>
+              Ishlab Chiqarish Imkoniyatlari
+            </h4>
+            
+            <div class="capabilities-grid">
+              <div class="capability-item">
+                <div class="capability-header">
+                  <i class="fas fa-tshirt"></i>
+                  <h5>Tekstil Ishlab Chiqarish</h5>
+                </div>
+                <div class="capability-details">
+                  <label class="checkbox-label">
+                    <input type="checkbox" name="capabilities" value="textile_manufacturing">
+                    <span class="checkmark"></span>
+                    Tekstil mahsulotlari ishlab chiqarish
+                  </label>
+                </div>
+              </div>
+
+              <div class="capability-item">
+                <div class="capability-header">
+                  <i class="fas fa-cut"></i>
+                  <h5>Kiyim Tikish</h5>
+                </div>
+                <div class="capability-details">
+                  <label class="checkbox-label">
+                    <input type="checkbox" name="capabilities" value="garment_manufacturing">
+                    <span class="checkmark"></span>
+                    Kiyim-kechak tikish va dizayn
+                  </label>
+                </div>
+              </div>
+
+              <div class="capability-item">
+                <div class="capability-header">
+                  <i class="fas fa-palette"></i>
+                  <h5>Bo'yoq va Rang</h5>
+                </div>
+                <div class="capability-details">
+                  <label class="checkbox-label">
+                    <input type="checkbox" name="capabilities" value="dyeing_printing">
+                    <span class="checkmark"></span>
+                    Bo'yoq va bosma ishlari
+                  </label>
+                </div>
+              </div>
+
+              <div class="capability-item">
+                <div class="capability-header">
+                  <i class="fas fa-medal"></i>
+                  <h5>Sifat Nazorati</h5>
+                </div>
+                <div class="capability-details">
+                  <label class="checkbox-label">
+                    <input type="checkbox" name="capabilities" value="quality_control">
+                    <span class="checkmark"></span>
+                    Professional sifat nazorati
+                  </label>
+                </div>
+              </div>
+
+              <div class="capability-item">
+                <div class="capability-header">
+                  <i class="fas fa-shipping-fast"></i>
+                  <h5>Tezkor Yetkazib Berish</h5>
+                </div>
+                <div class="capability-details">
+                  <label class="checkbox-label">
+                    <input type="checkbox" name="capabilities" value="fast_delivery">
+                    <span class="checkmark"></span>
+                    Tezkor yetkazib berish xizmati
+                  </label>
+                </div>
+              </div>
+
+              <div class="capability-item">
+                <div class="capability-header">
+                  <i class="fas fa-tools"></i>
+                  <h5>Maxsus Buyurtma</h5>
+                </div>
+                <div class="capability-details">
+                  <label class="checkbox-label">
+                    <input type="checkbox" name="capabilities" value="custom_orders">
+                    <span class="checkmark"></span>
+                    Maxsus buyurtmalar qabul qilish
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section-actions">
+            <button type="button" class="orders-btn orders-btn-primary" id="saveBusinessInfo">
+              <i class="fas fa-save"></i>
+              Saqlash
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Tab -->
+      <div class="settings-tab-content" id="security-tab">
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3 class="settings-section-title">
+              <i class="fas fa-shield-alt"></i>
+              Xavfsizlik Sozlamalari
+            </h3>
+            <p class="settings-section-subtitle">Parol va xavfsizlik parametrlarini boshqaring</p>
+          </div>
+          
+          <!-- Password Change Section -->
+          <div class="settings-subsection">
+            <h4 class="settings-subsection-title">
+              <i class="fas fa-key"></i>
+              Parol O'zgartirish
+            </h4>
+            
+            <div class="settings-form-grid">
+              <div class="settings-form-group">
+                <label class="settings-label" for="currentPassword">Joriy Parol *</label>
+                <div class="password-input-container">
+                  <input type="password" id="currentPassword" name="currentPassword" class="settings-input password-input"
+                         required
+                         autocomplete="current-password"
+                         minlength="6">
+                  <button type="button" class="password-toggle-btn" data-target="currentPassword">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+                <small class="settings-help">Hozirgi parolingizni kiriting</small>
+                <div class="field-error" style="display: none;"></div>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="newPassword">Yangi Parol *</label>
+                <div class="password-input-container">
+                  <input type="password" id="newPassword" name="newPassword" class="settings-input password-input"
+                         required
+                         minlength="8"
+                         pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$"
+                         autocomplete="new-password">
+                  <button type="button" class="password-toggle-btn" data-target="newPassword">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button type="button" class="password-generator-btn" data-target="newPassword" title="Tasodifiy parol yaratish">
+                    <i class="fas fa-magic"></i>
+                  </button>
+                </div>
+                <small class="settings-help">Kamida 8 belgi, katta va kichik harflar, raqam yoki <strong>Magic button</strong> ni bosing</small>
+                <div class="password-strength" id="passwordStrength" style="display: none;">
+                  <div class="password-strength-bar"></div>
+                </div>
+                <div class="field-error" style="display: none;"></div>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="confirmPassword">Parolni Tasdiqlang *</label>
+                <div class="password-input-container">
+                  <input type="password" id="confirmPassword" name="confirmPassword" class="settings-input password-input"
+                         required
+                         minlength="8"
+                         autocomplete="new-password">
+                  <button type="button" class="password-toggle-btn" data-target="confirmPassword">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+                <small class="settings-help">Yangi parolni qayta kiriting</small>
+                <div class="field-error" style="display: none;"></div>
+              </div>
+            </div>
+
+            <div class="settings-form-actions">
+              <button type="button" class="orders-btn orders-btn-primary" id="changePasswordBtn">
+                <i class="fas fa-key"></i>
+                Parolni O'zgartirish
+              </button>
+            </div>
+          </div>
+
+          <!-- Two-Factor Authentication -->
+          <div class="settings-subsection">
+            <h4 class="settings-subsection-title">
+              <i class="fas fa-mobile-alt"></i>
+              Ikki Faktorli Tasdiqlash
+            </h4>
+            
+            <div class="security-option">
+              <div class="security-option-info">
+                <h5>SMS Tasdiqlash</h5>
+                <p>Kirishda telefon raqamingizga tasdiqlash kodi yuboriladi</p>
+              </div>
+              <div class="security-option-toggle">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="sms2fa">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="security-option">
+              <div class="security-option-info">
+                <h5>Email Tasdiqlash</h5>
+                <p>Kirishda email manzilingizga tasdiqlash kodi yuboriladi</p>
+              </div>
+              <div class="security-option-toggle">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="email2fa">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Session Management -->
+          <div class="settings-subsection">
+            <h4 class="settings-subsection-title">
+              <i class="fas fa-clock"></i>
+              Sessiya Boshqaruvi
+            </h4>
+            
+            <div class="sessions-list">
+              <div class="session-item current">
+                <div class="session-info">
+                  <div class="session-device">
+                    <i class="fas fa-desktop"></i>
+                    <span>Joriy Sessiya - Chrome Browser</span>
+                  </div>
+                  <div class="session-details">
+                    <span class="session-ip">IP: 192.168.1.100</span>
+                    <span class="session-time">Oxirgi faollik: 2 daqiqa oldin</span>
+                  </div>
+                </div>
+                <div class="session-actions">
+                  <span class="session-status active">Faol</span>
+                </div>
+              </div>
+
+              <div class="session-item">
+                <div class="session-info">
+                  <div class="session-device">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span>Mobile App - Android</span>
+                  </div>
+                  <div class="session-details">
+                    <span class="session-ip">IP: 192.168.1.105</span>
+                    <span class="session-time">Oxirgi faollik: 1 soat oldin</span>
+                  </div>
+                </div>
+                <div class="session-actions">
+                  <button class="orders-btn orders-btn-sm orders-btn-danger">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Chiqarish
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-form-actions">
+              <button type="button" class="orders-btn orders-btn-danger" id="logoutAllSessionsBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                Barcha Qurilmalardan Chiqish
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preferences Tab -->
+      <div class="settings-tab-content" id="preferences-tab">
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3 class="settings-section-title">
+              <i class="fas fa-sliders-h"></i>
+              Foydalanuvchi Sozlamalari
+            </h3>
+            <p class="settings-section-subtitle">Interfeys va bildirishnoma sozlamalarini sozlang</p>
+          </div>
+          
+          <!-- Interface Preferences -->
+          <div class="settings-subsection">
+            <h4 class="settings-subsection-title">
+              <i class="fas fa-desktop"></i>
+              Interfeys Sozlamalari
+            </h4>
+            
+            <div class="settings-form-grid">
+              <div class="settings-form-group">
+                <label class="settings-label" for="language">Til</label>
+                <select id="language" name="language" class="settings-select">
+                  <option value="uz">O'zbekcha</option>
+                  <option value="ru">Русский</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="timezone">Vaqt Zonasi</label>
+                <select id="timezone" name="timezone" class="settings-select">
+                  <option value="Asia/Tashkent">Toshkent (UTC+5)</option>
+                  <option value="Asia/Almaty">Almaty (UTC+6)</option>
+                  <option value="Asia/Bishkek">Bishkek (UTC+6)</option>
+                </select>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="dateFormat">Sana Formati</label>
+                <select id="dateFormat" name="dateFormat" class="settings-select">
+                  <option value="DD.MM.YYYY">31.12.2024</option>
+                  <option value="MM/DD/YYYY">12/31/2024</option>
+                  <option value="YYYY-MM-DD">2024-12-31</option>
+                </select>
+              </div>
+
+              <div class="settings-form-group">
+                <label class="settings-label" for="currency">Valyuta</label>
+                <select id="currency" name="currency" class="settings-select">
+                  <option value="USD">USD ($)</option>
+                  <option value="UZS">UZS (so'm)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Theme Settings -->
+            <div class="theme-settings">
+              <h5>Mavzu Sozlamalari</h5>
+              <div class="theme-options">
+                <label class="theme-option">
+                  <input type="radio" name="dashboard-theme" value="light" checked>
+                  <div class="theme-preview light">
+                    <div class="theme-header"></div>
+                    <div class="theme-body"></div>
+                  </div>
+                  <span>Yorug'</span>
+                </label>
+
+                <label class="theme-option">
+                  <input type="radio" name="dashboard-theme" value="dark">
+                  <div class="theme-preview dark">
+                    <div class="theme-header"></div>
+                    <div class="theme-body"></div>
+                  </div>
+                  <span>Qorong'i</span>
+                </label>
+
+                <label class="theme-option">
+                  <input type="radio" name="dashboard-theme" value="auto">
+                  <div class="theme-preview auto">
+                    <div class="theme-header"></div>
+                    <div class="theme-body"></div>
+                  </div>
+                  <span>Avto</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notification Preferences -->
+          <div class="settings-subsection">
+            <h4 class="settings-subsection-title">
+              <i class="fas fa-bell"></i>
+              Bildirishnoma Sozlamalari
+            </h4>
+            
+            <div class="notification-settings">
+              <div class="notification-category">
+                <h5>Buyurtmalar</h5>
+                <div class="notification-options">
+                  <label class="notification-option">
+                    <input type="checkbox" name="notifications" value="new_order_email" checked>
+                    <span class="checkmark"></span>
+                    <div class="notification-info">
+                      <span class="notification-title">Yangi buyurtma - Email</span>
+                      <small>Yangi buyurtma kelganda email yuborish</small>
+                    </div>
+                  </label>
+
+                  <label class="notification-option">
+                    <input type="checkbox" name="notifications" value="new_order_sms">
+                    <span class="checkmark"></span>
+                    <div class="notification-info">
+                      <span class="notification-title">Yangi buyurtma - SMS</span>
+                      <small>Yangi buyurtma kelganda SMS yuborish</small>
+                    </div>
+                  </label>
+
+                  <label class="notification-option">
+                    <input type="checkbox" name="notifications" value="order_status_email" checked>
+                    <span class="checkmark"></span>
+                    <div class="notification-info">
+                      <span class="notification-title">Buyurtma holati - Email</span>
+                      <small>Buyurtma holati o'zgarganda email yuborish</small>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="notification-category">
+                <h5>So'rovlar</h5>
+                <div class="notification-options">
+                  <label class="notification-option">
+                    <input type="checkbox" name="notifications" value="new_inquiry_email" checked>
+                    <span class="checkmark"></span>
+                    <div class="notification-info">
+                      <span class="notification-title">Yangi so'rov - Email</span>
+                      <small>Yangi so'rov kelganda email yuborish</small>
+                    </div>
+                  </label>
+
+                  <label class="notification-option">
+                    <input type="checkbox" name="notifications" value="inquiry_response_email">
+                    <span class="checkmark"></span>
+                    <div class="notification-info">
+                      <span class="notification-title">So'rov javobi - Email</span>
+                      <small>So'rovga javob kelganda email yuborish</small>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="notification-category">
+                <h5>Tizim</h5>
+                <div class="notification-options">
+                  <label class="notification-option">
+                    <input type="checkbox" name="notifications" value="system_updates_email">
+                    <span class="checkmark"></span>
+                    <div class="notification-info">
+                      <span class="notification-title">Tizim yangilanishlari - Email</span>
+                      <small>Tizim yangilanishlari haqida xabar berish</small>
+                    </div>
+                  </label>
+
+                  <label class="notification-option">
+                    <input type="checkbox" name="notifications" value="marketing_email">
+                    <span class="checkmark"></span>
+                    <div class="notification-info">
+                      <span class="notification-title">Marketing xabarlari - Email</span>
+                      <small>Yangiliklar va marketing xabarlarini olish</small>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section-actions">
+            <button type="button" class="orders-btn orders-btn-primary" id="savePreferences">
+              <i class="fas fa-save"></i>
+              Saqlash
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Integrations Tab -->
+      <div class="settings-tab-content" id="integrations-tab">
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3 class="settings-section-title">
+              <i class="fas fa-plug"></i>
+              Integratsiyalar
+            </h3>
+            <p class="settings-section-subtitle">Tashqi xizmatlar va API ulanishlarini boshqaring</p>
+          </div>
+          
+          <!-- Payment Integrations -->
+          <div class="settings-subsection">
+            <h4 class="settings-subsection-title">
+              <i class="fas fa-credit-card"></i>
+              To'lov Tizimlari
+            </h4>
+            
+            <div class="integration-list">
+              <div class="integration-item">
+                <div class="integration-info">
+                  <div class="integration-logo">
+                    <img src="/assets/images/integrations/payme.svg" alt="Payme">
+                  </div>
+                  <div class="integration-details">
+                    <h5>Payme</h5>
+                    <p>O'zbekistondagi eng keng tarqalgan to'lov tizimi</p>
+                  </div>
+                </div>
+                <div class="integration-status">
+                  <span class="status-badge status-warning">Sozlanmagan</span>
+                  <button class="orders-btn orders-btn-outline orders-btn-sm">
+                    <i class="fas fa-cog"></i>
+                    Sozlash
+                  </button>
+                </div>
+              </div>
+
+              <div class="integration-item">
+                <div class="integration-info">
+                  <div class="integration-logo">
+                    <img src="/assets/images/integrations/click.svg" alt="Click">
+                  </div>
+                  <div class="integration-details">
+                    <h5>Click</h5>
+                    <p>Tezkor va xavfsiz to'lov yechimlari</p>
+                  </div>
+                </div>
+                <div class="integration-status">
+                  <span class="status-badge status-success">Ulantirilgan</span>
+                  <button class="orders-btn orders-btn-outline orders-btn-sm">
+                    <i class="fas fa-cog"></i>
+                    Sozlamalar
+                  </button>
+                </div>
+              </div>
+
+              <div class="integration-item">
+                <div class="integration-info">
+                  <div class="integration-logo">
+                    <img src="/assets/images/integrations/uzcard.svg" alt="UzCard">
+                  </div>
+                  <div class="integration-details">
+                    <h5>UzCard</h5>
+                    <p>Milliy to'lov kartalar tizimi</p>
+                  </div>
+                </div>
+                <div class="integration-status">
+                  <span class="status-badge status-warning">Sozlanmagan</span>
+                  <button class="orders-btn orders-btn-outline orders-btn-sm">
+                    <i class="fas fa-cog"></i>
+                    Sozlash
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shipping Integrations -->
+          <div class="settings-subsection">
+            <h4 class="settings-subsection-title">
+              <i class="fas fa-shipping-fast"></i>
+              Yetkazib Berish Xizmatlari
+            </h4>
+            
+            <div class="integration-list">
+              <div class="integration-item">
+                <div class="integration-info">
+                  <div class="integration-logo">
+                    <img src="/assets/images/integrations/express24.svg" alt="Express24">
+                  </div>
+                  <div class="integration-details">
+                    <h5>Express24</h5>
+                    <p>Tezkor yetkazib berish xizmati</p>
+                  </div>
+                </div>
+                <div class="integration-status">
+                  <span class="status-badge status-success">Ulantirilgan</span>
+                  <button class="orders-btn orders-btn-outline orders-btn-sm">
+                    <i class="fas fa-cog"></i>
+                    Sozlamalar
+                  </button>
+                </div>
+              </div>
+
+              <div class="integration-item">
+                <div class="integration-info">
+                  <div class="integration-logo">
+                    <img src="/assets/images/integrations/dhl.svg" alt="DHL">
+                  </div>
+                  <div class="integration-details">
+                    <h5>DHL Express</h5>
+                    <p>Xalqaro yetkazib berish xizmati</p>
+                  </div>
+                </div>
+                <div class="integration-status">
+                  <span class="status-badge status-warning">Sozlanmagan</span>
+                  <button class="orders-btn orders-btn-outline orders-btn-sm">
+                    <i class="fas fa-cog"></i>
+                    Sozlash
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Communication Integrations -->
+          <div class="settings-subsection">
+            <h4 class="settings-subsection-title">
+              <i class="fas fa-comments"></i>
+              Aloqa Tizimlari
+            </h4>
+            
+            <div class="integration-list">
+              <div class="integration-item">
+                <div class="integration-info">
+                  <div class="integration-logo">
+                    <i class="fab fa-telegram"></i>
+                  </div>
+                  <div class="integration-details">
+                    <h5>Telegram Bot</h5>
+                    <p>Telegram orqali bildirishnomalar va aloqa</p>
+                  </div>
+                </div>
+                <div class="integration-status">
+                  <span class="status-badge status-success">Ulantirilgan</span>
+                  <button class="orders-btn orders-btn-outline orders-btn-sm">
+                    <i class="fas fa-cog"></i>
+                    Sozlamalar
+                  </button>
+                </div>
+              </div>
+
+              <div class="integration-item">
+                <div class="integration-info">
+                  <div class="integration-logo">
+                    <i class="fas fa-envelope"></i>
+                  </div>
+                  <div class="integration-details">
+                    <h5>Email Service</h5>
+                    <p>SMTP email xizmati sozlamalari</p>
+                  </div>
+                </div>
+                <div class="integration-status">
+                  <span class="status-badge status-success">Ulantirilgan</span>
+                  <button class="orders-btn orders-btn-outline orders-btn-sm">
+                    <i class="fas fa-cog"></i>
+                    Sozlamalar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- API Keys Section -->
+          <div class="settings-subsection">
+            <h4 class="settings-subsection-title">
+              <i class="fas fa-key"></i>
+              API Kalitlari
+            </h4>
+            
+            <div class="api-keys-list">
+              <div class="api-key-item">
+                <div class="api-key-info">
+                  <h5>SLEX API Key</h5>
+                  <p>Asosiy API kaliti - tashqi tizimlar uchun</p>
+                  <code>slex_api_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code>
+                </div>
+                <div class="api-key-actions">
+                  <button class="orders-btn orders-btn-outline orders-btn-sm" id="regenerateApiKey">
+                    <i class="fas fa-sync"></i>
+                    Yangisini Yaratish
+                  </button>
+                  <button class="orders-btn orders-btn-secondary orders-btn-sm" id="copyApiKey">
+                    <i class="fas fa-copy"></i>
+                    Nusxalash
+                  </button>
+                </div>
+              </div>
+
+              <div class="api-permissions">
+                <h5>API Ruxsatlari</h5>
+                <div class="permission-list">
+                  <label class="permission-item">
+                    <input type="checkbox" checked disabled>
+                    <span class="checkmark"></span>
+                    <span>Mahsulotlarni o'qish</span>
+                  </label>
+                  <label class="permission-item">
+                    <input type="checkbox" checked>
+                    <span class="checkmark"></span>
+                    <span>Mahsulotlarni yozish</span>
+                  </label>
+                  <label class="permission-item">
+                    <input type="checkbox" checked>
+                    <span class="checkmark"></span>
+                    <span>Buyurtmalarni o'qish</span>
+                  </label>
+                  <label class="permission-item">
+                    <input type="checkbox">
+                    <span class="checkmark"></span>
+                    <span>Buyurtmalarni boshqarish</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section-actions">
+            <button type="button" class="orders-btn orders-btn-primary" id="saveIntegrations">
+              <i class="fas fa-save"></i>
+              Saqlash
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- Theme Sync Script - Load before main settings -->
+<script>
+// Early theme sync to prevent flash of wrong theme
+(function() {
+  const slexTheme = localStorage.getItem('dashboard-theme');
+  const theme = localStorage.getItem('dashboard-theme');
+  const manufacturerTheme = localStorage.getItem('dashboard-theme');
+  
+  // Priority: slex_theme > theme > manufacturer-theme > default
+  const activeTheme = slexTheme || theme || manufacturerTheme || 'light';
+  
+  // Apply immediately to prevent flash
+  document.documentElement.setAttribute('data-theme', activeTheme);
+  
+  // Sync all keys
+  localStorage.setItem('dashboard-theme', activeTheme);
+  localStorage.setItem('dashboard-theme', activeTheme);
+  localStorage.setItem('dashboard-theme', activeTheme);
+  
+  console.log('🎨 Early theme sync:', activeTheme);
+})();
+</script>
+
+<!-- JavaScript -->
+<script src="/js/manufacturer/settings.js"></script>
+
+<%- include('../partials/footer') %>

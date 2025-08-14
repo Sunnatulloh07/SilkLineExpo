@@ -128,7 +128,7 @@
   <!-- Global Variables -->
   <script>
     // Set global debug mode
-    window.DEBUG_MODE = <%= process.env.NODE_ENV !== 'production' %>;
+    window.DEBUG_MODE = "<%= process.env.NODE_ENV !== 'production' %>";
     
     // Settings page specific initialization
     if (window.location.pathname.includes('/settings')) {

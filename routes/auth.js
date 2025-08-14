@@ -131,12 +131,10 @@ router.get('/me', (req, res) => {
  */
 router.post('/refresh-token', async (req, res) => {
   try {
-    console.log('🔄 Refresh token request received');
     const TokenService = require('../services/TokenService');
     const tokens = TokenService.extractTokensFromRequest(req);
 
     if (!tokens.refreshToken) {
-      console.log('❌ Refresh token not found in request');
       return res.status(401).json({
         success: false,
         message: "Refresh token not found",
@@ -148,7 +146,6 @@ router.post('/refresh-token', async (req, res) => {
       });
     }
 
-    console.log('🔍 Attempting to refresh with token');
     const refreshResult = await TokenService.refreshAccessToken(
       tokens.refreshToken,
       { 
@@ -158,7 +155,6 @@ router.post('/refresh-token', async (req, res) => {
     );
 
     if (!refreshResult.success) {
-      console.log('❌ Token refresh failed:', refreshResult.message || refreshResult.error);
       TokenService.clearAuthCookies(res);
       return res.status(401).json({
         success: false,
@@ -186,7 +182,6 @@ router.post('/refresh-token', async (req, res) => {
     });
     
   } catch (error) {
-    console.error("Token refresh error:", error);
     return res.status(500).json({
       success: false,
       message: "Token refresh failed"
@@ -246,9 +241,7 @@ router.use('*', (req, res) => {
 /**
  * Error handler
  */
-router.use((error, req, res, next) => {
-  console.error('Auth route error:', error);
-  
+router.use((error, req, res, next) => { 
   const isDevelopment = process.env.NODE_ENV === 'development';
   const errorMessage = isDevelopment ? error.message : 'Authentication error occurred';
   

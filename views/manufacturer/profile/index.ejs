@@ -1,0 +1,611 @@
+<%- include('../partials/header', { title: 'Kompaniya Profili', lng: lng || 'uz', user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'profile' }) %>
+
+<!-- Enhanced CSS Imports - Professional Profile Style -->
+<link rel="stylesheet" href="/css/products-management-redesign.css">
+<link rel="stylesheet" href="/css/products-table-view.css">
+<link rel="stylesheet" href="/css/orders-management.css">
+<link rel="stylesheet" href="/css/manufacturer-cards.css">
+<link rel="stylesheet" href="/css/manufacturer-theme.css">
+<link rel="stylesheet" href="/css/toast-notifications.css">
+<link rel="stylesheet" href="/css/modal-system.css">
+<link rel="stylesheet" href="/css/manufacturer/profile.css">
+
+<!-- Security: CSRF Token -->
+<meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+
+<!-- External Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+<!-- Main Content -->
+<main class="admin-main profile-page">
+  <div class="admin-content">
+    
+    <!-- Professional Profile Header -->
+    <div class="orders-header animate-fade-in">
+      <div class="orders-header-content">
+        <div class="orders-title-section">
+          <h1 class="orders-main-title">
+            <i class="fas fa-user-circle"></i>
+            Kompaniya Profili
+          </h1>
+          <p class="orders-subtitle">Kompaniya ma'lumotlari va biznes ko'rsatkichlari</p>
+        </div>
+        <div class="orders-header-actions">
+          <button class="orders-btn orders-btn-primary" id="editProfileBtn">
+            <i class="fas fa-edit"></i>
+            Tahrirlash
+          </button>
+          <button class="orders-btn orders-btn-outline" id="shareProfileBtn">
+            <i class="fas fa-share"></i>
+            Profil Ulashish
+          </button>
+          <button class="orders-btn orders-btn-secondary" id="printProfileBtn">
+            <i class="fas fa-print"></i>
+            Chop Etish
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Company Overview Section -->
+    <div class="profile-overview-section animate-fade-in">
+      <div class="profile-hero-card">
+        <div class="profile-hero-content">
+          <div class="company-logo-section">
+            <div class="company-logo-container">
+              <img src="<%= (user.companyLogo && user.companyLogo.url) || '/assets/images/avatars/default-company.png' %>" 
+                   alt="<%= user.companyName || 'Company Logo' %>" 
+                   class="company-logo"
+                   id="companyLogo"
+                   onerror="this.onerror=null; this.src='/assets/images/avatars/default.png'">
+            </div>
+            <div class="company-verification">
+              <% if (user.status === 'active') { %>
+                <span class="verification-badge verified">
+                  <i class="fas fa-check-circle"></i>
+                  Tasdiqlangan
+                </span>
+              <% } else { %>
+                <span class="verification-badge pending">
+                  <i class="fas fa-clock"></i>
+                  Kutilmoqda
+                </span>
+              <% } %>
+            </div>
+          </div>
+
+          <div class="company-basic-info">
+            <h2 class="company-name" id="companyName">-</h2>
+            <div class="company-meta">
+              <span class="company-type">
+                <i class="fas fa-industry"></i>
+                Ishlab Chiqaruvchi
+              </span>
+              <span class="company-location">
+                <i class="fas fa-map-marker-alt"></i>
+                <span id="companyLocation">-</span>
+              </span>
+              <span class="company-established" id="companyEstablished" style="display: none;">
+                <i class="fas fa-calendar"></i>
+                <span id="establishedYear">-</span> yildan beri
+              </span>
+            </div>
+            <div class="company-contact-quick">
+              <a href="#" class="contact-btn email" id="heroEmail">
+                <i class="fas fa-envelope"></i>
+                -
+              </a>
+              <a href="#" class="contact-btn phone" id="heroPhone">
+                <i class="fas fa-phone"></i>
+                -
+              </a>
+              <a href="#" target="_blank" class="contact-btn website" id="heroWebsite" style="display: none;">
+                <i class="fas fa-globe"></i>
+                Website
+              </a>
+            </div>
+          </div>
+
+          <div class="company-stats-quick">
+            <div class="stat-item">
+              <div class="stat-value" id="totalProducts">0</div>
+              <div class="stat-label">Mahsulotlar</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="totalOrders">0</div>
+              <div class="stat-label">Buyurtmalar</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="totalRevenue">$0</div>
+              <div class="stat-label">Daromad</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="customerRating">0.0</div>
+              <div class="stat-label">Reyting</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Content Grid -->
+    <div class="profile-content-grid animate-fade-in">
+      
+      <!-- Left Column -->
+      <div class="profile-left-column">
+        
+        <!-- Business Information Card -->
+        <div class="profile-card">
+          <div class="profile-card-header">
+            <h3 class="profile-card-title">
+              <i class="fas fa-briefcase"></i>
+              Biznes Ma'lumotlari
+            </h3>
+          </div>
+          <div class="profile-card-content">
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Faoliyat Turi:</label>
+                <span class="activity-type" id="activityType">
+                  <i class="fas fa-industry"></i> -
+                </span>
+              </div>
+
+              <div class="info-item">
+                <label>Biznes Litsenziya:</label>
+                <span id="businessLicense">-</span>
+              </div>
+
+              <div class="info-item">
+                <label>Soliq Raqami:</label>
+                <span id="taxNumber">-</span>
+              </div>
+
+              <div class="info-item">
+                <label>Xodimlar Soni:</label>
+                <span class="employee-count" id="employeeCount">
+                  <i class="fas fa-users"></i>
+                  -
+                </span>
+              </div>
+
+              <div class="info-item">
+                <label>Yillik Aylanma:</label>
+                <span class="annual-revenue" id="annualRevenue">
+                  <i class="fas fa-dollar-sign"></i>
+                  -
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manufacturing Capabilities Card -->
+        <div class="profile-card">
+          <div class="profile-card-header">
+            <h3 class="profile-card-title">
+              <i class="fas fa-industry"></i>
+              Ishlab Chiqarish Imkoniyatlari
+            </h3>
+          </div>
+          <div class="profile-card-content">
+            <div class="capabilities-grid">
+              <div class="capability-item">
+                <div class="capability-icon">
+                  <i class="fas fa-tshirt"></i>
+                </div>
+                <div class="capability-info">
+                  <h5>Tekstil Ishlab Chiqarish</h5>
+                  <p>Yuqori sifatli tekstil mahsulotlari</p>
+                </div>
+                <div class="capability-status">
+                  <i class="fas fa-check-circle text-success"></i>
+                </div>
+              </div>
+
+              <div class="capability-item">
+                <div class="capability-icon">
+                  <i class="fas fa-cut"></i>
+                </div>
+                <div class="capability-info">
+                  <h5>Kiyim Tikish</h5>
+                  <p>Professional kiyim tikish xizmatlari</p>
+                </div>
+                <div class="capability-status">
+                  <i class="fas fa-check-circle text-success"></i>
+                </div>
+              </div>
+
+              <div class="capability-item">
+                <div class="capability-icon">
+                  <i class="fas fa-palette"></i>
+                </div>
+                <div class="capability-info">
+                  <h5>Bo'yoq va Rang</h5>
+                  <p>Rang berish va bosma ishlari</p>
+                </div>
+                <div class="capability-status">
+                  <i class="fas fa-check-circle text-success"></i>
+                </div>
+              </div>
+
+              <div class="capability-item">
+                <div class="capability-icon">
+                  <i class="fas fa-medal"></i>
+                </div>
+                <div class="capability-info">
+                  <h5>Sifat Nazorati</h5>
+                  <p>ISO standartlari bo'yicha nazorat</p>
+                </div>
+                <div class="capability-status">
+                  <i class="fas fa-check-circle text-success"></i>
+                </div>
+              </div>
+
+              <div class="capability-item">
+                <div class="capability-icon">
+                  <i class="fas fa-shipping-fast"></i>
+                </div>
+                <div class="capability-info">
+                  <h5>Tezkor Yetkazib Berish</h5>
+                  <p>O'z vaqtida yetkazib berish kafolati</p>
+                </div>
+                <div class="capability-status">
+                  <i class="fas fa-check-circle text-success"></i>
+                </div>
+              </div>
+
+              <div class="capability-item">
+                <div class="capability-icon">
+                  <i class="fas fa-tools"></i>
+                </div>
+                <div class="capability-info">
+                  <h5>Maxsus Buyurtma</h5>
+                  <p>Individual talablar bo'yicha</p>
+                </div>
+                <div class="capability-status">
+                  <i class="fas fa-check-circle text-success"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Information Card -->
+        <div class="profile-card">
+          <div class="profile-card-header">
+            <h3 class="profile-card-title">
+              <i class="fas fa-address-book"></i>
+              Aloqa Ma'lumotlari
+            </h3>
+          </div>
+          <div class="profile-card-content">
+            <div class="contact-info-grid">
+              <div class="contact-item">
+                <div class="contact-icon">
+                  <i class="fas fa-envelope"></i>
+                </div>
+                <div class="contact-details">
+                  <label>Email:</label>
+                  <a href="#" id="contactEmail">-</a>
+                </div>
+              </div>
+
+              <div class="contact-item">
+                <div class="contact-icon">
+                  <i class="fas fa-phone"></i>
+                </div>
+                <div class="contact-details">
+                  <label>Telefon:</label>
+                  <a href="#" id="contactPhone">-</a>
+                </div>
+              </div>
+
+              <div class="contact-item">
+                <div class="contact-icon">
+                  <i class="fas fa-globe"></i>
+                </div>
+                <div class="contact-details">
+                  <label>Website:</label>
+                  <a href="#" target="_blank" id="contactWebsite">-</a>
+                </div>
+              </div>
+
+              <div class="contact-item">
+                <div class="contact-icon">
+                  <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="contact-details">
+                  <label>Manzil:</label>
+                  <address id="contactAddress">-</address>
+                </div>
+              </div>
+            </div>
+
+            <!-- Social Media Links -->
+            <% if (user.socialMedia && (user.socialMedia.linkedin || user.socialMedia.facebook || user.socialMedia.instagram || user.socialMedia.telegram)) { %>
+              <div class="social-media-section">
+                <h5>Ijtimoiy Tarmoqlar</h5>
+                <div class="social-links">
+                  <% if (user.socialMedia.linkedin) { %>
+                    <a href="<%= user.socialMedia.linkedin %>" target="_blank" class="social-link linkedin">
+                      <i class="fab fa-linkedin"></i>
+                    </a>
+                  <% } %>
+                  <% if (user.socialMedia.facebook) { %>
+                    <a href="<%= user.socialMedia.facebook %>" target="_blank" class="social-link facebook">
+                      <i class="fab fa-facebook"></i>
+                    </a>
+                  <% } %>
+                  <% if (user.socialMedia.instagram) { %>
+                    <a href="<%= user.socialMedia.instagram %>" target="_blank" class="social-link instagram">
+                      <i class="fab fa-instagram"></i>
+                    </a>
+                  <% } %>
+                  <% if (user.socialMedia.telegram) { %>
+                    <a href="https://t.me/<%= user.socialMedia.telegram.replace('@', '') %>" target="_blank" class="social-link telegram">
+                      <i class="fab fa-telegram"></i>
+                    </a>
+                  <% } %>
+                </div>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="profile-right-column">
+        
+        <!-- Performance Metrics Card -->
+        <div class="profile-card">
+          <div class="profile-card-header">
+            <h3 class="profile-card-title">
+              <i class="fas fa-chart-line"></i>
+              Ish Ko'rsatkichlari
+            </h3>
+            <div class="profile-card-actions">
+              <select class="period-selector">
+                <option value="30">So'nggi 30 kun</option>
+                <option value="90">So'nggi 3 oy</option>
+                <option value="365">So'nggi 1 yil</option>
+              </select>
+            </div>
+          </div>
+          <div class="profile-card-content">
+            <div class="metrics-grid">
+              <div class="metric-item">
+                <div class="metric-icon sales">
+                  <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="metric-details">
+                  <div class="metric-value" id="totalSales">$0</div>
+                  <div class="metric-label">Umumiy Sotuv</div>
+                  <div class="metric-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="salesChange">+0%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="metric-item">
+                <div class="metric-icon orders">
+                  <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="metric-details">
+                  <div class="metric-value" id="completedOrders">0</div>
+                  <div class="metric-label">Tugallangan Buyurtmalar</div>
+                  <div class="metric-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="ordersChange">+0%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="metric-item">
+                <div class="metric-icon rating">
+                  <i class="fas fa-star"></i>
+                </div>
+                <div class="metric-details">
+                  <div class="metric-value" id="averageRating">0.0</div>
+                  <div class="metric-label">O'rtacha Reyting</div>
+                  <div class="metric-reviews">
+                    <span id="totalReviews">0</span> ta baholash
+                  </div>
+                </div>
+              </div>
+
+              <div class="metric-item">
+                <div class="metric-icon response">
+                  <i class="fas fa-clock"></i>
+                </div>
+                <div class="metric-details">
+                  <div class="metric-value" id="responseTime">0h</div>
+                  <div class="metric-label">O'rtacha Javob Vaqti</div>
+                  <div class="metric-change positive">
+                    <i class="fas fa-arrow-down"></i>
+                    <span id="responseChange">-0%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Performance Chart -->
+            <div class="performance-chart-container">
+              <canvas id="performanceChart" width="400" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- Certifications Card -->
+        <div class="profile-card">
+          <div class="profile-card-header">
+            <h3 class="profile-card-title">
+              <i class="fas fa-certificate"></i>
+              Sertifikatlar va Litsenziyalar
+            </h3>
+            <button class="orders-btn orders-btn-outline orders-btn-sm" id="addCertificationBtn">
+              <i class="fas fa-plus"></i>
+              Qo'shish
+            </button>
+          </div>
+          <div class="profile-card-content">
+            <div class="certifications-list">
+              <div class="certification-item">
+                <div class="certification-icon">
+                  <i class="fas fa-award"></i>
+                </div>
+                <div class="certification-details">
+                  <h5>ISO 9001:2015</h5>
+                  <p>Sifat menejmenti tizimi</p>
+                  <small>Muddati: 2026 yil dekabrgacha</small>
+                </div>
+                <div class="certification-status">
+                  <span class="status-badge status-success">Faol</span>
+                </div>
+              </div>
+
+              <div class="certification-item">
+                <div class="certification-icon">
+                  <i class="fas fa-leaf"></i>
+                </div>
+                <div class="certification-details">
+                  <h5>OEKO-TEX Standard 100</h5>
+                  <p>Ekologik toza tekstil standartlari</p>
+                  <small>Muddati: 2025 yil mart</small>
+                </div>
+                <div class="certification-status">
+                  <span class="status-badge status-success">Faol</span>
+                </div>
+              </div>
+
+              <div class="certification-item">
+                <div class="certification-icon">
+                  <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="certification-details">
+                  <h5>CE Marking</h5>
+                  <p>Evropa Ittifoqi standartlariga muvofiqlik</p>
+                  <small>Muddati: Cheklanmagan</small>
+                </div>
+                <div class="certification-status">
+                  <span class="status-badge status-success">Faol</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="certifications-actions">
+              <button class="orders-btn orders-btn-outline" id="uploadCertificateBtn">
+                <i class="fas fa-upload"></i>
+                Sertifikat Yuklash
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Company Timeline Card -->
+        <div class="profile-card">
+          <div class="profile-card-header">
+            <h3 class="profile-card-title">
+              <i class="fas fa-history"></i>
+              Kompaniya Tarixi
+            </h3>
+          </div>
+          <div class="profile-card-content">
+            <div class="timeline">
+              <div class="timeline-item" id="timelineEstablished" style="display: none;">
+                <div class="timeline-date">
+                  <span id="timelineEstablishedYear">-</span>
+                </div>
+                <div class="timeline-content">
+                  <h5>Kompaniya Tashkil Etilgan</h5>
+                    <p><span id="timelineCompanyName">-</span> kompaniyasi rasmiy ravishda tashkil etildi</p>
+                  </div>
+                </div>
+
+              <div class="timeline-item">
+                <div class="timeline-date">
+                  <span>2023</span>
+                </div>
+                <div class="timeline-content">
+                  <h5>ISO 9001 Sertifikati</h5>
+                  <p>Sifat menejmenti tizimi bo'yicha xalqaro sertifikat olindi</p>
+                </div>
+              </div>
+
+              <div class="timeline-item">
+                <div class="timeline-date">
+                  <span>2024</span>
+                </div>
+                <div class="timeline-content">
+                  <h5>SLEX Platformasiga Qo'shilish</h5>
+                  <p>B2B marketplace platformasida rasmiy ravishda ro'yxatdan o'tdi</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Profile Share Modal -->
+<div class="modal-overlay" id="shareProfileModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-share"></i>
+        Profil Ulashish
+      </h3>
+      <button class="modal-close" onclick="closeModal('shareProfileModal')">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="share-options">
+        <div class="share-url-section">
+          <label>Profil Havolasi:</label>
+          <div class="url-input-group">
+            <input type="text" id="profileUrl" value="https://slex.uz/manufacturer/<%= user._id %>" readonly>
+            <button class="orders-btn orders-btn-outline" id="copyUrlBtn">
+              <i class="fas fa-copy"></i>
+              Nusxalash
+            </button>
+          </div>
+        </div>
+
+        <div class="qr-code-section">
+          <h5>QR Kod:</h5>
+          <div class="qr-code-container">
+            <canvas id="qrCodeCanvas" width="200" height="200"></canvas>
+          </div>
+          <button class="orders-btn orders-btn-outline" id="downloadQrBtn">
+            <i class="fas fa-download"></i>
+            QR Kodni Yuklab Olish
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fix double scroll by adding profile-page class to body -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Add profile-page class to body to enable specific CSS fixes
+  document.body.classList.add('profile-page-body');
+  document.documentElement.classList.add('profile-page-html');
+});
+</script>
+
+<!-- JavaScript -->
+<script src="/js/chart.min.js"></script>
+<script src="/js/qrcode.min.js"></script>
+<script src="/js/manufacturer/profile.js"></script>
+
+<%- include('../partials/footer') %>

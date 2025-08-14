@@ -183,6 +183,16 @@
                     this.closeAllDropdowns();
                 }
             });
+
+            // Close dropdowns on scroll to prevent positioning issues
+            window.addEventListener('scroll', () => {
+                this.closeAllDropdowns();
+            }, { passive: true });
+
+            // Close dropdowns on window resize
+            window.addEventListener('resize', () => {
+                this.closeAllDropdowns();
+            }, { passive: true });
         }
 
         setupKeyboardShortcuts() {
@@ -527,10 +537,51 @@
                 }
             });
 
+            // Check if dropdown was hidden before
+            const wasHidden = dropdown.classList.contains('hidden');
+
             // Toggle current dropdown
             dropdown.classList.toggle('hidden');
 
+            // Position dropdown outside card when showing
+            if (wasHidden) {
+                this.positionCardDropdown(dropdown, toggleBtn);
+            }
+
             logger.log(`🔽 Card action dropdown toggled`);
+        }
+
+        positionCardDropdown(dropdown, toggleBtn) {
+            if (!dropdown || !toggleBtn) return;
+
+            // Get button position
+            const btnRect = toggleBtn.getBoundingClientRect();
+            const dropdownRect = dropdown.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const viewportWidth = window.innerWidth;
+
+            // Calculate optimal position
+            let top = btnRect.bottom + 5;
+            let left = btnRect.right - 180; // dropdown min-width is 180px
+
+            // Adjust if dropdown goes below viewport
+            if (top + dropdownRect.height > viewportHeight) {
+                top = btnRect.top - dropdownRect.height - 5;
+            }
+
+            // Adjust if dropdown goes outside left edge
+            if (left < 10) {
+                left = 10;
+            }
+
+            // Adjust if dropdown goes outside right edge
+            if (left + 180 > viewportWidth - 10) {
+                left = viewportWidth - 190;
+            }
+
+            // Apply position
+            dropdown.style.top = `${top}px`;
+            dropdown.style.left = `${left}px`;
         }
 
         // ===============================================

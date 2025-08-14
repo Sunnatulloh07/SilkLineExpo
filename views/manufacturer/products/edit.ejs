@@ -464,6 +464,15 @@
             </div>
             
             <div class="image-upload-section">
+              <!-- Image Counter -->
+              <div class="image-counter-section">
+                <div class="image-counter">0/10 rasm</div>
+                <div class="image-status-info">
+                  <span class="temp-images-count">Yangi: 0</span>
+                  <span class="existing-images-count">Mavjud: 0</span>
+                </div>
+              </div>
+              
               <!-- Image Upload Area -->
               <div class="upload-area" id="imageUploadArea">
                 <div class="upload-placeholder">
@@ -472,6 +481,10 @@
                   <p>Rasmlarni bu yerga sudrab oling yoki fayllarni tanlash uchun bosing</p>
                   <p class="upload-requirements">
                     Maksimal 10 ta rasm • JPG, PNG, WebP • Har biri 5MB gacha
+                  </p>
+                  <p class="upload-note">
+                    <i class="fas fa-info-circle"></i>
+                    Rasmlar vaqtincha saqlanadi. Product saqlangandagina server'ga yuklanadi.
                   </p>
                   <button type="button" class="btn-outline upload-btn">
                     <i class="fas fa-folder-open"></i>
@@ -482,7 +495,7 @@
                   type="file" 
                   id="imageUploadInput" 
                   multiple 
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/jpeg,image/png,image/webp,image/jpg"
                   style="display: none;"
                 >
               </div>
@@ -862,6 +875,317 @@
     </div>
   </div>
 </main>
+
+<!-- Enhanced CSS for Professional Image Management -->
+<style>
+/* Image Counter Section */
+.image-counter-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.image-counter {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.image-status-info {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+}
+
+.temp-images-count {
+    color: #059669;
+    font-weight: 500;
+}
+
+.existing-images-count {
+    color: #3b82f6;
+    font-weight: 500;
+}
+
+/* Upload Note */
+.upload-note {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: #f0f9ff;
+    border-radius: 6px;
+    border-left: 3px solid #0ea5e9;
+}
+
+.upload-note i {
+    color: #0ea5e9;
+}
+
+/* Enhanced Image Item */
+.image-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    background: white;
+    border: 2px solid transparent;
+}
+
+.image-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: #3b82f6;
+}
+
+.image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-item:hover .image-overlay {
+    opacity: 1;
+}
+
+.image-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.image-controls .btn-sm {
+    padding: 0.5rem;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #374151;
+    border: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.image-controls .btn-sm:hover {
+    background: white;
+    transform: scale(1.1);
+}
+
+.set-primary .fa-star {
+    color: #f59e0b;
+}
+
+.replace-image .fa-sync-alt {
+    color: #3b82f6;
+}
+
+.remove-image .fa-trash {
+    color: #ef4444;
+}
+
+/* Badges */
+.primary-badge, .temp-badge {
+    position: absolute;
+    top: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.primary-badge {
+    right: 0.5rem;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+.temp-badge {
+    left: 0.5rem;
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+/* Image Info */
+.image-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.75rem;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    color: white;
+    font-size: 0.75rem;
+}
+
+.image-filename {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.image-size {
+    opacity: 0.8;
+}
+
+/* Upload Progress Enhancement */
+.upload-progress {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #f0f9ff;
+    border: 1px solid #0ea5e9;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.progress-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e2e8f0;
+    border-top: 2px solid #0ea5e9;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.progress-text {
+    color: #0369a1;
+    font-weight: 500;
+}
+
+/* Enhanced Toast Notifications */
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 320px;
+    max-width: 400px;
+    padding: 1rem;
+    border-radius: 12px;
+    color: white;
+    z-index: 10000;
+    font-size: 0.875rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: slideInRight 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.toast-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.toast-error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.toast-info {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.toast-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .image-counter-section {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .image-status-info {
+        justify-content: center;
+    }
+    
+    .toast-notification {
+        left: 10px;
+        right: 10px;
+        max-width: none;
+    }
+    
+    .image-controls {
+        flex-direction: column;
+    }
+}
+</style>
 
 <!-- Server Data for JavaScript -->
 <script type="application/json" id="product-edit-data">
@@ -1367,6 +1691,16 @@ class ProductEditManager {
     }
 
     setupImageUpload() {
+        console.log('🖼️ Setting up PROFESSIONAL Image Upload - Base64 Temporary Storage');
+        
+        // Initialize temporary image storage
+        this.temporaryImages = [];
+        this.existingImages = [];
+        this.deletedImages = []; // Track deleted existing images
+        
+        // Load existing images to temporary storage
+        this.loadExistingImages();
+        
         const uploadArea = document.getElementById('imageUploadArea');
         const uploadInput = document.getElementById('imageUploadInput');
         const uploadBtn = document.querySelector('.upload-btn');
@@ -1375,12 +1709,13 @@ class ProductEditManager {
         uploadBtn?.addEventListener('click', () => uploadInput?.click());
         uploadArea?.addEventListener('click', () => uploadInput?.click());
 
-        // File input change
+        // File input change - NEW: Base64 processing
         uploadInput?.addEventListener('change', (e) => {
-            this.handleImageFiles(e.target.files);
+            this.handleImageFilesAdvanced(e.target.files);
+            e.target.value = ''; // Clear input for reuse
         });
 
-        // Drag and drop
+        // Drag and drop - NEW: Base64 processing
         uploadArea?.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadArea.classList.add('drag-over');
@@ -1393,11 +1728,10 @@ class ProductEditManager {
         uploadArea?.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadArea.classList.remove('drag-over');
-            this.handleImageFiles(e.dataTransfer.files);
+            this.handleImageFilesAdvanced(e.dataTransfer.files);
         });
 
-        // Remove image handlers
-        this.setupImageRemovalHandlers();
+        console.log('✅ Advanced Image Upload system initialized');
     }
 
     setupDynamicSections() {
@@ -1644,18 +1978,25 @@ class ProductEditManager {
         };
     }
 
-    async handleImageFiles(files) {
+    /**
+     * PROFESSIONAL Image Files Handler - Base64 Temporary Storage
+     * No immediate upload - files converted to base64 and stored temporarily
+     */
+    async handleImageFilesAdvanced(files) {
+        console.log('🎯 Processing image files with advanced handler...');
+        
         const maxFiles = 10;
         const maxSize = 5 * 1024 * 1024; // 5MB
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
 
+        // Validate files
         const validFiles = Array.from(files).filter(file => {
             if (!allowedTypes.includes(file.type)) {
-                this.showError(`Noto'g'ri fayl turi: ${file.name}`);
+                this.showErrorToast(`Noto'g'ri fayl turi: ${file.name}`);
                 return false;
             }
             if (file.size > maxSize) {
-                this.showError(`Fayl juda katta: ${file.name}`);
+                this.showErrorToast(`Fayl juda katta: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
                 return false;
             }
             return true;
@@ -1663,22 +2004,105 @@ class ProductEditManager {
 
         if (validFiles.length === 0) return;
 
-        const currentImageCount = document.querySelectorAll('.image-item').length;
-        if (currentImageCount + validFiles.length > maxFiles) {
-            this.showError(`Maksimal ${maxFiles} ta rasm yuklash mumkin`);
+        // Check total image count
+        const currentTotalImages = this.temporaryImages.length + this.existingImages.length;
+        if (currentTotalImages + validFiles.length > maxFiles) {
+            this.showErrorToast(`Maksimal ${maxFiles} ta rasm yuklash mumkin. Hozir ${currentTotalImages} ta mavjud.`);
             return;
         }
 
         try {
-            this.showUploadProgress(true);
-            const uploadedUrls = await this.uploadImages(validFiles);
-            this.addImagesToPreview(uploadedUrls);
-            this.showUploadProgress(false);
-            this.showSuccess(`${uploadedUrls.length} ta rasm yuklandi`);
+            this.showProcessingState(true, 'Rasmlar qayta ishlanmoqda...');
+            
+            // Convert files to base64 and add to temporary storage
+            for (const file of validFiles) {
+                await this.addImageToTemporaryStorage(file);
+            }
+            
+            // Refresh UI
+            this.refreshImageGrid();
+            this.showProcessingState(false);
+            this.showSuccessToast(`${validFiles.length} ta rasm qo'shildi`);
+            
+            this.isDirty = true;
+            
         } catch (error) {
-            this.showUploadProgress(false);
-            this.showError('Rasmlarni yuklashda xatolik: ' + error.message);
+            console.error('❌ Image processing error:', error);
+            this.showProcessingState(false);
+            this.showErrorToast('Rasmlarni qayta ishfashda xatolik: ' + error.message);
         }
+    }
+
+    /**
+     * Load existing product images to temporary storage
+     */
+    loadExistingImages() {
+        try {
+            console.log('📋 Loading existing product images...');
+            
+            if (this.product?.images && Array.isArray(this.product.images)) {
+                this.existingImages = this.product.images.map((img, index) => {
+                    const imageUrl = (typeof img === 'string') ? img : img.url;
+                    const isPrimary = (typeof img === 'object' && img.isPrimary) || index === 0;
+                    const alt = (typeof img === 'object' && img.alt) ? img.alt : `Product Image ${index + 1}`;
+                    
+                    return {
+                        id: `existing_${index}`,
+                        type: 'existing',
+                        url: imageUrl,
+                        alt: alt,
+                        isPrimary: isPrimary,
+                        originalData: img
+                    };
+                });
+                
+                console.log(`✅ Loaded ${this.existingImages.length} existing images`);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error loading existing images:', error);
+            this.existingImages = [];
+        }
+    }
+
+    /**
+     * Add file to temporary storage as base64
+     */
+    async addImageToTemporaryStorage(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                try {
+                    const tempImage = {
+                        id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        type: 'temporary',
+                        file: file,
+                        base64: e.target.result,
+                        filename: file.name,
+                        size: file.size,
+                        mimeType: file.type,
+                        isPrimary: this.temporaryImages.length === 0 && this.existingImages.length === 0,
+                        alt: `${file.name.split('.')[0]}`
+                    };
+                    
+                    this.temporaryImages.push(tempImage);
+                    console.log(`✅ Added ${file.name} to temporary storage`);
+                    resolve(tempImage);
+                    
+                } catch (error) {
+                    console.error('❌ Error creating temporary image:', error);
+                    reject(error);
+                }
+            };
+            
+            reader.onerror = (error) => {
+                console.error('❌ FileReader error:', error);
+                reject(error);
+            };
+            
+            reader.readAsDataURL(file);
+        });
     }
 
     async uploadImages(files) {
@@ -1699,7 +2123,13 @@ class ProductEditManager {
         return result.data.urls;
     }
 
-    addImagesToPreview(imageUrls) {
+    /**
+     * PROFESSIONAL UI Image Grid Refresh
+     * Displays both existing and temporary images
+     */
+    refreshImageGrid() {
+        console.log('🔄 Refreshing image grid...');
+        
         const currentImages = document.getElementById('currentImages');
         let imagesGrid = currentImages.querySelector('.images-grid');
         
@@ -1709,12 +2139,358 @@ class ProductEditManager {
             currentImages.appendChild(imagesGrid);
         }
 
-        imageUrls.forEach((url, index) => {
-            const imageItem = this.createImagePreview(url, false);
+        // Clear existing grid
+        imagesGrid.innerHTML = '';
+        
+        // Combine all images
+        const allImages = [...this.existingImages, ...this.temporaryImages];
+        
+        // Sort by primary status and then by creation order
+        allImages.sort((a, b) => {
+            if (a.isPrimary && !b.isPrimary) return -1;
+            if (!a.isPrimary && b.isPrimary) return 1;
+            return 0;
+        });
+        
+        console.log(`📊 Displaying ${allImages.length} images (${this.existingImages.length} existing + ${this.temporaryImages.length} temporary)`);
+        
+        // Create image previews
+        allImages.forEach(image => {
+            const imageItem = this.createAdvancedImagePreview(image);
             imagesGrid.appendChild(imageItem);
         });
 
-        this.setupImageRemovalHandlers();
+        // Setup event handlers
+        this.setupAdvancedImageHandlers();
+        
+        // Update image counter
+        this.updateImageCounter();
+    }
+
+    /**
+     * Create advanced image preview with enhanced controls
+     */
+    createAdvancedImagePreview(imageData) {
+        const imageItem = document.createElement('div');
+        imageItem.className = 'image-item';
+        imageItem.dataset.imageId = imageData.id;
+        imageItem.dataset.imageType = imageData.type;
+
+        const imageSource = imageData.type === 'temporary' ? imageData.base64 : imageData.url;
+        const isTemporary = imageData.type === 'temporary';
+        
+        imageItem.innerHTML = `
+            <div class="image-wrapper">
+                <img src="${imageSource}" alt="${imageData.alt || 'Product Image'}" loading="lazy" 
+                     style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px;">
+                
+                <div class="image-overlay">
+                    <div class="image-controls">
+                        <button type="button" class="btn-sm btn-ghost set-primary" 
+                                title="Asosiy qilish" data-image-id="${imageData.id}">
+                            <i class="fas fa-star"></i>
+                        </button>
+                        <button type="button" class="btn-sm btn-ghost replace-image" 
+                                title="Almashtirish" data-image-id="${imageData.id}">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button type="button" class="btn-sm btn-ghost remove-image" 
+                                title="O'chirish" data-image-id="${imageData.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                ${imageData.isPrimary ? '<div class="primary-badge">Asosiy</div>' : ''}
+                ${isTemporary ? '<div class="temp-badge">Yangi</div>' : ''}
+                
+                <div class="image-info">
+                    <div class="image-filename">${isTemporary ? imageData.filename : 'Mavjud rasm'}</div>
+                    ${isTemporary ? `<div class="image-size">${(imageData.size / 1024).toFixed(0)} KB</div>` : ''}
+                </div>
+            </div>
+        `;
+
+        return imageItem;
+    }
+
+    /**
+     * Enhanced image event handlers
+     */
+    setupAdvancedImageHandlers() {
+        // Remove image handlers
+        document.querySelectorAll('.remove-image').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const imageId = e.target.closest('.remove-image').dataset.imageId;
+                this.removeImageAdvanced(imageId);
+            });
+        });
+
+        // Set primary handlers
+        document.querySelectorAll('.set-primary').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const imageId = e.target.closest('.set-primary').dataset.imageId;
+                this.setPrimaryImageAdvanced(imageId);
+            });
+        });
+
+        // Replace image handlers
+        document.querySelectorAll('.replace-image').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const imageId = e.target.closest('.replace-image').dataset.imageId;
+                this.replaceImageAdvanced(imageId);
+            });
+        });
+    }
+
+    /**
+     * Remove image from storage
+     */
+    removeImageAdvanced(imageId) {
+        if (!confirm('Rasmni o\'chirishni xohlaysizmi?')) return;
+        
+        console.log(`🗑️ Removing image: ${imageId}`);
+        
+        // Remove from temporary images
+        const tempIndex = this.temporaryImages.findIndex(img => img.id === imageId);
+        if (tempIndex !== -1) {
+            this.temporaryImages.splice(tempIndex, 1);
+            console.log('✅ Removed from temporary storage');
+        }
+        
+        // Remove from existing images and track for deletion
+        const existingIndex = this.existingImages.findIndex(img => img.id === imageId);
+        if (existingIndex !== -1) {
+            const removedImage = this.existingImages.splice(existingIndex, 1)[0];
+            this.deletedImages.push(removedImage);
+            console.log('✅ Marked existing image for deletion');
+        }
+        
+        // If primary image was removed, set new primary
+        const allImages = [...this.existingImages, ...this.temporaryImages];
+        const hasPrimary = allImages.some(img => img.isPrimary);
+        
+        if (!hasPrimary && allImages.length > 0) {
+            allImages[0].isPrimary = true;
+            console.log('✅ Set new primary image');
+        }
+        
+        this.refreshImageGrid();
+        this.isDirty = true;
+        this.showSuccessToast('Rasm o\'chirildi');
+    }
+
+    /**
+     * Set primary image
+     */
+    setPrimaryImageAdvanced(imageId) {
+        console.log(`⭐ Setting primary image: ${imageId}`);
+        
+        // Clear all primary flags
+        this.temporaryImages.forEach(img => img.isPrimary = false);
+        this.existingImages.forEach(img => img.isPrimary = false);
+        
+        // Set new primary
+        const tempImage = this.temporaryImages.find(img => img.id === imageId);
+        const existingImage = this.existingImages.find(img => img.id === imageId);
+        
+        if (tempImage) {
+            tempImage.isPrimary = true;
+        } else if (existingImage) {
+            existingImage.isPrimary = true;
+        }
+        
+        this.refreshImageGrid();
+        this.isDirty = true;
+        this.showSuccessToast('Asosiy rasm o\'zgartirildi');
+    }
+
+    /**
+     * Replace image
+     */
+    replaceImageAdvanced(imageId) {
+        console.log(`🔄 Replacing image: ${imageId}`);
+        
+        // Store the image ID for replacement
+        this.replacingImageId = imageId;
+        
+        // Trigger file input
+        const uploadInput = document.getElementById('imageUploadInput');
+        uploadInput.addEventListener('change', this.handleImageReplacement.bind(this), { once: true });
+        uploadInput.click();
+    }
+
+    /**
+     * Handle image replacement - FIXED BUG
+     */
+    async handleImageReplacement(e) {
+        const files = e.target.files;
+        if (!files || files.length === 0) {
+            this.replacingImageId = null;
+            return;
+        }
+        
+        const file = files[0];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+        
+        // Validate file
+        if (!allowedTypes.includes(file.type)) {
+            this.showErrorToast(`Noto'g'ri fayl turi: ${file.name}`);
+            this.replacingImageId = null;
+            return;
+        }
+        
+        if (file.size > maxSize) {
+            this.showErrorToast(`Fayl juda katta: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+            this.replacingImageId = null;
+            return;
+        }
+        
+        if (!this.replacingImageId) {
+            console.warn('⚠️ No replacing image ID found');
+            return;
+        }
+        
+        try {
+            this.showProcessingState(true, 'Rasm almashtirilmoqda...');
+            
+            console.log(`🔄 Replacing image: ${this.replacingImageId}`);
+            
+            // Find the image being replaced
+            const tempIndex = this.temporaryImages.findIndex(img => img.id === this.replacingImageId);
+            const existingIndex = this.existingImages.findIndex(img => img.id === this.replacingImageId);
+            
+            if (tempIndex !== -1) {
+                // Replace temporary image - FIXED: Direct replacement without addImageToTemporaryStorage
+                const oldImage = this.temporaryImages[tempIndex];
+                
+                // Create new image data manually
+                const newImageData = await this.createImageDataFromFile(file);
+                newImageData.isPrimary = oldImage.isPrimary;
+                
+                // Replace at exact same position
+                this.temporaryImages[tempIndex] = newImageData;
+                
+                console.log(`✅ Replaced temporary image at index ${tempIndex}`);
+                
+            } else if (existingIndex !== -1) {
+                // Replace existing image - FIXED: Don't use addImageToTemporaryStorage
+                const oldImage = this.existingImages[existingIndex];
+                
+                // Create new image data manually  
+                const newImageData = await this.createImageDataFromFile(file);
+                newImageData.isPrimary = oldImage.isPrimary;
+                
+                // Remove from existing and add to deleted
+                const removed = this.existingImages.splice(existingIndex, 1)[0];
+                this.deletedImages.push(removed);
+                
+                // Add new image to temporaryImages (this is correct behavior)
+                this.temporaryImages.push(newImageData);
+                
+                console.log(`✅ Replaced existing image - moved to temporary storage`);
+                
+            } else {
+                console.error(`❌ Image not found for replacement: ${this.replacingImageId}`);
+                this.showErrorToast('Almashtirilayotgan rasm topilmadi');
+                return;
+            }
+            
+            this.refreshImageGrid();
+            this.showProcessingState(false);
+            this.showSuccessToast('Rasm muvaffaqiyatli almashtirildi');
+            this.isDirty = true;
+            
+        } catch (error) {
+            console.error('❌ Image replacement error:', error);
+            this.showProcessingState(false);
+            this.showErrorToast('Rasm almashtirishda xatolik');
+        }
+        
+        // Clear replacement ID
+        this.replacingImageId = null;
+        e.target.value = '';
+    }
+
+    /**
+     * Create image data from file - Helper method
+     */
+    async createImageDataFromFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                try {
+                    const imageData = {
+                        id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        type: 'temporary',
+                        file: file,
+                        base64: e.target.result,
+                        filename: file.name,
+                        size: file.size,
+                        mimeType: file.type,
+                        isPrimary: false, // Will be set by caller
+                        alt: file.name.split('.')[0]
+                    };
+                    
+                    resolve(imageData);
+                    
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            
+            reader.onerror = (error) => {
+                reject(error);
+            };
+            
+            reader.readAsDataURL(file);
+        });
+    }
+
+    /**
+     * Update image counter display - ENHANCED
+     */
+    updateImageCounter() {
+        const totalImages = this.temporaryImages.length + this.existingImages.length;
+        const tempCount = this.temporaryImages.length;
+        const existingCount = this.existingImages.length;
+        
+        // Update main counter
+        const counterElement = document.querySelector('.image-counter');
+        if (counterElement) {
+            counterElement.textContent = `${totalImages}/10 rasm`;
+            
+            // Add visual indication if limit is approaching
+            if (totalImages >= 8) {
+                counterElement.style.color = '#dc2626';
+                counterElement.style.fontWeight = '700';
+            } else if (totalImages >= 6) {
+                counterElement.style.color = '#d97706';
+                counterElement.style.fontWeight = '600';
+            } else {
+                counterElement.style.color = '#1e293b';
+                counterElement.style.fontWeight = '600';
+            }
+        }
+        
+        // Update detailed counters
+        const tempCountElement = document.querySelector('.temp-images-count');
+        const existingCountElement = document.querySelector('.existing-images-count');
+        
+        if (tempCountElement) {
+            tempCountElement.textContent = `Yangi: ${tempCount}`;
+        }
+        
+        if (existingCountElement) {
+            existingCountElement.textContent = `Mavjud: ${existingCount}`;
+        }
+        
+        console.log(`📊 Image counter updated: ${totalImages}/10 (${tempCount} yangi + ${existingCount} mavjud)`);
     }
 
     createImagePreview(imageUrl, isPrimary = false) {
@@ -1984,11 +2760,9 @@ class ProductEditManager {
             }
         }
 
-        // Collect images
-        const imageUrls = Array.from(document.querySelectorAll('.image-item')).map(item => 
-            item.dataset.imageUrl
-        );
-        data.images = imageUrls;
+        // OPTIMIZED: Don't send heavy base64 data with form
+        // Instead, prepare lightweight image metadata only
+        data.imageData = this.prepareOptimizedImageData();
 
         // Collect shipping methods
         const shippingMethods = Array.from(document.querySelectorAll('input[name="shipping.methods"]:checked'))
@@ -2023,9 +2797,46 @@ class ProductEditManager {
     }
 
     async updateProduct(data) {
-        console.log('🚀 Sending product update request:', data);
+        console.log('🚀 OPTIMIZED: Sending product update request');
+        console.log('📦 Payload size:', JSON.stringify(data).length + ' bytes');
         
         try {
+            // Step 1: Upload temporary images first if any exist
+            let uploadedImageUrls = [];
+            if (this.temporaryImages && this.temporaryImages.length > 0) {
+                console.log(`📤 Uploading ${this.temporaryImages.length} temporary images first...`);
+                try {
+                    uploadedImageUrls = await this.uploadTemporaryImages();
+                    console.log(`✅ Uploaded ${uploadedImageUrls.length} images`);
+                } catch (uploadError) {
+                    console.error('❌ Image upload failed:', uploadError);
+                    throw new Error('Rasmlarni yuklashda xatolik. Iltimos, qayta urinib ko\'ring.');
+                }
+            }
+            
+            // Step 2: Update image data with uploaded URLs
+            if (uploadedImageUrls.length > 0 && data.imageData) {
+                // Add uploaded images to existing images
+                const newImages = uploadedImageUrls.map((url, index) => {
+                    const tempImg = this.temporaryImages[index];
+                    return {
+                        url: url,
+                        alt: tempImg?.alt || '',
+                        isPrimary: tempImg?.isPrimary || false,
+                        type: 'uploaded'
+                    };
+                });
+                
+                data.imageData.existingImages = [
+                    ...(data.imageData.existingImages || []),
+                    ...newImages
+                ];
+                
+                // Clear temporary images since they're now uploaded
+                data.imageData.temporaryImages = [];
+            }
+            
+            // Step 3: Send optimized product update
             const response = await fetch(productEditData.apiEndpoints.updateProduct, {
                 method: 'PUT',
                 headers: {
@@ -2041,7 +2852,9 @@ class ProductEditManager {
             
             if (!result.success) {
                 // Enhanced error handling for different error types
-                if (result.error && result.error.includes('Cast to ObjectId failed')) {
+                if (result.message && result.message.includes('request entity too large')) {
+                    throw new Error('Ma\'lumot hajmi juda katta. Rasmlar sonini kamaytiring yoki kichik hajmdagi rasmlar ishlating.');
+                } else if (result.error && result.error.includes('Cast to ObjectId failed')) {
                     throw new Error('Kategoriya maydoni noto\'g\'ri. Iltimos, kategoriyani qayta tanlang.');
                 } else if (result.error && result.error.includes('validation')) {
                     throw new Error('Ma\'lumotlarni tekshirishda xatolik. Barcha majburiy maydonlarni to\'ldiring.');
@@ -2050,10 +2863,43 @@ class ProductEditManager {
                 }
             }
 
-            console.log('✅ Product updated successfully');
+            // Step 4: Clean up temporary images and update state
+            if (uploadedImageUrls.length > 0) {
+                // Store temp image data before clearing
+                const tempImagesCopy = [...this.temporaryImages];
+                
+                // Clear temporary images from local state
+                this.temporaryImages = [];
+                
+                // Update existing images with new uploaded ones
+                uploadedImageUrls.forEach((url, index) => {
+                    const tempImg = tempImagesCopy[index];
+                    this.existingImages.push({
+                        id: `uploaded_${Date.now()}_${index}`,
+                        type: 'existing',
+                        url: url,
+                        alt: tempImg?.alt || '',
+                        isPrimary: tempImg?.isPrimary || false
+                    });
+                });
+                
+                // Refresh UI
+                this.refreshImageGrid();
+                
+                console.log(`🔄 Moved ${uploadedImageUrls.length} temporary images to existing images`);
+            }
+
+            console.log('✅ Product updated successfully with optimized process');
             return result.data;
+            
         } catch (error) {
-            console.error('❌ Product update failed:', error);
+            console.error('❌ Optimized product update failed:', error);
+            
+            // Enhanced user-friendly error messages
+            if (error.message.includes('PayloadTooLargeError') || error.message.includes('request entity too large')) {
+                throw new Error('Ma\'lumot hajmi juda katta. Rasmlar sonini kamaytiring yoki kichik rasmlar ishlating.');
+            }
+            
             throw error;
         }
     }
@@ -2141,6 +2987,198 @@ class ProductEditManager {
     destroy() {
         if (this.autoSaveInterval) {
             clearInterval(this.autoSaveInterval);
+        }
+    }
+
+    /**
+     * PROFESSIONAL Image Management Methods
+     */
+
+    /**
+     * Prepare image data for submission - PROFESSIONAL Implementation
+     */
+    prepareImageDataForSubmission() {
+        const imageData = {
+            temporaryImages: this.temporaryImages || [],
+            existingImages: this.existingImages || [],
+            deletedImages: this.deletedImages || []
+        };
+        
+        console.log('📋 Prepared image data for submission:', {
+            temporary: imageData.temporaryImages.length,
+            existing: imageData.existingImages.length,
+            deleted: imageData.deletedImages.length
+        });
+        
+        return imageData;
+    }
+
+    /**
+     * OPTIMIZED: Prepare lightweight image metadata only
+     * No base64 data to reduce payload size
+     */
+    prepareOptimizedImageData() {
+        const optimizedData = {
+            // Lightweight metadata for temporary images
+            temporaryImages: (this.temporaryImages || []).map(img => ({
+                id: img.id,
+                filename: img.filename,
+                size: img.size,
+                mimeType: img.mimeType,
+                isPrimary: img.isPrimary,
+                alt: img.alt,
+                hasFile: !!img.file // Indicates if file exists for upload
+            })),
+            
+            // Existing images metadata  
+            existingImages: (this.existingImages || []).map(img => ({
+                id: img.id,
+                url: img.url,
+                alt: img.alt,
+                isPrimary: img.isPrimary,
+                type: img.type
+            })),
+            
+            // Deleted images for cleanup
+            deletedImages: (this.deletedImages || []).map(img => ({
+                id: img.id,
+                url: img.url,
+                type: img.type
+            }))
+        };
+        
+        console.log('📦 Optimized image data prepared:', {
+            temporary: optimizedData.temporaryImages.length,
+            existing: optimizedData.existingImages.length,
+            deleted: optimizedData.deletedImages.length,
+            totalSize: JSON.stringify(optimizedData).length + ' bytes'
+        });
+        
+        return optimizedData;
+    }
+
+    /**
+     * Show processing state
+     */
+    showProcessingState(show, message = 'Qayta ishlanmoqda...') {
+        const uploadProgress = document.getElementById('uploadProgress');
+        if (!uploadProgress) {
+            // Create progress element if it doesn't exist
+            const progressElement = document.createElement('div');
+            progressElement.id = 'uploadProgress';
+            progressElement.className = 'upload-progress';
+            progressElement.innerHTML = `
+                <div class="progress-content">
+                    <div class="spinner"></div>
+                    <span class="progress-text">${message}</span>
+                </div>
+            `;
+            progressElement.style.display = show ? 'block' : 'none';
+            
+            const uploadArea = document.getElementById('imageUploadArea');
+            if (uploadArea) {
+                uploadArea.parentNode.insertBefore(progressElement, uploadArea.nextSibling);
+            }
+        } else {
+            const progressText = uploadProgress.querySelector('.progress-text');
+            uploadProgress.style.display = show ? 'block' : 'none';
+            if (progressText) {
+                progressText.textContent = message;
+            }
+        }
+    }
+
+    /**
+     * Enhanced toast notifications
+     */
+    showSuccessToast(message) {
+        this.showToast(message, 'success');
+    }
+
+    showErrorToast(message) {
+        this.showToast(message, 'error');
+    }
+
+    showInfoToast(message) {
+        this.showToast(message, 'info');
+    }
+
+    /**
+     * Final image upload when saving product
+     */
+    async uploadTemporaryImages() {
+        if (!this.temporaryImages || this.temporaryImages.length === 0) {
+            console.log('📷 No temporary images to upload');
+            return [];
+        }
+
+        console.log(`📤 Uploading ${this.temporaryImages.length} temporary images...`);
+        
+        try {
+            const formData = new FormData();
+            
+            // Add all temporary image files
+            this.temporaryImages.forEach((imgData, index) => {
+                formData.append('images', imgData.file);
+                formData.append(`imageAlt_${index}`, imgData.alt || '');
+                formData.append(`isPrimary_${index}`, imgData.isPrimary ? 'true' : 'false');
+            });
+
+            const response = await fetch('/manufacturer/api/products/upload-images-final', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            });
+
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.message || 'Upload failed');
+            }
+
+            console.log(`✅ Successfully uploaded ${result.data.urls.length} images`);
+            return result.data.urls;
+
+        } catch (error) {
+            console.error('❌ Image upload failed:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Delete unused images from server
+     */
+    async deleteUnusedImages() {
+        if (!this.deletedImages || this.deletedImages.length === 0) {
+            console.log('🗑️ No images to delete');
+            return;
+        }
+
+        console.log(`🗑️ Deleting ${this.deletedImages.length} unused images...`);
+        
+        try {
+            const imageUrls = this.deletedImages.map(img => img.url);
+            
+            const response = await fetch('/manufacturer/api/products/delete-images', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ imageUrls }),
+                credentials: 'same-origin'
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                console.log(`✅ Successfully deleted ${result.data.deletedCount} images`);
+            } else {
+                console.warn('⚠️ Some images could not be deleted:', result.message);
+            }
+
+        } catch (error) {
+            console.error('❌ Image deletion failed:', error);
+            // Don't throw - deletion failure shouldn't stop the main operation
         }
     }
 }

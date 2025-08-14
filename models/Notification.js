@@ -1,303 +1,348 @@
 /**
- * Notification Model - Professional Admin Notification System
- * Senior Software Engineer Level Implementation
+ * Notification Model
+ * Professional notification system for B2B platform
  */
 
 const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
-  // Recipient Information
-  recipientId: {
+    // Recipient information
+    recipient: {
     type: mongoose.Schema.Types.ObjectId,
+        refPath: 'recipientModel',
     required: true,
-    refPath: 'recipientType'
+        index: true
   },
-  recipientType: {
+    
+    recipientModel: {
     type: String,
     required: true,
-    enum: ['user', 'admin', 'system']
-  },
-  
-  // Notification Content
+        enum: ['User', 'Admin']
+    },
+    
+    // Sender information (optional for system notifications)
+    sender: {
+        type: mongoose.Schema.Types.ObjectId,
+        refPath: 'senderModel'
+    },
+    
+    senderModel: {
+        type: String,
+        enum: ['User', 'Admin', 'System']
+    },
+    
+    // Notification content
   title: {
     type: String,
     required: true,
-    maxLength: 150,
-    trim: true
+        trim: true,
+        maxlength: 200
   },
+    
   message: {
     type: String,
     required: true,
-    maxLength: 500,
-    trim: true
+        trim: true,
+        maxlength: 1000
   },
   
-  // Notification Type
+    // Notification type and category
   type: {
     type: String,
+        enum: [
+            'order_comment',    // Order comment notification
+            'order_status',     // Order status change
+            'order_payment',    // Payment related
+            'order_delivery',   // Delivery related
+            'system_alert',     // System notifications
+            'marketing',        // Marketing messages
+            'security',         // Security alerts
+            'reminder'          // Reminders
+        ],
     required: true,
-    enum: [
-      'user_registration',
-      'support_message',
-      'order_placed',
-      'payment_received',
-      'system_alert',
-      'maintenance',
-      'security',
-      'info',
-      'warning',
-      'success',
-      'error'
-    ]
-  },
-  
-  // Priority Level
+        index: true
+    },
+    
   priority: {
     type: String,
     enum: ['low', 'normal', 'high', 'urgent'],
-    default: 'normal'
-  },
-  
-  // Status
+        default: 'normal',
+        index: true
+    },
+    
+    // Related entities
+    relatedOrder: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order'
+    },
+    
+    relatedComment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'OrderComment'
+    },
+    
+    relatedProduct: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product'
+    },
+    
+    // Notification status
   status: {
     type: String,
-    enum: ['unread', 'read', 'dismissed', 'archived'],
-    default: 'unread'
-  },
-  
-  // Read Status
-  readAt: {
-    type: Date,
-    default: null
-  },
+        enum: ['pending', 'sent', 'delivered', 'failed', 'cancelled'],
+        default: 'pending',
+        index: true
+    },
+    
+    readStatus: {
   isRead: {
+            type: Boolean,
+            default: false,
+            index: true
+        },
+        readAt: Date
+    },
+    
+    // Delivery channels
+    channels: {
+        email: {
+            enabled: {
+                type: Boolean,
+                default: true
+            },
+            sent: {
+                type: Boolean,
+                default: false
+            },
+            sentAt: Date,
+            error: String
+        },
+        sms: {
+            enabled: {
     type: Boolean,
     default: false
   },
-  
-  // Action Information
-  actionUrl: {
-    type: String,
-    maxLength: 500,
-    trim: true
-  },
-  actionText: {
-    type: String,
-    maxLength: 50,
-    trim: true,
-    default: 'View Details'
-  },
-  
-  // Additional Data
-  data: {
-    type: mongoose.Schema.Types.Mixed,
-    default: {}
-  },
-  
-  // Sender Information (optional)
-  senderId: {
-    type: mongoose.Schema.Types.ObjectId,
-    refPath: 'senderType',
-    default: null
-  },
-  senderType: {
-    type: String,
-    enum: ['user', 'admin', 'system'],
-    default: 'system'
-  },
-  
-  // Display Settings
-  icon: {
-    type: String,
-    default: 'fas fa-bell'
-  },
-  color: {
-    type: String,
-    enum: ['blue', 'green', 'yellow', 'red', 'purple', 'gray'],
-    default: 'blue'
-  },
-  
-  // Expiry (for temporary notifications)
-  expiresAt: {
-    type: Date,
-    default: null
+            sent: {
+                type: Boolean,
+                default: false
+            },
+            sentAt: Date,
+            error: String
+        },
+        push: {
+            enabled: {
+                type: Boolean,
+                default: true
+            },
+            sent: {
+                type: Boolean,
+                default: false
+            },
+            sentAt: Date,
+            error: String
+        },
+        inApp: {
+            enabled: {
+                type: Boolean,
+                default: true
+            },
+            shown: {
+                type: Boolean,
+                default: false
+            },
+            shownAt: Date
+        }
   },
   
   // Metadata
   metadata: {
-    source: {
-      type: String,
-      enum: ['system', 'user_action', 'admin_action', 'external'],
-      default: 'system'
-    },
-    category: String,
+        orderNumber: String,
+        commentId: String,
+        actionUrl: String,
+        expiresAt: Date,
     tags: [String]
   },
   
-  // Timestamps
-  createdAt: {
+    // Scheduling
+    scheduledFor: {
     type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
+        index: true
+    },
+    
+    attempts: {
+        type: Number,
+        default: 0
+    },
+    
+    maxAttempts: {
+        type: Number,
+        default: 3
+    },
+    
+    lastAttemptAt: Date,
+    nextAttemptAt: Date
+
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
 
-// Compound indexes for performance
-notificationSchema.index({ recipientId: 1, recipientType: 1, createdAt: -1 });
-notificationSchema.index({ status: 1, createdAt: -1 });
-notificationSchema.index({ type: 1, priority: 1 });
-notificationSchema.index({ readAt: 1, isRead: 1 });
+// Indexes
+notificationSchema.index({ recipient: 1, createdAt: -1 });
+notificationSchema.index({ type: 1, status: 1 });
+notificationSchema.index({ 'readStatus.isRead': 1, recipient: 1 });
+notificationSchema.index({ scheduledFor: 1, status: 1 });
+notificationSchema.index({ relatedOrder: 1 });
 
-// TTL index for expired notifications
-notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+// Virtual for unread notifications count
+notificationSchema.virtual('isUnread').get(function() {
+    return !this.readStatus.isRead;
+});
 
-// Update timestamps on save
+// Virtual for delivery status
+notificationSchema.virtual('deliveryStatus').get(function() {
+    const channels = this.channels;
+    const delivered = channels.email.sent || channels.sms.sent || channels.push.sent;
+    return delivered ? 'delivered' : 'pending';
+});
+
+// Pre-save middleware
 notificationSchema.pre('save', function(next) {
-  this.updatedAt = new Date();
-  
-  // Set isRead based on readAt
-  if (this.readAt && !this.isRead) {
-    this.isRead = true;
-  }
-  
-  // Update status when read
-  if (this.readAt && this.status === 'unread') {
-    this.status = 'read';
+    // Set next attempt time if failed
+    if (this.status === 'failed' && this.attempts < this.maxAttempts) {
+        const backoffMinutes = Math.pow(2, this.attempts) * 5; // Exponential backoff
+        this.nextAttemptAt = new Date(Date.now() + backoffMinutes * 60 * 1000);
   }
   
   next();
 });
 
-// Instance methods
-notificationSchema.methods.markAsRead = function() {
-  this.readAt = new Date();
-  this.isRead = true;
-  this.status = 'read';
-  return this.save();
-};
-
-notificationSchema.methods.dismiss = function() {
-  this.status = 'dismissed';
-  return this.save();
-};
-
-notificationSchema.methods.archive = function() {
-  this.status = 'archived';
-  return this.save();
-};
-
 // Static methods
-notificationSchema.statics.getUnreadCount = function(recipientId, recipientType) {
+notificationSchema.statics.createOrderCommentNotification = async function(data) {
+    const {
+        recipientId,
+        recipientModel,
+        senderId,
+        senderModel,
+        orderId,
+        commentId,
+        orderNumber,
+        commentContent,
+        priority = 'normal',
+        isUpdate = false
+    } = data;
+    
+    // Customize title and message based on whether it's an update or new comment
+    const title = isUpdate 
+        ? `Buyurtma #${orderNumber} da izoh yangilandi`
+        : `Buyurtma #${orderNumber} ga yangi izoh`;
+    
+    const message = isUpdate
+        ? `Buyurtma #${orderNumber} dagi izoh yangilandi: "${commentContent.substring(0, 100)}${commentContent.length > 100 ? '...' : ''}"`
+        : `Buyurtma #${orderNumber} ga yangi izoh qo'shildi: "${commentContent.substring(0, 100)}${commentContent.length > 100 ? '...' : ''}"`;
+    
+    const notification = new this({
+        recipient: recipientId,
+        recipientModel,
+        sender: senderId,
+        senderModel,
+        title,
+        message,
+        type: 'order_comment',
+        priority,
+        relatedOrder: orderId,
+        relatedComment: commentId,
+        metadata: {
+            orderNumber,
+            commentId,
+            actionUrl: `/manufacturer/orders/${orderId}`,
+            isUpdate
+        }
+    });
+    
+    return await notification.save();
+};
+
+notificationSchema.statics.getUnreadCount = function(recipientId) {
   return this.countDocuments({
-    recipientId,
-    recipientType,
-    isRead: false,
-    status: { $ne: 'archived' }
+        recipient: recipientId,
+        'readStatus.isRead': false,
+        status: { $in: ['sent', 'delivered'] }
   });
 };
 
-notificationSchema.statics.markAllAsRead = function(recipientId, recipientType) {
-  return this.updateMany(
-    {
-      recipientId,
-      recipientType,
-      isRead: false,
-      status: 'unread'
-    },
-    {
-      $set: {
-        readAt: new Date(),
-        isRead: true,
-        status: 'read',
-        updatedAt: new Date()
-      }
+notificationSchema.statics.markAsRead = function(notificationId, recipientId) {
+    return this.findOneAndUpdate(
+        { _id: notificationId, recipient: recipientId },
+        {
+            'readStatus.isRead': true,
+            'readStatus.readAt': new Date()
+        },
+        { new: true }
+    );
+};
+
+notificationSchema.statics.markAllAsRead = function(recipientId) {
+    return this.updateMany(
+        { recipient: recipientId, 'readStatus.isRead': false },
+        {
+            'readStatus.isRead': true,
+            'readStatus.readAt': new Date()
     }
   );
 };
 
-notificationSchema.statics.createUserRegistrationNotification = async function(userId, userData) {
-  const Admin = require('./Admin');
-  const admins = await Admin.find({ status: 'active' }).select('_id');
-  
-  const notifications = admins.map(admin => ({
-    recipientId: admin._id,
-    recipientType: 'admin',
-    type: 'user_registration',
-    title: 'New User Registration',
-    message: `New company registration: ${userData.companyName}`,
-    data: userData,
-    actionUrl: `/admin/users/${userId}`,
-    actionText: 'Review Registration',
-    priority: 'normal',
-    color: 'blue',
-    icon: 'fas fa-user-plus'
-  }));
-  
-  return this.insertMany(notifications);
+notificationSchema.statics.getNotificationsByRecipient = function(recipientId, options = {}) {
+    const {
+        page = 1,
+        limit = 20,
+        type,
+        priority,
+        isRead,
+        sortBy = 'createdAt',
+        sortOrder = -1
+    } = options;
+    
+    const query = { recipient: recipientId };
+    
+    if (type) query.type = type;
+    if (priority) query.priority = priority;
+    if (typeof isRead === 'boolean') query['readStatus.isRead'] = isRead;
+    
+    const skip = (page - 1) * limit;
+    
+    return this.find(query)
+        .populate('sender', 'name companyName')
+        .sort({ [sortBy]: sortOrder })
+        .skip(skip)
+        .limit(limit)
+        .lean();
 };
 
-notificationSchema.statics.createSupportMessageNotification = async function(senderId, subject, content) {
-  const Admin = require('./Admin');
-  const admins = await Admin.find({ status: 'active' }).select('_id');
-  
-  const notifications = admins.map(admin => ({
-    recipientId: admin._id,
-    recipientType: 'admin',
-    type: 'support_message',
-    title: 'New Support Message',
-    message: `Support request: ${subject}`,
-    data: {
-      senderId,
-      subject,
-      content: content.substring(0, 100) + '...'
-    },
-    actionUrl: `/admin/messages/${senderId}`,
-    actionText: 'View Message',
-    priority: 'high',
-    color: 'yellow',
-    icon: 'fas fa-envelope'
-  }));
-  
-  return this.insertMany(notifications);
+// Instance methods
+notificationSchema.methods.markAsRead = function() {
+    this.readStatus.isRead = true;
+    this.readStatus.readAt = new Date();
+    return this.save();
 };
 
-// Virtual for formatted creation date
-notificationSchema.virtual('formattedDate').get(function() {
-  return this.createdAt.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-});
+notificationSchema.methods.updateDeliveryStatus = function(channel, success, error = null) {
+    if (this.channels[channel]) {
+        this.channels[channel].sent = success;
+        this.channels[channel].sentAt = success ? new Date() : null;
+        this.channels[channel].error = error;
+    }
+    
+    // Update overall status
+    const hasSuccessfulDelivery = Object.values(this.channels).some(ch => ch.sent);
+    if (hasSuccessfulDelivery) {
+        this.status = 'delivered';
+    } else if (this.attempts >= this.maxAttempts) {
+        this.status = 'failed';
+    }
+    
+    return this.save();
+};
 
-// Virtual for time ago
-notificationSchema.virtual('timeAgo').get(function() {
-  const now = new Date();
-  const diff = now - this.createdAt;
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  
-  if (days > 0) return `${days}d ago`;
-  if (hours > 0) return `${hours}h ago`;
-  if (minutes > 0) return `${minutes}m ago`;
-  return 'Just now';
-});
-
-// Transform JSON output
-notificationSchema.set('toJSON', {
-  virtuals: true,
-  transform: function(doc, ret) {
-    delete ret.__v;
-    return ret;
-  }
-});
-
-const Notification = mongoose.model('Notification', notificationSchema);
-
-module.exports = Notification; 
+module.exports = mongoose.model('Notification', notificationSchema);

@@ -1,0 +1,236 @@
+<%- include('../partials/header', { title: title, lng: lng || 'uz', user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'shipping' }) %>
+
+<!-- Shipping Page Meta Tags -->
+<meta name="description" content="Professional yetkazib berish xizmati - SLEX platformasida tez va xavfsiz logistika yechimlari. Real-time kuzatuv, professional kurierlar va zamonaviy texnologiya.">
+<meta name="keywords" content="yetkazib berish, logistika, shipping, courier, delivery, SLEX, B2B, professional">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Yetkazib Berish Xizmati - SLEX">
+<meta property="og:description" content="Professional yetkazib berish xizmati ishlab chiqilmoqda. Tezkor va xavfsiz logistika yechimlari.">
+<meta property="og:type" content="website">
+
+<!-- Shipping Page CSS -->
+<link rel="stylesheet" href="/css/manufacturer/shipping.css">
+
+<!-- Main Content -->
+<main class="admin-main" role="main" aria-label="Yetkazib berish sahifasi">
+  <div class="admin-content">
+    <!-- Skip to main content link for accessibility -->
+     
+    <div id="main-content" class="shipping-container animate-fade-in">
+      <!-- Development Card -->
+      <div class="development-card">
+        <div class="development-icon">
+          <div class="icon-wrapper">
+            <i class="fas fa-truck"></i>
+            <div class="icon-pulse"></div>
+          </div>
+        </div>
+        
+        <h1 class="development-title">Ishlab chiqilmoqda</h1>
+        <p class="development-subtitle">Yetkazib Berish Xizmati - Professional Logistika va Yetkazib Berish Tizimi</p>
+        
+        <div class="development-description">
+          <p>
+            Bizning eng zamonaviy yetkazib berish tizimimiz ishlab chiqilmoqda. 
+            Bu tizim sizning mahsulotlaringizni tez va xavfsiz yetkazish uchun 
+            barcha zamonaviy vositalarni taqdim etadi.
+          </p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+          <div class="feature-item">
+            <i class="fas fa-route"></i>
+            <span>Real-time kuzatuv</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-shield-alt"></i>
+            <span>Yukning xavfsizligi</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-clock"></i>
+            <span>Tezkor yetkazish</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-users"></i>
+            <span>Professional kurierlar</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-mobile-alt"></i>
+            <span>Mobil ilovalar</span>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Tahlil va hisobotlar</span>
+          </div>
+        </div>
+
+        <!-- Development Actions -->
+        <div class="development-actions">
+          <button class="dev-btn dev-btn-primary" 
+                  id="subscribeUpdatesBtn"
+                  type="button"
+                  aria-label="Yetkazib berish xizmati yangilanishlariga obuna bo'lish">
+            <i class="fas fa-bell" aria-hidden="true"></i>
+            Yangilanishlardan xabardor bo'ling
+          </button>
+          <button class="dev-btn dev-btn-outline" 
+                  id="contactShippingBtn"
+                  type="button"
+                  aria-label="Yetkazib berish xizmati bilan bog'lanish">
+            <i class="fas fa-phone" aria-hidden="true"></i>
+            Aloqa qiling
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress Section -->
+      <div class="progress-section">
+        <div class="progress-header">
+          <h3>Ishlab chiqish jarayoni</h3>
+          <span class="progress-percentage">85%</span>
+        </div>
+        <div class="progress-bar" role="progressbar" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100" aria-label="Ishlab chiqish jarayoni">
+          <div class="progress-fill" data-progress="85"></div>
+        </div>
+        
+        <!-- Development Stages -->
+        <div class="development-stages" role="list">
+          <div class="stage completed" role="listitem" tabindex="0" aria-label="Loyihalash: Tizim arxitekturasi yaratildi - tugallangan">
+            <div class="stage-icon">
+              <i class="fas fa-check" aria-hidden="true"></i>
+            </div>
+            <div class="stage-content">
+              <h4>Loyihalash</h4>
+              <p>Tizim arxitekturasi yaratildi</p>
+            </div>
+          </div>
+          
+          <div class="stage completed" role="listitem" tabindex="0" aria-label="Dizayn: UI/UX dizayni tayyor - tugallangan">
+            <div class="stage-icon">
+              <i class="fas fa-check" aria-hidden="true"></i>
+            </div>
+            <div class="stage-content">
+              <h4>Dizayn</h4>
+              <p>UI/UX dizayni tayyor</p>
+            </div>
+          </div>
+          
+          <div class="stage active" role="listitem" tabindex="0" aria-label="Rivojlantirish: Asosiy funksiyalar kodlanmoqda - jarayonda">
+            <div class="stage-icon">
+              <i class="fas fa-cog fa-spin" aria-hidden="true"></i>
+            </div>
+            <div class="stage-content">
+              <h4>Rivojlantirish</h4>
+              <p>Asosiy funksiyalar kodlanmoqda</p>
+            </div>
+          </div>
+          
+          <div class="stage" role="listitem" tabindex="0" aria-label="Sinov: Beta versiya sinovlari - rejalashtirilgan">
+            <div class="stage-icon">
+              <i class="fas fa-flask" aria-hidden="true"></i>
+            </div>
+            <div class="stage-content">
+              <h4>Sinov</h4>
+              <p>Beta versiya sinovlari</p>
+            </div>
+          </div>
+          
+          <div class="stage" role="listitem" tabindex="0" aria-label="Ishga tushirish: Production ga chiqarish - rejalashtirilgan">
+            <div class="stage-icon">
+              <i class="fas fa-rocket" aria-hidden="true"></i>
+            </div>
+            <div class="stage-content">
+              <h4>Ishga tushirish</h4>
+              <p>Production ga chiqarish</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping Services Preview -->
+      <div class="services-preview">
+        <h3 class="services-title">Rejalashtirilgan xizmatlar</h3>
+        <div class="services-grid" role="list">
+          <div class="service-card" role="listitem" tabindex="0" aria-label="Tezkor yetkazish xizmati: shahar ichida 2-4 soat, viloyatlar bo'yicha 1-2 kun">
+            <div class="service-icon">
+              <i class="fas fa-truck" aria-hidden="true"></i>
+            </div>
+            <h4>Tezkor yetkazish</h4>
+            <p>Shahar ichida 2-4 soat, viloyatlar bo'yicha 1-2 kun</p>
+            <ul>
+              <li>Real-time GPS kuzatuv</li>
+              <li>SMS va email bildirishnomalar</li>
+              <li>Moslashuvchan vaqt oralig'i</li>
+            </ul>
+          </div>
+
+          <div class="service-card" role="listitem" tabindex="0" aria-label="Ombor xizmatlari: professional saqlash va inventarizatsiya">
+            <div class="service-icon">
+              <i class="fas fa-warehouse" aria-hidden="true"></i>
+            </div>
+            <h4>Ombor xizmatlari</h4>
+            <p>Professional saqlash va inventarizatsiya</p>
+            <ul>
+              <li>Xavfsiz saqlash</li>
+              <li>Inventarizatsiya boshqaruvi</li>
+              <li>Ombordan to'g'ridan-to'g'ri yetkazish</li>
+            </ul>
+          </div>
+
+          <div class="service-card" role="listitem" tabindex="0" aria-label="Xalqaro yetkazish: dunyo bo'ylab xavfsiz yetkazish xizmati">
+            <div class="service-icon">
+              <i class="fas fa-globe" aria-hidden="true"></i>
+            </div>
+            <h4>Xalqaro yetkazish</h4>
+            <p>Dunyo bo'ylab xavfsiz yetkazish xizmati</p>
+            <ul>
+              <li>Bojxona rasmiylashtiruvi</li>
+              <li>Sug'urta himoyasi</li>
+              <li>Kuzatuv va monitoring</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Temporary Contact Section -->
+      <div class="contact-section">
+        <h3 class="contact-title">Hozircha bizning asosiy raqamlarimizga murojaat qiling</h3>
+        <div class="contact-cards" role="list">
+          <div class="contact-card" role="listitem" tabindex="0" aria-label="Telefon aloqasi: +998 71 123 45 67">
+            <div class="contact-icon">
+              <i class="fas fa-phone" aria-hidden="true"></i>
+            </div>
+            <h4>Telefon aloqasi</h4>
+            <p>+998 71 123 45 67</p>
+            <small>Ish kunlari 9:00 - 18:00</small>
+          </div>
+
+          <div class="contact-card" role="listitem" tabindex="0" aria-label="Email: shipping@silkline.uz">
+            <div class="contact-icon">
+              <i class="fas fa-envelope" aria-hidden="true"></i>
+            </div>
+            <h4>Email</h4>
+            <p>shipping@silkline.uz</p>
+            <small>24/7 xizmat</small>
+          </div>
+
+          <div class="contact-card" role="listitem" tabindex="0" aria-label="Onlayn chat: tez orada">
+            <div class="contact-icon">
+              <i class="fas fa-comment-dots" aria-hidden="true"></i>
+            </div>
+            <h4>Onlayn chat</h4>
+            <p>Live support</p>
+            <small>Tez orada</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer', { user: user }) %>
+
+<!-- Shipping Page JavaScript -->
+<script src="/js/manufacturer/shipping.js"></script>

@@ -10,6 +10,26 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  // Check if this is the home page - if so, don't run dynamic product loading
+  // Home page uses server-side rendering, not client-side dynamic loading
+  const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index' || window.location.pathname.includes('index');
+  const hasServerRenderedProducts = document.querySelector('.product-item'); // Check if products are already rendered server-side
+  
+  if (isHomePage && hasServerRenderedProducts) {
+    console.log('Products script: Home page detected with server-rendered products. Skipping dynamic loading.');
+    return;
+  }
+
+  // Only run on pages that need dynamic product loading (like all-product page)
+  const isAllProductPage = window.location.pathname.includes('all-product') || 
+                           document.body.classList.contains('all-products-page') ||
+                           document.querySelector('.all-product');
+
+  if (!isAllProductPage) {
+    console.log('Products script: Not an all-products page. Skipping dynamic loading.');
+    return;
+  }
+
   initProductDisplay();
 
   async function initProductDisplay() {

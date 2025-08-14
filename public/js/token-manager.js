@@ -14,7 +14,7 @@ class TokenManager {
             refreshThreshold: 5 * 60 * 1000, // 5 minutes before expiry (increased for reliability)
             maxRetries: 3,
             retryDelay: 1000,
-            debugMode: true // Enable debug mode for troubleshooting
+            debugMode: false // Disable debug mode for production
         };
 
         // State management

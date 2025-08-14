@@ -382,7 +382,16 @@
             </div>
             
             <div class="image-upload-section">
-              <!-- Image Upload Area -->
+              <!-- PROFESSIONAL Image Counter Section -->
+              <div class="image-counter-section">
+                <div class="image-counter">0/10 rasm</div>
+                <div class="image-status-info">
+                  <span class="temp-images-count">Yangi: 0</span>
+                  <span class="existing-images-count">Yuklangan: 0</span>
+                </div>
+              </div>
+              
+              <!-- Enhanced Upload Area -->
               <div class="upload-area" id="imageUploadArea">
                 <div class="upload-placeholder">
                   <i class="fas fa-cloud-upload-alt upload-icon"></i>
@@ -390,6 +399,10 @@
                   <p>Rasmlarni bu yerga sudrab oling yoki fayllarni tanlash uchun bosing</p>
                   <p class="upload-requirements">
                     Maksimal 10 ta rasm • JPG, PNG, WebP • Har biri 5MB gacha
+                  </p>
+                  <p class="upload-note">
+                    <i class="fas fa-info-circle"></i>
+                    Rasmlar vaqtincha saqlanadi. Product saqlangandagina server'ga yuklanadi.
                   </p>
                   <button type="button" class="btn-outline upload-btn">
                     <i class="fas fa-folder-open"></i>
@@ -400,17 +413,24 @@
                   type="file" 
                   id="imageUploadInput" 
                   multiple 
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/jpeg,image/png,image/webp,image/jpg"
+                  style="display: none;"
+                >
+                <!-- Hidden input for image replacement -->
+                <input 
+                  type="file" 
+                  id="imageReplaceInput" 
+                  accept="image/jpeg,image/png,image/webp,image/jpg"
                   style="display: none;"
                 >
               </div>
               
-              <!-- Preview Images -->
+              <!-- Professional Preview Images -->
               <div class="current-images" id="currentImages">
-                <!-- Uploaded images will appear here -->
+                <!-- Images will appear here with professional controls -->
               </div>
               
-              <!-- Upload Progress -->
+              <!-- Enhanced Upload Progress -->
               <div class="upload-progress" id="uploadProgress" style="display: none;">
                 <div class="progress-info">
                   <span class="progress-text">Yuklanmoqda...</span>
@@ -773,7 +793,13 @@
             this.autoSaveEnabled = true;
             this.autoSaveInterval = null;
             this.validationRules = this.setupValidationRules();
-            this.uploadedImages = [];
+            
+            // PROFESSIONAL Image Management Arrays
+            this.temporaryImages = [];
+            this.existingImages = [];
+            this.deletedImages = [];
+            this.replaceImageId = null;
+            
             this.stepProgress = {
                 1: 0, 2: 0, 3: 0, 4: 0, 5: 0
             };
@@ -1169,8 +1195,8 @@
             this.updateProgressItem(3, step3Completion);
             this.stepProgress[3] = step3Completion;
     
-            // Step 4: Images (Important - weighted 15%)
-            const uploadedCount = this.uploadedImages.length;
+            // Step 4: Images (Important - weighted 15%) - PROFESSIONAL TRACKING
+            const uploadedCount = (this.temporaryImages?.length || 0) + (this.existingImages?.length || 0);
             const step4Completion = uploadedCount > 0 ? 
                 Math.min(100, (uploadedCount / 3) * 100) : 0; // 3 images = 100%
             this.updateProgressItem(4, step4Completion);
@@ -1435,49 +1461,85 @@
             });
         }
     
+        /**
+         * PROFESSIONAL Image Upload Setup - Advanced Base64 Management
+         */
         setupImageUpload() {
+            console.log('🖼️ Setting up professional image upload system...');
+            
             const uploadArea = document.getElementById('imageUploadArea');
             const uploadInput = document.getElementById('imageUploadInput');
+            const replaceInput = document.getElementById('imageReplaceInput');
             const uploadBtn = document.querySelector('.upload-btn');
     
             // Click to upload
-            uploadBtn?.addEventListener('click', () => uploadInput?.click());
-            uploadArea?.addEventListener('click', () => uploadInput?.click());
-    
-            // File input change
-            uploadInput?.addEventListener('change', (e) => {
-                this.handleImageFiles(e.target.files);
+            uploadBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                uploadInput?.click();
+            });
+            
+            uploadArea?.addEventListener('click', (e) => {
+                if (e.target.closest('.upload-placeholder')) {
+                    uploadInput?.click();
+                }
             });
     
-            // Drag and drop
+            // Main file input change - PROFESSIONAL HANDLING
+            uploadInput?.addEventListener('change', (e) => {
+                this.handleImageFilesAdvanced(e.target.files);
+                e.target.value = ''; // Clear input for re-selection
+            });
+            
+            // Replace input change
+            replaceInput?.addEventListener('change', (e) => {
+                this.handleImageReplacement(e);
+                e.target.value = ''; // Clear input
+            });
+    
+            // Professional drag and drop
             uploadArea?.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 uploadArea.classList.add('drag-over');
             });
     
-            uploadArea?.addEventListener('dragleave', () => {
-                uploadArea.classList.remove('drag-over');
+            uploadArea?.addEventListener('dragleave', (e) => {
+                // Only remove drag-over if leaving the upload area completely
+                if (!uploadArea.contains(e.relatedTarget)) {
+                    uploadArea.classList.remove('drag-over');
+                }
             });
     
             uploadArea?.addEventListener('drop', (e) => {
                 e.preventDefault();
                 uploadArea.classList.remove('drag-over');
-                this.handleImageFiles(e.dataTransfer.files);
+                this.handleImageFilesAdvanced(e.dataTransfer.files);
             });
+            
+            // Initialize image display
+            this.refreshImageGrid();
+            this.updateImageCounter();
+            
+            console.log('✅ Professional image upload system initialized');
         }
     
-        async handleImageFiles(files) {
+        /**
+         * PROFESSIONAL Advanced Image Files Handler
+         * Processes selected files with Base64 conversion for temporary storage
+         */
+        async handleImageFilesAdvanced(files) {
+            console.log('📸 Processing image files:', files.length);
+            
             const maxFiles = 10;
             const maxSize = 5 * 1024 * 1024; // 5MB
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     
             const validFiles = Array.from(files).filter(file => {
                 if (!allowedTypes.includes(file.type)) {
-                    this.showErrorToast(`Noto'g'ri fayl turi: ${file.name}`);
+                    this.showErrorToast(`${file.name} fayli qo'llab-quvvatlanmaydi. Faqat JPG, PNG, WebP fayllar mumkin.`);
                     return false;
                 }
                 if (file.size > maxSize) {
-                    this.showErrorToast(`Fayl juda katta: ${file.name}`);
+                    this.showErrorToast(`${file.name} fayli juda katta (maksimal 5MB)`);
                     return false;
                 }
                 return true;
@@ -1485,24 +1547,72 @@
     
             if (validFiles.length === 0) return;
     
-            const currentImageCount = this.uploadedImages.length;
+            const currentImageCount = this.temporaryImages.length + this.existingImages.length;
             if (currentImageCount + validFiles.length > maxFiles) {
                 this.showErrorToast(`Maksimal ${maxFiles} ta rasm yuklash mumkin`);
                 return;
             }
     
             try {
-                this.showUploadProgress(true);
-                const uploadedUrls = await this.uploadImages(validFiles);
-                this.uploadedImages.push(...uploadedUrls);
-                this.addImagesToPreview(uploadedUrls);
+                this.showUploadProgress(true, 'Base64 ga konvertatsiya qilinmoqda...');
+                
+                // Process each file and convert to Base64
+                for (let i = 0; i < validFiles.length; i++) {
+                    const file = validFiles[i];
+                    await this.addImageToTemporaryStorage(file);
+                    
+                    // Update progress
+                    const progress = Math.round(((i + 1) / validFiles.length) * 100);
+                    this.updateUploadProgress(progress);
+                }
+                
                 this.showUploadProgress(false);
-                this.showSuccessToast(`${uploadedUrls.length} ta rasm yuklandi`);
+                this.refreshImageGrid();
+                this.updateImageCounter();
+                this.showSuccessToast(`${validFiles.length} ta rasm qo'shildi`);
                 this.isDirty = true;
+                
+                console.log('✅ Files processed successfully:', validFiles.length);
             } catch (error) {
                 this.showUploadProgress(false);
-                this.showErrorToast('Rasmlarni yuklashda xatolik: ' + error.message);
+                console.error('❌ Image processing failed:', error);
+                this.showErrorToast('Rasmlarni qayta ishlashda xatolik yuz berdi');
             }
+        }
+
+        /**
+         * Add image to temporary storage with Base64 conversion
+         */
+        async addImageToTemporaryStorage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    const imageData = {
+                        id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        type: 'temporary',
+                        file: file,
+                        filename: file.name,
+                        size: file.size,
+                        mimeType: file.type,
+                        base64: e.target.result,
+                        isPrimary: this.temporaryImages.length === 0 && this.existingImages.length === 0,
+                        alt: '',
+                        isNew: true
+                    };
+                    
+                    this.temporaryImages.push(imageData);
+                    console.log(`📦 Added to temporary storage: ${file.name}`);
+                    resolve(imageData);
+                };
+                
+                reader.onerror = () => {
+                    console.error('❌ FileReader error');
+                    reject(new Error('Faylni o\'qishda xatolik'));
+                };
+                
+                reader.readAsDataURL(file);
+            });
         }
     
         async uploadImages(files) {
@@ -1523,45 +1633,429 @@
             return result.data.urls;
         }
     
-        addImagesToPreview(imageUrls) {
-            const currentImages = document.getElementById('currentImages');
-            let imagesGrid = currentImages.querySelector('.images-grid');
+        /**
+         * PROFESSIONAL Image Grid Refresh
+         * Renders all images (temporary & existing) with advanced controls
+         */
+        refreshImageGrid() {
+            console.log('🔄 Refreshing image grid...');
             
-            if (!imagesGrid) {
-                imagesGrid = document.createElement('div');
-                imagesGrid.className = 'images-grid';
-                currentImages.appendChild(imagesGrid);
+            const currentImages = document.getElementById('currentImages');
+            currentImages.innerHTML = ''; // Clear existing content
+            
+            // Combine and sort images (primary first)
+            const allImages = [
+                ...this.temporaryImages,
+                ...this.existingImages
+            ].sort((a, b) => {
+                if (a.isPrimary && !b.isPrimary) return -1;
+                if (!a.isPrimary && b.isPrimary) return 1;
+                return 0;
+            });
+            
+            if (allImages.length === 0) {
+                console.log('📭 No images to display');
+                return;
             }
-    
-            imageUrls.forEach((url, index) => {
-                const imageItem = this.createImagePreview(url, index === 0 && this.uploadedImages.length === 1);
+            
+            // Create images grid
+            const imagesGrid = document.createElement('div');
+            imagesGrid.className = 'images-grid';
+            
+            allImages.forEach(imageData => {
+                const imageItem = this.createAdvancedImagePreview(imageData);
                 imagesGrid.appendChild(imageItem);
             });
-    
-            this.setupImageRemovalHandlers();
+            
+            currentImages.appendChild(imagesGrid);
+            this.setupAdvancedImageHandlers();
+            this.updateImageCounter();
+            
+            console.log(`✅ Image grid refreshed with ${allImages.length} images`);
         }
-    
-        createImagePreview(imageUrl, isPrimary = false) {
+
+        /**
+         * Create advanced image preview with professional controls
+         */
+        createAdvancedImagePreview(imageData) {
             const imageItem = document.createElement('div');
             imageItem.className = 'image-item';
-            imageItem.dataset.imageUrl = imageUrl;
-    
+            imageItem.dataset.imageId = imageData.id;
+            
+            // Determine image source
+            const imageSrc = imageData.type === 'temporary' ? imageData.base64 : imageData.url;
+            
             imageItem.innerHTML = `
-                <div class="image-wrapper">
-                    <img src="${imageUrl}" alt="Product Image" loading="lazy">
-                    <div class="image-overlay">
-                        <button type="button" class="btn-sm btn-ghost set-primary" title="Asosiy qilish">
+                <div class="image-container">
+                    <img src="${imageSrc}" alt="${imageData.alt || 'Product image'}" class="image-preview">
+                    
+                    <!-- Professional Badge System -->
+                    <div class="image-badges">
+                        ${imageData.isPrimary ? '<span class="primary-badge">Asosiy</span>' : ''}
+                        ${imageData.type === 'temporary' ? '<span class="temp-badge">Yangi</span>' : ''}
+                    </div>
+                    
+                    <!-- Professional Controls -->
+                    <div class="image-controls">
+                        <button type="button" class="control-btn set-primary-btn" title="Asosiy rasm qilish">
                             <i class="fas fa-star"></i>
                         </button>
-                        <button type="button" class="btn-sm btn-ghost remove-image" title="O'chirish">
+                        <button type="button" class="control-btn replace-btn" title="Almashtirib yuklash">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button type="button" class="control-btn remove-btn" title="O'chirish">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
-                    ${isPrimary ? '<div class="primary-badge">Asosiy</div>' : ''}
+                    
+                    <!-- Image Info -->
+                    <div class="image-info">
+                        <span class="image-filename">${imageData.filename}</span>
+                        <span class="image-size">${this.formatFileSize(imageData.size)}</span>
+                    </div>
                 </div>
             `;
-    
+            
             return imageItem;
+        }
+
+        /**
+         * Setup advanced image handlers for professional controls
+         */
+        setupAdvancedImageHandlers() {
+            const imageGrid = document.querySelector('#currentImages .images-grid');
+            if (!imageGrid) return;
+            
+            // Remove button handlers
+            imageGrid.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const imageItem = e.target.closest('.image-item');
+                    const imageId = imageItem.dataset.imageId;
+                    this.removeImageAdvanced(imageId);
+                });
+            });
+            
+            // Set primary button handlers
+            imageGrid.querySelectorAll('.set-primary-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const imageItem = e.target.closest('.image-item');
+                    const imageId = imageItem.dataset.imageId;
+                    this.setPrimaryImageAdvanced(imageId);
+                });
+            });
+            
+            // Replace button handlers
+            imageGrid.querySelectorAll('.replace-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const imageItem = e.target.closest('.image-item');
+                    const imageId = imageItem.dataset.imageId;
+                    this.replaceImageAdvanced(imageId);
+                });
+            });
+        }
+    
+        /**
+         * PROFESSIONAL Image Management Methods
+         */
+
+        /**
+         * Update image counter with visual indicators
+         */
+        updateImageCounter() {
+            const counter = document.querySelector('.image-counter');
+            const tempCount = document.querySelector('.temp-images-count');
+            const existingCount = document.querySelector('.existing-images-count');
+            
+            if (!counter || !tempCount || !existingCount) return;
+            
+            const totalImages = this.temporaryImages.length + this.existingImages.length;
+            const maxImages = 10;
+            
+            // Update main counter with status color
+            counter.textContent = `${totalImages}/${maxImages} rasm`;
+            counter.className = 'image-counter';
+            
+            if (totalImages >= maxImages) {
+                counter.classList.add('limit-reached');
+            } else if (totalImages >= maxImages * 0.8) {
+                counter.classList.add('warning');
+            }
+            
+            // Update detailed counts
+            tempCount.textContent = `Yangi: ${this.temporaryImages.length}`;
+            existingCount.textContent = `Yuklangan: ${this.existingImages.length}`;
+        }
+
+        /**
+         * Remove image with professional confirmation
+         */
+        removeImageAdvanced(imageId) {
+            console.log('🗑️ Removing image:', imageId);
+            
+            // Find image in arrays
+            const tempIndex = this.temporaryImages.findIndex(img => img.id === imageId);
+            const existingIndex = this.existingImages.findIndex(img => img.id === imageId);
+            
+            let removedImage = null;
+            
+            if (tempIndex !== -1) {
+                removedImage = this.temporaryImages.splice(tempIndex, 1)[0];
+                console.log('📦 Removed from temporary storage');
+            } else if (existingIndex !== -1) {
+                removedImage = this.existingImages.splice(existingIndex, 1)[0];
+                this.deletedImages.push(removedImage);
+                console.log('🗂️ Moved to deleted images for cleanup');
+            }
+            
+            if (removedImage) {
+                // If removed image was primary, set new primary
+                if (removedImage.isPrimary) {
+                    const remainingImages = [...this.temporaryImages, ...this.existingImages];
+                    if (remainingImages.length > 0) {
+                        remainingImages[0].isPrimary = true;
+                        console.log('⭐ Set new primary image');
+                    }
+                }
+                
+                this.refreshImageGrid();
+                this.showSuccessToast('Rasm o\'chirildi');
+                this.isDirty = true;
+            }
+        }
+
+        /**
+         * Set primary image with validation
+         */
+        setPrimaryImageAdvanced(imageId) {
+            console.log('⭐ Setting primary image:', imageId);
+            
+            // Clear all primary statuses
+            [...this.temporaryImages, ...this.existingImages].forEach(img => {
+                img.isPrimary = false;
+            });
+            
+            // Set new primary
+            const allImages = [...this.temporaryImages, ...this.existingImages];
+            const primaryImage = allImages.find(img => img.id === imageId);
+            
+            if (primaryImage) {
+                primaryImage.isPrimary = true;
+                this.refreshImageGrid();
+                this.showSuccessToast('Asosiy rasm o\'zgartirildi');
+                this.isDirty = true;
+                console.log('✅ Primary image set successfully');
+            }
+        }
+
+        /**
+         * Replace image functionality
+         */
+        replaceImageAdvanced(imageId) {
+            console.log('🔄 Replacing image:', imageId);
+            this.replaceImageId = imageId;
+            document.getElementById('imageReplaceInput').click();
+        }
+
+        /**
+         * Handle image replacement
+         */
+        async handleImageReplacement(e) {
+            const file = e.target.files[0];
+            if (!file || !this.replaceImageId) return;
+            
+            console.log('🔄 Processing image replacement...');
+            
+            try {
+                // Validate file
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                
+                if (!allowedTypes.includes(file.type)) {
+                    this.showErrorToast('Fayl turi qo\'llab-quvvatlanmaydi');
+                    return;
+                }
+                
+                if (file.size > maxSize) {
+                    this.showErrorToast('Fayl juda katta (maksimal 5MB)');
+                    return;
+                }
+                
+                // Find image to replace
+                const tempIndex = this.temporaryImages.findIndex(img => img.id === this.replaceImageId);
+                const existingIndex = this.existingImages.findIndex(img => img.id === this.replaceImageId);
+                
+                // Create new image data
+                const newImageData = await this.createImageDataFromFile(file);
+                
+                if (tempIndex !== -1) {
+                    // Replace temporary image
+                    const oldImage = this.temporaryImages[tempIndex];
+                    newImageData.isPrimary = oldImage.isPrimary;
+                    this.temporaryImages[tempIndex] = newImageData;
+                } else if (existingIndex !== -1) {
+                    // Replace existing image
+                    const oldImage = this.existingImages[existingIndex];
+                    newImageData.isPrimary = oldImage.isPrimary;
+                    
+                    // Move old image to deleted
+                    this.deletedImages.push(oldImage);
+                    
+                    // Remove from existing and add new to temporary
+                    this.existingImages.splice(existingIndex, 1);
+                    this.temporaryImages.push(newImageData);
+                }
+                
+                this.refreshImageGrid();
+                this.showSuccessToast('Rasm almashtirildi');
+                this.isDirty = true;
+                
+            } catch (error) {
+                console.error('❌ Image replacement failed:', error);
+                this.showErrorToast('Rasmni almashtirish amalga oshmadi');
+            } finally {
+                this.replaceImageId = null;
+            }
+        }
+
+        /**
+         * Create image data from file (helper for replacement)
+         */
+        async createImageDataFromFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    const imageData = {
+                        id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        type: 'temporary',
+                        file: file,
+                        filename: file.name,
+                        size: file.size,
+                        mimeType: file.type,
+                        base64: e.target.result,
+                        isPrimary: false,
+                        alt: '',
+                        isNew: true
+                    };
+                    
+                    resolve(imageData);
+                };
+                
+                reader.onerror = () => reject(new Error('Faylni o\'qishda xatolik'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        /**
+         * Format file size for display
+         */
+        formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        /**
+         * PROFESSIONAL Optimized Image Data Preparation
+         * No base64 data to reduce payload size
+         */
+        prepareOptimizedImageData() {
+            const optimizedData = {
+                // Lightweight metadata for temporary images
+                temporaryImages: (this.temporaryImages || []).map(img => ({
+                    id: img.id,
+                    filename: img.filename,
+                    size: img.size,
+                    mimeType: img.mimeType,
+                    isPrimary: img.isPrimary,
+                    alt: img.alt,
+                    hasFile: !!img.file // Indicates if file exists for upload
+                })),
+                
+                // Existing images metadata (for add page, this will usually be empty)
+                existingImages: (this.existingImages || []).map(img => ({
+                    id: img.id,
+                    url: img.url,
+                    alt: img.alt,
+                    isPrimary: img.isPrimary,
+                    type: img.type
+                })),
+                
+                // Deleted images for cleanup (for add page, this will usually be empty)
+                deletedImages: (this.deletedImages || []).map(img => ({
+                    id: img.id,
+                    url: img.url,
+                    type: img.type
+                }))
+            };
+            
+            console.log('📦 Optimized image data prepared for product creation:', {
+                temporary: optimizedData.temporaryImages.length,
+                existing: optimizedData.existingImages.length,
+                deleted: optimizedData.deletedImages.length,
+                totalSize: JSON.stringify(optimizedData).length + ' bytes'
+            });
+            
+            return optimizedData;
+        }
+
+        /**
+         * Upload temporary images before creating product
+         */
+        async uploadTemporaryImages() {
+            if (!this.temporaryImages || this.temporaryImages.length === 0) {
+                console.log('📭 No temporary images to upload');
+                return [];
+            }
+            
+            console.log(`📤 Uploading ${this.temporaryImages.length} temporary images...`);
+            
+            try {
+                const formData = new FormData();
+                
+                // Add files and metadata
+                this.temporaryImages.forEach((imgData, index) => {
+                    if (imgData.file) {
+                        formData.append('images', imgData.file);
+                        formData.append(`metadata[${index}][alt]`, imgData.alt || '');
+                        formData.append(`metadata[${index}][isPrimary]`, imgData.isPrimary ? 'true' : 'false');
+                    }
+                });
+                
+                const response = await fetch('/manufacturer/api/products/upload-images-final', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Upload failed: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'Upload failed');
+                }
+                
+                console.log('✅ Images uploaded successfully:', result.data);
+                
+                // Extract URLs from response objects to match edit.ejs behavior
+                if (Array.isArray(result.data)) {
+                    return result.data.map(item => item.url || item);
+                }
+                
+                return result.data?.urls || [];
+                
+            } catch (error) {
+                console.error('❌ Image upload failed:', error);
+                throw error;
+            }
         }
     
         setupImageRemovalHandlers() {
@@ -2065,8 +2559,8 @@
                 }
             }
     
-            // Add uploaded images
-            data.images = this.uploadedImages;
+            // PROFESSIONAL Image Data - Optimized for B2B platform
+            data.imageData = this.prepareOptimizedImageData();
     
             // Collect shipping methods
             const shippingMethods = Array.from(document.querySelectorAll('input[name="shipping.methods"]:checked'))
@@ -2100,10 +2594,61 @@
             }
         }
     
+        /**
+         * PROFESSIONAL Product Creation with Step-by-Step Process
+         * Optimized for payload size and enhanced error handling
+         */
         async createProduct(data) {
-            console.log('🚀 Creating new product:', data);
+            console.log('🚀 OPTIMIZED: Creating new product');
+            console.log('📦 Payload size:', JSON.stringify(data).length + ' bytes');
             
             try {
+                // Step 1: Upload temporary images first if any exist
+                let uploadedImageUrls = [];
+                if (this.temporaryImages && this.temporaryImages.length > 0) {
+                    console.log(`📤 Uploading ${this.temporaryImages.length} temporary images first...`);
+                    try {
+                        uploadedImageUrls = await this.uploadTemporaryImages();
+                        console.log(`✅ Uploaded ${uploadedImageUrls.length} images`);
+                    } catch (uploadError) {
+                        console.error('❌ Image upload failed:', uploadError);
+                        throw new Error('Rasmlarni yuklashda xatolik. Iltimos, qayta urinib ko\'ring.');
+                    }
+                }
+                
+                // Step 2: Update product data with uploaded image URLs
+                if (uploadedImageUrls.length > 0 && data.imageData) {
+                    console.log('🔍 DEBUG: uploadedImageUrls structure:', uploadedImageUrls);
+                    
+                    // Add uploaded images to existing images (now URLs array like edit.ejs)
+                    const newImages = uploadedImageUrls.map((url, index) => {
+                        const tempImg = this.temporaryImages[index];
+                        return {
+                            url: url,
+                            alt: tempImg?.alt || '',
+                            isPrimary: tempImg?.isPrimary || false,
+                            type: 'uploaded'
+                        };
+                    });
+                    
+                    data.imageData.existingImages = [
+                        ...(data.imageData.existingImages || []),
+                        ...newImages
+                    ];
+                    
+                    console.log('✅ Updated data.imageData.existingImages:', data.imageData.existingImages);
+                    
+                    // Clear temporary images since they're now uploaded
+                    data.imageData.temporaryImages = [];
+                    
+                    console.log('🔄 Final imageData before sending:', {
+                        existingImages: data.imageData.existingImages.length,
+                        temporaryImages: data.imageData.temporaryImages.length,
+                        deletedImages: data.imageData.deletedImages?.length || 0
+                    });
+                }
+                
+                // Step 3: Send optimized product creation request
                 const response = await fetch(productAddData.apiEndpoints.createProduct, {
                     method: 'POST',
                     headers: {
@@ -2118,14 +2663,85 @@
                 console.log('📥 Server response:', result);
                 
                 if (!result.success) {
-                    throw new Error(result.message || 'Mahsulot yaratishda xatolik yuz berdi');
+                    // Enhanced error handling for different error types
+                    if (result.message && result.message.includes('request entity too large')) {
+                        throw new Error('Ma\'lumot hajmi juda katta. Rasmlar sonini kamaytiring yoki kichik hajmdagi rasmlar ishlating.');
+                    } else if (result.error && result.error.includes('Cast to ObjectId failed')) {
+                        throw new Error('Kategoriya maydoni noto\'g\'ri. Iltimos, kategoriyani qayta tanlang.');
+                    } else if (result.error && result.error.includes('validation')) {
+                        throw new Error('Ma\'lumotlarni tekshirishda xatolik. Barcha majburiy maydonlarni to\'ldiring.');
+                    } else {
+                        throw new Error(result.message || 'Mahsulot yaratishda xatolik yuz berdi');
+                    }
+                }
+                
+                // Step 4: Update local state after successful creation
+                if (uploadedImageUrls.length > 0) {
+                    // Clear temporary images from local state
+                    this.temporaryImages = [];
+                    
+                    // Update existing images with new uploaded ones
+                    uploadedImageUrls.forEach((url, index) => {
+                        const tempImg = this.temporaryImages[index] || {};
+                        this.existingImages.push({
+                            id: `uploaded_${Date.now()}_${index}`,
+                            type: 'existing',
+                            url: url,
+                            alt: tempImg.alt || '',
+                            isPrimary: tempImg.isPrimary || false
+                        });
+                    });
+                    
+                    console.log(`🔄 Moved ${uploadedImageUrls.length} temporary images to existing images`);
                 }
     
-                console.log('✅ Product created successfully');
+                console.log('✅ Product created successfully with optimized process');
                 return result.data;
+                
             } catch (error) {
-                console.error('❌ Product creation failed:', error);
+                console.error('❌ Optimized product creation failed:', error);
+                
+                // Enhanced user-friendly error messages
+                if (error.message.includes('PayloadTooLargeError') || error.message.includes('request entity too large')) {
+                    throw new Error('Ma\'lumot hajmi juda katta. Rasmlar sonini kamaytiring yoki kichik rasmlar ishlating.');
+                }
+                
                 throw error;
+            }
+        }
+
+        /**
+         * Show/hide upload progress with enhanced messaging
+         */
+        showUploadProgress(show, message = 'Yuklanmoqda...') {
+            const progressElement = document.getElementById('uploadProgress');
+            if (!progressElement) return;
+            
+            if (show) {
+                progressElement.style.display = 'block';
+                const progressText = progressElement.querySelector('.progress-text');
+                if (progressText) {
+                    progressText.textContent = message;
+                }
+                this.updateUploadProgress(0);
+            } else {
+                progressElement.style.display = 'none';
+            }
+        }
+
+        /**
+         * Update upload progress percentage
+         */
+        updateUploadProgress(percentage) {
+            const progressFill = document.querySelector('#uploadProgress .progress-fill');
+            const progressPercentage = document.querySelector('#uploadProgress .progress-percentage');
+            
+            if (progressFill) {
+                progressFill.style.width = `${percentage}%`;
+            }
+            
+            if (progressPercentage) {
+                progressPercentage.textContent = `${percentage}%`;
             }
         }
     
@@ -4316,5 +4932,319 @@
   color: var(--color-primary);
   background: var(--bg-elevated);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== PROFESSIONAL IMAGE MANAGEMENT CSS ===== */
+
+/* Professional Image Counter Section */
+.image-counter-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.image-counter {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #495057;
+    padding: 0.25rem 0.75rem;
+    background: #fff;
+    border-radius: 20px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.image-counter.warning {
+    border-color: #ffc107;
+    color: #856404;
+    background: #fff3cd;
+}
+
+.image-counter.limit-reached {
+    border-color: #dc3545;
+    color: #721c24;
+    background: #f8d7da;
+}
+
+.image-status-info {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+}
+
+.temp-images-count,
+.existing-images-count {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.temp-images-count {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+}
+
+.existing-images-count {
+    background: #e8f5e8;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+/* Enhanced Upload Note */
+.upload-note {
+    margin-top: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: #856404;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Professional Image Item Styling */
+.image-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.image-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border-color: #007bff;
+}
+
+.image-container {
+    position: relative;
+}
+
+.image-preview {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+}
+
+/* Professional Badge System */
+.image-badges {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.primary-badge,
+.temp-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.primary-badge {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    color: #b45309;
+    border: 1px solid #f59e0b;
+}
+
+.temp-badge {
+    background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+    color: #fff;
+    border: 1px solid #2563eb;
+}
+
+/* Professional Image Controls */
+.image-controls {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-item:hover .image-controls {
+    opacity: 1;
+}
+
+.control-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    font-size: 0.875rem;
+}
+
+.set-primary-btn {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    color: #b45309;
+}
+
+.set-primary-btn:hover {
+    background: linear-gradient(135deg, #ffed4e 0%, #fbbf24 100%);
+    transform: scale(1.1);
+}
+
+.replace-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #fff;
+}
+
+.replace-btn:hover {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+    transform: scale(1.1);
+}
+
+.remove-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    color: #fff;
+}
+
+.remove-btn:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    transform: scale(1.1);
+}
+
+/* Image Info Section */
+.image-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);
+    color: #fff;
+    padding: 0.75rem 0.5rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.image-filename {
+    font-size: 0.75rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.image-size {
+    font-size: 0.625rem;
+    opacity: 0.8;
+}
+
+/* Enhanced Upload Progress */
+.upload-progress {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.progress-text {
+    font-weight: 500;
+    color: #495057;
+}
+
+.progress-percentage {
+    font-weight: 600;
+    color: #007bff;
+}
+
+.progress-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+/* Dark Mode Support for Image Management */
+[data-theme="dark"] .image-counter-section {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+    border-color: #6b7280;
+}
+
+[data-theme="dark"] .image-counter {
+    background: #1f2937;
+    color: #e5e7eb;
+    border-color: #6b7280;
+}
+
+[data-theme="dark"] .image-item {
+    background: #1f2937;
+    border-color: #6b7280;
+}
+
+[data-theme="dark"] .upload-note {
+    background: #fbbf24;
+    color: #1f2937;
+}
+
+[data-theme="dark"] .upload-progress {
+    background: #374151;
+    border-color: #6b7280;
+}
+
+[data-theme="dark"] .progress-text {
+    color: #e5e7eb;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .image-counter-section {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+    .image-status-info {
+        gap: 0.5rem;
+    }
+
+    .control-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
 }
 </style>

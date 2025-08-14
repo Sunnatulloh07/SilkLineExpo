@@ -10580,7 +10580,7 @@ input[type='number'] {
 
 .payment-method::before {
   position: absolute;
-  content: '';
+  /* content: ''; */
   width: 470px;
   height: 470px;
   border-radius: 470px;

@@ -248,7 +248,116 @@
           <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane fade show active" id="pills-all" role="tabpanel" aria-labelledby="pills-all-tab"
               tabindex="0">
+              
+              <!-- Dynamic Products Grid -->
+              <% if (topProducts && topProducts.length > 0) { %>
+                <div class="row gy-4">
+                  <% topProducts.slice(0, 12).forEach(function(product, index) { %>
+                    <div class="col-xl-3 col-lg-4 col-sm-6">
+                      <div class="product-item box-shadow">
+                        <div class="product-item__thumb d-flex">
+                          <a href="/product-details?id=<%= product._id %>" class="link w-100">
+                            <% if (product.images && product.images.length > 0) { %>
+                              <% 
+                                const primaryImage = product.images ? product.images.find(img => img.isPrimary) : null;
+                                const imageUrl = primaryImage ? primaryImage.url : (product.images && product.images.length > 0 ? product.images[0].url : '/assets/images/thumbs/product-placeholder.png');
+                              %>
+                              <img src="<%= imageUrl %>" 
+                                   alt="<%= product.name %>" class="cover-img">
+                            <% } else { %>
+                              <img src="/assets/images/thumbs/product-placeholder.png" 
+                                   alt="<%= product.name %>" class="cover-img">
+                            <% } %>
+                          </a>
+                          <% if (product.isFeatured) { %>
+                            <span class="product-item__badge">Featured</span>
+                          <% } %>
+                        </div>
+                        <div class="product-item__content">
+                          <h6 class="product-item__title">
+                            <a href="/product-details?id=<%= product._id %>" class="link">
+                              <%= product.name.length > 40 ? product.name.substring(0, 40) + '...' : product.name %>
+                            </a>
+                          </h6>
+                          <div class="product-item__info flx-between gap-2">
+                            <span class="product-item__author">
+                              by
+                              <a href="#!" class="link hover-text-decoration-underline" translate="no"> 
+                                <%= product.manufacturer?.companyName || 'Unknown' %>
+                              </a>
+                            </span>
+                            <div class="flx-align gap-2">
+                              <h6 class="product-item__price mb-0">
+                                $<%= (product.pricing?.basePrice || 0).toFixed(2) %>
+                              </h6>
+                            </div>
+                          </div>
+                          <div class="product-item__bottom flx-between gap-2">
+                            <div>
+                              <span class="product-item__sales font-14 mb-2">
+                                <%= (product.analytics?.views || 0).toLocaleString() %>+ <%= t('product.views') %>
+                              </span>
+                              <div class="d-flex align-items-center gap-1">
+                                <ul class="star-rating">
+                                  <%
+                                    const rating = product.averageRating || 0;
+                                    const fullStars = Math.floor(rating);
+                                    const hasHalfStar = (rating % 1) >= 0.5;
+                                  %>
+                                  <% for (let i = 1; i <= 5; i++) { %>
+                                    <% if (i <= fullStars) { %>
+                                      <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                    <% } else if (i === fullStars + 1 && hasHalfStar) { %>
+                                      <li class="star-rating__item font-11"><i class="fas fa-star-half-alt"></i></li>
+                                    <% } else { %>
+                                      <li class="star-rating__item font-11 text-muted"><i class="far fa-star"></i></li>
+                                    <% } %>
+                                  <% } %>
+                                </ul>
+                                <span class="star-rating__text text-heading fw-500 font-14">
+                                  (<%= product.totalReviews || 0 %>)
+                                </span>
+                              </div>
+                            </div>
+                            <a href="/product-details?id=<%= product._id %>" 
+                               class="btn btn-outline-light btn-sm pill"><%= t('common.view') %></a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% }); %>
+                </div>
+              <% } else { %>
+                <!-- No Products Fallback -->
+                <div class="text-center py-5">
+                  <div class="mb-4">
+                    <i class="las la-shopping-cart display-1 text-muted"></i>
+                  </div>
+                  <h4 class="text-heading mb-3"><%= t('product.noProductsFound') %></h4>
+                  <p class="text-muted mb-4"><%= t('product.noProductsDescription') %></p>
+                  <a href="/all-product" class="btn btn-main btn-lg pill">
+                    <%= t('buttons.exploreAllProducts') %>
+                  </a>
+                </div>
+              <% } %>
+              
             </div>
+            
+            <!-- Drinks Tab (Optional - Can be populated later) -->
+            <div class="tab-pane fade" id="pills-drinks" role="tabpanel" aria-labelledby="pills-drinks-tab"
+              tabindex="0">
+              <div class="text-center py-5">
+                <div class="mb-4">
+                  <i class="las la-glass-cheers display-1 text-muted"></i>
+                </div>
+                <h4 class="text-heading mb-3"><%= t('categories.drinksComingSoon') %></h4>
+                <p class="text-muted mb-4"><%= t('categories.drinksDescription') %></p>
+                <a href="/all-product" class="btn btn-main btn-lg pill">
+                  <%= t('buttons.viewAllProducts') %>
+                </a>
+              </div>
+            </div>
+            
           </div>
 
           <div class="text-center mt-64">

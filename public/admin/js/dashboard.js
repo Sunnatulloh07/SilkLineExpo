@@ -98,7 +98,7 @@ class SLEXDashboard {
   // ===============================================
   setupTheme() {
     // Use exact same logic as public pages (main.js)
-    const currentTheme = localStorage.getItem('theme');
+    const currentTheme = localStorage.getItem('dashboard-theme');
     
     if (currentTheme) {
       document.documentElement.setAttribute('data-theme', currentTheme);
@@ -130,7 +130,7 @@ class SLEXDashboard {
     
     // Apply theme exactly like public pages
     document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
+    localStorage.setItem('dashboard-theme', newTheme);
     
     // Update internal state
     this.currentTheme = newTheme;
@@ -144,7 +144,7 @@ class SLEXDashboard {
     
     // Broadcast to other tabs (like public pages)
     window.dispatchEvent(new StorageEvent('storage', {
-      key: 'theme',
+      key: 'dashboard-theme',
       newValue: newTheme,
       url: window.location.href
     }));
@@ -6270,7 +6270,7 @@ window.initializeThemeSystem = function() {
   console.log('🎨 Theme system initialized - direct implementation');
   
   // Apply saved theme
-  const savedTheme = localStorage.getItem('theme') || 'light';
+  const savedTheme = localStorage.getItem('dashboard-theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
   document.body.setAttribute('data-theme', savedTheme);
   
@@ -6295,7 +6295,7 @@ window.initializeThemeSystem = function() {
       document.body.setAttribute('data-theme', newTheme);
       
       // Save preference
-      localStorage.setItem('theme', newTheme);
+      localStorage.setItem('dashboard-theme', newTheme);
       
       // Update icon
       const icon = this.querySelector('i');

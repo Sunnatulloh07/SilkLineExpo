@@ -130,8 +130,7 @@ class ManufacturerService {
       }
 
       // Execute query and cache result
-      this.logger.log(`🔄 Cache miss, executing query for: ${key}`);
-      const queryStartTime = Date.now();
+       const queryStartTime = Date.now();
       const data = await queryFn();
       const queryEndTime = Date.now();
       
@@ -150,13 +149,11 @@ class ManufacturerService {
 
       const totalDuration = Date.now() - startTime;
       this.trackPerformance(operation, totalDuration, false);
-      this.logger.log(`✅ Query executed for: ${key} (${totalDuration}ms total, ${queryEndTime - queryStartTime}ms query)`);
       
       return data;
     } catch (error) {
       const duration = Date.now() - startTime;
       this.trackPerformance(`${operation}_error`, duration, false);
-      this.logger.error(`❌ Cache error for key ${key} (${duration}ms):`, error);
       throw error;
     }
   }
@@ -171,7 +168,6 @@ class ManufacturerService {
         this.cache.delete(key);
       }
     }
-    this.logger.log(`🧹 Cache cleaned, ${this.cache.size} entries remaining`);
   }
 
   /**
@@ -190,15 +186,12 @@ class ManufacturerService {
             cleared++;
           }
         }
-        this.logger.log(`🗑️ Cache cleared for pattern "${key}": ${cleared} entries`);
-      } else {
+        } else {
         // Exact key match
         this.cache.delete(key);
-        this.logger.log(`🗑️ Cache cleared for key: ${key}`);
       }
     } else {
       this.cache.clear();
-      this.logger.log(`🗑️ All cache cleared`);
     }
   }
 
@@ -214,8 +207,7 @@ class ManufacturerService {
    */
   async getDashboardStats(manufacturerId, period = '30') {
     try {
-      this.logger.log(`🏭 Getting real B2B marketplace stats for manufacturer: ${manufacturerId}`);
-      
+       
       // Validate manufacturer ID
       if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
@@ -233,8 +225,7 @@ class ManufacturerService {
       }, 2 * 60 * 1000, 'getDashboardStats'); // 2 minutes cache
 
     } catch (error) {
-      this.logger.error('❌ Get real B2B marketplace stats error:', error);
-      // Return minimal real data instead of fake fallback data
+       // Return minimal real data instead of fake fallback data
       return {
         overview: {
           totalRevenue: 0,
@@ -299,7 +290,9 @@ class ManufacturerService {
         topProductsData,
         recentOrdersData,
         monthlyTrends,
-        chartData
+        chartData,
+        totalInquiriesCount,
+        newInquiriesCount
       ] = await Promise.all([
         
         // 1. Total Products Count
@@ -489,7 +482,17 @@ class ManufacturerService {
             }
           },
           { $sort: { '_id': 1 } }
-        ])
+        ]),
+
+        // 9. Total Inquiries Count
+        require('../models/Inquiry').countDocuments({ supplier: manufacturerObjectId }),
+
+        // 10. New Inquiries Count (last 7 days)
+        require('../models/Inquiry').countDocuments({ 
+          supplier: manufacturerObjectId, 
+          status: 'open',
+          createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+        })
       ]);
 
       // Process results with fallbacks
@@ -535,6 +538,8 @@ class ManufacturerService {
           totalRevenue: monthlyRevenue.totalRevenue,
           totalProducts: totalProducts,
           totalOrders: activeOrders.totalOrders,
+          totalInquiries: totalInquiriesCount || 0,
+          newInquiries: newInquiriesCount || 0,
           activeCustomers: activeCustomers,
           revenueGrowth: Math.round(revenueGrowth * 100) / 100,
           pendingOrders: activeOrders.totalOrders,
@@ -545,7 +550,7 @@ class ManufacturerService {
         totalSales: monthlyRevenue.totalRevenue,
         activeOrders: activeOrders.totalOrders,
         totalProducts: totalProducts,
-        inquiries: activeOrders.totalOrders, // Using active orders as inquiry proxy
+        inquiries: totalInquiriesCount || 0, // Real inquiries count from database
         
         // Financial B2B Metrics
         monthlyRevenue: monthlyRevenue.totalRevenue,
@@ -559,7 +564,7 @@ class ManufacturerService {
         trends: {
           salesTrend: salesTrend.length > 0 ? salesTrend : [0, 0, 0, 0, monthlyRevenue.totalRevenue],
           ordersTrend: ordersTrend.length > 0 ? ordersTrend : [0, 0, 0, 0, activeOrders.totalOrders],
-          inquiriesTrend: [0, 0, 0, 0, 0], // Real inquiry data will be implemented
+          inquiriesTrend: [0, 0, 0, 0, newInquiriesCount], // Real inquiry data with new inquiries
           ratingTrend: [0, 0, 0, 0, 0] // Real rating data will be implemented
         },
         
@@ -984,58 +989,75 @@ class ManufacturerService {
       const manufacturerObjectId = new ObjectId(manufacturerId);
       
       // Use caching for better performance
-      const cacheKey = `distributor_inquiries_${manufacturerId}`;
+      const cacheKey = `distributor_inquiries_v2_${manufacturerId}`; // Changed to force cache refresh
       return await this.getCachedData(cacheKey, async () => {
         
-        // Get real inquiries from Message collection
-  
+        // Get real inquiries from Inquiry collection (same as inquiries page)
+        const Inquiry = require('../models/Inquiry');
+
+        // Debug: Check total inquiries in database
+        const totalInDB = await Inquiry.countDocuments({});
+        const totalForThisManufacturer = await Inquiry.countDocuments({ supplier: manufacturerObjectId });
+        this.logger.log(`🔍 DB Inquiry Check:`, {
+          totalInquiriesInDB: totalInDB,
+          totalForThisManufacturer: totalForThisManufacturer,
+          manufacturerId: manufacturerObjectId.toString()
+        });
         
-        const [recentOrders, activeProducts, realInquiries] = await Promise.all([
-          Order.find({ seller: manufacturerObjectId })
-            .populate('buyer', 'companyName name email')
+        const [totalInquiries, recentInquiries] = await Promise.all([
+          // Get total count
+          Inquiry.countDocuments({ supplier: manufacturerObjectId }),
+          
+          // Get recent inquiries
+          Inquiry.find({ supplier: manufacturerObjectId })
+            .populate('inquirer', 'companyName name email')
             .sort({ createdAt: -1 })
-            .limit(10),
-          Product.find({ 
-            manufacturer: manufacturerObjectId, 
-            status: { $in: ['active', 'published'] } 
-          }).limit(5),
-          Message.find({
-            recipientId: manufacturerObjectId,
-            recipientType: 'user',
-            type: { $in: ['inquiry', 'support_request'] },
-            status: { $in: ['unread', 'read'] }
-          })
-          .populate('senderId', 'companyName name email')
-          .sort({ createdAt: -1 })
-          .limit(10)
+            .limit(5)
         ]);
 
-        // Process real inquiries
-        const inquiries = [];
-        
-        if (realInquiries.length > 0) {
-          // Use real inquiries from database
-          realInquiries.forEach((inquiry, index) => {
-            const sender = inquiry.senderId;
-            const priority = inquiry.priority === 'urgent' ? 'urgent' : 
-                           inquiry.priority === 'high' ? 'new' : 'followup';
-            
-            inquiries.push({
-              id: inquiry._id.toString(),
-              companyName: sender?.companyName || sender?.name || 'Distribution Company',
-              priority: priority,
-              message: inquiry.content,
-              timestamp: inquiry.createdAt,
-              specs: this._extractSpecsFromMessage(inquiry.content),
-              status: inquiry.isRead ? 'read' : 'unread'
-            });
-          });
-        }
+        this.logger.log(`🔍 Inquiry Query Results:`, {
+          manufacturerObjectId: manufacturerObjectId.toString(),
+          totalInquiries,
+          recentInquiriesCount: recentInquiries.length,
+          recentInquiries: recentInquiries.map(inq => ({
+            id: inq._id.toString(),
+            inquiryNumber: inq.inquiryNumber,
+            status: inq.status,
+            inquirer: inq.inquirer?.companyName || inq.inquirer?.name || 'No inquirer'
+          }))
+        });
+
+        // Process inquiries for dashboard format
+        const inquiries = recentInquiries.map(inquiry => {
+          const inquirer = inquiry.inquirer;
+          const priority = inquiry.priority === 'urgent' ? 'urgent' : 
+                         inquiry.priority === 'high' ? 'new' : 'followup';
+          
+          return {
+            id: inquiry._id.toString(),
+            inquiryNumber: inquiry.inquiryNumber,
+            companyName: inquirer?.companyName || inquirer?.name || 'Distribution Company',
+            priority: priority,
+            message: inquiry.message || 'Inquiry details',
+            subject: inquiry.subject,
+            timestamp: inquiry.createdAt,
+            type: inquiry.type || 'general',
+            status: inquiry.status,
+            requestedQuantity: inquiry.requestedQuantity,
+            urgency: inquiry.timeline?.urgency
+          };
+        });
+
+        // Get unread count
+        const unreadCount = await Inquiry.countDocuments({ 
+          supplier: manufacturerObjectId, 
+          status: 'open'
+        });
 
         return {
-          inquiries: inquiries.slice(0, 5), // Latest 5
-          totalCount: inquiries.length,
-          unreadCount: inquiries.filter(inq => inq.status === 'unread').length
+          inquiries: inquiries,
+          totalCount: totalInquiries,
+          unreadCount: unreadCount
         };
 
       }, 3 * 60 * 1000); // 3 minutes cache
@@ -1065,8 +1087,8 @@ class ManufacturerService {
 
       const manufacturerObjectId = new ObjectId(manufacturerId);
       
-      // Use caching for better performance
-      const cacheKey = `communication_center_${manufacturerId}`;
+      // Use caching for better performance  
+      const cacheKey = `communication_center_v2_${manufacturerId}`; // Changed to force cache refresh
       return await this.getCachedData(cacheKey, async () => {
         
         // Get real messages from Message collection
@@ -1098,19 +1120,34 @@ class ManufacturerService {
             { $limit: 5 }
           ]),
           
-          // Get real messages
+          // Get real messages (Message model only has orderId context)
           Message.find({
             $or: [
-              { senderId: manufacturerObjectId, senderType: 'user' },
-              { recipientId: manufacturerObjectId, recipientType: 'user' }
+              { senderId: manufacturerObjectId },
+              { recipientId: manufacturerObjectId }
             ],
-            type: { $in: ['general', 'inquiry', 'support_request'] }
+            type: { $in: ['text', 'system', 'order_update'] }
           })
           .populate('senderId', 'companyName name email')
           .populate('recipientId', 'companyName name email')
+          .populate('orderId', 'orderNumber status')
           .sort({ createdAt: -1 })
           .limit(20)
         ]);
+
+        this.logger.log(`💬 Communication Center Query Results:`, {
+          manufacturerObjectId: manufacturerObjectId.toString(),
+          recentDistributorsCount: recentDistributors.length,
+          realMessagesCount: realMessages.length,
+          realMessages: realMessages.slice(0, 3).map(msg => ({
+            id: msg._id.toString(),
+            senderId: msg.senderId._id.toString(),
+            recipientId: msg.recipientId._id.toString(),
+            content: msg.content?.substring(0, 50) + '...',
+            status: msg.status,
+            orderId: msg.orderId?._id?.toString()
+          }))
+        });
 
         // Process real messages into chat previews
         const chatPreviews = [];
@@ -1120,26 +1157,46 @@ class ManufacturerService {
           const conversations = new Map();
           
           realMessages.forEach(message => {
-            const otherParty = message.senderId.toString() === manufacturerObjectId ? 
+            const manufacturerIdStr = manufacturerObjectId.toString();
+            const senderIdStr = message.senderId._id.toString();
+            const recipientIdStr = message.recipientId._id.toString();
+            
+            const otherParty = senderIdStr === manufacturerIdStr ? 
               message.recipientId : message.senderId;
             
-            if (!conversations.has(otherParty._id.toString())) {
-              conversations.set(otherParty._id.toString(), {
-                id: otherParty._id.toString(),
+            const otherPartyId = otherParty._id.toString();
+            
+            if (!conversations.has(otherPartyId)) {
+              const isUnread = message.status !== 'read' && recipientIdStr === manufacturerIdStr;
+              
+              conversations.set(otherPartyId, {
+                id: otherPartyId,
                 companyName: otherParty.companyName || otherParty.name || 'Distribution Company',
-                lastMessage: message.content,
+                lastMessage: message.content || 'Message content',
                 lastMessageTime: message.createdAt,
-                isUnread: !message.isRead && message.recipientId.toString() === manufacturerObjectId,
+                isUnread: isUnread,
+                unreadCount: isUnread ? 1 : 0,
                 messageCount: 1,
-                status: this._getUserStatus(otherParty._id.toString())
+                orderId: message.orderId?._id?.toString(),
+                orderNumber: message.orderId?.orderNumber,
+                status: 'offline' // Default status since we don't have real-time status
               });
             } else {
-              const conv = conversations.get(otherParty._id.toString());
+              const conv = conversations.get(otherPartyId);
               conv.messageCount++;
+              
+              // Update unread count
+              if (message.status !== 'read' && recipientIdStr === manufacturerIdStr) {
+                conv.unreadCount = (conv.unreadCount || 0) + 1;
+                conv.isUnread = true;
+              }
+              
+              // Update if this is the latest message
               if (message.createdAt > conv.lastMessageTime) {
-                conv.lastMessage = message.content;
+                conv.lastMessage = message.content || 'Message content';
                 conv.lastMessageTime = message.createdAt;
-                conv.isUnread = !message.isRead && message.recipientId.toString() === manufacturerObjectId;
+                conv.orderId = message.orderId?._id?.toString();
+                conv.orderNumber = message.orderId?.orderNumber;
               }
             }
           });
@@ -1151,17 +1208,29 @@ class ManufacturerService {
 
         // Calculate communication stats
         const totalChats = chatPreviews.length;
-        const activeChats = chatPreviews.filter(chat => chat.status === 'online').length;
-        const totalUnread = chatPreviews.reduce((sum, chat) => sum + chat.unreadCount, 0);
+        const totalUnread = chatPreviews.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
+        
+        // Calculate today's messages
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayMessages = realMessages.filter(msg => 
+          new Date(msg.createdAt) >= today
+        ).length;
+        
+        // Calculate average response time (using message count as proxy)
+        const avgResponseTime = totalChats > 0 ? 
+          Math.round(realMessages.length / totalChats) : 0;
 
         return {
           chatPreviews: chatPreviews.slice(0, 3), // Latest 3 chats
           stats: {
-            activeChats: activeChats,
-            averageResponseTime: activeChats > 0 ? `${Math.ceil(60 / activeChats)} daqiqa` : 'Ma\'lumot yo\'q',
-            todayMessages: totalUnread
+            activeChats: totalChats, // Use total chats as active (no real-time status)
+            averageResponseTime: avgResponseTime > 0 ? `${avgResponseTime} soat` : 'Ma\'lumot yo\'q',
+            todayMessages: todayMessages
           },
-          totalUnread
+          totalChats,
+          totalUnread,
+          todayMessages
         };
 
       }, 2 * 60 * 1000); // 2 minutes cache
@@ -1172,10 +1241,12 @@ class ManufacturerService {
         chatPreviews: [],
         stats: {
           activeChats: 0,
-          averageResponseTime: '0 daqiqa',
+          averageResponseTime: 'Ma\'lumot yo\'q',
           todayMessages: 0
         },
-        totalUnread: 0
+        totalChats: 0,
+        totalUnread: 0,
+        todayMessages: 0
       };
     }
   }
@@ -3116,25 +3187,40 @@ class ManufacturerService {
       // Verify manufacturer exists and is active
       const manufacturer = await User.findOne({
         _id: manufacturerObjectId,
-        role: 'manufacturer',
-        isActive: true
+        role: { $in: ['manufacturer', 'company_admin'] }
       });
       
       if (!manufacturer) {
-        throw new Error('Manufacturer not found or inactive');
+        this.logger.error('❌ Manufacturer validation failed:', {
+          searchedId: manufacturerObjectId,
+          searchedRoles: ['manufacturer', 'company_admin']
+        });
+        throw new Error('Manufacturer not found or invalid role');
       }
+      
+      this.logger.log('✅ Manufacturer validated:', {
+        id: manufacturer._id,
+        role: manufacturer.role,
+        name: manufacturer.name || manufacturer.companyName
+      });
 
       // Professional product data validation and sanitization
       const sanitizedProductData = await this._validateAndSanitizeProductData(productData);
       
       // Create product with professional structure
+      this.logger.log(`🔍 Final product data before saving:`, {
+        hasImages: !!sanitizedProductData.images,
+        imagesCount: sanitizedProductData.images?.length || 0,
+        images: sanitizedProductData.images
+      });
+      
       const newProduct = new Product({
         ...sanitizedProductData,
         manufacturer: manufacturerObjectId,
         
         // Professional B2B defaults
         status: sanitizedProductData.status || 'draft',
-        visibility: 'manufacturer_only',
+        visibility: 'private', // Valid enum: ['public', 'private', 'restricted']
         
         // Analytics tracking
         views: 0,
@@ -3172,6 +3258,12 @@ class ManufacturerService {
 
       // Save to database
       const savedProduct = await newProduct.save();
+      
+      this.logger.log(`🔍 Product saved to database:`, {
+        productId: savedProduct._id,
+        savedImagesCount: savedProduct.images?.length || 0,
+        savedImages: savedProduct.images
+      });
       
       // Professional success response with complete data
       const productResponse = {
@@ -3279,7 +3371,7 @@ class ManufacturerService {
     
     // Shipping information
     sanitized.shipping = {
-      leadTime: productData.shipping?.leadTime || '3-7',
+      leadTime: this._parseLeadTime(productData.shipping?.leadTime || '3-7'),
       weight: productData.shipping?.weight ? parseFloat(productData.shipping.weight) : 0,
       dimensions: {
         length: productData.shipping?.dimensions?.length ? parseFloat(productData.shipping.dimensions.length) : 0,
@@ -3293,9 +3385,67 @@ class ManufacturerService {
     };
     
     // Images (URLs from upload)
-    sanitized.images = Array.isArray(productData.images) ? productData.images.filter(url => url && url.trim()) : [];
+    this.logger.log(`🔍 Processing images in _validateAndSanitizeProductData:`, {
+      hasImages: !!productData.images,
+      isArray: Array.isArray(productData.images),
+      imagesData: productData.images
+    });
+    
+    // Handle both string array (legacy) and object array (new) formats
+    if (Array.isArray(productData.images)) {
+      sanitized.images = productData.images.filter(item => {
+        if (typeof item === 'string') {
+          return item && item.trim(); // Legacy string format
+        } else if (typeof item === 'object' && item.url) {
+          return item.url && item.url.trim(); // New object format
+        }
+        return false;
+      }).map(item => {
+        if (typeof item === 'string') {
+          return { url: item, alt: '', isPrimary: false }; // Convert string to object
+        }
+        return item; // Already object format
+      });
+    } else {
+      sanitized.images = [];
+    }
+    
+    this.logger.log(`✅ Sanitized images result:`, {
+      count: sanitized.images.length,
+      images: sanitized.images
+    });
     
     return sanitized;
+  }
+
+  /**
+   * Parse lead time string to schema format
+   * @param {String} leadTimeStr - "3-7" or "5" or "3-10"
+   * @returns {Object} - {min: Number, max: Number}
+   */
+  _parseLeadTime(leadTimeStr) {
+    if (!leadTimeStr || typeof leadTimeStr !== 'string') {
+      return { min: 3, max: 7 }; // default
+    }
+    
+    const trimmed = leadTimeStr.trim();
+    
+    // Handle range format "3-7"
+    if (trimmed.includes('-')) {
+      const [minStr, maxStr] = trimmed.split('-');
+      const min = parseInt(minStr) || 3;
+      const max = parseInt(maxStr) || 7;
+      return { min: Math.min(min, max), max: Math.max(min, max) };
+    }
+    
+    // Handle single number "5"
+    const single = parseInt(trimmed);
+    if (!isNaN(single)) {
+      return { min: single, max: single };
+    }
+    
+    // Fallback
+    return { min: 3, max: 7 };
   }
   
   /**
@@ -3389,7 +3539,9 @@ class ManufacturerService {
       `dashboard_stats_${manufacturerId}`,
       `business_intelligence_${manufacturerId}`,
       `manufacturer_products_${manufacturerId}`,
-      `manufacturer_analytics_${manufacturerId}`
+      `manufacturer_analytics_${manufacturerId}`,
+      `distributor_inquiries_v2_${manufacturerId}`,
+      `communication_center_v2_${manufacturerId}`
     ];
     
     cacheKeys.forEach(key => {
@@ -3465,6 +3617,293 @@ class ManufacturerService {
       this.logger.error('❌ Update product status error:', error);
       throw error;
     }
+  }
+
+  /**
+   * Update product with comprehensive validation - PROFESSIONAL B2B Implementation
+   * @param {String} productId - Product ID to update
+   * @param {String} manufacturerId - Manufacturer ID for security
+   * @param {Object} updateData - Product data to update
+   * @returns {Object} Updated product data
+   */
+  async updateProduct(productId, manufacturerId, updateData) {
+    try {
+      this.logger.log('🔄 Updating product:', {
+        productId,
+        manufacturerId,
+        fieldsToUpdate: Object.keys(updateData)
+      });
+
+      // Step 1: Validate IDs
+      if (!ObjectId.isValid(productId) || !ObjectId.isValid(manufacturerId)) {
+        throw new Error('Invalid ID format');
+      }
+
+      const productObjectId = new ObjectId(productId);
+      const manufacturerObjectId = new ObjectId(manufacturerId);
+
+      // Step 2: Verify manufacturer exists and owns the product
+      const existingProduct = await Product.findOne({
+        _id: productObjectId,
+        manufacturer: manufacturerObjectId
+      });
+
+      if (!existingProduct) {
+        throw new Error('Product not found or access denied');
+      }
+
+      // Step 3: Validate and sanitize update data
+      const sanitizedUpdateData = await this._validateAndSanitizeProductUpdateData(updateData);
+
+      // Step 4: Prepare update operations
+      const updateOperations = {
+        ...sanitizedUpdateData,
+        updatedAt: new Date()
+      };
+
+      // Step 5: Handle special fields that need merging
+      if (sanitizedUpdateData.pricing) {
+        updateOperations.pricing = {
+          ...existingProduct.pricing,
+          ...sanitizedUpdateData.pricing,
+          lastUpdated: new Date()
+        };
+
+        // Add to price history if base price changed
+        if (sanitizedUpdateData.pricing.basePrice && 
+            sanitizedUpdateData.pricing.basePrice !== existingProduct.pricing?.basePrice) {
+          updateOperations.$push = {
+            'pricing.priceHistory': {
+              price: sanitizedUpdateData.pricing.basePrice,
+              date: new Date(),
+              reason: 'Price update'
+            }
+          };
+        }
+      }
+
+      if (sanitizedUpdateData.inventory) {
+        updateOperations.inventory = {
+          ...existingProduct.inventory,
+          ...sanitizedUpdateData.inventory,
+          lastUpdated: new Date()
+        };
+      }
+
+      // Step 6: Handle images carefully
+      if (sanitizedUpdateData.images) {
+        updateOperations.images = sanitizedUpdateData.images;
+      }
+
+      // Step 7: Update search keywords if name or description changed
+      if (sanitizedUpdateData.name || sanitizedUpdateData.description) {
+        const dataForKeywords = {
+          name: sanitizedUpdateData.name || existingProduct.name,
+          description: sanitizedUpdateData.description || existingProduct.description,
+          category: sanitizedUpdateData.category || existingProduct.category
+        };
+        updateOperations.searchKeywords = this._generateSearchKeywords(dataForKeywords);
+      }
+
+      // Step 8: Update slug if name changed
+      if (sanitizedUpdateData.name && sanitizedUpdateData.name !== existingProduct.name) {
+        updateOperations.slug = this._generateProductSlug(sanitizedUpdateData.name);
+      }
+
+      // Step 9: Perform the update
+      const updatedProduct = await Product.findOneAndUpdate(
+        { 
+          _id: productObjectId, 
+          manufacturer: manufacturerObjectId 
+        },
+        updateOperations,
+        { 
+          new: true,
+          runValidators: true
+        }
+      ).populate([
+        {
+          path: 'category',
+          select: 'name nameUz nameRu nameEn description'
+        },
+        {
+          path: 'manufacturer', 
+          select: 'companyName name email country'
+        }
+      ]);
+
+      if (!updatedProduct) {
+        throw new Error('Failed to update product');
+      }
+
+      // Step 10: Clear relevant caches
+      this.clearManufacturerCaches(manufacturerId);
+
+      // Step 11: Prepare professional response
+      const response = {
+        _id: updatedProduct._id,
+        name: updatedProduct.name,
+        slug: updatedProduct.slug,
+        status: updatedProduct.status,
+        description: updatedProduct.description,
+        shortDescription: updatedProduct.shortDescription,
+        category: updatedProduct.category,
+        manufacturer: {
+          _id: updatedProduct.manufacturer._id,
+          companyName: updatedProduct.manufacturer.companyName,
+          name: updatedProduct.manufacturer.name
+        },
+        pricing: updatedProduct.pricing,
+        inventory: updatedProduct.inventory,
+        images: updatedProduct.images || [],
+        specifications: updatedProduct.specifications || [],
+        updatedAt: updatedProduct.updatedAt,
+        marketplaceUrl: `/marketplace/product/${updatedProduct._id}`
+      };
+
+      this.logger.log('✅ Product updated successfully:', {
+        productId: updatedProduct._id,
+        name: updatedProduct.name,
+        fieldsUpdated: Object.keys(sanitizedUpdateData)
+      });
+
+      return response;
+
+    } catch (error) {
+      this.logger.error('❌ Update product error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Validate and sanitize product update data
+   * @param {Object} updateData - Raw update data
+   * @returns {Object} Sanitized update data
+   */
+  async _validateAndSanitizeProductUpdateData(updateData) {
+    const sanitized = {};
+
+    // Basic string fields
+    if (updateData.name) {
+      sanitized.name = String(updateData.name).trim();
+      if (sanitized.name.length < 2 || sanitized.name.length > 200) {
+        throw new Error('Product name must be between 2 and 200 characters');
+      }
+    }
+
+    if (updateData.description) {
+      sanitized.description = String(updateData.description).trim();
+      if (sanitized.description.length < 10 || sanitized.description.length > 2000) {
+        throw new Error('Description must be between 10 and 2000 characters');
+      }
+    }
+
+    if (updateData.shortDescription) {
+      sanitized.shortDescription = String(updateData.shortDescription).trim();
+      if (sanitized.shortDescription.length > 500) {
+        throw new Error('Short description must be less than 500 characters');
+      }
+    }
+
+    // Category validation
+    if (updateData.category) {
+      if (!ObjectId.isValid(updateData.category)) {
+        throw new Error('Invalid category ID format');
+      }
+      
+      const categoryExists = await Category.findById(updateData.category);
+      if (!categoryExists) {
+        throw new Error('Selected category does not exist');
+      }
+      
+      sanitized.category = new ObjectId(updateData.category);
+    }
+
+    // Pricing validation
+    if (updateData.pricing) {
+      sanitized.pricing = {};
+      
+      if (updateData.pricing.basePrice !== undefined) {
+        const price = parseFloat(updateData.pricing.basePrice);
+        if (isNaN(price) || price < 0) {
+          throw new Error('Base price must be a valid positive number');
+        }
+        sanitized.pricing.basePrice = price;
+      }
+
+      if (updateData.pricing.currency) {
+        const validCurrencies = ['USD', 'UZS', 'EUR', 'CNY', 'KZT'];
+        if (!validCurrencies.includes(updateData.pricing.currency)) {
+          throw new Error('Invalid currency');
+        }
+        sanitized.pricing.currency = updateData.pricing.currency;
+      }
+
+      if (updateData.pricing.minimumOrderQuantity !== undefined) {
+        const moq = parseInt(updateData.pricing.minimumOrderQuantity);
+        if (isNaN(moq) || moq < 1) {
+          throw new Error('Minimum order quantity must be at least 1');
+        }
+        sanitized.pricing.minimumOrderQuantity = moq;
+      }
+
+      if (updateData.pricing.priceType) {
+        const validTypes = ['fixed', 'negotiable', 'quote_based'];
+        if (!validTypes.includes(updateData.pricing.priceType)) {
+          throw new Error('Invalid price type');
+        }
+        sanitized.pricing.priceType = updateData.pricing.priceType;
+      }
+    }
+
+    // Inventory validation
+    if (updateData.inventory) {
+      sanitized.inventory = {};
+      
+      if (updateData.inventory.totalStock !== undefined) {
+        const stock = parseInt(updateData.inventory.totalStock);
+        if (isNaN(stock) || stock < 0) {
+          throw new Error('Total stock must be a valid non-negative number');
+        }
+        sanitized.inventory.totalStock = stock;
+        sanitized.inventory.availableStock = stock; // Update available stock too
+      }
+
+      if (updateData.inventory.trackingEnabled !== undefined) {
+        sanitized.inventory.trackingEnabled = Boolean(updateData.inventory.trackingEnabled);
+      }
+    }
+
+    // Status validation
+    if (updateData.status) {
+      const validStatuses = ['draft', 'active', 'inactive', 'archived'];
+      if (!validStatuses.includes(updateData.status)) {
+        throw new Error('Invalid status value');
+      }
+      sanitized.status = updateData.status;
+    }
+
+    // Images validation
+    if (updateData.images && Array.isArray(updateData.images)) {
+      sanitized.images = updateData.images.map(img => ({
+        url: String(img.url || '').trim(),
+        alt: String(img.alt || '').trim(),
+        isPrimary: Boolean(img.isPrimary)
+      })).filter(img => img.url); // Remove empty URLs
+    }
+
+    // Specifications validation
+    if (updateData.specifications && Array.isArray(updateData.specifications)) {
+      sanitized.specifications = updateData.specifications
+        .filter(spec => spec.name && spec.value)
+        .map(spec => ({
+          name: String(spec.name).trim(),
+          value: String(spec.value).trim(),
+          unit: spec.unit ? String(spec.unit).trim() : ''
+        }));
+    }
+
+    return sanitized;
   }
 
   async getProductLifecycle(productId, manufacturerId) {
@@ -3872,8 +4311,7 @@ class ManufacturerService {
    */
   async getNotifications(manufacturerId, options = {}) {
     try {
-      this.logger.log(`🔔 Getting real notifications for manufacturer: ${manufacturerId}`, options);
-
+    
       // Validate manufacturer ID
       if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
@@ -4776,78 +5214,7 @@ class ManufacturerService {
     }
   }
 
-  /**
-   * Generate realistic inquiries when database data is insufficient
-   * @param {Number} count - Number of inquiries to generate  
-   * @param {Array} products - Available products for context
-   * @returns {Array} Generated realistic inquiries
-   */
-  _generateRealisticInquiries(count, products = []) {
-    const companies = [
-      { name: 'Tashkent Textiles Co.', country: 'Uzbekistan', type: 'distributor' },
-      { name: 'Samarkand Distribution', country: 'Uzbekistan', type: 'wholesaler' },
-      { name: 'Bukhara Wholesale Group', country: 'Uzbekistan', type: 'wholesaler' },
-      { name: 'Fergana Trading LLC', country: 'Uzbekistan', type: 'distributor' },
-      { name: 'Nukus Export Import', country: 'Uzbekistan', type: 'exporter' },
-      { name: 'Andijan Textile Hub', country: 'Uzbekistan', type: 'manufacturer' }
-    ];
 
-    const productCategories = [
-      { name: 'Premium paxta matosi', unit: 'm', priceRange: [30, 80] },
-      { name: 'Ipak aralash mato', unit: 'm', priceRange: [50, 120] },
-      { name: 'Jun aralash mato', unit: 'm', priceRange: [40, 90] },
-      { name: 'Sintetik mato', unit: 'm', priceRange: [20, 60] },
-      { name: 'Denim mato', unit: 'm', priceRange: [35, 75] }
-    ];
-
-    const inquiries = [];
-    const now = Date.now();
-    
-    for (let i = 0; i < count; i++) {
-      const company = companies[Math.floor(Math.random() * companies.length)];
-      const productCategory = products.length > 0 
-        ? products[Math.floor(Math.random() * products.length)]
-        : productCategories[Math.floor(Math.random() * productCategories.length)];
-      
-      const quantity = Math.floor(Math.random() * 2000) + 500;
-      const unitPrice = productCategory.priceRange 
-        ? Math.floor(Math.random() * (productCategory.priceRange[1] - productCategory.priceRange[0])) + productCategory.priceRange[0]
-        : Math.floor(Math.random() * 50) + 30;
-      
-      const totalBudget = quantity * unitPrice;
-      const hoursAgo = Math.floor(Math.random() * 48) + 1;
-      
-      const priorities = ['high', 'medium', 'low'];
-      const statuses = ['new', 'responded', 'in_progress'];
-      
-      const messages = [
-        `${productCategory.title || productCategory.name} uchun ulgurji narxlar kerak. Sifat namunalari bormi?`,
-        `Katta miqdorda buyurtma bermoqchimiz. Yetkazib berish muddati va shartlarini bilmoqchimiz.`,
-        `Maxsus o'lchamlar bo'yicha ishlay olasizmi? Bizning texnik talablarimiz bor.`,
-        `Eksport uchun sertifikatlar kerakmi? Qaysi mamlakatlar uchun moslashtirasiz?`,
-        `Minimal buyurtma miqdori qancha? Dastlab kichik miqdorda sinab ko'rmoqchimiz.`
-      ];
-
-      inquiries.push({
-        id: `INQ-GEN-${String(i + 1).padStart(3, '0')}`,
-        company: company.name,
-        country: company.country,
-        product: productCategory.title || productCategory.name,
-        quantity: `${quantity}${productCategory.unit || 'm'}`,
-        budget: `$${totalBudget.toLocaleString()}`,
-        message: messages[Math.floor(Math.random() * messages.length)],
-        priority: priorities[Math.floor(Math.random() * priorities.length)],
-        status: statuses[Math.floor(Math.random() * statuses.length)],
-        createdAt: new Date(now - hoursAgo * 60 * 60 * 1000),
-        avatar: null,
-        buyerId: null,
-        orderId: null,
-        generated: true
-      });
-    }
-
-    return inquiries;
-  }
 
   /**
    * Get competitor analysis for marketplace positioning using real database analytics
@@ -5105,8 +5472,6 @@ class ManufacturerService {
      */
     async getProductForEdit(productId, manufacturerId) {
         try {
-            this.logger.log(`📦 Getting product for edit: ${productId}, manufacturer: ${manufacturerId}`);
-
             // Validate ObjectId format
             if (!ObjectId.isValid(productId)) {
                 this.logger.warn(`❌ Invalid product ID format: ${productId}`);
@@ -5135,22 +5500,18 @@ class ManufacturerService {
             try {
                 product.stockStatus = this.calculateStockStatus(product);
             } catch (stockError) {
-                this.logger.warn('⚠️ Stock status calculation failed:', stockError.message);
                 product.stockStatus = 'unknown';
             }
 
             try {
                 product.priceRange = this.calculatePriceRange(product);
             } catch (priceError) {
-                this.logger.warn('⚠️ Price range calculation failed:', priceError.message);
                 product.priceRange = { min: 0, max: 0, currency: 'USD' };
             }
             
-            this.logger.log(`✅ Product loaded for edit: ${product.name}`);
             return product;
 
         } catch (error) {
-            this.logger.error('❌ Get product for edit error:', error);
             
             // Don't throw, return null for graceful handling
             if (error.name === 'CastError' || error.message.includes('Cast to ObjectId failed')) {
@@ -5643,9 +6004,9 @@ class ManufacturerService {
                 result.push({
                         date: dayOfWeek,
                         label: dayOfWeek,
-                        revenue: Math.floor(Math.random() * 500) + 100, // Sample data 100-600
-                        orders: Math.floor(Math.random() * 5) + 1, // Sample data 1-6
-                        quantity: Math.floor(Math.random() * 20) + 5
+                        revenue: 0, // No data available
+                        orders: 0, // No data available
+                        quantity: 0 // No data available
                     });
                 }
             } else {
@@ -5656,9 +6017,9 @@ class ManufacturerService {
                     result.push({
                         date: `${week}-hafta`,
                         label: `${week}-hafta`,
-                        revenue: Math.floor(Math.random() * 2000) + 500, // Sample data 500-2500
-                        orders: Math.floor(Math.random() * 15) + 3, // Sample data 3-18
-                        quantity: Math.floor(Math.random() * 50) + 10
+                        revenue: 0, // No data available
+                        orders: 0, // No data available
+                        quantity: 0 // No data available
                     });
                 }
             }
@@ -6060,8 +6421,8 @@ class ManufacturerService {
                 result.push({
                     date: dayOfWeek,
                     label: dayOfWeek,
-                    performance: existingData ? existingData.performance || 75 : Math.floor(Math.random() * 20) + 70,
-                    value: existingData ? existingData.performance || 75 : Math.floor(Math.random() * 20) + 70,
+                    performance: existingData ? existingData.performance : 0,
+                    value: existingData ? existingData.performance : 0,
                     month: dayOfWeek
                 });
             }
@@ -6093,7 +6454,7 @@ class ManufacturerService {
                     weeklyGroupedData[weekIndex].performance += existingData.performance || 75;
                     weeklyGroupedData[weekIndex].dataCount++;
                 } else if (weekIndex < weekCount) {
-                    weeklyGroupedData[weekIndex].performance += Math.floor(Math.random() * 20) + 70;
+                    weeklyGroupedData[weekIndex].performance += 0; // No data available
                     weeklyGroupedData[weekIndex].dataCount++;
                 }
             }
@@ -6130,8 +6491,8 @@ class ManufacturerService {
                 result.push({
                     date: day,
                     label: day,
-                    performance: Math.floor(Math.random() * 20) + 70, // 70-90
-                    value: Math.floor(Math.random() * 20) + 70,
+                    performance: 0, // No data available
+                    value: 0, // No data available
                     month: day
                 });
             });
@@ -6143,8 +6504,8 @@ class ManufacturerService {
                 result.push({
                     date: `${week}-hafta`,
                     label: `${week}-hafta`,
-                    performance: Math.floor(Math.random() * 20) + 70, // 70-90
-                    value: Math.floor(Math.random() * 20) + 70,
+                    performance: 0, // No data available
+                    value: 0, // No data available
                     month: `${week}-hafta`
                 });
             }
@@ -6193,9 +6554,6 @@ class ManufacturerService {
     async getProductsWithFilters(manufacturerId, filters = {}, pagination = {}) {
         try {
             const startTime = Date.now();
-            this.logger.log(`🔍 Getting filtered products for manufacturer: ${manufacturerId}`);
-            this.logger.log(`📋 Filters:`, filters);
-            this.logger.log(`📄 Pagination:`, pagination);
 
             // Validate manufacturer ID
             if (!ObjectId.isValid(manufacturerId)) {
@@ -6279,18 +6637,13 @@ class ManufacturerService {
                 { $skip: skip },
                 { $limit: limit }
             ];
-
-            this.logger.log(`🔍 MongoDB Query:`, JSON.stringify(query, null, 2));
-            this.logger.log(`🔍 Aggregation Pipeline:`, JSON.stringify(pipeline, null, 2));
-
             // Execute queries
             const [products, totalCount] = await Promise.all([
                 Product.aggregate(pipeline),
                 Product.countDocuments(query)
             ]);
 
-            this.logger.log(`📊 Query Results: ${products.length} products found, total count: ${totalCount}`);
-
+            
             // Calculate pagination info
             const totalPages = Math.ceil(totalCount / limit);
             const pagination_result = {
@@ -6370,8 +6723,7 @@ class ManufacturerService {
     async getProductStatistics(manufacturerId) {
         try {
             const startTime = Date.now();
-            this.logger.log(`📊 Getting product statistics for manufacturer: ${manufacturerId}`);
-
+           
             // Validate manufacturer ID
             if (!ObjectId.isValid(manufacturerId)) {
                 throw new Error('Invalid manufacturer ID format');
@@ -6380,88 +6732,70 @@ class ManufacturerService {
             const manufacturerObjectId = new ObjectId(manufacturerId);
             const cacheKey = `product_stats_${manufacturerId}`;
 
-            // Check cache first
-            const cachedData = this.getCachedData(cacheKey);
-            if (cachedData) {
-                this.trackPerformance('getProductStatistics', Date.now() - startTime, true);
-                return cachedData;
-            }
-
-            // Build aggregation pipeline
-            const pipeline = [
-                { $match: { manufacturer: manufacturerObjectId } },
-                {
-                    $group: {
-                        _id: null,
-                        totalProducts: { $sum: 1 },
-                        activeProducts: {
-                            $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] }
-                        },
-                        draftProducts: {
-                            $sum: { $cond: [{ $eq: ['$status', 'draft'] }, 1, 0] }
-                        },
-                        inactiveProducts: {
-                            $sum: { $cond: [{ $eq: ['$status', 'inactive'] }, 1, 0] }
-                        },
-                        marketplaceProducts: {
-                            $sum: { $cond: [{ $eq: ['$visibility', 'public'] }, 1, 0] }
-                        },
-                        lowStockProducts: {
-                            $sum: {
-                                $cond: [
-                                    {
-                                        $lt: [
-                                            { $ifNull: ['$inventory.availableStock', 0] },
-                                            { $ifNull: ['$inventory.lowStockThreshold', 10] }
-                                        ]
-                                    },
-                                    1,
-                                    0
-                                ]
-                            }
-                        },
-                        averagePrice: { $avg: '$pricing.basePrice' },
-                        totalInventoryValue: {
-                            $sum: {
-                                $multiply: [
-                                    { $ifNull: ['$inventory.availableStock', 0] },
-                                    { $ifNull: ['$pricing.basePrice', 0] }
-                                ]
+            // Use new cache API pattern
+            return await this.getCachedData(cacheKey, async () => {
+                // Build aggregation pipeline
+                const pipeline = [
+                    { $match: { manufacturer: manufacturerObjectId } },
+                    {
+                        $group: {
+                            _id: null,
+                            totalProducts: { $sum: 1 },
+                            activeProducts: {
+                                $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] }
+                            },
+                            draftProducts: {
+                                $sum: { $cond: [{ $eq: ['$status', 'draft'] }, 1, 0] }
+                            },
+                            inactiveProducts: {
+                                $sum: { $cond: [{ $eq: ['$status', 'inactive'] }, 1, 0] }
+                            },
+                            marketplaceProducts: {
+                                $sum: { $cond: [{ $eq: ['$visibility', 'public'] }, 1, 0] }
+                            },
+                            lowStockProducts: {
+                                $sum: {
+                                    $cond: [
+                                        {
+                                            $lt: [
+                                                { $ifNull: ['$inventory.availableStock', 0] },
+                                                { $ifNull: ['$inventory.lowStockThreshold', 10] }
+                                            ]
+                                        },
+                                        1,
+                                        0
+                                    ]
+                                }
+                            },
+                            averagePrice: { $avg: '$pricing.basePrice' },
+                            totalInventoryValue: {
+                                $sum: {
+                                    $multiply: [
+                                        { $ifNull: ['$inventory.availableStock', 0] },
+                                        { $ifNull: ['$pricing.basePrice', 0] }
+                                    ]
+                                }
                             }
                         }
                     }
-                }
-            ];
+                ];
 
-            const [stats] = await Product.aggregate(pipeline);
+                const [stats] = await Product.aggregate(pipeline);
 
-            // Default stats if no products found
-            const productStats = stats || {
-                totalProducts: 0,
-                activeProducts: 0,
-                draftProducts: 0,
-                inactiveProducts: 0,
-                marketplaceProducts: 0,
-                lowStockProducts: 0,
-                averagePrice: 0,
-                totalInventoryValue: 0
-            };
-
-            // Cache the result
-            this.cache.set(cacheKey, {
-                data: productStats,
-                timestamp: Date.now()
+                // Default stats if no products found
+                return stats || {
+                    totalProducts: 0,
+                    activeProducts: 0,
+                    draftProducts: 0,
+                    inactiveProducts: 0,
+                    marketplaceProducts: 0,
+                    lowStockProducts: 0,
+                    averagePrice: 0,
+                    totalInventoryValue: 0
+                };
             });
 
-            const duration = Date.now() - startTime;
-            this.trackPerformance('getProductStatistics', duration);
-
-            this.logger.log(`✅ Retrieved product statistics in ${duration}ms`);
-            return productStats;
-
-        } catch (error) {
-            this.logger.error('❌ Get product statistics error:', error);
-            
+        } catch (error) {            
             // Return default stats as fallback
             return {
                 totalProducts: 0,
@@ -6473,6 +6807,1874 @@ class ManufacturerService {
                 averagePrice: 0,
                 totalInventoryValue: 0
             };
+        }
+    }
+
+    // ===============================================
+    // SETTINGS MANAGEMENT METHODS
+    // ===============================================
+
+    /**
+     * Get manufacturer settings data
+     * @param {string} manufacturerId - Manufacturer ID
+     * @returns {Object} Settings data
+     */
+    async getManufacturerSettings(manufacturerId) {
+        try {
+            const startTime = Date.now();
+
+            // Get manufacturer user data
+            const manufacturer = await User.findById(manufacturerId).lean();
+            
+            if (!manufacturer) {
+                throw new Error('Manufacturer not found');
+            }
+
+            const settingsData = {
+                // Company Information
+                companyName: manufacturer.companyName || '',
+                activityType: manufacturer.activityType || '',
+                taxNumber: manufacturer.taxNumber || '',
+                establishedYear: manufacturer.establishedYear || '',
+                employeeCount: manufacturer.employeeCount || '',
+                description: manufacturer.description || '',
+                companyLogo: manufacturer.companyLogo || null,
+
+                // Contact Information
+                email: manufacturer.email || '',
+                phone: manufacturer.phone || '',
+                website: manufacturer.website || '',
+                address: manufacturer.address || '',
+                country: manufacturer.country || '',
+                city: manufacturer.city || '',
+                socialMedia: manufacturer.socialMedia || {},
+
+                // Business Information
+                businessLicense: manufacturer.businessLicense || '',
+                certifications: manufacturer.certifications || [],
+                capabilities: manufacturer.capabilities || [],
+                capacity: manufacturer.capacity || {},
+
+                // Preferences
+                preferences: manufacturer.preferences || {
+                    language: 'uz',
+                    theme: 'light',
+                    notifications: {
+                        email: true,
+                        push: true,
+                        sms: false
+                    },
+                    autoSave: true
+                },
+
+                // Integrations
+                integrations: manufacturer.integrations || {
+                    paymentGateways: {},
+                    shippingProviders: {},
+                    apiKeys: {}
+                }
+            };
+
+            this.logger.log(`📊 Settings data prepared for manufacturer: ${manufacturerId}`);
+            this.logger.log(`🖼️ Company logo in settings:`, settingsData.companyLogo);
+
+            this.trackPerformance('getManufacturerSettings', Date.now() - startTime, false);
+            return settingsData;
+
+        } catch (error) {
+            this.logger.error('❌ Error getting manufacturer settings:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Update company information
+     * @param {string} manufacturerId - Manufacturer ID
+     * @param {Object} companyData - Company data to update
+     * @returns {Object} Updated data
+     */
+    async updateCompanyInfo(manufacturerId, companyData) {
+        try {
+            const startTime = Date.now();
+            
+            this.logger.log(`📝 Updating company info for manufacturer: ${manufacturerId}`);
+            this.logger.log(`📤 Received company data:`, companyData);
+
+            const updateData = {};
+            
+            // Validate and prepare update data
+            if (companyData.companyName) {
+                updateData.companyName = companyData.companyName.trim();
+                this.logger.log(`✓ Company name: ${updateData.companyName}`);
+            }
+            if (companyData.activityType) {
+                updateData.activityType = companyData.activityType;
+                this.logger.log(`✓ Activity type: ${updateData.activityType}`);
+            }
+            if (companyData.taxNumber) {
+                updateData.taxNumber = companyData.taxNumber.trim();
+                this.logger.log(`✓ Tax number: ${updateData.taxNumber}`);
+            }
+            if (companyData.establishedYear) {
+                updateData.establishedYear = parseInt(companyData.establishedYear);
+                this.logger.log(`✓ Established year: ${updateData.establishedYear}`);
+            }
+            if (companyData.employeeCount) {
+                updateData.employeeCount = companyData.employeeCount;
+                this.logger.log(`✓ Employee count: ${updateData.employeeCount}`);
+            }
+            if (companyData.annualRevenue) {
+                updateData.annualRevenue = companyData.annualRevenue;
+                this.logger.log(`✓ Annual revenue: ${updateData.annualRevenue}`);
+            }
+            if (companyData.companyDescription) {
+                updateData.description = companyData.companyDescription.trim();
+                this.logger.log(`✓ Description: ${updateData.description.substring(0, 50)}...`);
+            }
+
+            updateData.updatedAt = new Date();
+            
+            this.logger.log(`💾 Final update data:`, updateData);
+
+            const result = await User.findByIdAndUpdate(
+                manufacturerId,
+                { $set: updateData },
+                { new: true, runValidators: true }
+            );
+
+            if (!result) {
+                throw new Error('Manufacturer not found');
+            }
+
+            this.logger.log(`✅ Company info updated successfully for: ${result.companyName || result.email}`);
+
+            // Clear cache
+            this.clearUserCache(manufacturerId);
+            
+            // Return the updated fields along with some key user data
+            const responseData = {
+                ...updateData,
+                id: result._id,
+                email: result.email,
+                companyName: result.companyName,
+                activityType: result.activityType,
+                establishedYear: result.establishedYear,
+                employeeCount: result.employeeCount,
+                annualRevenue: result.annualRevenue,
+                description: result.description
+            };
+
+            this.trackPerformance('updateCompanyInfo', Date.now() - startTime, false);
+            return { success: true, data: responseData };
+
+        } catch (error) {
+            this.logger.error('❌ Error updating company info:', error);
+            this.logger.error('❌ Error details:', {
+                manufacturerId,
+                companyData,
+                errorMessage: error.message,
+                errorStack: error.stack
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Update contact information
+     * @param {string} manufacturerId - Manufacturer ID
+     * @param {Object} contactData - Contact data to update
+     * @returns {Object} Updated data
+     */
+    async updateContactInfo(manufacturerId, contactData) {
+        try {
+            const startTime = Date.now();
+
+            const updateData = {};
+            
+            if (contactData.email) updateData.email = contactData.email.trim().toLowerCase();
+            if (contactData.phone) updateData.phone = contactData.phone.trim();
+            if (contactData.website) updateData.website = contactData.website.trim();
+            if (contactData.address) updateData.address = contactData.address.trim();
+            if (contactData.country) updateData.country = contactData.country;
+            if (contactData.city) updateData.city = contactData.city.trim();
+            if (contactData.socialMedia) updateData.socialMedia = contactData.socialMedia;
+
+            updateData.updatedAt = new Date();
+
+            const result = await User.findByIdAndUpdate(
+                manufacturerId,
+                { $set: updateData },
+                { new: true, runValidators: true }
+            );
+
+            if (!result) {
+                throw new Error('Manufacturer not found');
+            }
+
+            this.clearUserCache(manufacturerId);
+
+            this.trackPerformance('updateContactInfo', Date.now() - startTime, false);
+            return { success: true, data: updateData };
+
+        } catch (error) {
+            this.logger.error('❌ Error updating contact info:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Update business information
+     * @param {string} manufacturerId - Manufacturer ID
+     * @param {Object} businessData - Business data to update
+     * @returns {Object} Updated data
+     */
+    async updateBusinessInfo(manufacturerId, businessData) {
+        try {
+            const startTime = Date.now();
+
+            const updateData = {};
+            
+            if (businessData.businessLicense) updateData.businessLicense = businessData.businessLicense;
+            if (businessData.certifications) updateData.certifications = businessData.certifications;
+            if (businessData.capabilities) updateData.capabilities = businessData.capabilities;
+            if (businessData.capacity) updateData.capacity = businessData.capacity;
+
+            updateData.updatedAt = new Date();
+
+            const result = await User.findByIdAndUpdate(
+                manufacturerId,
+                { $set: updateData },
+                { new: true, runValidators: true }
+            );
+
+            if (!result) {
+                throw new Error('Manufacturer not found');
+            }
+
+            this.clearUserCache(manufacturerId);
+
+            this.trackPerformance('updateBusinessInfo', Date.now() - startTime, false);
+            return { success: true, data: updateData };
+
+        } catch (error) {
+            this.logger.error('❌ Error updating business info:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Change user password
+     * @param {string} manufacturerId - Manufacturer ID
+     * @param {string} currentPassword - Current password
+     * @param {string} newPassword - New password
+     * @returns {Object} Success result
+     */
+    async changePassword(manufacturerId, currentPassword, newPassword) {
+        try {
+            const startTime = Date.now();
+            const bcrypt = require('bcryptjs');
+
+            // Get user with password
+            const user = await User.findById(manufacturerId).select('+password');
+            
+            if (!user) {
+                throw new Error('Manufacturer not found');
+            }
+
+            // Verify current password
+            const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+            if (!isCurrentPasswordValid) {
+                throw new Error('Invalid current password');
+            }
+
+            // Hash new password
+            const saltRounds = 12;
+            const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+            // Update password
+            await User.findByIdAndUpdate(manufacturerId, {
+                $set: {
+                    password: hashedPassword,
+                    updatedAt: new Date()
+                }
+            });
+
+            this.trackPerformance('changePassword', Date.now() - startTime, false);
+            return { success: true };
+
+        } catch (error) {
+            this.logger.error('❌ Error changing password:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Update preferences
+     * @param {string} manufacturerId - Manufacturer ID
+     * @param {Object} preferences - Preferences data
+     * @returns {Object} Updated data
+     */
+    async updatePreferences(manufacturerId, preferences) {
+        try {
+            const startTime = Date.now();
+
+            const result = await User.findByIdAndUpdate(
+                manufacturerId,
+                { 
+                    $set: { 
+                        preferences: preferences,
+                        updatedAt: new Date()
+                    }
+                },
+                { new: true, runValidators: true }
+            );
+
+            if (!result) {
+                throw new Error('Manufacturer not found');
+            }
+
+            this.clearUserCache(manufacturerId);
+
+            this.trackPerformance('updatePreferences', Date.now() - startTime, false);
+            return { success: true, data: preferences };
+
+        } catch (error) {
+            this.logger.error('❌ Error updating preferences:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Update integrations
+     * @param {string} manufacturerId - Manufacturer ID
+     * @param {Object} integrations - Integration data
+     * @returns {Object} Updated data
+     */
+    async updateIntegrations(manufacturerId, integrations) {
+        try {
+            const startTime = Date.now();
+
+            const result = await User.findByIdAndUpdate(
+                manufacturerId,
+                { 
+                    $set: { 
+                        integrations: integrations,
+                        updatedAt: new Date()
+                    }
+                },
+                { new: true, runValidators: true }
+            );
+
+            if (!result) {
+                throw new Error('Manufacturer not found');
+            }
+
+            this.clearUserCache(manufacturerId);
+
+            this.trackPerformance('updateIntegrations', Date.now() - startTime, false);
+            return { success: true, data: integrations };
+
+        } catch (error) {
+            this.logger.error('❌ Error updating integrations:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Upload company logo
+     * @param {string} manufacturerId - Manufacturer ID
+     * @param {Object} file - Uploaded file
+     * @returns {Object} Logo data
+     */
+    async uploadCompanyLogo(manufacturerId, file) {
+        try {
+            const startTime = Date.now();
+            const path = require('path');
+            const fs = require('fs');
+
+            this.logger.log(`📷 Uploading company logo for manufacturer: ${manufacturerId}`);
+            this.logger.log(`📁 File details: ${file.filename} (${file.size} bytes, ${file.mimetype})`);
+
+            // Get current user to check for existing logo
+            const currentUser = await User.findById(manufacturerId);
+            if (!currentUser) {
+                throw new Error('Manufacturer not found');
+            }
+
+            // Delete old logo file if exists
+            if (currentUser.companyLogo && currentUser.companyLogo.filename) {
+                const oldLogoPath = path.join(__dirname, '../public/uploads/logos', currentUser.companyLogo.filename);
+                try {
+                    if (fs.existsSync(oldLogoPath)) {
+                        fs.unlinkSync(oldLogoPath);
+                        this.logger.log(`🗑️ Deleted old logo file: ${currentUser.companyLogo.filename}`);
+                    }
+                } catch (deleteError) {
+                    this.logger.warn(`⚠️ Could not delete old logo file: ${deleteError.message}`);
+                }
+            }
+
+            // Prepare logo data with actual uploaded file path
+            const logoData = {
+                url: `/uploads/logos/${file.filename}`,
+                filename: file.filename,
+                originalName: file.originalname,
+                size: file.size,
+                mimeType: file.mimetype,
+                uploadDate: new Date()
+            };
+
+            // Update user with new logo
+            const result = await User.findByIdAndUpdate(
+                manufacturerId,
+                { 
+                    $set: { 
+                        companyLogo: logoData,
+                        updatedAt: new Date()
+                    }
+                },
+                { new: true }
+            );
+
+            if (!result) {
+                throw new Error('Failed to update user with new logo');
+            }
+
+            this.logger.log(`✅ Logo uploaded successfully: ${logoData.url}`);
+
+            // Clear cache
+            this.clearUserCache(manufacturerId);
+
+            this.trackPerformance('uploadCompanyLogo', Date.now() - startTime, false);
+            return { 
+                success: true, 
+                logoUrl: logoData.url,
+                filename: logoData.filename,
+                originalName: logoData.originalName
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Error uploading logo:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Auto-save settings (silent background save)
+     * @param {string} manufacturerId - Manufacturer ID
+     * @param {string} tab - Tab name
+     * @param {Object} data - Data to save
+     * @returns {Object} Success result
+     */
+    async autoSaveSettings(manufacturerId, tab, data) {
+        try {
+            // Lightweight auto-save - only save specific fields
+            const updateData = { updatedAt: new Date() };
+            
+            // Map tab data to user fields
+            switch (tab) {
+                case 'company':
+                    if (data.companyName) updateData.companyName = data.companyName;
+                    if (data.description) updateData.description = data.description;
+                    break;
+                case 'contact':
+                    if (data.email) updateData.email = data.email;
+                    if (data.phone) updateData.phone = data.phone;
+                    break;
+                // Add other tabs as needed
+            }
+
+            if (Object.keys(updateData).length > 1) { // More than just updatedAt
+                await User.findByIdAndUpdate(manufacturerId, { $set: updateData });
+                this.clearUserCache(manufacturerId);
+            }
+
+            return { success: true };
+
+        } catch (error) {
+            // Silent failure for auto-save
+            return { success: false };
+        }
+    }
+
+    /**
+     * Clear user cache
+     * @param {string} userId - User ID
+     */
+    clearUserCache(userId) {
+        const cacheKeys = Array.from(this.cache.keys()).filter(key => key.includes(userId));
+        cacheKeys.forEach(key => this.cache.delete(key));
+    }
+
+    // ===============================================
+    // PROFILE METHODS
+    // ===============================================
+
+    /**
+     * Get profile data for display
+     * @param {string} manufacturerId - Manufacturer ID
+     * @returns {Object} Profile data
+     */
+    async getProfileData(manufacturerId) {
+        try {
+            const startTime = Date.now();
+
+            // Get manufacturer data
+            const manufacturer = await User.findById(manufacturerId).lean();
+            if (!manufacturer) {
+                throw new Error('Manufacturer not found');
+            }
+
+            // Get statistics in parallel with error handling
+            const [productStats, orderStats, revenueStats] = await Promise.allSettled([
+                this.getProductStatistics(manufacturerId),
+                this.getOrderStatistics(manufacturerId),
+                this.getRevenueStatistics(manufacturerId)
+            ]);
+
+            // Process results with fallbacks
+            const productStatsData = productStats.status === 'fulfilled' ? productStats.value : { totalProducts: 0, activeProducts: 0 };
+            const orderStatsData = orderStats.status === 'fulfilled' ? orderStats.value : { totalOrders: 0, monthlyOrders: 0 };
+            const revenueStatsData = revenueStats.status === 'fulfilled' ? revenueStats.value : { totalRevenue: 0, monthlyRevenue: 0 };
+
+            // Get additional metrics with error handling
+            const [averageRating, completionRate, growthRate, customerRetention, performanceMetrics] = await Promise.allSettled([
+                this.getAverageRating(manufacturerId),
+                this.getCompletionRate(manufacturerId),
+                this.getGrowthRate(manufacturerId),
+                this.getCustomerRetention(manufacturerId),
+                this.getPerformanceMetrics(manufacturerId)
+            ]);
+
+            const profileData = {
+                stats: {
+                    totalProducts: productStatsData.totalProducts || 0,
+                    activeProducts: productStatsData.activeProducts || 0,
+                    totalOrders: orderStatsData.totalOrders || 0,
+                    totalRevenue: revenueStatsData.totalRevenue || 0,
+                    averageRating: averageRating.status === 'fulfilled' ? averageRating.value : 0,
+                    completionRate: completionRate.status === 'fulfilled' ? completionRate.value : 0
+                },
+                metrics: {
+                    monthlyRevenue: revenueStatsData.monthlyRevenue || 0,
+                    monthlyOrders: orderStatsData.monthlyOrders || 0,
+                    growthRate: growthRate.status === 'fulfilled' ? growthRate.value : 0,
+                    customerRetention: customerRetention.status === 'fulfilled' ? customerRetention.value : 0,
+                    // Performance metrics
+                    ...(performanceMetrics.status === 'fulfilled' ? performanceMetrics.value : {
+                        totalSales: revenueStatsData.totalRevenue || 0,
+                        completedOrders: orderStatsData.completedOrders || 0,
+                        responseTime: 24, // Default 24 hours
+                        totalReviews: await this.getTotalReviews(manufacturerId),
+                        salesChange: 0,
+                        ordersChange: 0,
+                        responseChange: 0
+                    })
+                },
+                companyInfo: {
+                    name: manufacturer.companyName || '',
+                    logo: manufacturer.companyLogo?.url || null,
+                    url: manufacturer.companyLogo?.url || null, // Alternative field name
+                    description: manufacturer.description || '',
+                    establishedYear: manufacturer.establishedYear || null,
+                    location: `${manufacturer.city || ''}, ${manufacturer.country || ''}`,
+                    website: manufacturer.website || '',
+                    phone: manufacturer.phone || '',
+                    email: manufacturer.email || '',
+                    // Business information
+                    activityType: manufacturer.activityType || '',
+                    businessLicense: manufacturer.businessLicense || '',
+                    taxNumber: manufacturer.taxNumber || '',
+                    employeeCount: manufacturer.employeeCount || '',
+                    annualRevenue: manufacturer.annualRevenue || ''
+                },
+                businessInfo: {
+                    businessLicense: manufacturer.businessLicense || 'Belgilanmagan',
+                    taxNumber: manufacturer.taxNumber || 'Belgilanmagan',
+                    employeeCount: manufacturer.employeeCount || 'Belgilanmagan',
+                    activityType: this._formatActivityType(manufacturer.activityType || ''),
+                    establishedYear: manufacturer.establishedYear || null,
+                    annualRevenue: this._formatAnnualRevenue(manufacturer.annualRevenue || ''),
+                    registrationDate: manufacturer.createdAt || null,
+                    companyStatus: manufacturer.status || 'pending',
+                    certifications: manufacturer.certifications || []
+                },
+                contactInfo: {
+                    email: manufacturer.email || '',
+                    phone: manufacturer.phone || '',
+                    website: manufacturer.website || '',
+                    address: manufacturer.address || '',
+                    city: manufacturer.city || '',
+                    country: manufacturer.country || '',
+                    fullAddress: `${manufacturer.address || ''}, ${manufacturer.city || ''}, ${manufacturer.country || ''}`.replace(/^,\s*|,\s*$/g, ''),
+                    socialMedia: manufacturer.socialMedia || {}
+                },
+                productionCapabilities: await this._getProductionCapabilities(manufacturerId)
+            };
+
+            // Clear any cached data to ensure fresh results
+            this.clearUserCache(manufacturerId);
+            this.clearManufacturerCaches(manufacturerId);
+            
+            this.trackPerformance('getProfileData', Date.now() - startTime, false);
+            return profileData;
+
+        } catch (error) {
+            this.logger.error('❌ Error getting profile data:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get recent products
+     * @param {string} manufacturerId - Manufacturer ID
+     * @param {number} limit - Number of products to fetch
+     * @returns {Array} Recent products
+     */
+    async getRecentProducts(manufacturerId, limit = 5) {
+        try {
+            const startTime = Date.now();
+
+            const products = await Product.find({ manufacturer: manufacturerId })
+                .sort({ createdAt: -1 })
+                .limit(limit)
+                .select('title images price stock status createdAt')
+                .lean();
+
+            this.trackPerformance('getRecentProducts', Date.now() - startTime, false);
+            return products;
+
+        } catch (error) {
+            this.logger.error('❌ Error getting recent products:', error);
+            // Return empty array on error to prevent page crash
+            return [];
+        }
+    }
+
+    /**
+     * Get recent orders
+     * @param {string} manufacturerId - Manufacturer ID
+     * @param {number} limit - Number of orders to fetch
+     * @returns {Array} Recent orders
+     */
+    async getRecentOrders(manufacturerId, limit = 5) {
+        try {
+            const startTime = Date.now();
+
+            const orders = await Order.find({ seller: manufacturerId })
+                .sort({ createdAt: -1 })
+                .limit(limit)
+                .populate('buyer', 'name companyName avatar')
+                .select('orderNumber totalAmount status createdAt items')
+                .lean();
+
+            this.trackPerformance('getRecentOrders', Date.now() - startTime, false);
+            return orders;
+
+        } catch (error) {
+            this.logger.error('❌ Error getting recent orders:', error);
+            // Return empty array on error to prevent page crash
+            return [];
+        }
+    }
+
+    /**
+     * Get chart data for analytics
+     * @param {string} manufacturerId - Manufacturer ID
+     * @param {string} period - Time period (30, 90, 365)
+     * @returns {Object} Chart data
+     */
+    async getChartData(manufacturerId, period = '30') {
+        try {
+            const startTime = Date.now();
+            const days = parseInt(period);
+            
+            // Calculate date range
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - days);
+
+            // Get sales data for the period
+            const salesData = await Order.aggregate([
+                {
+                    $match: {
+                        seller: new ObjectId(manufacturerId),
+                        createdAt: { $gte: startDate, $lte: endDate },
+                        status: { $in: ['completed', 'shipped', 'delivered'] }
+                    }
+                },
+                {
+                    $group: {
+                        _id: {
+                            date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }
+                        },
+                        revenue: { $sum: "$totalAmount" },
+                        orders: { $sum: 1 }
+                    }
+                },
+                {
+                    $sort: { "_id.date": 1 }
+                }
+            ]);
+
+            // Format data for charts
+            const labels = [];
+            const sales = [];
+            const orders = [];
+
+            // Generate date labels for the period
+            for (let i = 0; i < days; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                labels.push(dateStr);
+
+                // Find matching data or use 0
+                const dayData = salesData.find(d => d._id.date === dateStr);
+                sales.push(dayData ? dayData.revenue : 0);
+                orders.push(dayData ? dayData.orders : 0);
+            }
+
+            const chartData = {
+                labels,
+                sales,
+                orders,
+                period: days
+            };
+
+            this.trackPerformance('getChartData', Date.now() - startTime, false);
+            return chartData;
+
+        } catch (error) {
+            this.logger.error('❌ Error getting chart data:', error);
+            
+            // Return empty data structure on error
+            return {
+                labels: [],
+                sales: [],
+                orders: [],
+                period: parseInt(period)
+            };
+        }
+    }
+
+
+
+    /**
+     * Get revenue statistics
+     * @param {string} manufacturerId - Manufacturer ID
+     * @returns {Object} Revenue statistics
+     */
+    async getRevenueStatistics(manufacturerId) {
+        try {
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1);
+            startOfMonth.setHours(0, 0, 0, 0);
+
+            const [totalRevenue, monthlyRevenue] = await Promise.all([
+                Order.aggregate([
+                    { 
+                        $match: { 
+                            seller: new ObjectId(manufacturerId),
+                            status: { $in: ['completed', 'shipped', 'delivered'] }
+                        } 
+                    },
+                    { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+                ]),
+                Order.aggregate([
+                    { 
+                        $match: { 
+                            seller: new ObjectId(manufacturerId),
+                            status: { $in: ['completed', 'shipped', 'delivered'] },
+                            createdAt: { $gte: startOfMonth }
+                        } 
+                    },
+                    { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+                ])
+            ]);
+
+            return {
+                totalRevenue: totalRevenue[0]?.total || 0,
+                monthlyRevenue: monthlyRevenue[0]?.total || 0
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Error getting revenue statistics:', error);
+            return {
+                totalRevenue: 0,
+                monthlyRevenue: 0
+            };
+        }
+    }
+
+    /**
+     * Get order statistics
+     * @param {string} manufacturerId - Manufacturer ID
+     * @returns {Object} Order statistics
+     */
+    async getOrderStatistics(manufacturerId) {
+        try {
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1);
+            startOfMonth.setHours(0, 0, 0, 0);
+
+            const [totalOrders, monthlyOrders] = await Promise.all([
+                Order.countDocuments({ seller: manufacturerId }),
+                Order.countDocuments({ 
+                    seller: manufacturerId,
+                    createdAt: { $gte: startOfMonth }
+                })
+            ]);
+
+            return {
+                totalOrders,
+                monthlyOrders
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Error getting order statistics:', error);
+            return {
+                totalOrders: 0,
+                monthlyOrders: 0
+            };
+        }
+    }
+
+    /**
+     * Calculate average rating from reviews/orders
+     * @param {string} manufacturerId - Manufacturer ID
+     * @returns {number} Average rating
+     */
+    async getAverageRating(manufacturerId) {
+        try {
+            const startTime = Date.now();
+            this.logger.log(`📊 Calculating company average rating for manufacturer: ${manufacturerId}`);
+
+            // Validate manufacturer ID
+            if (!ObjectId.isValid(manufacturerId)) {
+                throw new Error('Invalid manufacturer ID format');
+            }
+
+            const manufacturerObjectId = new ObjectId(manufacturerId);
+            
+            // First, get all products by this manufacturer
+            const products = await Product.find(
+                { manufacturer: manufacturerObjectId },
+                { _id: 1, averageRating: 1, totalReviews: 1 }
+            );
+
+            if (!products || products.length === 0) {
+                this.logger.log(`ℹ️ No products found for manufacturer: ${manufacturerId}`);
+                return 0;
+            }
+
+            // Method 1: Calculate from product ratings (weighted by review count)
+            let totalWeightedRating = 0;
+            let totalReviews = 0;
+
+            products.forEach(product => {
+                if (product.averageRating && product.totalReviews && product.totalReviews > 0) {
+                    totalWeightedRating += (product.averageRating * product.totalReviews);
+                    totalReviews += product.totalReviews;
+                }
+            });
+
+            if (totalReviews > 0) {
+                const weightedAverage = totalWeightedRating / totalReviews;
+                this.logger.log(`✅ Company rating calculated from products: ${weightedAverage.toFixed(1)} (based on ${totalReviews} reviews)`);
+                this.trackPerformance('getAverageRating', Date.now() - startTime);
+                return Math.round(weightedAverage * 10) / 10;
+            }
+
+            // Method 2: Try to get from Review model for company reviews
+            try {
+                const Review = require('../models/Review');
+                const companyReviews = await Review.aggregate([
+                    { 
+                        $match: { 
+                            company: manufacturerObjectId,
+                            reviewType: 'company',
+                            status: 'approved'
+                        } 
+                    },
+                    { 
+                        $group: { 
+                            _id: null, 
+                            averageRating: { $avg: '$rating' },
+                            totalReviews: { $sum: 1 }
+                        } 
+                    }
+                ]);
+
+                if (companyReviews.length > 0 && companyReviews[0].totalReviews > 0) {
+                    const companyRating = companyReviews[0].averageRating;
+                    this.logger.log(`✅ Company rating from company reviews: ${companyRating.toFixed(1)} (${companyReviews[0].totalReviews} reviews)`);
+                    this.trackPerformance('getAverageRating', Date.now() - startTime);
+                    return Math.round(companyRating * 10) / 10;
+                }
+            } catch (reviewError) {
+                this.logger.warn('⚠️ Review model not available, skipping company reviews');
+            }
+
+            // Method 3: Try to get from Comment model for product comments
+            try {
+                const Comment = require('../models/Comment');
+                const productIds = products.map(p => p._id);
+                
+                const commentStats = await Comment.aggregate([
+                    { 
+                        $match: { 
+                            product: { $in: productIds },
+                            rating: { $exists: true, $ne: null },
+                            status: 'approved'
+                        } 
+                    },
+                    { 
+                        $group: { 
+                            _id: null, 
+                            averageRating: { $avg: '$rating' },
+                            totalComments: { $sum: 1 }
+                        } 
+                    }
+                ]);
+
+                if (commentStats.length > 0 && commentStats[0].totalComments > 0) {
+                    const commentRating = commentStats[0].averageRating;
+                    this.logger.log(`✅ Company rating from product comments: ${commentRating.toFixed(1)} (${commentStats[0].totalComments} comments)`);
+                    this.trackPerformance('getAverageRating', Date.now() - startTime);
+                    return Math.round(commentRating * 10) / 10;
+                }
+            } catch (commentError) {
+                this.logger.warn('⚠️ Comment model not available, skipping comment ratings');
+            }
+
+            // Method 4: Fall back to order completion status as rating proxy
+            const completedOrders = await Order.countDocuments({
+                seller: manufacturerObjectId,
+                status: { $in: ['completed', 'delivered'] }
+            });
+            const totalOrders = await Order.countDocuments({ seller: manufacturerObjectId });
+            
+            if (totalOrders === 0) {
+                this.logger.log(`ℹ️ No rating data found for manufacturer: ${manufacturerId}`);
+                return 0;
+            }
+            
+            // Convert completion rate to rating (completed orders get higher rating)
+            const completionRate = completedOrders / totalOrders;
+            const fallbackRating = Math.round((3.5 + (completionRate * 1.5)) * 10) / 10; // 3.5-5.0 range
+            
+            this.logger.log(`✅ Company rating from order completion: ${fallbackRating} (${completedOrders}/${totalOrders} completed)`);
+            this.trackPerformance('getAverageRating', Date.now() - startTime);
+            return fallbackRating;
+
+        } catch (error) {
+            this.logger.error('❌ Error calculating average rating:', error);
+            return 0;
+        }
+    }
+
+    /**
+     * Get total reviews count from products, company reviews, and comments
+     * @param {string} manufacturerId - Manufacturer ID
+     * @returns {number} Total reviews count
+     */
+    async getTotalReviews(manufacturerId) {
+        try {
+            const startTime = Date.now();
+            this.logger.log(`📊 Calculating total reviews count for manufacturer: ${manufacturerId}`);
+
+            if (!ObjectId.isValid(manufacturerId)) {
+                return 0;
+            }
+
+            const manufacturerObjectId = new ObjectId(manufacturerId);
+            let totalReviews = 0;
+
+            // Method 1: Count from product totalReviews field
+            const products = await Product.find(
+                { manufacturer: manufacturerObjectId },
+                { totalReviews: 1 }
+            );
+
+            const productReviews = products.reduce((sum, product) => {
+                return sum + (product.totalReviews || 0);
+            }, 0);
+
+            totalReviews += productReviews;
+            this.logger.log(`📊 Product reviews count: ${productReviews}`);
+
+            // Method 2: Count from Review model (company reviews)
+            try {
+                const Review = require('../models/Review');
+                const companyReviewsCount = await Review.countDocuments({
+                    company: manufacturerObjectId,
+                    reviewType: 'company',
+                    status: 'approved'
+                });
+                totalReviews += companyReviewsCount;
+                this.logger.log(`📊 Company reviews count: ${companyReviewsCount}`);
+            } catch (reviewError) {
+                this.logger.warn('⚠️ Review model not available for company reviews count');
+            }
+
+            // Method 3: Count from Comment model (product comments with ratings)
+            try {
+                const Comment = require('../models/Comment');
+                const productIds = products.map(p => p._id);
+                
+                const commentsCount = await Comment.countDocuments({
+                    product: { $in: productIds },
+                    rating: { $exists: true, $ne: null },
+                    status: 'approved'
+                });
+                
+                // Only add if we don't already have product reviews counted
+                if (productReviews === 0) {
+                    totalReviews += commentsCount;
+                }
+                this.logger.log(`📊 Product comments with ratings: ${commentsCount}`);
+            } catch (commentError) {
+                this.logger.warn('⚠️ Comment model not available for comments count');
+            }
+
+            this.logger.log(`✅ Total reviews count: ${totalReviews}`);
+            this.trackPerformance('getTotalReviews', Date.now() - startTime);
+            return totalReviews;
+
+        } catch (error) {
+            this.logger.error('❌ Error calculating total reviews:', error);
+            return 0;
+        }
+    }
+
+    /**
+     * Format activity type for display
+     * @private
+     */
+    _formatActivityType(activityType) {
+        const activityTypes = {
+            'textiles_clothing': 'Tekstil va Kiyim',
+            'food_beverage': 'Oziq-ovqat va Ichimlik',
+            'electronics': 'Elektronika',
+            'automotive': 'Avtomobil',
+            'chemicals': 'Kimyo',
+            'machinery': 'Mashina va Uskunalar',
+            'construction': 'Qurilish Materiallari',
+            'agriculture': 'Qishloq Xo\'jaligi',
+            'furniture': 'Mebel',
+            'packaging': 'Qadoqlash',
+            'metal_processing': 'Metall Ishlash',
+            'pharmaceuticals': 'Farmatsevtika',
+            'cosmetics': 'Kosmetika',
+            'toys': 'O\'yinchoqlar',
+            'sports_equipment': 'Sport Anjomlari',
+            'handicrafts': 'Qo\'l San\'ati'
+        };
+        return activityTypes[activityType] || activityType;
+    }
+
+    /**
+     * Format annual revenue for display
+     * @private
+     */
+    _formatAnnualRevenue(annualRevenue) {
+        const revenueRanges = {
+            'under_100k': '100,000 AQSh dollarigacha',
+            '100k_500k': '100,000 - 500,000 AQSh dollari',
+            '500k_1m': '500,000 - 1 million AQSh dollari',
+            '1m_5m': '1 - 5 million AQSh dollari',
+            '5m_10m': '5 - 10 million AQSh dollari',
+            '10m+': '10 million AQSh dollaridan yuqori',
+            '5m+': '5 million AQSh dollaridan yuqori'
+        };
+        return revenueRanges[annualRevenue] || annualRevenue;
+    }
+
+    /**
+     * Get production capabilities based on company's products and activity type
+     * @private
+     */
+    async _getProductionCapabilities(manufacturerId) {
+        try {
+            const manufacturerObjectId = new ObjectId(manufacturerId);
+            
+            // Get manufacturer info for activity type
+            const manufacturer = await User.findById(manufacturerObjectId, { activityType: 1 });
+            const activityType = manufacturer?.activityType || '';
+
+            // Get actual products to determine real capabilities
+            const products = await Product.find(
+                { manufacturer: manufacturerObjectId, status: { $in: ['active', 'published'] } },
+                { category: 1, subcategory: 1, name: 1, specifications: 1 }
+            ).limit(50);
+
+            // Base capabilities based on activity type
+            const baseCapabilities = this._getBaseCapabilities(activityType);
+            
+            // Enhanced capabilities based on actual products
+            const productBasedCapabilities = this._getProductBasedCapabilities(products);
+            
+            // Merge and return unique capabilities
+            const allCapabilities = [...baseCapabilities, ...productBasedCapabilities];
+            
+            // Remove duplicates and return top 6 capabilities
+            const uniqueCapabilities = allCapabilities.filter((capability, index, self) => 
+                index === self.findIndex(c => c.title === capability.title)
+            ).slice(0, 6);
+
+            this.logger.log(`✅ Generated ${uniqueCapabilities.length} production capabilities for manufacturer: ${manufacturerId}`);
+            return uniqueCapabilities;
+
+        } catch (error) {
+            this.logger.error('❌ Error getting production capabilities:', error);
+            // Return default capabilities if error
+            return this._getDefaultCapabilities();
+        }
+    }
+
+    /**
+     * Get base capabilities by activity type
+     * @private
+     */
+    _getBaseCapabilities(activityType) {
+        const capabilityMaps = {
+            'textiles_clothing': [
+                { title: 'Tekstil Ishlab Chiqarish', description: 'Yuqori sifatli tekstil mahsulotlari', icon: 'fa-tshirt', status: 'active' },
+                { title: 'Kiyim Tikish', description: 'Professional kiyim tikish xizmatlari', icon: 'fa-cut', status: 'active' },
+                { title: 'Bo\'yoq va Rang', description: 'Rang berish va bosma ishlari', icon: 'fa-palette', status: 'active' }
+            ],
+            'food_beverage': [
+                { title: 'Oziq-ovqat Ishlab Chiqarish', description: 'Sifatli oziq-ovqat mahsulotlari', icon: 'fa-apple-alt', status: 'active' },
+                { title: 'Qadoqlash', description: 'Professional qadoqlash xizmatlari', icon: 'fa-box', status: 'active' },
+                { title: 'Sifat Nazorati', description: 'HACCP standartlari bo\'yicha nazorat', icon: 'fa-certificate', status: 'active' }
+            ],
+            'electronics': [
+                { title: 'Elektron Komponentlar', description: 'Mikroelektronika ishlab chiqarish', icon: 'fa-microchip', status: 'active' },
+                { title: 'Yig\'ish Liniyalari', description: 'SMT va PCB yig\'ish', icon: 'fa-cogs', status: 'active' },
+                { title: 'Test va Sinov', description: 'Sifat test qilish laboratoriyasi', icon: 'fa-vial', status: 'active' }
+            ]
+        };
+
+        return capabilityMaps[activityType] || [];
+    }
+
+    /**
+     * Get capabilities based on actual products
+     * @private
+     */
+    _getProductBasedCapabilities(products) {
+        const capabilities = [];
+        const categoryCount = {};
+
+        // Analyze product categories
+        products.forEach(product => {
+            if (product.category) {
+                categoryCount[product.category] = (categoryCount[product.category] || 0) + 1;
+            }
+        });
+
+        // Generate capabilities based on dominant categories
+        Object.entries(categoryCount).forEach(([category, count]) => {
+            if (count >= 2) { // At least 2 products in category
+                capabilities.push({
+                    title: `${category} Ishlab Chiqarish`,
+                    description: `${count} ta mahsulot turi`,
+                    icon: 'fa-industry',
+                    status: 'active'
+                });
+            }
+        });
+
+        // Add common manufacturing capabilities
+        if (products.length > 0) {
+            capabilities.push(
+                { title: 'Sifat Nazorati', description: 'ISO standartlari bo\'yicha nazorat', icon: 'fa-medal', status: 'active' },
+                { title: 'Tezkor Yetkazib Berish', description: 'O\'z vaqtida yetkazib berish kafolati', icon: 'fa-shipping-fast', status: 'active' }
+            );
+        }
+
+        return capabilities;
+    }
+
+    /**
+     * Get default capabilities as fallback
+     * @private
+     */
+    _getDefaultCapabilities() {
+        return [
+            { title: 'Ishlab Chiqarish', description: 'Yuqori sifatli mahsulotlar', icon: 'fa-industry', status: 'active' },
+            { title: 'Sifat Nazorati', description: 'Halqaro standartlar bo\'yicha', icon: 'fa-medal', status: 'active' },
+            { title: 'Yetkazib Berish', description: 'O\'z vaqtida yetkazib berish', icon: 'fa-shipping-fast', status: 'active' },
+            { title: 'Maxsus Buyurtma', description: 'Individual talablar bo\'yicha', icon: 'fa-tools', status: 'active' }
+        ];
+    }
+
+    /**
+     * Calculate order completion rate
+     * @param {string} manufacturerId - Manufacturer ID
+     * @returns {number} Completion rate percentage
+     */
+    async getCompletionRate(manufacturerId) {
+        try {
+            const [completedCount, totalCount] = await Promise.all([
+                Order.countDocuments({
+                    seller: manufacturerId,
+                    status: { $in: ['completed', 'delivered'] }
+                }),
+                Order.countDocuments({ seller: manufacturerId })
+            ]);
+
+            if (totalCount === 0) return 0;
+            
+            return Math.round((completedCount / totalCount) * 1000) / 10; // Round to 1 decimal
+            
+        } catch (error) {
+            this.logger.error('❌ Error calculating completion rate:', error);
+            return 0;
+        }
+    }
+
+    /**
+     * Calculate revenue growth rate (monthly)
+     * @param {string} manufacturerId - Manufacturer ID
+     * @returns {number} Growth rate percentage
+     */
+    async getGrowthRate(manufacturerId) {
+        try {
+            const now = new Date();
+            const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+            const [currentRevenue, lastRevenue] = await Promise.all([
+                Order.aggregate([
+                    {
+                        $match: {
+                            seller: new ObjectId(manufacturerId),
+                            status: { $in: ['completed', 'delivered'] },
+                            createdAt: { $gte: currentMonthStart }
+                        }
+                    },
+                    { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+                ]),
+                Order.aggregate([
+                    {
+                        $match: {
+                            seller: new ObjectId(manufacturerId),
+                            status: { $in: ['completed', 'delivered'] },
+                            createdAt: { $gte: lastMonthStart, $lte: lastMonthEnd }
+                        }
+                    },
+                    { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+                ])
+            ]);
+
+            const currentTotal = currentRevenue[0]?.total || 0;
+            const lastTotal = lastRevenue[0]?.total || 0;
+
+            if (lastTotal === 0) return currentTotal > 0 ? 100 : 0;
+
+            const growthRate = ((currentTotal - lastTotal) / lastTotal) * 100;
+            return Math.round(growthRate * 10) / 10;
+
+        } catch (error) {
+            this.logger.error('❌ Error calculating growth rate:', error);
+            return 0;
+        }
+    }
+
+    /**
+     * Calculate customer retention rate
+     * @param {string} manufacturerId - Manufacturer ID
+     * @returns {number} Retention rate percentage
+     */
+    async getCustomerRetention(manufacturerId) {
+        try {
+            const now = new Date();
+            const threeMonthsAgo = new Date(now.setMonth(now.getMonth() - 3));
+
+            // Get customers who ordered in the last 3 months
+            const recentCustomers = await Order.distinct('buyer', {
+                seller: manufacturerId,
+                createdAt: { $gte: threeMonthsAgo }
+            });
+
+            if (recentCustomers.length === 0) return 0;
+
+            // Get customers who have made repeat orders
+            const repeatCustomers = await Order.aggregate([
+                {
+                    $match: {
+                        seller: new ObjectId(manufacturerId),
+                        buyer: { $in: recentCustomers },
+                        createdAt: { $gte: threeMonthsAgo }
+                    }
+                },
+                {
+                    $group: {
+                        _id: '$buyer',
+                        orderCount: { $sum: 1 }
+                    }
+                },
+                {
+                    $match: { orderCount: { $gt: 1 } }
+                }
+            ]);
+
+            const retentionRate = (repeatCustomers.length / recentCustomers.length) * 100;
+            return Math.round(retentionRate * 10) / 10;
+
+        } catch (error) {
+            this.logger.error('❌ Error calculating customer retention:', error);
+            return 0;
+        }
+    }
+
+    /**
+     * Upload product image
+     * @param {string} manufacturerId - Manufacturer ID
+     * @param {Object} file - Uploaded file
+     * @returns {Object} Upload result with URL
+     */
+    async uploadProductImage(manufacturerId, file) {
+        try {
+            const startTime = Date.now();
+
+            // Validate file type and size
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.mimetype)) {
+                throw new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.');
+            }
+
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                throw new Error('File too large. Maximum 5MB allowed.');
+            }
+
+            // Create unique filename
+            const timestamp = Date.now();
+            const random = Math.random().toString(36).substr(2, 8);
+            const extension = file.originalname.split('.').pop();
+            const filename = `product_${manufacturerId}_${timestamp}_${random}.${extension}`;
+            
+            // TODO: Implement actual file upload to your storage service
+            // This could be AWS S3, local storage, or any other cloud storage
+            const uploadPath = `/uploads/products/${filename}`;
+            
+            // For now, simulate successful upload
+            const result = {
+                url: uploadPath,
+                filename: filename,
+                size: file.size,
+                mimetype: file.mimetype,
+                uploadedAt: new Date()
+            };
+
+            this.trackPerformance('uploadProductImage', Date.now() - startTime, false);
+            this.logger.log(`✅ Product image uploaded: ${filename}`);
+            
+            return result;
+
+        } catch (error) {
+            this.logger.error('❌ Error uploading product image:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get performance metrics for dashboard
+     * @param {string} manufacturerId - Manufacturer ID
+     * @returns {Object} Performance metrics
+     */
+    async getPerformanceMetrics(manufacturerId) {
+        try {
+            const startTime = Date.now();
+
+            // Get completed orders count and total sales
+            const completedOrdersQuery = Order.aggregate([
+                { $match: { seller: new ObjectId(manufacturerId), status: { $in: ['completed', 'delivered'] } } },
+                {
+                    $group: {
+                        _id: null,
+                        completedOrders: { $sum: 1 },
+                        totalSales: { $sum: '$totalAmount' }
+                    }
+                }
+            ]);
+
+            // Get total reviews count using comprehensive method
+            const totalReviews = await this.getTotalReviews(manufacturerId);
+
+            // Get response time (average time to first response on inquiries/messages)
+            let responseTime = 24; // Default 24 hours
+            try {
+                const responseTimeQuery = await Message.aggregate([
+                    { $match: { receiver: new ObjectId(manufacturerId), isFirstResponse: true } },
+                    {
+                        $group: {
+                            _id: null,
+                            avgResponseTime: {
+                                $avg: {
+                                    $divide: [
+                                        { $subtract: ['$createdAt', '$inquiryCreatedAt'] },
+                                        1000 * 60 * 60 // Convert ms to hours
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                ]);
+                
+                if (responseTimeQuery.length > 0 && responseTimeQuery[0].avgResponseTime) {
+                    responseTime = Math.round(responseTimeQuery[0].avgResponseTime);
+                }
+            } catch (error) {
+                // Fallback if Message structure is different
+                console.log('Response time calculation failed, using default');
+            }
+
+            // Get completed orders data
+            const completedOrdersData = await completedOrdersQuery;
+            const completedOrders = completedOrdersData[0]?.completedOrders || 0;
+            const totalSales = completedOrdersData[0]?.totalSales || 0;
+
+            // Calculate changes (month-over-month)
+            const now = new Date();
+            const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+            // Current month data
+            const currentMonthData = await Order.aggregate([
+                {
+                    $match: {
+                        seller: new ObjectId(manufacturerId),
+                        createdAt: { $gte: currentMonthStart },
+                        status: { $in: ['completed', 'delivered'] }
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        orders: { $sum: 1 },
+                        sales: { $sum: '$totalAmount' }
+                    }
+                }
+            ]);
+
+            // Last month data
+            const lastMonthData = await Order.aggregate([
+                {
+                    $match: {
+                        seller: new ObjectId(manufacturerId),
+                        createdAt: { $gte: lastMonthStart, $lte: lastMonthEnd },
+                        status: { $in: ['completed', 'delivered'] }
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        orders: { $sum: 1 },
+                        sales: { $sum: '$totalAmount' }
+                    }
+                }
+            ]);
+
+            const currentMonthOrders = currentMonthData[0]?.orders || 0;
+            const currentMonthSales = currentMonthData[0]?.sales || 0;
+            const lastMonthOrders = lastMonthData[0]?.orders || 0;
+            const lastMonthSales = lastMonthData[0]?.sales || 0;
+
+            // Calculate percentage changes
+            const salesChange = lastMonthSales > 0 ? ((currentMonthSales - lastMonthSales) / lastMonthSales * 100) : (currentMonthSales > 0 ? 100 : 0);
+            const ordersChange = lastMonthOrders > 0 ? ((currentMonthOrders - lastMonthOrders) / lastMonthOrders * 100) : (currentMonthOrders > 0 ? 100 : 0);
+            const responseChange = 0; // Default for now
+
+            this.trackPerformance('getPerformanceMetrics', Date.now() - startTime, false);
+
+            return {
+                totalSales,
+                completedOrders,
+                responseTime,
+                totalReviews,
+                salesChange: Math.round(salesChange * 10) / 10,
+                ordersChange: Math.round(ordersChange * 10) / 10,
+                responseChange
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Error getting performance metrics:', error);
+            return {
+                totalSales: 0,
+                completedOrders: 0,
+                responseTime: 24,
+                totalReviews: 0,
+                salesChange: 0,
+                ordersChange: 0,
+                responseChange: 0
+            };
+        }
+    }
+
+    /**
+     * Generate search keywords from product name and description
+     */
+    generateSearchKeywords(name, description) {
+        const text = `${name} ${description}`.toLowerCase();
+        const words = text.match(/\b\w{3,}\b/g) || [];
+        return [...new Set(words)].slice(0, 20); // Unique keywords, max 20
+    }
+
+    /**
+     * Update existing product with professional validation
+     * (This method already exists in the controller, but added here for completeness)
+     */
+    async updateProduct(productId, manufacturerId, updateData) {
+        try {
+            // Validate input
+            if (!ObjectId.isValid(productId)) {
+                throw new Error('Noto\'g\'ri mahsulot ID');
+            }
+
+            if (!ObjectId.isValid(manufacturerId)) {
+                throw new Error('Noto\'g\'ri manufacturer ID');
+            }
+
+            // Get existing product with security check
+            const existingProduct = await Product.findOne({ 
+                _id: productId, 
+                manufacturer: manufacturerId 
+            });
+
+            if (!existingProduct) {
+                throw new Error('Mahsulot topilmadi yoki ruxsat yo\'q');
+            }
+
+            // Validate and sanitize update data
+            const validatedData = await this._validateAndSanitizeProductUpdateData(updateData);
+
+            // Update slug if name changed
+            if (validatedData.name && validatedData.name !== existingProduct.name) {
+                const baseSlug = validatedData.name
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+                
+                let slug = baseSlug;
+                let counter = 1;
+                while (await Product.findOne({ 
+                    slug, 
+                    manufacturer: manufacturerId, 
+                    _id: { $ne: productId } 
+                })) {
+                    slug = `${baseSlug}-${counter}`;
+                    counter++;
+                }
+                validatedData.slug = slug;
+            }
+
+            // Update search keywords if name or description changed
+            if (validatedData.name || validatedData.description) {
+                const name = validatedData.name || existingProduct.name;
+                const description = validatedData.description || existingProduct.description;
+                validatedData.searchKeywords = this.generateSearchKeywords(name, description);
+            }
+
+            validatedData.updatedAt = new Date();
+
+            // Update product
+            const updatedProduct = await Product.findOneAndUpdate(
+                { _id: productId, manufacturer: manufacturerId },
+                { $set: validatedData },
+                { new: true, runValidators: true }
+            ).populate([
+                { path: 'category', select: 'name slug parentCategory' },
+                { path: 'manufacturer', select: 'name companyName email' }
+            ]);
+
+            if (!updatedProduct) {
+                throw new Error('Mahsulotni yangilashda xatolik');
+            }
+
+            // Clear relevant caches
+            this.clearCacheByPattern(`products_${manufacturerId}`);
+            this.clearCacheByPattern(`product_${productId}`);
+
+            this.logger.log('✅ Product updated successfully:', {
+                productId: updatedProduct._id,
+                name: updatedProduct.name
+            });
+
+            return updatedProduct;
+
+        } catch (error) {
+            this.logger.error('❌ Update product error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Validate and sanitize product update data
+     */
+    async _validateAndSanitizeProductUpdateData(updateData) {
+        const sanitized = {};
+        const errors = [];
+
+        // Name validation
+        if (updateData.name !== undefined) {
+            if (typeof updateData.name !== 'string' || updateData.name.trim().length < 3) {
+                errors.push('Mahsulot nomi kamida 3 ta belgidan iborat bo\'lishi kerak');
+            } else {
+                sanitized.name = updateData.name.trim();
+            }
+        }
+
+        // Description validation
+        if (updateData.description !== undefined) {
+            if (typeof updateData.description !== 'string' || updateData.description.trim().length < 20) {
+                errors.push('Mahsulot tavsifi kamida 20 ta belgidan iborat bo\'lishi kerak');
+            } else {
+                sanitized.description = updateData.description.trim();
+            }
+        }
+
+        // Category validation
+        if (updateData.category !== undefined) {
+            if (updateData.category && ObjectId.isValid(updateData.category)) {
+                const category = await Category.findById(updateData.category);
+                if (!category) {
+                    errors.push('Kategoriya topilmadi');
+                } else {
+                    sanitized.category = updateData.category;
+                }
+            }
+        }
+
+        // Pricing validation
+        if (updateData.pricing) {
+            sanitized.pricing = {};
+            if (updateData.pricing.basePrice !== undefined) {
+                const price = parseFloat(updateData.pricing.basePrice);
+                if (isNaN(price) || price <= 0) {
+                    errors.push('Asosiy narx 0 dan katta bo\'lishi kerak');
+                } else {
+                    sanitized.pricing.basePrice = price;
+                }
+            }
+            
+            if (updateData.pricing.minimumOrderQuantity !== undefined) {
+                const moq = parseInt(updateData.pricing.minimumOrderQuantity);
+                if (isNaN(moq) || moq <= 0) {
+                    errors.push('Eng kam buyurtma miqdori 0 dan katta bo\'lishi kerak');
+                } else {
+                    sanitized.pricing.minimumOrderQuantity = moq;
+                }
+            }
+
+            // Copy other pricing fields
+            ['currency', 'maximumOrderQuantity', 'bulkPricing'].forEach(field => {
+                if (updateData.pricing[field] !== undefined) {
+                    sanitized.pricing[field] = updateData.pricing[field];
+                }
+            });
+        }
+
+        // Inventory validation
+        if (updateData.inventory) {
+            sanitized.inventory = {};
+            ['totalStock', 'availableStock', 'reservedStock'].forEach(field => {
+                if (updateData.inventory[field] !== undefined) {
+                    const value = parseInt(updateData.inventory[field]);
+                    if (!isNaN(value) && value >= 0) {
+                        sanitized.inventory[field] = value;
+                    }
+                }
+            });
+
+            if (updateData.inventory.unit) {
+                sanitized.inventory.unit = updateData.inventory.unit;
+            }
+        }
+
+        // Images validation
+        if (updateData.images !== undefined) {
+            if (Array.isArray(updateData.images)) {
+                sanitized.images = updateData.images;
+            }
+        }
+
+        // Status validation
+        if (updateData.status !== undefined) {
+            const allowedStatuses = ['draft', 'active', 'inactive', 'archived'];
+            if (allowedStatuses.includes(updateData.status)) {
+                sanitized.status = updateData.status;
+            }
+        }
+
+        // Specifications
+        if (updateData.specifications) {
+            sanitized.specifications = updateData.specifications;
+        }
+
+        // Shipping
+        if (updateData.shipping) {
+            sanitized.shipping = updateData.shipping;
+        }
+
+        if (errors.length > 0) {
+            throw new Error(`Validation error: ${errors.join(', ')}`);
+        }
+
+        return sanitized;
+    }
+
+    /**
+     * Get product by ID with security check
+     */
+    async getProductById(productId, manufacturerId) {
+        try {
+            if (!ObjectId.isValid(productId)) {
+                throw new Error('Noto\'g\'ri mahsulot ID');
+            }
+
+            const product = await Product.findOne({
+                _id: productId,
+                manufacturer: manufacturerId
+            }).populate([
+                { path: 'category', select: 'name slug parentCategory' },
+                { path: 'manufacturer', select: 'name companyName email' }
+            ]);
+
+            if (!product) {
+                throw new Error('Mahsulot topilmadi yoki ruxsat yo\'q');
+            }
+
+            return product;
+        } catch (error) {
+            this.logger.error('❌ Get product by ID error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get active categories for forms
+     */
+    async getActiveCategories() {
+        try {
+            const cacheKey = 'active_categories';
+            
+            // Check cache first
+            if (this.cache.has(cacheKey)) {
+                const cached = this.cache.get(cacheKey);
+                if (Date.now() - cached.timestamp < this.cacheTimeout) {
+                    return cached.data;
+                }
+            }
+
+            const categories = await Category.find({ 
+                status: 'active' 
+            }).select('name slug parentCategory description').sort({ name: 1 });
+
+            // Cache result
+            this.cache.set(cacheKey, {
+                data: categories,
+                timestamp: Date.now()
+            });
+
+            return categories;
+        } catch (error) {
+            this.logger.error('❌ Get active categories error:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Get product analytics for dashboard
+     */
+    async getProductAnalytics(productId, manufacturerId) {
+        try {
+            if (!ObjectId.isValid(productId)) {
+                throw new Error('Noto\'g\'ri mahsulot ID');
+            }
+
+            // Get basic product analytics
+            const product = await Product.findOne({
+                _id: productId,
+                manufacturer: manufacturerId
+            }).select('analytics businessMetrics createdAt');
+
+            if (!product) {
+                throw new Error('Mahsulot topilmadi');
+            }
+
+            // Calculate time periods
+            const now = new Date();
+            const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+            // Get order statistics for this product
+            const thisMonthOrders = await Order.countDocuments({
+                'items.product': productId,
+                seller: manufacturerId,
+                createdAt: { $gte: thisMonthStart },
+                status: { $in: ['completed', 'delivered'] }
+            });
+
+            const lastMonthOrders = await Order.countDocuments({
+                'items.product': productId,
+                seller: manufacturerId,
+                createdAt: { $gte: lastMonthStart, $lte: lastMonthEnd },
+                status: { $in: ['completed', 'delivered'] }
+            });
+
+            // Calculate changes
+            const ordersChange = lastMonthOrders > 0 
+                ? Math.round(((thisMonthOrders - lastMonthOrders) / lastMonthOrders) * 100)
+                : thisMonthOrders > 0 ? 100 : 0;
+
+            return {
+                views: {
+                    total: product.analytics?.views || 0,
+                    thisMonth: product.analytics?.views || 0, // This would need view tracking
+                    change: 0 // Would need historical data
+                },
+                inquiries: {
+                    total: product.analytics?.inquiries || 0,
+                    thisMonth: product.analytics?.inquiries || 0,
+                    change: 0
+                },
+                orders: {
+                    total: thisMonthOrders + lastMonthOrders,
+                    thisMonth: thisMonthOrders,
+                    change: ordersChange
+                },
+                revenue: {
+                    total: product.businessMetrics?.totalRevenue || 0,
+                    thisMonth: 0, // Would need calculation
+                    change: 0
+                }
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Get product analytics error:', error);
+            return {
+                views: { total: 0, thisMonth: 0, change: 0 },
+                inquiries: { total: 0, thisMonth: 0, change: 0 },
+                orders: { total: 0, thisMonth: 0, change: 0 },
+                revenue: { total: 0, thisMonth: 0, change: 0 }
+            };
+        }
+    }
+
+    /**
+     * Clear cache by pattern
+     */
+    clearCacheByPattern(pattern) {
+        for (const key of this.cache.keys()) {
+            if (key.includes(pattern)) {
+                this.cache.delete(key);
+            }
         }
     }
 }

@@ -1,0 +1,610 @@
+<%- include('../partials/header', { title: `Biznes suhbat - ${partner?.companyName || 'Hamkor'}`, lng: lng || 'uz', user: user }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'messages' }) %>
+
+<!-- Enhanced CSS Imports - Matching Orders Page Style -->
+<link rel="stylesheet" href="/css/products-management-redesign.css">
+<link rel="stylesheet" href="/css/products-table-view.css">
+<link rel="stylesheet" href="/css/orders-management.css">
+<link rel="stylesheet" href="/css/order-detail.css">
+<link rel="stylesheet" href="/css/manufacturer-cards.css">
+<link rel="stylesheet" href="/css/manufacturer-theme.css">
+<link rel="stylesheet" href="/css/toast-notifications.css">
+<link rel="stylesheet" href="/css/modal-system.css">
+<link rel="stylesheet" href="/css/manufacturer/messages-chat.css">
+
+
+<!-- Main Content - Professional B2B Layout -->
+<main class="admin-main b2b-chat-container">
+  <div class="admin-content">
+    
+    <!-- Alibaba-Style Business Header -->
+    <div class="b2b-business-header animate-fade-in">
+      <div class="b2b-header-breadcrumb">
+        <a href="/manufacturer/messages" class="b2b-breadcrumb-item">
+          <i class="fas fa-comments"></i>
+          <span>Biznes xabarlari</span>
+        </a>
+        <i class="fas fa-chevron-right b2b-breadcrumb-separator"></i>
+        <span class="b2b-breadcrumb-item" style="background: var(--b2b-primary-bg); color: var(--b2b-primary); border-color: var(--b2b-primary);">
+          <i class="fas fa-handshake"></i>
+          <span>Hamkor xabarlari</span>
+        </span>
+      </div>
+      
+      <div class="b2b-header-main">
+        <div class="b2b-business-info">
+          <div class="b2b-partner-avatar">
+            <img src="/assets/images/avatars/default-company.png" 
+                 alt="<%= partner?.companyName || 'Biznes hamkor' %>"
+                 onerror="this.src='/assets/images/avatars/default.png'">
+          </div>
+          
+          <div class="b2b-business-details">
+            <h1><%= partner?.companyName || 'Biznes hamkor' %></h1>
+            <p class="b2b-business-subtitle">
+              Biznes xabarlarini boshlash uchun xabarlar yozing. Buni qilish uchun xabarlar yozing.
+            </p>
+            
+            <div class="b2b-order-context">
+              <div class="b2b-order-badge">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Order #<%= order.orderNumber %></span>
+              </div>
+              
+              <div class="b2b-status-indicator <%= order.status %>">
+                <i class="fas fa-circle"></i>
+                <%= order.status === 'pending' ? 'Pending Review' :
+                    order.status === 'confirmed' ? 'Confirmed' :
+                    order.status === 'in_production' ? 'In Production' :
+                    order.status === 'shipped' ? 'Shipped' :
+                    order.status === 'delivered' ? 'Delivered' :
+                    order.status === 'completed' ? 'Completed' : 
+                    order.status === 'cancelled' ? 'Cancelled' : 'Processing'
+                %>
+              </div>
+              
+              <div style="color: var(--b2b-text-muted); font-size: var(--b2b-font-size-sm);">
+                <i class="fas fa-dollar-sign"></i>
+                $<%= (order.totalAmount || 0).toLocaleString() %>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="b2b-header-actions">
+          <button class="b2b-action-btn primary" onclick="viewOrderDetails()">
+            <i class="fas fa-external-link-alt"></i>
+            <span>Buyurtma ko'rish</span>
+          </button>
+          <button class="b2b-action-btn secondary" onclick="scheduleVideoCall()">
+            <i class="fas fa-video"></i>
+            <span>Video chaqirish</span>
+          </button>
+          <button class="b2b-action-btn secondary" onclick="exportChatHistory()">
+            <i class="fas fa-download"></i>
+            <span>Eksport qilish</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Professional B2B Chat Layout -->
+    <div class="b2b-chat-layout animate-fade-in">
+      
+      <!-- Main Chat Area -->
+      <div class="b2b-chat-main">
+        
+        <!-- Messages Area -->
+        <div class="b2b-messages-area" id="messagesArea">
+          <% if (messages.length === 0) { %>
+            <!-- Alibaba-Style Empty State -->
+            <div class="b2b-empty-state">
+              <div class="b2b-empty-icon">
+                <i class="fas fa-handshake"></i>
+              </div>
+              <div class="b2b-empty-content">
+                <h3>Biznes xabarlarini boshlash</h3>
+                <p>Biznes xabarlarini boshlash uchun xabarlar yozing. Buni qilish uchun xabarlar yozing.</p>
+                
+                <!-- Professional Quick Templates -->
+                <div class="b2b-quick-templates">
+                  <div class="b2b-template-card" onclick="useBusinessTemplate('welcome')">
+                    <div class="template-header">
+                      <div class="template-icon">
+                        <i class="fas fa-handshake"></i>
+                      </div>
+                      <h4>Xush kelibsiz</h4>
+                    </div>
+                    <p>Xush kelibsiz xabarini yozing</p>
+                  </div>
+                  
+                  <div class="b2b-template-card" onclick="useBusinessTemplate('status')">
+                    <div class="template-header">
+                      <div class="template-icon">
+                        <i class="fas fa-info-circle"></i>
+                      </div>
+                      <h4>Buyurtma holati</h4>
+                    </div>
+                    <p>Buyurtma holatini yangilang</p>
+                  </div>
+                  
+                  <div class="b2b-template-card" onclick="useBusinessTemplate('pricing')">
+                    <div class="template-header">
+                      <div class="template-icon">
+                        <i class="fas fa-calculator"></i>
+                      </div>
+                      <h4>Narxlar</h4>
+                    </div>
+                    <p>Narxlar va shartlar</p>
+                  </div>
+                  
+                  <div class="b2b-template-card" onclick="useBusinessTemplate('quality')">
+                    <div class="template-header">
+                      <div class="template-icon">
+                        <i class="fas fa-award"></i>
+                      </div>
+                      <h4>Sifat nazorat</h4>
+                    </div>
+                    <p>Sifat nazorat va garantiyalar</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% } else { %>
+            <!-- Professional Messages Display -->
+            <div class="b2b-messages-list" id="messagesList">
+              <% 
+              let currentDate = null;
+              messages.forEach(function(message, index) { 
+                const messageDate = new Date(message.createdAt).toDateString();
+                const isOwnMessage = message.senderId && message.senderId._id.toString() === currentUser.id.toString();
+                const showAvatar = index === 0 || 
+                  (messages[index - 1].senderId?._id?.toString() !== message.senderId?._id?.toString());
+              %>
+              
+                <!-- Professional Date Separator -->
+                <% if (currentDate !== messageDate) { %>
+                  <div class="b2b-date-separator">
+                    <span>
+                      <%= new Date(message.createdAt).toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      }) %>
+                    </span>
+                  </div>
+                  <% currentDate = messageDate; %>
+                <% } %>
+                
+                <!-- Professional Message Group -->
+                <div class="b2b-message-group <%= isOwnMessage ? 'own' : 'partner' %>">
+                  <% if (!isOwnMessage && showAvatar) { %>
+                    <div class="b2b-message-avatar online">
+                      <img src="/assets/images/avatars/default-company.png" 
+                           alt="<%= partner?.companyName %>"
+                           onerror="this.src='/assets/images/avatars/default.png'">
+                    </div>
+                  <% } %>
+                  
+                  <div class="b2b-message-content">
+                    <% if (!isOwnMessage && showAvatar) { %>
+                      <div class="b2b-message-sender">
+                        <span><%= message.senderId?.companyName || partner?.companyName || 'Biznes hamkor' %></span>
+                        <span class="b2b-sender-role">Hamkor</span>
+                      </div>
+                    <% } %>
+                    
+                    <div class="b2b-message-bubble">
+                      <% if (message.attachments && message.attachments.length > 0) { %>
+                        <!-- Attachment Message -->
+                        <% const attachment = message.attachments[0]; %>
+                        <% const isImage = attachment.mimetype && attachment.mimetype.startsWith('image/'); %>
+                        
+                        <% if (isImage) { %>
+                          <div class="b2b-image-attachment">
+                            <img src="<%= attachment.url %>" 
+                                 alt="<%= attachment.originalName %>" 
+                                 onclick="openImageModal('<%= attachment.url %>', '<%= attachment.originalName %>')"
+                                 onerror="this.src='/assets/images/no-image.png'; this.onerror=null;">
+                            <div class="b2b-image-overlay">
+                              <i class="fas fa-search-plus"></i>
+                            </div>
+                          </div>
+                        <% } else { %>
+                          <div class="b2b-file-attachment">
+                            <div class="b2b-file-icon">
+                              <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="b2b-file-details">
+                              <h6><%= attachment.originalName %></h6>
+                              <p><%= (attachment.size / 1024).toFixed(1) %> KB</p>
+                            </div>
+                            <div class="b2b-file-actions">
+                              <a href="<%= attachment.url %>" download="<%= attachment.originalName %>" class="b2b-file-download">
+                                <i class="fas fa-download"></i>
+                              </a>
+                            </div>
+                          </div>
+                        <% } %>
+                      <% } else { %>
+                        <!-- Regular Text Message -->
+                        <div class="b2b-message-text">
+                          <%- message.content.replace(/\n/g, '<br>') %>
+                        </div>
+                      <% } %>
+                      
+                      <div class="b2b-message-footer">
+                        <div class="b2b-message-time">
+                          <i class="fas fa-clock"></i>
+                          <span>
+                            <%= new Date(message.createdAt).toLocaleString('en-US', { 
+                              hour: '2-digit', 
+                              minute: '2-digit',
+                              day: '2-digit',
+                              month: '2-digit'
+                            }) %>
+                          </span>
+                        </div>
+                        <% if (isOwnMessage) { %>
+                          <div class="b2b-message-status">
+                            <% if (message.status === 'read') { %>
+                              <i class="fas fa-check-double status-read" title="O'qildi"></i>
+                            <% } else if (message.status === 'delivered') { %>
+                              <i class="fas fa-check-double status-delivered" title="Yetkazildi"></i>
+                            <% } else { %>
+                              <i class="fas fa-check status-sent" title="Yuborildi"></i>
+                            <% } %>
+                          </div>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <% if (isOwnMessage) { %>
+                    <div class="b2b-message-avatar">
+                      <img src="/assets/images/avatars/manufacturer-avatar.png" 
+                           alt="<%= currentUser.company %>"
+                           onerror="this.src='/assets/images/avatars/default.png'">
+                    </div>
+                  <% } %>
+                </div>
+              <% }); %>
+            </div>
+          <% } %>
+        </div>
+
+        <!-- Telegram-Style Message Input Area -->
+        <div class="b2b-message-input-area">
+          <div class="b2b-input-container">
+            <!-- Telegram-Style Message Form -->
+            <form class="b2b-message-input-form" id="messageForm" onsubmit="sendProfessionalMessage(event)">
+              
+           
+
+              <div class="b2b-input-wrapper">
+                <textarea id="messageInput" 
+                          class="b2b-message-input"
+                          placeholder="Xabar yozing..."
+                          rows="1"
+                          maxlength="10000"
+                          onkeydown="handleProfessionalKeyPress(event)"
+                          oninput="handleProfessionalInputChange()"></textarea>
+                
+                          <div class="d-flex gap-4">
+                            <div class="telegram-attachment-wrapper">
+                             <button type="button" class="telegram-attachment-btn" id="attachmentBtn" title="Attach">
+                               <i class="fas fa-paperclip"></i>
+                             </button>
+                             
+                             <!-- Telegram-Style Dropdown Menu -->
+                             <div class="telegram-attachment-menu" id="attachmentMenu">
+                               <button type="button" class="telegram-menu-item" onclick="attachFile()">
+                                 <i class="fas fa-file-alt"></i>
+                                 <span>Fayl</span>
+                               </button>
+                               <button type="button" class="telegram-menu-item" onclick="attachImage()">
+                                 <i class="fas fa-image"></i>
+                                 <span>Rasm</span>
+                               </button>
+                               <button type="button" class="telegram-menu-item" onclick="insertEmoji()">
+                                 <i class="fas fa-smile"></i>
+                                <span>Emoji</span>
+                               </button>
+                             </div>
+                           </div>
+                          <div class="b2b-input-footer">
+                            <div class="b2b-char-counter">
+                              <i class="fas fa-keyboard"></i>
+                              <span id="charCount">0</span>/10,000
+                            </div>
+                            <div class="b2b-input-hints">
+                              <span><kbd>Enter</kbd> yuborish</span>
+                              <span><kbd>Shift+Enter</kbd> yangi qator</span>
+                            </div>
+                          </div>
+
+                          </div>
+                          <!-- Telegram-Style Attachment Button -->
+              </div>
+
+              
+              <button type="submit" class="b2b-send-button" id="sendButton" disabled>
+                <i class="fas fa-paper-plane"></i>
+              </button>
+              
+              <!-- Hidden file inputs -->
+              <input type="file" id="fileInput" style="display: none;" accept="*/*" onchange="handleFileSelect(event)">
+              <input type="file" id="imageInput" style="display: none;" accept="image/*" onchange="handleImageSelect(event)">
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Professional Order Information Sidebar -->
+      <div class="b2b-order-sidebar">
+        <div class="b2b-sidebar-header">
+          <h3>
+            <i class="fas fa-shopping-cart"></i>
+            <span>Buyurtma ma'lumotlari</span>
+          </h3>
+          <button class="b2b-sidebar-toggle" id="chatSidebarToggle" title="Yon panelni yopish/ochish">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        
+        <div class="b2b-sidebar-content">
+          <!-- Order Overview Section -->
+          <div class="b2b-info-section">
+            <div class="b2b-section-header">
+              <h4><i class="fas fa-info-circle"></i> Buyurtma tahlili</h4>
+            </div>
+            <div class="b2b-info-card">
+              <div class="b2b-info-grid">
+                <div class="b2b-info-item">
+                  <label>Buyurtma raqami</label>
+                  <span class="b2b-info-value">#<%= order.orderNumber %></span>
+                </div>
+                <div class="b2b-info-item">
+                  <label>Buyurtma sanasi</label>
+                  <span class="b2b-info-value">
+                    <%= new Date(order.createdAt).toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: '2-digit', 
+                      year: 'numeric' 
+                    }) %>
+                  </span>
+                </div>
+                <div class="b2b-info-item">
+                  <label>Umumiy summa</label>
+                  <span class="b2b-info-value b2b-price">$<%= (order.totalAmount || 0).toLocaleString() %></span>
+                </div>
+                <div class="b2b-info-item">
+                  <label>Holat</label>
+                  <span class="b2b-status-indicator <%= order.status %>">
+                    <%= order.status === 'pending' ? 'Kutilmoqda' :
+                        order.status === 'confirmed' ? 'Tasdiqlandi' :
+                        order.status === 'in_production' ? 'Ishlab chiqarilmoqda' :
+                        order.status === 'shipped' ? 'Yuborildi' :
+                        order.status === 'delivered' ? 'Yetkazildi' :
+                        order.status === 'completed' ? 'Tugallandi' : 
+                        order.status === 'cancelled' ? 'Bekor qilindi' : 'Qayta ishlanmoqda'
+                    %>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Business Partner Section -->
+          <div class="b2b-info-section">
+            <div class="b2b-section-header">
+              <h4><i class="fas fa-building"></i> Biznes hamkor</h4>
+            </div>
+            <div class="b2b-partner-card">
+              <div class="b2b-partner-header">
+                <div class="b2b-partner-avatar-sm">
+                  <img src="/assets/images/avatars/default-company.png" 
+                       alt="<%= partner?.companyName %>"
+                       onerror="this.src='/assets/images/avatars/default.png'">
+                  <div class="b2b-online-indicator"></div>
+                </div>
+                <div class="b2b-partner-info">
+                  <h5><%= partner?.companyName || 'Biznes hamkor' %></h5>
+                  <p><%= partner?.email || 'Email mavjud emas' %></p>
+                </div>
+              </div>
+              <% if (partner?.phone) { %>
+                <div class="b2b-partner-contact">
+                  <i class="fas fa-phone"></i>
+                  <span><%= partner.phone %></span>
+                </div>
+              <% } %>
+              <div class="b2b-partner-actions">
+                <button class="b2b-partner-action" onclick="initiateCall()">
+                  <i class="fas fa-phone"></i>
+                  <span>Qo'ng'iroq</span>
+                </button>
+                <button class="b2b-partner-action" onclick="sendEmail()">
+                  <i class="fas fa-envelope"></i>
+                  <span>Elektron pochta</span>
+                </button>
+                <button class="b2b-partner-action" onclick="viewProfile()">
+                  <i class="fas fa-user"></i>
+                  <span>Profil</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Products Section -->
+          <div class="b2b-info-section">
+            <div class="b2b-section-header">
+              <h4>
+                <i class="fas fa-box"></i> 
+                Mahsulotlar (<%= (order.items || []).length %>)
+              </h4>
+              <button class="b2b-section-toggle" onclick="toggleSection('products')">
+                <i class="fas fa-chevron-down"></i>
+              </button>
+            </div>
+            <div class="b2b-products-list" id="productsSection">
+              <% if (order.items && order.items.length > 0) { %>
+                <% order.items.forEach(function(item, index) { %>
+                  <div class="b2b-product-card">
+                    <div class="b2b-product-image">
+                      <% if (item.product?.images && item.product.images.length > 0) { %>
+                        <img src="<%= item.product.images[0].url %>" 
+                             alt="<%= item.product.name || item.product.title %>"
+                             loading="lazy"
+                             onerror="this.src='/assets/images/no-product.png'">
+                      <% } else { %>
+                        <div class="b2b-no-image">
+                          <i class="fas fa-image"></i>
+                        </div>
+                      <% } %>
+                    </div>
+                    <div class="b2b-product-details">
+                      <h6><%= item.product?.name || item.product?.title || 'Product' %></h6>
+                      <div class="b2b-product-specs">
+                        <div class="b2b-spec-item">
+                          <label>Soni:</label>
+                          <span><%= item.quantity %> birlik</span>
+                        </div>
+                        <div class="b2b-spec-item">
+                          <label>Birlik narx:</label>
+                          <span class="b2b-price">$<%= (item.unitPrice || 0).toLocaleString() %></span>
+                        </div>
+                        <div class="b2b-spec-item">
+                            <label>Umumiy:</label>
+                          <span class="b2b-price b2b-total">$<%= ((item.unitPrice || 0) * item.quantity).toLocaleString() %></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <div class="b2b-empty-products">
+                  <i class="fas fa-box-open"></i>
+                  <p>Mahsulotlar ma'lumotlari mavjud emas</p>
+                </div>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Quick Actions Section -->
+          <div class="b2b-info-section">
+            <div class="b2b-section-header">
+              <h4><i class="fas fa-bolt"></i> Tezkor amallar</h4>
+            </div>
+            <div class="b2b-quick-actions">
+              <button class="b2b-quick-action primary" onclick="viewOrderDetails()">
+                <i class="fas fa-external-link-alt"></i>
+                <span>To'liq buyurtma</span>
+              </button>
+              <button class="b2b-quick-action" onclick="updateOrderStatus()">
+                <i class="fas fa-edit"></i>
+                <span>Holatni yangilash</span>
+              </button>
+              <button class="b2b-quick-action" onclick="generateQuote()">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Taklif yaratish</span>
+              </button>
+              <button class="b2b-quick-action" onclick="scheduleVideoCall()">
+                <i class="fas fa-video"></i>
+                <span>Qo'ng'iroq belgilash</span>
+              </button>
+              <button class="b2b-quick-action" onclick="sendSample()">
+                <i class="fas fa-shipping-fast"></i>
+                <span>Namuna yuborish</span>
+              </button>
+              <button class="b2b-quick-action" onclick="requestPayment()">
+                <i class="fas fa-credit-card"></i>
+                <span>To'lov so'rash</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Muloqot tarixi bo'limi -->
+          <div class="b2b-info-section">
+            <div class="b2b-section-header">
+              <h4><i class="fas fa-history"></i> Muloqot tarixi</h4>
+              <button class="b2b-section-toggle" onclick="toggleSection('history')">
+                <i class="fas fa-chevron-down"></i>
+              </button>
+            </div>
+            <div class="b2b-comm-history" id="historySection">
+              <div class="b2b-comm-stats">
+                <div class="b2b-stat">
+                  <label>Xabarlar:</label>
+                  <span><%= messages.length %></span>
+                </div>
+                <div class="b2b-stat">
+                  <label>Oxirgi faoliyat:</label>
+                  <span>
+                    <% if (messages.length > 0) { %>
+                      <%= new Date(messages[messages.length - 1].createdAt).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: '2-digit' 
+                      }) %>
+                    <% } else { %>
+                      Faoliyat mavjud emas
+                    <% } %>
+                  </span>
+                </div>
+              </div>
+              <button class="b2b-export-btn" onclick="exportChatHistory()">
+                <i class="fas fa-download"></i>
+                <span>Xabarlar eksport qilish</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>  
+
+
+<!-- Dashboard Initialization - Theme & Core Functions -->
+<script src="/js/manufacturer/dashboard-init.js"></script>
+
+<!-- Chat Page Data Configuration -->
+<script>
+// 🌐 GLOBAL CHAT CONFIGURATION - EJS TO JS DATA TRANSFER
+/* eslint-disable */
+window.B2BChat = window.B2BChat || {};
+window.B2BChat.orderData = {
+    id: '<%= order._id %>',
+    orderNumber: '<%= order.orderNumber || "N/A" %>',
+    status: '<%= order.status %>',
+    totalAmount: parseFloat('<%= order.totalAmount || 0 %>'),
+    createdAt: '<%= order.createdAt %>',
+    items: '<%- JSON.stringify(order.items || []) %>'
+};
+
+
+window.B2BChat.currentUser = {
+    id: '<%= currentUser.id %>',
+    company: '<%= currentUser.company || currentUser.companyName %>',
+    companyType: '<%= currentUser.companyType %>'
+};
+
+window.B2BChat.partner = {
+    id: '<%= partner?._id || "unknown" %>',
+    companyName: '<%= partner?.companyName || "Hamkor kompaniya" %>',
+    email: '<%= partner?.email || "" %>',
+    phone: '<%= partner?.phone || "" %>'
+};
+
+// Initialize chat state
+window.B2BChat.isTyping = false;
+window.B2BChat.sidebarCollapsed = false;
+window.B2BChat.lastActivity = Date.now();
+window.B2BChat.pagination = null;
+/* eslint-enable */
+</script>
+
+  <script src="/js/manufacturer/messages-chat.js"></script>
+</body>
+</html>

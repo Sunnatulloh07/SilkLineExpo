@@ -1464,7 +1464,7 @@ function initializeThemeToggle() {
     if (!themeToggle) return;
     
     // Get current theme
-    const currentTheme = localStorage.getItem('theme') || 'light';
+    const currentTheme = localStorage.getItem('dashboard-theme') || 'light';
     document.documentElement.setAttribute('data-theme', currentTheme);
     updateThemeIcon(currentTheme);
     
@@ -1475,7 +1475,7 @@ function initializeThemeToggle() {
         
         // Update theme
         document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
+        localStorage.setItem('dashboard-theme', newTheme);
         updateThemeIcon(newTheme);
         
         // Dispatch theme change event

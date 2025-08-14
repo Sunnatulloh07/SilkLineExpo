@@ -6,11 +6,11 @@
 /* ===== ORDER COMMENTS SECTION ===== */
 .order-comments-section {
     margin-top: 2rem;
-    background: var(--order-bg-elevated);
-    border: 1px solid var(--order-border);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: var(--order-shadow-md);
+    box-shadow: var(--shadow-md);
 }
 
 .order-comments-section .section-header {
@@ -18,12 +18,12 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem;
-    background: var(--order-bg-secondary);
-    border-bottom: 1px solid var(--order-border);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .order-comments-section .section-title {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-size: 1.125rem;
     font-weight: 600;
     display: flex;
@@ -33,11 +33,11 @@
 }
 
 .order-comments-section .section-title i {
-    color: var(--order-primary);
+    color: var(--color-primary);
 }
 
 .comments-count {
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-weight: 400;
 }
 
@@ -46,24 +46,24 @@
     display: flex;
     gap: 1rem;
     padding: 1rem 1.5rem;
-    background: var(--order-bg-primary);
-    border-bottom: 1px solid var(--order-border-light);
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-light);
 }
 
 .filter-select {
     flex: 1;
     padding: 0.5rem 0.75rem;
-    border: 1px solid var(--order-border);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
-    background: var(--order-bg-primary);
-    color: var(--order-text-primary);
+    background: var(--bg-primary);
+    color: var(--text-primary);
     font-size: 0.875rem;
     transition: border-color 0.2s ease;
 }
 
 .filter-select:focus {
     outline: none;
-    border-color: var(--order-primary);
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -74,16 +74,12 @@
 
 .comment-item {
     padding: 1.5rem;
-    border-bottom: 1px solid var(--order-border-light);
+    border-bottom: 1px solid var(--border-light);
     transition: background-color 0.2s ease;
 }
 
 .comment-item:last-child {
     border-bottom: none;
-}
-
-.comment-item:hover {
-    background: var(--order-bg-secondary);
 }
 
 /* ===== COMMENT HEADER ===== */
@@ -105,7 +101,7 @@
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--order-border);
+    border: 2px solid var(--border-color);
 }
 
 .author-info {
@@ -116,13 +112,13 @@
 
 .author-name {
     font-weight: 600;
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-size: 0.875rem;
 }
 
 .comment-time {
     font-size: 0.75rem;
-    color: var(--order-text-muted);
+    color: var(--text-muted);
 }
 
 .comment-badges {
@@ -183,10 +179,6 @@
     text-transform: uppercase;
 }
 
-.comment-priority-badge.priority-low {
-    background: #f3f4f6;
-    color: #6b7280;
-}
 
 .comment-priority-badge.priority-normal {
     background: #dbeafe;
@@ -204,7 +196,7 @@
 }
 
 .comment-visibility-icon {
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-size: 0.875rem;
 }
 
@@ -214,7 +206,7 @@
 }
 
 .comment-content p {
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     line-height: 1.6;
     margin: 0;
 }
@@ -224,12 +216,12 @@
     margin-left: 2rem;
     margin-top: 1rem;
     padding-left: 1rem;
-    border-left: 2px solid var(--order-border);
+    border-left: 2px solid var(--border-color);
 }
 
 .comment-reply {
     padding: 0.75rem;
-    background: var(--order-bg-secondary);
+    background: var(--bg-secondary);
     border-radius: 6px;
     margin-bottom: 0.5rem;
 }
@@ -247,12 +239,12 @@
 
 .reply-time {
     font-size: 0.75rem;
-    color: var(--order-text-muted);
+    color: var(--text-muted);
 }
 
 .reply-content p {
     font-size: 0.875rem;
-    color: var(--order-text-secondary);
+    color: var(--text-secondary);
     margin: 0;
 }
 
@@ -265,7 +257,7 @@
 .comment-action-btn {
     background: none;
     border: none;
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
@@ -277,8 +269,8 @@
 }
 
 .comment-action-btn:hover {
-    background: var(--order-bg-secondary);
-    color: var(--order-text-primary);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .comment-action-btn.text-danger {
@@ -299,14 +291,14 @@
     justify-content: center;
     padding: 3rem 1.5rem;
     text-align: center;
-    color: var(--order-text-muted);
+    color: var(--text-muted);
 }
 
 .loading-state i,
 .empty-state i {
     font-size: 2.5rem;
     margin-bottom: 1rem;
-    color: var(--order-text-muted);
+    color: var(--text-muted);
 }
 
 .loading-state i {
@@ -322,8 +314,8 @@
 .comments-pagination {
     padding: 1rem 1.5rem;
     text-align: center;
-    background: var(--order-bg-secondary);
-    border-top: 1px solid var(--order-border-light);
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-light);
 }
 
 /* ===== ENHANCED MODAL STYLES ===== */
@@ -339,7 +331,7 @@
 #addNoteModal .form-label {
     display: block;
     margin-bottom: 0.5rem;
-    color: var(--order-text-primary);
+    color: var(--text-primary);
     font-weight: 500;
     font-size: 0.875rem;
 }
@@ -348,10 +340,10 @@
 #addNoteModal .form-textarea {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid var(--order-border);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
-    background: var(--order-bg-primary);
-    color: var(--order-text-primary);
+    background: var(--bg-primary);
+    color: var(--text-primary);
     font-size: 0.875rem;
     transition: border-color 0.2s ease;
 }
@@ -359,7 +351,7 @@
 #addNoteModal .form-select:focus,
 #addNoteModal .form-textarea:focus {
     outline: none;
-    border-color: var(--order-primary);
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -372,7 +364,7 @@
 #addNoteModal .form-help {
     display: block;
     margin-top: 0.25rem;
-    color: var(--order-text-muted);
+    color: var(--text-muted);
     font-size: 0.75rem;
 }
 
@@ -385,13 +377,13 @@
 #addNoteModal .form-check-input {
     width: 16px;
     height: 16px;
-    border: 1px solid var(--order-border);
+    border: 1px solid var(--border-color);
     border-radius: 3px;
-    background: var(--order-bg-primary);
+    background: var(--bg-primary);
 }
 
 #addNoteModal .form-check-label {
-    color: var(--order-text-secondary);
+    color: var(--text-secondary);
     font-size: 0.875rem;
     cursor: pointer;
 }
@@ -512,4 +504,72 @@
 [data-theme="dark"] .comment-action-btn.text-danger:hover {
     background: #450a0a;
     color: #fca5a5;
+}
+
+/* ===== PROFESSIONAL DELETE CONFIRMATION MODAL ===== */
+.products-btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.products-btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+.products-btn-danger:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+}
+
+.products-btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.products-btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
+/* Enhanced modal for better UX */
+.modal-overlay {
+    backdrop-filter: blur(2px);
+}
+
+.modal-overlay .modal-content {
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Professional delete confirmation styling */
+#deleteConfirmModal .modal-title i {
+    color: #dc3545;
+    margin-right: 0.5rem;
+}
+
+#deleteConfirmModal .modal-body p {
+    margin: 0 0 0.5rem 0;
+    line-height: 1.5;
+}
+
+#deleteConfirmModal .modal-body small {
+    color: #6c757d;
+    font-style: italic;
 }

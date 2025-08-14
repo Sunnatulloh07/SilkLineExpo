@@ -1,40 +1,156 @@
 {
-  "companies": [
+  "countries": [
     {
       "id": 1,
-      "name": "Almas",
-      "logo": "/img/company-logo/Almas-K.jpg",
-      "description": "High-quality crystal and glass products manufacturer"
-    },
-    {
-      "id": 2,
-      "name": "Artel",
-      "logo": "/img/company-logo/Artel.png",
-      "description": "Leading electronics and home appliances manufacturer"
-    },
-    {
-      "id": 3,
-      "name": "Belfood",
-      "logo": "/img/company-logo/Belfood.jpg",
-      "description": "Premium food and beverage production company"
-    },
-    {
-      "id": 4,
-      "name": "Aqua",
-      "logo": "/img/company-logo/aqua.png",
-      "description": "Natural mineral water and beverages"
-    },
-    {
-      "id": 5,
-      "name": "Raxat",
-      "logo": "/img/company-logo/raxat.png",
-      "description": "Confectionery and sweets manufacturer"
-    },
-    {
-      "id": 6,
-      "name": "Sany",
-      "logo": "/img/company-logo/sany.png",
-      "description": "Construction equipment and machinery"
+      "name": "Uzbekistan",
+      "companies": [
+        {
+          "id": 1,
+          "name": "Almas",
+          "logo": "/img/company-logo/Almas-K.jpg",
+          "description": "High-quality crystal and glass products manufacturer",
+          "products": [
+            {
+              "id": 1,
+              "title": "Crystal Glasses Set",
+              "image": "/img/product-logo/almas1.jpg",
+              "price": 25,
+              "type": "Home & Garden"
+            },
+            {
+              "id": 2,
+              "title": "Glass Dinner Set",
+              "image": "/img/product-logo/almas2.jpg",
+              "price": 45,
+              "type": "Home & Garden"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Artel",
+          "logo": "/img/company-logo/Artel.png",
+          "description": "Leading electronics and home appliances manufacturer",
+          "products": [
+            {
+              "id": 3,
+              "title": "Smart TV 55 inch",
+              "image": "/img/product-logo/artel-tv.png",
+              "price": 599,
+              "type": "Electronics"
+            },
+            {
+              "id": 4,
+              "title": "Washing Machine",
+              "image": "/img/product-logo/artel-wash.png",
+              "price": 399,
+              "type": "Electronics"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "name": "Belfood",
+          "logo": "/img/company-logo/Belfood.jpg",
+          "description": "Premium food and beverage production company",
+          "products": [
+            {
+              "id": 5,
+              "title": "Organic Fruit Juice",
+              "image": "/img/product-logo/belfood-juice.jpg",
+              "price": 3,
+              "type": "Food & Beverage"
+            },
+            {
+              "id": 6,
+              "title": "Natural Honey",
+              "image": "/img/product-logo/belfood-honey.jpg",
+              "price": 8,
+              "type": "Food & Beverage"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "name": "Aqua",
+          "logo": "/img/company-logo/aqua.png",
+          "description": "Natural mineral water and beverages",
+          "products": [
+            {
+              "id": 7,
+              "title": "Mineral Water 1.5L",
+              "image": "/img/product-logo/aqua-water.png",
+              "price": 1,
+              "type": "Beverages"
+            },
+            {
+              "id": 8,
+              "title": "Sparkling Water 0.5L",
+              "image": "/img/product-logo/aqua-sparkling.png",
+              "price": 1.5,
+              "type": "Beverages"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "name": "Raxat",
+          "logo": "/img/company-logo/raxat.png",
+          "description": "Confectionery and sweets manufacturer",
+          "products": [
+            {
+              "id": 9,
+              "title": "Candy Almatiniskiy suviner",
+              "image": "/img/product-logo/raxat-candies.jpg",
+              "price": 7,
+              "type": "Food & Beverage"
+            },
+            {
+              "id": 10,
+              "title": "Set of chocolates raxat",
+              "image": "/img/product-logo/raxat-choco.jpg",
+              "price": 8,
+              "type": "Food & Beverage"
+            },
+            {
+              "id": 11,
+              "title": "Raxat desertnye",
+              "image": "/img/product-logo/raxat-des.jpg",
+              "price": 3,
+              "type": "Food & Beverage"
+            },
+            {
+              "id": 12,
+              "title": "Zephir glazirovanniy",
+              "image": "/img/product-logo/raxat-zef.jpg",
+              "price": 6,
+              "type": "Food & Beverage"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "name": "Sany",
+          "logo": "/img/company-logo/sany.png",
+          "description": "Construction equipment and machinery",
+          "products": [
+            {
+              "id": 13,
+              "title": "Excavator SY215C",
+              "image": "/img/product-logo/sany-excavator.png",
+              "price": 85000,
+              "type": "Construction"
+            },
+            {
+              "id": 14,
+              "title": "Concrete Mixer",
+              "image": "/img/product-logo/sany-mixer.png",
+              "price": 25000,
+              "type": "Construction"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

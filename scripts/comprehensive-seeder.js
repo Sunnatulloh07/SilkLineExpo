@@ -712,10 +712,41 @@ class ComprehensiveSeeder {
 
       for (let i = 0; i < productCount; i++) {
         const template = productTemplates[i % productTemplates.length];
+        // Determine product state randomly
+        const rand = Math.random();
+        let productState;
+        
+        if (rand < 0.6) {
+          // 60% - Published to marketplace
+          productState = {
+            status: 'active',
+            visibility: 'public',
+            publishedAt: new Date(Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000)), // Random date within last 30 days
+            unpublishedAt: null
+          };
+        } else if (rand < 0.8) {
+          // 20% - Draft
+          productState = {
+            status: 'draft',
+            visibility: 'private',
+            publishedAt: null,
+            unpublishedAt: null
+          };
+        } else {
+          // 20% - Unpublished from marketplace
+          productState = {
+            status: 'active',
+            visibility: 'private',
+            publishedAt: new Date(Date.now() - Math.floor(Math.random() * 60 * 24 * 60 * 60 * 1000)), // Was published
+            unpublishedAt: new Date(Date.now() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000))  // Unpublished in last 7 days
+          };
+        }
+
         const productData = {
           ...template,
           name: `${template.name} - ${manufacturer.companyName}`,
           manufacturer: manufacturer._id,
+          ...productState,
           // Randomize some values
           pricing: {
             ...template.pricing,
@@ -734,6 +765,11 @@ class ComprehensiveSeeder {
 
         const product = await Product.create(productData);
         this.products.push(product);
+        
+        // Log product state for debugging
+        const stateLabel = productState.status === 'draft' ? 'DRAFT' : 
+                          (productState.visibility === 'public' ? 'MARKETPLACE' : 'UNPUBLISHED');
+        console.log(`   📦 ${product.name.substring(0, 30)}... [${stateLabel}]`);
 
         // Update manufacturer's product count
         manufacturer.totalProducts += 1;

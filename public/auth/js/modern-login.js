@@ -297,7 +297,7 @@ Senior Software Engineer Clean Code Implementation
         }
 
         initializeTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedTheme = localStorage.getItem('dashboard-theme') || 'light';
             const html = document.documentElement;
             const themeIcon = document.querySelector('#themeToggle i');
             
@@ -315,7 +315,7 @@ Senior Software Engineer Clean Code Implementation
             const themeIcon = document.querySelector('#themeToggle i');
             
             html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
+            localStorage.setItem('dashboard-theme', newTheme);
             
             if (themeIcon) {
                 themeIcon.className = newTheme === 'dark' ? 'las la-sun' : 'las la-moon';

@@ -1,212 +1,182 @@
 /**
- * Message Model - Professional Admin Messaging System
- * Senior Software Engineer Level Implementation
+ * Message Model - Professional B2B Communication
+ * Senior Software Engineer Implementation
+ * SLEX Platform - Real-time messaging system
  */
 
 const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema({
-  // Sender Information
-  senderId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    refPath: 'senderType'
-  },
-  senderType: {
-    type: String,
-    required: true,
-    enum: ['user', 'admin', 'system']
-  },
-  
-  // Recipient Information
-  recipientId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    refPath: 'recipientType'
-  },
-  recipientType: {
-    type: String,
-    required: true,
-    enum: ['user', 'admin', 'system']
-  },
-  
-  // Message Content
-  subject: {
-    type: String,
-    required: true,
-    maxLength: 200,
-    trim: true
-  },
-  content: {
-    type: String,
-    required: true,
-    maxLength: 5000,
-    trim: true
-  },
-  
-  // Message Type
-  type: {
-    type: String,
-    enum: [
-      'support_request',
-      'inquiry',
-      'complaint',
-      'general',
-      'system_notification',
-      'admin_reply'
-    ],
-    default: 'general'
-  },
-  
-  // Priority Level
-  priority: {
-    type: String,
-    enum: ['low', 'normal', 'high', 'urgent'],
-    default: 'normal'
-  },
-  
-  // Status
-  status: {
-    type: String,
-    enum: ['unread', 'read', 'replied', 'resolved', 'archived'],
-    default: 'unread'
-  },
-  
-  // Read Status
-  readAt: {
-    type: Date,
-    default: null
-  },
-  isRead: {
-    type: Boolean,
-    default: false
-  },
-  
-  // Reply Information
-  repliedAt: {
-    type: Date,
-    default: null
-  },
-  replyMessageId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Message',
-    default: null
-  },
-  parentMessageId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Message',
-    default: null
-  },
-  
-  // Attachments (for future use)
-  attachments: [{
-    filename: String,
-    originalName: String,
-    mimeType: String,
-    size: Number,
-    url: String
-  }],
-  
-  // Metadata
-  metadata: {
-    userAgent: String,
-    ipAddress: String,
-    source: {
-      type: String,
-      enum: ['web', 'mobile', 'api'],
-      default: 'web'
+    // Order context
+    orderId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order',
+        required: true,
+        index: true
+    },
+    
+    // Participants
+    senderId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+        index: true
+    },
+    
+    recipientId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+        index: true
+    },
+    
+    // Message content
+    content: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 2000
+    },
+    
+    // Message type
+    type: {
+        type: String,
+        enum: ['text', 'image', 'file', 'system', 'order_update'],
+        default: 'text'
+    },
+    
+    // Attachments
+    attachments: [{
+        filename: String,
+        originalName: String,
+        mimetype: String,
+        size: Number,
+        url: String,
+        uploadedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
+    
+    // Message status
+    status: {
+        type: String,
+        enum: ['sent', 'delivered', 'read'],
+        default: 'sent',
+        index: true
+    },
+    
+    // Read timestamp
+    readAt: {
+        type: Date,
+        default: null
+    },
+    
+    // Metadata for system messages
+    metadata: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
+    },
+    
+    // Timestamps
+    createdAt: {
+        type: Date,
+        default: Date.now,
+        index: true
+    },
+    
+    updatedAt: {
+        type: Date,
+        default: Date.now
     }
-  },
-  
-  // Timestamps
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
+}, {
+    timestamps: true
 });
 
-// Compound indexes for performance
-messageSchema.index({ recipientId: 1, recipientType: 1, createdAt: -1 });
-messageSchema.index({ senderId: 1, senderType: 1, createdAt: -1 });
-messageSchema.index({ status: 1, createdAt: -1 });
-messageSchema.index({ readAt: 1, isRead: 1 });
-messageSchema.index({ type: 1, priority: 1 });
+// Indexes for performance
+messageSchema.index({ orderId: 1, createdAt: -1 });
+messageSchema.index({ senderId: 1, recipientId: 1 });
+messageSchema.index({ recipientId: 1, status: 1 });
+messageSchema.index({ orderId: 1, type: 1 });
 
-// Update timestamps on save
+// Virtual for formatted creation time
+messageSchema.virtual('formattedTime').get(function() {
+    return this.createdAt.toLocaleString('uz-UZ', {
+        hour: '2-digit',
+        minute: '2-digit',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+});
+
+// Static method to create system message
+messageSchema.statics.createSystemMessage = async function(data) {
+    const {
+        orderId, recipientId, content, metadata = {}
+    } = data;
+    
+    const message = new this({
+        orderId,
+        senderId: null, // System message
+        recipientId,
+        content,
+        type: 'system',
+        metadata,
+        status: 'delivered'
+    });
+    
+    return await message.save();
+};
+
+// Static method to get conversation messages
+messageSchema.statics.getConversation = async function(orderId, limit = 50, skip = 0) {
+    return await this.find({ orderId })
+        .populate('senderId', 'name companyName')
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .skip(skip)
+        .lean();
+};
+
+// Static method to mark messages as read
+messageSchema.statics.markAsRead = async function(orderId, recipientId) {
+    return await this.updateMany({
+        orderId,
+        recipientId,
+        status: { $in: ['sent', 'delivered'] }
+    }, {
+        status: 'read',
+        readAt: new Date()
+    });
+};
+
+// Pre-save middleware
 messageSchema.pre('save', function(next) {
-  this.updatedAt = new Date();
-  
-  // Set isRead based on readAt
-  if (this.readAt && !this.isRead) {
-    this.isRead = true;
-  }
-  
-  // Update status when read
-  if (this.readAt && this.status === 'unread') {
-    this.status = 'read';
-  }
-  
-  next();
+    this.updatedAt = new Date();
+    next();
 });
 
-// Instance methods
-messageSchema.methods.markAsRead = function() {
-  this.readAt = new Date();
-  this.isRead = true;
-  this.status = 'read';
-  return this.save();
-};
-
-messageSchema.methods.markAsReplied = function(replyMessageId) {
-  this.repliedAt = new Date();
-  this.replyMessageId = replyMessageId;
-  this.status = 'replied';
-  return this.save();
-};
-
-// Static methods
-messageSchema.statics.getUnreadCount = function(recipientId, recipientType) {
-  return this.countDocuments({
-    recipientId,
-    recipientType,
-    isRead: false
-  });
-};
-
-messageSchema.statics.getMessageThread = function(messageId) {
-  return this.find({
-    $or: [
-      { _id: messageId },
-      { parentMessageId: messageId },
-      { replyMessageId: messageId }
-    ]
-  }).sort({ createdAt: 1 }).populate('senderId recipientId');
-};
-
-// Virtual for formatted creation date
-messageSchema.virtual('formattedDate').get(function() {
-  return this.createdAt.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-});
-
-// Transform JSON output
-messageSchema.set('toJSON', {
-  virtuals: true,
-  transform: function(doc, ret) {
-    delete ret.__v;
-    return ret;
-  }
+// Create notification for new message
+messageSchema.post('save', async function(doc) {
+    try {
+        // TODO: Implement real-time notification
+        console.log('📬 New message saved:', {
+            orderId: doc.orderId,
+            from: doc.senderId,
+            to: doc.recipientId,
+            type: doc.type
+        });
+        
+        // TODO: Send WebSocket notification
+        // TODO: Send email notification for offline users
+        // TODO: Update conversation last activity
+        
+    } catch (error) {
+        console.error('❌ Error in message post-save hook:', error);
+    }
 });
 
 const Message = mongoose.model('Message', messageSchema);
 
-module.exports = Message; 
+module.exports = Message;

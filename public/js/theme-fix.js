@@ -11,14 +11,14 @@ class ThemeFix {
   init() {
     
     // Get current theme from localStorage
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = localStorage.getItem('dashboard-theme');
     
     // Set appropriate theme
     this.setTheme(savedTheme);
     
     // Listen for theme changes from other tabs
     window.addEventListener('storage', (e) => {
-      if (e.key === 'theme') {
+      if (e.key === 'dashboard-theme') {
         this.setTheme(e.newValue);
       }
     });
@@ -101,11 +101,11 @@ class ThemeFix {
     
     if (themeToggle) {
       themeToggle.addEventListener('click', () => {
-        const currentTheme = localStorage.getItem('theme') || 'light';
+        const currentTheme = localStorage.getItem('dashboard-theme') || 'light';
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
         
         
-        localStorage.setItem('theme', newTheme);
+        localStorage.setItem('dashboard-theme', newTheme);
         this.setTheme(newTheme);
       });
     }

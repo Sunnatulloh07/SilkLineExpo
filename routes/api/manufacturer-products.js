@@ -25,8 +25,6 @@ router.get('/stats',
         try {
             const manufacturerId = req.user?._id || req.user?.userId;
             
-            console.log(`📊 Getting products stats for manufacturer: ${manufacturerId}`);
-            
             if (!manufacturerId) {
                 return res.status(401).json({
                     success: false,
@@ -84,12 +82,9 @@ router.get('/stats',
             // Remove _id from result
             delete result._id;
             
-            console.log(`✅ Products stats calculated for manufacturer ${manufacturerId}:`, result);
-            
-            res.json({
+             res.json({
                 success: true,
                 data: result,
-                // Backward compatibility - flatten data to root level
                 totalProducts: result.totalProducts,
                 activeProducts: result.activeProducts,
                 draftProducts: result.draftProducts,
