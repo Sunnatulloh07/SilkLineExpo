@@ -57,7 +57,7 @@
             </div>
 
         <!-- Horizontal Filter Form -->
-        <form class="filter-form pb-4">
+        <form class="filter-form pb-4" method="GET" action="/all-product">
               <div class="row gy-3">
                 <div class="col-sm-4 col-xs-6">
                   <div class="flx-between gap-1">
@@ -66,7 +66,7 @@
                   </div>
                   <div class="position-relative">
                 <input type="text" class="common-input border-gray-five common-input--withLeftIcon" 
-                  id="tag" placeholder="Search products...">
+                  id="tag" name="search" value="<%= currentFilters?.search || '' %>" placeholder="Search products...">
                 <span class="input-icon input-icon--left">
                   <img src="/assets/images/icons/search-two.svg" alt="">
                 </span>
@@ -77,10 +77,12 @@
                 <label for="priceRange" class="form-label font-16">Price Range</label>
                 <button type="button" class="text-body font-14 clear-price">Clear</button>
               </div>
-              <div class="position-relative">
-                <input type="text" class="common-input border-gray-five" id="priceRange" 
-                  placeholder="Min - Max USD">
-                  </div>
+              <div class="position-relative d-flex gap-2">
+                <input type="number" class="common-input border-gray-five" id="priceMin" name="priceMin"
+                  placeholder="Min" value="<%= currentFilters?.priceMin || '' %>">
+                <input type="number" class="common-input border-gray-five" id="priceMax" name="priceMax"
+                  placeholder="Max" value="<%= currentFilters?.priceMax || '' %>">
+                </div>
                 </div>
             <div class="col-sm-4">
               <div class="flx-between gap-1">
@@ -88,16 +90,26 @@
                 <button type="button" class="text-body font-14 clear-sort">Clear</button>
               </div>
               <div class="position-relative select-has-icon">
-                <select id="sortBy" class="common-input border-gray-five">
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="rating">Best Rating</option>
-                  <option value="popular">Most Popular</option>
+                <select id="sortBy" name="sort" class="common-input border-gray-five">
+                  <option value="newest" <%= currentFilters?.sort === 'newest' ? 'selected' : '' %>>Newest First</option>
+                  <option value="oldest" <%= currentFilters?.sort === 'oldest' ? 'selected' : '' %>>Oldest First</option>
+                  <option value="price-low" <%= currentFilters?.sort === 'price-low' ? 'selected' : '' %>>Price: Low to High</option>
+                  <option value="price-high" <%= currentFilters?.sort === 'price-high' ? 'selected' : '' %>>Price: High to Low</option>
+                  <option value="rating" <%= currentFilters?.sort === 'rating' ? 'selected' : '' %>>Best Rating</option>
+                  <option value="popular" <%= currentFilters?.sort === 'popular' ? 'selected' : '' %>>Most Popular</option>
                     </select>
                   </div>
                 </div>
+              </div>
+              <% if (currentFilters?.category) { %>
+                <input type="hidden" name="category" value="<%= currentFilters.category %>">
+              <% } %>
+              <% if (currentFilters?.manufacturer) { %>
+                <input type="hidden" name="manufacturer" value="<%= currentFilters.manufacturer %>">
+              <% } %>
+              <div class="mt-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Apply</button>
+                <a href="/all-product" class="btn btn-outline-secondary bg-secondary">Reset</a>
               </div>
             </form>
 
@@ -271,8 +283,8 @@
                   const imageUrl = primaryImage?.url || '/images/placeholder-product.png';
                   const imageAlt = primaryImage?.alt || product.name;
                   const formattedPrice = formatPrice(product.pricing?.basePrice, product.pricing?.currency);
-                  const rating = product.averageRating || 0;
-                  const reviewCount = product.reviews?.length || 0;
+                  const rating = product.rating?.average || product.averageRating || 0;
+                  const reviewCount = product.rating?.total || product.totalReviews || 0;
                   const viewsCount = product.analytics?.views || 0;
                   const salesText = viewsCount > 1000 ? Math.floor(viewsCount / 1000) + 'k Views' : viewsCount + ' Views';
                   const manufacturerName = product.manufacturer?.companyName || 'Unknown';
@@ -296,7 +308,7 @@
                         <div class="product-item__info flx-between gap-2">
                           <span class="product-item__author">
                             by 
-                            <a href="#!" class="link hover-text-decoration-underline"><%= manufacturerName %></a>
+                            <a href="#" class="link hover-text-decoration-underline"><%= manufacturerName %></a>
                             <% if (manufacturerCountry) { %>
                               <small class="text-muted">(<%= manufacturerCountry %>)</small>
                             <% } %>
@@ -381,14 +393,105 @@
 </script>
 
 <!-- Include Professional JavaScript -->
-<script src="/assets/js/all-products-professional-original.js"></script>
+<!-- Fallback: load products.js if enterprise file missing -->
+<script>
+  (function() {
+    var s = document.createElement('script');
+    s.src = '/assets/js/all-products-professional-original.js';
+    s.onload = function() { window.__allProductsOriginalLoaded = true; };
+    s.onerror = function() {
+      var f = document.createElement('script');
+      f.src = '/assets/js/products.js';
+      document.head.appendChild(f);
+    };
+    document.head.appendChild(s);
+  })();
+</script>
 
 <!-- Initialize AllProductsOriginalManager -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Create global instance for debugging
+  // If enterprise script loaded, initialize manager
+  if (window.__allProductsOriginalLoaded && typeof AllProductsOriginalManager === 'function') {
     window.allProductsManager = new AllProductsOriginalManager();
-    });
+  } else {
+    // Minimal bootstrap: populate sidebar via API
+    const categoriesEl = document.getElementById('company-categories');
+    const manufacturersEl = document.getElementById('top-manufacturers');
+
+    function renderList(el, items, type) {
+      if (!el) return;
+      el.innerHTML = '';
+      if (!items || items.length === 0) {
+        el.innerHTML = '<li class="filter-sidebar-list__item"><span class="text-muted">No data</span></li>';
+        return;
+      }
+      const params = new URLSearchParams(window.location.search);
+      const activeVal = params.get(type);
+      items.forEach((item) => {
+        const li = document.createElement('li');
+        li.className = 'filter-sidebar-list__item';
+        const value = type === 'category' ? (item.slug || item._id || item.name) : (item._id || item.value || item.name);
+        const count = (item.productCount ?? item.count ?? item.total ?? 0);
+        const isActive = activeVal && String(activeVal) === String(value);
+        li.innerHTML = `<a href="/all-product?${type}=${encodeURIComponent(value)}" class="filter-sidebar-list__text ${isActive ? 'active' : ''}">
+          <span>${item.name || item.companyName}</span>
+          <span class="qty">${count.toLocaleString()}</span>
+        </a>`;
+        el.appendChild(li);
+      });
+    }
+
+    fetch('/api/public/products/categories')
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(resp => renderList(categoriesEl, resp?.data?.categories || [], 'category'))
+      .catch(() => renderList(categoriesEl, [], 'category'));
+
+    fetch('/api/public/products/manufacturers')
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(resp => renderList(manufacturersEl, resp?.data?.manufacturers || [], 'manufacturer'))
+      .catch(() => renderList(manufacturersEl, [], 'manufacturer'));
+
+    // Applied filters renderer
+    const appliedFiltersBox = document.querySelector('.applied-filters');
+    if (appliedFiltersBox) {
+      const params = new URLSearchParams(window.location.search);
+      const tags = [];
+      if (params.get('search')) tags.push({ label: `Search: "${params.get('search')}"`, key: 'search' });
+      if (params.get('category')) tags.push({ label: `Category: ${params.get('category')}`, key: 'category' });
+      if (params.get('manufacturer')) tags.push({ label: 'Manufacturer', key: 'manufacturer' });
+      if (params.get('priceMin') || params.get('priceMax')) tags.push({ label: `Price: $${params.get('priceMin')||0} - $${params.get('priceMax')||'∞'}`, key: 'price' });
+      if (params.get('rating')) tags.push({ label: `${params.get('rating')}+ Stars`, key: 'rating' });
+      if (tags.length > 0) {
+        appliedFiltersBox.classList.add('has-filters');
+        const header = document.createElement('div');
+        header.className = 'applied-filters-header';
+        header.innerHTML = '<h6 class="applied-filters-title">Applied Filters</h6><button class="clear-all-filters" type="button">Clear all</button>';
+        const tagsWrap = document.createElement('div');
+        tagsWrap.className = 'filter-tags';
+        tags.forEach(t => {
+          const tag = document.createElement('span');
+          tag.className = 'filter-tag';
+          tag.innerHTML = `${t.label} <button class="filter-remove" title="Remove">×</button>`;
+          tag.querySelector('.filter-remove').addEventListener('click', () => {
+            const newParams = new URLSearchParams(window.location.search);
+            if (t.key === 'price') { newParams.delete('priceMin'); newParams.delete('priceMax'); }
+            else { newParams.delete(t.key); }
+            window.location.search = newParams.toString();
+          });
+          tagsWrap.appendChild(tag);
+        });
+        appliedFiltersBox.innerHTML = '';
+        appliedFiltersBox.appendChild(header);
+        appliedFiltersBox.appendChild(tagsWrap);
+        appliedFiltersBox.querySelector('.clear-all-filters').addEventListener('click', () => {
+          const baseUrl = window.location.pathname;
+          window.location.href = baseUrl;
+        });
+      }
+    }
+  }
+});
 </script>
 
 <style>
@@ -1303,6 +1406,63 @@ document.addEventListener('DOMContentLoaded', function() {
 [data-theme="light"] .show-more-categories:hover,
 [data-theme="light"] .show-more-manufacturers:hover {
   background: rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Star Rating Styling */
+.star-rating {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.star-rating__item {
+  font-size: 14px;
+  line-height: 1;
+  color: #ffa944;
+}
+
+.star-rating__item i {
+  transition: transform 0.2s ease;
+}
+
+.star-rating__item:hover i {
+  transform: scale(1.1);
+}
+
+.star-rating__text {
+  margin-left: 4px;
+  font-weight: 500;
+}
+
+/* Product Item Enhancements */
+.product-item__bottom {
+  margin-top: 12px;
+}
+
+.product-item__sales {
+  display: block;
+  margin-bottom: 8px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Rating Display Container */
+.rating-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .star-rating__item[style*="color: #d1d5db"] {
+  color: #4b5563 !important;
+}
+
+[data-theme="dark"] .star-rating__text {
+  color: #e5e7eb;
 }
 
 </style>

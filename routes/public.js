@@ -35,17 +35,17 @@ const data = require('../public/data.json');
  */
 async function getTopProductsForHomepage() {
   try {
-
+    
     // Debug: Check total products first
     const totalProducts = await Product.countDocuments({});
     const activeProducts = await Product.countDocuments({ status: 'active' });
     const publicProducts = await Product.countDocuments({ status: 'active', visibility: 'public' });
-    const publishedProducts = await Product.countDocuments({
-      status: 'active',
-      visibility: 'public',
-      publishedAt: { $exists: true, $ne: null }
+    const publishedProducts = await Product.countDocuments({ 
+      status: 'active', 
+      visibility: 'public', 
+      publishedAt: { $exists: true, $ne: null } 
     });
-
+    
     // Base filter for marketplace-published products only
     const marketplaceFilter = {
       status: 'active',
@@ -56,88 +56,88 @@ async function getTopProductsForHomepage() {
         { unpublishedAt: null }                       // Or explicitly null
       ]
     };
-
+    
     // Step 1: Try to get products with high rating AND high views
     const topRatedViewedProducts = await Product.find({
       ...marketplaceFilter,
       averageRating: { $gte: 4.0 },      // Rating 4.0+
       'analytics.views': { $gte: 100 }    // At least 100 views
     })
-      .populate('manufacturer', 'companyName country')
-      .populate('category', 'name slug')
-      .sort({
-        averageRating: -1,     // High rating first
-        'analytics.views': -1,  // High views second
-        'analytics.orders': -1  // High orders third
-      })
-      .limit(20)
-      .lean();
-
-
+    .populate('manufacturer', 'companyName country')
+    .populate('category', 'name slug')
+    .sort({ 
+      averageRating: -1,     // High rating first
+      'analytics.views': -1,  // High views second
+      'analytics.orders': -1  // High orders third
+    })
+    .limit(20)
+    .lean();
+    
+    
     // If we have 6+ products, return them
     if (topRatedViewedProducts.length >= 6) {
       return topRatedViewedProducts;
     }
-
+    
     // Step 2: If not enough, try high rating only (3.5+)
     const topRatedProducts = await Product.find({
       ...marketplaceFilter,
       averageRating: { $gte: 3.5 }  // Rating 3.5+
     })
-      .populate('manufacturer', 'companyName country')
-      .populate('category', 'name slug')
-      .sort({
-        averageRating: -1,     // High rating first
-        'analytics.views': -1,  // High views second
-        totalReviews: -1,      // More reviews
-        publishedAt: -1        // Most recently published
-      })
-      .limit(20)
-      .lean();
-
-
+    .populate('manufacturer', 'companyName country')
+    .populate('category', 'name slug')
+    .sort({ 
+      averageRating: -1,     // High rating first
+      'analytics.views': -1,  // High views second
+      totalReviews: -1,      // More reviews
+      publishedAt: -1        // Most recently published
+    })
+    .limit(20)
+    .lean();
+    
+    
     // If we have 6+ products, return them
     if (topRatedProducts.length >= 6) {
       return topRatedProducts;
     }
-
+    
     // Step 3: If still not enough, get any active marketplace products
     const allMarketplaceProducts = await Product.find({
       ...marketplaceFilter,
       'inventory.availableStock': { $gt: 0 }  // In stock
     })
-      .populate('manufacturer', 'companyName country')
-      .populate('category', 'name slug')
-      .sort({
-        isFeatured: -1,        // Featured first
-        'analytics.views': -1,  // Most viewed
-        averageRating: -1,     // Higher rating
-        publishedAt: -1        // Most recently published
-      })
-      .limit(20)
-      .lean();
-
+    .populate('manufacturer', 'companyName country')
+    .populate('category', 'name slug')
+    .sort({ 
+      isFeatured: -1,        // Featured first
+      'analytics.views': -1,  // Most viewed
+      averageRating: -1,     // Higher rating
+      publishedAt: -1        // Most recently published
+    })
+    .limit(20)
+    .lean();
+    
     // If still no marketplace products, try with relaxed filter (just active + public)
     if (allMarketplaceProducts.length === 0) {
       const anyActiveProducts = await Product.find({
         status: 'active',
         visibility: 'public'
       })
-        .populate('manufacturer', 'companyName country')
-        .populate('category', 'name slug')
-        .sort({
-          createdAt: -1,           // Most recently created
-          isFeatured: -1,          // Featured first
-          'analytics.views': -1    // Most viewed
-        })
-        .limit(20)
-        .lean();
-
+      .populate('manufacturer', 'companyName country')
+      .populate('category', 'name slug')
+      .sort({ 
+        createdAt: -1,           // Most recently created
+        isFeatured: -1,          // Featured first
+        'analytics.views': -1    // Most viewed
+    })
+    .limit(20)
+    .lean();
+    
       return anyActiveProducts.slice(0, 20);
     }
-
+    
     return allMarketplaceProducts;
-
+    
   } catch (error) {
     return [];
   }
@@ -148,7 +148,7 @@ router.get('/', async (req, res) => {
   try {
     // Get top products for homepage
     let topProducts = await getTopProductsForHomepage();
-
+    
     // If no products found from database, use sample data as fallback
     if (!topProducts || topProducts.length === 0) {
       topProducts = [
@@ -164,7 +164,7 @@ router.get('/', async (req, res) => {
           isFeatured: true
         },
         {
-          _id: 'sample2',
+          _id: 'sample2', 
           name: 'Set of chocolates raxat',
           pricing: { basePrice: 8 },
           images: [{ url: '/img/product-logo/raxat-choco.jpg', isPrimary: true }],
@@ -198,8 +198,8 @@ router.get('/', async (req, res) => {
         }
       ];
     }
-
-    res.render('pages/index', {
+    
+    res.render('pages/index', { 
       title: req.t('nav.home') + ' - Silk Line Expo',
       data: data,
       topProducts: topProducts
@@ -219,8 +219,8 @@ router.get('/', async (req, res) => {
         isFeatured: false
       }
     ];
-
-    res.render('pages/index', {
+    
+    res.render('pages/index', { 
       title: req.t('nav.home') + ' - Silk Line Expo',
       data: data,
       topProducts: fallbackProducts
@@ -231,9 +231,25 @@ router.get('/', async (req, res) => {
 // All Products - Now with marketplace database integration
 router.get('/all-product', async (req, res) => {
   try {
+    // Cache headers for multi-language HTML
+    res.set({
+      'Cache-Control': 'private, max-age=0, must-revalidate',
+      'Vary': 'Accept-Language, Cookie, Accept-Encoding, User-Agent'
+    });
 
-    // Get all published marketplace products
-    const allMarketplaceProducts = await Product.find({
+    // Parse query params
+    const page = Math.max(parseInt(req.query.page || '1', 10), 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit || '12', 10), 1), 50);
+    const search = (req.query.search || '').trim();
+    const category = (req.query.category || '').trim();
+    const manufacturer = (req.query.manufacturer || '').trim();
+    const priceMin = req.query.priceMin ? Number(req.query.priceMin) : undefined;
+    const priceMax = req.query.priceMax ? Number(req.query.priceMax) : undefined;
+    const rating = req.query.rating ? Number(req.query.rating) : undefined;
+    const sort = (req.query.sort || 'publishedAt-desc').trim();
+
+    // Base filter
+    const marketplaceFilter = {
       status: 'active',
       visibility: 'public',
       publishedAt: { $exists: true, $ne: null },
@@ -241,30 +257,86 @@ router.get('/all-product', async (req, res) => {
         { unpublishedAt: { $exists: false } },
         { unpublishedAt: null }
       ]
-    })
-      .populate('manufacturer', 'companyName country')
-      .populate('category', 'name slug')
-      .sort({
-        publishedAt: -1,           // Most recently published first
-        isFeatured: -1,            // Featured products first
-        'analytics.views': -1,     // Most viewed
-        averageRating: -1          // Higher rating
-      })
-      .lean();
+    };
 
+    // Dynamic filters
+    if (search) {
+      marketplaceFilter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    // Category filter uses slug; resolve to ObjectId for SSR list
+    if (category && category !== 'all') {
+      try {
+        const Category = require('../models/Category');
+        const catDoc = await Category.findOne({ slug: category }).select('_id').lean();
+        if (catDoc && catDoc._id) {
+          marketplaceFilter.category = catDoc._id;
+        }
+      } catch (e) {
+        // ignore resolution errors for SSR; client-side API can still handle filters
+      }
+    }
+    if (manufacturer) {
+      marketplaceFilter['manufacturer'] = manufacturer.match(/^[0-9a-fA-F]{24}$/) ? manufacturer : undefined;
+    }
+    if (typeof priceMin === 'number' || typeof priceMax === 'number') {
+      marketplaceFilter['pricing.basePrice'] = {};
+      if (typeof priceMin === 'number') marketplaceFilter['pricing.basePrice'].$gte = priceMin;
+      if (typeof priceMax === 'number') marketplaceFilter['pricing.basePrice'].$lte = priceMax;
+    }
+    if (typeof rating === 'number') {
+      marketplaceFilter['averageRating'] = { $gte: rating };
+    }
 
-    res.render('pages/all-product', {
-      title: req.t('products.allProducts') + ' - Silk Line Expo',
-      data: data, // Keep for legacy compatibility
-      marketplaceProducts: allMarketplaceProducts // New database products
-    });
-  } catch (error) {
-    // Fallback to static data on error
-    res.render('pages/all-product', {
+    // Sorting
+    const sortMap = {
+      'publishedAt-desc': { publishedAt: -1, isFeatured: -1 },
+      'publishedAt-asc': { publishedAt: 1 },
+      'newest': { publishedAt: -1 },
+      'oldest': { publishedAt: 1 },
+      'price-low': { 'pricing.basePrice': 1 },
+      'price-high': { 'pricing.basePrice': -1 },
+      'rating': { averageRating: -1 },
+      'popular': { 'analytics.views': -1 }
+    };
+    const sortOption = sortMap[sort] || sortMap['publishedAt-desc'];
+
+    // Counts for pagination
+    const total = await Product.countDocuments(marketplaceFilter);
+    const skip = (page - 1) * limit;
+
+    // Fetch products
+    const products = await Product.find(marketplaceFilter)
+      .populate('manufacturer', 'companyName country companyLogo')
+    .populate('category', 'name slug')
+      .sort(sortOption)
+      .skip(skip)
+      .limit(limit)
+    .lean();
+    
+    // Render template
+    res.render('pages/all-product', { 
       title: req.t('products.allProducts') + ' - Silk Line Expo',
       data: data,
-      marketplaceProducts: [] // Empty array on error
+      marketplaceProducts: products,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.max(Math.ceil(total / limit), 1)
+      },
+      currentFilters: { search, category, manufacturer, priceMin, priceMax, rating, sort }
     });
+  } catch (error) {
+  res.render('pages/all-product', { 
+    title: req.t('products.allProducts') + ' - Silk Line Expo',
+      data: data,
+      marketplaceProducts: [],
+      pagination: { total: 0, page: 1, limit: 12, totalPages: 1 },
+      currentFilters: {}
+  });
   }
 });
 
@@ -377,7 +449,7 @@ router.get('/reset-password', boundAuthMethods.showPasswordResetForm);
 router.get('/product-details', async (req, res) => {
   try {
     const productId = req.query.id;
-
+    
     // Validate product ID format
     if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
       return res.status(404).render('pages/product-details', {
@@ -395,11 +467,11 @@ router.get('/product-details', async (req, res) => {
         pageKeywords: 'product not found, b2b marketplace, professional'
       });
     }
-
+    
     // Use enhanced service layer for comprehensive B2B data
     const publicProductsService = new PublicProductsService();
     const product = await publicProductsService.getProductDetails(productId);
-
+    
     if (!product) {
       // Set cache headers for not found pages
       res.set({
@@ -532,7 +604,7 @@ router.get('/product-details', async (req, res) => {
       structuredData: generateProductStructuredData(product, manufacturer, req)
     });
     
-
+    
   } catch (error) {
     console.error('❌ Error in professional product details route:', error);
 
@@ -567,7 +639,7 @@ router.get('/product-details', async (req, res) => {
       pageDescription: 'An error occurred while loading professional product details',
       pageKeywords: 'error, professional b2b marketplace, technical issue'
     };
-
+    
     res.status(500).render('pages/product-details', defaultParams);
   }
 });
