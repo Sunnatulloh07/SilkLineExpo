@@ -20,12 +20,12 @@
               const displayCount = totalProducts > 1000 ? Math.floor(totalProducts / 1000) + 'k+' : totalProducts.toLocaleString();
               %>
               <%= displayCount %>
-            </span> products available for purchase
+            </span> <%- t('allProducts.pageTitle') %>
           </h3>
           <p class="breadcrumb-one-content__desc text-center text-black-three">
-            All products from around the world are gathered on this page!
+            <%- t('allProducts.pageDescription') %>
             <% if (totalProducts > 0) { %>
-              <br><small class="text-muted">Showing marketplace products from <%= new Set((marketplaceProducts || []).map(p => p.manufacturer?.country).filter(Boolean)).size %> countries</small>
+              <br><small class="text-muted"><%- t('allProducts.showingFrom') %> <%= new Set((marketplaceProducts || []).map(p => p.manufacturer?.country).filter(Boolean)).size %> <%- t('allProducts.countriesText') %></small>
                 <% } %>
           </p>
             </div>
@@ -44,13 +44,13 @@
             <div class="filter-tab gap-3 flx-between me-auto mb-3">
               <div class="products-tab"></div>
               <div class="list-grid d-flex align-items-center gap-2">
-            <button class="list-grid__button list-button d-sm-flex d-none text-body">
+            <button class="list-grid__button list-button d-sm-flex d-none text-body" title="<%- t('allProducts.viewControls.listView') %>">
               <i class="las la-list"></i>
             </button>
-            <button class="list-grid__button grid-button d-sm-flex d-none active text-body">
+            <button class="list-grid__button grid-button d-sm-flex d-none active text-body" title="<%- t('allProducts.viewControls.gridView') %>">
               <i class="las la-border-all"></i>
             </button>
-            <button class="list-grid__button sidebar-btn text-body d-lg-none d-flex">
+            <button class="list-grid__button sidebar-btn text-body d-lg-none d-flex" title="<%- t('allProducts.viewControls.sidebarToggle') %>">
               <i class="las la-bars"></i>
             </button>
               </div>
@@ -61,12 +61,12 @@
               <div class="row gy-3">
                 <div class="col-sm-4 col-xs-6">
                   <div class="flx-between gap-1">
-                <label for="tag" class="form-label font-16">Search</label>
-                <button type="button" class="text-body font-14 clear-search">Clear</button>
+                <label for="tag" class="form-label font-16"><%- t('allProducts.search') %></label>
+                <button type="button" class="text-body font-14 clear-search"><%- t('allProducts.clearSearch') %></button>
                   </div>
                   <div class="position-relative">
                 <input type="text" class="common-input border-gray-five common-input--withLeftIcon" 
-                  id="tag" name="search" value="<%= currentFilters?.search || '' %>" placeholder="Search products...">
+                  id="tag" name="search" value="<%= currentFilters?.search || '' %>" placeholder="<%- t('allProducts.searchPlaceholder') %>">
                 <span class="input-icon input-icon--left">
                   <img src="/assets/images/icons/search-two.svg" alt="">
                 </span>
@@ -74,29 +74,29 @@
                 </div>
                 <div class="col-sm-4 col-xs-6">
               <div class="flx-between gap-1">
-                <label for="priceRange" class="form-label font-16">Price Range</label>
-                <button type="button" class="text-body font-14 clear-price">Clear</button>
+                <label for="priceRange" class="form-label font-16"><%- t('allProducts.priceRange') %></label>
+                <button type="button" class="text-body font-14 clear-price"><%- t('allProducts.clearPrice') %></button>
               </div>
               <div class="position-relative d-flex gap-2">
                 <input type="number" class="common-input border-gray-five" id="priceMin" name="priceMin"
-                  placeholder="Min" value="<%= currentFilters?.priceMin || '' %>">
+                  placeholder="<%- t('allProducts.minPrice') %>" value="<%= currentFilters?.priceMin || '' %>">
                 <input type="number" class="common-input border-gray-five" id="priceMax" name="priceMax"
-                  placeholder="Max" value="<%= currentFilters?.priceMax || '' %>">
+                  placeholder="<%- t('allProducts.maxPrice') %>" value="<%= currentFilters?.priceMax || '' %>">
                 </div>
                 </div>
             <div class="col-sm-4">
               <div class="flx-between gap-1">
-                <label for="sortBy" class="form-label font-16">Sort By</label>
-                <button type="button" class="text-body font-14 clear-sort">Clear</button>
+                <label for="sortBy" class="form-label font-16"><%- t('allProducts.sortBy') %></label>
+                <button type="button" class="text-body font-14 clear-sort"><%- t('allProducts.clearSort') %></button>
               </div>
               <div class="position-relative select-has-icon">
                 <select id="sortBy" name="sort" class="common-input border-gray-five">
-                  <option value="newest" <%= currentFilters?.sort === 'newest' ? 'selected' : '' %>>Newest First</option>
-                  <option value="oldest" <%= currentFilters?.sort === 'oldest' ? 'selected' : '' %>>Oldest First</option>
-                  <option value="price-low" <%= currentFilters?.sort === 'price-low' ? 'selected' : '' %>>Price: Low to High</option>
-                  <option value="price-high" <%= currentFilters?.sort === 'price-high' ? 'selected' : '' %>>Price: High to Low</option>
-                  <option value="rating" <%= currentFilters?.sort === 'rating' ? 'selected' : '' %>>Best Rating</option>
-                  <option value="popular" <%= currentFilters?.sort === 'popular' ? 'selected' : '' %>>Most Popular</option>
+                  <option value="newest" <%= currentFilters?.sort === 'newest' ? 'selected' : '' %>><%- t('allProducts.newest') %></option>
+                  <option value="oldest" <%= currentFilters?.sort === 'oldest' ? 'selected' : '' %>><%- t('allProducts.oldest') %></option>
+                  <option value="price-low" <%= currentFilters?.sort === 'price-low' ? 'selected' : '' %>><%- t('allProducts.priceLowToHigh') %></option>
+                  <option value="price-high" <%= currentFilters?.sort === 'price-high' ? 'selected' : '' %>><%- t('allProducts.priceHighToLow') %></option>
+                  <option value="rating" <%= currentFilters?.sort === 'rating' ? 'selected' : '' %>><%- t('allProducts.rating') %></option>
+                  <option value="popular" <%= currentFilters?.sort === 'popular' ? 'selected' : '' %>><%- t('allProducts.popular') %></option>
                     </select>
                   </div>
                 </div>
@@ -108,8 +108,8 @@
                 <input type="hidden" name="manufacturer" value="<%= currentFilters.manufacturer %>">
               <% } %>
               <div class="mt-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Apply</button>
-                <a href="/all-product" class="btn btn-outline-secondary bg-secondary">Reset</a>
+                <button type="submit" class="btn btn-primary"><%- t('allProducts.apply') %></button>
+                <a href="/all-product" class="btn btn-outline-secondary bg-secondary"><%- t('allProducts.reset') %></a>
               </div>
             </form>
 
@@ -120,15 +120,15 @@
             const totalProducts = marketplaceProducts.length;
             const displayedProducts = Math.min(12, totalProducts);
             %>
-            Showing 1-<%= displayedProducts %> of <%= totalProducts.toLocaleString() %> products
+            <%- t('allProducts.resultsInfo.showing') %> 1-<%= displayedProducts %> <%- t('allProducts.resultsInfo.of') %> <%= totalProducts.toLocaleString() %> <%- t('allProducts.resultsInfo.products') %>
             <% 
             // Show category/country stats
             const uniqueCategories = new Set(marketplaceProducts.map(p => p.category?.name).filter(Boolean)).size;
             const uniqueCountries = new Set(marketplaceProducts.map(p => p.manufacturer?.country).filter(Boolean)).size;
             %>
-            <span class="text-muted ms-2">• <%= uniqueCategories %> categories • <%= uniqueCountries %> countries</span>
+            <span class="text-muted ms-2">• <%= uniqueCategories %> <%- t('allProducts.resultsInfo.categories') %> • <%= uniqueCountries %> <%- t('allProducts.resultsInfo.countries') %></span>
           <% } else { %>
-            <span class="loading-text">Loading products...</span>
+            <span class="loading-text"><%- t('allProducts.resultsInfo.loadingText') %></span>
           <% } %>
         </div>
 
@@ -139,14 +139,14 @@
       <!-- Sidebar -->
       <div class="col-xl-3 col-lg-4">
         <div class="filter-sidebar">
-          <button type="button" class="filter-sidebar__close p-2 position-absolute end-0 top-0 z-index-1 text-body hover-text-main font-20 d-lg-none d-block">
+          <button type="button" class="filter-sidebar__close p-2 position-absolute end-0 top-0 z-index-1 text-body hover-text-main font-20 d-lg-none d-block" title="<%- t('allProducts.sidebar.close') %>">
             <i class="las la-times"></i>
           </button>
           
           <!-- Company Categories -->
           <div class="filter-sidebar__item">
             <button type="button" class="filter-sidebar__button font-16 text-capitalize fw-500">
-              Company Categories
+              <%- t('allProducts.sidebar.companyCategories') %>
             </button>
             <div class="filter-sidebar__content">
               <ul class="filter-sidebar-list" id="company-categories">
@@ -154,7 +154,7 @@
                 <li class="filter-sidebar-list__item">
                   <div class="d-flex justify-content-center align-items-center p-3">
                     <div class="spinner-border spinner-border-sm text-primary" role="status">
-                      <span class="visually-hidden">Loading categories...</span>
+                      <span class="visually-hidden"><%- t('allProducts.sidebar.loadingCategories') %></span>
                     </div>
                   </div>
                 </li>
@@ -165,7 +165,7 @@
           <!-- Manufacturers Filter -->
           <div class="filter-sidebar__item">
             <button type="button" class="filter-sidebar__button font-16 text-capitalize fw-500">
-              Top Manufacturers
+              <%- t('allProducts.sidebar.topManufacturers') %>
             </button>
             <div class="filter-sidebar__content">
               <ul class="filter-sidebar-list" id="top-manufacturers">
@@ -173,7 +173,7 @@
                 <li class="filter-sidebar-list__item">
                   <div class="d-flex justify-content-center align-items-center p-3">
                     <div class="spinner-border spinner-border-sm text-primary" role="status">
-                      <span class="visually-hidden">Loading manufacturers...</span>
+                      <span class="visually-hidden"><%- t('allProducts.sidebar.loadingManufacturers') %></span>
                     </div>
                   </div>
                 </li>
@@ -184,7 +184,7 @@
           <!-- Price Range Filter -->
           <div class="filter-sidebar__item">
             <button type="button" class="filter-sidebar__button font-16 text-capitalize fw-500">
-              Price Range
+              <%- t('allProducts.sidebar.priceRange') %>
             </button>
             <div class="filter-sidebar__content">
               <div class="p-3">
@@ -235,9 +235,9 @@
             <!-- Loading Indicator -->
             <div class="loading-indicator text-center py-5" style="display: none;">
               <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+                <span class="visually-hidden"><%- t('allProducts.loading') %></span>
               </div>
-              <p class="mt-3 text-muted">Loading products...</p>
+              <p class="mt-3 text-muted"><%- t('allProducts.loadingProducts') %></p>
             </div>
 
             <!-- Products Grid -->
@@ -307,7 +307,7 @@
                         </h6>
                         <div class="product-item__info flx-between gap-2">
                           <span class="product-item__author">
-                            by 
+                            <%- t('buttons.by') || 'by' %> 
                             <a href="#" class="link hover-text-decoration-underline"><%= manufacturerName %></a>
                             <% if (manufacturerCountry) { %>
                               <small class="text-muted">(<%= manufacturerCountry %>)</small>
@@ -327,7 +327,7 @@
                               <span class="star-rating__text text-heading fw-500 font-14">(<%= reviewCount %>)</span>
                             </div>
                           </div>
-                          <a href="<%= productUrl %>" class="btn btn-outline-light btn-sm pill">View Details</a>
+                          <a href="<%= productUrl %>" class="btn btn-outline-light btn-sm pill"><%- t('allProducts.productCard.viewDetails') %></a>
                         </div>
                       </div>
                     </div>
@@ -337,12 +337,12 @@
                 <!-- Empty state -->
                 <div class="col-12">
                   <div class="text-center py-5">
-                    <img src="/assets/images/no-image.svg" alt="No products found" 
+                    <img src="/assets/images/no-image.svg" alt="<%- t('allProducts.noProductsFound') %>" 
                          style="max-width: 200px; opacity: 0.5;" 
                          onerror="handleImageError(this)"
                          onload="handleImageSuccess(this)">
-                    <h4 class="mt-3 text-muted">No products found</h4>
-                    <p class="text-muted">We're working on adding more products to our marketplace.</p>
+                    <h4 class="mt-3 text-muted"><%- t('allProducts.noProductsFound') %></h4>
+                    <p class="text-muted"><%- t('allProducts.noProductsDescription') %></p>
                   </div>
                 </div>
               <% } %>
@@ -359,7 +359,7 @@
                   <!-- Initial server-rendered pagination -->
                   <li class="page-item disabled">
                     <a class="page-link" href="#" data-page="0">
-                      <span class="icon"><i class="las la-arrow-left"></i></span> Previous
+                      <span class="icon"><i class="las la-arrow-left"></i></span> <%- t('allProducts.pagination.previous') %>
                     </a>
                   </li>
                   
@@ -372,7 +372,7 @@
                   <% if (totalPages > 1) { %>
                     <li class="page-item">
                       <a class="page-link flx-align gap-2 flex-nowrap" href="#" data-page="2">
-                        Next <span class="icon line-height-1 font-20"><i class="las la-arrow-right"></i></span>
+                        <%- t('allProducts.pagination.next') %> <span class="icon line-height-1 font-20"><i class="las la-arrow-right"></i></span>
                       </a>
                     </li>
                   <% } %>

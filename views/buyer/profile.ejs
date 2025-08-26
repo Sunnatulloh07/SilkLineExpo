@@ -1,0 +1,1050 @@
+<%- include('../partials/header', { title: t('buyer.profile.title') + ' - SLEX', lng: lng, user: user }) %>
+<%- include('../partials/navigation') %>
+
+<!-- Buyer Profile Page - Professional B2B Style -->
+<main class="main-wrapper buyer-profile-wrapper position-relative z-index-1">
+  
+  <!-- Background Elements -->
+  <img src="/assets/images/gradients/breadcrumb-gradient-bg.png" alt="" class="bg--gradient">
+  <img src="/assets/images/shapes/element-moon3.png" alt="" class="element one">
+  <img src="/assets/images/shapes/element-moon1.png" alt="" class="element three">
+
+  <div class="container container-two">
+    <div class="row">
+      <div class="col-lg-3">
+        <!-- Buyer Sidebar -->
+        <%- include('./partials/buyer-sidebar', { 
+          currentPage: 'profile', 
+          user: user, 
+          cartItemsCount: cartItemsCount, 
+          activeOrdersCount: activeOrdersCount, 
+          unreadMessagesCount: unreadMessagesCount 
+        }) %>
+      </div>
+      
+      <div class="col-lg-9">
+        <!-- Profile Header -->
+        <div class="buyer-profile-header section-bg animate-fade-in">
+          <div class="profile-header-content">
+            <div class="profile-avatar">
+              <img src="<%= user.companyLogo?.url || '/assets/images/icons/user.svg' %>" 
+                   alt="<%- t('buyer.profile.avatarAlt') %>" 
+                   class="avatar-img"
+                   id="profileAvatar"
+                   onerror="this.src='/assets/images/icons/user.svg'">
+              <button class="edit-avatar-btn btn-main" 
+                      id="editAvatarBtn"
+                      title="<%- t('buyer.profile.changeAvatar') %>">
+                <i class="las la-camera"></i>
+              </button>
+              <!-- Hidden file input for avatar upload -->
+              <input type="file" 
+                     id="avatarFileInput" 
+                     accept="image/jpeg,image/png,image/jpg,image/webp"
+                     style="display: none;">
+            </div>
+            <div class="profile-info">
+              <h2 class="profile-name text-heading">
+                <%= user.companyName || (user.firstName + ' ' + user.lastName) %>
+              </h2>
+              <p class="profile-type text-main fw-600"><%- t('buyer.profile.type') %></p>
+              <div class="profile-stats flx-align gap-3">
+                <span class="stat-item">
+                  <i class="las la-shopping-cart text-main"></i>
+                  <span class="fw-600"><%= profileStats?.totalOrders || 0 %></span> <%- t('buyer.profile.orders') %>
+                </span>
+                <span class="stat-item">
+                  <i class="las la-heart text-main"></i>
+                  <span class="fw-600"><%= profileStats?.favoriteProducts || 0 %></span> <%- t('buyer.profile.favorites') %>
+                </span>
+                <span class="stat-item">
+                  <i class="las la-calendar text-main"></i>
+                  <%- t('buyer.profile.memberSince') %> <span class="fw-600"><%= new Date(user.createdAt).getFullYear() %></span>
+                </span>
+              </div>
+            </div>
+            <div class="profile-actions">
+              <button class="btn btn-main pill" onclick="editProfile()">
+                <span class="icon-left icon">
+                  <i class="las la-edit"></i>
+                </span>
+                <%- t('buyer.profile.editProfile') %>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions Cards -->
+        <div class="buyer-quick-actions section-bg animate-fade-in">
+          <h3 class="section-title text-heading"><%- t('buyer.profile.quickActions') %></h3>
+          <div class="actions-grid">
+            <a href="/buyer/orders" class="action-card flx-align gap-3 hover-bg-main">
+              <div class="action-icon">
+                <i class="las la-shopping-cart text-main"></i>
+              </div>
+              <div class="action-content">
+                <h4 class="text-heading"><%- t('buyer.profile.myOrders') %></h4>
+                <p class="text-gray-600"><%- t('buyer.profile.manageOrders') %></p>
+                <span class="action-count bg-main text-white"><%= profileStats?.activeOrders || 0 %> <%- t('buyer.profile.active') %></span>
+              </div>
+            </a>
+            
+            <a href="/buyer/cart" class="action-card flx-align gap-3 hover-bg-main">
+              <div class="action-icon">
+                <i class="las la-shopping-bag text-main"></i>
+              </div>
+              <div class="action-content">
+                <h4 class="text-heading"><%- t('buyer.profile.shoppingCart') %></h4>
+                <p class="text-gray-600"><%- t('buyer.profile.reviewCart') %></p>
+                <span class="action-count bg-main text-white"><%= cartItemsCount || 0 %> <%- t('buyer.profile.items') %></span>
+              </div>
+            </a>
+            
+            <a href="/buyer/messages" class="action-card flx-align gap-3 hover-bg-main">
+              <div class="action-icon">
+                <i class="las la-comments text-main"></i>
+              </div>
+              <div class="action-content">
+                <h4 class="text-heading"><%- t('buyer.profile.messages') %></h4>
+                <p class="text-gray-600"><%- t('buyer.profile.chatSuppliers') %></p>
+                <span class="action-count bg-main text-white"><%= unreadMessages || 0 %> <%- t('buyer.profile.unread') %></span>
+              </div>
+            </a>
+            
+            <a href="/buyer/favorites" class="action-card flx-align gap-3 hover-bg-main">
+              <div class="action-icon">
+                <i class="las la-heart text-main"></i>
+              </div>
+              <div class="action-content">
+                <h4 class="text-heading"><%- t('buyer.profile.favorites') %></h4>
+                <p class="text-gray-600"><%- t('buyer.profile.savedProducts') %></p>
+                <span class="action-count bg-main text-white"><%= profileStats?.favoriteProducts || 0 %> <%- t('buyer.profile.saved') %></span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="buyer-activity section-bg animate-fade-in">
+          <h3 class="section-title text-heading"><%- t('buyer.profile.recentActivity') %></h3>
+          <div class="activity-list">
+            <% if (recentActivity && recentActivity.length > 0) { %>
+              <% recentActivity.forEach(activity => { %>
+                <div class="activity-item">
+                  <div class="activity-icon">
+                    <i class="las <%= activity.icon %> text-main"></i>
+                  </div>
+                  <div class="activity-content">
+                    <h4 class="text-heading"><%= activity.title %></h4>
+                    <p class="text-gray-600"><%= activity.description %></p>
+                    <span class="activity-time text-gray-500"><%= activity.timeAgo %></span>
+                  </div>
+                </div>
+              <% }) %>
+            <% } else { %>
+              <div class="no-activity">
+                <div class="no-activity-icon">
+                  <i class="las la-history text-gray-400"></i>
+                </div>
+                <h4 class="text-heading"><%- t('buyer.profile.noActivity') %></h4>
+                <p class="text-gray-600"><%- t('buyer.profile.noActivityDesc') %></p>
+                <a href="/all-product" class="btn btn-main pill">
+                  <span class="icon-left icon">
+                    <i class="las la-shopping-bag"></i>
+                  </span>
+                  <%- t('buyer.profile.browseProducts') %>
+                </a>
+              </div>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Business Information -->
+        <div class="buyer-business-info section-bg animate-fade-in">
+          <h3 class="section-title text-heading"><%- t('buyer.profile.businessInfo') %></h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <label class="text-gray-600"><%- t('buyer.profile.companyName') %></label>
+              <span class="text-heading"><%= user.companyName || t('common.notSpecified') %></span>
+            </div>
+            <div class="info-item">
+              <label class="text-gray-600"><%- t('buyer.profile.businessType') %></label>
+              <span class="text-heading"><%= user.businessType || t('buyer.profile.retailer') %></span>
+            </div>
+            <div class="info-item">
+              <label class="text-gray-600"><%- t('buyer.profile.location') %></label>
+              <span class="text-heading"><%= user.city && user.country ? user.city + ', ' + user.country : t('common.notSpecified') %></span>
+            </div>
+            <div class="info-item">
+              <label class="text-gray-600"><%- t('buyer.profile.email') %></label>
+              <span class="text-heading"><%= user.email %></span>
+            </div>
+            <div class="info-item">
+              <label class="text-gray-600"><%- t('buyer.profile.phone') %></label>
+              <span class="text-heading"><%= user.phone || t('common.notSpecified') %></span>
+            </div>
+            <div class="info-item">
+              <label class="text-gray-600"><%- t('buyer.profile.website') %></label>
+              <span class="text-heading"><%= user.website || t('common.notSpecified') %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<style>
+/* Buyer Profile Styles - Integrated with SLEX Design System */
+.buyer-profile-wrapper {
+  padding: var(--section-padding, 40px) 0 80px; /* Header uchun ko'proq joy */
+  min-height: calc(100vh - 200px);
+  background: hsl(var(--body-bg));
+  position: relative;
+  z-index: 1;
+}
+
+/* Header ning ustida turish uchun */
+.buyer-profile-wrapper::before {
+  content: '';
+  display: block;
+  height: 100px; /* Header balandligi */
+  margin-top: -100px;
+  visibility: hidden;
+}
+
+/* Background elements positioning */
+.buyer-profile-wrapper .bg--gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  opacity: 0.8;
+}
+
+.buyer-profile-wrapper .element {
+  position: absolute;
+  z-index: -1;
+  animation: upDownRotate 15s linear infinite;
+}
+
+.buyer-profile-wrapper .element.one {
+  left: 5%;
+  top: 15%;
+  animation-delay: 0s;
+}
+
+.buyer-profile-wrapper .element.three {
+  right: 16%;
+  bottom: 14%;
+  animation-delay: 5s;
+}
+
+/* Profile Header */
+.buyer-profile-header {
+  border-radius: var(--border-radius-lg, 16px);
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--box-shadow);
+  border: 1px solid hsl(var(--border-color));
+  position: relative;
+  overflow: hidden;
+}
+
+.buyer-profile-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--main-gradient);
+}
+
+.profile-header-content {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.profile-avatar {
+  position: relative;
+}
+
+.avatar-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid hsl(var(--border-color));
+  box-shadow: var(--box-shadow);
+}
+
+.edit-avatar-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--static-white));
+  font-size: 0.9rem;
+  box-shadow: var(--box-shadow);
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name {
+  margin: 0 0 0.5rem 0;
+  font-family: var(--heading-font);
+  font-size: var(--heading-four);
+  line-height: 1.3;
+}
+
+.profile-type {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.profile-stats {
+  gap: 2rem;
+}
+
+.stat-item {
+  font-size: 0.9rem;
+  color: hsl(var(--body-color));
+}
+
+.stat-item i {
+  font-size: 1.1rem;
+}
+
+/* Quick Actions */
+.buyer-quick-actions {
+  border-radius: var(--border-radius-lg, 16px);
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--box-shadow);
+  border: 1px solid hsl(var(--border-color));
+}
+
+.section-title {
+  margin: 0 0 2rem 0;
+  font-family: var(--heading-font);
+  font-size: var(--heading-five);
+  color: hsl(var(--heading-color));
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.action-card {
+  padding: 2rem;
+  border: 1px solid hsl(var(--border-color));
+  border-radius: var(--border-radius-md, 12px);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.action-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--main-gradient);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.action-card:hover {
+  border-color: hsl(var(--main));
+  transform: translateY(-4px);
+  box-shadow: var(--box-shadow-lg);
+  text-decoration: none;
+  color: inherit;
+}
+
+.action-card:hover::before {
+  opacity: 0.05;
+}
+
+.action-card:hover .action-icon {
+  transform: scale(1.1);
+}
+
+.action-card:hover .text-heading {
+  color: hsl(var(--main)) !important;
+}
+
+.action-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: hsl(var(--main) / 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.action-content h4 {
+  margin: 0 0 0.5rem 0;
+  font-family: var(--heading-font);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.action-content p {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.action-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  border-radius: var(--border-radius-pill, 25px);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Recent Activity */
+.buyer-activity,
+.buyer-business-info {
+  border-radius: var(--border-radius-lg, 16px);
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--box-shadow);
+  border: 1px solid hsl(var(--border-color));
+  background: hsl(var(--section-bg));
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid hsl(var(--border-color));
+  border-radius: var(--border-radius-md, 12px);
+  background: hsl(var(--static-white));
+  transition: all 0.3s ease;
+}
+
+.activity-item:hover {
+  border-color: hsl(var(--main));
+  box-shadow: var(--box-shadow);
+  transform: translateX(4px);
+}
+
+.activity-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: hsl(var(--main) / 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: hsl(var(--main));
+}
+
+.activity-content h4 {
+  margin: 0 0 0.25rem 0;
+  font-family: var(--heading-font);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: hsl(var(--heading-color));
+}
+
+.activity-content p {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.95rem;
+  color: hsl(var(--body-color));
+  line-height: 1.4;
+}
+
+.activity-time {
+  color: hsl(var(--gray-three));
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.no-activity {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.no-activity-icon {
+  font-size: 4rem;
+  color: hsl(var(--gray-four));
+  margin-bottom: 1.5rem;
+}
+
+.no-activity h4 {
+  margin: 0 0 1rem 0;
+  font-family: var(--heading-font);
+  color: hsl(var(--heading-color));
+}
+
+.no-activity p {
+  margin: 0 0 2rem 0;
+  color: hsl(var(--body-color));
+}
+
+/* Business Info Grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid hsl(var(--border-color));
+  border-radius: var(--border-radius-md, 12px);
+  background: hsl(var(--static-white));
+  transition: all 0.3s ease;
+}
+
+.info-item:hover {
+  border-color: hsl(var(--main));
+  box-shadow: var(--box-shadow);
+}
+
+.info-item label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: hsl(var(--body-color));
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-item span {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: hsl(var(--heading-color));
+}
+
+/* Header Z-Index Fix for Buyer Profile */
+.header {
+  z-index: 99 !important; /* Har doim eng yuqorida */
+}
+
+.header.fixed-header {
+  z-index: 99 !important;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* User dropdown z-index */
+.user-dropdown {
+  z-index: 100 !important;
+}
+
+/* Language selector dropdown z-index */
+.lang-dropdown {
+  z-index: 100 !important;
+}
+
+/* Dark mode support - Complete Implementation */
+[data-theme="light"] {
+  /* Profile wrapper dark mode */
+  .buyer-profile-wrapper {
+    background: hsl(var(--body-bg));
+  }
+  
+  /* Main sections */
+  .buyer-profile-wrapper .buyer-profile-header,
+  .buyer-profile-wrapper .buyer-quick-actions,
+  .buyer-profile-wrapper .buyer-activity,
+  .buyer-profile-wrapper .buyer-business-info {
+    background: var(--dark-black-three) !important;
+    border-color: var(--dark-black-five) !important;
+    color: hsl(var(--static-white));
+  }
+  
+  /* Individual items */
+  .buyer-profile-wrapper .activity-item,
+  .buyer-profile-wrapper .info-item,
+  .buyer-profile-wrapper .action-card {
+    background: var(--dark-black-two) !important;
+    border-color: var(--dark-black-five) !important;
+  }
+  
+  /* Text colors in dark mode */
+  .buyer-profile-wrapper .text-heading {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .buyer-profile-wrapper .text-gray-600 {
+    color: hsl(var(--gray-four)) !important;
+  }
+  
+  .buyer-profile-wrapper .text-gray-500 {
+    color: hsl(var(--gray-three)) !important;
+  }
+  
+  .buyer-profile-wrapper .text-gray-400 {
+    color: hsl(var(--gray-two)) !important;
+  }
+  
+  /* Avatar and images */
+  .buyer-profile-wrapper .avatar-img {
+    border-color: var(--dark-black-five) !important;
+  }
+  
+  /* Buttons in dark mode */
+  .buyer-profile-wrapper .btn:not(.btn-main) {
+    background: var(--dark-black-five) !important;
+    border-color: var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .buyer-profile-wrapper .btn:not(.btn-main):hover {
+    background: hsl(var(--main)) !important;
+    border-color: hsl(var(--main)) !important;
+  }
+  
+  /* Action cards hover */
+  .buyer-profile-wrapper .action-card:hover {
+    background: var(--dark-black-five) !important;
+    border-color: hsl(var(--main)) !important;
+  }
+  
+  .buyer-profile-wrapper .action-card:hover .text-heading {
+    color: hsl(var(--main)) !important;
+  }
+  
+  /* Activity items hover */
+  .buyer-profile-wrapper .activity-item:hover {
+    background: var(--dark-black-five) !important;
+    border-color: hsl(var(--main)) !important;
+  }
+  
+  /* Info items hover */
+  .buyer-profile-wrapper .info-item:hover {
+    background: var(--dark-black-five) !important;
+    border-color: hsl(var(--main)) !important;
+  }
+  
+  /* Section titles */
+  .buyer-profile-wrapper .section-title {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* Profile stats */
+  .buyer-profile-wrapper .stat-item {
+    color: hsl(var(--gray-four)) !important;
+  }
+  
+  /* Action content */
+  .buyer-profile-wrapper .action-content h4 {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .buyer-profile-wrapper .action-content p {
+    color: hsl(var(--gray-four)) !important;
+  }
+  
+  /* Activity content */
+  .buyer-profile-wrapper .activity-content h4 {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .buyer-profile-wrapper .activity-content p {
+    color: hsl(var(--gray-four)) !important;
+  }
+  
+  /* Info labels and spans */
+  .buyer-profile-wrapper .info-item label {
+    color: hsl(var(--gray-four)) !important;
+  }
+  
+  .buyer-profile-wrapper .info-item span {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  /* No activity section */
+  .buyer-profile-wrapper .no-activity h4 {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .buyer-profile-wrapper .no-activity p {
+    color: hsl(var(--gray-four)) !important;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 991px) {
+  .buyer-profile-wrapper {
+    padding: 80px 0;
+  }
+  
+  .profile-header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+  
+  .profile-stats {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .buyer-profile-wrapper {
+    padding: 60px 0;
+  }
+  
+  .buyer-profile-header,
+  .buyer-quick-actions,
+  .buyer-activity,
+  .buyer-business-info {
+    padding: 1.5rem;
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .activity-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+}
+
+/* Animation keyframes */
+@keyframes upDownRotate {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(20px) rotate(180deg);
+  }
+}
+
+/* Fade in animation */
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+
+<script>
+function editProfile() {
+  // Profile editing functionality
+  window.location.href = '/buyer/settings';
+}
+</script>
+
+<!-- Header Scroll Behavior Script -->
+<script>
+  // Wait for jQuery to be available
+  document.addEventListener('DOMContentLoaded', function() {
+    // Check if jQuery is available (use noConflict to avoid conflicts)
+    if (typeof jQuery === 'undefined') {
+      console.error('jQuery is not loaded');
+      return;
+    }
+    
+    // Use jQuery instead of $ to avoid conflicts with countdown.js custom $ function
+    const $j = jQuery.noConflict();
+    
+    // Header scroll behavior - same as other pages
+    $j(window).on('scroll', function () {
+    if ($j(window).scrollTop() >= 260) {
+      $j('.header').addClass('fixed-header');
+    } else {
+      $j('.header').removeClass('fixed-header');
+    }
+    });
+
+    // Sidebar adjustment when header becomes fixed
+    $j(window).on('scroll', function () {
+      const scrollTop = $j(window).scrollTop();
+      const sidebar = $j('.buyer-sidebar');
+      
+      if (scrollTop >= 260) {
+        sidebar.css('top', '90px'); // Fixed header balandligi
+      } else {
+        sidebar.css('top', '120px'); // Normal holatdagi top
+      }
+    });
+    
+    // Make sure header links work properly at page load
+    $j(document).ready(function() {
+      // Enable all header buttons and links
+      $j('.header .btn, .header .nav-menu__link, .header .user-dropdown__item').each(function() {
+        $j(this).css('pointer-events', 'auto');
+      });
+
+      // Initialize buyer token management
+      if (window.buyerTokenManager) {
+        // Setup token event listeners
+        buyerTokenManager.on('token-refreshed', (data) => {
+          console.log('✅ Buyer tokens refreshed successfully');
+        });
+
+        buyerTokenManager.on('auth-error', (data) => {
+          console.warn('⚠️ Buyer authentication error:', data.reason);
+          if (data.reason === 'refresh-failed') {
+            // Show user-friendly message before redirect
+            alert('Your session has expired. You will be redirected to login.');
+          }
+        });
+
+        // Log token status for debugging
+        const status = buyerTokenManager.getStatus();
+        console.log('🔍 Buyer token status:', status);
+      }
+    });
+    
+  }); // End DOMContentLoaded
+</script>
+
+<!-- Buyer Token Manager - Load after DOM and jQuery -->
+<script src="/js/buyer/buyer-token-manager.js"></script>
+
+<!-- Professional Avatar Upload Functionality -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Avatar upload elements
+    const editAvatarBtn = document.getElementById('editAvatarBtn');
+    const avatarFileInput = document.getElementById('avatarFileInput');
+    const profileAvatar = document.getElementById('profileAvatar');
+
+    // Professional avatar upload handler
+    if (editAvatarBtn && avatarFileInput && profileAvatar) {
+        
+        // Click edit button to trigger file input
+        editAvatarBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            avatarFileInput.click();
+        });
+
+        // Handle file selection
+        avatarFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            if (!file) return;
+
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                showToast('Faqat JPG, PNG, WebP formatdagi rasmlar qabul qilinadi', 'error');
+                return;
+            }
+
+            // Validate file size (5MB)
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                showToast('Fayl hajmi 5MB dan kichik bo\'lishi kerak', 'error');
+                return;
+            }
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                profileAvatar.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            // Upload avatar
+            uploadAvatar(file);
+        });
+    }
+
+    /**
+     * Professional avatar upload function
+     */
+    function uploadAvatar(file) {
+        // Show loading state
+        editAvatarBtn.innerHTML = '<i class="las la-spinner la-spin"></i>';
+        editAvatarBtn.disabled = true;
+
+        // Create FormData
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        // Upload via fetch API
+        fetch('/buyer/api/avatar/upload', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update avatar image
+                profileAvatar.src = data.data.avatarUrl;
+                
+                // Update all header avatars
+                const headerAvatars = document.querySelectorAll('.user-avatar img');
+                headerAvatars.forEach(img => {
+                    img.src = data.data.avatarUrl;
+                });
+                
+                // Update sidebar avatar if exists  
+                const sidebarAvatar = document.querySelector('.sidebar-header .user-avatar');
+                if (sidebarAvatar) {
+                    sidebarAvatar.src = data.data.avatarUrl;
+                }
+                
+                showToast(data.message || 'Avatar muvaffaqiyatli yangilandi', 'success');
+            } else {
+                // Revert preview on error
+                profileAvatar.src = '<%= user.companyLogo?.url || "/assets/images/icons/user.svg" %>';
+                showToast(data.message || 'Avatar yangilashda xatolik', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Avatar upload error:', error);
+            // Revert preview on error
+            profileAvatar.src = '<%= user.companyLogo?.url || "/assets/images/icons/user.svg" %>';
+            showToast('Avatar yangilashda xatolik', 'error');
+        })
+        .finally(() => {
+            // Reset button state
+            editAvatarBtn.innerHTML = '<i class="las la-camera"></i>';
+            editAvatarBtn.disabled = false;
+            
+            // Clear file input
+            avatarFileInput.value = '';
+        });
+    }
+
+    /**
+     * Professional toast notification system
+     */
+    function showToast(message, type = 'info') {
+        // Remove existing toasts
+        const existingToasts = document.querySelectorAll('.buyer-toast');
+        existingToasts.forEach(toast => toast.remove());
+
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `buyer-toast buyer-toast--${type}`;
+        toast.innerHTML = `
+            <div class="buyer-toast__content">
+                <i class="las ${type === 'success' ? 'la-check-circle' : type === 'error' ? 'la-exclamation-circle' : 'la-info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="buyer-toast__close" onclick="this.parentElement.remove()">
+                <i class="las la-times"></i>
+            </button>
+        `;
+
+        // Add toast styles
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--body-font);
+            font-size: 0.9rem;
+            max-width: 400px;
+            animation: slideInRight 0.3s ease-out;
+        `;
+
+        document.body.appendChild(toast);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 5000);
+    }
+
+    // Add CSS animations for toasts
+    if (!document.getElementById('buyer-toast-styles')) {
+        const style = document.createElement('style');
+        style.id = 'buyer-toast-styles';
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            .buyer-toast__close {
+                background: none;
+                border: none;
+                color: inherit;
+                cursor: pointer;
+                padding: 0;
+                margin-left: 0.5rem;
+                opacity: 0.8;
+            }
+            .buyer-toast__close:hover {
+                opacity: 1;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+});
+</script>
+
+<%- include('../partials/footer') %>

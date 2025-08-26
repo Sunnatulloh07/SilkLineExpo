@@ -20,7 +20,7 @@ class DashboardRoutingMiddleware {
             
             // Company routes
             'manufacturer': '/manufacturer/dashboard',
-            'distributor': '/distributor/dashboard'
+            'distributor': '/buyer/profile'  // Redirect distributors to buyer profile
         };
 
         // Protected route patterns
@@ -28,6 +28,7 @@ class DashboardRoutingMiddleware {
             /^\/admin\/.*$/,
             /^\/manufacturer\/.*$/,
             /^\/distributor\/.*$/,
+            /^\/buyer\/.*$/,
             /^\/dashboard$/
         ];
 
@@ -45,6 +46,12 @@ class DashboardRoutingMiddleware {
                 requiredPermissions: []
             },
             '/distributor': {
+                allowedUserTypes: ['user', 'admin'], // Admin can access for testing
+                allowedRoles: ['company_admin', 'super_admin', 'admin'],
+                requiredCompanyTypes: ['distributor'],
+                requiredPermissions: []
+            },
+            '/buyer': {
                 allowedUserTypes: ['user', 'admin'], // Admin can access for testing
                 allowedRoles: ['company_admin', 'super_admin', 'admin'],
                 requiredCompanyTypes: ['distributor'],

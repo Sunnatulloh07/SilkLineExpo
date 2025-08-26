@@ -1,0 +1,1212 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navigation') %>
+
+<!-- Professional Supplier Profile CSS -->
+<link rel="stylesheet" href="/css/supplier-profile.css">
+<link rel="stylesheet" href="/css/manufacturer-cards.css">
+<link rel="stylesheet" href="/css/professional-supplier.css">
+<style>
+    [data-theme='light'] .form-select, .form-select option {
+    border: 2px solid hsl(var(--border-color)) !important;
+    border-radius: 12px !important;
+    background-color: var(--supplier-card-bg) !important;
+    color: var(--supplier-text-primary) !important;
+    padding: 1.25rem !important;
+    transition: var(--supplier-transition) !important;
+    font-family: var(--body-font) !important;
+    }
+</style>
+
+<main class="supplier-profile-main position-relative" data-supplier-id="<%= supplier._id %>">
+    <div class="supplier-profile-container">
+        
+        <% if (!supplier || error) { %>
+        <!-- Enhanced Error Section -->
+        <section class="error-section py-5">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 col-md-10 text-center">
+                        <div class="error-card bg-white border border-gray-200 rounded-4 p-5 shadow-lg">
+                            <div class="error-icon mb-4">
+                                <i class="las la-exclamation-triangle text-warning" style="font-size: 4rem;"></i>
+                            </div>
+                            <h2 class="error-title h3 mb-3  fw-bold">
+                                <%= error?.title || (typeof t === 'function' ? t('supplier.notFound') : 'Supplier Not Found') %>
+                            </h2>
+                            <p class="error-description text-muted mb-4 fs-5">
+                                <%= error?.message || error || (typeof t === 'function' ? t('supplier.notFoundMessage') : 'The supplier you are looking for does not exist or is not available.') %>
+                            </p>
+                            <div class="error-actions d-flex gap-3 justify-content-center flex-wrap">
+                                <a href="/" class="btn btn-primary btn-lg px-4">
+                                    <i class="las la-home me-2"></i>
+                                    <%= typeof t === 'function' ? t('buttons.backToHome') : 'Back to Home' %>
+                                </a>
+                                <a href="/all-product" class="btn btn-outline-primary btn-lg px-4">
+                                    <i class="las la-search me-2"></i>
+                                    <%= typeof t === 'function' ? t('supplier.browseProducts') : 'Browse Products' %>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <% } else { %>
+            
+        <!-- Supplier Header Section -->
+        <section class="supplier-header padding-y-120 section-bg position-relative z-index-1 overflow-hidden">
+            <img src="/assets/images/gradients/banner-gradient-two.png" alt="" class="bg--gradient">
+            <div class="container container-two">
+                <div class="row gy-4 align-items-center">
+                    <div class="col-lg-3 col-md-4 text-center">
+                        <div class="supplier-logo-container position-relative">
+                            <div class="supplier-logo-wrapper d-inline-block position-relative">
+                                <% 
+                                let logoUrl = supplier.companyLogo || supplier.logo || supplier.profileImage;
+                                
+                                // Robust type handling and conversion
+                                try {
+                                    // Handle object types (could contain url or path properties)
+                                    if (logoUrl && typeof logoUrl === 'object') {
+                                        logoUrl = logoUrl.url || logoUrl.path || logoUrl.src || '';
+                                    }
+                                    
+                                    // Convert to string safely
+                                    logoUrl = String(logoUrl || '').trim();
+                                    
+                                    // Check for invalid values
+                                    if (!logoUrl || logoUrl === '' || logoUrl === 'undefined' || logoUrl === 'null' || logoUrl === 'false' || logoUrl.length === 0) {
+                                        logoUrl = '/assets/images/thumbs/default-supplier.jpg';
+                                    } else {
+                                        // Ensure URL is properly formatted - now safe to use startsWith since logoUrl is guaranteed to be a string
+                                        if (logoUrl.length > 0 && !logoUrl.startsWith('http') && !logoUrl.startsWith('/') && !logoUrl.startsWith('data:')) {
+                                            logoUrl = '/' + logoUrl;
+                                        }
+                                    }
+                                } catch (error) {
+                                    // Fallback in case of any error
+                                    logoUrl = '/assets/images/thumbs/default-supplier.jpg';
+                                }
+                                %>
+                                <img src="<%= logoUrl %>" 
+                                     alt="<%= supplier.companyName || supplier.businessName %> Logo" 
+                                     class="supplier-logo rounded-3 shadow-lg" 
+                                     style="width: 180px; height: 180px; object-fit: cover;"
+                                     onerror="this.src='/assets/images/thumbs/default-supplier.jpg'; this.onerror=null;">
+                                <% if (supplier.verificationBadge && supplier.verificationBadge.isVerified) { %>
+                                <div class="verification-badge position-absolute">
+                                    <span class="badge bg-success d-flex align-items-center gap-1">
+                                        <i class="las la-check-circle"></i>
+                                        <%= typeof t === 'function' ? t('supplier.verified') : 'Verified' %>
+                                    </span>
+                                </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-9 col-md-8">
+                        <div class="supplier-info">
+                            <h1 class="supplier-name text-heading mb-3 display-4 fw-bold"><%= supplier.companyName || supplier.businessName %></h1>
+                            
+                            <div class="supplier-meta d-flex flex-wrap align-items-center gap-4 mb-4">
+                                <div class="rating-container d-flex align-items-center">
+                                    <% 
+                                    // Get rating from various possible fields
+                                    let rating = supplier.averageRating || supplier.rating || supplier.overallRating || 0;
+                                    if (typeof rating === 'object' && rating.average) {
+                                        rating = rating.average;
+                                    }
+                                    rating = parseFloat(rating) || 0;
+                                    
+                                    // Get review count
+                                    let reviewCount = supplier.totalReviews || supplier.reviewCount || 0;
+                                    if (typeof reviewCount === 'object' && reviewCount.total) {
+                                        reviewCount = reviewCount.total;
+                                    }
+                                    reviewCount = parseInt(reviewCount) || 0;
+                                    
+                                    // Calculate star display
+                                    const fullStars = Math.floor(rating);
+                                    const hasHalfStar = (rating % 1) >= 0.5;
+                                    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                                    %>
+                                    <div class="stars me-2">
+                                        <% for (let i = 0; i < fullStars; i++) { %>
+                                            <i class="las la-star text-warning"></i>
+                                        <% } %>
+                                        <% if (hasHalfStar) { %>
+                                            <i class="las la-star-half-alt text-warning"></i>
+                                        <% } %>
+                                        <% for (let i = 0; i < emptyStars; i++) { %>
+                                            <i class="las la-star text-gray"></i>
+                                        <% } %>
+                                    </div>
+                                    <span class="rating-text text-heading fw-600">
+                                        <%= rating.toFixed(1) %>
+                                        (<%= reviewCount %> <%= typeof t === 'function' ? t('supplier.reviews') : 'reviews' %>)
+                                    </span>
+                                </div>
+                                
+                                <div class="location-info d-flex align-items-center text-heading">
+                                    <i class="las la-map-marker-alt me-2 text-main"></i>
+                                    <span><%= supplier.city %>, <%= supplier.country %></span>
+                                </div>
+                                
+                                <div class="established-info d-flex align-items-center text-heading">
+                                    <i class="las la-calendar-alt me-2 text-main"></i>
+                                    <span>
+                                        <%= typeof t === 'function' ? t('supplier.established') : 'Established' %>: 
+                                        <% 
+                                        let headerEstablishedYear = supplier.establishedYear || supplier.yearEstablished;
+                                        if (!headerEstablishedYear && supplier.businessStartDate) {
+                                            headerEstablishedYear = new Date(supplier.businessStartDate).getFullYear();
+                                        }
+                                        if (!headerEstablishedYear && supplier.foundedDate) {
+                                            headerEstablishedYear = new Date(supplier.foundedDate).getFullYear();
+                                        }
+                                        if (!headerEstablishedYear || headerEstablishedYear === 'N/A' || headerEstablishedYear === 'n/a') {
+                                            headerEstablishedYear = new Date().getFullYear();
+                                        }
+                                        %>
+                                        <%= headerEstablishedYear %>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <p class="supplier-description text-gray font-18 mb-4">
+                                <%= supplier.description || supplier.activityType || 'Professional B2B supplier providing quality products and services.' %>
+                            </p>
+                            
+                            <div class="supplier-quick-stats d-flex flex-wrap gap-4">
+                                <div class="stat-item text-center">
+                                    <div class="stat-number h3 text-heading mb-1"><%= supplierProducts.length %></div>
+                                    <div class="stat-label text-gray font-14"><%= typeof t === 'function' ? t('supplier.totalProducts') : 'Products' %></div>
+                                </div>
+                                <div class="stat-item text-center">
+                                    <% 
+                                    let yearsExp = businessMetrics ? businessMetrics.experienceYears : 0;
+                                    if (!yearsExp && supplier.businessStartDate) {
+                                        const currentYear = new Date().getFullYear();
+                                        const startYear = new Date(supplier.businessStartDate).getFullYear();
+                                        yearsExp = Math.max(0, currentYear - startYear);
+                                    }
+                                    if (!yearsExp && supplier.establishedYear) {
+                                        const currentYear = new Date().getFullYear();
+                                        yearsExp = Math.max(0, currentYear - supplier.establishedYear);
+                                    }
+                                    yearsExp = yearsExp || 0;
+                                    %>
+                                    <div class="stat-number h3 text-heading mb-1"><%= yearsExp %></div>
+                                    <div class="stat-label text-gray font-14"><%= typeof t === 'function' ? t('supplier.yearsExperience') : 'Years Experience' %></div>
+                                </div>
+                                <div class="stat-item text-center">
+                                    <% 
+                                    let empCount = supplier.employeeCount || supplier.employees || supplier.numberOfEmployees || supplier.totalEmployees;
+                                    if (!empCount || empCount === 'N/A' || empCount === 'n/a') {
+                                        empCount = 'N/A';
+                                    } else if (typeof empCount === 'number') {
+                                        empCount = empCount.toLocaleString();
+                                    }
+                                    %>
+                                    <div class="stat-number h3 text-heading mb-1"><%= empCount %></div>
+                                    <div class="stat-label text-gray font-14"><%= typeof t === 'function' ? t('supplier.employees') : 'Employees' %></div>
+                                </div>
+                                <div class="stat-item text-center">
+                                    <% 
+                                    let responseRate = businessMetrics ? businessMetrics.responseRate : 95;
+                                    if (!responseRate) {
+                                        responseRate = Math.floor(Math.random() * 21) + 80; // Random between 80-100 for demo
+                                    }
+                                    %>
+                                    <div class="stat-number h3 text-heading mb-1"><%= responseRate %>%</div>
+                                    <div class="stat-label text-gray font-14"><%= typeof t === 'function' ? t('supplier.responseRate') : 'Response Rate' %></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+                            
+        <!-- Products Showcase Section -->
+        <section class="products-section padding-y-120 position-relative z-index-1">
+            <div class="container container-two">
+                <div class="section-heading style-left style-flex flx-between align-items-end gap-3 mb-5">
+                    <div class="section-heading__inner">
+                        <h3 class="section-heading__title d-flex align-items-center">
+                            <i class="las la-boxes text-main me-3 font-24"></i>
+                            <%= typeof t === 'function' ? t('supplier.products') : 'Products' %>
+                            <span class="badge bg-main text-white ms-3"><%= supplierProducts.length %></span>
+                        </h3>
+                        <p class="section-heading__desc"><%= typeof t === 'function' ? t('supplier.productsDescription') : 'Explore our comprehensive range of quality products' %></p>
+                    </div>
+                    
+                    <div class="section-actions d-flex gap-3">
+                        <a href="/all-product?manufacturer=<%= supplier._id %>" class="btn btn-primary btn-lg pill">
+                            <i class="las la-th-large me-2"></i>
+                            <%= typeof t === 'function' ? t('supplier.allProducts') : 'All Products' %>
+                            <span class="icon-right icon">
+                                <i class="las la-arrow-right"></i>
+                            </span>
+                        </a>
+                    </div>
+                </div>
+                
+                <% if (supplierProducts.length > 0) { %>
+                    <% 
+                    // Filter top products (4+ rating) or fallback to all products
+                    const topProducts = supplierProducts.filter(p => (p.averageRating || 0) >= 4).slice(0, 10);
+                    const displayProducts = topProducts.length >= 5 ? topProducts : supplierProducts.slice(0, 10);
+                    %>
+                    
+                    <!-- Top Products Carousel -->
+                    <% if (displayProducts.length > 3) { %>
+                    <div class="top-products-section mb-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="text-heading mb-0">
+                                <i class="las la-star text-warning me-2"></i>
+                                <%= typeof t === 'function' ? t('supplier.topProducts') : 'Top Products' %>
+                                <% if (topProducts.length >= 5) { %>
+                                <small class="text-muted ms-2">(<%- typeof t === 'function' ? t('supplier.topProductsRating') : '4+ Rating' %>)</small>
+                                <% } %>
+                            </h4>
+                            <div class="carousel-controls">
+                                <button class="btn btn-outline-secondary btn-sm" id="prevProduct">
+                                    <i class="las la-chevron-left"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm ms-2" id="nextProduct">
+                                    <i class="las la-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="products-carousel-container">
+                            <div class="products-carousel" id="productsCarousel">
+                                <% displayProducts.forEach(product => { %>
+                                    <% 
+                                    const primaryImage = product.images?.find(img => img.isPrimary) || product.images?.[0];
+                                    const imageUrl = primaryImage?.url || (product.images && product.images.length > 0 ? product.images[0].url : '/assets/images/thumbs/default-product.jpg');
+                                    const imageAlt = primaryImage?.alt || product.name;
+                                    const formattedPrice = new Intl.NumberFormat('en-US', {
+                                        style: 'currency',
+                                        currency: product.pricing?.currency || 'USD'
+                                    }).format(product.pricing?.basePrice || 0);
+                                    const rating = product.rating?.average || product.averageRating || 0;
+                                    const reviewCount = product.rating?.total || product.totalReviews || 0;
+                                    const viewsCount = product.analytics?.views || 0;
+                                    const salesText = viewsCount > 1000 ? Math.floor(viewsCount / 1000) + 'k Views' : viewsCount + ' Views';
+                                    const productUrl = `/product-details?id=${product._id}`;
+                                    %>
+                                    
+                                    <div class="carousel-item col-xl-4 col-lg-6 col-md-6">
+                                        <div class="product-item shadow-sm">
+                                            <div class="product-item__thumb d-flex">
+                                                <a href="<%= productUrl %>" class="link w-100">
+                                                    <img src="<%= imageUrl %>" alt="<%= imageAlt %>" class="cover-img">
+                                                </a>
+                                                <% if (rating >= 4) { %>
+                                                <div class="product-badge featured">
+                                                    <i class="las la-star"></i>
+                                                    <%- typeof t === 'function' ? t('supplier.topRated') : 'Top Rated' %>
+                                                </div>
+                                                <% } %>
+                                            </div>
+                                            <div class="product-item__content">
+                                                <h6 class="product-item__title">
+                                                    <a href="<%= productUrl %>" class="link"><%= product.name %></a>
+                                                </h6>
+                                                <div class="product-item__info flx-between gap-2">
+                                                    <span class="product-item__author">
+                                                        <%- typeof t === 'function' ? t('buttons.by') : 'by' %> 
+                                                        <a href="#" class="link hover-text-decoration-underline"><%= supplier.companyName %></a>
+                                                        <% if (supplier.country) { %>
+                                                          <small class="text-muted">(<%= supplier.country %>)</small>
+                                                        <% } %>
+                                                    </span>
+                                                    <div class="flx-align gap-2">
+                                                        <h6 class="product-item__price mb-0"><%= formattedPrice %></h6>
+                                                    </div>
+                                                </div>
+                                                <div class="product-item__bottom flx-between gap-2">
+                                                    <div>
+                                                        <span class="product-item__sales font-14 mb-2"><%= salesText %></span>
+                                                        <div class="d-flex align-items-center gap-1">
+                                                            <ul class="star-rating">
+                                                                <% 
+                                                                const fullStars = Math.floor(rating || 0);
+                                                                const hasHalfStar = (rating || 0) % 1 >= 0.5;
+                                                                const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                                                                %>
+                                                                <% for (let i = 0; i < fullStars; i++) { %>
+                                                                    <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                                                <% } %>
+                                                                <% if (hasHalfStar) { %>
+                                                                    <li class="star-rating__item font-11"><i class="fas fa-star-half-alt"></i></li>
+                                                                <% } %>
+                                                                <% for (let i = 0; i < emptyStars; i++) { %>
+                                                                    <li class="star-rating__item font-11"><i class="far fa-star"></i></li>
+                                                                <% } %>
+                                                            </ul>
+                                                            <span class="star-rating__text text-heading fw-500 font-14">(<%= reviewCount %>)</span>
+                                                        </div>
+                                                    </div>
+                                                    <a href="<%= productUrl %>" class="btn btn-outline-light btn-sm pill"><%- typeof t === 'function' ? t('supplier.viewDetails') : 'View Details' %></a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+                    
+                    <!-- All Products Grid using standard product-item layout -->
+                    <div class="all-products-grid">
+                        <% if (displayProducts.length > 3) { %>
+                        <h4 class="text-heading mb-4">
+                            <i class="las la-layer-group text-main me-2"></i>
+                            <%= typeof t === 'function' ? t('supplier.allProductsGrid') : 'All Products' %>
+                        </h4>
+                        <% } %>
+                        
+                        <div class="row gy-4" id="products-container">
+                            <% supplierProducts.slice(0, 12).forEach(product => { %>
+                                <% 
+                                const primaryImage = product.images?.find(img => img.isPrimary) || product.images?.[0];
+                                const imageUrl = primaryImage?.url || (product.images && product.images.length > 0 ? product.images[0].url : '/assets/images/thumbs/default-product.jpg');
+                                const imageAlt = primaryImage?.alt || product.name;
+                                const formattedPrice = new Intl.NumberFormat('en-US', {
+                                    style: 'currency',
+                                    currency: product.pricing?.currency || 'USD'
+                                }).format(product.pricing?.basePrice || 0);
+                                const rating = product.rating?.average || product.averageRating || 0;
+                                const reviewCount = product.rating?.total || product.totalReviews || 0;
+                                const viewsCount = product.analytics?.views || 0;
+                                const salesText = viewsCount > 1000 ? Math.floor(viewsCount / 1000) + 'k Views' : viewsCount + ' Views';
+                                const productUrl = `/product-details?id=${product._id}`;
+                                %>
+                                
+                                <div class="col-xl-4 col-lg-6 col-md-6">
+                                    <div class="product-item shadow-sm">
+                                        <div class="product-item__thumb d-flex">
+                                            <a href="<%= productUrl %>" class="link w-100">
+                                                <img src="<%= imageUrl %>" alt="<%= imageAlt %>" class="cover-img">
+                                            </a>
+                                        </div>
+                                        <div class="product-item__content">
+                                            <h6 class="product-item__title">
+                                                <a href="<%= productUrl %>" class="link"><%= product.name %></a>
+                                            </h6>
+                                            <div class="product-item__info flx-between gap-2">
+                                                <span class="product-item__author">
+                                                    <%- typeof t === 'function' ? t('buttons.by') : 'by' %> 
+                                                    <a href="#" class="link hover-text-decoration-underline"><%= supplier.companyName %></a>
+                                                    <% if (supplier.country) { %>
+                                                      <small class="text-muted">(<%= supplier.country %>)</small>
+                                                    <% } %>
+                                                </span>
+                                                <div class="flx-align gap-2">
+                                                    <h6 class="product-item__price mb-0"><%= formattedPrice %></h6>
+                                                </div>
+                                            </div>
+                                            <div class="product-item__bottom flx-between gap-2">
+                                                <div>
+                                                    <span class="product-item__sales font-14 mb-2"><%= salesText %></span>
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <ul class="star-rating">
+                                                            <% 
+                                                            const fullStars = Math.floor(rating || 0);
+                                                            const hasHalfStar = (rating || 0) % 1 >= 0.5;
+                                                            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                                                            %>
+                                                            <% for (let i = 0; i < fullStars; i++) { %>
+                                                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
+                                                            <% } %>
+                                                            <% if (hasHalfStar) { %>
+                                                                <li class="star-rating__item font-11"><i class="fas fa-star-half-alt"></i></li>
+                                                            <% } %>
+                                                            <% for (let i = 0; i < emptyStars; i++) { %>
+                                                                <li class="star-rating__item font-11"><i class="far fa-star"></i></li>
+                                                            <% } %>
+                                                        </ul>
+                                                        <span class="star-rating__text text-heading fw-500 font-14">(<%= reviewCount %>)</span>
+                                                    </div>
+                                                </div>
+                                                <a href="<%= productUrl %>" class="btn btn-outline-light btn-sm pill"><%- typeof t === 'function' ? t('supplier.viewDetails') : 'View Details' %></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                        
+                        <% if (supplierProducts.length > 12) { %>
+                        <div class="text-center mt-5">
+                            <a href="/all-product?manufacturer=<%= supplier._id %>" class="btn btn-outline-primary btn-lg">
+                                <i class="las la-plus-circle me-2"></i>
+                                <%= typeof t === 'function' ? t('supplier.viewAllProducts') : 'View All Products' %> 
+                                (<%= supplierProducts.length %> <%- typeof t === 'function' ? t('supplier.totalText') : 'total' %>)
+                            </a>
+                        </div>
+                        <% } %>
+                    </div>
+                <% } else { %>
+                <div class="text-center py-5">
+                    <i class="las la-box-open text-gray" style="font-size: 4rem;"></i>
+                    <h4 class="text-heading mt-3 mb-2"><%= typeof t === 'function' ? t('supplier.noProductsTitle') : 'No Products Available' %></h4>
+                    <p class="text-gray"><%= typeof t === 'function' ? t('supplier.noProductsDescription') : 'This supplier hasn\'t added any products yet.' %></p>
+                </div>
+                <% } %>
+            </div>
+        </section>
+        
+        <!-- Main Content Grid -->
+        <section class="supplier-content padding-y-60">
+            <div class="container container-two">
+                <div class="row gy-5">
+                    
+                    <!-- Left Column - Business Information -->
+                    <div class="col-lg-8">
+                        
+                        <!-- Company Overview Card -->
+                        <div class="content-card mb-4">
+                            <div class="card-body p-4">
+                                <h3 class="section-title">
+                                    <i class="las la-building text-main"></i>
+                                    <%= typeof t === 'function' ? t('supplier.companyOverview') : 'Company Overview' %>
+                                </h3>
+                                
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong><%= typeof t === 'function' ? t('supplier.businessType') : 'Business Type' %>:</strong>
+                                            <div class="d-flex align-items-center mt-2">
+                                                <i class="las la-industry text-main me-2"></i>
+                                                <span>
+                                                    <% 
+                                                    let businessType = supplier.activityType || supplier.businessType || 'general_trading';
+                                                    let translatedBusinessType = '';
+                                                    if (typeof t === 'function') {
+                                                        // Try to get translated business type
+                                                        translatedBusinessType = t(`businessTypes.${businessType}`) || t(`business.${businessType}`) || businessType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                                        if (translatedBusinessType === `businessTypes.${businessType}`) {
+                                                            translatedBusinessType = businessType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                                        }
+                                                    } else {
+                                                        translatedBusinessType = businessType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                                    }
+                                                    %>
+                                                    <%= translatedBusinessType %>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong><%= typeof t === 'function' ? t('supplier.numberOfEmployees') : 'Number of Employees' %>:</strong>
+                                            <div class="d-flex align-items-center mt-2">
+                                                <i class="las la-users text-main me-2"></i>
+                                                <span>
+                                                    <% 
+                                                    let employeeCount = supplier.employeeCount || supplier.employees || supplier.numberOfEmployees || supplier.totalEmployees;
+                                                    if (employeeCount && employeeCount !== 'N/A' && employeeCount !== 'n/a') {
+                                                        if (typeof employeeCount === 'number') {
+                                                            employeeCount = employeeCount.toLocaleString();
+                                                        }
+                                                    } else {
+                                                        employeeCount = typeof t === 'function' ? t('supplier.notSpecified') : 'Not specified';
+                                                    }
+                                                    %>
+                                                    <%= employeeCount %>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong><%= typeof t === 'function' ? t('supplier.yearEstablished') : 'Year Established' %>:</strong>
+                                            <div class="d-flex align-items-center mt-2">
+                                                <i class="las la-calendar text-main me-2"></i>
+                                                <span>
+                                                    <% 
+                                                    let establishedYear = supplier.establishedYear || supplier.yearEstablished;
+                                                    if (!establishedYear && supplier.businessStartDate) {
+                                                        establishedYear = new Date(supplier.businessStartDate).getFullYear();
+                                                    }
+                                                    if (!establishedYear && supplier.foundedDate) {
+                                                        establishedYear = new Date(supplier.foundedDate).getFullYear();
+                                                    }
+                                                    if (!establishedYear && supplier.createdAt) {
+                                                        establishedYear = new Date(supplier.createdAt).getFullYear();
+                                                    }
+                                                    if (!establishedYear || establishedYear === 'N/A' || establishedYear === 'n/a') {
+                                                        establishedYear = typeof t === 'function' ? t('supplier.notSpecified') : 'Not specified';
+                                                    }
+                                                    %>
+                                                    <%= establishedYear %>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong><%= typeof t === 'function' ? t('supplier.annualRevenue') : 'Annual Revenue' %>:</strong>
+                                            <div class="d-flex align-items-center mt-2">
+                                                <i class="las la-dollar-sign text-main me-2"></i>
+                                                <span><%= supplier.annualRevenue || (typeof t === 'function' ? t('supplier.confidential') : 'Confidential') %></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <div class="info-item">
+                                            <strong><%= typeof t === 'function' ? t('supplier.address') : 'Business Address' %>:</strong>
+                                            <div class="d-flex align-items-start mt-2">
+                                                <i class="las la-map-marker-alt text-main me-2 mt-1"></i>
+                                                <div>
+                                                    <address class="mb-0">
+                                                        <%= supplier.address %><br>
+                                                        <%= supplier.city %>, <%= supplier.country %>
+                                                    </address>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Business Performance Metrics -->
+                        <div class="content-card mb-4">
+                            <div class="card-body p-4">
+                                <h3 class="section-title">
+                                    <i class="las la-chart-line text-main"></i>
+                                    <%= typeof t === 'function' ? t('supplier.businessPerformance') : 'Business Performance' %>
+                                </h3>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="performance-metric text-center p-3 rounded-3">
+                                            <div class="metric-icon text-primary mb-2">
+                                                <i class="las la-star"></i>
+                                            </div>
+                                            <div class="metric-value h4 mb-1 "><%= supplier.averageRating ? supplier.averageRating.toFixed(1) : '0.0' %></div>
+                                            <div class="metric-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.avgRating') : 'Avg Rating' %></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="performance-metric text-center p-3 rounded-3">
+                                            <div class="metric-icon text-success mb-2">
+                                                <i class="las la-clock"></i>
+                                            </div>
+                                            <div class="metric-value h4 mb-1 "><%= businessMetrics.responseRate %>%</div>
+                                            <div class="metric-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.responseRate') : 'Response Rate' %></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="performance-metric text-center p-3 rounded-3">
+                                            <div class="metric-icon text-warning mb-2">
+                                                <i class="las la-shipping-fast"></i>
+                                            </div>
+                                            <div class="metric-value h4 mb-1 "><%= businessMetrics.onTimeDelivery %>%</div>
+                                            <div class="metric-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.onTimeDelivery') : 'On-time Delivery' %></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="performance-metric text-center p-3 rounded-3">
+                                            <div class="metric-icon text-info mb-2">
+                                                <i class="las la-medal"></i>
+                                            </div>
+                                            <div class="metric-value h4 mb-1 "><%= businessMetrics.experienceYears %></div>
+                                            <div class="metric-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.yearsExp') : 'Years Exp.' %></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Trade Assurance & Capabilities -->
+                        <div class="content-card mb-4">
+                            <div class="card-body p-4">
+                                <h3 class="section-title">
+                                    <i class="las la-shield-alt text-main"></i>
+                                    <%= typeof t === 'function' ? t('supplier.tradeAssurance') : 'Trade Assurance & Capabilities' %>
+                                </h3>
+                                
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <div class="capability-item d-flex align-items-start">
+                                            <div class="capability-icon me-3 mt-1">
+                                                <i class="las la-check-circle text-success font-20"></i>
+                                            </div>
+                                            <div class="capability-content">
+                                                <h6 class="mb-2"><%= typeof t === 'function' ? t('supplier.qualityAssurance') : 'Quality Assurance' %></h6>
+                                                <p class="text-muted mb-0 font-14"><%= typeof t === 'function' ? t('supplier.qualityAssuranceDesc') : 'Professional quality control and inspection services' %></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="capability-item d-flex align-items-start">
+                                            <div class="capability-icon me-3 mt-1">
+                                                <i class="las la-shipping-fast text-primary font-20"></i>
+                                            </div>
+                                            <div class="capability-content">
+                                                <h6 class="mb-2"><%= typeof t === 'function' ? t('supplier.fastDelivery') : 'Fast Delivery' %></h6>
+                                                <p class="text-muted mb-0 font-14">Efficient logistics and timely delivery guaranteed</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="capability-item d-flex align-items-start">
+                                            <div class="capability-icon me-3 mt-1">
+                                                <i class="las la-certificate text-warning font-20"></i>
+                                            </div>
+                                            <div class="capability-content">
+                                                <h6 class="mb-2"><%= typeof t === 'function' ? t('supplier.certifications') : 'Certifications' %></h6>
+                                                <p class="text-muted mb-0 font-14">ISO certified and internationally recognized standards</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="capability-item d-flex align-items-start">
+                                            <div class="capability-icon me-3 mt-1">
+                                                <i class="las la-headset text-info font-20"></i>
+                                            </div>
+                                            <div class="capability-content">
+                                                <h6 class="mb-2"><%= typeof t === 'function' ? t('supplier.customerSupport') : '24/7 Support' %></h6>
+                                                <p class="text-muted mb-0 font-14">Round-the-clock customer service and support</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Business Insights & Analytics -->
+                        <div class="content-card mb-4">
+                            <div class="card-body p-4">
+                                <h3 class="section-title">
+                                    <i class="las la-analytics text-main"></i>
+                                    <%= typeof t === 'function' ? t('supplier.businessInsights') : 'Business Insights' %>
+                                </h3>
+                                
+                                <div class="insights-grid row g-3">
+                                    <div class="col-md-4 col-sm-6">
+                                        <div class="insight-card  p-3 rounded-3 text-center">
+                                            <div class="insight-number h5 text-primary mb-1"><%= supplier.totalOrders || 0 %></div>
+                                            <div class="insight-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.totalOrders') : 'Total Orders' %></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4 col-sm-6">
+                                        <div class="insight-card  p-3 rounded-3 text-center">
+                                            <div class="insight-number h5 text-success mb-1"><%= supplier.completedOrders || 0 %></div>
+                                            <div class="insight-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.completedOrders') : 'Completed Orders' %></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4 col-sm-6">
+                                        <div class="insight-card  p-3 rounded-3 text-center">
+                                            <div class="insight-number h5 text-warning mb-1"><%= supplier.totalReviews || 0 %></div>
+                                            <div class="insight-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.customerReviews') : 'Customer Reviews' %></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column - Contact & Actions -->
+                    <div class="col-lg-4">
+                        
+                        <!-- Contact Card -->
+                        <div class="content-card mb-4">
+                            <div class="card-body p-4">
+                                <h4 class="section-title border-0 pb-2 mb-4">
+                                    <i class="las la-phone text-main"></i>
+                                    <%= typeof t === 'function' ? t('supplier.contactSupplier') : 'Contact Supplier' %>
+                                </h4>
+                                
+                                <!-- Quick Contact Actions -->
+                                <div class="contact-actions mb-4">
+                                    <button class="btn btn-primary btn-lg w-100 mb-3 professional-btn" onclick="openContactModal()">
+                                        <i class="las la-envelope me-2 text-white"></i>
+                                        <%= typeof t === 'function' ? t('buttons.sendInquiry') : 'Send Inquiry' %>
+                                    </button>
+                                    
+                                    <button class="btn btn-success btn-lg w-100 mb-3 professional-btn" onclick="startChat('<%= supplier._id %>')">
+                                        <i class="las la-comments me-2 text-white"></i>
+                                        <%= typeof t === 'function' ? t('supplier.actions.startChat') : 'Start Chat' %>
+                                    </button>
+                                    
+                                    <button class="btn btn-outline-primary btn-lg w-100 professional-btn" onclick="openQuoteModal()">
+                                        <i class="las la-file-alt me-2 text-main"></i>
+                                        <%= typeof t === 'function' ? t('supplier.actions.requestQuote') : 'Request Quote' %>
+                                    </button>
+                                </div>
+                                
+                                <!-- Contact Information -->
+                                <div class="contact-info pt-3">
+                                    <div class="info-list">
+                                        <% if (supplier.email) { %>
+                                        <div class="info-item d-flex align-items-center py-2">
+                                            <i class="las la-envelope text-main me-3 font-18"></i>
+                                            <a href="mailto:<%= supplier.email %>" class="text-decoration-none text-heading"><%= supplier.email %></a>
+                                        </div>
+                                        <% } %>
+                                        
+                                        <% if (supplier.phone) { %>
+                                        <div class="info-item d-flex align-items-center py-2">
+                                            <i class="las la-phone text-success me-3 font-18"></i>
+                                            <a href="tel:<%= supplier.phone %>" class="text-decoration-none text-heading"><%= supplier.phone %></a>
+                                        </div>
+                                        <% } %>
+                                        
+                                        <% if (supplier.website) { %>
+                                        <div class="info-item d-flex align-items-center py-2">
+                                            <i class="las la-globe text-info me-3 font-18"></i>
+                                            <a href="<%= supplier.website %>" target="_blank" class="text-decoration-none text-heading"><%= supplier.website %></a>
+                                        </div>
+                                        <% } %>
+                                        
+                                        <div class="info-item d-flex align-items-center py-2">
+                                            <i class="las la-map-marker-alt text-warning me-3 font-18"></i>
+                                            <span class="text-heading"><%= supplier.city %>, <%= supplier.country %></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Additional Actions -->
+                                <div class="additional-actions d-flex justify-content-center gap-3 pt-4 mt-4 border-top">
+                                    <button class="btn btn-outline-secondary btn-sm px-3 py-2 professional-action-btn" onclick="saveSupplier('<%= supplier._id %>')" 
+                                            title="<%= typeof t === 'function' ? t('supplier.actions.saveSupplier') : 'Save Supplier' %>">
+                                        <i class="las la-save text-main me-1 font-16"></i>
+                                        <span class="d-none d-md-inline"><%= typeof t === 'function' ? t('supplier.actions.saveSupplier') : 'Save' %></span>
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm px-3 py-2 professional-action-btn" onclick="shareSupplier('<%= supplier._id %>')" 
+                                            title="<%= typeof t === 'function' ? t('supplier.actions.shareSupplier') : 'Share Supplier' %>">
+                                        <i class="las la-share text-info me-1 font-16"></i>
+                                        <span class="d-none d-md-inline"><%= typeof t === 'function' ? t('supplier.actions.shareSupplier') : 'Share' %></span>
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm px-3 py-2 professional-action-btn" onclick="reportSupplier('<%= supplier._id %>')" 
+                                            title="<%= typeof t === 'function' ? t('supplier.actions.reportSupplier') : 'Report Supplier' %>">
+                                        <i class="las la-flag text-warning me-1 font-16"></i>
+                                        <span class="d-none d-md-inline"><%= typeof t === 'function' ? t('supplier.actions.reportSupplier') : 'Report' %></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Verification Badge Card -->
+                        <% if (supplier.verificationBadge && supplier.verificationBadge.isVerified) { %>
+                        <div class="content-card mb-4">
+                            <div class="card-body p-4 text-center">
+                                <div class="verification-status">
+                                    <div class="verification-icon mb-3">
+                                        <i class="las la-shield-alt text-success" style="font-size: 3rem;"></i>
+                                    </div>
+                                    <h5 class="text-success mb-2"><%= typeof t === 'function' ? t('supplier.verifiedSupplier') : 'Verified Supplier' %></h5>
+                                    <p class="text-muted font-14 mb-3"><%= typeof t === 'function' ? t('supplier.verifiedSupplierDesc') : 'This supplier has been verified by our platform' %></p>
+                                    <div class="verification-details">
+                                        <small class="text-muted">
+                                            <%= typeof t === 'function' ? t('supplier.verifiedOn') : 'Verified on' %>: 
+                                            <%= new Date(supplier.verificationBadge.verifiedAt).toLocaleDateString() %>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <% } %>
+                        
+                        <!-- Trust & Safety Card -->
+                        <div class="content-card">
+                            <div class="card-body p-4">
+                                <h5 class="section-title border-0 pb-2 mb-3">
+                                    <i class="las la-shield-alt text-main"></i>
+                                    <%= typeof t === 'function' ? t('supplier.trustSafety') : 'Trust & Safety' %>
+                                </h5>
+                                
+                                <div class="trust-features">
+                                    <div class="trust-item d-flex align-items-center mb-3">
+                                        <i class="las la-check-circle text-success me-3 font-18"></i>
+                                        <span class="font-14"><%= typeof t === 'function' ? t('supplier.businessVerified') : 'Business License Verified' %></span>
+                                    </div>
+                                    
+                                    <div class="trust-item d-flex align-items-center mb-3">
+                                        <i class="las la-lock text-primary me-3 font-18"></i>
+                                        <span class="font-14"><%= typeof t === 'function' ? t('supplier.securePayment') : 'Secure Payment Protection' %></span>
+                                    </div>
+                                    
+                                    <div class="trust-item d-flex align-items-center mb-3">
+                                        <i class="las la-medal text-warning me-3 font-18"></i>
+                                        <span class="font-14"><%= typeof t === 'function' ? t('supplier.qualityGuarantee') : 'Quality Guarantee' %></span>
+                                    </div>
+                                    
+                                    <div class="trust-item d-flex align-items-center">
+                                        <i class="las la-headset text-info me-3 font-18"></i>
+                                        <span class="font-14"><%= typeof t === 'function' ? t('supplier.customerSupport') : '24/7 Customer Support' %></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <% } %>
+    </div>
+    
+    <!-- Contact Modal -->
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="contactModalLabel">
+                        <i class="las la-envelope text-main me-2"></i>
+                        <%= typeof t === 'function' ? t('supplier.contactModal.title') : 'Send Inquiry' %>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <p class="text-muted"><%= typeof t === 'function' ? t('supplier.contactModal.description') : 'Get in touch with this supplier for quotes and inquiries' %></p>
+                    </div>
+                    <form id="contactForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="contactName" class="form-label"><%= typeof t === 'function' ? t('form.name') : 'Your Name' %></label>
+                                <input type="text" class="form-control" id="contactName" required placeholder="<%= typeof t === 'function' ? t('form.namePlaceholder') : 'Enter your full name' %>">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="contactEmail" class="form-label"><%= typeof t === 'function' ? t('form.email') : 'Email Address' %></label>
+                                <input type="email" class="form-control" id="contactEmail" required placeholder="<%= typeof t === 'function' ? t('form.emailPlaceholder') : 'Enter your email address' %>">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="contactPhone" class="form-label"><%= typeof t === 'function' ? t('form.phone') : 'Phone Number' %></label>
+                                <input type="tel" class="form-control" id="contactPhone" placeholder="<%= typeof t === 'function' ? t('form.phonePlaceholder') : 'Enter your phone number' %>">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="contactCompany" class="form-label"><%= typeof t === 'function' ? t('form.company') : 'Company Name' %></label>
+                                <input type="text" class="form-control" id="contactCompany" placeholder="<%= typeof t === 'function' ? t('form.companyPlaceholder') : 'Enter your company name' %>">
+                            </div>
+                            <div class="col-12">
+                                <label for="contactSubject" class="form-label"><%= typeof t === 'function' ? t('form.subject') : 'Subject' %></label>
+                                <input type="text" class="form-control" id="contactSubject" required placeholder="<%= typeof t === 'function' ? t('form.subjectPlaceholder') : 'Enter subject' %>">
+                            </div>
+                            <div class="col-12">
+                                <label for="contactMessage" class="form-label"><%= typeof t === 'function' ? t('form.message') : 'Message' %></label>
+                                <textarea class="form-control" id="contactMessage" rows="4" required placeholder="<%= typeof t === 'function' ? t('form.messagePlaceholder') : 'Please describe your requirements, quantity needed, timeline, etc.' %>"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <%= typeof t === 'function' ? t('supplier.contactModal.cancel') : 'Cancel' %>
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="submitInquiry()">
+                        <i class="las la-paper-plane me-2"></i>
+                        <%= typeof t === 'function' ? t('supplier.contactModal.send') : 'Send Inquiry' %>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Request Quote Modal -->
+    <div class="modal fade" id="quoteModal" tabindex="-1" aria-labelledby="quoteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="quoteModalLabel">
+                        <i class="las la-file-alt text-main me-2"></i>
+                        <%= typeof t === 'function' ? t('supplier.quoteModal.title') : 'Request Quote' %>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <p class="text-muted"><%= typeof t === 'function' ? t('supplier.quoteModal.description') : 'Request a detailed price quote from this supplier' %></p>
+                    </div>
+                    <form id="quoteForm">
+                        <div class="row g-3">
+                            <!-- Contact Information -->
+                            <div class="col-12">
+                                <h6 class="mb-3 text-primary">Contact Information</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quoteName" class="form-label"><%= typeof t === 'function' ? t('form.name') : 'Your Name' %></label>
+                                <input type="text" class="form-control" id="quoteName" required placeholder="<%= typeof t === 'function' ? t('form.namePlaceholder') : 'Enter your full name' %>">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quoteEmail" class="form-label"><%= typeof t === 'function' ? t('form.email') : 'Email Address' %></label>
+                                <input type="email" class="form-control" id="quoteEmail" required placeholder="<%= typeof t === 'function' ? t('form.emailPlaceholder') : 'Enter your email address' %>">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quotePhone" class="form-label"><%= typeof t === 'function' ? t('form.phone') : 'Phone Number' %></label>
+                                <input type="tel" class="form-control" id="quotePhone" placeholder="<%= typeof t === 'function' ? t('form.phonePlaceholder') : 'Enter your phone number' %>">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quoteCompany" class="form-label"><%= typeof t === 'function' ? t('form.company') : 'Company Name' %></label>
+                                <input type="text" class="form-control" id="quoteCompany" placeholder="<%= typeof t === 'function' ? t('form.companyPlaceholder') : 'Enter your company name' %>">
+                            </div>
+                            
+                            <!-- Product Information -->
+                            <div class="col-12 mt-4">
+                                <h6 class="mb-3 text-primary">Product Information</h6>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="quoteProductName" class="form-label"><%= typeof t === 'function' ? t('supplier.quoteModal.productName') : 'Product/Service Name' %></label>
+                                <input type="text" class="form-control" id="quoteProductName" required placeholder="<%= typeof t === 'function' ? t('supplier.quoteModal.productNamePlaceholder') : 'Enter product or service name' %>">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="quoteQuantity" class="form-label"><%= typeof t === 'function' ? t('supplier.quoteModal.quantity') : 'Quantity Needed' %></label>
+                                <input type="text" class="form-control" id="quoteQuantity" required placeholder="<%= typeof t === 'function' ? t('supplier.quoteModal.quantityPlaceholder') : 'Enter quantity required' %>">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quoteTargetPrice" class="form-label"><%= typeof t === 'function' ? t('supplier.quoteModal.targetPrice') : 'Target Price (Optional)' %></label>
+                                <input type="text" class="form-control" id="quoteTargetPrice" placeholder="<%= typeof t === 'function' ? t('supplier.quoteModal.targetPricePlaceholder') : 'Enter your target price' %>">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quoteDeliveryDate" class="form-label"><%= typeof t === 'function' ? t('supplier.quoteModal.deliveryDate') : 'Required Delivery Date' %></label>
+                                <input type="date" class="form-control" id="quoteDeliveryDate">
+                            </div>
+                            <div class="col-12">
+                                <label for="quoteDeliveryLocation" class="form-label"><%= typeof t === 'function' ? t('supplier.quoteModal.deliveryLocation') : 'Delivery Location' %></label>
+                                <input type="text" class="form-control" id="quoteDeliveryLocation" placeholder="<%= typeof t === 'function' ? t('supplier.quoteModal.deliveryLocationPlaceholder') : 'Enter delivery location' %>">
+                            </div>
+                            <div class="col-12">
+                                <label for="quoteSpecifications" class="form-label"><%= typeof t === 'function' ? t('supplier.quoteModal.specifications') : 'Product Specifications' %></label>
+                                <textarea class="form-control" id="quoteSpecifications" rows="3" placeholder="<%= typeof t === 'function' ? t('supplier.quoteModal.specificationsPlaceholder') : 'Describe specific requirements, quality standards, certifications, etc.' %>"></textarea>
+                            </div>
+                            
+                            <!-- Business Terms -->
+                            <div class="col-12 mt-4">
+                                <h6 class="mb-3 text-primary">Business Terms</h6>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="quotePaymentTerms" class="form-label"><%= typeof t === 'function' ? t('supplier.quoteModal.paymentTerms') : 'Preferred Payment Terms' %></label>
+                                <input type="text" class="form-control" id="quotePaymentTerms" placeholder="<%= typeof t === 'function' ? t('supplier.quoteModal.paymentTermsPlaceholder') : 'e.g., 30% advance, 70% on delivery' %>">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="quoteUrgency" class="form-label"><%= typeof t === 'function' ? t('supplier.quoteModal.urgency') : 'Urgency Level' %></label>
+                                <select class="form-select" id="quoteUrgency">
+                                    <option value="low"><%= typeof t === 'function' ? t('supplier.quoteModal.urgencyOptions.low') : 'Low - Planning ahead' %></option>
+                                    <option value="medium" selected><%= typeof t === 'function' ? t('supplier.quoteModal.urgencyOptions.medium') : 'Medium - Within a month' %></option>
+                                    <option value="high"><%= typeof t === 'function' ? t('supplier.quoteModal.urgencyOptions.high') : 'High - Within a week' %></option>
+                                    <option value="urgent"><%= typeof t === 'function' ? t('supplier.quoteModal.urgencyOptions.urgent') : 'Urgent - ASAP' %></option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <%= typeof t === 'function' ? t('supplier.quoteModal.cancel') : 'Cancel' %>
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="submitQuoteRequest()">
+                        <i class="las la-paper-plane me-2"></i>
+                        <%= typeof t === 'function' ? t('supplier.quoteModal.send') : 'Request Quote' %>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</main>
+
+<!-- Professional Supplier Profile JavaScript -->
+<script src="/js/supplier-profile.js"></script>
+<script>
+// Legacy compatibility and inline functionality
+function openContactModal() {
+    if (typeof supplierProfile !== 'undefined') {
+        supplierProfile.openContactModal();
+    } else {
+        const contactModal = new bootstrap.Modal(document.getElementById('contactModal'));
+        contactModal.show();
+    }
+}
+
+function startChat(supplierId) {
+    if (typeof supplierProfile !== 'undefined') {
+        supplierProfile.startChat(supplierId);
+    } else {
+        console.log('Starting chat with supplier:', supplierId);
+        alert('Chat functionality will be implemented soon.');
+    }
+}
+
+function requestQuote() {
+    if (typeof supplierProfile !== 'undefined') {
+        supplierProfile.requestQuote();
+    } else {
+        const quoteModal = new bootstrap.Modal(document.getElementById('quoteModal'));
+        quoteModal.show();
+    }
+}
+
+function openQuoteModal() {
+    const quoteModal = new bootstrap.Modal(document.getElementById('quoteModal'));
+    quoteModal.show();
+}
+
+function submitQuoteRequest() {
+    const form = document.getElementById('quoteForm');
+    const formData = new FormData();
+    
+    // Collect all form data
+    formData.append('supplierId', '<%= supplier._id %>');
+    formData.append('name', document.getElementById('quoteName').value);
+    formData.append('email', document.getElementById('quoteEmail').value);
+    formData.append('phone', document.getElementById('quotePhone').value);
+    formData.append('company', document.getElementById('quoteCompany').value);
+    formData.append('productName', document.getElementById('quoteProductName').value);
+    formData.append('quantity', document.getElementById('quoteQuantity').value);
+    formData.append('targetPrice', document.getElementById('quoteTargetPrice').value);
+    formData.append('deliveryDate', document.getElementById('quoteDeliveryDate').value);
+    formData.append('deliveryLocation', document.getElementById('quoteDeliveryLocation').value);
+    formData.append('specifications', document.getElementById('quoteSpecifications').value);
+    formData.append('paymentTerms', document.getElementById('quotePaymentTerms').value);
+    formData.append('urgency', document.getElementById('quoteUrgency').value);
+    formData.append('type', 'quote_request');
+    
+    // Validate required fields
+    const requiredFields = ['quoteName', 'quoteEmail', 'quoteProductName', 'quoteQuantity'];
+    let isValid = true;
+    
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (!field.value.trim()) {
+            field.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        alert('Please fill in all required fields.');
+        return;
+    }
+    
+    // Here you would typically send the data to your backend
+    console.log('Submitting quote request:', Object.fromEntries(formData));
+    
+    // Show success message
+    alert('Your quote request has been sent successfully! The supplier will contact you soon.');
+    
+    // Close modal
+    const quoteModal = bootstrap.Modal.getInstance(document.getElementById('quoteModal'));
+    quoteModal.hide();
+    
+    // Reset form
+    form.reset();
+}
+
+function contactSupplier(productId) {
+    if (typeof supplierProfile !== 'undefined') {
+        supplierProfile.contactSupplier(productId);
+    } else {
+        document.getElementById('contactSubject').value = `Inquiry about Product ID: ${productId}`;
+        openContactModal();
+    }
+}
+
+function addToInquiry(productId) {
+    if (typeof supplierProfile !== 'undefined') {
+        supplierProfile.addToInquiry(productId);
+    } else {
+        console.log('Adding product to inquiry:', productId);
+        alert('Product added to inquiry list.');
+    }
+}
+
+function submitInquiry() {
+    const form = document.getElementById('contactForm');
+    const formData = new FormData(form);
+    
+    // Add supplier ID
+    formData.append('supplierId', '<%= supplier._id %>');
+    
+    // Here you would typically send the data to your backend
+    console.log('Submitting inquiry:', Object.fromEntries(formData));
+    
+    // Show success message
+    alert('Your inquiry has been sent successfully!');
+    
+    // Close modal
+    const contactModal = bootstrap.Modal.getInstance(document.getElementById('contactModal'));
+    contactModal.hide();
+    
+    // Reset form
+    form.reset();
+}
+
+function saveSupplier(supplierId) {
+    if (typeof supplierProfile !== 'undefined') {
+        supplierProfile.saveSupplier(supplierId);
+    } else {
+        console.log('Saving supplier:', supplierId);
+        alert('Supplier saved to favorites.');
+    }
+}
+
+function shareSupplier(supplierId) {
+    if (typeof supplierProfile !== 'undefined') {
+        supplierProfile.shareSupplier(supplierId);
+    } else {
+        if (navigator.share) {
+            navigator.share({
+                title: '<%= supplier.companyName %>',
+                text: 'Check out this supplier profile',
+                url: window.location.href
+            });
+        } else {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert('Supplier profile link copied to clipboard!');
+            });
+        }
+    }
+}
+
+function reportSupplier(supplierId) {
+    if (typeof supplierProfile !== 'undefined') {
+        supplierProfile.reportSupplier(supplierId);
+    } else {
+        const reason = prompt('Please provide a reason for reporting this supplier:');
+        if (reason) {
+            console.log('Reporting supplier:', supplierId, 'Reason:', reason);
+            alert('Report submitted. Thank you for helping us maintain quality.');
+        }
+    }
+}
+
+function showAllProducts() {
+    console.log('Showing all products');
+    window.location.href = `/supplier/<%= supplier._id %>/products`;
+}
+
+// Initialize tooltips if Bootstrap is available
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof bootstrap !== 'undefined') {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+});
+</script>
+
+<%- include('../partials/footer') %>

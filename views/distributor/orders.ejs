@@ -1,0 +1,185 @@
+<%- include('./partials/header', { title: title || 'Orders - SLEX', lng: lng || 'uz', user: user }) %>
+<%- include('./partials/sidebar', { user: user, currentPage: 'orders' }) %>
+
+<!-- Main Content -->
+<main class="admin-main buyer-orders">
+  <div class="admin-content">
+    
+    <!-- Orders Header -->
+    <div class="orders-header animate-fade-in">
+      <div class="orders-header-content">
+        <div class="orders-title-section">
+          <h1 class="orders-main-title">
+            <i class="fas fa-shopping-cart"></i>
+            <%- t('buyerOrders.title') %>
+          </h1>
+          <p class="orders-subtitle"><%- t('buyerOrders.subtitle') %></p>
+        </div>
+        <div class="orders-header-actions">
+          <button class="btn btn-primary" id="newOrderBtn">
+            <i class="fas fa-plus"></i>
+            <%- t('buyerOrders.newOrder') %>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders Filters -->
+    <div class="orders-filters animate-fade-in">
+      <div class="filter-group">
+        <label for="statusFilter"><%- t('buyerOrders.status') %></label>
+        <select id="statusFilter">
+          <option value="all"><%- t('buyerOrders.all') %></option>
+          <option value="pending"><%- t('buyerOrders.pending') %></option>
+          <option value="confirmed"><%- t('buyerOrders.confirmed') %></option>
+          <option value="in_production"><%- t('buyerOrders.inProduction') %></option>
+          <option value="shipped"><%- t('buyerOrders.shipped') %></option>
+          <option value="delivered"><%- t('buyerOrders.delivered') %></option>
+          <option value="cancelled"><%- t('buyerOrders.cancelled') %></option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="dateFilter"><%- t('buyerOrders.date') %></label>
+        <select id="dateFilter">
+          <option value="all"><%- t('buyerOrders.allTime') %></option>
+          <option value="30"><%- t('buyerOrders.last30Days') %></option>
+          <option value="90"><%- t('buyerOrders.last90Days') %></option>
+          <option value="365"><%- t('buyerOrders.lastYear') %></option>
+        </select>
+      </div>
+      
+      <div class="filter-group search-filter">
+        <input type="text" id="orderSearch" placeholder="<%- t('buyerOrders.searchOrders') %>">
+        <i class="fas fa-search"></i>
+      </div>
+    </div>
+
+    <!-- Orders List -->
+    <div class="orders-list animate-fade-in">
+      <div class="order-item">
+        <div class="order-header">
+          <div class="order-info">
+            <h3>#ORD-2024-001</h3>
+            <p>Premium Textiles Co.</p>
+          </div>
+          <div class="order-status pending">
+            <%- t('buyerOrders.pending') %>
+          </div>
+        </div>
+        <div class="order-details">
+          <div class="detail-item">
+            <label><%- t('buyerOrders.products') %>:</label>
+            <span>Organic Cotton Fabric - 500 meters</span>
+          </div>
+          <div class="detail-item">
+            <label><%- t('buyerOrders.date') %>:</label>
+            <span>Oct 15, 2024</span>
+          </div>
+          <div class="detail-item">
+            <label><%- t('buyerOrders.total') %>:</label>
+            <span>$2,500.00</span>
+          </div>
+        </div>
+        <div class="order-actions">
+          <button class="btn btn-outline">
+            <i class="fas fa-eye"></i>
+            <%- t('buyerOrders.view') %>
+          </button>
+          <button class="btn btn-secondary">
+            <i class="fas fa-comment"></i>
+            <%- t('buyerOrders.message') %>
+          </button>
+        </div>
+      </div>
+      
+      <div class="order-item">
+        <div class="order-header">
+          <div class="order-info">
+            <h3>#ORD-2024-002</h3>
+            <p>Silk Road Industries</p>
+          </div>
+          <div class="order-status in-production">
+            <%- t('buyerOrders.inProduction') %>
+          </div>
+        </div>
+        <div class="order-details">
+          <div class="detail-item">
+            <label><%- t('buyerOrders.products') %>:</label>
+            <span>Silk Scarves - 1000 pieces</span>
+          </div>
+          <div class="detail-item">
+            <label><%- t('buyerOrders.date') %>:</label>
+            <span>Oct 10, 2024</span>
+          </div>
+          <div class="detail-item">
+            <label><%- t('buyerOrders.total') %>:</label>
+            <span>$1,850.00</span>
+          </div>
+        </div>
+        <div class="order-actions">
+          <button class="btn btn-outline">
+            <i class="fas fa-eye"></i>
+            <%- t('buyerOrders.view') %>
+          </button>
+          <button class="btn btn-secondary">
+            <i class="fas fa-comment"></i>
+            <%- t('buyerOrders.message') %>
+          </button>
+        </div>
+      </div>
+      
+      <div class="order-item">
+        <div class="order-header">
+          <div class="order-info">
+            <h3>#ORD-2024-003</h3>
+            <p>Cotton Masters Ltd</p>
+          </div>
+          <div class="order-status delivered">
+            <%- t('buyerOrders.delivered') %>
+          </div>
+        </div>
+        <div class="order-details">
+          <div class="detail-item">
+            <label><%- t('buyerOrders.products') %>:</label>
+            <span>Denim Fabric - 300 meters</span>
+          </div>
+          <div class="detail-item">
+            <label><%- t('buyerOrders.date') %>:</label>
+            <span>Oct 5, 2024</span>
+          </div>
+          <div class="detail-item">
+            <label><%- t('buyerOrders.total') %>:</label>
+            <span>$1,200.00</span>
+          </div>
+        </div>
+        <div class="order-actions">
+          <button class="btn btn-outline">
+            <i class="fas fa-eye"></i>
+            <%- t('buyerOrders.view') %>
+          </button>
+          <button class="btn btn-secondary">
+            <i class="fas fa-comment"></i>
+            <%- t('buyerOrders.message') %>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders Pagination -->
+    <div class="orders-pagination animate-fade-in">
+      <button class="btn btn-outline" disabled>
+        <i class="fas fa-chevron-left"></i>
+        <%- t('buyerOrders.previous') %>
+      </button>
+      <span class="pagination-info"><%- t('buyerOrders.page') %> 1 <%- t('buyerOrders.of') %> 1</span>
+      <button class="btn btn-outline" disabled>
+        <%- t('buyerOrders.next') %>
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</main>
+
+<!-- Orders JavaScript -->
+<script src="/js/buyer/orders.js"></script>

@@ -1,0 +1,661 @@
+<%- include('../partials/header', { title: 'My Orders - SLEX' }) %>
+<%- include('../partials/navigation') %>
+
+<!-- Buyer Orders Page - Alibaba Style -->
+<main class="buyer-orders-wrapper">
+  <div class="container container-two">
+    <div class="row">
+      <div class="col-lg-3">
+        <!-- Buyer Sidebar -->
+        <%- include('./partials/buyer-sidebar', { currentPage: 'orders' }) %>
+      </div>
+      
+      <div class="col-lg-9">
+        <!-- Orders Header -->
+        <div class="orders-header">
+          <h2 class="orders-title">
+            <i class="las la-shopping-bag"></i>
+            <%- t('orders.title') || 'My Orders' %>
+          </h2>
+          <p class="orders-subtitle"><%- t('orders.subtitle') || 'Track and manage your orders' %></p>
+        </div>
+
+        <!-- Orders Filter Tabs -->
+        <div class="orders-tabs">
+          <ul class="nav nav-tabs" id="orderTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
+                <%- t('orders.all') || 'All Orders' %> <span class="badge">5</span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+                <%- t('orders.pending') || 'Pending' %> <span class="badge badge-warning">2</span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="processing-tab" data-bs-toggle="tab" data-bs-target="#processing" type="button" role="tab">
+                <%- t('orders.processing') || 'Processing' %> <span class="badge badge-info">1</span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="shipped-tab" data-bs-toggle="tab" data-bs-target="#shipped" type="button" role="tab">
+                <%- t('orders.shipped') || 'Shipped' %> <span class="badge badge-primary">1</span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab">
+                <%- t('orders.completed') || 'Completed' %> <span class="badge badge-success">1</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Orders Content -->
+        <div class="tab-content" id="orderTabsContent">
+          <div class="tab-pane fade show active" id="all" role="tabpanel">
+            <div class="orders-list">
+              <!-- Sample Order 1 -->
+              <div class="order-card">
+                <div class="order-header">
+                  <div class="order-info">
+                    <h4 class="order-number">#ORD-001-2024</h4>
+                    <span class="order-date"><%- t('orders.placedOn') || 'Placed on' %> March 15, 2024</span>
+                  </div>
+                  <div class="order-status">
+                    <span class="status-badge status-pending"><%- t('orders.pending') || 'Pending' %></span>
+                  </div>
+                </div>
+                
+                <div class="order-body">
+                  <div class="order-items">
+                    <div class="item-row">
+                      <img src="/assets/images/placeholder-product.svg" alt="Product" class="item-image">
+                      <div class="item-details">
+                        <h5>Cotton T-Shirts</h5>
+                        <p>Size: M, Color: Blue</p>
+                        <span class="item-quantity">Qty: 500 pieces</span>
+                      </div>
+                      <div class="item-price">
+                        <span class="price">$2,750.00</span>
+                        <span class="unit-price">$5.50 / piece</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="order-summary">
+                    <div class="supplier-info">
+                      <i class="las la-store"></i>
+                      <span>Textile Manufacturing Co.</span>
+                    </div>
+                    <div class="order-total">
+                      <span class="total-label"><%- t('orders.total') || 'Total' %>:</span>
+                      <span class="total-amount">$2,750.00</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="order-actions">
+                  <button class="btn btn-outline-primary btn-sm" onclick="viewOrder('ORD-001-2024')">
+                    <i class="las la-eye"></i> <%- t('orders.viewDetails') || 'View Details' %>
+                  </button>
+                  <button class="btn btn-outline-secondary btn-sm" onclick="contactSupplier('supplier1')">
+                    <i class="las la-comments"></i> <%- t('orders.contactSupplier') || 'Contact Supplier' %>
+                  </button>
+                  <button class="btn btn-outline-danger btn-sm" onclick="cancelOrder('ORD-001-2024')">
+                    <i class="las la-times"></i> <%- t('orders.cancel') || 'Cancel' %>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Sample Order 2 -->
+              <div class="order-card">
+                <div class="order-header">
+                  <div class="order-info">
+                    <h4 class="order-number">#ORD-002-2024</h4>
+                    <span class="order-date"><%- t('orders.placedOn') || 'Placed on' %> March 12, 2024</span>
+                  </div>
+                  <div class="order-status">
+                    <span class="status-badge status-shipped"><%- t('orders.shipped') || 'Shipped' %></span>
+                  </div>
+                </div>
+                
+                <div class="order-body">
+                  <div class="order-items">
+                    <div class="item-row">
+                      <img src="/assets/images/placeholder-product.svg" alt="Product" class="item-image">
+                      <div class="item-details">
+                        <h5>Denim Jackets</h5>
+                        <p>Size: L, Color: Dark Blue</p>
+                        <span class="item-quantity">Qty: 200 pieces</span>
+                      </div>
+                      <div class="item-price">
+                        <span class="price">$5,000.00</span>
+                        <span class="unit-price">$25.00 / piece</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="order-summary">
+                    <div class="supplier-info">
+                      <i class="las la-store"></i>
+                      <span>Fashion Apparel Ltd.</span>
+                    </div>
+                    <div class="order-total">
+                      <span class="total-label"><%- t('orders.total') || 'Total' %>:</span>
+                      <span class="total-amount">$5,000.00</span>
+                    </div>
+                  </div>
+                  
+                  <div class="shipping-info">
+                    <div class="tracking">
+                      <i class="las la-truck"></i>
+                      <span><%- t('orders.tracking') || 'Tracking' %>: #TRK-789456123</span>
+                    </div>
+                    <div class="delivery-date">
+                      <i class="las la-calendar"></i>
+                      <span><%- t('orders.expectedDelivery') || 'Expected Delivery' %>: March 20, 2024</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="order-actions">
+                  <button class="btn btn-outline-primary btn-sm" onclick="viewOrder('ORD-002-2024')">
+                    <i class="las la-eye"></i> <%- t('orders.viewDetails') || 'View Details' %>
+                  </button>
+                  <button class="btn btn-outline-info btn-sm" onclick="trackOrder('TRK-789456123')">
+                    <i class="las la-truck"></i> <%- t('orders.trackShipment') || 'Track Shipment' %>
+                  </button>
+                  <button class="btn btn-outline-secondary btn-sm" onclick="contactSupplier('supplier2')">
+                    <i class="las la-comments"></i> <%- t('orders.contactSupplier') || 'Contact Supplier' %>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Other tab content will be loaded dynamically -->
+          <div class="tab-pane fade" id="pending" role="tabpanel">
+            <div class="loading-placeholder">
+              <i class="las la-spinner la-spin"></i>
+              <p><%- t('orders.loadingPending') || 'Loading pending orders...' %></p>
+            </div>
+          </div>
+          
+          <div class="tab-pane fade" id="processing" role="tabpanel">
+            <div class="loading-placeholder">
+              <i class="las la-spinner la-spin"></i>
+              <p><%- t('orders.loadingProcessing') || 'Loading processing orders...' %></p>
+            </div>
+          </div>
+          
+          <div class="tab-pane fade" id="shipped" role="tabpanel">
+            <div class="loading-placeholder">
+              <i class="las la-spinner la-spin"></i>
+              <p><%- t('orders.loadingShipped') || 'Loading shipped orders...' %></p>
+            </div>
+          </div>
+          
+          <div class="tab-pane fade" id="completed" role="tabpanel">
+            <div class="loading-placeholder">
+              <i class="las la-spinner la-spin"></i>
+              <p><%- t('orders.loadingCompleted') || 'Loading completed orders...' %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<style>
+/* Buyer Orders Styles */
+.buyer-orders-wrapper {
+  padding: 60px 0;
+  background: #f8f9fa;
+  min-height: calc(100vh - 200px);
+}
+
+.orders-header {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.orders-title {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.orders-title i {
+  color: #ff6a00;
+}
+
+.orders-subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+.orders-tabs {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem 2rem 0 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.nav-tabs {
+  border-bottom: 1px solid #e9ecef;
+}
+
+.nav-tabs .nav-link {
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #666;
+  font-weight: 500;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-tabs .nav-link.active {
+  color: #ff6a00;
+  border-bottom-color: #ff6a00;
+  background: none;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #ff6a00;
+  border-color: transparent;
+}
+
+.badge {
+  background: #ff6a00;
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 10px;
+}
+
+.badge.badge-warning {
+  background: #ffc107;
+  color: #333;
+}
+
+.badge.badge-info {
+  background: #17a2b8;
+}
+
+.badge.badge-primary {
+  background: #007bff;
+}
+
+.badge.badge-success {
+  background: #28a745;
+}
+
+.tab-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  min-height: 400px;
+}
+
+.orders-list {
+  padding: 2rem;
+}
+
+.order-card {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  transition: box-shadow 0.3s ease;
+}
+
+.order-card:hover {
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+  border-radius: 12px 12px 0 0;
+}
+
+.order-number {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.order-date {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-processing {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-shipped {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-completed {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.order-body {
+  padding: 1.5rem;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.item-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.item-details {
+  flex: 1;
+}
+
+.item-details h5 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.item-details p {
+  margin: 0 0 0.25rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.item-quantity {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.item-price {
+  text-align: right;
+}
+
+.price {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ff6a00;
+}
+
+.unit-price {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.order-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.supplier-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.supplier-info i {
+  color: #ff6a00;
+}
+
+.order-total {
+  text-align: right;
+}
+
+.total-label {
+  display: block;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.total-amount {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ff6a00;
+}
+
+.shipping-info {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.tracking,
+.delivery-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.tracking i,
+.delivery-date i {
+  color: #ff6a00;
+}
+
+.order-actions {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid #e9ecef;
+  background: #f8f9fa;
+  border-radius: 0 0 12px 12px;
+}
+
+.loading-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: #666;
+}
+
+.loading-placeholder i {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #ff6a00;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .buyer-orders-wrapper {
+    padding: 30px 0;
+  }
+  
+  .orders-header {
+    padding: 1.5rem;
+  }
+  
+  .orders-title {
+    font-size: 1.4rem;
+  }
+  
+  .orders-tabs {
+    padding: 0.5rem 1rem 0 1rem;
+  }
+  
+  .nav-tabs .nav-link {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .order-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .item-row {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .order-summary {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .shipping-info {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .order-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+</style>
+
+<script>
+// Orders functionality
+function viewOrder(orderNumber) {
+  window.location.href = `/buyer/orders/${orderNumber}`;
+}
+
+function contactSupplier(supplierId) {
+  window.location.href = `/buyer/messages?supplier=${supplierId}`;
+}
+
+function cancelOrder(orderNumber) {
+  if (confirm('<%- t("orders.confirmCancel") || "Are you sure you want to cancel this order?" %>')) {
+    fetch('/buyer/api/cancel-order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ orderNumber: orderNumber })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      } else {
+        alert(data.message || 'Failed to cancel order');
+      }
+    })
+    .catch(error => {
+      console.error('Error cancelling order:', error);
+      alert('Failed to cancel order');
+    });
+  }
+}
+
+function trackOrder(trackingNumber) {
+  window.open(`/tracking/${trackingNumber}`, '_blank');
+}
+
+// Load tab content dynamically
+document.addEventListener('DOMContentLoaded', function() {
+  const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+  
+  tabButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const targetTab = this.getAttribute('data-bs-target');
+      const status = targetTab.replace('#', '');
+      
+      if (status !== 'all') {
+        loadOrdersByStatus(status);
+      }
+    });
+  });
+});
+
+function loadOrdersByStatus(status) {
+  const tabPane = document.querySelector(`#${status}`);
+  
+  fetch(`/buyer/api/orders?status=${status}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        tabPane.innerHTML = renderOrders(data.orders);
+      } else {
+        tabPane.innerHTML = '<div class="text-center p-4">Failed to load orders</div>';
+      }
+    })
+    .catch(error => {
+      console.error('Error loading orders:', error);
+      tabPane.innerHTML = '<div class="text-center p-4">Failed to load orders</div>';
+    });
+}
+
+function renderOrders(orders) {
+  if (orders.length === 0) {
+    return '<div class="text-center p-4"><p>No orders found for this status.</p></div>';
+  }
+  
+  // Render orders HTML - implement based on your needs
+  return '<div class="orders-list">' + orders.map(order => `
+    <div class="order-card">
+      <!-- Order content here -->
+    </div>
+  `).join('') + '</div>';
+}
+</script>
+
+<!-- Buyer Token Manager -->
+<script src="/js/buyer/buyer-token-manager.js"></script>
+
+<%- include('../partials/footer') %>

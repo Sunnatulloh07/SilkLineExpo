@@ -422,10 +422,24 @@ class JWTAuthController {
       return this.sendResponse(res, 200, true, "Token refreshed successfully", {
         user: {
           id: refreshResult.user._id,
-          name: refreshResult.user.name,
+          name: refreshResult.user.name || refreshResult.user.companyName,
           email: refreshResult.user.email,
           role: refreshResult.user.role,
           userType: refreshResult.user.role ? "admin" : "user",
+          companyName: refreshResult.user.companyName,
+          companyType: refreshResult.user.companyType,
+          companyLogo: refreshResult.user.companyLogo,
+          phone: refreshResult.user.phone,
+          country: refreshResult.user.country,
+          address: refreshResult.user.address,
+          contactPerson: refreshResult.user.contactPerson,
+          preferredLanguage: refreshResult.user.preferredLanguage,
+          preferences: refreshResult.user.preferences,
+          emailNotifications: refreshResult.user.emailNotifications,
+          orderUpdates: refreshResult.user.orderUpdates,
+          marketingEmails: refreshResult.user.marketingEmails,
+          priceAlerts: refreshResult.user.priceAlerts,
+          weeklyDigest: refreshResult.user.weeklyDigest
         },
         sessionId: refreshResult.tokens.sessionId,
       });
@@ -770,9 +784,19 @@ class JWTAuthController {
       return returnTo;
     }
 
-    // Default redirects based on user type
+    // Default redirects based on user type and company type
     if (userType === "admin") {
       return "/admin/dashboard";
+    } else if (userType === "user") {
+      // For company users, redirect based on company type
+      if (user.companyType === 'manufacturer') {
+        return '/manufacturer/dashboard';
+      } else if (user.companyType === 'distributor') {
+        // Redirect distributors to buyer profile page
+        return '/buyer/profile';
+      } else {
+        return '/dashboard';
+      }
     } else {
       return "/dashboard";
     }

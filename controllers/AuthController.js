@@ -262,8 +262,8 @@ class AuthController {
       // Update last login through helper method
       await this.updateLastLoginByType(authResult.userId, authResult.userType, req);
 
-      // Determine redirect URL based on role
-      const redirectUrl = this.getRedirectUrl(authResult.userType, authResult.role);
+      // Determine redirect URL based on role and company type
+      const redirectUrl = this.getRedirectUrl(authResult.userType, authResult.role, authResult.companyType);
 
       // Success response
       const t = req.t || ((key) => key);
@@ -731,12 +731,19 @@ class AuthController {
     }
   }
 
-  getRedirectUrl(userType, role) {
+  getRedirectUrl(userType, role, companyType) {
     if (userType === 'admin') {
       return '/admin/dashboard';
     } else {
-      // Company admin users go to user dashboard
-      return '/user/dashboard';
+      // For company users, redirect based on company type
+      if (companyType === 'manufacturer') {
+        return '/manufacturer/dashboard';
+      } else if (companyType === 'distributor') {
+        // Redirect distributors to buyer profile page
+        return '/buyer/profile';
+      } else {
+        return '/user/dashboard';
+      }
     }
   }
 

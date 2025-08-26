@@ -29,7 +29,7 @@ class MultiDashboardAuthService {
             
             // User roles with company type -> Specific Dashboards
             'manufacturer': '/manufacturer/dashboard',
-            'distributor': '/distributor/dashboard'
+            'distributor': '/buyer/profile'  // Redirect to buyer profile instead of dashboard
         };
 
         // Initialize cleanup interval for IP attempts

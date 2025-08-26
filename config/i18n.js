@@ -13,12 +13,16 @@ const loadTranslations = () => {
     try {
       const filePath = path.join(__dirname, '../locales', `${lang}.json`);
       if (fs.existsSync(filePath)) {
+        const fileContent = JSON.parse(fs.readFileSync(filePath, 'utf8'));
         translations[lang] = {
-          translation: JSON.parse(fs.readFileSync(filePath, 'utf8'))
+          translation: fileContent
         };
+
+      } else {
+        console.error(`❌ Translation file not found: ${filePath}`);
       }
     } catch (error) {
-      console.error(`Error loading ${lang}.json:`, error);
+      console.error(`❌ Error loading ${lang}.json:`, error.message);
     }
   });
   
@@ -29,7 +33,7 @@ i18next
   .use(Backend)
   .use(middleware.LanguageDetector)
   .init({
-    // Debug mode
+    // Debug mode - enable for development
     debug: process.env.NODE_ENV === 'development',
     
     // Default language
@@ -64,6 +68,36 @@ i18next
     
     // Load resources directly
     resources: loadTranslations(),
+    
+    // Return key if translation is missing
+    returnEmptyString: false,
+    returnNull: false,
+    returnObjects: false,
+    joinArrays: ' ',
+    
+    // Options for missing keys
+    saveMissing: false,
+    updateMissing: false,
+    
+    // Key separator (set to false to support keys like 'button.login')
+    keySeparator: '.',
+    
+    // Nested separator 
+    nsSeparator: ':',
+    
+    // Plural separator
+    pluralSeparator: '_',
+    
+    // Context separator
+    contextSeparator: '_'
+  }, (err, t) => {
+    if (err) {
+      console.error('❌ i18next initialization failed:', err);
+    } else {
+      console.log('✅ i18next initialized successfully');
+      console.log('Available languages:', i18next.languages);
+      
+      }
   });
 
 module.exports = i18next;

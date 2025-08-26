@@ -1,0 +1,243 @@
+<%- include('./partials/header', { title: title || 'Inquiries - SLEX', lng: lng || 'uz', user: user }) %>
+<%- include('./partials/sidebar', { user: user, currentPage: 'inquiries' }) %>
+
+<!-- Main Content -->
+<main class="admin-main buyer-inquiries">
+  <div class="admin-content">
+    
+    <!-- Inquiries Header -->
+    <div class="inquiries-header animate-fade-in">
+      <div class="inquiries-header-content">
+        <div class="inquiries-title-section">
+          <h1 class="inquiries-main-title">
+            <i class="fas fa-envelope-open"></i>
+            <%- t('buyerInquiries.title') %>
+          </h1>
+          <p class="inquiries-subtitle"><%- t('buyerInquiries.subtitle') %></p>
+        </div>
+        <div class="inquiries-header-actions">
+          <button class="btn btn-primary" id="newInquiryBtn">
+            <i class="fas fa-plus"></i>
+            <%- t('buyerInquiries.newInquiry') %>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inquiries Tabs -->
+    <div class="inquiries-tabs animate-fade-in">
+      <div class="tab active" data-tab="all">
+        <%- t('buyerInquiries.all') %>
+      </div>
+      <div class="tab" data-tab="pending">
+        <%- t('buyerInquiries.pending') %>
+      </div>
+      <div class="tab" data-tab="responded">
+        <%- t('buyerInquiries.responded') %>
+      </div>
+      <div class="tab" data-tab="archived">
+        <%- t('buyerInquiries.archived') %>
+      </div>
+    </div>
+
+    <!-- Inquiries List -->
+    <div class="inquiries-list animate-fade-in">
+      <div class="inquiry-item">
+        <div class="inquiry-header">
+          <h3>RFQ for Organic Cotton Fabric</h3>
+          <span class="inquiry-status pending">Pending</span>
+        </div>
+        <div class="inquiry-details">
+          <div class="detail-item">
+            <label><%- t('buyerInquiries.category') %>:</label>
+            <span>Textiles</span>
+          </div>
+          <div class="detail-item">
+            <label><%- t('buyerInquiries.quantity') %>:</label>
+            <span>5000 meters</span>
+          </div>
+          <div class="detail-item">
+            <label><%- t('buyerInquiries.deadline') %>:</label>
+            <span>Dec 15, 2024</span>
+          </div>
+        </div>
+        <div class="inquiry-footer">
+          <div class="inquiry-suppliers">
+            <%- t('buyerInquiries.sentTo') %> 3 <%- t('buyerInquiries.suppliers') %>
+          </div>
+          <div class="inquiry-actions">
+            <button class="btn btn-outline">
+              <i class="fas fa-eye"></i>
+              <%- t('buyerInquiries.view') %>
+            </button>
+            <button class="btn btn-secondary">
+              <i class="fas fa-edit"></i>
+              <%- t('buyerInquiries.edit') %>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="inquiry-item">
+        <div class="inquiry-header">
+          <h3>RFQ for Silk Scarves</h3>
+          <span class="inquiry-status responded">Responded</span>
+        </div>
+        <div class="inquiry-details">
+          <div class="detail-item">
+            <label><%- t('buyerInquiries.category') %>:</label>
+            <span>Accessories</span>
+          </div>
+          <div class="detail-item">
+            <label><%- t('buyerInquiries.quantity') %>:</label>
+            <span>1000 pieces</span>
+          </div>
+          <div class="detail-item">
+            <label><%- t('buyerInquiries.deadline') %>:</label>
+            <span>Nov 30, 2024</span>
+          </div>
+        </div>
+        <div class="inquiry-footer">
+          <div class="inquiry-suppliers">
+            <%- t('buyerInquiries.responses') %>: 5
+          </div>
+          <div class="inquiry-actions">
+            <button class="btn btn-outline">
+              <i class="fas fa-eye"></i>
+              <%- t('buyerInquiries.view') %>
+            </button>
+            <button class="btn btn-secondary">
+              <i class="fas fa-archive"></i>
+              <%- t('buyerInquiries.archive') %>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="inquiry-item">
+        <div class="inquiry-header">
+          <h3>RFQ for Denim Fabric</h3>
+          <span class="inquiry-status archived">Archived</span>
+        </div>
+        <div class="inquiry-details">
+          <div class="detail-item">
+            <label><%- t('buyerInquiries.category') %>:</label>
+            <span>Textiles</span>
+          </div>
+          <div class="detail-item">
+            <label><%- t('buyerInquiries.quantity') %>:</label>
+            <span>3000 meters</span>
+          </div>
+          <div class="detail-item">
+            <label><%- t('buyerInquiries.deadline') %>:</label>
+            <span>Oct 20, 2024</span>
+          </div>
+        </div>
+        <div class="inquiry-footer">
+          <div class="inquiry-suppliers">
+            <%- t('buyerInquiries.sentTo') %> 2 <%- t('buyerInquiries.suppliers') %>
+          </div>
+          <div class="inquiry-actions">
+            <button class="btn btn-outline">
+              <i class="fas fa-eye"></i>
+              <%- t('buyerInquiries.view') %>
+            </button>
+            <button class="btn btn-secondary">
+              <i class="fas fa-undo"></i>
+              <%- t('buyerInquiries.restore') %>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Inquiry Modal -->
+    <div class="modal" id="newInquiryModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3><%- t('buyerInquiries.createRFQ') %></h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="newInquiryForm">
+            <div class="form-group">
+              <label for="inquiryTitle"><%- t('buyerInquiries.title') %></label>
+              <input type="text" id="inquiryTitle" name="title" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="inquiryCategory"><%- t('buyerInquiries.category') %></label>
+              <select id="inquiryCategory" name="category" required>
+                <option value=""><%- t('buyerInquiries.selectCategory') %></option>
+                <option value="textiles"><%- t('buyerInquiries.textiles') %></option>
+                <option value="accessories"><%- t('buyerInquiries.accessories') %></option>
+                <option value="fabrics"><%- t('buyerInquiries.fabrics') %></option>
+                <option value="other"><%- t('buyerInquiries.other') %></option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="inquiryDescription"><%- t('buyerInquiries.description') %></label>
+              <textarea id="inquiryDescription" name="description" rows="4" required></textarea>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="inquiryQuantity"><%- t('buyerInquiries.quantity') %></label>
+                <input type="number" id="inquiryQuantity" name="quantity" min="1" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="inquiryUnit"><%- t('buyerInquiries.unit') %></label>
+                <select id="inquiryUnit" name="unit" required>
+                  <option value="pieces"><%- t('buyerInquiries.pieces') %></option>
+                  <option value="meters"><%- t('buyerInquiries.meters') %></option>
+                  <option value="kilograms"><%- t('buyerInquiries.kilograms') %></option>
+                  <option value="rolls"><%- t('buyerInquiries.rolls') %></option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="inquiryDeadline"><%- t('buyerInquiries.deadline') %></label>
+              <input type="date" id="inquiryDeadline" name="deadline" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="inquiryTargetPrice"><%- t('buyerInquiries.targetPrice') %></label>
+              <input type="number" id="inquiryTargetPrice" name="targetPrice" step="0.01" min="0">
+            </div>
+            
+            <div class="form-group">
+              <label><%- t('buyerInquiries.sendTo') %></label>
+              <div class="checkbox-group">
+                <label class="checkbox-item">
+                  <input type="checkbox" name="suppliers" value="supplier1">
+                  <span class="checkmark"></span>
+                  Premium Textiles Co.
+                </label>
+                <label class="checkbox-item">
+                  <input type="checkbox" name="suppliers" value="supplier2">
+                  <span class="checkmark"></span>
+                  Silk Road Industries
+                </label>
+                <label class="checkbox-item">
+                  <input type="checkbox" name="suppliers" value="supplier3">
+                  <span class="checkmark"></span>
+                  Cotton Masters Ltd
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline modal-close"><%- t('buyerInquiries.cancel') %></button>
+          <button class="btn btn-primary" id="submitInquiryBtn"><%- t('buyerInquiries.submit') %></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Inquiries JavaScript -->
+<script src="/js/buyer/inquiries.js"></script>

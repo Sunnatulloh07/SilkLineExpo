@@ -1,164 +1,116 @@
 /**
- * Distributor Dashboard Routes
- * Professional distributor-specific routes with comprehensive business features
- * Role-based access with inventory, supplier, and sales management
+ * Buyer Profile Routes  
+ * Alibaba-style buyer profile for purchasing and supplier interaction
+ * Simple profile system without dashboard complexity
  */
 
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const BuyerController = require('../controllers/BuyerController');
+const BuyerService = require('../services/BuyerService');
 const { authenticate, distributorOnly } = require('../middleware/jwtAuth');
-const { 
-    distributorOnly: enhancedDistributorOnly, 
-    preventCrossDashboardAccess,
-    validateDistributorApiAccess,
-    setSecurityHeaders 
-} = require('../middleware/dashboardSecurity');
 
 const router = express.Router();
 
-// Enhanced security middleware for distributor dashboard
-router.use(setSecurityHeaders);
-router.use(enhancedDistributorOnly);
-router.use(preventCrossDashboardAccess);
+// Create controller instance
+const buyerController = new BuyerController();
 
-// Apply JWT authentication and distributor-only access (backward compatibility)
+// ===== MULTER CONFIGURATION FOR BUYER AVATAR UPLOAD =====
+// Create temp directory if it doesn't exist
+const tempDir = path.join(__dirname, '../temp/');
+if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+}
+
+// Professional multer configuration for avatar uploads
+const avatarUpload = multer({
+    dest: tempDir,
+    limits: { 
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+        files: 1 // Only 1 file at a time for avatar
+    },
+    fileFilter: (req, file, cb) => {
+        // Only accept image files
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Faqat JPG, PNG, WebP formatdagi rasmlar qabul qilinadi'), false);
+        }
+    }
+});
+
+// Apply JWT authentication and buyer-only access
 router.use(authenticate);
 router.use(distributorOnly);
 
-// ===== DASHBOARD VIEW ROUTES =====
+// ===== BUYER PROFILE ROUTES (ALIBABA STYLE) =====
+// Redirect distributor route to buyer profile
+router.get('/', (req, res) => {
+    res.redirect('/buyer/profile');
+});
+
+// Redirect dashboard specifically to buyer profile
 router.get('/dashboard', (req, res) => {
-    res.render('distributor/dashboard/index', {
-        title: 'Distributor Dashboard - SLEX',
-        user: req.user,
-        layout: 'distributor/layout'
-    });
+    res.redirect('/buyer/profile');
 });
 
-router.get('/inventory', (req, res) => {
-    res.render('distributor/inventory/index', {
-        title: 'Inventory Management - SLEX',
-        user: req.user,
-        layout: 'distributor/layout'
-    });
-});
+// Main buyer pages
+router.get('/profile', buyerController.showProfile.bind(buyerController));
+router.get('/orders', buyerController.showOrders.bind(buyerController));
+router.get('/messages', buyerController.showMessages.bind(buyerController));
+router.get('/cart', buyerController.showCart.bind(buyerController));
+router.get('/favorites', buyerController.showFavorites.bind(buyerController));
+router.get('/settings', buyerController.showSettings.bind(buyerController));
 
-router.get('/suppliers', (req, res) => {
-    res.render('distributor/suppliers/index', {
-        title: 'Supplier Network - SLEX',
-        user: req.user,
-        layout: 'distributor/layout'
-    });
-});
+// ===== BUYER PROFILE API ROUTES =====
+router.get('/api/profile-stats', buyerController.getProfileStats.bind(buyerController));
+router.get('/api/buyer-orders', buyerController.getBuyerOrders.bind(buyerController));
+router.get('/api/buyer-conversations', buyerController.getBuyerConversations.bind(buyerController));
+router.get('/api/buyer-rfqs', buyerController.getBuyerRFQs.bind(buyerController));
 
-router.get('/sales', (req, res) => {
-    res.render('distributor/sales/index', {
-        title: 'Sales Management - SLEX',
-        user: req.user,
-        layout: 'distributor/layout'
-    });
-});
+// ===== BUYER ACTION ROUTES (POST) =====
+router.post('/api/send-message', buyerController.sendMessage.bind(buyerController));
+router.post('/api/create-rfq', buyerController.createRFQ.bind(buyerController));
 
-router.get('/orders', (req, res) => {
-    res.render('distributor/orders/index', {
-        title: 'Order Management - SLEX',
-        user: req.user,
-        layout: 'distributor/layout'
-    });
-});
+// ===== CART API ROUTES =====
+router.post('/api/cart/add', buyerController.addToCart.bind(buyerController));
+router.put('/api/cart/update', buyerController.updateCartItem.bind(buyerController));
+router.delete('/api/cart/remove/:itemId', buyerController.removeFromCart.bind(buyerController));
 
-router.get('/analytics', (req, res) => {
-    res.render('distributor/analytics/index', {
-        title: 'Distribution Analytics - SLEX',
-        user: req.user,
-        layout: 'distributor/layout'
-    });
-});
+// ===== FAVORITES API ROUTES =====
+router.post('/api/favorites/add-product', buyerController.addToFavorites.bind(buyerController));
+router.delete('/api/favorites/remove-product/:productId', buyerController.removeFromFavorites.bind(buyerController));
+router.post('/api/favorites/add-supplier', buyerController.addSupplierToFavorites.bind(buyerController));
 
-// ===== API ROUTES =====
-router.get('/api/dashboard-stats', (req, res) => {
-    // Mock data for distributor dashboard
-    res.json({
-        success: true,
-        data: {
-            totalInventory: 1247,
-            activeSuppliers: 23,
-            monthlyOrders: 89,
-            revenueThisMonth: 125000,
-            inventoryValue: 890000,
-            pendingOrders: 12,
-            deliveredOrders: 77,
-            lowStockItems: 5
-        }
-    });
-});
+// ===== SETTINGS API ROUTES =====
+router.post('/api/settings/profile', buyerController.updateProfile.bind(buyerController));
+router.post('/api/settings/password', buyerController.updatePassword.bind(buyerController));
+router.post('/api/settings/notifications', buyerController.updateNotifications.bind(buyerController));
+router.post('/api/settings/preferences', buyerController.updatePreferences.bind(buyerController));
 
-router.get('/api/inventory-overview', (req, res) => {
-    res.json({
-        success: true,
-        data: {
-            categories: [
-                { name: 'Electronics', count: 245, value: 350000 },
-                { name: 'Textiles', count: 189, value: 280000 },
-                { name: 'Food & Beverages', count: 312, value: 160000 },
-                { name: 'Chemicals', count: 98, value: 100000 }
-            ],
-            lowStock: [
-                { name: 'Samsung Galaxy S23', current: 3, minimum: 10 },
-                { name: 'Cotton Fabric Rolls', current: 5, minimum: 15 },
-                { name: 'Organic Tea Leaves', current: 8, minimum: 20 }
-            ]
-        }
-    });
-});
+// ===== PROFESSIONAL AVATAR UPLOAD ROUTES =====
+// Upload/Update buyer avatar
+router.post('/api/avatar/upload', 
+    avatarUpload.single('avatar'), 
+    buyerController.updateAvatar.bind(buyerController)
+);
 
-router.get('/api/supplier-performance', (req, res) => {
-    res.json({
-        success: true,
-        data: [
-            { 
-                name: 'TechCorp Industries',
-                rating: 4.8,
-                onTimeDelivery: 95,
-                totalOrders: 45,
-                category: 'Electronics'
-            },
-            { 
-                name: 'Silk Road Textiles',
-                rating: 4.6,
-                onTimeDelivery: 92,
-                totalOrders: 32,
-                category: 'Textiles'
-            },
-            { 
-                name: 'Fresh Foods Ltd',
-                rating: 4.4,
-                onTimeDelivery: 88,
-                totalOrders: 28,
-                category: 'Food'
-            }
-        ]
-    });
-});
+// Delete buyer avatar
+router.delete('/api/avatar/delete', 
+    buyerController.deleteAvatar.bind(buyerController)
+);
 
-router.get('/api/sales-analytics', (req, res) => {
-    res.json({
-        success: true,
-        data: {
-            monthlySales: [120000, 135000, 125000, 145000, 155000, 125000],
-            topProducts: [
-                { name: 'Electronics Bundle', sales: 25000, units: 120 },
-                { name: 'Textile Package', sales: 18000, units: 85 },
-                { name: 'Food Supplies', sales: 15000, units: 200 }
-            ],
-            salesChannels: [
-                { channel: 'Online Store', percentage: 45, revenue: 56250 },
-                { channel: 'Retail Partners', percentage: 35, revenue: 43750 },
-                { channel: 'Direct Sales', percentage: 20, revenue: 25000 }
-            ]
-        }
-    });
-});
+// ===== CART API ROUTES =====
+router.post('/api/cart/update', buyerController.updateCartItem.bind(buyerController));
+router.post('/api/cart/remove', buyerController.removeCartItem.bind(buyerController));
+router.post('/api/cart/remove-multiple', buyerController.removeMultipleCartItems.bind(buyerController));
 
-// Error handling middleware
+// ===== FAVORITES API ROUTES =====
+router.post('/api/favorites/add', buyerController.addToFavorites.bind(buyerController));
+
 router.use((error, req, res, next) => {
     console.error('❌ Distributor route error:', error);
     
@@ -172,10 +124,21 @@ router.use((error, req, res, next) => {
             code: 'SERVICE_ERROR'
         });
     } else {
-        return res.status(500).render('error', {
-            title: 'Distributor Dashboard Error',
-            message: 'Unable to load distributor dashboard',
-            error: process.env.NODE_ENV === 'development' ? error : {}
+        // Get language preference for HTML responses
+        const lng = req.session?.language || 
+                    req.cookies?.selectedLanguage || 
+                    req.cookies?.i18next ||
+                    req.query?.lng || 
+                    'uz';
+        
+        return res.status(500).render('pages/error', {
+            title: 'Distributor Profile Error - Silk Line Expo',
+            message: 'Unable to load distributor profile',
+            error: process.env.NODE_ENV === 'development' ? error : {},
+            user: req.user || null,
+            admin: req.user || null,
+            lng: lng,
+            currentLang: lng
         });
     }
 });

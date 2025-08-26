@@ -23,7 +23,7 @@ class MultiDashboardAuthController {
                 'admin': '/admin/dashboard',
                 'moderator': '/admin/dashboard',
                 'manufacturer': '/manufacturer/dashboard',
-                'distributor': '/distributor/dashboard'
+                'distributor': '/buyer/profile'  // Redirect to buyer profile instead of dashboard
             },
             failure: {
                 default: '/login?error=1',
@@ -123,10 +123,14 @@ class MultiDashboardAuthController {
 
         } catch (error) {
             this.logger.error('❌ Show login error:', error);
-            res.status(500).render('error', {
+            res.status(500).render('pages/error', {
                 title: 'Login Error',
                 message: 'Unable to load login page. Please try again.',
-                error: process.env.NODE_ENV === 'development' ? error : {}
+                error: process.env.NODE_ENV === 'development' ? error : {},
+                user: req.user,
+                admin: req.user,
+                lng: req.query.lng || 'uz',
+                currentLang: req.query.lng || 'uz'
             });
         }
     }

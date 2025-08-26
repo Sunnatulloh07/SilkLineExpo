@@ -50,21 +50,51 @@
             </a>
           <% } else { %>
             <div class="user-menu dropdown">
-              <button class="user-menu-btn" type="button">
-                <img class="user-avatar" src="<%= currentUser.avatarUrl || currentUser.companyLogo?.url || '/assets/images/icons/user.svg' %>" alt="avatar" onerror="this.src='/assets/images/icons/user.svg'">
-                <span class="user-name d-none d-xl-inline"><%= currentUser.username || currentUser.companyName || 'Account' %></span>
-                <i class="las la-angle-down"></i>
-              </button>
-              <div class="user-dropdown">
-                <% if (currentUserRole === 'manufacturer') { %>
-                  <a class="user-dropdown__item" href="/manufacturer"><i class="las la-tachometer-alt"></i> <span>Dashboard</span></a>
+              <button class="user-menu-btn" type="button" id="userMenuBtnMobile">
+                <% if (currentUser.companyLogo?.url) { %>
+                  <img class="user-avatar" src="<%= currentUser.companyLogo?.url %>" alt="avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                  <div class="user-avatar-text" style="display: none;">
+                    <%= (currentUser.companyName || currentUser.username || 'U').substring(0, 2).toUpperCase() %>
+                  </div>
                 <% } else { %>
-                  <a class="user-dropdown__item" href="/distributor"><i class="las la-user-circle"></i> <span>Profile</span></a>
+                  <div class="user-avatar-text">
+                    <%= (currentUser.companyName || currentUser.username || 'U').substring(0, 2).toUpperCase() %>
+                  </div>
                 <% } %>
-                <a class="user-dropdown__item" href="/favorites"><i class="las la-heart"></i> <span><%= t('nav.favorites') || 'Favorites' %></span></a>
-                <a class="user-dropdown__item" href="/cart"><i class="las la-shopping-cart"></i> <span><%= t('nav.cart') || 'Cart' %></span></a>
+              </button>
+              <div class="user-dropdown dropdown-menu user-dropdown-hidden" id="userDropdownMobile">
+                <div class="user-info-header">
+                  <img class="user-avatar" src="<%= currentUser.companyLogo?.url || '/assets/images/icons/user.svg' %>" alt="avatar" onerror="this.src='/assets/images/icons/user.svg'">
+                  <div class="user-details">
+                    <h4><%= currentUser.companyName || currentUser.username || t('common.account') %></h4>
+                    <p><%= currentUser.email || t('common.userAccount') %></p>
+                  </div>
+                </div>
+                <% if (currentUser.role === 'super_admin' || currentUser.role === 'admin' || currentUser.role === 'moderator') { %>
+                  <!-- Admin/Super Admin Links - Mobile -->
+                  <a class="user-dropdown__item" href="/admin/dashboard"><i class="las la-tachometer-alt"></i> <span><%= t('nav.adminDashboard') %></span></a>
+                  <a class="user-dropdown__item" href="/admin/profile"><i class="las la-user-circle"></i> <span><%= t('nav.myProfile') %></span></a>
+                  <% if (currentUser.role === 'super_admin') { %>
+                    <a class="user-dropdown__item" href="/admin/system"><i class="las la-cogs"></i> <span><%= t('nav.systemSettings') %></span></a>
+                  <% } %>
+                <% } else if (currentUser.companyType === 'manufacturer') { %>
+                  <!-- Manufacturer Links - Mobile -->
+                  <a class="user-dropdown__item" href="/manufacturer/dashboard"><i class="las la-tachometer-alt"></i> <span><%= t('nav.dashboard') %></span></a>
+                  <a class="user-dropdown__item" href="/manufacturer/profile"><i class="las la-user-circle"></i> <span><%= t('nav.myProfile') %></span></a>
+                  <a class="user-dropdown__item" href="/manufacturer/products"><i class="las la-box"></i> <span><%= t('nav.myProducts') %></span></a>
+                  <a class="user-dropdown__item" href="/manufacturer/orders"><i class="las la-shopping-bag"></i> <span><%= t('nav.orders') %></span></a>
+                <% } else { %>
+                  <!-- Buyer/Distributor Links - Mobile -->
+                  <a class="user-dropdown__item" href="/buyer/profile"><i class="las la-user-circle"></i> <span><%= t('nav.myProfile') %></span></a>
+                  <a class="user-dropdown__item" href="/buyer/orders"><i class="las la-shopping-bag"></i> <span><%= t('nav.myOrders') %></span></a>
+                  <a class="user-dropdown__item" href="/buyer/favorites"><i class="las la-heart"></i> <span><%= t('nav.favorites') %></span></a>
+                  <a class="user-dropdown__item" href="/buyer/cart"><i class="las la-shopping-cart"></i> <span><%= t('nav.cart') %></span></a>
+                  <a class="user-dropdown__item" href="/buyer/messages"><i class="las la-comments"></i> <span><%= t('nav.messages') %></span></a>
+                <% } %>
+                
                 <div class="user-dropdown__divider"></div>
-                <a class="user-dropdown__item" href="/auth/logout"><i class="las la-sign-out-alt"></i> <span><%= t('nav.logout') || 'Logout' %></span></a>
+                <a class="user-dropdown__item" href="/buyer/settings"><i class="las la-cog"></i> <span><%= t('nav.settings') %></span></a>
+                <a class="user-dropdown__item" href="/auth/logout"><i class="las la-sign-out-alt"></i> <span><%= t('nav.logout') %></span></a>
               </div>
             </div>
           <% } %>
@@ -165,24 +195,57 @@
                 </a>
               <% } else { %>
                 <div class="user-menu dropdown">
-                  <button class="user-menu-btn" type="button">
-                    <img class="user-avatar" src="<%= currentUser.avatarUrl || currentUser.companyLogo?.url || '/assets/images/icons/user.svg' %>" alt="avatar" onerror="this.src='/assets/images/icons/user.svg'">
-                    <span class="user-name d-none d-xl-inline"><%= currentUser.username || currentUser.companyName || 'Account' %></span>
-                    <i class="las la-angle-down"></i>
-                  </button>
-                  <div class="user-dropdown">
-                    <% if (currentUserRole === 'manufacturer') { %>
-                      <a class="user-dropdown__item" href="/manufacturer"><i class="las la-tachometer-alt"></i> <span>Dashboard</span></a>
+                  <button class="user-menu-btn" type="button" id="userMenuBtn">
+                    <% if (currentUser.companyLogo?.url) { %>
+                      <img class="user-avatar" src="<%= currentUser.companyLogo?.url %>" alt="avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                      <div class="user-avatar-text" style="display: none;">
+                        <%= (currentUser.companyName || currentUser.username || 'U').substring(0, 2).toUpperCase() %>
+                      </div>
                     <% } else { %>
-                      <a class="user-dropdown__item" href="/distributor"><i class="las la-user-circle"></i> <span>Profile</span></a>
+                      <div class="user-avatar-text">
+                        <%= (currentUser.companyName || currentUser.username || 'U').substring(0, 2).toUpperCase() %>
+                      </div>
                     <% } %>
-                    <a class="user-dropdown__item" href="/favorites"><i class="las la-heart"></i> <span><%= t('nav.favorites') || 'Favorites' %></span></a>
-                    <a class="user-dropdown__item" href="/cart"><i class="las la-shopping-cart"></i> <span><%= t('nav.cart') || 'Cart' %></span></a>
+                  </button>
+                  <div class="user-dropdown dropdown-menu user-dropdown-hidden" id="userDropdown">
+                    <div class="user-info-header">
+                      <img class="user-avatar" src="<%= currentUser.companyLogo?.url || '/assets/images/icons/user.svg' %>" alt="avatar" onerror="this.src='/assets/images/icons/user.svg'">
+                      <div class="user-details">
+                        <h4><%= currentUser.companyName || currentUser.username || t('common.account') %></h4>
+                        <p><%= currentUser.email || t('common.userAccount') %></p>
+                      </div>
+                    </div>
+                    <% if (currentUser.role === 'super_admin' || currentUser.role === 'admin' || currentUser.role === 'moderator') { %>
+                      <!-- Admin/Super Admin Links -->
+                      <a class="user-dropdown__item" href="/admin/dashboard"><i class="las la-tachometer-alt"></i> <span><%= t('nav.adminDashboard') %></span></a>
+                      <a class="user-dropdown__item" href="/admin/profile"><i class="las la-user-circle"></i> <span><%= t('nav.myProfile') %></span></a>
+                      <% if (currentUser.role === 'super_admin') { %>
+                        <a class="user-dropdown__item" href="/admin/system"><i class="las la-cogs"></i> <span><%= t('nav.systemSettings') %></span></a>
+                      <% } %>
+                    <% } else if (currentUser.companyType === 'manufacturer') { %>
+                      <!-- Manufacturer Links -->
+                      <a class="user-dropdown__item" href="/manufacturer/dashboard"><i class="las la-tachometer-alt"></i> <span><%= t('nav.dashboard') %></span></a>
+                      <a class="user-dropdown__item" href="/manufacturer/profile"><i class="las la-user-circle"></i> <span><%= t('nav.myProfile') %></span></a>
+                      <a class="user-dropdown__item" href="/manufacturer/products"><i class="las la-box"></i> <span><%= t('nav.myProducts') %></span></a>
+                      <a class="user-dropdown__item" href="/manufacturer/orders"><i class="las la-shopping-bag"></i> <span><%= t('nav.orders') %></span></a>
+                    <% } else { %>
+                      <!-- Buyer/Distributor Links -->
+                      <a class="user-dropdown__item" href="/buyer/profile"><i class="las la-user-circle"></i> <span><%= t('nav.myProfile') %></span></a>
+                      <a class="user-dropdown__item" href="/buyer/orders"><i class="las la-shopping-bag"></i> <span><%= t('nav.myOrders') %></span></a>
+                      <a class="user-dropdown__item" href="/buyer/favorites"><i class="las la-heart"></i> <span><%= t('nav.favorites') %></span></a>
+                      <a class="user-dropdown__item" href="/buyer/cart"><i class="las la-shopping-cart"></i> <span><%= t('nav.cart') %></span></a>
+                      <a class="user-dropdown__item" href="/buyer/messages"><i class="las la-comments"></i> <span><%= t('nav.messages') %></span></a>
+                    <% } %>
+                    
                     <div class="user-dropdown__divider"></div>
-                    <a class="user-dropdown__item" href="/auth/logout"><i class="las la-sign-out-alt"></i> <span><%= t('nav.logout') || 'Logout' %></span></a>
+                    <a class="user-dropdown__item" href="/buyer/settings"><i class="las la-cog"></i> <span><%= t('nav.settings') %></span></a>
+                    <a class="user-dropdown__item" href="/auth/logout"><i class="las la-sign-out-alt"></i> <span><%= t('nav.logout') %></span></a>
                   </div>
                 </div>
               <% } %>
+              
+              <!-- User Dropdown handled by external header-dropdown.js -->
+              
               <!-- Custom Language Selector - Desktop -->
               <div class="custom-lang-selector" data-type="desktop">
                 <div class="lang-btn">

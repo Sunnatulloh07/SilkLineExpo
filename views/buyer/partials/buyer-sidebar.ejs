@@ -1,0 +1,408 @@
+<!-- Buyer Sidebar - SLEX Style Integration -->
+<div class="buyer-sidebar section-bg animate-fade-in">
+  <div class="sidebar-header">
+    <div class="user-info flx-align gap-3">
+      <img src="<%= user.companyLogo?.url || '/assets/images/icons/user.svg' %>" 
+           alt="<%- t('buyer.profile.avatarAlt') %>" 
+           class="user-avatar"
+           onerror="this.src='/assets/images/icons/user.svg'">
+      <div class="user-details">
+        <h4 class="user-name text-white"><%= user.companyName || (user.firstName + ' ' + user.lastName) %></h4>
+        <p class="user-type text-white opacity-80"><%- t('buyer.profile.type') %></p>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <!-- Profile Section -->
+    <div class="nav-section">
+      <h5 class="nav-section-title text-gray-600"><%- t('buyer.profile.myAccount') %></h5>
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="/buyer/profile" class="nav-link <%= currentPage === 'profile' ? 'active' : '' %>">
+            <i class="las la-user-circle text-main"></i>
+            <span class="text-heading"><%- t('buyer.profile.profile') %></span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/buyer/settings" class="nav-link <%= currentPage === 'settings' ? 'active' : '' %>">
+            <i class="las la-cog text-main"></i>
+            <span class="text-heading"><%- t('buyer.profile.settings') %></span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Shopping Section -->
+    <div class="nav-section">
+      <h5 class="nav-section-title text-gray-600"><%- t('buyer.profile.shopping') %></h5>
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="/buyer/cart" class="nav-link <%= currentPage === 'cart' ? 'active' : '' %>">
+            <i class="las la-shopping-cart text-main"></i>
+            <span class="text-heading"><%- t('buyer.profile.shoppingCart') %></span>
+            <% if (typeof cartItemsCount !== 'undefined' && cartItemsCount > 0) { %>
+              <span class="nav-badge bg-main text-white"><%= cartItemsCount %></span>
+            <% } %>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/buyer/orders" class="nav-link <%= currentPage === 'orders' ? 'active' : '' %>">
+            <i class="las la-shopping-bag text-main"></i>
+            <span class="text-heading"><%- t('buyer.profile.myOrders') %></span>
+            <% if (typeof activeOrdersCount !== 'undefined' && activeOrdersCount > 0) { %>
+              <span class="nav-badge badge-warning"><%= activeOrdersCount %></span>
+            <% } %>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/buyer/favorites" class="nav-link <%= currentPage === 'favorites' ? 'active' : '' %>">
+            <i class="las la-heart text-main"></i>
+            <span class="text-heading"><%- t('buyer.profile.favorites') %></span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Communication Section -->
+    <div class="nav-section">
+      <h5 class="nav-section-title text-gray-600"><%- t('buyer.profile.communication') %></h5>
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="/buyer/messages" class="nav-link <%= currentPage === 'messages' ? 'active' : '' %>">
+            <i class="las la-comments text-main"></i>
+            <span class="text-heading"><%- t('buyer.profile.messages') %></span>
+            <% if (typeof unreadMessagesCount !== 'undefined' && unreadMessagesCount > 0) { %>
+              <span class="nav-badge badge-danger"><%= unreadMessagesCount %></span>
+            <% } %>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/all-product" class="nav-link">
+            <i class="las la-search text-main"></i>
+            <span class="text-heading"><%- t('buyer.profile.browseProducts') %></span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="nav-section">
+      <h5 class="nav-section-title text-gray-600"><%- t('buyer.profile.quickLinks') %></h5>
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="/contact" class="nav-link">
+            <i class="las la-phone text-main"></i>
+            <span class="text-heading"><%- t('buyer.profile.contactUs') %></span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/help" class="nav-link">
+            <i class="las la-question-circle text-main"></i>
+            <span class="text-heading"><%- t('buyer.profile.help') %></span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="/auth/logout" class="logout-btn">
+      <i class="las la-sign-out-alt"></i>
+      <span><%- t('buyer.logout') %></span>
+    </a>
+  </div>
+</div>
+
+<style>
+/* Buyer Sidebar Styles - SLEX Design Integration */
+.buyer-sidebar {
+  border-radius: var(--border-radius-lg, 16px);
+  box-shadow: var(--box-shadow);
+  border: 1px solid hsl(var(--border-color));
+  overflow: hidden;
+  position: sticky;
+  top: 120px; /* Header balandligidan keyin */
+  z-index: 2; /* Header dan yuqori, lekin dropdown dan past */
+  transition: all 0.3s ease;
+}
+
+/* Header sticky bo'lganda sidebar position ni adjust qilish */
+.header.fixed-header ~ main .buyer-sidebar {
+  top: 100px; /* Fixed header balandligi */
+}
+
+.sidebar-header {
+  padding: 2rem 1.5rem;
+  border-bottom: 1px solid hsl(var(--border-color) / 0.3);
+  background: var(--main-gradient);
+  color: hsl(var(--static-white));
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.3);
+}
+
+.user-name {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+}
+
+.user-type {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.8);
+}
+
+.sidebar-nav {
+  padding: 1rem 0;
+}
+
+.nav-section {
+  margin-bottom: 1.5rem;
+}
+
+.nav-section:last-child {
+  margin-bottom: 0;
+}
+
+.nav-section-title {
+  padding: 0 1.5rem;
+  margin: 0 0 0.75rem 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #666;
+  letter-spacing: 0.5px;
+}
+
+.nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  margin: 0;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  color: #333;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.nav-link:hover {
+  background: #f8f9fa;
+  color: #ff6a00;
+  text-decoration: none;
+}
+
+.nav-link.active {
+  background: #ff6a0010;
+  color: #ff6a00;
+  font-weight: 500;
+}
+
+.nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #ff6a00;
+}
+
+.nav-link i {
+  font-size: 1.25rem;
+  width: 20px;
+  text-align: center;
+}
+
+.nav-badge {
+  margin-left: auto;
+  background: #ff6a00;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.nav-badge.badge-warning {
+  background: #ffc107;
+  color: #333;
+}
+
+.nav-badge.badge-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.sidebar-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  color: #666;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.logout-btn:hover {
+  background: #fff;
+  color: #dc3545;
+  text-decoration: none;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.logout-btn i {
+  font-size: 1.25rem;
+}
+
+/* Dark Mode Support for Sidebar */
+[data-theme="light"] {
+  /* Sidebar container */
+  .buyer-sidebar {
+    background: var(--dark-black-three) !important;
+    border-color: var(--dark-black-five) !important;
+  }
+  
+  /* Sidebar navigation */
+  .sidebar-nav {
+    background: var(--dark-black-three) !important;
+  }
+  
+  /* Navigation sections */
+  .nav-section-title {
+    color: hsl(var(--gray-four)) !important;
+  }
+  
+  /* Navigation links */
+  .nav-link {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .nav-link:hover {
+    background: var(--dark-black-five) !important;
+    color: hsl(var(--main)) !important;
+  }
+  
+  .nav-link.active {
+    background: hsl(var(--main) / 0.1) !important;
+    color: hsl(var(--main)) !important;
+  }
+  
+  /* Text elements in sidebar */
+  .buyer-sidebar .text-heading {
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .buyer-sidebar .text-gray-600 {
+    color: hsl(var(--gray-four)) !important;
+  }
+  
+  /* Sidebar footer */
+  .sidebar-footer {
+    background: var(--dark-black-two) !important;
+    border-color: var(--dark-black-five) !important;
+  }
+  
+  /* Logout button */
+  .logout-btn {
+    color: hsl(var(--gray-four)) !important;
+  }
+  
+  .logout-btn:hover {
+    background: var(--dark-black-five) !important;
+    color: hsl(var(--danger)) !important;
+  }
+  
+  /* Nav badges */
+  .nav-badge {
+    background: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+  
+  .nav-badge.badge-warning {
+    background: hsl(var(--warning)) !important;
+    color: hsl(var(--static-black)) !important;
+  }
+  
+  .nav-badge.badge-danger {
+    background: hsl(var(--danger)) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 992px) {
+  .buyer-sidebar {
+    position: relative;
+    top: 0;
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-info {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .nav-link {
+    padding: 1rem 1.5rem;
+  }
+  
+  .nav-link span {
+    font-size: 0.9rem;
+  }
+}
+</style>

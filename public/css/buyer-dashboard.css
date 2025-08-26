@@ -1,0 +1,652 @@
+/**
+ * Buyer Profile Dashboard CSS
+ * Professional styling for buyer/distributor purchasing platform
+ * Cyan & Teal theme with modern design patterns
+ * Based on SLEX manufacturer design system
+ */
+
+/* ===============================================
+   BUYER THEME VARIABLES & COLOR SYSTEM
+   =============================================== */
+:root {
+  /* Buyer Theme Colors - Cyan/Teal Focus */
+  --buyer-primary: #06b6d4;        /* Cyan - Trust & Reliability */
+  --buyer-secondary: #0891b2;      /* Dark Cyan */
+  --buyer-accent: #22d3ee;         /* Light Cyan */
+  --buyer-success: #10b981;        /* Emerald - Growth */
+  --buyer-warning: #f59e0b;        /* Amber */
+  --buyer-danger: #ef4444;         /* Red */
+  --buyer-info: #3b82f6;          /* Blue */
+  
+  /* Buyer Gradients */
+  --buyer-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  --buyer-card-gradient: linear-gradient(135deg, #06b6d415 0%, #0891b215 100%);
+  --buyer-header-gradient: linear-gradient(90deg, #06b6d4 0%, #22d3ee 100%);
+  
+  /* Buyer Shadows */
+  --buyer-shadow-sm: 0 2px 4px rgba(6, 182, 212, 0.1);
+  --buyer-shadow: 0 4px 6px rgba(6, 182, 212, 0.1);
+  --buyer-shadow-lg: 0 10px 15px rgba(6, 182, 212, 0.1);
+  --buyer-shadow-xl: 0 20px 25px rgba(6, 182, 212, 0.15);
+  
+  /* Layout Variables (inherited from manufacturer) */
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 70px;
+  --header-height: 80px;
+  
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Surface Colors */
+  --surface-color: #ffffff;
+  --background-color: #f8fafc;
+  --border-color: #e2e8f0;
+  --border-light: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --buyer-light: #cffafe;
+}
+
+/* Dark Theme Overrides for Buyer Dashboard */
+[data-theme="dark"] {
+  --buyer-primary: #22d3ee;
+  --buyer-secondary: #06b6d4;
+  --buyer-accent: #67e8f9;
+  --buyer-success: #34d399;
+  --buyer-warning: #fbbf24;
+  --buyer-danger: #f87171;
+  --buyer-info: #60a5fa;
+  
+  /* Dark Backgrounds */
+  --bg-main: #0f0f23;
+  --bg-card: #1E293B;
+  --bg-elevated: #16213e;
+  --surface-color: #1E293B;
+  --background-color: #0f0f23;
+  
+  /* Dark Text Colors */
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #94a3b8;
+  
+  /* Dark Borders */
+  --border-color: #334155;
+  --border-light: #475569;
+  
+  /* Additional surface colors for consistency */
+  --surface-color-light: #334155;
+  --surface-color-dark: #0f172a;
+}
+
+/* ===============================================
+   BUYER DASHBOARD LAYOUT
+   =============================================== */
+.buyer-dashboard {
+  font-family: var(--font-family);
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+.buyer-dashboard-wrapper {
+  display: flex;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ===============================================
+   BUYER KPI CARDS
+   =============================================== */
+.buyer-kpi-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.buyer-kpi-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: var(--buyer-shadow);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+}
+
+.buyer-kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--buyer-gradient);
+}
+
+.buyer-kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--buyer-shadow-xl);
+  border-color: var(--buyer-primary);
+}
+
+.buyer-kpi-card.primary::before {
+  background: linear-gradient(90deg, var(--buyer-primary), var(--buyer-accent));
+}
+
+.buyer-kpi-card.success::before {
+  background: linear-gradient(90deg, var(--buyer-success), #34d399);
+}
+
+.buyer-kpi-card.warning::before {
+  background: linear-gradient(90deg, var(--buyer-warning), #fbbf24);
+}
+
+.buyer-kpi-card.info::before {
+  background: linear-gradient(90deg, var(--buyer-info), #60a5fa);
+}
+
+.kpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.kpi-title {
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-medium);
+  color: #64748b;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.kpi-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: white;
+  background: var(--buyer-gradient);
+}
+
+.kpi-value {
+  font-size: 2.25rem;
+  font-weight: var(--font-weight-bold);
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  line-height: 1;
+}
+
+.kpi-trend {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.kpi-trend.positive {
+  color: var(--buyer-success);
+}
+
+.kpi-trend.negative {
+  color: var(--buyer-danger);
+}
+
+.kpi-trend.neutral {
+  color: #64748b;
+}
+
+/* ===============================================
+   ORDER STATUS PIPELINE
+   =============================================== */
+.order-pipeline {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--buyer-shadow);
+  margin-bottom: 2rem;
+}
+
+.pipeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: between;
+  margin-bottom: 1.5rem;
+}
+
+.pipeline-title {
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-semibold);
+  color: #1e293b;
+  margin: 0;
+}
+
+.pipeline-steps {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.pipeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+  position: relative;
+}
+
+.step-circle {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  font-weight: var(--font-weight-semibold);
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.step-circle.active {
+  background: var(--buyer-gradient);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.2);
+}
+
+.step-circle.completed {
+  background: var(--buyer-success);
+  color: white;
+}
+
+.step-circle.pending {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+.step-label {
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-medium);
+  color: #64748b;
+  text-align: center;
+  margin-top: 0.5rem;
+  max-width: 100px;
+}
+
+.step-connector {
+  position: absolute;
+  top: 1.5rem;
+  left: 3rem;
+  right: -1rem;
+  height: 2px;
+  background: #e2e8f0;
+  z-index: 1;
+}
+
+.step-connector.completed {
+  background: var(--buyer-success);
+}
+
+/* ===============================================
+   SUPPLIER CARDS
+   =============================================== */
+.supplier-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.supplier-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--buyer-shadow);
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
+}
+
+.supplier-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--buyer-shadow-lg);
+  border-color: var(--buyer-primary);
+}
+
+.supplier-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.supplier-logo {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 12px;
+  background: var(--buyer-card-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--buyer-primary);
+}
+
+.supplier-info h4 {
+  font-size: 1rem;
+  font-weight: var(--font-weight-semibold);
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+}
+
+.supplier-info p {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.supplier-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.supplier-stat {
+  flex: 1;
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-bold);
+  color: #1e293b;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.supplier-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-supplier {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.btn-supplier.primary {
+  background: var(--buyer-primary);
+  color: white;
+  border: none;
+}
+
+.btn-supplier.primary:hover {
+  background: var(--buyer-secondary);
+  transform: translateY(-1px);
+}
+
+.btn-supplier.secondary {
+  background: transparent;
+  color: var(--buyer-primary);
+  border: 1px solid var(--buyer-primary);
+}
+
+.btn-supplier.secondary:hover {
+  background: var(--buyer-primary);
+  color: white;
+}
+
+/* ===============================================
+   ORDER HISTORY TABLE
+   =============================================== */
+.order-history {
+  background: white;
+  border-radius: 16px;
+  box-shadow: var(--buyer-shadow);
+  overflow: hidden;
+}
+
+.order-history-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: between;
+}
+
+.order-history-title {
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-semibold);
+  color: #1e293b;
+  margin: 0;
+}
+
+.order-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.order-table th,
+.order-table td {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.order-table th {
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-semibold);
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #f8fafc;
+}
+
+.order-table td {
+  font-size: 0.875rem;
+  color: #1e293b;
+}
+
+.order-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.order-status.active {
+  background: rgba(6, 182, 212, 0.1);
+  color: var(--buyer-primary);
+}
+
+.order-status.completed {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--buyer-success);
+}
+
+.order-status.pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--buyer-warning);
+}
+
+.order-status.cancelled {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--buyer-danger);
+}
+
+/* ===============================================
+   DARK MODE SUPPORT
+   =============================================== */
+[data-theme="dark"] .buyer-kpi-card,
+[data-theme="dark"] .order-pipeline,
+[data-theme="dark"] .supplier-card,
+[data-theme="dark"] .order-history {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .kpi-title,
+[data-theme="dark"] .pipeline-title,
+[data-theme="dark"] .order-history-title {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .kpi-value {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .step-label,
+[data-theme="dark"] .stat-label {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .order-table th {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .order-table td {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .order-table th,
+[data-theme="dark"] .order-table td {
+  border-color: var(--border-color);
+}
+
+/* ===============================================
+   RESPONSIVE DESIGN
+   =============================================== */
+@media (max-width: 768px) {
+  .buyer-kpi-cards {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .pipeline-steps {
+    gap: 0.5rem;
+  }
+  
+  .pipeline-step {
+    min-width: 80px;
+  }
+  
+  .step-circle {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+  
+  .step-label {
+    font-size: 0.6875rem;
+    max-width: 80px;
+  }
+  
+  .supplier-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .order-table {
+    font-size: 0.8125rem;
+  }
+  
+  .order-table th,
+  .order-table td {
+    padding: 0.75rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .buyer-kpi-card {
+    padding: 1.25rem;
+  }
+  
+  .kpi-value {
+    font-size: 1.75rem;
+  }
+  
+  .supplier-stats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .supplier-actions {
+    flex-direction: column;
+  }
+}
+
+/* ===============================================
+   ANIMATIONS & MICRO-INTERACTIONS
+   =============================================== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+.buyer-kpi-card:hover .kpi-icon {
+  animation: pulse 1s ease-in-out;
+}
+
+/* Loading states */
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}

@@ -16,26 +16,7 @@ class EmailService {
    */
   async initialize() {
     if (!this.emailEnabled) {
-      console.log('ℹ️ Email service disabled - SMTP configuration not found');
       return;
-    }
-
-    try {
-      // Initialize nodemailer transporter
-      // const nodemailer = require('nodemailer');
-      // this.transporter = nodemailer.createTransporter({
-      //   host: process.env.SMTP_HOST,
-      //   port: process.env.SMTP_PORT || 587,
-      //   secure: false,
-      //   auth: {
-      //     user: process.env.SMTP_USER,
-      //     pass: process.env.SMTP_PASS
-      //   }
-      // });
-      
-      console.log('Email service initialized');
-    } catch (error) {
-      console.error('Email service initialization error:', error);
     }
   }
 
@@ -242,25 +223,9 @@ class EmailService {
   async sendEmail(to, subject, html, text = null) {
     try {
       if (!this.emailEnabled) {
-        console.log(`[EMAIL DISABLED] To: ${to}, Subject: ${subject}`);
         return { success: true, message: 'Email service disabled' };
       }
 
-      // For now, just log the email
-      console.log(`[EMAIL] To: ${to}, Subject: ${subject}`);
-      console.log(`[EMAIL CONTENT] ${html.substring(0, 200)}...`);
-
-      // TODO: Implement actual email sending with nodemailer
-      // const mailOptions = {
-      //   from: this.fromEmail,
-      //   to: to,
-      //   subject: subject,
-      //   html: html,
-      //   text: text || this.htmlToText(html)
-      // };
-      // 
-      // const result = await this.transporter.sendMail(mailOptions);
-      // return { success: true, messageId: result.messageId };
 
       return { success: true, message: 'Email logged (not sent)' };
 

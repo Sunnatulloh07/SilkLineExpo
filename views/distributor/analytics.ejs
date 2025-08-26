@@ -1,0 +1,901 @@
+<%- include('./partials/header', { title: 'Business Intelligence - Buyer Profile', lng: lng, user: user }) %>
+<%- include('./partials/sidebar', { user: user, currentPage: 'analytics' }) %>
+
+<!-- Main Content -->
+<main class="admin-main">
+  <div class="admin-content">
+    
+    <!-- Page Header -->
+    <div class="page-header animate-fade-in">
+      <div class="page-header-content">
+        <div>
+          <h1 class="page-title">Business Intelligence</h1>
+          <p class="page-description">Analyze your procurement patterns and optimize spending</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="exportReport()">
+            <i class="fas fa-download"></i>
+            Export Report
+          </button>
+          <button class="btn btn-secondary" onclick="scheduleReport()">
+            <i class="fas fa-calendar-alt"></i>
+            Schedule Report
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Analytics Overview KPIs -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg">
+      
+      <!-- Total Spending -->
+      <div class="stat-card animate-fade-in">
+        <div class="stat-header">
+          <h3 class="stat-title">Total Spending</h3>
+          <div class="stat-icon">
+            <i class="fas fa-dollar-sign"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="kpi-value" id="totalSpendingValue"><%= analyticsData.totalSpent ? '$' + (analyticsData.totalSpent/1000000).toFixed(1) + 'M' : '$0' %></span>
+        </div>
+        <div class="stat-change positive">
+          <span class="kpi-trend">+18% vs last year</span>
+        </div>
+      </div>
+      
+      <!-- Cost Savings -->
+      <div class="stat-card success animate-fade-in">
+        <div class="stat-header">
+          <h3 class="stat-title">Cost Savings</h3>
+          <div class="stat-icon success">
+            <i class="fas fa-piggy-bank"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="kpi-value" id="costSavingsValue"><%= analyticsData.costSavings ? '$' + (analyticsData.costSavings/1000).toFixed(0) + 'K' : '$0' %></span>
+        </div>
+        <div class="stat-change positive">
+          <span class="kpi-trend">7.7% of total spend</span>
+        </div>
+      </div>
+      
+      <!-- Supplier Performance -->
+      <div class="stat-card info animate-fade-in">
+        <div class="stat-header">
+          <h3 class="stat-title">Avg Supplier Rating</h3>
+          <div class="stat-icon info">
+            <i class="fas fa-star"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="kpi-value" id="supplierRatingValue"><%= analyticsData.avgSupplierRating ? analyticsData.avgSupplierRating.toFixed(1) + '/5' : '0.0/5' %></span>
+        </div>
+        <div class="stat-change positive">
+          <span class="kpi-trend">+0.3 improvement</span>
+        </div>
+      </div>
+      
+      <!-- Order Efficiency -->
+      <div class="stat-card warning animate-fade-in">
+        <div class="stat-header">
+          <h3 class="stat-title">Order Efficiency</h3>
+          <div class="stat-icon warning">
+            <i class="fas fa-tachometer-alt"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="kpi-value" id="orderEfficiencyValue"><%= analyticsData.orderEfficiency || 0 %>%</span>
+        </div>
+        <div class="stat-change positive">
+          <span class="kpi-trend">On-time delivery rate</span>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg mb-lg">
+      
+      <!-- Spending Trends Chart -->
+      <div class="chart-container animate-fade-in">
+        <div class="chart-header">
+          <h3 class="chart-title">Spending Trends</h3>
+          <div class="chart-actions">
+            <select id="spendingPeriodFilter" class="chart-period-select">
+              <option value="12">Last 12 Months</option>
+              <option value="6">Last 6 Months</option>
+              <option value="3">Last 3 Months</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="spendingTrendsChart" width="400" height="300"></canvas>
+        </div>
+      </div>
+      
+      <!-- Category Distribution -->
+      <div class="chart-container animate-fade-in">
+        <div class="chart-header">
+          <h3 class="chart-title">Spending by Category</h3>
+          <div class="chart-actions">
+            <button id="categoryChartToggle" class="chart-toggle-btn">
+              <i class="fas fa-exchange-alt"></i>
+            </button>
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="categoryDistributionChart" width="400" height="300"></canvas>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- Analytics Widgets Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-lg mb-lg">
+      
+      <!-- Top Suppliers by Spend -->
+      <div class="widget-card animate-fade-in">
+        <div class="widget-header">
+          <h3 class="widget-title">
+            <i class="fas fa-crown"></i>
+            Top Suppliers by Spend
+          </h3>
+          <div class="widget-actions">
+            <select id="topSuppliersFilter">
+              <option value="ytd">This Year</option>
+              <option value="quarter">This Quarter</option>
+              <option value="month">This Month</option>
+            </select>
+          </div>
+        </div>
+        <div class="widget-body">
+          <div class="top-suppliers-list" id="topSuppliersList">
+            <!-- Top suppliers will be loaded dynamically -->
+            <div class="loading-placeholder">
+              <div class="loading-spinner"></div>
+              <p>Loading top suppliers...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Price Comparison Analysis -->
+      <div class="widget-card animate-fade-in">
+        <div class="widget-header">
+          <h3 class="widget-title">
+            <i class="fas fa-balance-scale"></i>
+            Price Comparison
+          </h3>
+          <div class="widget-actions">
+            <button class="btn-sm btn-primary" onclick="runPriceAnalysis()">
+              <i class="fas fa-search"></i>
+              Analyze
+            </button>
+          </div>
+        </div>
+        <div class="widget-body">
+          <div class="price-comparison-results" id="priceComparisonResults">
+            <!-- Price comparison results will be loaded here -->
+            <div class="empty-state">
+              <div class="empty-state-icon">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <p>Run price analysis to see savings opportunities</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Delivery Performance -->
+      <div class="widget-card animate-fade-in">
+        <div class="widget-header">
+          <h3 class="widget-title">
+            <i class="fas fa-shipping-fast"></i>
+            Delivery Performance
+          </h3>
+        </div>
+        <div class="widget-body">
+          <div class="delivery-metrics">
+            <div class="metric-item">
+              <div class="metric-icon on-time">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="metric-info">
+                <h4>On-Time Deliveries</h4>
+                <span class="metric-value" id="onTimeRate">92%</span>
+                <span class="metric-trend positive">+5%</span>
+              </div>
+            </div>
+            
+            <div class="metric-item">
+              <div class="metric-icon early">
+                <i class="fas fa-clock"></i>
+              </div>
+              <div class="metric-info">
+                <h4>Early Deliveries</h4>
+                <span class="metric-value" id="earlyRate">15%</span>
+                <span class="metric-trend positive">+2%</span>
+              </div>
+            </div>
+            
+            <div class="metric-item">
+              <div class="metric-icon delayed">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="metric-info">
+                <h4>Delayed Deliveries</h4>
+                <span class="metric-value" id="delayedRate">8%</span>
+                <span class="metric-trend negative">-3%</span>
+              </div>
+            </div>
+            
+            <div class="delivery-chart-container">
+              <canvas id="deliveryPerformanceChart" width="250" height="150"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- Procurement Insights Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg mb-lg">
+      
+      <!-- Procurement Calendar -->
+      <div class="widget-card animate-fade-in">
+        <div class="widget-header">
+          <h3 class="widget-title">
+            <i class="fas fa-calendar-alt"></i>
+            Procurement Calendar
+          </h3>
+          <div class="widget-actions">
+            <button class="btn-sm btn-secondary" onclick="addProcurementEvent()">
+              <i class="fas fa-plus"></i>
+              Add Event
+            </button>
+          </div>
+        </div>
+        <div class="widget-body">
+          <div class="procurement-calendar" id="procurementCalendar">
+            <!-- Calendar will be rendered here -->
+            <div class="calendar-container">
+              <div class="calendar-header">
+                <button id="prevMonth" class="calendar-nav">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <h4 id="currentMonth">December 2024</h4>
+                <button id="nextMonth" class="calendar-nav">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+              <div class="calendar-grid" id="calendarGrid">
+                <!-- Calendar grid will be generated -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Market Intelligence -->
+      <div class="widget-card animate-fade-in">
+        <div class="widget-header">
+          <h3 class="widget-title">
+            <i class="fas fa-globe"></i>
+            Market Intelligence
+          </h3>
+          <div class="widget-actions">
+            <button class="btn-sm btn-primary" onclick="refreshMarketData()">
+              <i class="fas fa-sync-alt"></i>
+              Refresh
+            </button>
+          </div>
+        </div>
+        <div class="widget-body">
+          <div class="market-insights" id="marketInsights">
+            <!-- Market intelligence data will be loaded here -->
+            <div class="insight-item">
+              <div class="insight-icon trending-up">
+                <i class="fas fa-trending-up"></i>
+              </div>
+              <div class="insight-content">
+                <h4>Cotton Prices Rising</h4>
+                <p>Cotton futures up 12% this quarter due to weather conditions</p>
+                <span class="insight-impact high">High Impact</span>
+              </div>
+            </div>
+            
+            <div class="insight-item">
+              <div class="insight-icon trending-down">
+                <i class="fas fa-trending-down"></i>
+              </div>
+              <div class="insight-content">
+                <h4>Steel Costs Declining</h4>
+                <p>Industrial steel prices expected to drop 8% next quarter</p>
+                <span class="insight-impact medium">Medium Impact</span>
+              </div>
+            </div>
+            
+            <div class="insight-item">
+              <div class="insight-icon info">
+                <i class="fas fa-info-circle"></i>
+              </div>
+              <div class="insight-content">
+                <h4>New Trade Agreement</h4>
+                <p>Reduced tariffs on electronics from key suppliers</p>
+                <span class="insight-impact low">Low Impact</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- Recommendations Row -->
+    <div class="widget-card animate-fade-in">
+      <div class="widget-header">
+        <h3 class="widget-title">
+          <i class="fas fa-lightbulb"></i>
+          AI-Powered Recommendations
+        </h3>
+        <div class="widget-actions">
+          <button class="btn-sm btn-primary" onclick="generateRecommendations()">
+            <i class="fas fa-robot"></i>
+            Generate New
+          </button>
+        </div>
+      </div>
+      <div class="widget-body">
+        <div class="recommendations-grid" id="recommendationsGrid">
+          
+          <div class="recommendation-card savings">
+            <div class="recommendation-icon">
+              <i class="fas fa-piggy-bank"></i>
+            </div>
+            <div class="recommendation-content">
+              <h4>Cost Optimization</h4>
+              <p>Switch to Supplier X for cotton fabrics to save 15% ($25K annually)</p>
+              <div class="recommendation-actions">
+                <button class="btn-sm btn-primary" onclick="applyRecommendation('cost-opt-1')">
+                  Apply
+                </button>
+                <button class="btn-sm btn-ghost" onclick="viewDetails('cost-opt-1')">
+                  Details
+                </button>
+              </div>
+            </div>
+            <div class="recommendation-impact">
+              <span class="impact-label">Potential Savings</span>
+              <span class="impact-value">$25,000</span>
+            </div>
+          </div>
+          
+          <div class="recommendation-card quality">
+            <div class="recommendation-icon">
+              <i class="fas fa-medal"></i>
+            </div>
+            <div class="recommendation-content">
+              <h4>Quality Improvement</h4>
+              <p>Partner with Premium Textiles Co. for higher quality materials</p>
+              <div class="recommendation-actions">
+                <button class="btn-sm btn-primary" onclick="applyRecommendation('quality-1')">
+                  Apply
+                </button>
+                <button class="btn-sm btn-ghost" onclick="viewDetails('quality-1')">
+                  Details
+                </button>
+              </div>
+            </div>
+            <div class="recommendation-impact">
+              <span class="impact-label">Quality Score</span>
+              <span class="impact-value">+0.8</span>
+            </div>
+          </div>
+          
+          <div class="recommendation-card efficiency">
+            <div class="recommendation-icon">
+              <i class="fas fa-rocket"></i>
+            </div>
+            <div class="recommendation-content">
+              <h4>Delivery Optimization</h4>
+              <p>Consolidate orders from Region A to reduce shipping time by 2 days</p>
+              <div class="recommendation-actions">
+                <button class="btn-sm btn-primary" onclick="applyRecommendation('delivery-1')">
+                  Apply
+                </button>
+                <button class="btn-sm btn-ghost" onclick="viewDetails('delivery-1')">
+                  Details
+                </button>
+              </div>
+            </div>
+            <div class="recommendation-impact">
+              <span class="impact-label">Time Saved</span>
+              <span class="impact-value">2 days</span>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</main>
+
+<style>
+/* Analytics Specific Styles */
+.chart-container {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.chart-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.chart-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chart-period-select {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--surface-color);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.chart-toggle-btn {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--surface-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chart-toggle-btn:hover {
+  color: var(--buyer-primary);
+  border-color: var(--buyer-primary);
+}
+
+.chart-body {
+  position: relative;
+  height: 300px;
+}
+
+/* Top Suppliers List */
+.top-suppliers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.supplier-rank-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--background-secondary);
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.supplier-rank-item:hover {
+  background: var(--background-hover);
+}
+
+.supplier-rank {
+  width: 30px;
+  height: 30px;
+  background: var(--buyer-primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.supplier-rank.top-3 {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+
+.supplier-rank-info {
+  flex: 1;
+}
+
+.supplier-rank-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.supplier-rank-category {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.supplier-rank-spend {
+  font-weight: 700;
+  color: var(--buyer-primary);
+  font-size: 1.1rem;
+}
+
+.supplier-rank-change {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.supplier-rank-change.positive {
+  color: var(--success-color);
+}
+
+.supplier-rank-change.negative {
+  color: var(--danger-color);
+}
+
+/* Delivery Metrics */
+.delivery-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.metric-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: var(--background-secondary);
+  border-radius: 8px;
+}
+
+.metric-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+}
+
+.metric-icon.on-time {
+  background: var(--success-color);
+}
+
+.metric-icon.early {
+  background: var(--info-color);
+}
+
+.metric-icon.delayed {
+  background: var(--warning-color);
+}
+
+.metric-info {
+  flex: 1;
+}
+
+.metric-info h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.metric-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-right: 0.5rem;
+}
+
+.metric-trend {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.metric-trend.positive {
+  color: var(--success-color);
+}
+
+.metric-trend.negative {
+  color: var(--danger-color);
+}
+
+.delivery-chart-container {
+  margin-top: 1rem;
+  height: 150px;
+}
+
+/* Market Intelligence */
+.market-insights {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.insight-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--background-secondary);
+  border-radius: 8px;
+  border-left: 4px solid transparent;
+}
+
+.insight-item:nth-child(1) {
+  border-left-color: var(--danger-color);
+}
+
+.insight-item:nth-child(2) {
+  border-left-color: var(--success-color);
+}
+
+.insight-item:nth-child(3) {
+  border-left-color: var(--info-color);
+}
+
+.insight-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.insight-icon.trending-up {
+  background: var(--danger-color);
+}
+
+.insight-icon.trending-down {
+  background: var(--success-color);
+}
+
+.insight-icon.info {
+  background: var(--info-color);
+}
+
+.insight-content {
+  flex: 1;
+}
+
+.insight-content h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.insight-content p {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.insight-impact {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.insight-impact.high {
+  background: var(--danger-light);
+  color: var(--danger-color);
+}
+
+.insight-impact.medium {
+  background: var(--warning-light);
+  color: var(--warning-color);
+}
+
+.insight-impact.low {
+  background: var(--info-light);
+  color: var(--info-color);
+}
+
+/* Recommendations */
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.recommendation-card {
+  background: var(--background-secondary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border-left: 4px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.recommendation-card.savings {
+  border-left-color: var(--success-color);
+}
+
+.recommendation-card.quality {
+  border-left-color: var(--buyer-primary);
+}
+
+.recommendation-card.efficiency {
+  border-left-color: var(--warning-color);
+}
+
+.recommendation-card .recommendation-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  margin-bottom: 1rem;
+}
+
+.recommendation-card.savings .recommendation-icon {
+  background: var(--success-color);
+}
+
+.recommendation-card.quality .recommendation-icon {
+  background: var(--buyer-primary);
+}
+
+.recommendation-card.efficiency .recommendation-icon {
+  background: var(--warning-color);
+}
+
+.recommendation-content h4 {
+  margin: 0 0 0.75rem 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.recommendation-content p {
+  margin: 0 0 1rem 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.recommendation-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.recommendation-impact {
+  text-align: center;
+  padding: 1rem;
+  background: var(--surface-color);
+  border-radius: 8px;
+}
+
+.impact-label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+
+.impact-value {
+  display: block;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* Calendar Styles */
+.calendar-container {
+  width: 100%;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.calendar-nav {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.calendar-nav:hover {
+  background: var(--buyer-primary);
+  color: white;
+  border-color: var(--buyer-primary);
+}
+
+#currentMonth {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  background: var(--surface-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.calendar-day:hover {
+  background: var(--buyer-light);
+}
+
+.calendar-day.today {
+  background: var(--buyer-primary);
+  color: white;
+}
+
+.calendar-day.other-month {
+  color: var(--text-disabled);
+}
+
+.calendar-day.has-event::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  background: var(--warning-color);
+  border-radius: 50%;
+}
+</style>
+
+<script src="/assets/js/chart.min.js"></script>
+<script src="/js/buyer/analytics.js"></script>
+
+</body>
+</html>

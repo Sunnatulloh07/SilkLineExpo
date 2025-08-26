@@ -461,7 +461,7 @@ class CategoryController {
   renderError(res, req, error, message = 'An error occurred') {
     this.logger.error(message, error);
     
-    res.status(500).render('error', {
+    res.status(500).render('pages/error', {
       title: 'Error',
       message,
       error: process.env.NODE_ENV === 'development' ? error : {},

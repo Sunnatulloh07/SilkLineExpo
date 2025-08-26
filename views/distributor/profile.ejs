@@ -1,0 +1,187 @@
+<%- include('./partials/header', { title: title || 'Buyer Profile - SLEX', lng: lng || 'uz', user: user }) %>
+<%- include('./partials/sidebar', { user: user, currentPage: 'profile' }) %>
+
+<!-- Main Content -->
+<main class="admin-main buyer-profile">
+  <div class="admin-content">
+    
+    <!-- Profile Header -->
+    <div class="profile-header animate-fade-in">
+      <div class="profile-header-content">
+        <div class="profile-title-section">
+          <h1 class="profile-main-title">
+            <i class="fas fa-user-circle"></i>
+            <%- t('buyerProfile.title') %>
+          </h1>
+          <p class="profile-subtitle"><%- t('buyerProfile.subtitle') %></p>
+        </div>
+        <div class="profile-header-actions">
+          <button class="btn btn-primary" id="editProfileBtn">
+            <i class="fas fa-edit"></i>
+            <%- t('buyerProfile.editProfile') %>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Overview Section -->
+    <div class="profile-overview-section animate-fade-in">
+      <div class="profile-hero-card">
+        <div class="profile-hero-content">
+          <div class="company-logo-section">
+            <div class="company-logo-container">
+              <img src="<%= (user.companyLogo && user.companyLogo.url) || '/assets/images/avatars/default-company.png' %>" 
+                   alt="<%= user.companyName || 'Company Logo' %>" 
+                   class="company-logo"
+                   id="companyLogo"
+                   onerror="this.onerror=null; this.src='/assets/images/avatars/default.png'">
+            </div>
+            <div class="company-verification">
+              <% if (user.status === 'active') { %>
+                <span class="verification-badge verified">
+                  <i class="fas fa-check-circle"></i>
+                  <%- t('buyerProfile.verified') %>
+                </span>
+              <% } else { %>
+                <span class="verification-badge pending">
+                  <i class="fas fa-clock"></i>
+                  <%- t('buyerProfile.pending') %>
+                </span>
+              <% } %>
+            </div>
+          </div>
+
+          <div class="company-basic-info">
+            <h2 class="company-name" id="companyName"><%= user.companyName || '-' %></h2>
+            <div class="company-meta">
+              <span class="company-type">
+                <i class="fas fa-shopping-cart"></i>
+                <%- t('buyerProfile.buyer') %>
+              </span>
+              <span class="company-location">
+                <i class="fas fa-map-marker-alt"></i>
+                <span id="companyLocation"><%= user.address || '-' %></span>
+              </span>
+            </div>
+            <div class="company-contact-quick">
+              <a href="mailto:<%= user.email %>" class="contact-btn email" id="heroEmail">
+                <i class="fas fa-envelope"></i>
+                <%= user.email || '-' %>
+              </a>
+              <% if (user.phone) { %>
+                <a href="tel:<%= user.phone %>" class="contact-btn phone" id="heroPhone">
+                  <i class="fas fa-phone"></i>
+                  <%= user.phone %>
+                </a>
+              <% } %>
+            </div>
+          </div>
+
+          <div class="company-stats-quick">
+            <div class="stat-item">
+              <div class="stat-value" id="totalOrders">0</div>
+              <div class="stat-label"><%- t('buyerProfile.orders') %></div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="activeOrders">0</div>
+              <div class="stat-label"><%- t('buyerProfile.activeOrders') %></div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="totalSpent">$0</div>
+              <div class="stat-label"><%- t('buyerProfile.spent') %></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="quick-actions-section animate-fade-in">
+      <h3 class="section-title"><%- t('buyerProfile.quickActions') %></h3>
+      <div class="actions-grid">
+        <a href="/distributor/orders" class="action-card">
+          <div class="action-icon">
+            <i class="fas fa-shopping-cart"></i>
+          </div>
+          <div class="action-content">
+            <h4><%- t('buyerProfile.viewOrders') %></h4>
+            <p><%- t('buyerProfile.viewOrdersDesc') %></p>
+          </div>
+        </a>
+        
+        <a href="/distributor/messages" class="action-card">
+          <div class="action-icon">
+            <i class="fas fa-comments"></i>
+          </div>
+          <div class="action-content">
+            <h4><%- t('buyerProfile.messages') %></h4>
+            <p><%- t('buyerProfile.messagesDesc') %></p>
+          </div>
+        </a>
+        
+        <a href="/distributor/inquiries" class="action-card">
+          <div class="action-icon">
+            <i class="fas fa-envelope-open"></i>
+          </div>
+          <div class="action-content">
+            <h4><%- t('buyerProfile.inquiries') %></h4>
+            <p><%- t('buyerProfile.inquiriesDesc') %></p>
+          </div>
+        </a>
+        
+        <a href="/distributor/settings" class="action-card">
+          <div class="action-icon">
+            <i class="fas fa-cog"></i>
+          </div>
+          <div class="action-content">
+            <h4><%- t('buyerProfile.settings') %></h4>
+            <p><%- t('buyerProfile.settingsDesc') %></p>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="recent-activity-section animate-fade-in">
+      <h3 class="section-title"><%- t('buyerProfile.recentActivity') %></h3>
+      <div class="activity-feed">
+        <div class="activity-item">
+          <div class="activity-icon">
+            <i class="fas fa-shopping-cart"></i>
+          </div>
+          <div class="activity-content">
+            <h4><%- t('buyerProfile.orderPlaced') %></h4>
+            <p>#ORD-2024-001 <%- t('buyerProfile.orderPlacedDesc') %> Premium Textiles Co.</p>
+            <span class="activity-time">2 <%- t('buyerProfile.hoursAgo') %></span>
+          </div>
+        </div>
+        
+        <div class="activity-item">
+          <div class="activity-icon">
+            <i class="fas fa-comments"></i>
+          </div>
+          <div class="activity-content">
+            <h4><%- t('buyerProfile.newMessage') %></h4>
+            <p><%- t('buyerProfile.newMessageDesc') %> Silk Road Industries</p>
+            <span class="activity-time">5 <%- t('buyerProfile.hoursAgo') %></span>
+          </div>
+        </div>
+        
+        <div class="activity-item">
+          <div class="activity-icon">
+            <i class="fas fa-envelope-open"></i>
+          </div>
+          <div class="activity-content">
+            <h4><%- t('buyerProfile.rfqSent') %></h4>
+            <p><%- t('buyerProfile.rfqSentDesc') %> Cotton Masters Ltd</p>
+            <span class="activity-time">1 <%- t('buyerProfile.dayAgo') %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Profile JavaScript -->
+<script src="/js/buyer/profile.js"></script>

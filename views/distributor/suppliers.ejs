@@ -1,0 +1,432 @@
+<%- include('./partials/header', { title: 'My Suppliers - Buyer Profile', lng: lng, user: user }) %>
+<%- include('./partials/sidebar', { user: user, currentPage: 'suppliers' }) %>
+
+<!-- Main Content -->
+<main class="admin-main">
+  <div class="admin-content">
+    
+    <!-- Page Header -->
+    <div class="page-header animate-fade-in">
+      <div class="page-header-content">
+        <div>
+          <h1 class="page-title">My Suppliers</h1>
+          <p class="page-description">Manage your supplier network and discover new partners</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="openSupplierDiscovery()">
+            <i class="fas fa-search"></i>
+            Find New Suppliers
+          </button>
+          <button class="btn btn-secondary" onclick="exportSuppliers()">
+            <i class="fas fa-download"></i>
+            Export List
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Supplier Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg">
+      
+      <!-- Active Suppliers -->
+      <div class="stat-card animate-fade-in">
+        <div class="stat-header">
+          <h3 class="stat-title">Active Suppliers</h3>
+          <div class="stat-icon">
+            <i class="fas fa-handshake"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="kpi-value" id="activeSuppliersValue"><%= supplierStats.activeSuppliers || 0 %></span>
+        </div>
+        <div class="stat-change positive">
+          <span class="kpi-trend">+8 this month</span>
+        </div>
+      </div>
+      
+      <!-- Top Rated -->
+      <div class="stat-card success animate-fade-in">
+        <div class="stat-header">
+          <h3 class="stat-title">Top Rated (4.5+)</h3>
+          <div class="stat-icon success">
+            <i class="fas fa-star"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="kpi-value" id="topRatedValue"><%= supplierStats.topRatedSuppliers || 0 %></span>
+        </div>
+        <div class="stat-change positive">
+          <span class="kpi-trend">68% of suppliers</span>
+        </div>
+      </div>
+      
+      <!-- Categories -->
+      <div class="stat-card info animate-fade-in">
+        <div class="stat-header">
+          <h3 class="stat-title">Product Categories</h3>
+          <div class="stat-icon info">
+            <i class="fas fa-tags"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="kpi-value" id="categoriesValue"><%= supplierStats.categories || 0 %></span>
+        </div>
+        <div class="stat-change">
+          <span class="kpi-trend">Well diversified</span>
+        </div>
+      </div>
+      
+      <!-- Average Rating -->
+      <div class="stat-card warning animate-fade-in">
+        <div class="stat-header">
+          <h3 class="stat-title">Average Rating</h3>
+          <div class="stat-icon warning">
+            <i class="fas fa-chart-bar"></i>
+          </div>
+        </div>
+        <div class="stat-value">
+          <span class="kpi-value" id="avgRatingValue"><%= supplierStats.avgRating || 0.0 %></span>
+        </div>
+        <div class="stat-change positive">
+          <span class="kpi-trend">+0.2 improvement</span>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- Supplier Filters -->
+    <div class="widget-card animate-fade-in mb-lg">
+      <div class="widget-body">
+        <div class="supplier-filters">
+          <div class="filter-group">
+            <label>Search Suppliers</label>
+            <div class="search-input-group">
+              <i class="fas fa-search"></i>
+              <input type="text" id="supplierSearch" placeholder="Search by company name, location, or products...">
+            </div>
+          </div>
+          
+          <div class="filter-group">
+            <label>Category</label>
+            <select id="categoryFilter">
+              <option value="">All Categories</option>
+              <option value="textiles">Textiles & Fabrics</option>
+              <option value="electronics">Electronics</option>
+              <option value="food">Food & Beverages</option>
+              <option value="chemicals">Chemicals</option>
+              <option value="machinery">Machinery</option>
+              <option value="packaging">Packaging</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label>Rating</label>
+            <select id="ratingFilter">
+              <option value="">All Ratings</option>
+              <option value="5">5 Stars</option>
+              <option value="4">4+ Stars</option>
+              <option value="3">3+ Stars</option>
+              <option value="2">2+ Stars</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label>Location</label>
+            <select id="locationFilter">
+              <option value="">All Locations</option>
+              <option value="tashkent">Tashkent</option>
+              <option value="samarkand">Samarkand</option>
+              <option value="bukhara">Bukhara</option>
+              <option value="andijan">Andijan</option>
+              <option value="international">International</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Suppliers Grid -->
+    <div class="suppliers-grid" id="suppliersGrid">
+      <!-- Suppliers will be loaded dynamically -->
+      <div class="loading-placeholder-grid">
+        <div class="loading-spinner"></div>
+        <p>Loading suppliers...</p>
+      </div>
+    </div>
+    
+    <!-- Load More Button -->
+    <div class="text-center mt-lg" id="loadMoreSection" style="display: none;">
+      <button class="btn btn-secondary" onclick="loadMoreSuppliers()">
+        <i class="fas fa-plus"></i>
+        Load More Suppliers
+      </button>
+    </div>
+    
+  </div>
+</main>
+
+<!-- Supplier Details Modal -->
+<div id="supplierDetailsModal" class="modal hidden">
+  <div class="modal-overlay"></div>
+  <div class="modal-content modal-lg">
+    <div class="modal-header">
+      <h3 class="modal-title">Supplier Details</h3>
+      <button class="modal-close" onclick="closeSupplierModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="supplierDetailsContent">
+      <!-- Supplier details will be loaded here -->
+    </div>
+  </div>
+</div>
+
+<!-- Contact Supplier Modal -->
+<div id="contactSupplierModal" class="modal hidden">
+  <div class="modal-overlay"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Contact Supplier</h3>
+      <button class="modal-close" onclick="closeContactModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="contactSupplierForm">
+        <div class="form-group">
+          <label>Subject</label>
+          <input type="text" id="contactSubject" required>
+        </div>
+        <div class="form-group">
+          <label>Message</label>
+          <textarea id="contactMessage" rows="5" required placeholder="Enter your message or inquiry..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="contactPriority">
+            <option value="normal">Normal</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeContactModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Send Message</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Supplier Grid Styles */
+.suppliers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.supplier-card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.supplier-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--buyer-primary);
+}
+
+.supplier-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.supplier-logo {
+  width: 60px;
+  height: 60px;
+  background: var(--buyer-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.supplier-info h4 {
+  margin: 0 0 0.25rem 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.supplier-location {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.supplier-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.rating-star {
+  color: #fbbf24;
+  font-size: 14px;
+}
+
+.rating-star.empty {
+  color: var(--border-color);
+}
+
+.rating-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rating-count {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.supplier-categories {
+  margin-bottom: 1rem;
+}
+
+.category-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.category-tag {
+  background: var(--buyer-light);
+  color: var(--buyer-primary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.supplier-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--buyer-primary);
+  display: block;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: block;
+}
+
+.supplier-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-supplier {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary.btn-supplier {
+  background: var(--buyer-primary);
+  color: white;
+  border: none;
+}
+
+.btn-primary.btn-supplier:hover {
+  background: var(--buyer-secondary);
+}
+
+.btn-secondary.btn-supplier {
+  background: transparent;
+  color: var(--buyer-primary);
+  border: 1px solid var(--buyer-primary);
+}
+
+.btn-secondary.btn-supplier:hover {
+  background: var(--buyer-light);
+}
+
+/* Favorite Badge */
+.favorite-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: var(--danger-color);
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.favorite-badge.active {
+  background: #ef4444;
+}
+
+/* Loading State */
+.loading-placeholder-grid {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .suppliers-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .supplier-filters {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<script src="/js/buyer/suppliers.js"></script>
+
+</body>
+</html>

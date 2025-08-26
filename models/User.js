@@ -305,6 +305,67 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['uz', 'en', 'ru', 'tr', 'fa', 'zh'],
     default: 'uz'
+  },
+
+  // Notification Settings
+  emailNotifications: {
+    type: Boolean,
+    default: true
+  },
+
+  orderUpdates: {
+    type: Boolean,
+    default: true
+  },
+
+  marketingEmails: {
+    type: Boolean,
+    default: false
+  },
+
+  priceAlerts: {
+    type: Boolean,
+    default: false
+  },
+
+  weeklyDigest: {
+    type: Boolean,
+    default: false
+  },
+
+  // User Preferences
+  preferences: {
+    theme: {
+      type: String,
+      enum: ['light', 'dark', 'system'],
+      default: 'light'
+    },
+    currency: {
+      type: String,
+      enum: ['USD', 'UZS', 'EUR', 'RUB'],
+      default: 'USD'
+    },
+    timezone: {
+      type: String,
+      default: 'Asia/Tashkent'
+    },
+    itemsPerPage: {
+      type: Number,
+      default: 20,
+      min: 10,
+      max: 100
+    },
+    compactView: {
+      type: Boolean,
+      default: false
+    }
+  },
+
+  // Contact Person (for buyer profile)
+  contactPerson: {
+    type: String,
+    trim: true,
+    maxlength: 200
   }
   
 }, {

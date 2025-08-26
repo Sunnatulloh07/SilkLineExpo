@@ -13,9 +13,9 @@ class TokenService {
         this.accessTokenSecret = process.env.JWT_ACCESS_SECRET || this.generateSecureSecret();
         this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || this.generateSecureSecret();
         
-        // Token expiration times
-        this.accessTokenExpiry = process.env.JWT_ACCESS_EXPIRY || '30m'; // 30 minutes
-        this.refreshTokenExpiry = process.env.JWT_REFRESH_EXPIRY || '7d'; // 7 days
+        // Token expiration times - FIXED: Professional token lifecycle
+        this.accessTokenExpiry = process.env.JWT_ACCESS_EXPIRY || '1h'; // 1 hour for better UX
+        this.refreshTokenExpiry = process.env.JWT_REFRESH_EXPIRY || '30d'; // 30 days for better UX
         
         // Cookie settings
         this.cookieOptions = {
@@ -24,11 +24,11 @@ class TokenService {
             sameSite: 'strict',
             path: '/',
             domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined,
-            // Add maxAge for token cookies
+            // Add maxAge for token cookies - FIXED: Mos holatda
             maxAge: {
-                access: 30 * 60 * 1000, // 30 minutes
-                refresh: 7 * 24 * 60 * 60 * 1000, // 7 days
-                session: 7 * 24 * 60 * 60 * 1000  // 7 days
+                access: 60 * 60 * 1000, // 1 hour 
+                refresh: 30 * 24 * 60 * 60 * 1000, // 30 days
+                session: 30 * 24 * 60 * 60 * 1000  // 30 days
             }
         };
         
@@ -80,6 +80,8 @@ class TokenService {
                 iat: Math.floor(Date.now() / 1000),
                 tokenType: 'access'
             };
+
+            console.log('🔑 Generating access token with expiry:', this.accessTokenExpiry);
 
             // Generate token
             const token = jwt.sign(accessPayload, this.accessTokenSecret, {
@@ -334,25 +336,31 @@ class TokenService {
     setAuthCookies(res, tokens) {
         try {
             // ✅ FIXED: Cookie expiry muammosi tuzatildi
+            console.log('🍪 Setting auth cookies with maxAge:', {
+                access: this.cookieOptions.maxAge.access / (60 * 1000) + ' minutes',
+                refresh: this.cookieOptions.maxAge.refresh / (24 * 60 * 60 * 1000) + ' days',
+                session: this.cookieOptions.maxAge.session / (24 * 60 * 60 * 1000) + ' days'
+            });
             
-            // Access token cookie - JWT expiry bilan mos kelishi uchun biroz ko'proq vaqt
+            // Access token cookie - JWT expiry bilan mos kelishi uchun
             res.cookie('accessToken', tokens.accessToken, {
                 ...this.cookieOptions,
-                maxAge: 30 * 60 * 1000 // ✅ 30 daqiqa (JWT 15min + 15min buffer)
+                maxAge: this.cookieOptions.maxAge.access // ✅ 1 soat
             });
 
-            // Refresh token cookie - JWT expiry bilan mos kelishi uchun biroz ko'proq vaqt
+            // Refresh token cookie - JWT expiry bilan mos kelishi uchun
             res.cookie('refreshToken', tokens.refreshToken, {
                 ...this.cookieOptions,
-                maxAge: 7 * 24 * 60 * 60 * 1000 // ✅ 7 kun (JWT 3kun + 4kun buffer)
+                maxAge: this.cookieOptions.maxAge.refresh // ✅ 30 kun
             });
 
             // Session ID cookie - refresh token bilan bir xil
             res.cookie('sessionId', tokens.sessionId, {
                 ...this.cookieOptions,
-                maxAge: 7 * 24 * 60 * 60 * 1000 // ✅ 7 kun
+                maxAge: this.cookieOptions.maxAge.session // ✅ 30 kun
             });
 
+            console.log('✅ Auth cookies set successfully');
             return true;
         } catch (error) {
             throw new Error(`Failed to set auth cookies: ${error.message}`);

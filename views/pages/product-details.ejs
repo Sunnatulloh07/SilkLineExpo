@@ -3140,19 +3140,19 @@
                 <% } else { %>
                   <div class="image-placeholder">
                     <i class="fas fa-image"></i>
-                    <span><%= t('product.noImageAvailable') %></span>
+                    <span><%- t('productDetails.noImageAvailable') %></span>
                   </div>
                 <% } %>
                 
                 <!-- Image Tools -->
                 <div class="image-tools">
-                  <button class="image-tool-btn zoom-btn" title="<%= t('product.zoomImage') %>">
+                  <button class="image-tool-btn zoom-btn" title="<%- t('productDetails.zoomImage') %>">
                     <i class="fas fa-search-plus"></i>
                   </button>
-                  <button class="image-tool-btn favorite-btn" title="<%= t('product.addToFavorites') %>">
+                  <button class="image-tool-btn favorite-btn" title="<%- t('productDetails.addToFavorites') %>">
                     <i class="far fa-heart"></i>
                   </button>
-                  <button class="image-tool-btn share-btn" title="<%= t('product.shareProduct') %>">
+                  <button class="image-tool-btn share-btn" title="<%- t('productDetails.shareProduct') %>">
                     <i class="fas fa-share-alt"></i>
                   </button>
                 </div>
@@ -3177,7 +3177,7 @@
               <div class="product-documents-section">
                 <h3 class="section-title">
                   <i class="fas fa-file-alt"></i>
-                  <%= t('product.documentsAndCertifications') %>
+                  <%- t('productDetails.documents') %> & <%- t('productDetails.certifications') %>
                 </h3>
                 
                 <div class="documents-grid">
@@ -3218,7 +3218,7 @@
                           <span class="certification-issuer"><%= cert.issuedBy %></span>
                           <% if (cert.expiryDate) { %>
                             <span class="certification-validity">
-                              Valid until: <%= new Date(cert.expiryDate).toLocaleDateString() %>
+                              <%- t('productDetails.validUntil') %>: <%= new Date(cert.expiryDate).toLocaleDateString() %>
                             </span>
                           <% } %>
                         </div>
@@ -3266,29 +3266,29 @@
                 <!-- Business Performance Metrics -->
                 <% if (product.businessMetrics && (product.businessMetrics.totalRevenue > 0 || product.businessMetrics.totalOrdersCount > 0)) { %>
                   <div class="business-metrics">
-                    <h4><i class="fas fa-chart-line"></i> Business Performance</h4>
+                    <h4><i class="fas fa-chart-line"></i> <%- t('productDetails.businessPerformance') %></h4>
                     <div class="metrics-grid">
                       <% if (product.businessMetrics.totalRevenue > 0) { %>
                         <div class="metric-item">
-                          <span class="metric-label">Total Revenue</span>
+                          <span class="metric-label"><%- t('productDetails.totalRevenue') %></span>
                           <span class="metric-value">$<%= product.businessMetrics.totalRevenue.toLocaleString() %></span>
                         </div>
                       <% } %>
                       <% if (product.businessMetrics.totalOrdersCount > 0) { %>
                         <div class="metric-item">
-                          <span class="metric-label">Total Orders</span>
+                          <span class="metric-label"><%- t('productDetails.totalOrders') %></span>
                           <span class="metric-value"><%= product.businessMetrics.totalOrdersCount.toLocaleString() %></span>
                         </div>
                       <% } %>
                       <% if (product.businessMetrics.averageOrderValue > 0) { %>
                         <div class="metric-item">
-                          <span class="metric-label">Avg Order Value</span>
+                          <span class="metric-label"><%- t('productDetails.avgOrderValue') %></span>
                           <span class="metric-value">$<%= product.businessMetrics.averageOrderValue.toFixed(2) %></span>
                         </div>
                       <% } %>
                       <% if (product.businessMetrics.totalQuantitySold > 0) { %>
                         <div class="metric-item">
-                          <span class="metric-label">Units Sold</span>
+                          <span class="metric-label"><%- t('productDetails.unitsSold') %></span>
                           <span class="metric-value"><%= product.businessMetrics.totalQuantitySold.toLocaleString() %></span>
                         </div>
                       <% } %>
@@ -3328,7 +3328,7 @@
                   <div class="detail-item">
                     <span class="label">
                       <i class="fas fa-envelope"></i>
-                      Inquiries
+                      <%- t('productDetails.inquiries') %>
                     </span>
                     <span class="value"><%= (product.analytics.inquiries || 0).toLocaleString() %></span>
                   </div>
@@ -3339,7 +3339,7 @@
                   <div class="detail-item">
                     <span class="label">
                       <i class="fas fa-users"></i>
-                      Unique Viewers
+                      <%- t('productDetails.uniqueViewers') %>
                     </span>
                     <span class="value"><%= (product.analytics.uniqueViewers || 0).toLocaleString() %></span>
                   </div>
@@ -3485,30 +3485,30 @@
               <!-- Detailed Inventory Information -->
               <% if (product.inventory) { %>
                 <div class="inventory-details">
-                  <h4><i class="fas fa-warehouse"></i> Inventory Details</h4>
+                  <h4><i class="fas fa-warehouse"></i> <%- t('productDetails.inventoryDetails') %></h4>
                   <div class="inventory-grid">
                     <% if (product.inventory.totalStock !== undefined) { %>
                       <div class="inventory-item">
-                        <span class="inventory-label">Total Stock</span>
-                        <span class="inventory-value"><%= product.inventory.totalStock.toLocaleString() %> <%= product.inventory.unit || 'units' %></span>
+                        <span class="inventory-label"><%- t('productDetails.totalStock') %></span>
+                        <span class="inventory-value"><%= product.inventory.totalStock.toLocaleString() %> <%= product.inventory.unit || t('productDetails.units') %></span>
                       </div>
                     <% } %>
                     <% if (product.inventory.availableStock !== undefined) { %>
                       <div class="inventory-item">
-                        <span class="inventory-label">Available Now</span>
-                        <span class="inventory-value"><%= product.inventory.availableStock.toLocaleString() %> <%= product.inventory.unit || 'units' %></span>
+                        <span class="inventory-label"><%- t('productDetails.availableNow') %></span>
+                        <span class="inventory-value"><%= product.inventory.availableStock.toLocaleString() %> <%= product.inventory.unit || t('productDetails.units') %></span>
                       </div>
                     <% } %>
                     <% if (product.inventory.reservedStock !== undefined && product.inventory.reservedStock > 0) { %>
                       <div class="inventory-item">
-                        <span class="inventory-label">Reserved</span>
-                        <span class="inventory-value"><%= product.inventory.reservedStock.toLocaleString() %> <%= product.inventory.unit || 'units' %></span>
+                        <span class="inventory-label"><%- t('productDetails.reserved') %></span>
+                        <span class="inventory-value"><%= product.inventory.reservedStock.toLocaleString() %> <%= product.inventory.unit || t('productDetails.units') %></span>
                       </div>
                     <% } %>
                     <% if (product.inventory.lowStockThreshold !== undefined) { %>
                       <div class="inventory-item">
-                        <span class="inventory-label">Low Stock Alert</span>
-                        <span class="inventory-value">< <%= product.inventory.lowStockThreshold.toLocaleString() %> <%= product.inventory.unit || 'units' %></span>
+                        <span class="inventory-label"><%- t('productDetails.lowStockAlert') %></span>
+                        <span class="inventory-value">< <%= product.inventory.lowStockThreshold.toLocaleString() %> <%= product.inventory.unit || t('productDetails.units') %></span>
                       </div>
                     <% } %>
                   </div>
@@ -3518,17 +3518,17 @@
               <!-- Comprehensive Shipping Information -->
               <% if (product.shipping) { %>
                 <div class="shipping-info-detailed">
-                  <h4><i class="fas fa-shipping-fast"></i> Shipping Information</h4>
+                  <h4><i class="fas fa-shipping-fast"></i> <%- t('productDetails.shippingInfo') %></h4>
                   <div class="shipping-details-grid">
                     <% if (product.shipping.weight !== undefined) { %>
                       <div class="detail-item">
-                        <span class="label">Weight</span>
-                        <span class="value"><%= product.shipping.weight %> kg</span>
+                        <span class="label"><%- t('productDetails.weight') %></span>
+                        <span class="value"><%= product.shipping.weight %> <%- t('productDetails.kg') %></span>
                       </div>
                     <% } %>
                     <% if (product.shipping.dimensions) { %>
                       <div class="detail-item">
-                        <span class="label">Dimensions</span>
+                        <span class="label"><%- t('productDetails.dimensions') %></span>
                         <span class="value">
                           <%= product.shipping.dimensions.length %> × 
                           <%= product.shipping.dimensions.width %> × 
@@ -3539,13 +3539,13 @@
                     <% } %>
                     <% if (product.shipping.packagingType) { %>
                       <div class="detail-item">
-                        <span class="label">Packaging</span>
+                        <span class="label"><%- t('productDetails.packagingDetails') %></span>
                         <span class="value"><%= product.shipping.packagingType %></span>
                       </div>
                     <% } %>
                     <% if (product.shipping.shippingClass) { %>
                       <div class="detail-item">
-                        <span class="label">Shipping Class</span>
+                        <span class="label"><%- t('productDetails.shippingClass') %></span>
                         <span class="value"><%= product.shipping.shippingClass.charAt(0).toUpperCase() + product.shipping.shippingClass.slice(1) %></span>
                       </div>
                     <% } %>
@@ -3556,11 +3556,11 @@
               <!-- Product Category & Tags -->
               <% if (product.category || (product.tags && product.tags.length > 0) || (product.seo && product.seo.keywords && product.seo.keywords.length > 0)) { %>
                 <div class="product-category-tags">
-                  <h4><i class="fas fa-tags"></i> Category & Tags</h4>
+                  <h4><i class="fas fa-tags"></i> <%- t('productDetails.category') %> & <%- t('productDetails.tags') %></h4>
                   
                   <% if (product.category) { %>
                     <div class="category-info">
-                      <span class="category-label">Category:</span>
+                      <span class="category-label"><%- t('productDetails.category') %>:</span>
                       <span class="category-badge">
                         <i class="fas fa-folder"></i>
                         <%= product.category.name || product.category %>
@@ -3570,7 +3570,7 @@
                   
                   <% if (product.tags && product.tags.length > 0) { %>
                     <div class="tags-section">
-                      <span class="tags-label">Tags:</span>
+                      <span class="tags-label"><%- t('productDetails.tags') %>:</span>
                       <div class="tags-list">
                         <% product.tags.forEach(tag => { %>
                           <span class="tag-item">
@@ -3584,7 +3584,7 @@
                   
                   <% if (product.seo && product.seo.keywords && product.seo.keywords.length > 0) { %>
                     <div class="keywords-section">
-                      <span class="keywords-label">Keywords:</span>
+                      <span class="keywords-label"><%- t('productDetails.keywords') %>:</span>
                       <div class="keywords-list">
                         <% product.seo.keywords.forEach(keyword => { %>
                           <span class="keyword-item">
@@ -3603,7 +3603,7 @@
             <div class="cta-section">
               <!-- Quantity Input -->
               <div class="quantity-section">
-                <label class="quantity-label"><%= t('product.quantity') %>:</label>
+                <label class="quantity-label"><%- t('productDetails.quantity') %>:</label>
                 <div class="quantity-controls">
                   <button class="quantity-btn decrease" type="button">
                     <i class="fas fa-minus"></i>
@@ -3626,17 +3626,17 @@
               <div class="action-buttons">
                 <button class="btn btn-primary btn-lg inquiry-btn" data-product-id="<%= product._id %>">
                   <i class="fas fa-envelope"></i>
-                  <%= t('product.sendInquiry') %>
+                  <%- t('productDetails.sendInquiry') %>
                 </button>
                 
                 <button class="btn btn-secondary btn-lg chat-btn" data-manufacturer-id="<%= product.manufacturer?._id %>">
                   <i class="fas fa-comments"></i>
-                  <%= t('product.chatNow') %>
+                  <%- t('productDetails.chatNow') %>
                 </button>
                 
                 <button class="btn btn-outline-primary sample-btn" data-product-id="<%= product._id %>">
                   <i class="fas fa-vial"></i>
-                  <%= t('product.requestSample') %>
+                  <%- t('productDetails.requestSample') %>
                 </button>
               </div>
 
@@ -3644,17 +3644,17 @@
               <div class="additional-options">
                 <button class="option-btn favorite-toggle" data-product-id="<%= product._id %>">
                   <i class="far fa-heart"></i>
-                  <%= t('product.addToFavorites') %>
+                  <%- t('productDetails.addToFavorites') %>
                 </button>
                 
                 <button class="option-btn compare-toggle" data-product-id="<%= product._id %>">
                   <i class="fas fa-balance-scale"></i>
-                  <%= t('product.addToCompare') %>
+                  <%- t('productDetails.addToCompare') %>
                 </button>
                 
                 <button class="option-btn share-product" data-product-id="<%= product._id %>">
                   <i class="fas fa-share-alt"></i>
-                  <%= t('product.shareProduct') %>
+                  <%- t('productDetails.shareProduct') %>
                 </button>
               </div>
             </div>
@@ -3707,7 +3707,7 @@
         <div class="container">
           <h2 class="section-main-title">
             <i class="fas fa-industry"></i>
-            <%= t('product.supplierInfo') %>
+            <%- t('productDetails.supplierInfo') %>
           </h2>
           
           <div class="supplier-card">
@@ -4074,7 +4074,7 @@
                           <div class="experience-highlight">
                             <i class="fas fa-history"></i>
                             <span class="experience-text">
-                              <strong><%= new Date().getFullYear() - product.manufacturer.establishedYear %> Years</strong> of Experience
+                              <strong><%= new Date().getFullYear() - product.manufacturer.establishedYear %> <%= t('productDetails.year') %></strong> of Experience
                             </span>
                             <span class="established-year">Established in <%= product.manufacturer.establishedYear %></span>
                           </div>
@@ -4102,7 +4102,7 @@
                           <div class="detail-row">
                             <span class="label">
                               <i class="fas fa-certificate"></i>
-                              Business License:
+                              <%- t('productDetails.businessLicense') %>:
                             </span>
                             <span class="value"><%= product.manufacturer.businessLicense %></span>
                           </div>
@@ -4114,7 +4114,7 @@
                               <i class="fas fa-users"></i>
                               <%= t('company.employees') %>:
                             </span>
-                            <span class="value"><%= product.manufacturer.employeeCount %> employees</span>
+                            <span class="value"><%= product.manufacturer.employeeCount %> <%- t('productDetails.employees') %></span>
                           </div>
                         <% } %>
                         
@@ -4122,7 +4122,7 @@
                           <div class="detail-row">
                             <span class="label">
                               <i class="fas fa-industry"></i>
-                              Industry:
+                              <%- t('productDetails.industry') %>:
                             </span>
                             <span class="value"><%= product.manufacturer.activityType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) %></span>
                           </div>
@@ -4131,24 +4131,24 @@
                       
                       <!-- Business Performance Stats -->
                       <div class="company-performance">
-                        <h4><i class="fas fa-chart-line"></i> Business Performance</h4>
+                        <h4><i class="fas fa-chart-line"></i> <%- t('productDetails.businessPerformance') %></h4>
                         <div class="performance-grid">
                           <div class="performance-item">
-                            <span class="performance-label">Total Products</span>
+                            <span class="performance-label"><%- t('productDetails.totalProducts') %></span>
                             <span class="performance-value"><%= (product.manufacturer.totalProducts || 0).toLocaleString() %></span>
                           </div>
                           <div class="performance-item">
-                            <span class="performance-label">Total Orders</span>
+                            <span class="performance-label"><%- t('productDetails.totalOrders') %></span>
                             <span class="performance-value"><%= (product.manufacturer.totalOrders || 0).toLocaleString() %></span>
                           </div>
                           <% if (product.manufacturer.stats && product.manufacturer.stats.totalViews) { %>
                             <div class="performance-item">
-                              <span class="performance-label">Profile Views</span>
+                              <span class="performance-label"><%- t('productDetails.profileViews') %></span>
                               <span class="performance-value"><%= product.manufacturer.stats.totalViews.toLocaleString() %></span>
                             </div>
                           <% } %>
                           <div class="performance-item">
-                            <span class="performance-label">Average Rating</span>
+                            <span class="performance-label"><%- t('productDetails.averageRating') %></span>
                             <div class="rating-display">
                               <% 
                                 const manufacturerRating = product.manufacturer.averageRating || 0;

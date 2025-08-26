@@ -1,0 +1,1551 @@
+<%- include('../partials/header', { title: t('buyer.settings.title') + ' - SLEX', lng: lng, user: user }) %>
+<%- include('../partials/navigation') %>
+
+<!-- Buyer Settings Page - Professional B2B Style -->
+<main class="main-wrapper buyer-settings-wrapper position-relative z-index-1">
+  
+  <!-- Background Elements -->
+  <img src="/assets/images/gradients/breadcrumb-gradient-bg.png" alt="" class="bg--gradient">
+  <img src="/assets/images/shapes/element-moon3.png" alt="" class="element one">
+  <img src="/assets/images/shapes/element-moon1.png" alt="" class="element three">
+
+  <div class="container container-two">
+    <div class="row">
+      <div class="col-lg-3">
+        <!-- Buyer Sidebar -->
+        <%- include('./partials/buyer-sidebar', { 
+          currentPage: 'settings', 
+          user: user, 
+          cartItemsCount: cartItemsCount || 0, 
+          activeOrdersCount: activeOrdersCount || 0, 
+          unreadMessagesCount: unreadMessagesCount || 0 
+        }) %>
+      </div>
+      
+      <div class="col-lg-9">
+        <!-- Settings Header -->
+        <div class="buyer-settings-header section-bg animate-fade-in">
+          <div class="settings-header-content">
+            <div class="settings-icon">
+              <i class="las la-cog text-main"></i>
+            </div>
+            <div class="settings-info">
+              <h2 class="settings-title text-heading">
+                <%= t('buyer.settings.title') || 'Account Settings' %>
+              </h2>
+              <p class="settings-subtitle text-gray-600">
+                <%= t('buyer.settings.subtitle') || 'Manage your account preferences and security settings' %>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <% if (typeof success !== 'undefined' && success && success.length > 0) { %>
+          <div class="alert-message success-message section-bg animate-fade-in">
+            <div class="alert-content flx-align gap-2">
+              <i class="las la-check-circle text-success"></i>
+              <span class="text-heading"><%= success[0] %></span>
+            </div>
+          </div>
+        <% } %>
+        
+        <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+          <div class="alert-message error-message section-bg animate-fade-in">
+            <div class="alert-content flx-align gap-2">
+              <i class="las la-exclamation-triangle text-danger"></i>
+              <span class="text-heading"><%= error[0] %></span>
+            </div>
+          </div>
+        <% } %>
+
+        <!-- Settings Navigation Tabs -->
+        <div class="settings-tabs section-bg animate-fade-in">
+          <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="profile">
+              <i class="las la-user text-main"></i>
+              <%= t('buyer.settings.tabs.profile') || 'Profile' %>
+            </button>
+            <button class="tab-btn" data-tab="account">
+              <i class="las la-id-card text-main"></i>
+              <%= t('buyer.settings.tabs.account') || 'Account' %>
+            </button>
+            <button class="tab-btn" data-tab="security">
+              <i class="las la-shield-alt text-main"></i>
+              <%= t('buyer.settings.tabs.security') || 'Security' %>
+            </button>
+            <button class="tab-btn" data-tab="notifications">
+              <i class="las la-bell text-main"></i>
+              <%= t('buyer.settings.tabs.notifications') || 'Notifications' %>
+            </button>
+            <button class="tab-btn" data-tab="preferences">
+              <i class="las la-paint-brush text-main"></i>
+              <%= t('buyer.settings.tabs.preferences') || 'Preferences' %>
+            </button>
+          </div>
+        </div>
+
+        <!-- Settings Content Sections -->
+        
+        <!-- Profile Settings -->
+        <div id="profile-section" class="settings-section active section-bg animate-fade-in">
+          <form id="profile-form" action="/buyer/api/settings/profile" method="POST" enctype="multipart/form-data">
+            <div class="settings-card">
+              <div class="card-header">
+                <h3 class="card-title text-heading flx-align gap-2">
+                  <i class="las la-building text-main"></i>
+                  <%= t('buyer.settings.profile.title') || 'Company Information' %>
+                </h3>
+                <p class="card-description text-gray-600">
+                  <%= t('buyer.settings.profile.description') || 'Update your company details and contact information' %>
+                </p>
+              </div>
+              
+              <div class="card-body">
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label text-heading">
+                      <%= t('buyer.settings.profile.companyName') || 'Company Name' %> *
+                    </label>
+                    <input type="text" name="companyName" class="form-control" 
+                           value="<%= currentUser.companyName || '' %>" 
+                           placeholder="Enter your company name" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label text-heading">
+                      <%= t('buyer.settings.profile.contactPerson') || 'Contact Person' %>
+                    </label>
+                    <input type="text" name="contactPerson" class="form-control" 
+                           value="<%= currentUser.contactPerson || '' %>" 
+                           placeholder="Primary contact person">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label text-heading">
+                      <%= t('buyer.settings.profile.email') || 'Email Address' %> *
+                    </label>
+                    <input type="email" name="email" class="form-control" 
+                           value="<%= currentUser.email || '' %>" 
+                           placeholder="your@email.com" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label text-heading">
+                      <%= t('buyer.settings.profile.phone') || 'Phone Number' %>
+                    </label>
+                    <input type="tel" name="phone" class="form-control" 
+                           value="<%= currentUser.phone || '' %>" 
+                           placeholder="+998 90 123 45 67">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label text-heading">
+                      <%= t('buyer.settings.profile.country') || 'Country' %>
+                    </label>
+                    <select name="country" class="form-control">
+                      <option value="">Select Country</option>
+                      <option value="UZ" <%= currentUser.country === 'UZ' ? 'selected' : '' %>>🇺🇿 Uzbekistan</option>
+                      <option value="US" <%= currentUser.country === 'US' ? 'selected' : '' %>>🇺🇸 United States</option>
+                      <option value="RU" <%= currentUser.country === 'RU' ? 'selected' : '' %>>🇷🇺 Russia</option>
+                      <option value="TR" <%= currentUser.country === 'TR' ? 'selected' : '' %>>🇹🇷 Turkey</option>
+                      <option value="CN" <%= currentUser.country === 'CN' ? 'selected' : '' %>>🇨🇳 China</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label class="form-label text-heading">
+                      <%= t('buyer.settings.profile.address') || 'Business Address' %>
+                    </label>
+                    <textarea name="address" class="form-control" rows="3" 
+                              placeholder="Enter your full business address"><%= currentUser.address || '' %></textarea>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card-footer">
+                <button type="submit" class="btn btn-main pill">
+                  <span class="icon-left icon">
+                    <i class="las la-save"></i>
+                  </span>
+                  <%= t('buyer.settings.save') || 'Save Changes' %>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Account Settings -->
+        <div id="account-section" class="settings-section section-bg">
+          <div class="settings-card">
+            <div class="card-header">
+              <h3 class="card-title text-heading flx-align gap-2">
+                <i class="las la-globe text-main"></i>
+                <%= t('buyer.settings.account.title') || 'Regional Settings' %>
+              </h3>
+              <p class="card-description text-gray-600">
+                <%= t('buyer.settings.account.description') || 'Configure your language, timezone and regional preferences' %>
+              </p>
+            </div>
+            
+            <div class="card-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label text-heading">
+                    <%= t('buyer.settings.account.language') || 'Language' %>
+                  </label>
+                  <select id="language-select" class="form-control">
+                    <option value="uz" <%= lng === 'uz' ? 'selected' : '' %>>🇺🇿 O'zbekcha</option>
+                    <option value="en" <%= lng === 'en' ? 'selected' : '' %>>🇺🇸 English</option>
+                    <option value="ru" <%= lng === 'ru' ? 'selected' : '' %>>🇷🇺 Русский</option>
+                    <option value="tr" <%= lng === 'tr' ? 'selected' : '' %>>🇹🇷 Türkçe</option>
+                    <option value="fa" <%= lng === 'fa' ? 'selected' : '' %>>🇮🇷 فارسی</option>
+                    <option value="zh" <%= lng === 'zh' ? 'selected' : '' %>>🇨🇳 中文</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label text-heading">
+                    <%= t('buyer.settings.account.timezone') || 'Timezone' %>
+                  </label>
+                  <select name="timezone" class="form-control">
+                    <option value="Asia/Tashkent" selected>Asia/Tashkent (UTC+5)</option>
+                    <option value="UTC">UTC (UTC+0)</option>
+                    <option value="America/New_York">America/New_York (UTC-5)</option>
+                    <option value="Europe/London">Europe/London (UTC+0)</option>
+                    <option value="Asia/Shanghai">Asia/Shanghai (UTC+8)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label text-heading">
+                    <%= t('buyer.settings.preferences.currency') || 'Preferred Currency' %>
+                  </label>
+                  <select name="currency" class="form-control">
+                    <option value="UZS" selected>UZS - Uzbek Som</option>
+                    <option value="USD">USD - US Dollar</option>
+                    <option value="EUR">EUR - Euro</option>
+                    <option value="RUB">RUB - Russian Ruble</option>
+                    <option value="CNY">CNY - Chinese Yuan</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Settings -->
+        <div id="security-section" class="settings-section section-bg">
+          <form id="password-form" action="/buyer/api/settings/password" method="POST">
+            <div class="settings-card">
+              <div class="card-header">
+                <h3 class="card-title text-heading flx-align gap-2">
+                  <i class="las la-key text-main"></i>
+                  <%= t('buyer.settings.security.password') || 'Change Password' %>
+                </h3>
+                <p class="card-description text-gray-600">
+                  <%= t('buyer.settings.security.passwordDescription') || 'Update your password to keep your account secure' %>
+                </p>
+              </div>
+              
+              <div class="card-body">
+                <div class="security-notice">
+                  <div class="notice-content flx-align gap-2">
+                    <i class="las la-info-circle text-info"></i>
+                    <span class="text-gray-600">
+                      <%= t('buyer.settings.security.passwordHint') || 'Your password should be at least 6 characters long and include a mix of letters and numbers.' %>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label text-heading">
+                      <%= t('buyer.settings.security.currentPassword') || 'Current Password' %>
+                    </label>
+                    <input type="password" name="currentPassword" class="form-control" 
+                           placeholder="Enter your current password" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label text-heading">
+                      <%= t('buyer.settings.security.newPassword') || 'New Password' %>
+                    </label>
+                    <input type="password" name="newPassword" class="form-control" 
+                           placeholder="Enter new password" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label text-heading">
+                      <%= t('buyer.settings.security.confirmPassword') || 'Confirm New Password' %>
+                    </label>
+                    <input type="password" name="confirmPassword" class="form-control" 
+                           placeholder="Confirm your new password" required>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card-footer">
+                <button type="submit" class="btn btn-main pill">
+                  <span class="icon-left icon">
+                    <i class="las la-shield-alt"></i>
+                  </span>
+                  <%= t('buyer.settings.security.updatePassword') || 'Update Password' %>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Notification Settings -->
+        <div id="notifications-section" class="settings-section section-bg">
+          <form id="notifications-form" action="/buyer/api/settings/notifications" method="POST">
+            <div class="settings-card">
+              <div class="card-header">
+                <h3 class="card-title text-heading flx-align gap-2">
+                  <i class="las la-envelope text-main"></i>
+                  <%= t('buyer.settings.notifications.title') || 'Email Notifications' %>
+                </h3>
+                <p class="card-description text-gray-600">
+                  <%= t('buyer.settings.notifications.description') || 'Choose how and when you want to receive notifications' %>
+                </p>
+              </div>
+              
+              <div class="card-body">
+                <div class="notification-settings">
+                  <div class="notification-item">
+                    <div class="notification-info">
+                      <h4 class="text-heading">
+                        <%= t('buyer.settings.notifications.email') || 'Order Updates' %>
+                      </h4>
+                      <p class="text-gray-600">
+                        <%= t('buyer.settings.notifications.emailDescription') || 'Receive notifications about your order status and delivery updates' %>
+                      </p>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" name="emailNotifications" <%= currentUser.emailNotifications !== false ? 'checked' : '' %>>
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div class="notification-item">
+                    <div class="notification-info">
+                      <h4 class="text-heading">
+                        <%= t('buyer.settings.notifications.orderUpdates') || 'Order Updates' %>
+                      </h4>
+                      <p class="text-gray-600">
+                        <%= t('buyer.settings.notifications.orderUpdatesDescription') || 'Get notified about order status changes, shipping updates, and deliveries' %>
+                      </p>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" name="orderUpdates" <%= currentUser.orderUpdates === true ? 'checked' : '' %>>
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div class="notification-item">
+                    <div class="notification-info">
+                      <h4 class="text-heading">
+                        <%= t('buyer.settings.notifications.marketing') || 'Marketing Communications' %>
+                      </h4>
+                      <p class="text-gray-600">
+                        <%= t('buyer.settings.notifications.marketingDescription') || 'Receive promotional offers, new product announcements, and market insights' %>
+                      </p>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" name="marketingEmails" <%= currentUser.marketingEmails === true ? 'checked' : '' %>>
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div class="notification-item">
+                    <div class="notification-info">
+                      <h4 class="text-heading">
+                        <%= t('buyer.settings.notifications.priceAlerts') || 'Price Alerts' %>
+                      </h4>
+                      <p class="text-gray-600">
+                        <%= t('buyer.settings.notifications.priceAlertsDescription') || 'Get notified when product prices change or special discounts are available' %>
+                      </p>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" name="priceAlerts" <%= currentUser.priceAlerts === true ? 'checked' : '' %>>
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div class="notification-item">
+                    <div class="notification-info">
+                      <h4 class="text-heading">
+                        <%= t('buyer.settings.notifications.weeklyDigest') || 'Weekly Digest' %>
+                      </h4>
+                      <p class="text-gray-600">
+                        <%= t('buyer.settings.notifications.weeklyDigestDescription') || 'Receive a weekly summary of new products, market trends, and platform updates' %>
+                      </p>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" name="weeklyDigest" <%= currentUser.weeklyDigest === true ? 'checked' : '' %>>
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card-footer">
+                <button type="submit" class="btn btn-main pill">
+                  <span class="icon-left icon">
+                    <i class="las la-save"></i>
+                  </span>
+                  <%= t('buyer.settings.save') || 'Save Preferences' %>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Preferences Settings -->
+        <div id="preferences-section" class="settings-section section-bg">
+          <form id="preferences-form" action="/buyer/api/settings/preferences" method="POST">
+            <div class="settings-card">
+            <div class="card-header">
+              <h3 class="card-title text-heading flx-align gap-2">
+                <i class="las la-palette text-main"></i>
+                <%= t('buyer.settings.preferences.title') || 'Display Preferences' %>
+              </h3>
+              <p class="card-description text-gray-600">
+                <%= t('buyer.settings.preferences.description') || 'Customize your viewing experience and interface preferences' %>
+              </p>
+            </div>
+            
+            <div class="card-body">
+              <div class="preference-settings">
+                <div class="preference-item">
+                  <div class="preference-info">
+                    <h4 class="text-heading">
+                      <%= t('buyer.settings.preferences.darkMode') || 'Dark Mode' %>
+                    </h4>
+                    <p class="text-gray-600">
+                      <%= t('buyer.settings.preferences.darkModeDescription') || 'Switch to a darker theme that\'s easier on your eyes' %>
+                    </p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="dark-mode-toggle">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                                  <div class="preference-item">
+                    <div class="preference-info">
+                      <h4 class="text-heading">
+                        <%= t('buyer.settings.preferences.compactView') || 'Compact View' %>
+                      </h4>
+                      <p class="text-gray-600">
+                        <%= t('buyer.settings.preferences.compactViewDescription') || 'Show more content by reducing spacing and padding' %>
+                      </p>
+                    </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="compactView">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label text-heading">
+                    <%= t('buyer.settings.preferences.language') || 'Language' %>
+                  </label>
+                  <select name="language" class="form-control">
+                    <option value="uz" <%= (user.preferredLanguage === 'uz') ? 'selected' : '' %>>O'zbekcha</option>
+                    <option value="en" <%= (user.preferredLanguage === 'en') ? 'selected' : '' %>>English</option>
+                    <option value="ru" <%= (user.preferredLanguage === 'ru') ? 'selected' : '' %>>Русский</option>
+                    <option value="zh" <%= (user.preferredLanguage === 'zh') ? 'selected' : '' %>>中文</option>
+                    <option value="tr" <%= (user.preferredLanguage === 'tr') ? 'selected' : '' %>>Türkçe</option>
+                    <option value="fa" <%= (user.preferredLanguage === 'fa') ? 'selected' : '' %>>فارسی</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label text-heading">
+                    <%= t('buyer.settings.preferences.theme') || 'Theme' %>
+                  </label>
+                  <select name="theme" class="form-control">
+                    <option value="light" <%= (!user.preferences?.theme || user.preferences?.theme === 'light') ? 'selected' : '' %>>Light Mode</option>
+                    <option value="dark" <%= (user.preferences?.theme === 'dark') ? 'selected' : '' %>>Dark Mode</option>
+                    <option value="system" <%= (user.preferences?.theme === 'system') ? 'selected' : '' %>>Follow System</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label text-heading">
+                    <%= t('buyer.settings.preferences.timezone') || 'Timezone' %>
+                  </label>
+                  <select name="timezone" class="form-control">
+                    <option value="Asia/Tashkent" <%= (!user.preferences?.timezone || user.preferences?.timezone === 'Asia/Tashkent') ? 'selected' : '' %>>Asia/Tashkent (UTC+5)</option>
+                    <option value="Asia/Dubai" <%= (user.preferences?.timezone === 'Asia/Dubai') ? 'selected' : '' %>>Asia/Dubai (UTC+4)</option>
+                    <option value="Europe/Moscow" <%= (user.preferences?.timezone === 'Europe/Moscow') ? 'selected' : '' %>>Europe/Moscow (UTC+3)</option>
+                    <option value="UTC" <%= (user.preferences?.timezone === 'UTC') ? 'selected' : '' %>>UTC (GMT+0)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label text-heading">
+                    <%= t('buyer.settings.preferences.currency') || 'Currency' %>
+                  </label>
+                  <select name="currency" class="form-control">
+                    <option value="USD" <%= (user.preferences?.currency === 'USD') ? 'selected' : '' %>>USD - US Dollar</option>
+                    <option value="UZS" <%= (user.preferences?.currency === 'UZS') ? 'selected' : '' %>>UZS - O'zbek so'mi</option>
+                    <option value="EUR" <%= (user.preferences?.currency === 'EUR') ? 'selected' : '' %>>EUR - Euro</option>
+                    <option value="RUB" <%= (user.preferences?.currency === 'RUB') ? 'selected' : '' %>>RUB - Russian Ruble</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label text-heading">
+                    <%= t('buyer.settings.preferences.itemsPerPage') || 'Items per Page' %>
+                  </label>
+                  <select name="itemsPerPage" class="form-control">
+                    <option value="10" <%= (user.preferences?.itemsPerPage === 10) ? 'selected' : '' %>>10 items</option>
+                    <option value="20" <%= (!user.preferences?.itemsPerPage || user.preferences?.itemsPerPage === 20) ? 'selected' : '' %>>20 items</option>
+                    <option value="50" <%= (user.preferences?.itemsPerPage === 50) ? 'selected' : '' %>>50 items</option>
+                    <option value="100" <%= (user.preferences?.itemsPerPage === 100) ? 'selected' : '' %>>100 items</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-main">
+                  <i class="las la-save"></i>
+                  <%= t('buyer.settings.preferences.savePreferences') || 'Save Preferences' %>
+                </button>
+              </div>
+            </div>
+          </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<style>
+/* ================================
+   BUYER SETTINGS PAGE STYLES
+   ================================ */
+
+/* Settings Wrapper */
+.buyer-settings-wrapper {
+     padding: var(--section-padding, 40px) 0 80px;
+    min-height: calc(100vh - 200px);
+    background: hsl(var(--body-bg));
+    position: relative;
+    z-index: 1;
+}
+
+/* Settings Header */
+.buyer-settings-header {
+  background: hsl(var(--static-white));
+  border: 1px solid hsl(var(--border-color));
+  border-radius: var(--border-radius-md, 12px);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--box-shadow);
+  transition: all 0.3s ease;
+}
+
+.settings-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.settings-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, hsl(var(--main)), hsl(var(--main-two)));
+  border-radius: var(--border-radius-md, 12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.settings-icon i {
+  font-size: 2.5rem;
+  color: hsl(var(--static-white));
+}
+
+.settings-info h2 {
+  margin: 0 0 0.5rem 0;
+  font-family: var(--heading-font);
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+
+.settings-info p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Alert Messages */
+.alert-message {
+  background: hsl(var(--static-white));
+  border: 1px solid hsl(var(--border-color));
+  border-radius: var(--border-radius-md, 12px);
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--box-shadow);
+}
+
+.alert-message.success-message {
+  border-left: 4px solid hsl(var(--success));
+}
+
+.alert-message.error-message {
+  border-left: 4px solid hsl(var(--danger));
+}
+
+.alert-content {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* Settings Tabs */
+.settings-tabs {
+  background: hsl(var(--static-white));
+  border: 1px solid hsl(var(--border-color));
+  border-radius: var(--border-radius-md, 12px);
+  padding: 0;
+  margin-bottom: 2rem;
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+}
+
+.tabs-nav {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  padding: 1rem 1.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: hsl(var(--body-color));
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  font-size: 0.9rem;
+}
+
+.tab-btn:hover {
+  color: hsl(var(--main));
+}
+
+.tab-btn.active {
+  color: hsl(var(--main));
+  border-bottom-color: hsl(var(--main));
+}
+
+.tab-btn i {
+  font-size: 1.1rem;
+}
+
+/* Settings Sections */
+.settings-section {
+  display: none;
+  animation: fadeInUp 0.4s ease;
+}
+
+.settings-section.active {
+  display: block;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Settings Cards */
+.settings-card {
+  background: var(--static-white) !important;
+  border: 1px solid hsl(var(--border-color)) !important;
+  border-radius: var(--border-radius-md, 12px);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.settings-card:hover {
+  border-color: hsl(var(--main));
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  padding: 2rem 2rem 1rem;
+  border-bottom: 1px solid hsl(var(--border-color));
+}
+
+.card-title {
+  margin: 0 0 0.5rem 0;
+  font-family: var(--heading-font);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.card-description {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+.card-footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid hsl(var(--border-color));
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* Form Styles */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: hsl(var(--heading-color));
+  margin-bottom: 0.5rem;
+}
+
+.form-control {
+  padding: 0.75rem 1rem;
+  border: 1px solid hsl(var(--border-color));
+  border-radius: var(--border-radius-sm, 8px);
+  font-size: 0.95rem;
+  background: hsl(var(--static-white));
+  color: hsl(var(--heading-color));
+  transition: all 0.3s ease;
+  font-family: var(--body-font);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: hsl(var(--main));
+  box-shadow: 0 0 0 3px hsla(var(--main), 0.1);
+}
+
+.form-control::placeholder {
+  color: hsl(var(--gray-three));
+}
+
+/* Security Notice */
+.security-notice {
+  background: hsl(var(--info-light));
+  border: 1px solid hsl(var(--info));
+  border-radius: var(--border-radius-sm, 8px);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.notice-content {
+  font-size: 0.9rem;
+}
+
+/* Notification Settings */
+.notification-settings,
+.preference-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.notification-item,
+.preference-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid hsl(var(--border-color));
+  border-radius: var(--border-radius-sm, 8px);
+  background: hsl(var(--gray-one));
+  transition: all 0.3s ease;
+}
+
+.notification-item:hover,
+.preference-item:hover {
+  border-color: hsl(var(--main));
+  background: hsl(var(--static-white));
+}
+
+.notification-info h4,
+.preference-info h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.notification-info p,
+.preference-info p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  width: 50px;
+  height: 26px;
+  background: hsl(var(--gray-three));
+  border-radius: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: hsl(var(--static-white));
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  transform: translateX(24px);
+}
+
+.toggle-switch input:checked ~ .toggle-switch,
+.toggle-switch:has(input:checked) {
+  background: hsl(var(--main));
+}
+
+/* Header Z-Index Fix for Settings */
+.header {
+  z-index: 99 !important;
+}
+
+.header.fixed-header {
+  z-index: 99 !important;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+}
+
+.user-dropdown {
+  z-index: 100 !important;
+}
+
+.lang-dropdown {
+  z-index: 100 !important;
+}
+
+/* Dark Mode Support - Professional Implementation */
+[data-theme="light"] {
+  /* Main wrapper background */
+  .buyer-settings-wrapper {
+    background: var(--dark-black-one) !important;
+  }
+}
+
+[data-theme="light"] .buyer-settings-wrapper {
+  /* Main containers */
+  .buyer-settings-header,
+  .settings-tabs,
+  .settings-card,
+  .alert-message {
+    background: var(--dark-black-three) !important;
+    border-color: var(--dark-black-five) !important;
+  }
+
+  /* Settings Sections - Content Areas */
+  .settings-section {
+    background: transparent !important;
+  }
+
+  .section-bg {
+    background: transparent !important;
+  }
+
+  /* Settings Header */
+  .settings-header-content h2,
+  .settings-title {
+    color: hsl(var(--static-white)) !important;
+  }
+
+  .settings-subtitle {
+    color: hsl(var(--gray-four)) !important;
+  }
+
+  /* Tab Navigation */
+  .tab-btn {
+    color: hsl(var(--gray-four)) !important;
+  }
+
+  .tab-btn:hover,
+  .tab-btn.active {
+    color: hsl(var(--main)) !important;
+  }
+
+  /* Card Components */
+  .card-header {
+    border-color: var(--dark-black-five) !important;
+  }
+
+  .card-footer {
+    background: var(--dark-black-two) !important;
+    border-color: var(--dark-black-five) !important;
+  }
+
+  .card-title {
+    color: hsl(var(--static-white)) !important;
+  }
+
+  .card-description {
+    color: hsl(var(--gray-four)) !important;
+  }
+
+  /* Form Elements */
+  .form-label {
+    color: hsl(var(--static-white)) !important;
+  }
+
+  .form-control {
+    background: var(--dark-black-two) !important;
+    border-color: var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+
+  .form-control:focus {
+    border-color: hsl(var(--main)) !important;
+    box-shadow: 0 0 0 3px hsla(var(--main), 0.2) !important;
+  }
+
+  .form-control::placeholder {
+    color: hsl(var(--gray-three)) !important;
+  }
+
+  /* Select Dropdown */
+  .form-control option {
+    background: var(--dark-black-three) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+
+  /* Text Elements */
+  .text-heading {
+    color: hsl(var(--static-white)) !important;
+  }
+
+  .text-gray-600 {
+    color: hsl(var(--gray-four)) !important;
+  }
+
+  /* Notification & Preference Items */
+  .notification-item,
+  .preference-item {
+    background: var(--dark-black-two) !important;
+    border-color: var(--dark-black-five) !important;
+  }
+
+  .notification-item:hover,
+  .preference-item:hover {
+    background: var(--dark-black-five) !important;
+    border-color: hsl(var(--main)) !important;
+  }
+
+  .notification-info h4,
+  .preference-info h4 {
+    color: hsl(var(--static-white)) !important;
+  }
+
+  .notification-info p,
+  .preference-info p {
+    color: hsl(var(--gray-four)) !important;
+  }
+
+  /* Form Groups in settings sections */
+  .form-group {
+    margin-bottom: 1.5rem !important;
+  }
+
+  .form-grid {
+    display: grid !important;
+    gap: 1.5rem !important;
+  }
+
+  /* Security Notice */
+  .security-notice {
+    background: var(--dark-black-two) !important;
+    border-color: hsl(var(--info)) !important;
+  }
+
+  .notice-content span {
+    color: hsl(var(--gray-four)) !important;
+  }
+
+  /* Toggle Switch */
+  .toggle-switch {
+    background: var(--dark-black-five) !important;
+  }
+
+  .toggle-switch input:checked ~ .toggle-switch,
+  .toggle-switch:has(input:checked) {
+    background: hsl(var(--main)) !important;
+  }
+
+  /* Alert Messages */
+  .alert-content span {
+    color: hsl(var(--static-white)) !important;
+  }
+
+  .alert-message.success-message {
+    background: rgba(34, 197, 94, 0.15) !important;
+    border-left-color: hsl(var(--success)) !important;
+  }
+
+  .alert-message.error-message {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border-left-color: hsl(var(--danger)) !important;
+  }
+
+  /* Buttons */
+  .btn:not(.btn-main) {
+    background: var(--dark-black-five) !important;
+    border-color: var(--dark-black-five) !important;
+    color: hsl(var(--static-white)) !important;
+  }
+
+  .btn:not(.btn-main):hover {
+    background: hsl(var(--main)) !important;
+    border-color: hsl(var(--main)) !important;
+  }
+
+  /* Additional Text Elements */
+  .settings-section h1,
+  .settings-section h2,
+  .settings-section h3,
+  .settings-section h4,
+  .settings-section h5,
+  .settings-section h6 {
+    color: hsl(var(--static-white)) !important;
+  }
+
+  .settings-section p,
+  .settings-section span:not(.icon):not(.badge):not(.toggle-slider) {
+    color: hsl(var(--gray-four)) !important;
+  }
+
+  /* Icons in settings */
+  .settings-section .text-info {
+    color: hsl(var(--info)) !important;
+  }
+
+  .settings-section .text-main {
+    color: hsl(var(--main)) !important;
+  }
+
+  /* Toggle Switch Enhanced */
+  .toggle-switch {
+    background: var(--dark-black-five) !important;
+    border: 1px solid var(--dark-black-five) !important;
+  }
+
+  .toggle-slider {
+    background: hsl(var(--gray-four)) !important;
+  }
+
+  .toggle-switch input:checked + .toggle-slider {
+    background: hsl(var(--main)) !important;
+  }
+
+  /* Error and success messages */
+  .alert-message .alert-content {
+    color: hsl(var(--static-white)) !important;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 991px) {
+  .buyer-settings-wrapper {
+    padding: 80px 0;
+  }
+
+  .settings-header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .settings-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .settings-icon i {
+    font-size: 1.8rem;
+  }
+
+  .settings-info h2 {
+    font-size: 1.5rem;
+  }
+
+  .tabs-nav {
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .card-header,
+  .card-body {
+    padding: 1.5rem;
+  }
+
+  .card-footer {
+    padding: 1rem 1.5rem;
+    flex-direction: column;
+  }
+
+  .card-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .notification-item,
+  .preference-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .notification-info,
+  .preference-info {
+    width: 100%;
+  }
+}
+
+@media (max-width: 575px) {
+  .buyer-settings-wrapper {
+    padding: 60px 0;
+  }
+
+  .settings-tabs {
+    margin: 0 -15px 2rem;
+    border-radius: 0;
+  }
+
+  .tab-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .tab-btn i {
+    display: none;
+  }
+}
+</style>
+
+<!-- Settings JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab Navigation
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const sections = document.querySelectorAll('.settings-section');
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabId = this.dataset.tab;
+
+            // Update tab buttons
+            tabBtns.forEach(tab => tab.classList.remove('active'));
+            this.classList.add('active');
+
+            // Update sections
+            sections.forEach(section => section.classList.remove('active'));
+            document.getElementById(tabId + '-section').classList.add('active');
+
+            // Update URL hash
+            window.location.hash = tabId;
+        });
+    });
+
+    // Handle initial hash
+    if (window.location.hash) {
+        const hash = window.location.hash.substring(1);
+        const tabBtn = document.querySelector(`[data-tab="${hash}"]`);
+        if (tabBtn) {
+            tabBtn.click();
+        }
+    }
+
+    // Language Change
+    const languageSelect = document.getElementById('language-select');
+    if (languageSelect) {
+        languageSelect.addEventListener('change', function() {
+            const newLang = this.value;
+            const currentUrl = window.location.pathname;
+            window.location.href = `/language/${newLang}?redirect=${encodeURIComponent(currentUrl)}`;
+        });
+    }
+
+    // Dark Mode Toggle
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    if (darkModeToggle) {
+        // Set initial state
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        darkModeToggle.checked = isDark;
+
+        darkModeToggle.addEventListener('change', function() {
+            const newTheme = this.checked ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+    }
+
+    // Form Submissions
+    const forms = document.querySelectorAll('form[id$="-form"]');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('success', data.message || 'Settings updated successfully');
+                    if (data.redirect) {
+                        setTimeout(() => window.location.href = data.redirect, 1500);
+                    }
+                } else {
+                    showAlert('error', data.message || 'Failed to update settings');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('error', 'An error occurred while updating settings');
+            });
+        });
+    });
+
+    // Show Alert Function
+    function showAlert(type, message) {
+        const existingAlert = document.querySelector('.alert-message');
+        if (existingAlert) {
+            existingAlert.remove();
+        }
+
+        const alert = document.createElement('div');
+        alert.className = `alert-message ${type}-message section-bg animate-fade-in`;
+        alert.innerHTML = `
+            <div class="alert-content flx-align gap-2">
+                <i class="las la-${type === 'success' ? 'check' : 'exclamation'}-circle text-${type === 'success' ? 'success' : 'danger'}"></i>
+                <span class="text-heading">${message}</span>
+            </div>
+        `;
+
+        const content = document.querySelector('.col-lg-9');
+        const firstSection = content.querySelector('.settings-tabs');
+        content.insertBefore(alert, firstSection);
+
+        setTimeout(() => alert.remove(), 5000);
+    }
+
+    // Toggle Switch Handling
+    const toggleSwitches = document.querySelectorAll('.toggle-switch input[type="checkbox"]');
+    toggleSwitches.forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const toggleSwitch = this.closest('.toggle-switch');
+            if (this.checked) {
+                toggleSwitch.style.background = 'hsl(var(--main))';
+            } else {
+                toggleSwitch.style.background = 'hsl(var(--gray-three))';
+            }
+        });
+
+        // Set initial state
+        if (toggle.checked) {
+            toggle.closest('.toggle-switch').style.background = 'hsl(var(--main))';
+        }
+    });
+});
+</script>
+
+<!-- Buyer Token Manager -->
+<script src="/js/buyer/buyer-token-manager.js"></script>
+
+<!-- Settings Token Management -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize buyer token management for settings page
+    if (window.buyerTokenManager) {
+        // Setup token event listeners
+        buyerTokenManager.on('token-refreshed', (data) => {
+            console.log('✅ Settings page: Tokens refreshed successfully');
+        });
+
+        buyerTokenManager.on('auth-error', (data) => {
+            console.warn('⚠️ Settings page: Authentication error:', data.reason);
+            if (data.reason === 'refresh-failed') {
+                showAlert('error', 'Your session has expired. Please login again.');
+                setTimeout(() => {
+                    window.location.href = '/auth/login';
+                }, 2000);
+            }
+        });
+
+        // Enhanced API calls with token management
+        const originalFetch = window.fetch;
+        window.fetch = async function(url, options = {}) {
+            // Check token status before API calls
+            const tokenStatus = buyerTokenManager.getStatus();
+            
+            if (!tokenStatus.hasTokens) {
+                console.warn('⚠️ No tokens available for API call');
+                window.location.href = '/auth/login';
+                return;
+            }
+
+            // If token is about to expire, refresh first
+            if (tokenStatus.expiresIn < 5 * 60 * 1000) { // 5 minutes
+                console.log('🔄 Token expiring soon, refreshing before API call...');
+                await buyerTokenManager.forceRefresh();
+            }
+
+            // Proceed with original fetch
+            return originalFetch(url, {
+                ...options,
+                credentials: 'include' // Always include cookies
+            });
+        };
+    }
+
+    // ===== PROFESSIONAL FORM SUBMISSION HANDLERS =====
+    
+    // Profile form submission
+    const profileForm = document.getElementById('profile-form');
+    if (profileForm) {
+        profileForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await submitForm(this, 'Profile updated successfully');
+        });
+    }
+
+    // Password form submission
+    const passwordForm = document.getElementById('password-form');
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await submitForm(this, 'Password updated successfully');
+        });
+    }
+
+    // Notifications form submission
+    const notificationsForm = document.getElementById('notifications-form');
+    if (notificationsForm) {
+        notificationsForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await submitForm(this, 'Notification settings updated successfully');
+        });
+    }
+
+    // Preferences form submission
+    const preferencesForm = document.getElementById('preferences-form');
+    if (preferencesForm) {
+        preferencesForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await submitForm(this, 'Preferences updated successfully');
+        });
+    }
+
+    /**
+     * Professional form submission function
+     */
+    async function submitForm(form, successMessage) {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnContent = submitBtn.innerHTML;
+
+        try {
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="las la-spinner la-spin"></i> Saving...';
+
+            // Submit form via fetch
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert('success', data.message || successMessage);
+                
+                // Special handling for password form - clear it
+                if (form.id === 'password-form') {
+                    form.reset();
+                }
+                
+                // Special handling for preferences - reload if language changed
+                if (form.id === 'preferences-form') {
+                    const langSelect = form.querySelector('select[name="language"]');
+                    if (langSelect && langSelect.value !== '<%= user.preferredLanguage || "uz" %>') {
+                        showAlert('info', 'Language changed. Refreshing page...');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                        return;
+                    }
+                }
+            } else {
+                showAlert('error', data.message || 'Failed to save changes');
+            }
+
+        } catch (error) {
+            console.error('Form submission error:', error);
+            showAlert('error', 'An error occurred while saving changes');
+        } finally {
+            // Reset button state
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnContent;
+        }
+    }
+
+    /**
+     * Professional alert system for settings page
+     */
+    function showAlert(type, message) {
+        // Remove existing alerts
+        const existingAlerts = document.querySelectorAll('.settings-alert');
+        existingAlerts.forEach(alert => alert.remove());
+
+        // Create alert element
+        const alert = document.createElement('div');
+        alert.className = `settings-alert settings-alert--${type}`;
+        alert.innerHTML = `
+            <div class="alert-content">
+                <i class="las ${type === 'success' ? 'la-check-circle' : type === 'error' ? 'la-exclamation-circle' : 'la-info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="alert-close" onclick="this.parentElement.remove()">
+                <i class="las la-times"></i>
+            </button>
+        `;
+
+        // Alert styles
+        alert.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--body-font);
+            font-size: 0.9rem;
+            max-width: 400px;
+            animation: slideInRight 0.3s ease-out;
+        `;
+
+        document.body.appendChild(alert);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (alert.parentElement) {
+                alert.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => alert.remove(), 300);
+            }
+        }, 5000);
+    }
+
+    // Add CSS animations for alerts if not already present
+    if (!document.getElementById('settings-alert-styles')) {
+        const style = document.createElement('style');
+        style.id = 'settings-alert-styles';
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            .alert-close {
+                background: none;
+                border: none;
+                color: inherit;
+                cursor: pointer;
+                padding: 0;
+                margin-left: 0.5rem;
+                opacity: 0.8;
+            }
+            .alert-close:hover {
+                opacity: 1;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+});
+</script>
+
+<%- include('../partials/footer') %>

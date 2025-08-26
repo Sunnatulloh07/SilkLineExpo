@@ -91,6 +91,30 @@ app.use(session({
   }
 }));
 
+// Flash messages middleware
+app.use((req, res, next) => {
+  // Simple flash implementation
+  if (!req.session.flash) {
+    req.session.flash = {};
+  }
+  
+  req.flash = function(type, message) {
+    if (arguments.length === 1) {
+      // Get flash message
+      const messages = req.session.flash[type] || [];
+      delete req.session.flash[type];
+      return messages;
+    }
+    // Set flash message
+    if (!req.session.flash[type]) {
+      req.session.flash[type] = [];
+    }
+    req.session.flash[type].push(message);
+  };
+  
+  next();
+});
+
 // i18next middleware
 app.use(middleware.handle(i18next));
 
@@ -150,17 +174,38 @@ app.use((req, res, next) => {
   }
 
   // Set i18next language for this request
-  i18next.changeLanguage(resolvedLang);
+  req.language = resolvedLang;
+  
+  // Change language for i18next instance
+  if (i18next.changeLanguage) {
+    i18next.changeLanguage(resolvedLang);
+  }
 
-  // Create translation function
-  res.locals.t = (key, options = {}) => {
-    try {
-      return i18next.t(key, { lng: resolvedLang, ...options });
-    } catch (error) {
-      console.error('Translation error for key:', key, error);
-      return key;
-    }
+  // Create translation function with error handling
+  const createTranslationFunction = (lng) => {
+    return (key, options = {}) => {
+      try {
+        // Try with the specific language first
+        const translation = i18next.t(key, { lng: lng, ...options });
+        
+        // If translation returns the key itself, it means translation was not found
+        if (translation === key) {
+          console.warn(`Missing translation for key: ${key} in language: ${lng}`);
+          return key; // Return the key as fallback
+        }
+        
+        return translation;
+      } catch (error) {
+        console.error('Translation error for key:', key, 'Language:', lng, error);
+        return key; // Return the key as fallback
+      }
+    };
   };
+
+  // Set translation function for both req and res.locals
+  const translationFunction = createTranslationFunction(resolvedLang);
+  req.t = translationFunction;
+  res.locals.t = translationFunction;
 
   res.locals.lng = resolvedLang;
   res.locals.languages = ['uz', 'en', 'ru', 'fa', 'tr', 'zh'];
@@ -311,6 +356,13 @@ app.use('/manufacturer',
 );    
 
 app.use('/distributor', 
+    dashboardSecurityHeaders,
+    authenticationGuard,
+    distributorRoutes
+);      
+
+// Buyer Profile Routes (Same as distributor but with /buyer path)
+app.use('/buyer', 
     dashboardSecurityHeaders,
     authenticationGuard,
     distributorRoutes

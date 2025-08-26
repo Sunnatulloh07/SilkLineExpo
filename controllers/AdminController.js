@@ -1734,10 +1734,12 @@ class AdminController {
 
     } catch (error) {
       this.logger.error('❌ Show orders page error:', error);
-      res.status(500).render('error', {
+      res.status(500).render('pages/error', {
         title: 'Error',
         message: 'Failed to load orders page',
-        error: process.env.NODE_ENV === 'development' ? error : {}
+        error: process.env.NODE_ENV === 'development' ? error : {},
+        admin: req.user,
+        currentLang: this.getLanguagePreference(req)
       });
     }
   }

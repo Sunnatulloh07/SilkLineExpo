@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="<%= typeof lng !== 'undefined' ? lng : 'uz' %>" class="theme-transition">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+  <title><%= typeof title !== 'undefined' ? title : 'SLEX Buyer Dashboard' %></title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS Libraries (Using Local Assets) -->
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome-all.min.css">
+  <link rel="stylesheet" href="/assets/css/line-awesome.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/admin/css/admin-dashboard.css">
+  <link rel="stylesheet" href="/admin/css/dashboard-components.css">
+  <link rel="stylesheet" href="/admin/css/dashboard-loading.css">
+  
+  <!-- Buyer Dashboard Professional CSS -->
+  <link rel="stylesheet" href="/css/buyer-dashboard.css">
+  
+  <!-- Professional B2B Marketplace Cards CSS -->
+  <link rel="stylesheet" href="/css/b2b-marketplace-cards.css">
+  
+  <!-- PROFESSIONAL TOKEN MANAGEMENT SYSTEM -->
+  <script src="/js/token-manager.js"></script>
+  <script src="/js/token-manager-fix.js"></script>
+  
+  <!-- UNIVERSAL THEME MANAGER -->
+  <script src="/js/universal-theme-manager.js"></script>
+
+  <!-- Performance Optimization -->
+  <script src="/admin/js/dashboard-performance.js" defer></script>
+  
+  <!-- Theme Variables -->
+  <style>
+    :root {
+      --header-brand-text: 'Buyer Portal';
+      --brand-color: var(--buyer-primary);
+    }
+  </style>
+  
+  <!-- JWT Token Manager -->
+  <script src="/js/auth-token-manager.js"></script>
+</head>
+
+<body class="theme-transition buyer-dashboard-theme">
+  <div class="admin-layout">
+    
+    <!-- Header -->
+    <header class="admin-header buyer-header">
+      
+      <!-- Left Section -->
+      <div class="header-left">
+        <!-- Mobile Menu Toggle -->
+        <button id="mobileMenuToggle" class="header-action-btn mobile-only">
+          <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Sidebar Toggle (Desktop) -->
+        <button id="sidebarToggle" class="header-action-btn desktop-only">
+          <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Brand Logo (Mobile) -->
+        <div class="header-brand mobile-only">
+          <div class="header-brand-logo buyer-brand-logo">B</div>
+          <span class="header-brand-text"><%- t('buyerDashboard.header.brand') %></span>
+        </div>
+      </div>
+      
+      <!-- Center Section - Search -->
+      <div class="header-center">
+        <div class="header-search buyer-search">
+          <i class="fas fa-search header-search-icon"></i>
+          <input 
+            type="text" 
+            id="headerSearch"
+            placeholder="<%- t('buyerDashboard.header.searchPlaceholder') %>"
+            autocomplete="off"
+          >
+          <div class="search-suggestions" id="searchSuggestions">
+            <!-- Search suggestions will be populated here -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- Right Section -->
+      <div class="header-right">
+        
+        <!-- Language Selector -->
+        <div class="language-selector-wrapper">
+          <% 
+            const currentLang = typeof lng !== 'undefined' ? lng : 'uz';
+            const langConfig = {
+              'uz': { flag: '🇺🇿', name: 'O\'zbekcha', code: 'UZ' },
+              'en': { flag: '🇺🇸', name: 'English', code: 'EN' },
+              'ru': { flag: '🇷🇺', name: 'Русский', code: 'RU' },
+              'tr': { flag: '🇹🇷', name: 'Türkçe', code: 'TR' },
+              'fa': { flag: '🇮🇷', name: 'فارسی', code: 'FA' },
+              'zh': { flag: '🇨🇳', name: '中文', code: 'ZH' }
+            };
+            const current = langConfig[currentLang] || langConfig['uz'];
+          %>
+          
+          <div class="language-dropdown">
+            <button id="languageToggle" class="language-btn" 
+                    data-tooltip="<%- t('buyerDashboard.header.changeLanguage') %>">
+              <span class="lang-flag current-lang-flag"><%= current.flag %></span>
+              <i class="fas fa-chevron-down lang-chevron"></i>
+            </button>
+            
+            <div id="languageMenu" class="language-menu hidden">
+              <div class="language-menu-header">
+                <span class="menu-title"><%- t('buyerDashboard.header.selectLanguage') %></span>
+              </div>
+              <div class="language-options">
+                <% Object.entries(langConfig).forEach(([code, config]) => { %>
+                  <button class="language-option <%= currentLang === code ? 'active' : '' %>" 
+                          data-lang="<%= code %>"
+                          data-name="<%= config.name %>">
+                    <span class="option-flag"><%= config.flag %></span>
+                    <span class="option-name"><%= config.name %></span>
+                    <span class="option-code"><%= config.code %></span>
+                    <% if (currentLang === code) { %>
+                      <i class="fas fa-check option-check"></i>
+                    <% } %>
+                  </button>
+                <% }); %>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Theme Toggle -->
+        <button id="themeToggle" class="header-action-btn" data-tooltip="<%- t('buyerDashboard.header.toggleTheme') %>">
+          <i class="fas fa-moon theme-icon"></i>
+        </button>
+        
+        <!-- Messages -->
+        <div class="header-dropdown">
+          <button id="messagesBtn" class="header-action-btn" data-tooltip="<%- t('buyerDashboard.header.messages') %>">
+            <i class="fas fa-envelope"></i>
+            <span class="notification-badge messages-badge" id="messagesBadge">3</span>
+          </button>
+          
+          <!-- Messages Dropdown -->
+          <div id="messagesDropdown" class="dropdown-menu messages-dropdown hidden">
+            <div class="dropdown-header">
+              <span class="dropdown-title"><%- t('buyerDashboard.header.messages') %></span>
+              <button class="btn-sm btn-ghost" onclick="markAllMessagesRead()"><%- t('buyerDashboard.header.markAllRead') %></button>
+            </div>
+            <div class="dropdown-content">
+              <div class="message-item unread">
+                <div class="message-avatar-placeholder">
+                  <i class="fas fa-building"></i>
+                </div>
+                <div class="message-content">
+                  <h4 class="message-sender">Premium Textiles Co.</h4>
+                  <p class="message-text"><%- t('buyerDashboard.messages.sampleMessage1') %></p>
+                  <span class="message-time">5 <%- t('buyerDashboard.messages.minutesAgo') %></span>
+                </div>
+              </div>
+              <div class="message-item unread">
+                <div class="message-avatar-placeholder">
+                  <i class="fas fa-building"></i>
+                </div>
+                <div class="message-content">
+                  <h4 class="message-sender">Silk Road Industries</h4>
+                  <p class="message-text"><%- t('buyerDashboard.messages.sampleMessage2') %></p>
+                  <span class="message-time">15 <%- t('buyerDashboard.messages.minutesAgo') %></span>
+                </div>
+              </div>
+            </div>
+            <div class="dropdown-footer">
+              <a href="/distributor/messages" class="view-all-link"><%- t('buyerDashboard.header.viewAllMessages') %></a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Notifications -->
+        <div class="header-dropdown">
+          <button id="notificationsBtn" class="header-action-btn" data-tooltip="<%- t('buyerDashboard.header.notifications') %>">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notificationsBadge">8</span>
+          </button>
+          
+          <!-- Notifications Dropdown -->
+          <div id="notificationsDropdown" class="dropdown-menu notifications-dropdown hidden">
+            <div class="dropdown-header">
+              <span class="dropdown-title"><%- t('buyerDashboard.header.notifications') %></span>
+              <button class="btn-sm btn-ghost" onclick="markAllNotificationsRead()"><%- t('buyerDashboard.header.markAllRead') %></button>
+            </div>
+            <div class="dropdown-content" id="notificationsContent">
+              <div class="notification-item unread">
+                <div class="notification-icon success">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="notification-content">
+                  <h4 class="notification-title"><%- t('buyerDashboard.notifications.orderShipped') %></h4>
+                  <p class="notification-text"><%- t('buyerDashboard.notifications.orderShippedDesc') %></p>
+                  <span class="notification-time">5 <%- t('buyerDashboard.notifications.minutesAgo') %></span>
+                </div>
+              </div>
+              <div class="notification-item">
+                <div class="notification-icon info">
+                  <i class="fas fa-envelope"></i>
+                </div>
+                <div class="notification-content">
+                  <h4 class="notification-title"><%- t('buyerDashboard.notifications.newQuote') %></h4>
+                  <p class="notification-text"><%- t('buyerDashboard.notifications.newQuoteDesc') %></p>
+                  <span class="notification-time">30 <%- t('buyerDashboard.notifications.minutesAgo') %></span>
+                </div>
+              </div>
+            </div>
+            <div class="dropdown-footer">
+              <a href="/distributor/notifications" class="view-all-link"><%- t('buyerDashboard.header.viewAllNotifications') %></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Profile Dropdown -->
+        <div class="header-user-dropdown">
+          <button class="user-profile-btn avatar-only" id="userProfileToggle">
+            <div class="user-avatar buyer-avatar">
+              <% if (typeof user !== 'undefined' && user.avatar) { %>
+                <img src="<%= user.avatar %>" alt="Profile">
+              <% } else { %>
+                <i class="fas fa-user"></i>
+              <% } %>
+            </div>
+          </button>
+          
+          <!-- Profile Dropdown Menu -->
+          <div id="profileDropdown" class="dropdown-menu profile-dropdown hidden">
+            <div class="profile-header">
+              <div class="profile-avatar-large buyer-avatar-large">
+                <% if (typeof user !== 'undefined' && user.avatar) { %>
+                  <img src="<%= user.avatar %>" alt="Profile">
+                <% } else { %>
+                  <i class="fas fa-user"></i>
+                <% } %>
+              </div>
+              <div class="profile-info">
+                <h4 class="profile-name"><%= typeof user !== 'undefined' && user.companyName ? user.companyName : t('buyerDashboard.profile.defaultBuyerName') %></h4>
+                <p class="profile-email"><%= typeof user !== 'undefined' && user.email ? user.email : 'buyer@company.com' %></p>
+                <span class="profile-badge buyer-badge"><%- t('buyerDashboard.profile.buyerRole') %></span>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-content">
+              <a href="/distributor/profile" class="dropdown-item">
+                <i class="fas fa-user-circle"></i>
+                <span><%- t('buyerDashboard.profile.myProfile') %></span>
+              </a>
+              <a href="/distributor/orders" class="dropdown-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span><%- t('buyerDashboard.profile.myOrders') %></span>
+              </a>
+              <a href="/distributor/messages" class="dropdown-item">
+                <i class="fas fa-envelope"></i>
+                <span><%- t('buyerDashboard.profile.messages') %></span>
+              </a>
+              <a href="/distributor/inquiries" class="dropdown-item">
+                <i class="fas fa-question-circle"></i>
+                <span><%- t('buyerDashboard.profile.inquiries') %></span>
+              </a>
+              <a href="/distributor/settings" class="dropdown-item">
+                <i class="fas fa-cog"></i>
+                <span><%- t('buyerDashboard.profile.settings') %></span>
+              </a>
+            </div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-content">
+              <a href="/auth/logout" class="dropdown-item text-danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span><%- t('buyerDashboard.profile.logout') %></span>
+              </a>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </header>
+
+<style>
+/* Buyer Header Specific Styles */
+.buyer-header {
+  background: linear-gradient(90deg, var(--buyer-primary), var(--buyer-secondary));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.buyer-brand-logo {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.buyer-search {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.buyer-search input {
+  background: transparent;
+  color: white;
+}
+
+.buyer-search input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.buyer-search .header-search-icon {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.buyer-avatar {
+  background: var(--buyer-gradient);
+}
+
+.buyer-avatar-large {
+  background: var(--buyer-gradient);
+}
+
+.buyer-badge {
+  background: var(--buyer-accent);
+  color: white;
+}
+
+/* Dropdown styling for buyer theme */
+.buyer-header .dropdown-menu {
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  box-shadow: var(--buyer-shadow-lg);
+}
+
+.buyer-header .notification-badge {
+  background: #fff;
+  color: var(--buyer-primary);
+}
+
+/* Favorites dropdown specific styling */
+.favorites-dropdown {
+  width: 350px;
+}
+
+.favorite-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  align-items: center;
+}
+
+.favorite-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.favorite-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.favorite-content {
+  flex: 1;
+}
+
+.favorite-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+}
+
+.favorite-supplier {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0 0 0.25rem 0;
+}
+
+.favorite-price {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--buyer-primary);
+}
+
+.remove-favorite {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.remove-favorite:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* Search suggestions */
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: var(--buyer-shadow-lg);
+  z-index: 1000;
+  display: none;
+}
+
+.search-suggestion {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.search-suggestion:hover {
+  background: #f8fafc;
+}
+
+.search-suggestion:last-child {
+  border-bottom: none;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .buyer-header {
+  background: linear-gradient(90deg, var(--buyer-primary), var(--buyer-secondary));
+}
+
+[data-theme="dark"] .search-suggestions {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .search-suggestion {
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .search-suggestion:hover {
+  background: var(--bg-elevated);
+}
+
+[data-theme="dark"] .favorite-name {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .favorite-supplier {
+  color: var(--text-secondary);
+}
+</style>
