@@ -81,8 +81,7 @@ class TokenService {
                 tokenType: 'access'
             };
 
-            console.log('🔑 Generating access token with expiry:', this.accessTokenExpiry);
-
+           
             // Generate token
             const token = jwt.sign(accessPayload, this.accessTokenSecret, {
                 expiresIn: this.accessTokenExpiry,
@@ -319,7 +318,8 @@ class TokenService {
             return {
                 success: true,
                 tokens: newTokens,
-                user: userData
+                user: userData,
+                userType: payload.userType // Return original userType from token
             };
         } catch (error) {
             return {
@@ -335,13 +335,7 @@ class TokenService {
      */
     setAuthCookies(res, tokens) {
         try {
-            // ✅ FIXED: Cookie expiry muammosi tuzatildi
-            console.log('🍪 Setting auth cookies with maxAge:', {
-                access: this.cookieOptions.maxAge.access / (60 * 1000) + ' minutes',
-                refresh: this.cookieOptions.maxAge.refresh / (24 * 60 * 60 * 1000) + ' days',
-                session: this.cookieOptions.maxAge.session / (24 * 60 * 60 * 1000) + ' days'
-            });
-            
+                       
             // Access token cookie - JWT expiry bilan mos kelishi uchun
             res.cookie('accessToken', tokens.accessToken, {
                 ...this.cookieOptions,
@@ -360,8 +354,7 @@ class TokenService {
                 maxAge: this.cookieOptions.maxAge.session // ✅ 30 kun
             });
 
-            console.log('✅ Auth cookies set successfully');
-            return true;
+             return true;
         } catch (error) {
             throw new Error(`Failed to set auth cookies: ${error.message}`);
         }

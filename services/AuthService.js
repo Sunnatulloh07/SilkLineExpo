@@ -31,7 +31,23 @@ class AuthService {
       // Process company logo if uploaded
       let logoData = null;
       if (logoFile) {
-        logoData = await FileService.processCompanyLogo(logoFile);
+        try {
+          logoData = await FileService.processCompanyLogo(logoFile);
+          console.log('✅ Logo processed successfully:', {
+            filename: logoData.filename,
+            size: logoData.size,
+            url: logoData.url
+          });
+        } catch (logoError) {
+          console.error('❌ Logo processing failed:', logoError);
+          // Clean up uploaded file on error
+          if (logoFile && logoFile.path) {
+            await FileService.deleteFile(logoFile.path).catch(console.error);
+          }
+          throw new Error(`Logo processing failed: ${logoError.message}`);
+        }
+      } else {
+        throw new Error('Company logo is required');
       }
 
       // Prepare user data

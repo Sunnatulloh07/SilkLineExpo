@@ -47,6 +47,9 @@ class MultiDashboardLogin {
             this.handleUrlParameters();
             this.setupPasswordToggle();
             this.setupFormAnimation();
+            
+            // Prevent duplicate validation from other scripts
+            this.preventDuplicateValidation();
         });
     }
 
@@ -61,6 +64,14 @@ class MultiDashboardLogin {
         
         // Create error/success containers if they don't exist
         this.createMessageContainers();
+        
+        // Log setup for debugging
+        console.log('🔧 Login elements setup:', {
+            form: !!this.loginForm,
+            email: !!this.emailInput,
+            password: !!this.passwordInput,
+            submitBtn: !!this.submitButton
+        });
     }
 
     /**
@@ -106,17 +117,6 @@ class MultiDashboardLogin {
             this.loginForm.addEventListener('submit', (e) => this.handleSubmit(e));
         }
 
-        // Real-time validation
-        if (this.emailInput) {
-            this.emailInput.addEventListener('blur', () => this.validateEmail());
-            this.emailInput.addEventListener('input', () => this.clearFieldError('email'));
-        }
-
-        if (this.passwordInput) {
-            this.passwordInput.addEventListener('blur', () => this.validatePassword());
-            this.passwordInput.addEventListener('input', () => this.clearFieldError('password'));
-        }
-
         // Clear messages when user starts typing
         document.addEventListener('input', (e) => {
             if (e.target.matches('input[name="email"], input[name="password"]')) {
@@ -126,14 +126,103 @@ class MultiDashboardLogin {
     }
 
     /**
+     * Handle form submit
+     */
+    handleSubmit(e) {
+        const isEmailValid = this.validateEmail();
+        const isPasswordValid = this.validatePassword();
+        
+        if (!isEmailValid || !isPasswordValid) {
+            e.preventDefault();
+            return false;
+        }
+        
+        return true;
+    }
+
+    /**
      * Setup form validation
      */
     setupValidation() {
-        // Add Bootstrap validation classes
+        // Setup form validation with event listeners
         if (this.loginForm) {
-            this.loginForm.classList.add('needs-validation');
-            this.loginForm.noValidate = true;
+            this.setupFormValidation();
         }
+    }
+
+    /**
+     * Setup form validation with event listeners
+     */
+    setupFormValidation() {
+        // Add event listeners for real-time validation
+        if (this.emailInput) {
+            this.emailInput.addEventListener('blur', () => this.validateEmail());
+            this.emailInput.addEventListener('input', () => this.clearFieldError('email'));
+        }
+        
+        if (this.passwordInput) {
+            this.passwordInput.addEventListener('blur', () => this.validatePassword());
+            this.passwordInput.addEventListener('input', () => this.clearFieldError('password'));
+        }
+        
+        // Form submit validation
+        this.loginForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
+    }
+
+    /**
+     * Validate email field
+     */
+    validateEmail() {
+        const email = this.emailInput.value.trim();
+        
+        if (!email) {
+            this.showFieldError('email', 'Email is required');
+            return false;
+        }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            this.showFieldError('email', 'Please enter a valid email address');
+            return false;
+        }
+        
+        this.clearFieldError('email');
+        return true;
+    }
+
+    /**
+     * Validate email field
+     */
+    validatePassword() {
+        const password = this.passwordInput.value.trim();
+        
+        if (!password) {
+            this.showFieldError('password', 'Password is required');
+            return false;
+        }
+        
+        if (password.length < 6) {
+            this.showFieldError('password', 'Password must be at least 6 characters long');
+            return false;
+        }
+        
+        this.clearFieldError('password');
+        return true;
+    }
+
+    /**
+     * Handle form submit
+     */
+    handleFormSubmit(e) {
+        const isEmailValid = this.validateEmail();
+        const isPasswordValid = this.validatePassword();
+        
+        if (!isEmailValid || !isPasswordValid) {
+            e.preventDefault();
+            return false;
+        }
+        
+        return true;
     }
 
     /**
@@ -168,18 +257,114 @@ class MultiDashboardLogin {
      * Setup password toggle functionality
      */
     setupPasswordToggle() {
-        const passwordToggle = document.querySelector('.password-toggle');
-        if (passwordToggle && this.passwordInput) {
-            passwordToggle.addEventListener('click', () => {
-                const type = this.passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                this.passwordInput.setAttribute('type', type);
-                
-                const icon = passwordToggle.querySelector('i');
-                if (icon) {
-                    icon.className = type === 'password' ? 'las la-eye' : 'las la-eye-slash';
-                }
+        const passwordToggleBtn = document.querySelector('.password-toggle-btn');
+        const passwordToggleIcon = document.getElementById('passwordToggleIcon');
+        
+        if (passwordToggleBtn && this.passwordInput && passwordToggleIcon) {
+            passwordToggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.togglePasswordVisibility(passwordToggleIcon);
             });
         }
+    }
+
+    /**
+     * Toggle password visibility with enhanced functionality
+     */
+    togglePasswordVisibility(toggleIcon) {
+        if (!this.passwordInput) return;
+
+        const isPassword = this.passwordInput.type === 'password';
+        
+        // Toggle input type
+        this.passwordInput.type = isPassword ? 'text' : 'password';
+        
+        // Toggle icon with smooth animation
+        if (isPassword) {
+            toggleIcon.className = 'las la-eye-slash';
+            toggleIcon.setAttribute('title', 'Hide Password');
+            this.passwordInput.setAttribute('data-visible', 'true');
+        } else {
+            toggleIcon.className = 'las la-eye';
+            toggleIcon.setAttribute('title', 'Show Password');
+            this.passwordInput.removeAttribute('data-visible');
+        }
+
+        // Add visual feedback
+        const toggleBtn = toggleIcon.closest('.password-toggle-btn');
+        if (toggleBtn) {
+            toggleBtn.style.color = isPassword ? 'var(--main-color, #007bff)' : '#6c757d';
+        }
+
+        // Smooth animation
+        toggleIcon.style.transform = 'scale(0.8)';
+        setTimeout(() => {
+            toggleIcon.style.transform = 'scale(1)';
+        }, 150);
+
+        // Focus back to input for better UX
+        this.passwordInput.focus();
+    }
+
+    /**
+     * Prevent duplicate validation from other scripts
+     */
+    preventDuplicateValidation() {
+        // Remove Bootstrap validation classes that might conflict
+        if (this.loginForm) {
+            this.loginForm.classList.remove('needs-validation');
+            this.loginForm.noValidate = true;
+        }
+        
+        // Disable other validation scripts
+        this.disableOtherValidationScripts();
+        
+        // Clear any existing error messages
+        this.clearAllFieldErrors();
+    }
+
+    /**
+     * Disable other validation scripts
+     */
+    disableOtherValidationScripts() {
+        // Remove event listeners from other validation scripts
+        const emailInput = document.querySelector('input[name="email"]');
+        const passwordInput = document.querySelector('input[name="password"]');
+        
+        if (emailInput) {
+            // Clone and replace to remove all event listeners
+            const newEmailInput = emailInput.cloneNode(true);
+            emailInput.parentNode.replaceChild(newEmailInput, emailInput);
+            this.emailInput = newEmailInput;
+        }
+        
+        if (passwordInput) {
+            // Clone and replace to remove all event listeners
+            const newPasswordInput = passwordInput.cloneNode(true);
+            passwordInput.parentNode.replaceChild(newPasswordInput, passwordInput);
+            this.passwordInput = newPasswordInput;
+        }
+    }
+
+    /**
+     * Clear all existing field errors
+     */
+    clearAllFieldErrors() {
+        // Remove all error messages
+        const allErrorMessages = document.querySelectorAll('.invalid-feedback, .field-error');
+        allErrorMessages.forEach(error => error.remove());
+        
+        // Remove error classes
+        const allInputs = document.querySelectorAll('input');
+        allInputs.forEach(input => {
+            input.classList.remove('is-invalid');
+        });
+        
+        // Remove error classes from containers
+        const allContainers = document.querySelectorAll('.form-floating, .col-12');
+        allContainers.forEach(container => {
+            container.classList.remove('error', 'success');
+        });
     }
 
     /**
@@ -285,6 +470,27 @@ class MultiDashboardLogin {
 
             if (result.success) {
                 this.showSuccess('Login successful! Redirecting to your dashboard...');
+                
+                // Save user data to localStorage for distributors
+                if (result.companyType === 'distributor') {
+                    try {
+                        const userData = {
+                            id: result.userId || result.user?.id,
+                            name: result.name || result.user?.name,
+                            email: result.email || result.user?.email,
+                            role: result.role || result.user?.role,
+                            userType: result.userType || result.user?.userType || "user",
+                            companyType: result.companyType,
+                            companyName: result.companyName || result.user?.companyName
+                        };
+                        localStorage.setItem('slex_buyer_user_data', JSON.stringify(userData));
+                        
+                    } catch (error) {
+                        console.warn('❌ Multi-dashboard login: Failed to save user data to localStorage:', error);
+                    }
+                } else {
+                    console.log('⚠️ Multi-dashboard login: User is not distributor, not saving to localStorage. companyType:', result.companyType);
+                }
                 
                 // Redirect to dashboard
                 setTimeout(() => {
@@ -405,8 +611,70 @@ class MultiDashboardLogin {
                 errorElement.className = 'field-error text-danger small mt-1';
                 container.appendChild(errorElement);
             }
-            errorElement.textContent = message;
+            
+            // Get current language and show error in that language only
+            const currentLang = this.getCurrentLanguage();
+            const localizedMessage = this.getLocalizedErrorMessage(message, currentLang);
+            
+            errorElement.textContent = localizedMessage;
         }
+    }
+
+    /**
+     * Get current language
+     */
+    getCurrentLanguage() {
+        // Try to get language from various sources
+        const htmlLang = document.documentElement.lang;
+        const langFromUrl = window.location.pathname.includes('/language/') ? 
+          window.location.pathname.split('/language/')[1]?.split('/')[0] : null;
+        const langFromSelector = document.querySelector('.current-lang-text')?.textContent?.toLowerCase();
+        
+        return htmlLang || langFromUrl || langFromSelector || 'en';
+    }
+
+    /**
+     * Get localized error message
+     */
+    getLocalizedErrorMessage(message, lang) {
+        const errorMessages = {
+            'en': {
+                'is required': 'is required',
+                'Email is required': 'Email is required',
+                'Password is required': 'Password is required',
+                'Please enter a valid email address': 'Please enter a valid email address',
+                'Password must be at least 6 characters long': 'Password must be at least 6 characters long'
+            },
+            'uz': {
+                'is required': 'majburiy',
+                'Email is required': 'Email manzil majburiy',
+                'Password is required': 'Parol majburiy',
+                'Please enter a valid email address': 'To\'g\'ri email manzilni kiriting',
+                'Password must be at least 6 characters long': 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak'
+            },
+            'ru': {
+                'is required': 'обязательно',
+                'Email is required': 'Email адрес обязателен',
+                'Password is required': 'Пароль обязателен',
+                'Please enter a valid email address': 'Введите корректный email адрес',
+                'Password must be at least 6 characters long': 'Пароль должен содержать минимум 6 символов'
+            }
+        };
+
+        // If language not found, return English
+        if (!errorMessages[lang]) {
+            return message;
+        }
+
+        // Find matching error message
+        for (const [key, value] of Object.entries(errorMessages[lang])) {
+            if (message.includes(key)) {
+                return value;
+            }
+        }
+
+        // If no match found, return original message
+        return message;
     }
 
     /**

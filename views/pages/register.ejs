@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="/css/professional-register-enhancement.css">
 <!-- Login Password Toggle CSS -->
 <link rel="stylesheet" href="/css/login-password-toggle.css">
+<!-- Form Validation CSS -->
+<link rel="stylesheet" href="/css/form-validation.css">
 
 <body>
   <!--==================== Preloader Start ====================-->
@@ -236,6 +238,23 @@
                   </div>
                 </div>
 
+                  <!-- Company Type -->
+                <div class="col-12">
+                  <label for="companyType" class="form-label mb-2 font-18 font-heading fw-600">
+                    <%= t('register.companyType') %> <span class="text-danger">*</span>
+                  </label>
+                  <div class="position-relative">
+                    <select class="common-input common-input--bg" id="companyType" name="companyType" required>
+                      <option value=""><%= t('register.selectCompanyType') %></option>
+                      <option value="manufacturer"><%= t('register.companyTypes.manufacturer') %></option>
+                      <option value="distributor"><%= t('register.companyTypes.distributor') %></option>
+                    </select>
+                  </div>
+                  <small class="text-muted mt-1">
+                    <%= t('register.companyTypeHelp') %>
+                  </small>
+                </div>
+
                 <!-- Activity Type -->
                 <div class="col-12">
                   <label for="activityType" class="form-label mb-2 font-18 font-heading fw-600">
@@ -258,22 +277,7 @@
                   </div>
                 </div>
 
-                <!-- Company Type -->
-                <div class="col-12">
-                  <label for="companyType" class="form-label mb-2 font-18 font-heading fw-600">
-                    <%= t('register.companyType') %> <span class="text-danger">*</span>
-                  </label>
-                  <div class="position-relative">
-                    <select class="common-input common-input--bg" id="companyType" name="companyType" required>
-                      <option value=""><%= t('register.selectCompanyType') %></option>
-                      <option value="manufacturer"><%= t('register.companyTypes.manufacturer') %></option>
-                      <option value="distributor"><%= t('register.companyTypes.distributor') %></option>
-                    </select>
-                  </div>
-                  <small class="text-muted mt-1">
-                    <%= t('register.companyTypeHelp') %>
-                  </small>
-                </div>
+              
               </div>
             </div>
 
@@ -328,12 +332,12 @@
                 <!-- Company Logo -->
                 <div class="col-12">
                   <label for="companyLogo" class="form-label mb-2 font-18 font-heading fw-600">
-                    <%= t('register.companyLogo') %>
+                    <%= t('register.companyLogo') %> <span class="text-danger">*</span>
                   </label>
                   <div class="position-relative">
                     <input type="file" class="common-input common-input--bg" 
                            id="companyLogo" name="companyLogo"
-                           accept="image/jpeg,image/png,image/jpg">
+                           accept="image/jpeg,image/png,image/jpg" required>
                     <small class="form-text text-muted"><%= t('register.logoNote') %></small>
                   </div>
                   <div class="logo-preview mt-3" id="logoPreview" style="display: none;">

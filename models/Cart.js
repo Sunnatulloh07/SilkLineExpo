@@ -100,7 +100,14 @@ cartSchema.pre('save', function(next) {
 // Static method to get or create cart for buyer
 cartSchema.statics.getOrCreateCart = async function(buyerId) {
   let cart = await this.findOne({ buyerId })
-    .populate('items.productId', 'title name images price pricing inventory category')
+    .populate({
+      path: 'items.productId',
+      select: 'name title description images pricing inventory category manufacturer status',
+      populate: {
+        path: 'category',
+        select: 'name'
+      }
+    })
     .populate('items.manufacturerId', 'companyName businessName');
   
   if (!cart) {

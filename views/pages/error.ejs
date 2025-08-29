@@ -1,29 +1,174 @@
-<%- include('../partials/header', {title: title || 'Xatolik - Silk Line Expo', lng: lng || 'uz', admin: admin, user: user}) %>
+<%- include('../partials/header', {
+    title: title || 'Xatolik - Silk Line Expo', 
+    lng: lng || 'uz', 
+    admin: typeof admin !== 'undefined' ? admin : null, 
+    user: typeof user !== 'undefined' ? user : null
+}) %>
 <%- include('../partials/navigation') %>
 
-    <main class="main-wrapper">
-      <section class="error-section padding-y-120">
-        <div class="container">
-          <div class="row justify-content-center">
-            <div class="col-lg-6">
-              <div class="error-content text-center">
-                <h1 class="error-title mb-4">500</h1>
-                <h3 class="error-subtitle mb-3">Server xatosi</h3>
-                <p class="error-desc mb-4">Kechirasiz, serverda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.</p>
-                <a href="/" class="btn btn-main btn-lg">Bosh sahifaga qaytish</a>
-                <% if (error && process.env.NODE_ENV === 'development') { %>
-                  <div class="mt-4">
-                    <details>
-                      <summary>Xatolik tafsilotlari (development)</summary>
-                      <pre><%= error.stack %></pre>
-                    </details>
+<main class="main-wrapper">
+  <section class="error-section padding-y-120">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="error-content text-center">
+            <!-- Dynamic Error Status Display -->
+            <% 
+              const currentStatusCode = typeof statusCode !== 'undefined' ? statusCode : 500;
+              const errorTitle = currentStatusCode === 404 ? 'Sahifa topilmadi' : 
+                                currentStatusCode === 403 ? 'Ruxsat berilmagan' :
+                                currentStatusCode === 401 ? 'Autentifikatsiya talab etiladi' :
+                                'Server xatosi';
+              const errorDesc = currentStatusCode === 404 ? 'Siz qidirayotgan sahifa mavjud emas yoki o\'chirilgan.' :
+                               currentStatusCode === 403 ? 'Ushbu sahifaga kirish uchun ruxsatingiz yo\'q.' :
+                               currentStatusCode === 401 ? 'Ushbu sahifani ko\'rish uchun tizimga kirishingiz kerak.' :
+                               'Kechirasiz, serverda xatolik yuz berdi. Keyinroq qayta urinib ko\'ring.';
+            %>
+            
+            <div class="error-icon mb-4">
+              <i class="las la-<%= currentStatusCode === 404 ? 'search' : currentStatusCode === 403 ? 'lock' : currentStatusCode === 401 ? 'user-lock' : 'exclamation-triangle' %>" 
+                 style="font-size: 5rem; color: #dc3545;"></i>
+            </div>
+            
+            <h1 class="error-title mb-4 display-1 fw-bold text-primary"><%= currentStatusCode %></h1>
+            <h3 class="error-subtitle mb-3 h2"><%= errorTitle %></h3>
+            <p class="error-desc mb-4 lead text-muted"><%= typeof message !== 'undefined' && message ? message : errorDesc %></p>
+            
+            <!-- Action Buttons -->
+            <div class="error-actions mb-4">
+              <% if (currentStatusCode === 401) { %>
+                <a href="/login" class="btn btn-primary btn-lg me-3">
+                  <i class="las la-sign-in-alt me-2"></i>Tizimga kirish
+                </a>
+              <% } %>
+              
+              <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg me-3">
+                <i class="las la-arrow-left me-2"></i>Orqaga qaytish
+              </a>
+              
+              <a href="/" class="btn btn-main btn-lg">
+                <i class="las la-home me-2"></i>Bosh sahifaga qaytish
+              </a>
+            </div>
+            
+            <!-- Development Error Details -->
+            <% if (typeof error !== 'undefined' && error && process.env.NODE_ENV === 'development') { %>
+              <div class="mt-5">
+                <div class="card text-start">
+                  <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                      <i class="las la-bug me-2"></i>Xatolik tafsilotlari (development)
+                    </h5>
                   </div>
-                <% } %>
+                  <div class="card-body">
+                    <% if (error.message) { %>
+                      <div class="mb-3">
+                        <strong>Xatolik xabari:</strong>
+                        <pre class="bg-light p-2 rounded"><%= error.message %></pre>
+                      </div>
+                    <% } %>
+                    
+                    <% if (error.stack) { %>
+                      <div class="mb-3">
+                        <strong>Stack trace:</strong>
+                        <pre class="bg-light p-3 rounded" style="max-height: 300px; overflow-y: auto; font-size: 0.85rem;"><%= error.stack %></pre>
+                      </div>
+                    <% } %>
+                    
+                    <!-- Additional Debug Info -->
+                    <div class="row mt-3">
+                      <div class="col-md-6">
+                        <strong>Request URL:</strong>
+                        <p class="text-muted"><%= typeof req !== 'undefined' && req ? req.originalUrl || req.url || 'N/A' : 'N/A' %></p>
+                      </div>
+                      <div class="col-md-6">
+                        <strong>Request Method:</strong>
+                        <p class="text-muted"><%= typeof req !== 'undefined' && req ? req.method || 'N/A' : 'N/A' %></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+            <% } %>
+            
+            <!-- User-friendly Error Reporting -->
+            <div class="mt-4">
+              <small class="text-muted">
+                Agar muammo davom etsa, 
+                <a href="/contact" class="text-decoration-none">qo'llab-quvvatlash xizmatiga murojaat qiling</a>
+                yoki <a href="mailto:support@slexpo.uz" class="text-decoration-none">support@slexpo.uz</a> ga yozing.
+              </small>
             </div>
           </div>
         </div>
-      </section>
-    </main>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Error Page Specific Styles -->
+<style>
+.error-section {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.error-content {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.error-icon {
+  animation: bounce 2s infinite;
+}
+
+.error-title {
+  font-weight: 900;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Dark mode support */
+[data-theme="light"] .error-section {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+[data-theme="light"] .error-content .text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme="light"] .card {
+  background: #1a1a2e !important;
+  border-color: #16213e !important;
+}
+
+[data-theme="light"] .bg-light {
+  background: #16213e !important;
+  color: #ffffff !important;
+}
+</style>
 
 <%- include('../partials/footer') %>

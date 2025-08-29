@@ -1,0 +1,4365 @@
+<%
+// Safe order data with defaults
+const safeOrder = order || {};
+const orderNumber = safeOrder.orderNumber || 'Unknown';
+const orderStatus = safeOrder.status || 'pending';
+const orderItems = safeOrder.items || [];
+const orderShipping = safeOrder.shipping || {};
+const orderSupplier = safeOrder.supplier || {};
+const orderPayment = safeOrder.payment || {};
+const orderTotal = safeOrder.totalAmount || 0;
+const orderCurrency = safeOrder.currency || 'USD';
+%>
+
+<%- include('../partials/header', { title: (t('orderDetails.pageTitle') || 'Order Details') + ' - SLEX' }) %>
+<%- include('../partials/navigation') %>
+
+<!-- Professional Alibaba-Style Order Details Page -->
+<main class="order-details-page">
+  <div class="container container-two">
+    <div class="row">
+      <div class="col-lg-3">
+        <!-- Buyer Sidebar -->
+        <%- include('./partials/buyer-sidebar', { currentPage: 'orders' }) %>
+      </div>
+      
+      <div class="col-lg-9">
+        <div class="order-details-container">
+          
+
+          <!-- Order Header Card -->
+          <div class="order-header-card">
+            <div class="order-header-content">
+              <div class="order-title-section">
+                <div class="order-number-badge">
+                  <span class="order-label"><%- t('orderDetails.orderNumber') || 'Order Number' %></span>
+                  <h1 class="order-number">#<%= orderNumber %></h1>
+                </div>
+                <div class="order-dates">
+                  <div class="date-info">
+                    <i class="las la-calendar-plus"></i>
+                    <span class="date-label"><%- t('orderDetails.placedOn') || 'Placed on' %></span>
+                    <span class="date-value"><%= safeOrder.createdAt ? new Date(safeOrder.createdAt).toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }) : 'N/A' %></span>
+                  </div>
+                  <% if (safeOrder.updatedAt && safeOrder.createdAt && new Date(safeOrder.updatedAt).getTime() !== new Date(safeOrder.createdAt).getTime()) { %>
+                  <div class="date-info">
+                    <i class="las la-sync-alt"></i>
+                    <span class="date-label"><%- t('orderDetails.lastUpdated') || 'Last updated' %></span>
+                    <span class="date-value"><%= new Date(safeOrder.updatedAt).toLocaleDateString('en-US', { 
+                      weekday: 'short', 
+                      month: 'short', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }) %></span>
+                  </div>
+                  <% } %>
+                </div>
+              </div>
+              
+              <div class="order-status-section">
+                <div class="status-container">
+                  <div class="status-badge status-<%= orderStatus %>">
+                    <i class="status-icon las la-<%= orderStatus === 'pending' ? 'clock' : 
+                      orderStatus === 'confirmed' ? 'check-circle' :
+                      orderStatus === 'processing' ? 'cog' : 
+                      orderStatus === 'manufacturing' ? 'industry' :
+                      orderStatus === 'ready_to_ship' ? 'box' :
+                      orderStatus === 'shipped' ? 'shipping-fast' : 
+                      orderStatus === 'delivered' ? 'check-circle' : 
+                      orderStatus === 'completed' ? 'medal' : 
+                      orderStatus === 'cancelled' ? 'times-circle' : 'question-circle' %>"></i>
+                    <span class="status-text"><%= safeOrder.statusLabel || orderStatus.replace('_', ' ').toUpperCase() %></span>
+                  </div>
+                  <div class="total-amount">
+                    <span class="amount-label"><%- t('orderDetails.orderTotal') || 'Order Total' %></span>
+                    <span class="amount-value">$<%= orderTotal.toFixed(2) %> <%= orderCurrency %></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Progress Timeline -->
+            <div class="order-timeline">
+              <div class="timeline-container">
+                <% const placedCompleted = ['pending', 'confirmed', 'processing', 'manufacturing', 'ready_to_ship', 'shipped', 'delivered', 'completed'].includes(orderStatus); %>
+                <div class="timeline-item <%= placedCompleted ? 'completed' : '' %>">
+                  <div class="timeline-icon">
+                    <i class="las la-shopping-cart"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <h4><%- t('orderDetails.orderPlaced') || 'Order Placed' %></h4>
+                    <p><%= safeOrder.createdAt ? new Date(safeOrder.createdAt).toLocaleDateString() : 'N/A' %></p>
+                  </div>
+                </div>
+                
+                <% const confirmedCompleted = ['confirmed', 'processing', 'manufacturing', 'ready_to_ship', 'shipped', 'delivered', 'completed'].includes(orderStatus); %>
+                <div class="timeline-item <%= confirmedCompleted ? 'completed' : '' %>">
+                  <div class="timeline-icon">
+                    <i class="las la-check-circle"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <h4><%- t('orderDetails.orderConfirmed') || 'Order Confirmed' %></h4>
+                    <p><%- t('orderDetails.processingStarted') || 'Processing started' %></p>
+                  </div>
+                </div>
+                
+                <% const shippedCompleted = ['shipped', 'delivered', 'completed'].includes(orderStatus); %>
+                <div class="timeline-item <%= shippedCompleted ? 'completed' : '' %>">
+                  <div class="timeline-icon">
+                    <i class="las la-shipping-fast"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <h4><%- t('orderDetails.orderShipped') || 'Order Shipped' %></h4>
+                    <% if (orderShipping && orderShipping.trackingNumber) { %>
+                    <p><%- t('orderDetails.trackingNumber') || 'Tracking' %>: <%= orderShipping.trackingNumber %></p>
+                    <% } else { %>
+                    <p><%- t('orderDetails.preparingShipment') || 'Preparing for shipment' %></p>
+                    <% } %>
+                  </div>
+                </div>
+                
+                <% const deliveredCompleted = ['delivered', 'completed'].includes(orderStatus); %>
+                <div class="timeline-item <%= deliveredCompleted ? 'completed' : '' %>">
+                  <div class="timeline-icon">
+                    <i class="las la-home"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <h4><%- t('orderDetails.orderDelivered') || 'Order Delivered' %></h4>
+                    <% if (safeOrder.delivery && safeOrder.delivery.deliveredDate) { %>
+                    <p><%= new Date(safeOrder.delivery.deliveredDate).toLocaleDateString() %></p>
+                    <% } else { %>
+                    <p><%- t('orderDetails.pendingDelivery') || 'Pending delivery' %></p>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Content Grid -->
+          <div class="order-content-grid">
+            
+            <!-- Left Column: Items and Details -->
+            <div class="order-main-column">
+              
+              <!-- Order Items Section -->
+              <div class="content-card order-items-card">
+                <div class="card-header">
+                  <div class="header-content">
+                    <h3 class="card-title">
+                      <i class="las la-box"></i>
+                      <%- t('orderDetails.orderItems') || 'Order Items' %>
+                    </h3>
+                    <div class="items-count">
+                      <span class="count-badge"><%= orderItems.length %></span>
+                      <span class="count-label"><%- t('orderDetails.items') || 'items' %></span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="card-body p-0">
+                  <% if (orderItems.length > 0) { %>
+                    <!-- MUI-Style Professional Data Grid -->
+                    <div class="mui-datagrid-container">
+                      <!-- Table Header Actions -->
+                      <div class="datagrid-toolbar">
+                        <div class="toolbar-left">
+                          <div class="items-count-display">
+                            <i class="las la-box"></i>
+                            <span class="count-text">
+                              <%= orderItems.length %> <%- t('orderDetails.items') || 'items' %>
+                            </span>
+                          </div>
+                          <div class="table-density-selector">
+                           
+                          </div>
+                        </div>
+                        <div class="toolbar-right">
+                          <div class="view-options">
+                      
+                            <button class="btn btn-sm btn-outline-success" onclick="exportToCSV()" title="<%- t('common.export') || 'Export' %>">
+                              <i class="las la-download"></i>
+                              <span class="btn-text"><%- t('common.export') || 'Export' %></span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Main Data Grid -->
+                      <div class="mui-datagrid-wrapper">
+                        <div class="datagrid-scroll-container">
+                          <table class="mui-datagrid-table" id="orderItemsDataGrid">
+                            <thead class="datagrid-header">
+                              <tr class="header-row">
+                                <th class="header-cell header-checkbox">
+                                  <div class="header-content">
+                                    <input type="checkbox" class="form-check-input" id="selectAllItems" onchange="toggleSelectAll(this)">
+                                  </div>
+                                </th>
+                                <th class="header-cell header-product sortable" onclick="sortColumn('product')">
+                                  <div class="header-content">
+                                    <i class="las la-box header-icon"></i>
+                                    <span class="header-title"><%- t('orderDetails.product') || 'Product' %></span>
+                                    <i class="las la-sort sort-icon"></i>
+                                  </div>
+                                </th>
+                                <th class="header-cell header-sku sortable" onclick="sortColumn('sku')">
+                                  <div class="header-content">
+                                    <i class="las la-barcode header-icon"></i>
+                                    <span class="header-title">SKU</span>
+                                    <i class="las la-sort sort-icon"></i>
+                                  </div>
+                                </th>
+                                <th class="header-cell header-specifications">
+                                  <div class="header-content">
+                                    <i class="las la-list header-icon"></i>
+                                    <span class="header-title"><%- t('orderDetails.specifications') || 'Specifications' %></span>
+                                  </div>
+                                </th>
+                                <th class="header-cell header-quantity sortable text-center" onclick="sortColumn('quantity')">
+                                  <div class="header-content">
+                                    <i class="las la-sort-amount-up header-icon"></i>
+                                    <span class="header-title"><%- t('orderDetails.quantity') || 'Qty' %></span>
+                                    <i class="las la-sort sort-icon"></i>
+                                  </div>
+                                </th>
+                                <th class="header-cell header-price sortable text-center" onclick="sortColumn('price')">
+                                  <div class="header-content">
+                                    <i class="las la-dollar-sign header-icon"></i>
+                                    <span class="header-title"><%- t('orderDetails.unitPrice') || 'Unit Price' %></span>
+                                    <i class="las la-sort sort-icon"></i>
+                                  </div>
+                                </th>
+                                <th class="header-cell header-total sortable text-center" onclick="sortColumn('total')">
+                                  <div class="header-content">
+                                    <i class="las la-calculator header-icon"></i>
+                                    <span class="header-title"><%- t('orderDetails.totalPrice') || 'Total' %></span>
+                                    <i class="las la-sort sort-icon"></i>
+                                  </div>
+                                </th>
+                                <th class="header-cell header-actions">
+                                  <div class="header-content">
+                                    <i class="las la-cog header-icon"></i>
+                                    <span class="header-title"><%- t('common.actions') || 'Actions' %></span>
+                                  </div>
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody class="datagrid-body">
+                              <% orderItems.forEach((item, index) => { %>
+                              <tr class="data-row" data-row-id="<%= index %>">
+                                <!-- Checkbox Column -->
+                                <td class="data-cell cell-checkbox">
+                                  <input type="checkbox" class="form-check-input row-checkbox" value="<%= index %>">
+                                </td>
+                                
+                                <!-- Product Column -->
+                                <td class="data-cell cell-product">
+                                  <div class="product-cell-content">
+                                    <div class="product-avatar">
+                                      <img src="<%= (item.product && item.product.image) ? item.product.image : '/assets/images/placeholder-product.svg' %>" 
+                                           alt="<%= (item.product && item.product.name) ? item.product.name : 'Product' %>" 
+                                           class="product-image"
+                                           onerror="this.src='/assets/images/placeholder-product.svg'">
+                                    </div>
+                                    <div class="product-info">
+                                      <div class="product-title">
+                                        <%= (item.product && item.product.name) ? item.product.name : 'Unknown Product' %>
+                                      </div>
+                                      <div class="product-category">
+                                        <i class="las la-tag"></i>
+                                        <%= (item.product && item.product.category) ? item.product.category : 'General' %>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+                                
+                                <!-- SKU Column -->
+                                <td class="data-cell cell-sku">
+                                  <% if (item.product && item.product.sku) { %>
+                                    <div class="sku-badge">
+                                      <code class="sku-code"><%= item.product.sku %></code>
+                                    </div>
+                                  <% } else { %>
+                                    <span class="text-muted">—</span>
+                                  <% } %>
+                                </td>
+                                
+                                <!-- Specifications Column -->
+                                <td class="data-cell cell-specifications">
+                                  <% if (item.specifications && item.specifications.length > 0) { %>
+                                    <div class="specs-chips">
+                                      <% item.specifications.slice(0, 2).forEach(spec => { %>
+                                        <div class="spec-chip">
+                                          <span class="spec-key"><%= spec.name %></span>
+                                          <span class="spec-value"><%= spec.value %></span>
+                                        </div>
+                                      <% }) %>
+                                      <% if (item.specifications.length > 2) { %>
+                                        <% const moreCount = item.specifications.length - 2; %>
+                                        <% const moreText = t('common.more') || 'more'; %>
+                                        <button class="btn btn-link btn-sm spec-more-btn" data-index="<%= index %>">
+                                          +<%= moreCount %> more
+                                        </button>
+                                      <% } %>
+                                    </div>
+                                  <% } else { %>
+                                    <span class="text-muted">
+                                      <i class="las la-minus"></i>
+                                      <%- t('common.noData') || 'N/A' %>
+                                    </span>
+                                  <% } %>
+                                </td>
+                                
+                                <!-- Quantity Column -->
+                                <td class="data-cell cell-quantity text-center">
+                                  <div class="quantity-chip">
+                                    <span class="quantity-value"><%= item.quantity || 1 %></span>
+                                    <span class="quantity-unit"><%= (item.product && item.product.unit) ? item.product.unit : 'pcs' %></span>
+                                  </div>
+                                </td>
+                                
+                                <!-- Unit Price Column -->
+                                <td class="data-cell cell-price text-center">
+                                  <div class="price-chip">
+                                    <span class="price-symbol">$</span>
+                                    <span class="price-value"><%= (item.unitPrice || 0).toFixed(2) %></span>
+                                  </div>
+                                </td>
+                                
+                                <!-- Total Column -->
+                                <td class="data-cell cell-total text-center">
+                                  <div class="total-chip highlighted">
+                                    <span class="total-symbol">$</span>
+                                    <span class="total-value"><%= (item.totalPrice || 0).toFixed(2) %></span>
+                                  </div>
+                                </td>
+                                
+                                <!-- Actions Column -->
+                                <td class="data-cell cell-actions">
+                                  <div class="action-buttons">
+                                    <% const productId = (item.product && item.product._id) ? item.product._id : ''; %>
+                                    <% const viewDetailsTitle = t('common.viewDetails') || 'View Details'; %>
+                                    <% const customReqTitle = t('orderDetails.customRequirements') || 'Custom Requirements'; %>
+                                    <button class="btn btn-sm btn-outline-primary view-product-btn" data-product-id="<%= productId %>" title="<%- t('common.viewDetails') || 'View Details' %>">
+                                      <i class="las la-eye"></i>
+                                    </button>
+                                    <% if (item.customRequirements) { %>
+                                    <button class="btn btn-sm btn-outline-warning show-custom-btn" data-index="<%= index %>" title="<%- t('orderDetails.customRequirements') || 'Custom Requirements' %>">
+                                      <i class="las la-sticky-note"></i>
+                                    </button>
+                                    <% } %>
+                                  </div>
+                                </td>
+                              </tr>
+                              <% }) %>
+                            </tbody>
+                          </table>
+                        </div>
+                        
+                        <!-- Professional Horizontal Scrollbar -->
+                        <div class="datagrid-scrollbar-container">
+                          <div class="custom-scrollbar" id="customScrollbar">
+                            <div class="scrollbar-track">
+                              <div class="scrollbar-thumb" id="scrollbarThumb"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Table Footer with Summary -->
+                      <div class="datagrid-footer">
+                        <div class="footer-left">
+                          <div class="selection-info">
+                            <span id="selectionCount">0</span> <%- t('common.selected') || 'selected' %>
+                          </div>
+                        </div>
+                        <div class="footer-right">
+                          <div class="pagination-info">
+                            <%- t('common.showing') || 'Showing' %> <%= orderItems.length %> <%- t('common.items') || 'items' %>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% } else { %>
+                    <!-- Enhanced Empty State -->
+                    <div class="empty-datagrid-state">
+                      <div class="empty-animation">
+                        <i class="las la-box-open"></i>
+                        <div class="empty-particles">
+                          <span class="particle"></span>
+                          <span class="particle"></span>
+                          <span class="particle"></span>
+                        </div>
+                      </div>
+                      <h4 class="empty-title"><%- t('orderDetails.noItems') || 'No items in this order' %></h4>
+                      <p class="empty-desc">
+                        <%- t('orderDetails.noItemsDesc') || 'This order does not contain any items.' %>
+                      </p>
+                      <button class="btn btn-outline-primary" onclick="window.history.back()">
+                        <i class="las la-arrow-left"></i>
+                        <%- t('orderDetails.backToOrders') || 'Back to Orders' %>
+                      </button>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+
+              <!-- Shipping Information -->
+              <% if (orderShipping && Object.keys(orderShipping).length > 0) { %>
+              <div class="content-card shipping-card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="las la-shipping-fast"></i>
+                    <%- t('orderDetails.shippingInfo') || 'Shipping Information' %>
+                  </h3>
+                  <% if (orderShipping.trackingNumber) { %>
+                  <button class="btn btn-outline-primary btn-sm" onclick="trackOrder('<%= orderShipping.trackingNumber %>')">
+                    <i class="las la-external-link-alt"></i>
+                    <%- t('orderDetails.trackOrder') || 'Track Order' %>
+                  </button>
+                  <% } %>
+                </div>
+                
+                <div class="card-body">
+                  <div class="shipping-details-grid">
+                    <div class="shipping-detail">
+                      <div class="detail-icon">
+                        <i class="las la-truck"></i>
+                      </div>
+                      <div class="detail-content">
+                        <h5><%- t('orderDetails.shippingMethod') || 'Shipping Method' %></h5>
+                        <p><%= orderShipping.method || 'Standard Shipping' %></p>
+                      </div>
+                    </div>
+                    
+                    <% if (orderShipping.trackingNumber) { %>
+                    <div class="shipping-detail">
+                      <div class="detail-icon">
+                        <i class="las la-barcode"></i>
+                      </div>
+                      <div class="detail-content">
+                        <h5><%- t('orderDetails.trackingNumber') || 'Tracking Number' %></h5>
+                        <p class="tracking-number"><%= orderShipping.trackingNumber %></p>
+                      </div>
+                    </div>
+                    <% } %>
+                    
+                    <% if (orderShipping.estimatedDelivery) { %>
+                    <div class="shipping-detail">
+                      <div class="detail-icon">
+                        <i class="las la-calendar-check"></i>
+                      </div>
+                      <div class="detail-content">
+                        <h5><%- t('orderDetails.estimatedDelivery') || 'Estimated Delivery' %></h5>
+                        <p><%= new Date(orderShipping.estimatedDelivery).toLocaleDateString('en-US', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        }) %></p>
+                      </div>
+                    </div>
+                    <% } %>
+                    
+                    <% if (orderShipping.carrier) { %>
+                    <div class="shipping-detail">
+                      <div class="detail-icon">
+                        <i class="las la-building"></i>
+                      </div>
+                      <div class="detail-content">
+                        <h5><%- t('orderDetails.carrier') || 'Carrier' %></h5>
+                        <p><%= orderShipping.carrier %></p>
+                      </div>
+                    </div>
+                    <% } %>
+                  </div>
+                  
+                  <% if (orderShipping.address) { %>
+                  <div class="shipping-address">
+                    <h5 class="address-title">
+                      <i class="las la-map-marker-alt"></i>
+                      <%- t('orderDetails.deliveryAddress') || 'Delivery Address' %>
+                    </h5>
+                    <div class="address-content">
+                      <div class="address-main">
+                        <p class="address-line"><%= orderShipping.address.street || 'N/A' %></p>
+                        <p class="address-line"><%= (orderShipping.address.city || 'N/A') %>, <%= (orderShipping.address.state || '') %> <%= (orderShipping.address.postalCode || '') %></p>
+                        <p class="address-line"><%= orderShipping.address.country || 'N/A' %></p>
+                      </div>
+                      <% if (orderShipping.address.contactPerson) { %>
+                      <div class="contact-info">
+                        <div class="contact-item">
+                          <i class="las la-user"></i>
+                          <span><%= orderShipping.address.contactPerson %></span>
+                        </div>
+                        <% if (orderShipping.address.contactPhone) { %>
+                        <div class="contact-item">
+                          <i class="las la-phone"></i>
+                          <span><%= orderShipping.address.contactPhone %></span>
+                        </div>
+                        <% } %>
+                      </div>
+                      <% } %>
+                    </div>
+                  </div>
+                  <% } %>
+                </div>
+              </div>
+              <% } %>
+            </div>
+
+            <!-- Right Column: Summary and Actions -->
+            <div class="order-sidebar-column">
+              
+              <!-- Order Summary -->
+              <div class="content-card summary-card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="las la-calculator"></i>
+                    <%- t('orderDetails.orderSummary') || 'Order Summary' %>
+                  </h3>
+                </div>
+                
+                <div class="card-body">
+                  <div class="summary-breakdown">
+                    <div class="summary-row">
+                      <span class="summary-label"><%- t('orderDetails.totalItems') || 'Total Items' %></span>
+                      <span class="summary-value"><%= safeOrder.totalQuantity || orderItems.reduce((sum, item) => sum + (item.quantity || 0), 0) %></span>
+                    </div>
+                    
+                    <% if (safeOrder.subtotal) { %>
+                    <div class="summary-row">
+                      <span class="summary-label"><%- t('orderDetails.subtotal') || 'Subtotal' %></span>
+                      <span class="summary-value">$<%= safeOrder.subtotal.toFixed(2) %></span>
+                    </div>
+                    <% } %>
+                    
+                    <% if (safeOrder.taxAmount && safeOrder.taxAmount > 0) { %>
+                    <div class="summary-row">
+                      <span class="summary-label"><%- t('orderDetails.tax') || 'Tax' %></span>
+                      <span class="summary-value">$<%= safeOrder.taxAmount.toFixed(2) %></span>
+                    </div>
+                    <% } %>
+                    
+                    <% if (safeOrder.shippingCost && safeOrder.shippingCost > 0) { %>
+                    <div class="summary-row">
+                      <span class="summary-label"><%- t('orderDetails.shippingCost') || 'Shipping' %></span>
+                      <span class="summary-value">$<%= safeOrder.shippingCost.toFixed(2) %></span>
+                    </div>
+                    <% } %>
+                    
+                    <% if (safeOrder.discountAmount && safeOrder.discountAmount > 0) { %>
+                    <div class="summary-row discount">
+                      <span class="summary-label"><%- t('orderDetails.discount') || 'Discount' %></span>
+                      <span class="summary-value">-$<%= safeOrder.discountAmount.toFixed(2) %></span>
+                    </div>
+                    <% } %>
+                    
+                    <div class="summary-divider"></div>
+                    
+                    <div class="summary-row total">
+                      <span class="summary-label"><%- t('orderDetails.orderTotal') || 'Order Total' %></span>
+                      <span class="summary-value">$<%= orderTotal.toFixed(2) %> <%= orderCurrency %></span>
+                    </div>
+                  </div>
+                  
+                  <!-- Payment Information -->
+                  <% if (orderPayment && Object.keys(orderPayment).length > 0) { %>
+                  <div class="payment-info">
+                    <h5 class="payment-title">
+                      <i class="las la-credit-card"></i>
+                      <%- t('orderDetails.paymentInfo') || 'Payment Information' %>
+                    </h5>
+                    <div class="payment-details">
+                      <div class="payment-row">
+                        <span class="payment-label"><%- t('orderDetails.paymentMethod') || 'Method' %></span>
+                        <span class="payment-value"><%= (orderPayment.method || 'N/A').replace('_', ' ').toUpperCase() %></span>
+                      </div>
+                      <div class="payment-row">
+                        <span class="payment-label"><%- t('orderDetails.paymentStatus') || 'Status' %></span>
+                        <span class="payment-status payment-<%= orderPayment.status || 'pending' %>">
+                          <%= (orderPayment.status || 'PENDING').toUpperCase() %>
+                        </span>
+                      </div>
+                      <% if (orderPayment.terms) { %>
+                      <div class="payment-row">
+                        <span class="payment-label"><%- t('orderDetails.paymentTerms') || 'Terms' %></span>
+                        <span class="payment-value"><%= orderPayment.terms.replace('_', ' ').toUpperCase() %></span>
+                      </div>
+                      <% } %>
+                    </div>
+                  </div>
+                  <% } %>
+                </div>
+              </div>
+
+              <!-- Supplier Information -->
+              <div class="content-card supplier-card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="las la-store"></i>
+                    <%- t('orderDetails.supplierInfo') || 'Supplier Information' %>
+                  </h3>
+                </div>
+                
+                <div class="card-body">
+                  <div class="supplier-profile">
+                    <div class="supplier-avatar">
+                      <% if (orderSupplier && orderSupplier.logo) { %>
+                      <img src="<%= orderSupplier.logo %>" alt="<%= orderSupplier.name %>" class="avatar-image">
+                      <% } else { %>
+                      <div class="avatar-placeholder">
+                        <i class="las la-building"></i>
+                      </div>
+                      <% } %>
+                    </div>
+                    
+                    <div class="supplier-info">
+                      <h4 class="supplier-name"><%= orderSupplier.name || 'Supplier Name' %></h4>
+                      <span class="supplier-badge verified">
+                        <i class="las la-shield-alt"></i>
+                        <%- t('orderDetails.verifiedSupplier') || 'Verified Supplier' %>
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <% if (orderSupplier && Object.keys(orderSupplier).length > 0) { %>
+                  <div class="supplier-contacts">
+                    <% if (orderSupplier.email) { %>
+                    <div class="contact-item">
+                      <i class="las la-envelope"></i>
+                      <span><%= orderSupplier.email %></span>
+                    </div>
+                    <% } %>
+                    
+                    <% if (orderSupplier.phone) { %>
+                    <div class="contact-item">
+                      <i class="las la-phone"></i>
+                      <span><%= orderSupplier.phone %></span>
+                    </div>
+                    <% } %>
+                    
+                    <% if (orderSupplier.country) { %>
+                    <div class="contact-item">
+                      <i class="las la-map-marker-alt"></i>
+                      <span><%= orderSupplier.country %></span>
+                    </div>
+                    <% } %>
+                  </div>
+                  
+                  <% if (safeOrder.actions && safeOrder.actions.includes('contact_supplier')) { %>
+                  <div class="supplier-actions">
+                    <% const supplierContactId = orderSupplier.id || ''; %>
+                    <button class="btn btn-primary w-100" onclick="contactSupplier('<%= supplierContactId %>')">
+                      <i class="las la-comments"></i>
+                      <%- t('orderDetails.contactSupplier') || 'Contact Supplier' %>
+                    </button>
+                  </div>
+                  <% } %>
+                  <% } %>
+                </div>
+              </div>
+
+              <!-- Order Actions -->
+              <div class="content-card actions-card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="las la-cog"></i>
+                    <%- t('orderDetails.orderActions') || 'Order Actions' %>
+                  </h3>
+                </div>
+                
+                <div class="card-body">
+                  <div class="action-buttons">
+                    <% 
+                    const orderId = safeOrder.id || safeOrder._id || '';
+                    const trackingNum = orderShipping.trackingNumber || '';
+                    %>
+                    
+                    <% if (safeOrder.actions && safeOrder.actions.includes('cancel')) { %>
+                    <button class="btn btn-danger action-btn" onclick="cancelOrder('<%= orderId %>')">
+                      <i class="las la-times"></i>
+                      <span><%- t('orderDetails.cancelOrder') || 'Cancel Order' %></span>
+                    </button>
+                    <% } %>
+                    
+                    <button class="btn btn-outline-primary action-btn" onclick="window.print()">
+                      <i class="las la-print"></i>
+                      <span><%- t('orderDetails.printOrder') || 'Print Order' %></span>
+                    </button>
+                    
+                    <button class="btn btn-outline-info action-btn" onclick="downloadInvoice('<%= orderId %>')">
+                      <i class="las la-download"></i>
+                      <span><%- t('orderDetails.downloadInvoice') || 'Download Invoice' %></span>
+                    </button>
+                    
+                    <% if (orderShipping && orderShipping.trackingNumber) { %>
+                    <button class="btn btn-outline-success action-btn" onclick="trackOrder('<%= trackingNum %>')">
+                      <i class="las la-shipping-fast"></i>
+                      <span><%- t('orderDetails.trackOrder') || 'Track Order' %></span>
+                    </button>
+                    <% } %>
+                    
+                    <a href="/buyer/orders" class="btn btn-outline-secondary action-btn">
+                      <i class="las la-arrow-left"></i>
+                      <span><%- t('orderDetails.backToOrders') || 'Back to Orders' %></span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Professional Alibaba-Style CSS -->
+<style>
+/* ========== BASE STYLES ========== */
+.order-details-page {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  padding: 2rem 0;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.order-details-container {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Prevent horizontal scroll globally */
+body {
+  overflow-x: hidden;
+}
+
+.container-fluid {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.col-lg-9 {
+  padding-left: 15px;
+  padding-right: 15px;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* ========== BREADCRUMB ========== */
+.order-breadcrumb {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.breadcrumb {
+  margin: 0;
+  background: none;
+  padding: 0;
+}
+
+.breadcrumb-item {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.breadcrumb-item a {
+  color: hsl(var(--main));
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.breadcrumb-item a:hover {
+  color: hsl(var(--main-d-100));
+  transform: translateX(2px);
+}
+
+.breadcrumb-item.active {
+  color: var(--bs-gray-800);
+  font-weight: 600;
+}
+
+/* ========== ORDER HEADER CARD ========== */
+.order-header-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.order-header-content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  padding: 2.5rem;
+  align-items: flex-start;
+}
+
+.order-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.order-number-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.order-label {
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.order-number {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--bs-gray-900);
+  margin: 0;
+  background: linear-gradient(135deg, hsl(var(--main)) 0%, hsl(var(--main-d-100)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.order-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.date-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(hsl(var(--main-rgb)), 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(hsl(var(--main-rgb)), 0.1);
+}
+
+.date-info i {
+  color: hsl(var(--main));
+  font-size: 1.2rem;
+  width: 20px;
+}
+
+.date-label {
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 0.85rem;
+  min-width: 80px;
+}
+
+.date-value {
+  color: var(--bs-gray-800);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.order-status-section {
+  text-align: right;
+}
+
+.status-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: flex-end;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  border: 2px solid;
+}
+
+.status-pending { 
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); 
+  color: #856404; 
+  border-color: #ffc107;
+}
+.status-confirmed { 
+  background: linear-gradient(135deg, #d1ecf1 0%, #74b9ff 100%); 
+  color: #0c5460; 
+  border-color: #17a2b8;
+}
+.status-processing { 
+  background: linear-gradient(135deg, #e2e3e5 0%, #a29bfe 100%); 
+  color: #383d41; 
+  border-color: #6c757d;
+}
+.status-manufacturing { 
+  background: linear-gradient(135deg, #f8d7da 0%, #fd79a8 100%); 
+  color: #721c24; 
+  border-color: #dc3545;
+}
+.status-ready_to_ship { 
+  background: linear-gradient(135deg, #d4edda 0%, #00b894 100%); 
+  color: #155724; 
+  border-color: #28a745;
+}
+.status-shipped { 
+  background: linear-gradient(135deg, #d1ecf1 0%, #00cec9 100%); 
+  color: #0c5460; 
+  border-color: #17a2b8;
+}
+.status-delivered { 
+  background: linear-gradient(135deg, #d4edda 0%, #00b894 100%); 
+  color: #155724; 
+  border-color: #28a745;
+}
+.status-completed { 
+  background: linear-gradient(135deg, #d1ecf1 0%, #00b894 100%); 
+  color: #0c5460; 
+  border-color: #007bff;
+}
+.status-cancelled { 
+  background: linear-gradient(135deg, #f8d7da 0%, #e17055 100%); 
+  color: #721c24; 
+  border-color: #dc3545;
+}
+
+.status-icon {
+  font-size: 1.2rem;
+}
+
+.total-amount {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(hsl(var(--main-rgb)), 0.1) 0%, rgba(hsl(var(--main-rgb)), 0.05) 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(hsl(var(--main-rgb)), 0.2);
+}
+
+.amount-label {
+  color: #6c757d;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.amount-value {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: hsl(var(--main));
+}
+
+/* ========== TIMELINE ========== */
+.order-timeline {
+  background: linear-gradient(135deg, rgba(hsl(var(--main-rgb)), 0.05) 0%, rgba(hsl(var(--main-rgb)), 0.02) 100%);
+  border-top: 1px solid rgba(hsl(var(--main-rgb)), 0.1);
+  padding: 2rem 2.5rem;
+}
+
+.timeline-container {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+}
+
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 48px;
+  right: 48px;
+  height: 3px;
+  background: linear-gradient(90deg, #e9ecef 0%, #dee2e6 100%);
+  border-radius: 2px;
+  z-index: 0;
+}
+
+.timeline-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  flex: 1;
+  max-width: 180px;
+  z-index: 2;
+}
+
+.timeline-item.completed .timeline-icon {
+  background: linear-gradient(135deg, hsl(var(--main)) 0%, hsl(var(--main-d-100)) 100%);
+  color: white;
+  box-shadow: 0 4px 16px rgba(hsl(var(--main-rgb)), 0.4);
+  border: 3px solid white;
+  transform: scale(1.1);
+  z-index: inherit;
+}
+
+.timeline-item.completed .timeline-content h4 {
+  color: hsl(var(--main));
+  font-weight: 800;
+}
+
+.timeline-item.completed .timeline-content p {
+  color: hsl(var(--main));
+  font-weight: 600;
+}
+
+/* Timeline line completion for completed items */
+.timeline-item.completed::after {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, hsl(var(--main)) 0%, hsl(var(--main-d-100)) 100%);
+  border-radius: 2px;
+  z-index: 1;
+  transform: translateX(-50%);
+}
+
+/* First completed item - line to the right */
+.timeline-item.completed:first-child::after {
+  left: 50%;
+  width: 50%;
+}
+
+/* Last completed item - line to the left */
+.timeline-item.completed:last-child::after {
+  left: 0;
+  width: 50%;
+  transform: none;
+}
+
+/* Middle completed items - full width line */
+.timeline-item.completed:not(:first-child):not(:last-child)::after {
+  left: 0;
+  width: 100%;
+  transform: none;
+}
+
+.timeline-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+  border: 3px solid white;
+}
+
+.timeline-content h4 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #6c757d;
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timeline-content p {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ========== CONTENT GRID ========== */
+.order-content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.order-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  min-width: 0; /* Allow shrinking below content size */
+  overflow: hidden;
+}
+
+.order-sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 300px; /* Minimum sidebar width */
+  max-width: 400px; /* Maximum sidebar width */
+}
+
+/* ========== CONTENT CARDS ========== */
+.content-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.card-header {
+  background: linear-gradient(135deg, rgba(hsl(var(--main-rgb)), 0.05) 0%, rgba(hsl(var(--main-rgb)), 0.02) 100%);
+  border-bottom: 2px solid rgba(hsl(var(--main-rgb)), 0.1);
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--bs-gray-800);
+}
+
+.card-title i {
+  color: hsl(var(--main));
+  font-size: 1.5rem;
+}
+
+.items-count {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.count-badge {
+  background: hsl(var(--main));
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.count-label {
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+/* Order Items Card Specific Overrides */
+.order-items-card .card-body {
+  padding: 0; /* Remove padding for table */
+  overflow: hidden;
+}
+
+.order-items-card {
+  overflow: hidden; /* Ensure card container clips content */
+}
+
+.order-items-card .mui-datagrid-container {
+  border-radius: 0; /* Remove border radius inside card */
+  border: none; /* Remove border inside card */
+}
+
+/* ========== MUI DATA GRID PROFESSIONAL STYLES ========== */
+
+/* Main Container */
+.mui-datagrid-container {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-size: 0.875rem;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Toolbar */
+.datagrid-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fafafa;
+  min-height: 56px;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.items-count-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 500;
+}
+
+.items-count-display i {
+  color: hsl(var(--main));
+  font-size: 1.1rem;
+}
+
+.table-density-selector .density-btn {
+  border: 1px solid #e0e0e0;
+  background: white;
+  color: rgba(0, 0, 0, 0.87);
+  transition: all 0.2s ease;
+  padding: 8px 12px;
+  min-width: 44px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  border-radius: 4px;
+}
+
+.table-density-selector .density-btn i {
+  font-size: 1.1rem;
+  color: inherit;
+}
+
+.table-density-selector .density-btn:hover {
+  background: rgba(hsl(var(--main-rgb)), 0.04);
+  border-color: hsl(var(--main));
+  color: hsl(var(--main));
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.view-options {
+  display: flex;
+  gap: 8px;
+}
+
+.view-options .btn {
+  border: 1px solid #e0e0e0;
+  background: white;
+  color: rgba(0, 0, 0, 0.87);
+  transition: all 0.2s ease;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  min-width: 44px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.view-options .btn i {
+  font-size: 1rem;
+  color: inherit;
+}
+
+.view-options .btn:hover {
+  background: rgba(hsl(var(--main-rgb)), 0.04);
+  border-color: hsl(var(--main));
+  color: hsl(var(--main));
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.view-options .btn:focus {
+  outline: 2px solid rgba(hsl(var(--main-rgb)), 0.2);
+  outline-offset: 2px;
+}
+
+/* Button Text Styling */
+.btn-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+/* Action Button Text Styling */
+.btn-text-small {
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 3px;
+  white-space: nowrap;
+}
+
+/* Hide text on smaller screens to keep buttons compact */
+@media (max-width: 1200px) {
+  .btn-text {
+    display: none;
+  }
+}
+
+@media (max-width: 992px) {
+  .btn-text-small {
+    display: none;
+  }
+}
+
+/* Main Data Grid Wrapper */
+.mui-datagrid-wrapper {
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 0 0 4px 4px;
+}
+
+.datagrid-scroll-container {
+  overflow-x: auto;
+  overflow-y: visible;
+  position: relative;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  background: #ffffff;
+}
+
+.datagrid-scroll-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Table */
+.mui-datagrid-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  min-width: 1000px; /* Reduced from 1200px */
+  margin: 0;
+  background: white;
+}
+
+/* Header */
+.datagrid-header {
+  background: #fafafa;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-row {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.header-cell {
+  padding: 0;
+  border: none;
+  background: #fafafa;
+  position: relative;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+  border-right: 1px solid rgba(224, 224, 224, 0.5);
+}
+
+.header-cell:last-child {
+  border-right: none;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 16px 12px;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  height: 56px;
+}
+
+.header-cell.sortable .header-content:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.header-icon {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.header-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.87);
+  white-space: nowrap;
+  flex: 1;
+}
+
+.sort-icon {
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 0.8rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.header-cell.sortable:hover .sort-icon {
+  opacity: 1;
+}
+
+.header-cell.sorted .sort-icon {
+  opacity: 1;
+  color: hsl(var(--main));
+}
+
+/* Column Widths - MUI Style - Optimized */
+.header-checkbox { width: 40px; min-width: 40px; }
+.header-product { width: 240px; min-width: 200px; }
+.header-sku { width: 100px; min-width: 80px; }
+.header-specifications { width: 180px; min-width: 150px; }
+.header-quantity { width: 125px; min-width: 90px; }
+.header-price { width: 150px; min-width: 120px; }
+.header-total { width: 150px; min-width: 120px; }
+.header-actions { width: 100px; min-width: 90px; }
+
+/* Body */
+.datagrid-body {
+  background: white;
+}
+
+.data-row {
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.2s ease;
+}
+
+.data-row:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.data-row:last-child {
+  border-bottom: none;
+}
+
+.data-cell {
+  padding: 12px;
+  border: none;
+  border-right: 1px solid rgba(224, 224, 224, 0.3);
+  vertical-align: middle;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.data-cell:last-child {
+  border-right: none;
+}
+
+/* Checkbox Column */
+.cell-checkbox {
+  text-align: center;
+  padding: 12px 16px;
+}
+
+.row-checkbox, #selectAllItems {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #d0d0d0;
+  border-radius: 3px;
+  background: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  margin: 0;
+}
+
+.row-checkbox:hover, #selectAllItems:hover {
+  border-color: hsl(var(--main));
+  background: rgba(hsl(var(--main-rgb)), 0.04);
+}
+
+.row-checkbox:checked, #selectAllItems:checked {
+  background: hsl(var(--main));
+  border-color: hsl(var(--main));
+}
+
+.row-checkbox:checked::after, #selectAllItems:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.row-checkbox:focus, #selectAllItems:focus {
+  outline: 2px solid rgba(hsl(var(--main-rgb)), 0.2);
+  outline-offset: 2px;
+}
+
+/* Product Column */
+.product-cell-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.product-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.product-title {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-category {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.75rem;
+}
+
+.product-category i {
+  font-size: 0.7rem;
+}
+
+/* SKU Column */
+.sku-badge {
+  display: inline-block;
+}
+
+.sku-code {
+  background: #f5f5f5;
+  color: rgba(0, 0, 0, 0.8);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  border: 1px solid #e0e0e0;
+}
+
+/* Specifications Column */
+.specs-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spec-chip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+}
+
+.spec-key {
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 500;
+  margin-right: 8px;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spec-value {
+  color: rgba(0, 0, 0, 0.87);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.spec-more-btn {
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  color: hsl(var(--main));
+  text-decoration: none;
+  margin-top: 2px;
+}
+
+.spec-more-btn:hover {
+  text-decoration: underline;
+  color: hsl(var(--main-d-100));
+}
+
+/* Quantity Column */
+.quantity-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: rgba(hsl(var(--main-rgb)), 0.1);
+  border: 1px solid rgba(hsl(var(--main-rgb)), 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.quantity-value {
+  font-weight: 700;
+  font-size: 1rem;
+  color: hsl(var(--main));
+  line-height: 1;
+}
+
+.quantity-unit {
+  font-size: 0.7rem;
+  color: rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Price Columns */
+.price-chip,
+.total-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.total-chip.highlighted {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.price-symbol,
+.total-symbol {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.price-value,
+.total-value {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.total-chip.highlighted .total-value {
+  color: #4caf50;
+  font-weight: 700;
+}
+
+/* Actions Column */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.action-buttons .btn {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  color: rgba(0, 0, 0, 0.87);
+  transition: all 0.2s ease;
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+}
+
+.action-buttons .btn i {
+  font-size: 1rem;
+  color: inherit;
+}
+
+
+.action-buttons .btn:focus {
+  outline: 2px solid rgba(hsl(var(--main-rgb)), 0.2);
+  outline-offset: 2px;
+}
+
+
+
+.action-buttons .btn-outline-warning {
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.action-buttons .btn-outline-warning:hover {
+  background: #ffc107;
+  color: #212529;
+  border-color: #ffc107;
+}
+
+/* Professional Horizontal Scrollbar */
+.datagrid-scrollbar-container {
+  position: relative;
+  height: 12px;
+  background: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
+}
+
+.custom-scrollbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.scrollbar-track {
+  position: absolute;
+  top: 2px;
+  left: 16px;
+  right: 16px;
+  bottom: 2px;
+  background: #e0e0e0;
+  border-radius: 4px;
+}
+
+.scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(135deg, hsl(var(--main)) 0%, hsl(var(--main-d-100)) 100%);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.scrollbar-thumb:hover {
+  background: linear-gradient(135deg, hsl(var(--main-d-100)) 0%, hsl(var(--main-d-200)) 100%);
+  box-shadow: 0 2px 8px rgba(hsl(var(--main-rgb)), 0.25);
+  transform: scaleY(1.1);
+}
+
+
+.scrollbar-thumb.dragging {
+  background: hsl(var(--main-d-200));
+  box-shadow: 0 4px 12px rgba(hsl(var(--main-rgb)), 0.4);
+}
+
+/* Data Grid Footer */
+.datagrid-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-top: 1px solid #e0e0e0;
+  background: #fafafa;
+  min-height: 48px;
+  font-size: 0.875rem;
+}
+
+.footer-left,
+.footer-center,
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.footer-center {
+  flex: 1;
+  justify-content: center;
+}
+
+.selection-info {
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 500;
+}
+
+.summary-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 8px 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.stat-item i {
+  color: hsl(var(--main));
+  font-size: 1rem;
+}
+
+.stat-value {
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.87);
+  font-size: 1rem;
+}
+
+.stat-item.total .stat-value {
+  color: hsl(var(--main));
+  font-size: 1.1rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 500;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 24px;
+  background: #e0e0e0;
+}
+
+.pagination-info {
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* Enhanced Empty State */
+.empty-datagrid-state {
+  text-align: center;
+  padding: 64px 32px;
+  background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  margin: 24px;
+}
+
+.empty-animation {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 24px;
+}
+
+.empty-animation i {
+  font-size: 4rem;
+  color: rgba(0, 0, 0, 0.3);
+  animation: emptyPulse 2s infinite;
+}
+
+.empty-particles {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: hsl(var(--main));
+  border-radius: 50%;
+  animation: particleFloat 3s infinite;
+}
+
+.particle:nth-child(1) {
+  top: -20px;
+  left: -10px;
+  animation-delay: 0s;
+}
+
+.particle:nth-child(2) {
+  top: -15px;
+  right: -8px;
+  animation-delay: 1s;
+}
+
+.particle:nth-child(3) {
+  bottom: -18px;
+  left: 5px;
+  animation-delay: 2s;
+}
+
+.empty-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0 0 16px 0;
+}
+
+.empty-desc {
+  font-size: 1rem;
+  color: rgba(0, 0, 0, 0.5);
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+/* Animations */
+@keyframes emptyPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+@keyframes particleFloat {
+  0%, 100% { opacity: 0; transform: translateY(0); }
+  25% { opacity: 1; transform: translateY(-10px); }
+  75% { opacity: 1; transform: translateY(-5px); }
+}
+
+.order-item-row {
+  border-bottom: 1px solid #f1f3f4;
+  transition: all 0.3s ease;
+}
+
+.order-item-row:hover {
+  background: rgba(hsl(var(--main-rgb)), 0.02);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.order-item-row:last-child {
+  border-bottom: none;
+}
+
+.order-item-row td {
+  padding: 1rem 0.75rem;
+  vertical-align: top;
+  border: none;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Product Info Cell */
+.product-info-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.product-image-wrapper {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-image-wrapper:hover .product-thumbnail {
+  transform: scale(1.05);
+}
+
+.product-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.product-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--bs-gray-800);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+  word-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.product-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.category-tag,
+.sku-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.category-tag {
+  background: rgba(52, 152, 219, 0.1);
+  color: #2980b9;
+  border-color: rgba(52, 152, 219, 0.2);
+}
+
+.sku-tag {
+  background: rgba(155, 89, 182, 0.1);
+  color: #8e44ad;
+  border-color: rgba(155, 89, 182, 0.2);
+}
+
+.custom-note {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Specifications Cell */
+.specifications-cell {
+  max-width: 180px;
+  overflow: hidden;
+}
+
+.specs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 0.5rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  font-size: 0.75rem;
+}
+
+.spec-name {
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 0.7rem;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 0.5rem;
+}
+
+.spec-value {
+  color: var(--bs-gray-800);
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-align: right;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.custom-requirements-note .alert {
+  margin: 0;
+  padding: 0.5rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.alert-sm {
+  padding: 0.4rem 0.6rem;
+}
+
+/* Quantity Cell */
+.quantity-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.quantity-number {
+  font-size: 1rem;
+  font-weight: 900;
+  color: hsl(var(--main));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(hsl(var(--main-rgb)), 0.1);
+  border-radius: 50%;
+  border: 2px solid rgba(hsl(var(--main-rgb)), 0.2);
+}
+
+.quantity-unit {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Price Cell */
+.price-display,
+.total-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.price-amount,
+.total-amount {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--bs-gray-800);
+}
+
+.total-amount {
+  font-size: 1rem;
+  font-weight: 900;
+  color: hsl(var(--main));
+}
+
+.price-currency,
+.total-currency {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Table Footer */
+.order-items-table tfoot {
+  background: linear-gradient(135deg, rgba(hsl(var(--main-rgb)), 0.05) 0%, rgba(hsl(var(--main-rgb)), 0.02) 100%);
+}
+
+.summary-row td {
+  padding: 1.5rem 1rem;
+  border-top: 2px solid rgba(hsl(var(--main-rgb)), 0.2);
+  font-size: 1rem;
+}
+
+.summary-label-cell {
+  color: var(--bs-gray-700);
+  font-weight: 700;
+}
+
+.total-summary {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: hsl(var(--main));
+}
+
+/* Empty State */
+.empty-items-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+  border: 2px dashed #dee2e6;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #6c757d;
+  margin-bottom: 1.5rem;
+}
+
+.empty-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--bs-gray-600);
+  margin: 0 0 1rem 0;
+}
+
+.empty-desc {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* ========== SHIPPING DETAILS ========== */
+.shipping-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.shipping-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.shipping-detail:hover {
+  border-color: hsl(var(--main));
+  box-shadow: 0 4px 16px rgba(hsl(var(--main-rgb)), 0.1);
+  transform: translateY(-2px);
+}
+
+.detail-icon {
+  background: hsl(var(--main));
+  color: white;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(hsl(var(--main-rgb)), 0.3);
+}
+
+.detail-content h5 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-content p {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--bs-gray-800);
+  line-height: 1.4;
+}
+
+.tracking-number {
+  font-family: 'Courier New', monospace;
+  background: rgba(hsl(var(--main-rgb)), 0.1);
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(hsl(var(--main-rgb)), 0.2);
+}
+
+.shipping-address {
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+  border: 1px solid #dee2e6;
+}
+
+.address-title {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.address-title i {
+  color: #0389ff;
+  font-size: 1.3rem;
+}
+
+.address-content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.address-main {
+  flex: 1;
+}
+
+.address-line {
+  margin: 0 0 0.5rem 0;
+  color: #ffffff;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(hsl(var(--main-rgb)), 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(hsl(var(--main-rgb)), 0.1);
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+}
+
+.contact-item i {
+  color: #0389ff;
+  width: 18px;
+  font-size: 1rem;
+}
+
+.contact-item span {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+/* ========== SUMMARY CARD ========== */
+.summary-breakdown {
+  margin-bottom: 2rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.summary-row.discount .summary-value {
+  color: #28a745;
+}
+
+.summary-row.total {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid rgba(hsl(var(--main-rgb)), 0.2);
+  background: rgba(hsl(var(--main-rgb)), 0.05);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.summary-label {
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.summary-value {
+  color: var(--bs-gray-800);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.summary-row.total .summary-value {
+  color: hsl(var(--main));
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+.summary-divider {
+  height: 2px;
+  background: linear-gradient(135deg, rgba(hsl(var(--main-rgb)), 0.1) 0%, rgba(hsl(var(--main-rgb)), 0.05) 100%);
+  border-radius: 1px;
+  margin: 1rem 0;
+}
+
+/* Payment Information */
+.payment-info {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
+}
+
+.payment-title {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--bs-gray-700);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.payment-title i {
+  color: hsl(var(--main));
+}
+
+.payment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.payment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.payment-label {
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.payment-value {
+  color: var(--bs-gray-800);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.payment-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.payment-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.payment-partial {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.payment-paid {
+  background: #d4edda;
+  color: #155724;
+}
+
+.payment-overdue {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* ========== SUPPLIER CARD ========== */
+.supplier-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.supplier-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(hsl(var(--main-rgb)), 0.1) 0%, rgba(hsl(var(--main-rgb)), 0.05) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--main));
+  font-size: 1.5rem;
+}
+
+.supplier-info {
+  flex: 1;
+}
+
+.supplier-name {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--bs-gray-800);
+}
+
+.supplier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.supplier-badge.verified {
+  background: #d4edda;
+  color: #155724;
+}
+
+.supplier-contacts {
+  margin-bottom: 1.5rem;
+}
+
+.supplier-actions button {
+  width: 100%;
+}
+
+
+
+
+
+.action-btn i {
+  font-size: 1.2rem;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.action-btn span {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: inherit;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+
+/* Button Variants */
+.btn-danger {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border-color: #e74c3c;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+  border-color: #c0392b;
+  color: white;
+}
+
+
+.btn-outline-info {
+  background: transparent;
+  color: #17a2b8;
+  border-color: #17a2b8;
+}
+
+.btn-outline-info:hover {
+  background: #17a2b8;
+  color: white;
+  border-color: #17a2b8;
+}
+
+.btn-outline-success {
+  background: transparent;
+  color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-outline-success:hover {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.btn-outline-secondary {
+  background: transparent;
+  color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+  background: #6c757d;
+  color: white;
+  border-color: #6c757d;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, hsl(var(--main)) 0%, hsl(var(--main-d-100)) 100%);
+  color: white;
+  border-color: hsl(var(--main));
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, hsl(var(--main-d-100)) 0%, hsl(var(--main-d-200)) 100%);
+  border-color: hsl(var(--main-d-100));
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(hsl(var(--main-rgb)), 0.3);
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+
+/* Extra Large screens: Fine-tune layout */
+@media (max-width: 1600px) {
+  .order-content-grid {
+    grid-template-columns: 2.2fr 1fr;
+    gap: 2rem;
+  }
+  
+  .mui-datagrid-table {
+    min-width: 1000px;
+  }
+}
+
+/* Large screens: Optimize grid ratio */
+@media (max-width: 1400px) {
+  .order-content-grid {
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+  }
+  
+  .order-sidebar-column {
+    min-width: 280px;
+    max-width: 350px;
+  }
+  
+  .mui-datagrid-table {
+    min-width: 900px;
+  }
+}
+
+/* Medium screens: Adjust table sizing */
+@media (max-width: 1200px) {
+  .order-content-grid {
+    grid-template-columns: 1.5fr 1fr;
+    gap: 1rem;
+  }
+  
+  .mui-datagrid-table {
+    min-width: 800px; /* Further reduced */
+  }
+  
+  /* Adjust column widths for medium screens */
+  .header-product { width: 200px; min-width: 180px; }
+  .header-specifications { width: 150px; min-width: 120px; }
+  .header-sku { width: 80px; min-width: 70px; }
+}
+
+/* Small screens: Stack layout */
+@media (max-width: 1000px) {
+  .order-content-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .order-sidebar-column {
+    order: -1;
+    min-width: auto;
+    max-width: none;
+  }
+  
+  .mui-datagrid-table {
+    min-width: 700px; /* Compact for mobile */
+  }
+}
+
+@media (max-width: 1200px) {
+  /* Tablet Portrait: Adjust table for smaller screens */
+  .order-items-table {
+    min-width: 700px;
+  }
+  
+  .product-column { 
+    width: 40%; 
+    min-width: 220px;
+  }
+  .specifications-column { 
+    width: 20%; 
+    min-width: 150px;
+  }
+  .quantity-column { 
+    width: 13%; 
+    min-width: 70px;
+  }
+  .price-column { 
+    width: 13%; 
+    min-width: 85px;
+  }
+  .total-column { 
+    width: 14%; 
+    min-width: 85px;
+  }
+  
+  .order-items-table thead th {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.8rem;
+  }
+  
+  .order-item-row td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .product-image-wrapper {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .product-name {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .order-header-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .order-status-section {
+    text-align: left;
+  }
+  
+  .status-container {
+    align-items: flex-start;
+  }
+  
+  .timeline-container {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .timeline-item {
+    max-width: calc(50% - 0.5rem);
+  }
+  
+  .shipping-details-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .address-content {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  /* Table adjustments for tablet */
+  .order-items-table {
+    min-width: 600px;
+  }
+  
+  .order-items-table thead th {
+    padding: 0.6rem 0.4rem;
+    font-size: 0.75rem;
+  }
+  
+  .order-item-row td {
+    padding: 0.6rem 0.4rem;
+  }
+  
+  .product-info-container {
+    gap: 0.75rem;
+  }
+  
+  .product-image-wrapper {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .product-name {
+    font-size: 0.8rem;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+  
+  .category-tag,
+  .sku-tag {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+  }
+  
+  .spec-row {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.65rem;
+  }
+  
+  .quantity-number {
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+  }
+  
+  .price-amount,
+  .total-amount {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .order-details-page {
+    padding: 1rem 0;
+  }
+  
+  .order-header-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .order-header-content {
+    padding: 1.5rem;
+  }
+  
+  .order-timeline {
+    padding: 1.5rem;
+  }
+  
+  .timeline-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .timeline-container::before {
+    display: none;
+  }
+  
+  .timeline-item {
+    max-width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+  
+  .order-number {
+    font-size: 2rem;
+  }
+  
+  .amount-value {
+    font-size: 1.5rem;
+  }
+  
+  .breadcrumb {
+    flex-wrap: wrap;
+  }
+  
+  .breadcrumb-item {
+    font-size: 0.85rem;
+  }
+  
+  /* Mobile Table Responsive Design */
+  .order-items-table-container {
+    border-radius: 12px;
+  }
+  
+  .order-items-table thead {
+    display: none;
+  }
+  
+  .order-items-table,
+  .order-items-table tbody,
+  .order-items-table tr,
+  .order-items-table td {
+    display: block;
+    width: 100%;
+  }
+  
+  .order-item-row {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .order-item-row:hover {
+    transform: none;
+  }
+  
+  .order-item-row td {
+    padding: 0.75rem 0;
+    border: none;
+    position: relative;
+  }
+  
+  .order-item-row td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: hsl(var(--main));
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 80px;
+    display: block;
+  }
+  
+  .product-info-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  
+  .product-image-wrapper {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .product-details {
+    text-align: center;
+  }
+  
+  .product-meta {
+    justify-content: center;
+  }
+  
+  .specifications-cell,
+  .quantity-cell,
+  .price-cell,
+  .total-cell {
+    text-align: right;
+    padding-left: 90px;
+    padding-top: 2rem;
+    margin-top: 0.5rem;
+  }
+  
+  .specs-list {
+    gap: 0.25rem;
+  }
+  
+  .spec-row {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  
+  .quantity-display,
+  .price-display,
+  .total-display {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+  
+  .quantity-number {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+  
+  .price-amount,
+  .total-amount {
+    font-size: 1rem;
+  }
+  
+  .order-items-table tfoot {
+    display: block;
+    margin-top: 1rem;
+  }
+  
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(hsl(var(--main-rgb)), 0.05);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 2px solid rgba(hsl(var(--main-rgb)), 0.1);
+  }
+  
+  .summary-row td {
+    display: inline;
+    padding: 0;
+    border: none;
+  }
+}
+
+/* ========== DARK MODE SUPPORT ========== */
+[data-theme="light"] {
+  .order-details-page {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  }
+  
+  /* Light Mode Table Enhancements */
+  .mui-datagrid-container {
+    border-color: #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .datagrid-toolbar {
+    background: #fafafa;
+    border-color: #e0e0e0;
+  }
+  
+  .items-count-display {
+    color: rgba(0, 0, 0, 0.7);
+  }
+  
+  .items-count-display i {
+    color: hsl(var(--main));
+  }
+  
+  .table-density-selector .density-btn,
+  .view-options .btn {
+    background: white;
+    border-color: #e0e0e0;
+    color: rgba(0, 0, 0, 0.8);
+  }
+  
+  .table-density-selector .density-btn:hover,
+  .view-options .btn:hover {
+    background: rgba(hsl(var(--main-rgb)), 0.04);
+    border-color: hsl(var(--main));
+    color: hsl(var(--main));
+  }
+  
+  .mui-datagrid-wrapper {
+    background: white;
+  }
+  
+  .datagrid-scroll-container {
+    background: white;
+  }
+  
+  .mui-datagrid-table {
+    background: white;
+  }
+  
+  .datagrid-header {
+    background: #fafafa;
+    border-color: #e0e0e0;
+  }
+  
+  .header-cell {
+    border-color: #e0e0e0;
+  }
+  
+  .header-content {
+    color: rgba(0, 0, 0, 0.87);
+  }
+  
+  .header-cell.sortable .header-content:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+  
+  .header-icon {
+    color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .header-title {
+    color: rgba(0, 0, 0, 0.87);
+  }
+  
+  .sort-icon {
+    color: rgba(0, 0, 0, 0.4);
+  }
+  
+  .header-cell.sorted .sort-icon {
+    color: hsl(var(--main));
+  }
+  
+  .data-row {
+    background: white;
+    border-color: #e0e0e0;
+  }
+  
+  .data-row:hover {
+     border: 1px solid #e0e0e0;
+  }
+  
+  .data-cell {
+    border-color: #e0e0e0;
+    color: rgba(0, 0, 0, 0.87);
+  }
+  
+  .product-title {
+    color: rgba(0, 0, 0, 0.87);
+  }
+  
+  .product-category {
+    color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .product-category i {
+    color: hsl(var(--main));
+  }
+  
+  .sku-code {
+    background: #f5f5f5;
+    color: rgba(0, 0, 0, 0.8);
+    border-color: #e0e0e0;
+  }
+  
+  .spec-chip {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+  }
+  
+  .spec-key {
+    color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .spec-value {
+    color: rgba(0, 0, 0, 0.87);
+  }
+  
+  .spec-more-btn {
+    color: hsl(var(--main));
+  }
+  
+  .spec-more-btn:hover {
+    color: hsl(var(--main-d-100));
+    background: rgba(hsl(var(--main-rgb)), 0.04);
+  }
+  
+  .quantity-chip {
+    background: rgba(hsl(var(--main-rgb)), 0.1);
+    border-color: rgba(hsl(var(--main-rgb)), 0.2);
+  }
+  
+  .quantity-value {
+    color: hsl(var(--main));
+  }
+  
+  .quantity-unit {
+    color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .price-chip,
+  .total-chip {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+  }
+  
+  .total-chip.highlighted {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: rgba(76, 175, 80, 0.3);
+  }
+  
+  .price-symbol,
+  .total-symbol {
+    color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .price-value,
+  .total-value {
+    color: rgba(0, 0, 0, 0.87);
+  }
+  
+  .total-chip.highlighted .total-value {
+    color: #4caf50;
+  }
+  
+
+  
+
+  
+ 
+  
+
+  
+  .action-buttons .btn-outline-warning {
+    border-color: #ffc107;
+    color: #856404;
+  }
+  
+  .action-buttons .btn-outline-warning:hover {
+    background: #ffc107;
+    color: #212529;
+  }
+  
+  .datagrid-footer {
+    background: #fafafa;
+    border-color: #e0e0e0;
+    color: rgba(0, 0, 0, 0.7);
+  }
+  
+  .summary-stats {
+    background: white;
+    border-color: #e0e0e0;
+  }
+  
+  .stat-item {
+    color: rgba(0, 0, 0, 0.7);
+  }
+  
+  .stat-item i {
+    color: hsl(var(--main));
+  }
+  
+  .stat-value {
+    color: rgba(0, 0, 0, 0.87);
+  }
+  
+  .stat-item.total .stat-value {
+    color: hsl(var(--main));
+  }
+  
+  .stat-label {
+    color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .stat-divider {
+    background: #e0e0e0;
+  }
+  
+  .pagination-info {
+    color: rgba(0, 0, 0, 0.7);
+  }
+
+  .order-breadcrumb,
+  .order-header-card,
+  .content-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-color: #16213e;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  .card-header,
+  .order-timeline {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.1) 0%, rgba(96, 165, 250, 0.05) 100%);
+    border-color: rgba(96, 165, 250, 0.2);
+  }
+
+  .order-number,
+  .card-title,
+  .item-name,
+  .supplier-name,
+  .amount-value {
+    color: #ffffff;
+  }
+
+  .breadcrumb-item a,
+  .price-value,
+  .summary-row.total .summary-value {
+    color: #60a5fa;
+  }
+
+  .order-label,
+  .date-label,
+  .summary-label,
+  .payment-label,
+  .spec-name,
+  .price-label {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .date-value,
+  .summary-value,
+  .payment-value,
+  .spec-value,
+  .detail-content p {
+    color: #ffffff;
+  }
+
+  .order-item,
+  .shipping-detail,
+  .item-specifications,
+  .custom-requirements,
+  .pricing-breakdown,
+  .shipping-address,
+  .payment-info {
+    background: linear-gradient(135deg, #16213e 0%, #0f1419 100%);
+    border-color: #0f1419;
+  }
+  
+  /* Dark Mode Timeline Enhancements */
+  .order-timeline {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.08) 0%, rgba(96, 165, 250, 0.04) 100%);
+    border-color: rgba(96, 165, 250, 0.2);
+  }
+  
+  .timeline-container::before {
+    background: linear-gradient(90deg, rgba(96, 165, 250, 0.3) 0%, rgba(96, 165, 250, 0.2) 100%);
+  }
+  
+  .timeline-item.completed::after {
+    background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%);
+    box-shadow: 0 2px 8px rgba(96, 165, 250, 0.3);
+  }
+  
+  .timeline-icon {
+    background: #16213e;
+    border-color: #1a1a2e;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .timeline-item.completed .timeline-icon {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    border-color: #60a5fa;
+    color: white;
+    box-shadow: 0 4px 16px rgba(96, 165, 250, 0.4);
+  }
+  
+  .timeline-content h4 {
+    color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .timeline-content p {
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .timeline-item.completed .timeline-content h4 {
+    color: #60a5fa;
+  }
+  
+  .timeline-item.completed .timeline-content p {
+    color: #93c5fd;
+  }
+
+  .spec-item {
+    background: #1a1a2e;
+    border-color: #16213e;
+  }
+
+  .contact-info,
+  .date-info {
+    background: rgba(96, 165, 250, 0.05);
+    border-color: rgba(96, 165, 250, 0.1);
+  }
+  
+
+
+  
+  .btn-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border-color: #dc2626;
+    color: white;
+  }
+  
+  .btn-danger:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    border-color: #b91c1c;
+    color: white;
+  }
+
+  
+  
+  .btn-outline-info {
+    border-color: #06b6d4;
+    color: #06b6d4;
+  }
+  
+  .btn-outline-info:hover {
+    background: #06b6d4;
+    color: #1a1a2e;
+  }
+  
+  .btn-outline-success {
+    border-color: #10b981;
+    color: #10b981;
+  }
+  
+  .btn-outline-success:hover {
+    background: #10b981;
+    color: #1a1a2e;
+  }
+  
+  .btn-outline-secondary {
+    border-color: #6b7280;
+    color: #6b7280;
+  }
+  
+  .btn-outline-secondary:hover {
+    background: #6b7280;
+    color: #1a1a2e;
+  }
+  
+  /* ========== DARK MODE MUI DATA GRID STYLES ========== */
+  
+  /* Main Container */
+  .mui-datagrid-container {
+    background: #1a1a2e;
+    border-color: rgba(96, 165, 250, 0.2);
+  }
+  
+  /* Toolbar Dark Mode */
+  .datagrid-toolbar {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.1) 0%, rgba(96, 165, 250, 0.05) 100%);
+    border-color: rgba(96, 165, 250, 0.2);
+  }
+  
+  .items-count-display {
+    color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .items-count-display i {
+    color: #60a5fa;
+  }
+  
+  /* Dark Mode Buttons */
+  .table-density-selector .density-btn,
+  .view-options .btn {
+    background: #16213e;
+    border-color: rgba(96, 165, 250, 0.3);
+    color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .table-density-selector .density-btn:hover,
+  .view-options .btn:hover {
+    background: rgba(96, 165, 250, 0.15);
+    border-color: #60a5fa;
+    color: #60a5fa;
+  }
+  
+  /* Dark Mode Button Text */
+  .btn-text,
+  .btn-text-small {
+    color: inherit;
+  }
+  
+  /* Data Grid Wrapper */
+  .mui-datagrid-wrapper {
+    background: #1a1a2e;
+  }
+  
+  .datagrid-scroll-container {
+    background: #1a1a2e;
+  }
+  
+  /* Table Dark Mode */
+  .mui-datagrid-table {
+    background: #1a1a2e;
+  }
+  
+  /* Header Dark Mode */
+  .datagrid-header {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.12) 0%, rgba(96, 165, 250, 0.06) 100%);
+    border-bottom: 2px solid rgba(96, 165, 250, 0.2);
+  }
+  
+  .header-cell {
+    background: transparent;
+    border-color: rgba(96, 165, 250, 0.25);
+  }
+  
+  .header-content {
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 600;
+  }
+  
+  .header-cell.sortable .header-content:hover {
+    background: rgba(96, 165, 250, 0.15);
+    border-radius: 4px;
+  }
+  
+  .header-icon {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+  }
+  
+  .header-title {
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .sort-icon {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+  }
+  
+  .header-cell.sorted .sort-icon {
+    color: #60a5fa;
+    opacity: 1;
+  }
+  
+  .header-cell.sortable:hover .sort-icon {
+    opacity: 1;
+    color: rgba(255, 255, 255, 0.8);
+  }
+  
+  /* Body Dark Mode */
+  .data-row {
+    border-color: rgba(96, 165, 250, 0.1);
+    background: #1a1a2e;
+  }
+  
+
+  
+  .data-cell {
+    border-color: rgba(96, 165, 250, 0.1);
+    color: rgba(255, 255, 255, 0.95);
+    background: transparent;
+  }
+  
+  /* Checkbox Dark Mode */
+  .row-checkbox, #selectAllItems {
+    border-color: rgba(96, 165, 250, 0.5);
+    background: #16213e;
+  }
+  
+  .row-checkbox:hover, #selectAllItems:hover {
+    border-color: #60a5fa;
+    background: rgba(96, 165, 250, 0.1);
+  }
+  
+  .row-checkbox:checked, #selectAllItems:checked {
+    background: #60a5fa;
+    border-color: #60a5fa;
+  }
+  
+  /* Product Column Dark Mode */
+  .product-avatar {
+    background: #16213e;
+    border-color: rgba(96, 165, 250, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .product-title {
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .product-category {
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+  }
+  
+  .product-category i {
+    color: #60a5fa;
+    opacity: 0.8;
+  }
+  
+  /* SKU Dark Mode */
+  .sku-code {
+    background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(96, 165, 250, 0.4);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    font-weight: 600;
+  }
+  
+  /* Specifications Dark Mode */
+  .spec-chip {
+    background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+    border-color: rgba(96, 165, 250, 0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+  
+  .spec-key {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+  }
+  
+  .spec-value {
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 700;
+  }
+  
+  .spec-more-btn {
+    color: #60a5fa;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+  
+  .spec-more-btn:hover {
+    color: #93c5fd;
+    background: rgba(96, 165, 250, 0.1);
+    text-decoration: none;
+  }
+  
+  /* Quantity Dark Mode */
+  .quantity-chip {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(96, 165, 250, 0.08) 100%);
+    border-color: rgba(96, 165, 250, 0.4);
+    box-shadow: 0 2px 6px rgba(96, 165, 250, 0.2);
+  }
+  
+  .quantity-value {
+    color: #60a5fa;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .quantity-unit {
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 600;
+  }
+  
+  /* Price Columns Dark Mode */
+  .price-chip,
+  .total-chip {
+    background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+    border-color: rgba(96, 165, 250, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .total-chip.highlighted {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%);
+    border-color: rgba(34, 197, 94, 0.4);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+  }
+  
+  .price-symbol,
+  .total-symbol {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+  }
+  
+  .price-value,
+  .total-value {
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 700;
+  }
+  
+  .total-chip.highlighted .total-value {
+    color: #22c55e;
+    font-weight: 800;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  
+  
+  
+  
+  .action-buttons .btn-outline-primary:hover {
+    background: #60a5fa;
+    color: #1a1a2e;
+    border-color: #60a5fa;
+  }
+  
+  .action-buttons .btn-outline-warning {
+    border-color: #f59e0b;
+    color: #f59e0b;
+  }
+  
+  .action-buttons .btn-outline-warning:hover {
+    background: #f59e0b;
+    color: #1a1a2e;
+    border-color: #f59e0b;
+  }
+  
+  .action-buttons .btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Scrollbar Dark Mode */
+  .datagrid-scrollbar-container {
+    background: #16213e;
+    border-color: rgba(96, 165, 250, 0.2);
+  }
+  
+  .scrollbar-track {
+    background: rgba(96, 165, 250, 0.2);
+  }
+  
+  .scrollbar-thumb {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  }
+  
+  .scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+  }
+  
+  .scrollbar-thumb.dragging {
+    background: #3b82f6;
+  }
+  
+  /* Footer Dark Mode */
+  .datagrid-footer {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.12) 0%, rgba(96, 165, 250, 0.06) 100%);
+    border-color: rgba(96, 165, 250, 0.25);
+    color: rgba(255, 255, 255, 0.9);
+    border-top: 2px solid rgba(96, 165, 250, 0.2);
+  }
+  
+  .selection-info {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+  }
+  
+  .summary-stats {
+    background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+    border-color: rgba(96, 165, 250, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .stat-item {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+  }
+  
+  .stat-item i {
+    color: #60a5fa;
+    font-size: 1.1rem;
+  }
+  
+  .stat-value {
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .stat-item.total .stat-value {
+    color: #60a5fa;
+    font-weight: 800;
+    font-size: 1.1rem;
+  }
+  
+  .stat-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    font-size: 0.8rem;
+  }
+  
+  .stat-divider {
+    background: rgba(96, 165, 250, 0.3);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  
+  .pagination-info {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 600;
+  }
+  
+  /* Empty State Dark Mode */
+  .empty-datagrid-state {
+    background: linear-gradient(135deg, #16213e 0%, #0f1419 100%);
+    border-color: rgba(96, 165, 250, 0.3);
+  }
+  
+  .empty-animation i {
+    color: rgba(255, 255, 255, 0.3);
+  }
+  
+  .particle {
+    background: #60a5fa;
+  }
+  
+  .empty-title {
+    color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .empty-desc {
+    color: rgba(255, 255, 255, 0.6);
+  }
+}
+
+/* ========== PRINT STYLES ========== */
+@media print {
+  .order-details-page {
+    background: white;
+    padding: 0;
+  }
+  
+  .order-breadcrumb,
+  .action-buttons,
+  .supplier-actions {
+    display: none;
+  }
+  
+  .content-card {
+    box-shadow: none;
+    border: 1px solid #dee2e6;
+    margin-bottom: 1rem;
+    break-inside: avoid;
+  }
+  
+  .order-content-grid {
+    display: block;
+  }
+  
+  .order-sidebar-column {
+    order: initial;
+  }
+}
+
+/* Loading States */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(5px);
+}
+
+.loading-spinner {
+  text-align: center;
+  color: hsl(var(--main));
+}
+
+.loading-spinner i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Notification Styles */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10001;
+  max-width: 400px;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+
+.notification-success {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+  border: 2px solid #c3e6cb;
+}
+
+.notification-error {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  color: #721c24;
+  border: 2px solid #f5c6cb;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+</style>
+
+<!-- Professional JavaScript -->
+<script>
+// Order action functions
+function cancelOrder(orderId) {
+  const confirmMessage = '<%- t("orderDetails.confirmCancel") || "Are you sure you want to cancel this order?" %>';
+  if (confirm(confirmMessage)) {
+    showLoading('<%- t("orderDetails.cancelling") || "Cancelling order..." %>');
+    
+    fetch('/buyer/api/cancel-order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ orderId: orderId })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const successMessage = '<%- t("orderDetails.orderCancelled") || "Order cancelled successfully" %>';
+        showNotification(successMessage, 'success');
+        setTimeout(() => {
+          window.location.href = '/buyer/orders';
+        }, 1500);
+      } else {
+        throw new Error(data.message || 'Failed to cancel order');
+      }
+    })
+    .catch(error => {
+      console.error('Error cancelling order:', error);
+      const errorMessage = '<%- t("orderDetails.errorCancelling") || "Failed to cancel order" %>: ' + error.message;
+      showNotification(errorMessage, 'error');
+    })
+    .finally(() => {
+      hideLoading();
+    });
+  }
+}
+
+function contactSupplier(supplierId) {
+  window.location.href = `/buyer/messages?supplier=${supplierId}`;
+}
+
+function trackOrder(trackingNumber) {
+  if (trackingNumber) {
+    window.open(`/tracking/${encodeURIComponent(trackingNumber)}`, '_blank');
+  } else {
+    const noTrackingMessage = '<%- t("orderDetails.noTracking") || "No tracking number available for this order" %>';
+    alert(noTrackingMessage);
+  }
+}
+
+function downloadInvoice(orderId) {
+  showLoading('<%- t("orderDetails.downloadingInvoice") || "Downloading invoice..." %>');
+  
+  fetch(`/buyer/api/download-invoice/${orderId}`, {
+    method: 'GET',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(response => {
+    if (response.ok) {
+      return response.blob();
+    }
+    throw new Error('Failed to download invoice');
+  })
+  .then(blob => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `invoice-${orderId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    const successMessage = '<%- t("orderDetails.invoiceDownloaded") || "Invoice downloaded successfully" %>';
+    showNotification(successMessage, 'success');
+  })
+  .catch(error => {
+    console.error('Error downloading invoice:', error);
+    const errorMessage = '<%- t("orderDetails.errorDownloading") || "Failed to download invoice" %>: ' + error.message;
+    showNotification(errorMessage, 'error');
+  })
+  .finally(() => {
+    hideLoading();
+  });
+}
+
+// Utility functions
+function showLoading(message = '<%- t("common.loading") || "Loading..." %>') {
+  const overlay = document.createElement('div');
+  overlay.id = 'loadingOverlay';
+  overlay.className = 'loading-overlay';
+  overlay.innerHTML = `
+    <div class="loading-spinner">
+      <i class="las la-spinner"></i>
+      <p>${message}</p>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function hideLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `notification notification-${type}`;
+  notification.innerHTML = `
+    <div class="notification-content">
+      <i class="las la-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i>
+      <span>${message}</span>
+      <button class="notification-close" onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: inherit; font-size: 1.2rem; cursor: pointer; margin-left: auto;">
+        <i class="las la-times"></i>
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    if (notification.parentElement) {
+      notification.remove();
+    }
+  }, 5000);
+}
+
+// MUI Data Grid Functions
+function toggleSelectAll(checkbox) {
+  const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+  const isChecked = checkbox.checked;
+  
+  rowCheckboxes.forEach(cb => {
+    cb.checked = isChecked;
+  });
+  
+  updateSelectionCount();
+}
+
+function updateSelectionCount() {
+  const selectedRows = document.querySelectorAll('.row-checkbox:checked');
+  const selectionCount = document.getElementById('selectionCount');
+  if (selectionCount) {
+    selectionCount.textContent = selectedRows.length;
+  }
+}
+
+function sortColumn(column) {
+  const table = document.getElementById('orderItemsDataGrid');
+  const tbody = table.querySelector('.datagrid-body');
+  const rows = Array.from(tbody.querySelectorAll('.data-row'));
+  
+  // Remove existing sort indicators
+  document.querySelectorAll('.header-cell').forEach(cell => {
+    cell.classList.remove('sorted');
+  });
+  
+  // Add sort indicator to current column
+  const currentHeader = document.querySelector(`.header-${column}`);
+  if (currentHeader) {
+    currentHeader.classList.add('sorted');
+  }
+  
+  // Sort rows based on column
+  rows.sort((a, b) => {
+    let aVal, bVal;
+    
+    switch(column) {
+      case 'product':
+        aVal = a.querySelector('.product-title').textContent.trim();
+        bVal = b.querySelector('.product-title').textContent.trim();
+        break;
+      case 'sku':
+        aVal = a.querySelector('.sku-code')?.textContent.trim() || '';
+        bVal = b.querySelector('.sku-code')?.textContent.trim() || '';
+        break;
+      case 'quantity':
+        aVal = parseInt(a.querySelector('.quantity-value').textContent);
+        bVal = parseInt(b.querySelector('.quantity-value').textContent);
+        break;
+      case 'price':
+        aVal = parseFloat(a.querySelector('.price-value').textContent);
+        bVal = parseFloat(b.querySelector('.price-value').textContent);
+        break;
+      case 'total':
+        aVal = parseFloat(a.querySelector('.total-value').textContent);
+        bVal = parseFloat(b.querySelector('.total-value').textContent);
+        break;
+      default:
+        return 0;
+    }
+    
+    if (typeof aVal === 'string') {
+      return aVal.localeCompare(bVal);
+    }
+    return aVal - bVal;
+  });
+  
+  // Re-append sorted rows
+  rows.forEach(row => tbody.appendChild(row));
+}
+
+function exportToCSV() {
+  const table = document.getElementById('orderItemsDataGrid');
+  const rows = table.querySelectorAll('.data-row');
+  
+  let csv = 'Product,SKU,Specifications,Quantity,Unit Price,Total\n';
+  
+  rows.forEach(row => {
+    const product = row.querySelector('.product-title').textContent.trim();
+    const sku = row.querySelector('.sku-code')?.textContent.trim() || '';
+    const specs = Array.from(row.querySelectorAll('.spec-chip')).map(chip => {
+      const key = chip.querySelector('.spec-key').textContent.trim();
+      const value = chip.querySelector('.spec-value').textContent.trim();
+      return `${key}: ${value}`;
+    }).join('; ');
+    const quantity = row.querySelector('.quantity-value').textContent.trim();
+    const price = row.querySelector('.price-value').textContent.trim();
+    const total = row.querySelector('.total-value').textContent.trim();
+    
+    csv += `"${product}","${sku}","${specs}","${quantity}","${price}","${total}"\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'order-items.csv';
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+function showAllSpecs(index) {
+  const row = document.querySelector(`[data-row-id="${index}"]`);
+  const specsContainer = row.querySelector('.specs-chips');
+  
+  // Toggle visibility of all specs
+  const hiddenSpecs = specsContainer.querySelectorAll('.spec-chip:nth-child(n+3)');
+  const moreBtn = specsContainer.querySelector('.spec-more-btn');
+  
+  hiddenSpecs.forEach(spec => {
+    spec.style.display = spec.style.display === 'none' ? 'flex' : 'none';
+  });
+  
+  if (moreBtn) {
+    moreBtn.style.display = 'none';
+  }
+}
+
+function showCustomRequirements(index) {
+  // Show custom requirements in a modal or tooltip
+  const customText = document.querySelector(`[data-row-id="${index}"]`).getAttribute('data-custom-requirements');
+  if (customText) {
+    alert(customText); // Replace with proper modal
+  }
+}
+
+function viewProductDetails(productId) {
+  if (productId) {
+    window.open(`/products/${productId}`, '_blank');
+  }
+}
+
+// Initialize Professional Horizontal Scrollbar
+function initCustomScrollbar() {
+  const scrollContainer = document.querySelector('.datagrid-scroll-container');
+  const table = document.querySelector('.mui-datagrid-table');
+  const scrollbarThumb = document.getElementById('scrollbarThumb');
+  
+  if (!scrollContainer || !table || !scrollbarThumb) return;
+  
+  function updateScrollbar() {
+    const containerWidth = scrollContainer.clientWidth;
+    const tableWidth = table.scrollWidth;
+    const scrollLeft = scrollContainer.scrollLeft;
+    
+    if (tableWidth <= containerWidth) {
+      scrollbarThumb.style.display = 'none';
+      return;
+    }
+    
+    scrollbarThumb.style.display = 'block';
+    
+    const thumbWidth = Math.max((containerWidth / tableWidth) * 100, 10);
+    const thumbLeft = (scrollLeft / (tableWidth - containerWidth)) * (100 - thumbWidth);
+    
+    scrollbarThumb.style.width = thumbWidth + '%';
+    scrollbarThumb.style.left = thumbLeft + '%';
+  }
+  
+  scrollContainer.addEventListener('scroll', updateScrollbar);
+  window.addEventListener('resize', () => {
+    setTimeout(updateScrollbar, 100); // Debounce resize events
+  });
+  
+  // Draggable scrollbar
+  let isDragging = false;
+  let startX = 0;
+  let startScrollLeft = 0;
+  
+  scrollbarThumb.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    startScrollLeft = scrollContainer.scrollLeft;
+    scrollbarThumb.classList.add('dragging');
+    e.preventDefault();
+  });
+  
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    
+    const deltaX = e.clientX - startX;
+    const containerWidth = scrollContainer.clientWidth;
+    const tableWidth = table.scrollWidth;
+    const scrollRatio = (tableWidth - containerWidth) / (scrollContainer.parentElement.clientWidth - scrollbarThumb.clientWidth);
+    
+    scrollContainer.scrollLeft = startScrollLeft + (deltaX * scrollRatio);
+  });
+  
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      scrollbarThumb.classList.remove('dragging');
+    }
+  });
+  
+  updateScrollbar();
+  
+  // Log viewport info for debugging
+  console.log('Viewport width:', window.innerWidth);
+  console.log('Table min-width:', table.style.minWidth || 'CSS controlled');
+  console.log('Container width:', scrollContainer.clientWidth);
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Professional MUI Data Grid loaded');
+  
+  // Initialize custom scrollbar
+  initCustomScrollbar();
+  
+  // Initialize selection listeners
+  document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', updateSelectionCount);
+  });
+  
+  // Initialize action button listeners
+  document.querySelectorAll('.spec-more-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const index = this.getAttribute('data-index');
+      showAllSpecs(index);
+    });
+  });
+  
+  document.querySelectorAll('.view-product-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const productId = this.getAttribute('data-product-id');
+      viewProductDetails(productId);
+    });
+  });
+  
+  document.querySelectorAll('.show-custom-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const index = this.getAttribute('data-index');
+      showCustomRequirements(index);
+    });
+  });
+  
+  // Add smooth scroll behavior
+  document.documentElement.style.scrollBehavior = 'smooth';
+  
+  // Add click animations to buttons
+  const buttons = document.querySelectorAll('.btn, .action-btn');
+  buttons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      const ripple = document.createElement('span');
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const x = e.clientX - rect.left - size / 2;
+      const y = e.clientY - rect.top - size / 2;
+      
+      ripple.style.cssText = `
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        width: ${size}px;
+        height: ${size}px;
+        left: ${x}px;
+        top: ${y}px;
+        animation: ripple 0.6s ease-out;
+        pointer-events: none;
+      `;
+      
+      this.style.position = 'relative';
+      this.style.overflow = 'hidden';
+      this.appendChild(ripple);
+      
+      setTimeout(() => ripple.remove(), 600);
+    });
+  });
+});
+
+// Add ripple animation
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes ripple {
+    from {
+      transform: scale(0);
+      opacity: 1;
+    }
+    to {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+`;
+document.head.appendChild(style);
+</script>
+
+<%- include('../partials/footer') %>

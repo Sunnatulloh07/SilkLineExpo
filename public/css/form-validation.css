@@ -1,0 +1,183 @@
+/* Form Validation Styles - Prevent Duplicate Messages */
+.invalid-feedback {
+  display: block !important;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #dc3545;
+  font-weight: 500;
+}
+
+/* Field error styling for login page - Prevent Duplicate */
+.field-error {
+  display: block !important;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #dc3545;
+  font-weight: 500;
+}
+
+/* Prevent duplicate error messages */
+.invalid-feedback + .invalid-feedback,
+.field-error + .field-error {
+  display: none !important;
+}
+
+/* Ensure only one error message per field */
+.col-12 .invalid-feedback:not(:first-of-type),
+.col-12 .field-error:not(:first-of-type) {
+  display: none !important;
+}
+
+.is-invalid {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.is-invalid:focus {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Error message animations */
+.invalid-feedback {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Field error styling */
+.form-step .col-12 {
+  position: relative;
+}
+
+.form-step .col-12 .invalid-feedback {
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  z-index: 10;
+}
+
+/* Required field indicator */
+.form-label .text-danger {
+  color: #dc3545 !important;
+  font-weight: bold;
+}
+
+/* Logo upload error styling */
+#companyLogo.is-invalid {
+  border: 2px solid #dc3545;
+  background-color: rgba(220, 53, 69, 0.05);
+}
+
+/* Password requirements error styling */
+.requirement.error {
+  color: #dc3545;
+}
+
+.requirement.error i {
+  color: #dc3545 !important;
+}
+
+/* Terms agreement error */
+#agreeTerms.is-invalid + .form-check-label {
+  color: #dc3545;
+}
+
+/* Responsive error messages */
+@media (max-width: 768px) {
+  .invalid-feedback {
+    font-size: 0.8em;
+  }
+  
+  .form-step .col-12 .invalid-feedback {
+    position: static;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Login form specific styling */
+.login-form .form-floating.error .form-control,
+.login-form .form-control.is-invalid,
+.login-form input.is-invalid {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.login-form .form-floating.success .form-control,
+.login-form input.is-valid {
+  border-color: #198754 !important;
+  box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
+}
+
+/* Prevent duplicate styling from Bootstrap */
+.login-form .needs-validation .form-control:invalid,
+.login-form .needs-validation .form-control.is-invalid {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Error message positioning for login form */
+.login-form .col-12 {
+  position: relative;
+}
+
+.login-form .field-error {
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  z-index: 10;
+}
+
+/* Required field indicator for login */
+.login-form .form-label .text-danger {
+  color: #dc3545 !important;
+  font-weight: bold;
+}
+
+/* Password toggle button styling */
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.password-toggle-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--main-color, #007bff);
+}
+
+.password-toggle-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.password-toggle-btn i {
+  font-size: 18px;
+  transition: transform 0.2s ease;
+}
+
+/* Password input with toggle button */
+.login-form .position-relative input[type="password"],
+.login-form .position-relative input[type="text"] {
+  padding-right: 50px;
+}

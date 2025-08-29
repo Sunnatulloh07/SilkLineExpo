@@ -16,18 +16,16 @@ const app = express();
 const PORT = process.env.PORT || 3005;
 
 // Database connection (optional - can work without MongoDB for now)
-if (process.env.MONGODB_URI) {
-  mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('✅ Connected to MongoDB');
-  })
-  .catch((error) => {
-    console.warn('⚠️ MongoDB connection failed:', error.message);
-    console.log('🔧 Running without database (some features may be limited)');
-  });
-} else {
-  console.log('🔧 MongoDB URI not found - running without database');
-}
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:password123@localhost:27017/slex-db?authSource=admin';
+
+mongoose.connect(MONGODB_URI)
+.then(() => {
+  console.log('✅ Connected to MongoDB');
+})
+.catch((error) => {
+  console.warn('⚠️ MongoDB connection failed:', error.message);
+  console.log('🔧 Running without database (some features may be limited)');
+});
 
 // Initialize services
 const FileService = require('./services/FileService');

@@ -29,12 +29,15 @@ class FileService {
   }
 
   /**
-   * Process company logo upload
+   * Process company logo upload with enhanced error handling
    */
   async processCompanyLogo(file) {
     try {
       // Validate file
       this.validateFile(file);
+
+      // Ensure upload directory exists
+      await this.initializeDirectories();
 
       // Generate unique filename
       const uniqueFilename = this.generateUniqueFilename(file.originalname);
@@ -43,25 +46,54 @@ class FileService {
       // Move file to final location
       await fs.rename(file.path, finalPath);
 
+      // Verify file was moved successfully
+      try {
+        await fs.access(finalPath);
+      } catch (accessError) {
+        throw new Error('File upload failed - file not accessible after move');
+      }
+
       // Generate thumbnail (optional)
       const thumbnailPath = await this.generateThumbnail(finalPath);
 
-      return {
+      const logoData = {
         filename: uniqueFilename,
         originalName: file.originalname,
         mimeType: file.mimetype,
         size: file.size,
         uploadDate: new Date(),
-        path: `/uploads/logos/${uniqueFilename}`,
-        thumbnailPath: thumbnailPath ? `/uploads/logos/thumbnails/${path.basename(thumbnailPath)}` : null
+        url: `/uploads/logos/${uniqueFilename}`, // User model uchun required field
+        path: `/uploads/logos/${uniqueFilename}`, // Legacy support
+        thumbnailUrl: thumbnailPath ? `/uploads/logos/thumbnails/${path.basename(thumbnailPath)}` : null,
+        thumbnailPath: thumbnailPath ? `/uploads/logos/thumbnails/${path.basename(thumbnailPath)}` : null // Legacy support
       };
 
+      console.log('✅ Logo processed successfully:', {
+        filename: logoData.filename,
+        size: logoData.size,
+        url: logoData.url
+      });
+
+      return logoData;
+
     } catch (error) {
+      console.error('❌ Logo processing error:', error);
+      
       // Clean up file on error
       if (file && file.path) {
         await this.deleteFile(file.path).catch(console.error);
       }
-      throw error;
+      
+      // Enhanced error message
+      const enhancedError = new Error(`Logo processing failed: ${error.message}`);
+      enhancedError.originalError = error;
+      enhancedError.fileInfo = {
+        originalName: file?.originalname,
+        size: file?.size,
+        mimetype: file?.mimetype
+      };
+      
+      throw enhancedError;
     }
   }
 

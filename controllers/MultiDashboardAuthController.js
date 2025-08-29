@@ -148,9 +148,7 @@ class MultiDashboardAuthController {
             
             // Use email or identifier for backward compatibility
             const loginEmail = (email || identifier || '').toLowerCase().trim();
-            
-            this.logger.log(`🔐 Multi-dashboard login attempt: ${loginEmail} from ${clientIP}`);
-
+           
             // Enhanced input validation
             const validation = this.validateLoginInput({
                 email: loginEmail,
@@ -177,16 +175,6 @@ class MultiDashboardAuthController {
                 clientIP
             );
 
-            // Debug logging
-            this.logger.log(`🔍 Auth Result Debug:`, {
-                success: authResult.success,
-                userType: authResult.userType,
-                role: authResult.user?.role,
-                companyType: authResult.user?.companyType,
-                dashboardRoute: authResult.dashboardRoute,
-                message: authResult.message
-            });
-
             // Handle authentication failure
             if (!authResult.success) {
                 this.recordFailedAttempt(clientIP, loginEmail);
@@ -206,11 +194,7 @@ class MultiDashboardAuthController {
             if (rememberMe === 'on' || rememberMe === true) {
                 this.setRememberMeCookie(res, authResult.user._id, authResult.userType);
             }
-
-            // Log successful authentication
-            const loginDuration = Date.now() - startTime;
-            this.logger.log(`✅ Multi-dashboard login successful: ${loginEmail} -> ${authResult.dashboardRoute} (${loginDuration}ms)`);
-
+            
             // Determine response based on request type
             const isAjax = this.isAjaxRequest(req);
             
@@ -256,13 +240,7 @@ class MultiDashboardAuthController {
      * Enhanced logout with proper cleanup
      */
     logout = async (req, res) => {
-        try {
-            const clientIP = this.getClientIP(req);
-            const userId = req.user?.userId;
-            const userType = req.user?.userType;
-
-            this.logger.log(`🔓 Logout request: ${userId} (${userType}) from ${clientIP}`);
-
+        try {        
             // Extract tokens from request
             const tokens = TokenService.extractTokensFromRequest(req);
 
@@ -289,8 +267,7 @@ class MultiDashboardAuthController {
             // Clear remember me cookie
             res.clearCookie('rememberMe');
 
-            this.logger.log(`✅ Logout successful: ${userId}`);
-
+           
             // Determine response based on request type
             const isAjax = this.isAjaxRequest(req);
 
@@ -368,8 +345,7 @@ class MultiDashboardAuthController {
     handleLoginError = (req, res, message, code) => {
         const isAjax = this.isAjaxRequest(req);
         
-        this.logger.warn(`⚠️ Login error: ${message} (${code})`);
-
+      
         if (isAjax) {
             const statusCode = this.getStatusCodeForError(code);
             return res.status(statusCode).json({

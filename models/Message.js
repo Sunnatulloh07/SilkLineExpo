@@ -33,12 +33,12 @@ const messageSchema = new mongoose.Schema({
     // Message content
     content: {
         type: String,
-        required: true,
+        required: false, // Allow null for file-only messages
         trim: true,
         maxlength: 2000
     },
     
-    // Message type
+    // Message type - auto-detect based on content and attachments
     type: {
         type: String,
         enum: ['text', 'image', 'file', 'system', 'order_update'],

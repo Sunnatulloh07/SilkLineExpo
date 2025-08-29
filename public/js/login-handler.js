@@ -58,6 +58,15 @@ class LoginHandler {
       this.showFieldError(field, `${this.getFieldLabel(field)} is required`);
       return false;
     }
+
+    // Email validation
+    if (field.type === 'email' && value) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        this.showFieldError(field, 'Please enter a valid email address');
+        return false;
+      }
+    }
     
     this.clearFieldError(field);
     return true;
@@ -70,9 +79,59 @@ class LoginHandler {
     
     const errorDiv = document.createElement('div');
     errorDiv.className = 'invalid-feedback d-block';
-    errorDiv.textContent = message;
+    
+    // Get current language and show error in that language only
+    const currentLang = this.getCurrentLanguage();
+    const localizedMessage = this.getLocalizedErrorMessage(message, currentLang);
+    
+    errorDiv.textContent = localizedMessage;
     
     field.parentNode.appendChild(errorDiv);
+  }
+
+  getCurrentLanguage() {
+    // Try to get language from various sources
+    const htmlLang = document.documentElement.lang;
+    const langFromUrl = window.location.pathname.includes('/language/') ? 
+      window.location.pathname.split('/language/')[1]?.split('/')[0] : null;
+    const langFromSelector = document.querySelector('.current-lang-text')?.textContent?.toLowerCase();
+    
+    return htmlLang || langFromUrl || langFromSelector || 'en';
+  }
+
+  getLocalizedErrorMessage(message, lang) {
+    const errorMessages = {
+      'en': {
+        'is required': 'is required',
+        'Please enter a valid email address': 'Please enter a valid email address',
+        'Password must be at least 6 characters': 'Password must be at least 6 characters'
+      },
+      'uz': {
+        'is required': 'majburiy',
+        'Please enter a valid email address': 'To\'g\'ri email manzilni kiriting',
+        'Password must be at least 6 characters': 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak'
+      },
+      'ru': {
+        'is required': 'обязательно',
+        'Please enter a valid email address': 'Введите корректный email адрес',
+        'Password must be at least 6 characters': 'Пароль должен содержать минимум 6 символов'
+      }
+    };
+
+    // If language not found, return English
+    if (!errorMessages[lang]) {
+      return message;
+    }
+
+    // Find matching error message
+    for (const [key, value] of Object.entries(errorMessages[lang])) {
+      if (message.includes(key)) {
+        return value;
+      }
+    }
+
+    // If no match found, return original message
+    return message;
   }
 
   clearFieldError(field) {

@@ -216,6 +216,25 @@ class ProfessionalAuthHandler {
             localStorage.removeItem('slex_remember_me');
         }
         
+        // Save user data to localStorage for distributors
+        if (response.data && response.data.companyType === 'distributor') {
+            try {
+                const userData = {
+                    id: response.data.userId,
+                    name: response.data.name,
+                    email: response.data.email,
+                    role: response.data.role,
+                    userType: response.data.userType,
+                    companyType: response.data.companyType,
+                    companyName: response.data.companyName
+                };
+                localStorage.setItem('slex_buyer_user_data', JSON.stringify(userData));
+                
+            } catch (error) {
+                console.warn('Failed to save user data to localStorage:', error);
+            }
+        }
+        
         // Show success message
         this.showAlert('Login successful! Redirecting...', 'success');
         

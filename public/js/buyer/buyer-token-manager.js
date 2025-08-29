@@ -66,7 +66,7 @@ class BuyerTokenManager {
         this.loadUserDataFromStorage();
         
         // Check token status immediately
-        this.checkTokenStatus();
+        this.checkAndRefreshToken();
         
 
     }

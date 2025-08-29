@@ -11,6 +11,7 @@ const fs = require('fs');
 const BuyerController = require('../controllers/BuyerController');
 const BuyerService = require('../services/BuyerService');
 const { authenticate, distributorOnly } = require('../middleware/jwtAuth');
+const optionalJWTAuth = require('../middleware/optionalJWTAuth');
 
 const router = express.Router();
 
@@ -42,6 +43,29 @@ const avatarUpload = multer({
     }
 });
 
+// Professional multer configuration for message attachments
+const messageAttachmentsUpload = multer({
+    dest: tempDir,
+    limits: { 
+        fileSize: 10 * 1024 * 1024, // 10MB limit per file
+        files: 5 // Maximum 5 files at a time
+    },
+    fileFilter: (req, file, cb) => {
+        // Accept images and documents
+        const allowedTypes = [
+            'image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp',
+            'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'text/plain', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/zip', 'application/x-rar-compressed', 'application/x-7z-compressed'
+        ];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error(`Fayl formati noto'g'ri: ${file.mimetype}`), false);
+        }
+    }
+});
+
 // Apply JWT authentication and buyer-only access
 router.use(authenticate);
 router.use(distributorOnly);
@@ -60,6 +84,7 @@ router.get('/dashboard', (req, res) => {
 // Main buyer pages
 router.get('/profile', buyerController.showProfile.bind(buyerController));
 router.get('/orders', buyerController.showOrders.bind(buyerController));
+router.get('/orders/:orderId', buyerController.showOrderDetails.bind(buyerController));
 router.get('/messages', buyerController.showMessages.bind(buyerController));
 router.get('/cart', buyerController.showCart.bind(buyerController));
 router.get('/favorites', buyerController.showFavorites.bind(buyerController));
@@ -68,22 +93,39 @@ router.get('/settings', buyerController.showSettings.bind(buyerController));
 // ===== BUYER PROFILE API ROUTES =====
 router.get('/api/profile-stats', buyerController.getProfileStats.bind(buyerController));
 router.get('/api/buyer-orders', buyerController.getBuyerOrders.bind(buyerController));
-router.get('/api/buyer-conversations', buyerController.getBuyerConversations.bind(buyerController));
 router.get('/api/buyer-rfqs', buyerController.getBuyerRFQs.bind(buyerController));
 
+// ===== BUYER MESSAGING API ROUTES =====
+router.get('/api/conversations', buyerController.getBuyerConversations.bind(buyerController));
+router.get('/api/conversations-with-current', buyerController.getBuyerConversationsWithCurrent.bind(buyerController));
+router.get('/api/orders/:orderId/messages', buyerController.getOrderMessages.bind(buyerController));
+router.get('/api/manufacturer/:manufacturerId/details', buyerController.getManufacturerDetails.bind(buyerController));
+router.get('/api/manufacturer/:manufacturerId/conversation', buyerController.getManufacturerConversation.bind(buyerController));
+router.post('/api/send-message', messageAttachmentsUpload.array('attachments', 5), buyerController.sendMessage.bind(buyerController));
+
 // ===== BUYER ACTION ROUTES (POST) =====
-router.post('/api/send-message', buyerController.sendMessage.bind(buyerController));
 router.post('/api/create-rfq', buyerController.createRFQ.bind(buyerController));
 
 // ===== CART API ROUTES =====
 router.post('/api/cart/add', buyerController.addToCart.bind(buyerController));
 router.put('/api/cart/update', buyerController.updateCartItem.bind(buyerController));
 router.delete('/api/cart/remove/:itemId', buyerController.removeFromCart.bind(buyerController));
+router.post('/api/cart/remove-multiple', buyerController.removeMultipleCartItems.bind(buyerController));
+
+// ===== CHECKOUT API ROUTES =====
+router.post('/api/checkout/process', buyerController.processCheckout.bind(buyerController));
+
+// ===== ORDER MANAGEMENT API ROUTES =====
+router.post('/api/cancel-order', buyerController.cancelOrder.bind(buyerController));
+router.post('/api/track-order', buyerController.trackOrder.bind(buyerController));
 
 // ===== FAVORITES API ROUTES =====
-router.post('/api/favorites/add-product', buyerController.addToFavorites.bind(buyerController));
-router.delete('/api/favorites/remove-product/:productId', buyerController.removeFromFavorites.bind(buyerController));
-router.post('/api/favorites/add-supplier', buyerController.addSupplierToFavorites.bind(buyerController));
+router.get('/api/favorites', buyerController.getFavorites.bind(buyerController));
+router.post('/api/add-to-favorites', buyerController.addToFavorites.bind(buyerController));
+router.post('/api/remove-from-favorites', buyerController.removeFromFavorites.bind(buyerController));
+router.post('/api/add-supplier-to-favorites', buyerController.addSupplierToFavorites.bind(buyerController));
+router.post('/api/remove-supplier-from-favorites', buyerController.removeSupplierFromFavorites.bind(buyerController));
+router.get('/api/favorites/check/:productId', buyerController.checkFavoriteStatus.bind(buyerController));
 
 // ===== SETTINGS API ROUTES =====
 router.post('/api/settings/profile', buyerController.updateProfile.bind(buyerController));
@@ -103,13 +145,8 @@ router.delete('/api/avatar/delete',
     buyerController.deleteAvatar.bind(buyerController)
 );
 
-// ===== CART API ROUTES =====
-router.post('/api/cart/update', buyerController.updateCartItem.bind(buyerController));
-router.post('/api/cart/remove', buyerController.removeCartItem.bind(buyerController));
-router.post('/api/cart/remove-multiple', buyerController.removeMultipleCartItems.bind(buyerController));
-
-// ===== FAVORITES API ROUTES =====
-router.post('/api/favorites/add', buyerController.addToFavorites.bind(buyerController));
+// ===== PRODUCT STATUS API ROUTES =====
+router.get('/api/product-status/:productId', optionalJWTAuth.optionalAuth, buyerController.checkProductStatus.bind(buyerController));
 
 router.use((error, req, res, next) => {
     console.error('❌ Distributor route error:', error);

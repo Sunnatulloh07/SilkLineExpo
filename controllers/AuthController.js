@@ -102,6 +102,35 @@ class AuthController {
       // Get uploaded logo file
       const logoFile = req.file;
 
+      // Validate logo file is required
+      if (!logoFile) {
+        return res.status(400).json({
+          success: false,
+          message: req.t('register.errors.logoRequired') || 'Company logo is required',
+          code: 'LOGO_REQUIRED'
+        });
+      }
+
+      // Validate file type and size
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+      const maxSize = 5 * 1024 * 1024; // 5MB
+
+      if (!allowedTypes.includes(logoFile.mimetype)) {
+        return res.status(400).json({
+          success: false,
+          message: req.t('register.errors.invalidFile') || 'Invalid file format. Only JPG and PNG files are allowed',
+          code: 'INVALID_FILE_TYPE'
+        });
+      }
+
+      if (logoFile.size > maxSize) {
+        return res.status(400).json({
+          success: false,
+          message: req.t('register.errors.invalidFile') || 'File size must be less than 5MB',
+          code: 'FILE_TOO_LARGE'
+        });
+      }
+
       // Register user through service
       const result = await AuthService.registerCompanyAdmin(userData, logoFile);
 
@@ -120,12 +149,14 @@ class AuthController {
     } catch (error) {
       console.error('Registration error:', error);
       
-      // Handle specific error types
+      // Handle specific error types with enhanced error handling
       let statusCode = 400;
       let message = error.message;
+      let errorCode = 'VALIDATION_ERROR';
 
       if (error.code === 11000) {
         // MongoDB duplicate key error
+        errorCode = 'DUPLICATE_DATA';
         if (error.keyPattern?.email) {
           message = req.t('register.errors.emailExists') || 'Email already exists';
         } else if (error.keyPattern?.taxNumber) {
@@ -134,18 +165,40 @@ class AuthController {
           message = req.t('register.errors.duplicateData') || 'Duplicate data found';
         }
       } else if (error.name === 'ValidationError') {
-        // Mongoose validation error
-        const validationErrors = Object.values(error.errors).map(err => err.message);
+        // Mongoose validation error with detailed field mapping
+        errorCode = 'VALIDATION_ERROR';
+        const validationErrors = Object.values(error.errors).map(err => {
+          // Map field names to user-friendly messages
+          const fieldMap = {
+            'companyLogo.url': 'Company logo',
+            'companyLogo.filename': 'Company logo filename',
+            'companyLogo.originalName': 'Company logo name',
+            'companyLogo.mimeType': 'Company logo type',
+            'companyLogo.size': 'Company logo size'
+          };
+          const fieldName = fieldMap[err.path] || err.path;
+          return `${fieldName}: ${err.message}`;
+        });
         message = validationErrors.join(', ');
+      } else if (error.message.includes('Logo processing failed')) {
+        errorCode = 'LOGO_PROCESSING_ERROR';
+        statusCode = 422; // Unprocessable Entity
+      } else if (error.message.includes('Company logo is required')) {
+        errorCode = 'LOGO_REQUIRED';
+        statusCode = 400;
       } else if (error.message.includes('file') || error.message.includes('upload')) {
-        // File upload error
+        errorCode = 'FILE_UPLOAD_ERROR';
         statusCode = 413; // Payload too large
       }
 
       res.status(statusCode).json({
         success: false,
         message: message,
-        errors: error.errors || null
+        code: errorCode,
+        errors: error.errors || null,
+        timestamp: new Date().toISOString(),
+        path: req.path,
+        method: req.method
       });
     }
   }
@@ -279,7 +332,10 @@ class AuthController {
           userType: authResult.userType,
           status: authResult.status,
           redirectUrl: redirectUrl,
-          sessionId: tokens.sessionId
+          sessionId: tokens.sessionId,
+          // Add company information for proper localStorage
+          companyType: authResult.companyType,
+          companyName: authResult.companyName
         }
       });
 

@@ -1,7 +1,7 @@
 <%- include('../partials/header', { title: 'My Orders - SLEX' }) %>
 <%- include('../partials/navigation') %>
 
-<!-- Buyer Orders Page - Alibaba Style -->
+<!-- Professional Buyer Orders Page - Dark Mode Style -->
 <main class="buyer-orders-wrapper">
   <div class="container container-two">
     <div class="row">
@@ -11,348 +11,347 @@
       </div>
       
       <div class="col-lg-9">
-        <!-- Orders Header -->
-        <div class="orders-header">
-          <h2 class="orders-title">
+        <!-- Orders Header Section -->
+        <div class="orders-header-section" style="background:transparent !important;">
+          <div class="orders-title-wrapper">
+            <h2 class="orders-main-title">
             <i class="las la-shopping-bag"></i>
             <%- t('orders.title') || 'My Orders' %>
           </h2>
           <p class="orders-subtitle"><%- t('orders.subtitle') || 'Track and manage your orders' %></p>
         </div>
 
-        <!-- Orders Filter Tabs -->
-        <div class="orders-tabs">
-          <ul class="nav nav-tabs" id="orderTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
-                <%- t('orders.all') || 'All Orders' %> <span class="badge">5</span>
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
-                <%- t('orders.pending') || 'Pending' %> <span class="badge badge-warning">2</span>
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="processing-tab" data-bs-toggle="tab" data-bs-target="#processing" type="button" role="tab">
-                <%- t('orders.processing') || 'Processing' %> <span class="badge badge-info">1</span>
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="shipped-tab" data-bs-toggle="tab" data-bs-target="#shipped" type="button" role="tab">
-                <%- t('orders.shipped') || 'Shipped' %> <span class="badge badge-primary">1</span>
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab">
-                <%- t('orders.completed') || 'Completed' %> <span class="badge badge-success">1</span>
-              </button>
-            </li>
-          </ul>
+                  
         </div>
 
-        <!-- Orders Content -->
-        <div class="tab-content" id="orderTabsContent">
-          <div class="tab-pane fade show active" id="all" role="tabpanel">
-            <div class="orders-list">
-              <!-- Sample Order 1 -->
-              <div class="order-card">
-                <div class="order-header">
-                  <div class="order-info">
-                    <h4 class="order-number">#ORD-001-2024</h4>
-                    <span class="order-date"><%- t('orders.placedOn') || 'Placed on' %> March 15, 2024</span>
-                  </div>
-                  <div class="order-status">
-                    <span class="status-badge status-pending"><%- t('orders.pending') || 'Pending' %></span>
-                  </div>
-                </div>
-                
-                <div class="order-body">
-                  <div class="order-items">
-                    <div class="item-row">
-                      <img src="/assets/images/placeholder-product.svg" alt="Product" class="item-image">
-                      <div class="item-details">
-                        <h5>Cotton T-Shirts</h5>
-                        <p>Size: M, Color: Blue</p>
-                        <span class="item-quantity">Qty: 500 pieces</span>
-                      </div>
-                      <div class="item-price">
-                        <span class="price">$2,750.00</span>
-                        <span class="unit-price">$5.50 / piece</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="order-summary">
-                    <div class="supplier-info">
-                      <i class="las la-store"></i>
-                      <span>Textile Manufacturing Co.</span>
-                    </div>
-                    <div class="order-total">
-                      <span class="total-label"><%- t('orders.total') || 'Total' %>:</span>
-                      <span class="total-amount">$2,750.00</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="order-actions">
-                  <button class="btn btn-outline-primary btn-sm" onclick="viewOrder('ORD-001-2024')">
-                    <i class="las la-eye"></i> <%- t('orders.viewDetails') || 'View Details' %>
+                 <!-- Professional Orders Filter Tabs -->
+         <div class="orders-tabs-section">
+        <div class="orders-tabs">
+             <button class="tab-button active" data-tab="all">
+               <i class="las la-list"></i>
+               <span><%- t('orders.all') || 'All Orders' %></span>
+               <span class="tab-badge" id="allOrdersCount">0</span>
+              </button>
+             <button class="tab-button" data-tab="pending">
+               <i class="las la-clock"></i>
+               <span><%- t('orders.pending') || 'Pending' %></span>
+               <span class="tab-badge badge-warning" id="pendingOrdersCount">0</span>
+              </button>
+             <button class="tab-button" data-tab="processing">
+               <i class="las la-cog"></i>
+               <span><%- t('orders.processing') || 'Processing' %></span>
+               <span class="tab-badge badge-info" id="processingOrdersCount">0</span>
+              </button>
+             <button class="tab-button" data-tab="shipped">
+               <i class="las la-shipping-fast"></i>
+               <span><%- t('orders.shipped') || 'Shipped' %></span>
+               <span class="tab-badge badge-primary" id="shippedOrdersCount">0</span>
+              </button>
+             <button class="tab-button" data-tab="delivered">
+               <i class="las la-check-circle"></i>
+               <span><%- t('orders.delivered') || 'Delivered' %></span>
+               <span class="tab-badge badge-success" id="deliveredOrdersCount">0</span>
+              </button>
+             <button class="tab-button" data-tab="completed">
+               <i class="las la-check-double"></i>
+               <span><%- t('orders.completed') || 'Completed' %></span>
+               <span class="tab-badge badge-success" id="completedOrdersCount">0</span>
                   </button>
-                  <button class="btn btn-outline-secondary btn-sm" onclick="contactSupplier('supplier1')">
-                    <i class="las la-comments"></i> <%- t('orders.contactSupplier') || 'Contact Supplier' %>
-                  </button>
-                  <button class="btn btn-outline-danger btn-sm" onclick="cancelOrder('ORD-001-2024')">
-                    <i class="las la-times"></i> <%- t('orders.cancel') || 'Cancel' %>
+             <button class="tab-button" data-tab="cancelled">
+               <i class="las la-times-circle"></i>
+               <span><%- t('orders.cancelled') || 'Cancelled' %></span>
+               <span class="tab-badge badge-danger" id="cancelledOrdersCount">0</span>
                   </button>
                 </div>
               </div>
 
-              <!-- Sample Order 2 -->
-              <div class="order-card">
-                <div class="order-header">
-                  <div class="order-info">
-                    <h4 class="order-number">#ORD-002-2024</h4>
-                    <span class="order-date"><%- t('orders.placedOn') || 'Placed on' %> March 12, 2024</span>
-                  </div>
-                  <div class="order-status">
-                    <span class="status-badge status-shipped"><%- t('orders.shipped') || 'Shipped' %></span>
+        <!-- Orders Content -->
+        <div class="orders-content-section">
+          <!-- All Orders Tab -->
+          <div class="tab-content active" id="all-tab">
+            <div class="orders-list" id="allOrdersList">
+              <!-- Orders will be loaded dynamically -->
                   </div>
                 </div>
                 
-                <div class="order-body">
-                  <div class="order-items">
-                    <div class="item-row">
-                      <img src="/assets/images/placeholder-product.svg" alt="Product" class="item-image">
-                      <div class="item-details">
-                        <h5>Denim Jackets</h5>
-                        <p>Size: L, Color: Dark Blue</p>
-                        <span class="item-quantity">Qty: 200 pieces</span>
-                      </div>
-                      <div class="item-price">
-                        <span class="price">$5,000.00</span>
-                        <span class="unit-price">$25.00 / piece</span>
-                      </div>
+          <!-- Pending Orders Tab -->
+          <div class="tab-content" id="pending-tab">
+            <div class="orders-list" id="pendingOrdersList">
+              <!-- Orders will be loaded dynamically -->
                     </div>
                   </div>
                   
-                  <div class="order-summary">
-                    <div class="supplier-info">
-                      <i class="las la-store"></i>
-                      <span>Fashion Apparel Ltd.</span>
-                    </div>
-                    <div class="order-total">
-                      <span class="total-label"><%- t('orders.total') || 'Total' %>:</span>
-                      <span class="total-amount">$5,000.00</span>
+          <!-- Processing Orders Tab -->
+          <div class="tab-content" id="processing-tab">
+            <div class="orders-list" id="processingOrdersList">
+              <!-- Orders will be loaded dynamically -->
                     </div>
                   </div>
                   
-                  <div class="shipping-info">
-                    <div class="tracking">
-                      <i class="las la-truck"></i>
-                      <span><%- t('orders.tracking') || 'Tracking' %>: #TRK-789456123</span>
-                    </div>
-                    <div class="delivery-date">
-                      <i class="las la-calendar"></i>
-                      <span><%- t('orders.expectedDelivery') || 'Expected Delivery' %>: March 20, 2024</span>
-                    </div>
+                                <!-- Shipped Orders Tab -->
+           <div class="tab-content" id="shipped-tab">
+             <div class="orders-list" id="shippedOrdersList">
+               <!-- Orders will be loaded dynamically -->
                   </div>
                 </div>
                 
-                <div class="order-actions">
-                  <button class="btn btn-outline-primary btn-sm" onclick="viewOrder('ORD-002-2024')">
-                    <i class="las la-eye"></i> <%- t('orders.viewDetails') || 'View Details' %>
-                  </button>
-                  <button class="btn btn-outline-info btn-sm" onclick="trackOrder('TRK-789456123')">
-                    <i class="las la-truck"></i> <%- t('orders.trackShipment') || 'Track Shipment' %>
-                  </button>
-                  <button class="btn btn-outline-secondary btn-sm" onclick="contactSupplier('supplier2')">
-                    <i class="las la-comments"></i> <%- t('orders.contactSupplier') || 'Contact Supplier' %>
-                  </button>
-                </div>
-              </div>
+           <!-- Delivered Orders Tab -->
+           <div class="tab-content" id="delivered-tab">
+             <div class="orders-list" id="deliveredOrdersList">
+               <!-- Orders will be loaded dynamically -->
             </div>
           </div>
           
-          <!-- Other tab content will be loaded dynamically -->
-          <div class="tab-pane fade" id="pending" role="tabpanel">
-            <div class="loading-placeholder">
-              <i class="las la-spinner la-spin"></i>
-              <p><%- t('orders.loadingPending') || 'Loading pending orders...' %></p>
+                      <!-- Completed Orders Tab -->
+           <div class="tab-content" id="completed-tab">
+             <div class="orders-list" id="completedOrdersList">
+               <!-- Orders will be loaded dynamically -->
             </div>
           </div>
           
-          <div class="tab-pane fade" id="processing" role="tabpanel">
-            <div class="loading-placeholder">
-              <i class="las la-spinner la-spin"></i>
-              <p><%- t('orders.loadingProcessing') || 'Loading processing orders...' %></p>
+           <!-- Cancelled Orders Tab -->
+           <div class="tab-content" id="cancelled-tab">
+             <div class="orders-list" id="cancelledOrdersList">
+               <!-- Orders will be loaded dynamically -->
+             </div>
             </div>
           </div>
           
-          <div class="tab-pane fade" id="shipped" role="tabpanel">
-            <div class="loading-placeholder">
+        <!-- Loading States -->
+        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+          <div class="loading-spinner">
               <i class="las la-spinner la-spin"></i>
-              <p><%- t('orders.loadingShipped') || 'Loading shipped orders...' %></p>
+            <p><%- t('orders.loading') || 'Loading orders...' %></p>
             </div>
           </div>
           
-          <div class="tab-pane fade" id="completed" role="tabpanel">
-            <div class="loading-placeholder">
-              <i class="las la-spinner la-spin"></i>
-              <p><%- t('orders.loadingCompleted') || 'Loading completed orders...' %></p>
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+          <div class="empty-icon">
+            <i class="las la-shopping-bag"></i>
             </div>
-          </div>
+          <h3><%- t('orders.noOrdersTitle') || 'No Orders Yet' %></h3>
+          <p><%- t('orders.noOrdersDesc') || 'Start shopping to see your orders here' %></p>
+          <a href="/products" class="btn btn-primary">
+            <i class="las la-shopping-cart"></i>
+            <%- t('orders.startShopping') || 'Start Shopping' %>
+          </a>
         </div>
       </div>
     </div>
   </div>
 </main>
 
+<!-- Professional Orders Styling -->
 <style>
-/* Buyer Orders Styles */
+/* Orders Wrapper & Layout */
 .buyer-orders-wrapper {
-  padding: 60px 0;
-  background: #f8f9fa;
-  min-height: calc(100vh - 200px);
+  min-height: 100vh;
+  background: var(--bs-gray-50);
+  padding: 2rem 0;
 }
 
-.orders-header {
-  background: white;
-  border-radius: 12px;
+.orders-header-section {
+  background: var(--bs-white);
+  border-radius: 16px;
   padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--bs-gray-200);
 }
 
-.orders-title {
+.orders-title-wrapper {
+  margin-bottom: 2rem;
+}
+
+.orders-main-title {
   margin: 0 0 0.5rem 0;
-  color: #333;
-  font-size: 1.8rem;
-  font-weight: 600;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--bs-gray-800);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
-.orders-title i {
-  color: #ff6a00;
+.orders-main-title i {
+  color: hsl(var(--main));
+  font-size: 2.2rem;
 }
 
 .orders-subtitle {
   margin: 0;
-  color: #666;
-  font-size: 1rem;
+  color: var(--bs-gray-600);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+
+
+/* Professional Orders Tabs */
+.orders-tabs-section {
+  background: var(--bs-white);
+  border-radius: 16px;
+  padding: 1.5rem 2rem 0 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--bs-gray-200);
 }
 
 .orders-tabs {
-  background: white;
-  border-radius: 12px;
-  padding: 1rem 2rem 0 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--bs-gray-200);
+  overflow-x: auto;
+  padding-bottom: 0;
 }
 
-.nav-tabs {
-  border-bottom: 1px solid #e9ecef;
-}
-
-.nav-tabs .nav-link {
-  border: none;
-  border-bottom: 3px solid transparent;
-  color: #666;
-  font-weight: 500;
-  padding: 1rem 1.5rem;
+.tab-button {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.nav-tabs .nav-link.active {
-  color: #ff6a00;
-  border-bottom-color: #ff6a00;
+  padding: 1rem 1.5rem;
+  border: none;
   background: none;
+  color: var(--bs-gray-600);
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  position: relative;
 }
 
-.nav-tabs .nav-link:hover {
-  color: #ff6a00;
-  border-color: transparent;
+.tab-button:hover {
+  color: hsl(var(--main));
+  background: rgba(13, 202, 240, 0.05);
 }
 
-.badge {
-  background: #ff6a00;
+.tab-button.active {
+  color: hsl(var(--main));
+  border-bottom-color: hsl(var(--main));
+  background: rgba(13, 202, 240, 0.1);
+}
+
+.tab-button i {
+  font-size: 1.1rem;
+}
+
+.tab-badge {
+  background: hsl(var(--main));
   color: white;
   font-size: 0.7rem;
   padding: 0.25rem 0.5rem;
   border-radius: 10px;
+  font-weight: 600;
 }
 
-.badge.badge-warning {
+.tab-badge.badge-warning {
   background: #ffc107;
   color: #333;
 }
 
-.badge.badge-info {
+.tab-badge.badge-info {
   background: #17a2b8;
 }
 
-.badge.badge-primary {
+.tab-badge.badge-primary {
   background: #007bff;
 }
 
-.badge.badge-success {
+.tab-badge.badge-success {
   background: #28a745;
 }
 
-.tab-content {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  min-height: 400px;
+.tab-badge.badge-danger {
+  background: #dc3545;
 }
 
-.orders-list {
+/* Orders Content */
+.orders-content-section {
+  background: var(--bs-white);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--bs-gray-200);
+  min-height: 400px;
+  overflow: hidden;
+}
+
+.tab-content {
+  display: none;
   padding: 2rem;
 }
 
-.order-card {
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  transition: box-shadow 0.3s ease;
+.tab-content.active {
+  display: block;
 }
 
-.order-card:hover {
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+/* Professional Order Cards */
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.professional-order-card {
+  border: 1px solid var(--bs-gray-200);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  background: var(--bs-white);
+}
+
+.professional-order-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  border-color: hsl(var(--main));
+  transform: translateY(-2px);
+}
+
+.professional-order-card.error-card {
+  border-color: #dc3545;
+  background: #fff5f5;
 }
 
 .order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
-  background: #f8f9fa;
-  border-radius: 12px 12px 0 0;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--bs-gray-200);
+  background: var(--bs-gray-50);
 }
 
 .order-number {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #333;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--bs-gray-800);
 }
 
 .order-date {
-  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--bs-gray-600);
   font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.order-date i {
+  color: hsl(var(--main));
 }
 
 .status-badge {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 25px;
+  font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .status-pending {
@@ -375,82 +374,145 @@
   color: #0c5460;
 }
 
+.status-cancelled {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status-error {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status-badge i {
+  font-size: 1rem;
+}
+
+/* Order Body */
 .order-body {
-  padding: 1.5rem;
+  padding: 2rem;
+}
+
+.order-items {
+  margin-bottom: 1.5rem;
 }
 
 .item-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.item-image-container {
+  position: relative;
+  flex-shrink: 0;
 }
 
 .item-image {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid var(--bs-gray-200);
+}
+
+.item-discount-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff6b6b;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
 }
 
 .item-details {
   flex: 1;
 }
 
-.item-details h5 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1rem;
+.item-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
+  color: var(--bs-gray-800);
 }
 
-.item-details p {
-  margin: 0 0 0.25rem 0;
-  color: #666;
+.item-attributes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.attribute-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.9rem;
 }
 
-.item-quantity {
-  color: #999;
+.attr-label {
+  color: var(--bs-gray-600);
+  font-weight: 500;
+}
+
+.attr-value {
+  background: var(--bs-gray-100);
+  color: var(--bs-gray-800);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
   font-size: 0.85rem;
 }
 
 .item-price {
   text-align: right;
+  flex-shrink: 0;
 }
 
-.price {
+.current-price {
   display: block;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #ff6a00;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: hsl(var(--main));
+  margin-bottom: 0.25rem;
 }
 
 .unit-price {
-  color: #666;
-  font-size: 0.85rem;
+  color: var(--bs-gray-600);
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
+/* Order Summary */
 .order-summary {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--bs-gray-200);
 }
 
 .supplier-info {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #666;
-  font-size: 0.9rem;
+  gap: 0.75rem;
+  color: var(--bs-gray-700);
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .supplier-info i {
-  color: #ff6a00;
+  color: hsl(var(--main));
+  font-size: 1.1rem;
+}
+
+.supplier-name {
+  color: hsl(var(--main));
+  font-weight: 600;
 }
 
 .order-total {
@@ -459,84 +521,274 @@
 
 .total-label {
   display: block;
-  color: #666;
+  color: var(--bs-gray-600);
   font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
 }
 
 .total-amount {
   display: block;
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #ff6a00;
+  color: hsl(var(--main));
 }
 
-.shipping-info {
-  display: flex;
-  gap: 2rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
-}
-
-.tracking,
-.delivery-date {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.tracking i,
-.delivery-date i {
-  color: #ff6a00;
-}
-
+/* Order Actions */
 .order-actions {
   display: flex;
   gap: 1rem;
-  padding: 1.5rem;
-  border-top: 1px solid #e9ecef;
-  background: #f8f9fa;
-  border-radius: 0 0 12px 12px;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--bs-gray-200);
+  background: var(--bs-gray-50);
+  border-radius: 0 0 16px 16px;
 }
 
+.btn-action {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn-view {
+  background: hsl(var(--main));
+  color: white;
+}
+
+.btn-view:hover {
+  background: hsl(var(--main-d-100));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 202, 240, 0.3);
+}
+
+.btn-contact {
+  background: var(--bs-gray-100);
+  color: var(--bs-gray-700);
+  border: 1px solid var(--bs-gray-300);
+}
+
+.btn-contact:hover {
+  background: var(--bs-gray-200);
+  border-color: var(--bs-gray-400);
+}
+
+.btn-cancel {
+  background: #fff5f5;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.btn-cancel:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.btn-track {
+  background: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.btn-track:hover {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+}
+
+/* Loading States */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.loading-spinner {
+  text-align: center;
+  color: hsl(var(--main));
+}
+
+.loading-spinner i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--bs-gray-600);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: var(--bs-gray-400);
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--bs-gray-700);
+  font-size: 1.5rem;
+}
+
+.empty-state p {
+  margin: 0 0 2rem 0;
+  font-size: 1.1rem;
+}
+
+/* Error State */
+.error-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #dc3545;
+}
+
+.error-state h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+}
+
+.error-state p {
+  margin: 0 0 2rem 0;
+  font-size: 1.1rem;
+}
+
+/* Notifications */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10001;
+  max-width: 400px;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  font-weight: 500;
+}
+
+.notification-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.notification-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.notification-warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.notification-info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  margin-left: auto;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.notification-close:hover {
+  opacity: 1;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Loading Placeholder */
 .loading-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 4rem;
-  color: #666;
+  color: var(--bs-gray-600);
 }
 
 .loading-placeholder i {
-  font-size: 2rem;
+  font-size: 2.5rem;
   margin-bottom: 1rem;
-  color: #ff6a00;
+  color: hsl(var(--main));
+  animation: spin 1s linear infinite;
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .buyer-orders-wrapper {
-    padding: 30px 0;
+    padding: 1rem 0;
   }
   
-  .orders-header {
+  .orders-header-section {
     padding: 1.5rem;
   }
   
-  .orders-title {
-    font-size: 1.4rem;
+  .orders-main-title {
+    font-size: 1.5rem;
+  }
+  
+  
+  
+  .orders-tabs-section {
+    padding: 1rem 1rem 0 1rem;
   }
   
   .orders-tabs {
-    padding: 0.5rem 1rem 0 1rem;
+    gap: 0.25rem;
   }
   
-  .nav-tabs .nav-link {
-    padding: 0.75rem;
-    font-size: 0.9rem;
+  .tab-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
   }
   
   .order-header {
@@ -548,7 +800,7 @@
   .item-row {
     flex-direction: column;
     text-align: center;
-    gap: 0.5rem;
+    gap: 1rem;
   }
   
   .order-summary {
@@ -557,102 +809,1079 @@
     text-align: center;
   }
   
-  .shipping-info {
+  .order-actions {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
+  }
+  
+  .btn-action {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}
+
+/* ========== DARK MODE SUPPORT ========== */
+[data-theme="light"] {
+  .buyer-orders-wrapper {
+    background: var(--dark-black-one) !important;
+  }
+
+  .orders-header-section,
+  .orders-tabs-section,
+  .orders-content-section {
+    background: #1a1a2e;
+    border-color: #16213e;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .orders-main-title {
+    color: #ffffff;
+  }
+
+  .orders-subtitle {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  
+
+  .orders-tabs {
+    border-color: #16213e;
+  }
+
+  .tab-button {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .tab-button:hover {
+    background: rgba(13, 202, 240, 0.15);
+  }
+
+  .tab-button.active {
+    background: rgba(13, 202, 240, 0.2);
+  }
+
+  .professional-order-card {
+    background: #1a1a2e;
+    border-color: #16213e;
+  }
+
+  .professional-order-card:hover {
+    border-color: hsl(var(--main));
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .professional-order-card.error-card {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: rgba(220, 53, 69, 0.3);
+  }
+
+  .order-header {
+    background: #16213e;
+    border-color: #0f1419;
+  }
+
+  .order-number {
+    color: #ffffff;
+  }
+
+  .order-date {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .item-title {
+    color: #ffffff;
+  }
+
+  .attr-label {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .attr-value {
+    background: #16213e;
+    color: #ffffff;
+  }
+
+  .unit-price {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .order-summary {
+    border-color: #16213e;
+  }
+
+  .supplier-info {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .total-label {
+    color: rgba(255, 255, 255, 0.6);
   }
   
   .order-actions {
-    flex-direction: column;
-    gap: 0.5rem;
+    background: #16213e;
+    border-color: #0f1419;
+  }
+
+  .btn-contact {
+    background: #16213e;
+    color: rgba(255, 255, 255, 0.75);
+    border-color: #0f1419;
+  }
+
+  .btn-contact:hover {
+    background: #0f1419;
+    border-color: #16213e;
+  }
+
+  .btn-cancel {
+    background: rgba(220, 38, 38, 0.1);
+    color: #ff6b6b;
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+
+  .btn-cancel:hover {
+    background: rgba(220, 38, 38, 0.2);
+    border-color: rgba(220, 38, 38, 0.5);
+  }
+
+  .btn-track {
+    background: rgba(3, 105, 161, 0.1);
+    color: #60a5fa;
+    border-color: rgba(3, 105, 161, 0.3);
+  }
+
+  .btn-track:hover {
+    background: rgba(3, 105, 161, 0.2);
+    border-color: rgba(3, 105, 161, 0.5);
+  }
+
+  .loading-overlay {
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  .empty-state {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .empty-icon {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .empty-state h3 {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .error-state {
+    color: #ff6b6b;
+  }
+
+  .loading-placeholder {
+    color: rgba(255, 255, 255, 0.6);
   }
 }
 </style>
 
+<!-- Professional Orders JavaScript -->
 <script>
-// Orders functionality
-function viewOrder(orderNumber) {
-  window.location.href = `/buyer/orders/${orderNumber}`;
-}
+// Orders Management Class - Senior Software Engineer Level Implementation
+class OrdersManager {
+    constructor() {
+        this.currentTab = 'all';
+        this.currentPage = 1;
+        this.isLoading = false;
+        this.retryCount = 0;
+        this.maxRetries = 3;
+        this.retryDelay = 1000;
+        this.cache = new Map();
+        this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+        this.init();
+    }
 
-function contactSupplier(supplierId) {
-  window.location.href = `/buyer/messages?supplier=${supplierId}`;
-}
+    init() {
+        try {
+            this.bindEvents();
+            this.loadInitialData();
+            this.setupPeriodicRefresh();
+        } catch (error) {
+            console.error('❌ OrdersManager initialization error:', error);
+            this.showError('Failed to initialize orders manager');
+        }
+    }
 
-function cancelOrder(orderNumber) {
-  if (confirm('<%- t("orders.confirmCancel") || "Are you sure you want to cancel this order?" %>')) {
-    fetch('/buyer/api/cancel-order', {
-      method: 'POST',
+    bindEvents() {
+        try {
+            // Tab switching with error handling
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const targetTab = e.target.closest('.tab-button')?.dataset.tab;
+                    if (targetTab) {
+                        this.switchTab(targetTab);
+                    }
+                });
+            });
+
+            // Global error handling
+            window.addEventListener('error', (e) => {
+                console.error('Global error caught:', e.error);
+                this.showError('An unexpected error occurred');
+            });
+
+            // Network status monitoring
+            window.addEventListener('online', () => {
+                this.showNotification('Connection restored', 'success');
+                this.retryFailedRequests();
+            });
+
+            window.addEventListener('offline', () => {
+                this.showNotification('Connection lost', 'warning');
+            });
+
+        } catch (error) {
+            console.error('❌ Error binding events:', error);
+        }
+    }
+
+    async loadInitialData() {
+        try {
+            this.showLoading();
+            
+            // Single API call to get both orders and statistics
+            const response = await fetch('/buyer/api/buyer-orders?status=all&page=1&limit=20');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data && data.success) {
+                // Handle orders response
+                this.handleOrdersResponse(data, 'all');
+                
+                // Update statistics from the same response
+                if (data.statistics) {
+                    this.updateStatsDisplay(data.statistics);
+                    this.updateTabCounts(data.statistics);
+                }
+            } else {
+                throw new Error(data?.error?.message || 'Failed to load orders data');
+            }
+
+        } catch (error) {
+            console.error('❌ Error loading initial data:', error);
+            this.showError('Failed to load orders data');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    async switchTab(tabName) {
+        if (this.currentTab === tabName || this.isLoading) return;
+        
+        try {
+            this.currentTab = tabName;
+            this.currentPage = 1;
+            
+            // Update active tab with error handling
+            this.updateActiveTab(tabName);
+            
+            // Load orders for this tab
+            await this.loadOrders(tabName);
+            
+        } catch (error) {
+            console.error('❌ Error switching tab:', error);
+            this.showError('Failed to switch tab');
+        }
+    }
+
+    updateActiveTab(tabName) {
+        try {
+            // Update active tab button
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            const activeButton = document.querySelector(`[data-tab="${tabName}"]`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+            
+            // Update active content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            const activeContent = document.getElementById(`${tabName}-tab`);
+            if (activeContent) {
+                activeContent.classList.add('active');
+            }
+        } catch (error) {
+            console.error('❌ Error updating active tab:', error);
+        }
+    }
+
+    async loadOrders(status, retryAttempt = 0) {
+        if (this.isLoading) return;
+        
+        try {
+            this.isLoading = true;
+            this.showLoading();
+            
+            // Check cache first
+            const cacheKey = `orders_${status}_${this.currentPage}`;
+            const cachedData = this.getCachedData(cacheKey);
+            
+            if (cachedData) {
+                this.handleOrdersResponse(cachedData, status);
+                this.hideLoading();
+                return;
+            }
+
+            // Make API call with timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+            const response = await fetch(`/buyer/api/buyer-orders?status=${encodeURIComponent(status)}&page=${this.currentPage}&limit=20`, {
+                method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ orderNumber: orderNumber })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        location.reload();
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            
+            // Validate response structure
+            if (!this.validateOrdersResponse(data)) {
+                throw new Error('Invalid response format from server');
+            }
+
+            // Cache successful response
+            this.cacheData(cacheKey, data);
+            
+            // Handle response
+            this.handleOrdersResponse(data, status);
+            
+            // Reset retry count on success
+            this.retryCount = 0;
+
+        } catch (error) {
+            console.error('❌ Error loading orders:', error);
+            
+            // Handle specific error types
+            if (error.name === 'AbortError') {
+                this.showError('Request timeout - please try again');
+            } else if (error.message.includes('HTTP 401')) {
+                this.showError('Please log in again');
+                setTimeout(() => window.location.href = '/login', 2000);
+            } else if (error.message.includes('HTTP 403')) {
+                this.showError('Access denied');
+            } else if (error.message.includes('HTTP 500')) {
+                this.showError('Server error - please try again later');
       } else {
-        alert(data.message || 'Failed to cancel order');
-      }
-    })
-    .catch(error => {
-      console.error('Error cancelling order:', error);
-      alert('Failed to cancel order');
-    });
-  }
-}
+                this.showError('Failed to load orders');
+            }
 
-function trackOrder(trackingNumber) {
-  window.open(`/tracking/${trackingNumber}`, '_blank');
-}
+            // Retry logic
+            if (retryAttempt < this.maxRetries && this.shouldRetry(error)) {
+                await this.delay(this.retryDelay * Math.pow(2, retryAttempt));
+                return this.loadOrders(status, retryAttempt + 1);
+            }
 
-// Load tab content dynamically
-document.addEventListener('DOMContentLoaded', function() {
-  const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
-  
-  tabButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const targetTab = this.getAttribute('data-bs-target');
-      const status = targetTab.replace('#', '');
-      
-      if (status !== 'all') {
-        loadOrdersByStatus(status);
+        } finally {
+            this.isLoading = false;
+            this.hideLoading();
+        }
+    }
+
+    validateOrdersResponse(data) {
+        return data && 
+               typeof data === 'object' && 
+               Array.isArray(data.orders) && 
+               typeof data.statistics === 'object' &&
+               typeof data.pagination === 'object';
+    }
+
+    handleOrdersResponse(data, status) {
+        try {
+            if (!data || data.success === false) {
+                // Handle error response
+                const errorMessage = data?.error?.message || 'Failed to load orders';
+                this.showError(errorMessage);
+                this.renderOrders([], status);
+                return;
+            }
+
+            // Update orders display
+            this.renderOrders(data.orders || [], status);
+            
+            // Update tab counts
+            if (data.statistics) {
+                this.updateTabCounts(data.statistics);
+            }
+            
+            // Update pagination if needed
+            if (data.pagination) {
+                this.updatePagination(data.pagination);
+            }
+
+        } catch (error) {
+            console.error('❌ Error handling orders response:', error);
+            this.showError('Error processing orders data');
+        }
+    }
+
+    renderOrders(orders, status) {
+        try {
+            // Map status to correct container ID
+            const containerId = status === 'all' ? 'allOrdersList' : `${status}OrdersList`;
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error('❌ Container not found for status:', status, 'Container ID:', containerId);
+                return;
+            }
+            
+            if (!orders || orders.length === 0) {
+                container.innerHTML = this.getEmptyStateHTML(status);
+                return;
+            }
+
+            // Sanitize and render orders
+            const sanitizedOrders = orders.map(order => this.sanitizeOrderData(order));
+            container.innerHTML = sanitizedOrders.map(order => this.renderOrderCard(order)).join('');
+            
+            // Add event listeners to new elements
+            this.addOrderEventListeners(container);
+            
+        } catch (error) {
+            console.error('❌ Error rendering orders:', error);
+            this.showError('Error displaying orders');
+        }
+    }
+
+    /**
+     * Populate tab with filtered orders from existing data
+     */
+    populateTabWithFilteredOrders(allOrders, status) {
+        try {
+            if (!allOrders || !Array.isArray(allOrders)) return;
+            
+                         // Filter orders by status
+             const filteredOrders = allOrders.filter(order => {
+                 if (status === 'pending') return order.status === 'pending';
+                 if (status === 'processing') return order.status === 'processing';
+                 if (status === 'shipped') return order.status === 'shipped';
+                 if (status === 'delivered') return order.status === 'delivered';
+                 if (status === 'completed') return order.status === 'completed';
+                 if (status === 'cancelled') return order.status === 'cancelled';
+                 return false;
+             });
+            
+            // Render filtered orders to the appropriate tab
+            this.renderOrders(filteredOrders, status);
+            
+        } catch (error) {
+            console.error('❌ Error populating tab with filtered orders:', error);
+        }
+    }
+
+    sanitizeOrderData(order) {
+        // Sanitize order data to prevent XSS
+        const sanitizeString = (str) => {
+            if (typeof str !== 'string') return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        };
+
+        return {
+            ...order,
+            orderNumber: sanitizeString(order.orderNumber),
+            mainProduct: {
+                ...order.mainProduct,
+                name: sanitizeString(order.mainProduct?.name)
+            },
+            supplier: {
+                ...order.supplier,
+                name: sanitizeString(order.supplier?.name)
+            }
+        };
+    }
+
+    renderOrderCard(order) {
+        try {
+            const statusClass = `status-${order.status}`;
+            const statusLabel = this.escapeHtml(order.statusLabel || order.status);
+            const formattedDate = this.formatDate(order.createdAt);
+            const formattedAmount = this.formatCurrency(order.totalAmount, order.currency);
+
+            return `
+                <div class="professional-order-card" data-order-id="${this.escapeHtml(order.id)}">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <h4 class="order-number">${this.escapeHtml(order.orderNumber)}</h4>
+                            <span class="order-date">
+                                <i class="las la-calendar"></i>
+                                <%- t('orders.placedOn') || 'Placed on' %> ${formattedDate}
+                            </span>
+                        </div>
+                        <div class="order-status">
+                            <span class="status-badge ${statusClass}">
+                                <i class="las la-${this.getStatusIcon(order.status)}"></i>
+                                ${statusLabel}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="order-body">
+                        <div class="order-items">
+                            <div class="item-row">
+                                <div class="item-image-container">
+                                    <img src="${this.escapeHtml(order.mainProduct.image)}" 
+                                         alt="${this.escapeHtml(order.mainProduct.name)}" 
+                                         class="item-image"
+                                         onerror="this.src='/assets/images/placeholder-product.svg'">
+                                    ${order.discount.hasDiscount ? `<div class="item-discount-badge">-${order.discount.percentage}%</div>` : ''}
+                                </div>
+                                <div class="item-details">
+                                    <h5 class="item-title">${this.escapeHtml(order.mainProduct.name)}</h5>
+                                    <div class="item-attributes">
+                                        <span class="attribute-item">
+                                            <span class="attr-label"><%- t('orders.quantity') || 'Quantity' %>:</span>
+                                            <span class="attr-value">${order.totalQuantity} <%- t('common.pieces') || 'pieces' %></span>
+                                        </span>
+                                        ${order.items.length > 1 ? `<span class="attribute-item">
+                                            <span class="attr-label">Items:</span>
+                                            <span class="attr-value">${order.items.length} products</span>
+                                        </span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="item-price">
+                                    <span class="current-price">${formattedAmount}</span>
+                                    <span class="unit-price">${this.formatCurrency(order.mainProduct.unitPrice, order.currency)} / <%- t('common.piece') || 'piece' %></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="order-summary">
+                            <div class="supplier-info">
+                                <i class="las la-store"></i>
+                                <span class="supplier-name">${this.escapeHtml(order.supplier.name)}</span>
+                            </div>
+                            <div class="order-total">
+                                <span class="total-label"><%- t('orders.total') || 'Total' %>:</span>
+                                <span class="total-amount">${formattedAmount}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="order-actions">
+                        ${this.renderActionButtons(order)}
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error('❌ Error rendering order card:', error);
+            return this.getErrorOrderCard();
+        }
+    }
+
+    getErrorOrderCard() {
+        return `
+            <div class="professional-order-card error-card">
+                <div class="order-header">
+                    <div class="order-info">
+                        <h4 class="order-number">Error Loading Order</h4>
+                    </div>
+                    <div class="order-status">
+                        <span class="status-badge status-error">
+                            <i class="las la-exclamation-triangle"></i>
+                            Error
+                        </span>
+                    </div>
+                </div>
+                <div class="order-body">
+                    <p>Failed to load order details. Please refresh the page.</p>
+                </div>
+            </div>
+        `;
+    }
+
+    renderActionButtons(order) {
+        try {
+            const buttons = [];
+            
+            // View details button
+            buttons.push(`
+                <button class="btn-action btn-view" 
+                        onclick="ordersManager.viewOrder('${this.escapeHtml(order.id)}')"
+                        title="<%- t('orders.viewDetails') || 'View Details' %>">
+                    <i class="las la-eye"></i>
+                    <%- t('orders.viewDetails') || 'View Details' %>
+                </button>
+            `);
+            
+            // Contact supplier button
+            if (order.actions.includes('contact_supplier')) {
+                buttons.push(`
+                    <button class="btn-action btn-contact" 
+                            onclick="ordersManager.contactSupplier('${this.escapeHtml(order.supplier.id)}')"
+                            title="<%- t('orders.contactSupplier') || 'Contact Supplier' %>">
+                        <i class="las la-comments"></i>
+                        <%- t('orders.contactSupplier') || 'Contact Supplier' %>
+                    </button>
+                `);
+            }
+            
+            // Cancel order button
+            if (order.actions.includes('cancel')) {
+                buttons.push(`
+                    <button class="btn-action btn-cancel" 
+                            onclick="ordersManager.cancelOrder('${this.escapeHtml(order.id)}')"
+                            title="<%- t('orders.cancel') || 'Cancel' %>">
+                        <i class="las la-times"></i>
+                        <%- t('orders.cancel') || 'Cancel' %>
+                    </button>
+                `);
+            }
+            
+            // Track order button
+            if (order.actions.includes('track')) {
+                buttons.push(`
+                    <button class="btn-action btn-track" 
+                            onclick="ordersManager.trackOrder('${this.escapeHtml(order.shipping.trackingNumber)}')"
+                            title="<%- t('orders.trackOrder') || 'Track Order' %>">
+                        <i class="las la-truck"></i>
+                        <%- t('orders.trackOrder') || 'Track Order' %>
+                    </button>
+                `);
+            }
+            
+            return buttons.join('');
+        } catch (error) {
+            console.error('❌ Error rendering action buttons:', error);
+            return '';
+        }
+    }
+
+    addOrderEventListeners(container) {
+        try {
+            // Add click event listeners for order cards
+            const orderCards = container.querySelectorAll('.professional-order-card');
+            orderCards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    if (!e.target.closest('.btn-action')) {
+                        const orderId = card.dataset.orderId;
+                        if (orderId) {
+                            this.viewOrder(orderId);
+                        }
       }
     });
   });
-});
+        } catch (error) {
+            console.error('❌ Error adding event listeners:', error);
+        }
+    }
 
-function loadOrdersByStatus(status) {
-  const tabPane = document.querySelector(`#${status}`);
-  
-  fetch(`/buyer/api/orders?status=${status}`)
-    .then(response => response.json())
-    .then(data => {
+    getStatusIcon(status) {
+        const statusIcons = {
+            'draft': 'edit',
+            'pending': 'clock',
+            'confirmed': 'check',
+            'processing': 'cog',
+            'manufacturing': 'cog',
+            'ready_to_ship': 'box',
+            'shipped': 'shipping-fast',
+            'out_for_delivery': 'truck',
+            'in_transit': 'truck',
+            'delivered': 'check-circle',
+            'completed': 'check-circle',
+            'cancelled': 'times',
+            'refunded': 'undo',
+            'disputed': 'exclamation-triangle',
+            'error': 'exclamation-triangle'
+        };
+        return statusIcons[status] || 'question';
+    }
+
+    getEmptyStateHTML(status) {
+        return `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="las la-shopping-bag"></i>
+                </div>
+                <h3><%- t('orders.noOrdersForStatus') || 'No Orders Found' %></h3>
+                <p><%- t('orders.noOrdersForStatusDesc') || 'No orders found for this status' %></p>
+                <button class="btn btn-primary" onclick="ordersManager.refreshOrders()">
+                    <i class="las la-sync"></i>
+                    Refresh
+                </button>
+            </div>
+        `;
+    }
+
+    async updateStatistics() {
+        try {
+            const response = await fetch('/buyer/api/buyer-orders?status=all&page=1&limit=1');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data && data.success && data.statistics) {
+                this.updateStatsDisplay(data.statistics);
+                this.updateTabCounts(data.statistics);
+                return data.statistics;
+            } else {
+                throw new Error(data?.error?.message || 'Failed to load statistics');
+            }
+        } catch (error) {
+            console.error('❌ Error updating statistics:', error);
+            return null;
+        }
+    }
+
+    updateStatsDisplay(stats) {
+        try {
+            if (!stats) return;
+            
+                         const elements = {
+                 'totalOrders': document.getElementById('totalOrders'),
+                 'pendingOrders': document.getElementById('pendingOrders'),
+                 'processingOrders': document.getElementById('processingOrders'),
+                 'shippedOrders': document.getElementById('shippedOrders'),
+                 'confirmedOrders': document.getElementById('confirmedOrders'),
+                 'completedOrders': document.getElementById('completedOrders'),
+                 'cancelledOrders': document.getElementById('cancelledOrders')
+             };
+
+            Object.entries(elements).forEach(([key, element]) => {
+                if (element && stats[key] !== undefined) {
+                    element.textContent = stats[key] || 0;
+                }
+            });
+        } catch (error) {
+            console.error('❌ Error updating stats display:', error);
+        }
+    }
+
+    updateTabCounts(stats) {
+        try {
+            if (!stats) return;
+            
+                         const elements = {
+                 'allOrdersCount': document.getElementById('allOrdersCount'),
+                 'pendingOrdersCount': document.getElementById('pendingOrdersCount'),
+                 'processingOrdersCount': document.getElementById('processingOrdersCount'),
+                 'shippedOrdersCount': document.getElementById('shippedOrdersCount'),
+                 'deliveredOrdersCount': document.getElementById('deliveredOrdersCount'),
+                 'completedOrdersCount': document.getElementById('completedOrdersCount'),
+                 'cancelledOrdersCount': document.getElementById('cancelledOrdersCount')
+             };
+
+            Object.entries(elements).forEach(([key, element]) => {
+                if (element) {
+                    let statKey = key.replace('Count', '');
+                    // Special mapping for allOrdersCount
+                    if (key === 'allOrdersCount') {
+                        statKey = 'totalOrders';
+                    }
+                    
+                    if (stats[statKey] !== undefined) {
+                        element.textContent = stats[statKey] || 0;
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('❌ Error updating tab counts:', error);
+        }
+    }
+
+    updatePagination(pagination) {
+        // TODO: Implement pagination UI if needed
+        console.log('Pagination data:', pagination);
+    }
+
+    // Action Methods with proper error handling
+    async viewOrder(orderId) {
+        try {
+            if (!orderId || orderId === 'unknown') {
+                this.showError('Invalid order ID');
+                return;
+            }
+            window.location.href = `/buyer/orders/${encodeURIComponent(orderId)}`;
+        } catch (error) {
+            console.error('❌ Error viewing order:', error);
+            this.showError('Failed to open order details');
+        }
+    }
+
+    async contactSupplier(supplierId) {
+        try {
+            if (!supplierId || supplierId === 'unknown') {
+                this.showError('Invalid supplier ID');
+                return;
+            }
+            window.location.href = `/buyer/messages?supplier=${encodeURIComponent(supplierId)}`;
+        } catch (error) {
+            console.error('❌ Error contacting supplier:', error);
+            this.showError('Failed to open messages');
+        }
+    }
+
+    async cancelOrder(orderId) {
+        try {
+            if (!orderId || orderId === 'unknown') {
+                this.showError('Invalid order ID');
+                return;
+            }
+
+            const confirmed = await this.showConfirmDialog(
+                '<%- t("orders.confirmCancel") || "Are you sure you want to cancel this order?" %>'
+            );
+            
+            if (!confirmed) return;
+
+            this.showLoading();
+            
+            const response = await fetch('/buyer/api/cancel-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ orderId: orderId })
+            });
+            
+            const data = await response.json();
+            
       if (data.success) {
-        tabPane.innerHTML = renderOrders(data.orders);
+                this.showNotification('Order cancelled successfully', 'success');
+                await this.refreshOrders();
       } else {
-        tabPane.innerHTML = '<div class="text-center p-4">Failed to load orders</div>';
-      }
-    })
-    .catch(error => {
-      console.error('Error loading orders:', error);
-      tabPane.innerHTML = '<div class="text-center p-4">Failed to load orders</div>';
-    });
+                throw new Error(data.message || 'Failed to cancel order');
+            }
+        } catch (error) {
+            console.error('❌ Error cancelling order:', error);
+            this.showError('Failed to cancel order');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    async trackOrder(trackingNumber) {
+        try {
+            if (!trackingNumber) {
+                this.showError('No tracking number available for this order');
+                return;
+            }
+            window.open(`/tracking/${encodeURIComponent(trackingNumber)}`, '_blank');
+        } catch (error) {
+            console.error('❌ Error tracking order:', error);
+            this.showError('Failed to open tracking');
+        }
+    }
+
+    async refreshOrders() {
+        try {
+            await this.loadOrders(this.currentTab);
+        } catch (error) {
+            console.error('❌ Error refreshing orders:', error);
+        }
+    }
+
+    // Utility Methods
+    showLoading() {
+        try {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+            }
+        } catch (error) {
+            console.error('❌ Error showing loading:', error);
+        }
+    }
+
+    hideLoading() {
+        try {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('❌ Error hiding loading:', error);
+        }
+    }
+
+    showError(message) {
+        this.showNotification(message, 'error');
+    }
+
+    showNotification(message, type = 'info') {
+        try {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <i class="las la-${this.getNotificationIcon(type)}"></i>
+                    <span>${this.escapeHtml(message)}</span>
+                    <button class="notification-close" onclick="this.parentElement.parentElement.remove()">
+                        <i class="las la-times"></i>
+                    </button>
+                </div>
+            `;
+
+            // Add to page
+            document.body.appendChild(notification);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+
+        } catch (error) {
+            console.error('❌ Error showing notification:', error);
+            // Fallback to alert
+            alert(message);
+        }
+    }
+
+    getNotificationIcon(type) {
+        const icons = {
+            'success': 'check-circle',
+            'error': 'exclamation-triangle',
+            'warning': 'exclamation-circle',
+            'info': 'info-circle'
+        };
+        return icons[type] || 'info-circle';
+    }
+
+    async showConfirmDialog(message) {
+        return new Promise((resolve) => {
+            const confirmed = confirm(message);
+            resolve(confirmed);
+        });
+    }
+
+    // Security and utility methods
+    escapeHtml(text) {
+        if (typeof text !== 'string') return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    formatDate(dateString) {
+        try {
+            if (!dateString) return 'Unknown Date';
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return 'Invalid Date';
+            return date.toLocaleDateString();
+        } catch (error) {
+            return 'Invalid Date';
+        }
+    }
+
+    formatCurrency(amount, currency = 'USD') {
+        try {
+            if (typeof amount !== 'number' || isNaN(amount)) return '$0.00';
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: currency || 'USD'
+            }).format(amount);
+        } catch (error) {
+            return '$0.00';
+        }
+    }
+
+    // Cache management
+    cacheData(key, data) {
+        try {
+            this.cache.set(key, {
+                data: data,
+                timestamp: Date.now()
+            });
+        } catch (error) {
+            console.error('❌ Error caching data:', error);
+        }
+    }
+
+    getCachedData(key) {
+        try {
+            const cached = this.cache.get(key);
+            if (cached && (Date.now() - cached.timestamp) < this.cacheTimeout) {
+                return cached.data;
+            }
+            this.cache.delete(key);
+            return null;
+        } catch (error) {
+            console.error('❌ Error getting cached data:', error);
+            return null;
+        }
+    }
+
+    // Performance and retry methods
+    shouldRetry(error) {
+        return error.message.includes('HTTP 500') || 
+               error.message.includes('timeout') ||
+               error.name === 'TypeError';
+    }
+
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    setupPeriodicRefresh() {
+        // Refresh data every 5 minutes
+        setInterval(() => {
+            if (!this.isLoading && document.visibilityState === 'visible') {
+                this.refreshOrders();
+            }
+        }, 5 * 60 * 1000);
+    }
+
+    retryFailedRequests() {
+        // Retry any failed requests when connection is restored
+        if (this.retryCount > 0) {
+            this.retryCount = 0;
+            this.refreshOrders();
+        }
+    }
 }
 
-function renderOrders(orders) {
-  if (orders.length === 0) {
-    return '<div class="text-center p-4"><p>No orders found for this status.</p></div>';
-  }
-  
-  // Render orders HTML - implement based on your needs
-  return '<div class="orders-list">' + orders.map(order => `
-    <div class="order-card">
-      <!-- Order content here -->
+// Initialize Orders Manager with error handling
+let ordersManager;
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        ordersManager = new OrdersManager();
+    } catch (error) {
+        console.error('❌ Failed to initialize OrdersManager:', error);
+        // Show fallback error message
+        const container = document.querySelector('.orders-content-section');
+        if (container) {
+            container.innerHTML = `
+                <div class="error-state">
+                    <h3>Failed to load orders</h3>
+                    <p>Please refresh the page or contact support.</p>
+                    <button onclick="location.reload()" class="btn btn-primary">Refresh Page</button>
     </div>
-  `).join('') + '</div>';
+            `;
 }
+    }
+});
 </script>
 
 <!-- Buyer Token Manager -->

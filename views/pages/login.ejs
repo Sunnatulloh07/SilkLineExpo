@@ -5,6 +5,8 @@
 <link rel="stylesheet" href="/css/login-button-fix.css">
 <!-- Password Toggle CSS -->
 <link rel="stylesheet" href="/css/login-password-toggle.css">
+<!-- Form Validation CSS -->
+<link rel="stylesheet" href="/css/form-validation.css">
 
 <body>
   <!--==================== Preloader Start ====================-->
@@ -154,12 +156,12 @@
             </div>
           <% } %>
 
-          <form action="/auth/login" method="POST" id="loginForm" class="needs-validation" novalidate>
+          <form action="/auth/login" method="POST" id="loginForm" class="login-form" novalidate>
             <!-- CSRF Token -->
             <input type="hidden" name="csrfToken" value="<%= csrfToken || '' %>">
             <div class="row gy-4">
               <div class="col-12">
-                <label for="email" class="form-label mb-2 font-18 font-heading fw-600"><%= t('auth.email') || 'Email Address' %></label>
+                <label for="email" class="form-label mb-2 font-18 font-heading fw-600"><%= t('auth.email') || 'Email Address' %> <span class="text-danger">*</span></label>
                 <div class="position-relative">
                   <input type="email" class="common-input common-input--bg common-input--withIcon" id="email" name="email"
                     placeholder="<%= t('auth.emailPlaceholder') || 'Enter your email address' %>" required>
@@ -167,7 +169,7 @@
                 </div>
               </div>
               <div class="col-12">
-                <label for="password" class="form-label mb-2 font-18 font-heading fw-600"><%= t('auth.password') %></label>
+                <label for="password" class="form-label mb-2 font-18 font-heading fw-600"><%= t('auth.password') %> <span class="text-danger">*</span></label>
                 <div class="position-relative">
                   <input type="password" class="common-input common-input--bg" id="password" name="password"
                     placeholder="<%= t('auth.passwordPlaceholder') %>" required>
@@ -244,14 +246,14 @@
   <!-- Custom Language Selector JavaScript -->
   <script src="/js/custom-lang-selector.js"></script>
   
-  <!-- Password Toggle JavaScript -->
-  <script src="/js/login-password-toggle.js"></script>
-  
-  <!-- Enhanced Multi-Dashboard Login JavaScript -->
+  <!-- Enhanced Multi-Dashboard Login JavaScript (Main Validation + Password Toggle) -->
   <script src="/js/multi-dashboard-login.js"></script>
   
-  <!-- Legacy Login Handler (Backward Compatibility) -->
-  <script src="/js/login-handler.js"></script>
+  <!-- Password Toggle JavaScript - Disabled to prevent conflicts -->
+  <!-- <script src="/js/login-password-toggle.js"></script> -->
+  
+  <!-- Legacy Login Handler - Disabled to prevent duplicate validation -->
+  <!-- <script src="/js/login-handler.js"></script> -->
 
   <!-- Google Translate removed - using i18next instead -->
 

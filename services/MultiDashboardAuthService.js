@@ -45,8 +45,7 @@ class MultiDashboardAuthService {
      */
     async authenticate(email, password, clientIP = '127.0.0.1') {
         try {
-            this.logger.log(`🔐 Multi-dashboard auth attempt: ${email} from IP: ${clientIP}`);
-
+            
             // Input validation
             const validation = this.validateInput(email, password);
             if (!validation.valid) {
@@ -79,9 +78,7 @@ class MultiDashboardAuthService {
             // Update last login information
             await this.updateLastLogin(authResult.userData, authResult.userType, clientIP);
 
-            this.logger.log(`✅ Authentication successful: ${email} -> ${dashboardRoute}`);
-
-            return {
+      return {
                 success: true,
                 user: authResult.userData,
                 userType: authResult.userType,
@@ -93,8 +90,7 @@ class MultiDashboardAuthService {
             };
 
         } catch (error) {
-            this.logger.error(`❌ Authentication failed for ${email}:`, error.message);
-            return {
+           return {
                 success: false,
                 message: error.message,
                 code: this.getErrorCode(error.message)
@@ -233,8 +229,6 @@ class MultiDashboardAuthService {
                 await this.resetLoginAttempts(admin, 'admin');
             }
 
-            this.logger.log(`✅ Admin authentication successful: ${email} (${admin.role})`);
-
             return {
                 success: true,
                 userData: admin.toObject(),
@@ -312,10 +306,7 @@ class MultiDashboardAuthService {
             if (user.loginAttempts > 0) {
                 await this.resetLoginAttempts(user, 'user');
             }
-
-            this.logger.log(`✅ User authentication successful: ${email} (${user.companyType})`);
-
-            return {
+        return {
                 success: true,
                 userData: user.toObject(),
                 userType: 'user'

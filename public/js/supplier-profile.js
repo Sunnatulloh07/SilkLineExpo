@@ -61,8 +61,9 @@ class SupplierProfileManager {
         if (action.includes('openContactModal')) {
             this.openContactModal();
         } else if (action.includes('startChat')) {
-            const supplierId = this.extractParameter(action, 'startChat');
-            this.startChat(supplierId);
+            // Disabled to prevent conflicts with main page chat handler
+            console.log('ℹ️ startChat action intercepted but ignored to prevent conflicts');
+            return; // Don't handle startChat here
         } else if (action.includes('requestQuote')) {
             this.requestQuote();
         } else if (action.includes('contactSupplier')) {
@@ -955,9 +956,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Global functions for backward compatibility
     window.openContactModal = () => supplierProfile.openContactModal();
-    window.startChat = (id) => supplierProfile.startChat(id);
+    // window.startChat = (id) => supplierProfile.startChat(id); // Disabled to prevent conflicts
     window.requestQuote = () => supplierProfile.requestQuote();
     window.contactSupplier = (id) => supplierProfile.contactSupplier(id);
+    
+    console.log('ℹ️ Supplier profile startChat disabled to prevent conflicts');
     window.addToInquiry = (id) => supplierProfile.addToInquiry(id);
     window.saveSupplier = (id) => supplierProfile.saveSupplier(id);
     window.shareSupplier = (id) => supplierProfile.shareSupplier(id);

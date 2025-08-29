@@ -175,7 +175,15 @@ router.post('/refresh-token', async (req, res) => {
           name: refreshResult.user.name || refreshResult.user.companyName,
           email: refreshResult.user.email,
           role: refreshResult.user.role,
-          userType: refreshResult.user.role ? "admin" : "user"
+          userType: refreshResult.userType || (refreshResult.user.role === 'super_admin' || refreshResult.user.role === 'admin' || refreshResult.user.role === 'moderator' ? "admin" : "user"),
+          companyType: refreshResult.user.companyType,
+          companyName: refreshResult.user.companyName,
+          companyLogo: refreshResult.user.companyLogo,
+          phone: refreshResult.user.phone,
+          country: refreshResult.user.country,
+          address: refreshResult.user.address,
+          contactPerson: refreshResult.user.contactPerson,
+          preferredLanguage: refreshResult.user.preferredLanguage
         },
         sessionId: refreshResult.tokens.sessionId
       }

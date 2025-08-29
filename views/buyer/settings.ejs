@@ -1332,6 +1332,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Setup token event listeners
         buyerTokenManager.on('token-refreshed', (data) => {
             console.log('✅ Settings page: Tokens refreshed successfully');
+            // Also save updated user data if available
+            if (data.data && data.data.user && data.data.user.companyType === 'distributor') {
+                buyerTokenManager.saveUserDataToStorage(data.data.user);
+            }
         });
 
         buyerTokenManager.on('auth-error', (data) => {
@@ -1368,6 +1372,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 credentials: 'include' // Always include cookies
             });
         };
+        
+        // Manually save current user data to localStorage on settings page load
+        const settingsUserData = {
+          id: "<%= user._id %>",
+          name: "<%= user.companyName || user.name %>",
+          email: "<%= user.email %>",
+          role: "<%= user.role %>",
+          userType: "user", // Company admins are userType 'user'
+          companyType: "<%= user.companyType %>",
+          companyName: "<%= user.companyName %>",
+          phone: "<%= user.phone %>",
+          country: "<%= user.country %>"
+        };
+        
+        // Save to localStorage only for distributors
+        if (settingsUserData.companyType === 'distributor') {
+          try {
+            localStorage.setItem('slex_buyer_user_data', JSON.stringify(settingsUserData));
+            console.log('💾 Settings page: Saved distributor data to localStorage:', settingsUserData);
+          } catch (error) {
+            console.warn('❌ Settings page: Failed to save user data to localStorage:', error);
+          }
+        } else {
+          console.log('⚠️ Settings page: User is not distributor, not saving to localStorage. companyType:', settingsUserData.companyType);
+        }
     }
 
     // ===== PROFESSIONAL FORM SUBMISSION HANDLERS =====

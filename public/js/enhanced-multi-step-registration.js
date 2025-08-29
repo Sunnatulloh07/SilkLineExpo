@@ -695,9 +695,86 @@ class EnhancedMultiStepRegistration {
     
     const errorDiv = document.createElement('div');
     errorDiv.className = 'invalid-feedback d-block';
-    errorDiv.textContent = message;
+    
+    // Get current language and show error in that language only
+    const currentLang = this.getCurrentLanguage();
+    const localizedMessage = this.getLocalizedErrorMessage(message, currentLang);
+    
+    errorDiv.textContent = localizedMessage;
     
     field.parentNode.appendChild(errorDiv);
+  }
+
+  getCurrentLanguage() {
+    // Try to get language from various sources
+    const htmlLang = document.documentElement.lang;
+    const langFromUrl = window.location.pathname.includes('/language/') ? 
+      window.location.pathname.split('/language/')[1]?.split('/')[0] : null;
+    const langFromSelector = document.querySelector('.current-lang-text')?.textContent?.toLowerCase();
+    
+    return htmlLang || langFromUrl || langFromSelector || 'en';
+  }
+
+  getLocalizedErrorMessage(message, lang) {
+    const errorMessages = {
+      'en': {
+        'is required': 'is required',
+        'Please enter a valid email address': 'Please enter a valid email address',
+        'Please enter a valid phone number (e.g., +998901234567)': 'Please enter a valid phone number (e.g., +998901234567)',
+        'Tax number must be at least 6 characters': 'Tax number must be at least 6 characters',
+        'Tax number must not exceed 20 characters': 'Tax number must not exceed 20 characters',
+        'Company name must be at least 2 characters': 'Company name must be at least 2 characters',
+        'Company name must not exceed 200 characters': 'Company name must not exceed 200 characters',
+        'Password must be at least 6 characters': 'Password must be at least 6 characters',
+        'Passwords do not match': 'Passwords do not match',
+        'You must agree to the Terms of Service and Privacy Policy': 'You must agree to the Terms of Service and Privacy Policy',
+        'File size must be less than 5MB': 'File size must be less than 5MB',
+        'Only JPG and PNG files are allowed': 'Only JPG and PNG files are allowed'
+      },
+      'uz': {
+        'is required': 'majburiy',
+        'Please enter a valid email address': 'To\'g\'ri email manzilni kiriting',
+        'Please enter a valid phone number (e.g., +998901234567)': 'To\'g\'ri telefon raqamni kiriting (masalan: +998901234567)',
+        'Tax number must be at least 6 characters': 'Soliq raqami kamida 6 ta belgidan iborat bo\'lishi kerak',
+        'Tax number must not exceed 20 characters': 'Soliq raqami 20 ta belgidan oshmasligi kerak',
+        'Company name must be at least 2 characters': 'Kompaniya nomi kamida 2 ta belgidan iborat bo\'lishi kerak',
+        'Company name must not exceed 200 characters': 'Kompaniya nomi 200 ta belgidan oshmasligi kerak',
+        'Password must be at least 6 characters': 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak',
+        'Passwords do not match': 'Parollar mos kelmadi',
+        'You must agree to the Terms of Service and Privacy Policy': 'Xizmat ko\'rsatish shartlari va Maxfiylik siyosatiga rozilik berishingiz kerak',
+        'File size must be less than 5MB': 'Fayl hajmi 5MB dan kam bo\'lishi kerak',
+        'Only JPG and PNG files are allowed': 'Faqat JPG va PNG fayl formatlari ruxsat etilgan'
+      },
+      'ru': {
+        'is required': 'обязательно',
+        'Please enter a valid email address': 'Введите корректный email адрес',
+        'Please enter a valid phone number (e.g., +998901234567)': 'Введите корректный номер телефона (например: +998901234567)',
+        'Tax number must be at least 6 characters': 'Налоговый номер должен содержать минимум 6 символов',
+        'Tax number must not exceed 20 characters': 'Налоговый номер не должен превышать 20 символов',
+        'Company name must be at least 2 characters': 'Название компании должно содержать минимум 2 символа',
+        'Company name must not exceed 200 characters': 'Название компании не должно превышать 200 символов',
+        'Password must be at least 6 characters': 'Пароль должен содержать минимум 6 символов',
+        'Passwords do not match': 'Пароли не совпадают',
+        'You must agree to the Terms of Service and Privacy Policy': 'Вы должны согласиться с Условиями использования и Политикой конфиденциальности',
+        'File size must be less than 5MB': 'Размер файла должен быть менее 5MB',
+        'Only JPG and PNG files are allowed': 'Разрешены только файлы JPG и PNG'
+      }
+    };
+
+    // If language not found, return English
+    if (!errorMessages[lang]) {
+      return message;
+    }
+
+    // Find matching error message
+    for (const [key, value] of Object.entries(errorMessages[lang])) {
+      if (message.includes(key)) {
+        return value;
+      }
+    }
+
+    // If no match found, return original message
+    return message;
   }
 
   clearFieldError(field) {

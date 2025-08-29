@@ -273,6 +273,20 @@
                   }).format(price);
                 }
                 
+                // Helper function to format unit display
+                function formatUnit(unit) {
+                  const unitMap = {
+                    'pieces': 'dona',
+                    'kg': 'kg',
+                    'tons': 'tonna',
+                    'liters': 'litr',
+                    'meters': 'metr',
+                    'boxes': 'quti',
+                    'pallets': 'pallet'
+                  };
+                  return unitMap[unit] || unit;
+                }
+                
                 // Show first 12 products (pagination will be handled by JS)
                 const displayProducts = marketplaceProducts.slice(0, 12);
                 %>
@@ -290,20 +304,22 @@
                   const manufacturerName = product.manufacturer?.companyName || 'Unknown';
                   const manufacturerCountry = product.manufacturer?.country || '';
                   const productUrl = `/product-details?id=${product._id}`;
+                  const priceUnit = formatUnit(product.inventory?.unit || 'pieces');
                   %>
                   
                   <div class="col-xl-4 col-lg-6 col-md-6">
                     <div class="product-item shadow-sm">
-                      <div class="product-item__thumb d-flex">
-                        <a href="<%= productUrl %>" class="link w-100">
-                          <img src="<%= imageUrl %>" alt="<%= imageAlt %>" class="cover-img" 
+                      <div class="product-item__thumb d-flex position-relative">
+                        <a href="<%= productUrl %>" class="link w-100 d-block">
+                          <img src="<%= imageUrl %>" alt="<%= imageAlt %>" class="cover-img product-item__image" 
                                onerror="handleImageError(this)"
-                               onload="handleImageSuccess(this)">
+                               onload="handleImageSuccess(this)"
+                               style="transition: transform 0.3s ease; cursor: pointer;">
                         </a>
                       </div>
                       <div class="product-item__content">
                         <h6 class="product-item__title">
-                          <a href="<%= productUrl %>" class="link"><%= product.name %></a>
+                          <a href="<%= productUrl %>" class="link text-decoration-none hover-text-primary"><%= product.name %></a>
                         </h6>
                         <div class="product-item__info flx-between gap-2">
                           <span class="product-item__author">
@@ -314,10 +330,13 @@
                             <% } %>
                           </span>
                           <div class="flx-align gap-2">
-                            <h6 class="product-item__price mb-0"><%= formattedPrice %></h6>
+                            <h6 class="product-item__price mb-0">
+                              <%= formattedPrice %>
+                              <small class="text-muted">/ <%= priceUnit %></small>
+                            </h6>
                           </div>
                         </div>
-                        <div class="product-item__bottom flx-between gap-2">
+                        <div class="product-item__bottom">
                           <div>
                             <span class="product-item__sales font-14 mb-2"><%= salesText %></span>
                             <div class="d-flex align-items-center gap-1">
@@ -327,7 +346,6 @@
                               <span class="star-rating__text text-heading fw-500 font-14">(<%= reviewCount %>)</span>
                             </div>
                           </div>
-                          <a href="<%= productUrl %>" class="btn btn-outline-light btn-sm pill"><%- t('allProducts.productCard.viewDetails') %></a>
                         </div>
                       </div>
                     </div>
@@ -1611,5 +1629,85 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- Professional Product Card Styling -->
+<style>
+.product-item {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0;
+}
+
+.product-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.product-item__thumb {
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+}
+
+.product-item__image:hover {
+    transform: scale(1.05);
+}
+
+.product-item__title a {
+    color: #2c3e50;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.product-item__title a:hover {
+    color: #3498db !important;
+}
+
+.product-item__price {
+    color: #e74c3c;
+    font-weight: 700;
+}
+
+.product-item__price small {
+    color: #7f8c8d;
+    font-weight: 400;
+    font-size: 0.85em;
+}
+
+.product-item__sales {
+    color: #95a5a6;
+}
+
+.star-rating {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 2px;
+}
+
+.star-rating__item {
+    color: #f39c12;
+}
+
+.star-rating__text {
+    color: #7f8c8d;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .product-item {
+        margin-bottom: 1rem;
+    }
+    
+    .product-item__title {
+        font-size: 14px;
+    }
+    
+    .product-item__price {
+        font-size: 16px;
+    }
+}
+</style>
 
 <%- include('../partials/footer') %>

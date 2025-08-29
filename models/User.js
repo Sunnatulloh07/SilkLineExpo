@@ -113,16 +113,43 @@ const userSchema = new mongoose.Schema({
   
   // Company Logo
   companyLogo: {
-    filename: String,
-    originalName: String,
-    mimeType: String,
-    size: Number,
+    filename: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    originalName: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    mimeType: {
+      type: String,
+      required: true,
+      enum: ['image/jpeg', 'image/png', 'image/jpg']
+    },
+    size: {
+      type: Number,
+      required: true,
+      min: [1, 'File size must be greater than 0'],
+      max: [5 * 1024 * 1024, 'File size must not exceed 5MB']
+    },
     uploadDate: {
       type: Date,
       default: Date.now
     },
-    url: String, // Full URL path
-    thumbnailUrl: String // Thumbnail URL
+    url: {
+      type: String,
+      required: true,
+      trim: true
+    }, // Full URL path for frontend
+    thumbnailUrl: {
+      type: String,
+      trim: true
+    }, // Thumbnail URL for frontend
+    // Legacy fields for backward compatibility
+    path: String,
+    thumbnailPath: String
   },
   
   // Authentication

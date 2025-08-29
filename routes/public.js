@@ -546,6 +546,35 @@ router.get('/product-details', async (req, res) => {
       ...(product.qualityStandards || [])
     ].filter(Boolean).join(', ');
 
+    // Check if user is authenticated distributor and get product status
+    let productStatus = null;
+    try {
+      // Check if user is authenticated via JWT tokens
+      const TokenService = require('../services/TokenService');
+      const tokens = TokenService.extractTokensFromRequest(req);
+      
+      if (tokens.accessToken) {
+        const verification = TokenService.verifyAccessToken(tokens.accessToken);
+        
+        if (verification.valid && verification.payload.userType === 'user') {
+          // Check localStorage equivalent - get user from database
+          const User = require('../models/User');
+          const user = await User.findById(verification.payload.userId);
+          
+          if (user && user.companyType === 'distributor') {
+            // Get product status for distributor
+            const BuyerService = require('../services/BuyerService');
+            const buyerService = new BuyerService();
+            productStatus = await buyerService.checkProductStatus(user._id, productId);
+            console.log('🔍 Product status for distributor:', productStatus);
+          }
+        }
+      }
+    } catch (error) {
+      console.log('⚠️ Product status check failed (not logged in or error):', error.message);
+      // Ignore errors - user might not be logged in
+    }
+
     // Render the professional Alibaba-style B2B design
     res.render('pages/product-details', {
       title: enhancedTitle,
@@ -561,6 +590,9 @@ router.get('/product-details', async (req, res) => {
       qualityCertifications: qualityCertifications || [],
       supplierVerification,
       productId: productId,
+      // Product status for authenticated distributors
+      productStatus: productStatus,
+      user: req.user || null,
       // Enhanced SEO data
       pageDescription: enhancedDescription,
       pageKeywords: enhancedKeywords,
@@ -597,6 +629,7 @@ router.get('/product-details', async (req, res) => {
       qualityCertifications: [],
       supplierVerification: null,
       productId: null,
+      productStatus: null, // Add missing productStatus
       pageDescription: 'An error occurred while loading professional product details',
       pageKeywords: 'error, professional b2b marketplace, technical issue'
     };
@@ -985,7 +1018,8 @@ router.get('/supplier/:supplierId', async (req, res) => {
         'wholesale',
         'professional supplier',
         'trade assurance'
-      ].filter(Boolean).join(', ')
+      ].filter(Boolean).join(', '),
+      user: req.user || null
     });
     
     console.log('✅ Supplier profile page rendered successfully');
@@ -1000,7 +1034,8 @@ router.get('/supplier/:supplierId', async (req, res) => {
       supplier: null,
       supplierProducts: [],
       businessMetrics: {},
-      baseUrl: req.protocol + '://' + req.get('host')
+      baseUrl: req.protocol + '://' + req.get('host'),
+      user: req.user || null
     });
   }
 });

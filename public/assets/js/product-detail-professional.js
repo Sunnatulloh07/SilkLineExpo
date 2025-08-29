@@ -44,8 +44,7 @@ class ProfessionalProductDetail {
    */
   async init() {
     try {
-      this.logger.log('🏭 Initializing Professional B2B Product Detail...');
-      
+    
       // Wait for DOM to be ready
       if (document.readyState === 'loading') {
         await new Promise(resolve => {
@@ -60,8 +59,7 @@ class ProfessionalProductDetail {
       this.trackPageView();
       
       this.isInitialized = true;
-      this.logger.log('✅ Professional Product Detail initialized successfully');
-      
+       
     } catch (error) {
       this.logger.error('❌ Failed to initialize Product Detail:', error);
       this.showErrorToast('Failed to initialize page. Please refresh.');
@@ -814,12 +812,12 @@ class ProfessionalProductDetail {
       this.prefillInquiryForm();
     }, { signal: this.controllers.main.signal });
 
-    // Chat button
-    const chatBtn = document.querySelector('.chat-btn');
-    chatBtn?.addEventListener('click', this.startChat.bind(this), 
-      { signal: this.controllers.main.signal });
-
+    // Chat button - disabled to prevent conflicts with main page handler
+    // const chatBtn = document.querySelector('.chat-btn');
+    // chatBtn?.addEventListener('click', this.startChat.bind(this), 
+    //   { signal: this.controllers.main.signal });
     // Sample request button
+   
     const sampleBtn = document.querySelector('.sample-btn');
     sampleBtn?.addEventListener('click', this.requestSample.bind(this), 
       { signal: this.controllers.main.signal });
@@ -896,7 +894,7 @@ Looking forward to your response.`;
   }
 
   /**
-   * Start chat with supplier
+   * Start chat with supplier - Updated for distributor messages
    */
   startChat() {
     const supplierId = this.getSupplierId();
@@ -911,8 +909,8 @@ Looking forward to your response.`;
       productId: this.getProductId()
     });
 
-    // Redirect to chat page or open chat modal
-    window.location.href = `/messages/chat/${supplierId}`;
+    // Redirect to buyer messages page with manufacturer parameter
+    window.location.href = `/buyer/messages?manufacturer=${supplierId}`;
   }
 
   /**
@@ -1311,7 +1309,6 @@ Looking forward to your response.`;
         });
       }
 
-      this.logger.log('📊 Event tracked:', action, data);
 
     } catch (error) {
       this.logger.warn('Failed to track event:', error);

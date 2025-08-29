@@ -275,7 +275,7 @@
 
 @media (min-width: 1199px) {
   .container-two {
-    max-width: 1296px;
+    max-width: 1920px;
   }
 }
 
@@ -2474,12 +2474,11 @@ textarea:-webkit-autofill {
 
 input:-webkit-autofill,
 textarea:-webkit-autofill,
-select:-webkit-autofill,
 textarea:-webkit-autofill,
 textarea:-webkit-autofill,
 textarea:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px transparent inset;
-  -webkit-text-fill-color: hsl(var(--heading-color)) !important;
+  -webkit-text-fill-color: hsl(var(--heading-color));
   caret-color: hsl(var(--heading-color));
 }
 
@@ -9546,6 +9545,7 @@ input[type='number'] {
 [data-theme='light'] .license-dropdown::before,
 [data-theme='light'] .mobile-menu {
   background: var(--dark-black-two) !important;
+  color: #ffffff;
 }
 
 [data-theme='light'] .sidebar-list__item.activePage .sidebar-list__link,

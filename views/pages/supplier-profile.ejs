@@ -1040,12 +1040,49 @@ function openContactModal() {
 }
 
 function startChat(supplierId) {
-    if (typeof supplierProfile !== 'undefined') {
-        supplierProfile.startChat(supplierId);
-    } else {
-        console.log('Starting chat with supplier:', supplierId);
-        alert('Chat functionality will be implemented soon.');
+    console.log('🔥 Supplier Profile startChat called!');
+    console.log('Starting chat with supplier:', supplierId);
+    console.log('Current user:', window.currentUser);
+    
+    // Check if user is authenticated
+    if (!window.currentUser) {
+        console.log('User not authenticated, redirecting to login');
+        alert('Chat uchun tizimga kiring');
+        window.location.href = '/login';
+        return;
     }
+
+    // Check if user is distributor/buyer (correct logic for SLEX system)
+    const isDistributor = window.currentUser.userType === 'user' && 
+                          window.currentUser.role === 'company_admin' && 
+                          window.currentUser.companyType === 'distributor';
+    
+    if (!isDistributor) {
+        let message = '';
+        if (window.currentUser.userType === 'user' && window.currentUser.companyType === 'manufacturer') {
+            message = 'Ishlab chiqaruvchilar chat qila olmaydi';
+        } else if (window.currentUser.userType === 'admin') {
+            message = 'Adminlar chat qila olmaydi';
+        } else {
+            message = 'Faqat distribyutor/haridor kompanyalar chat qila oladi';
+        }
+        console.log('User not allowed for chat:', window.currentUser);
+        alert(message);
+        return;
+    }
+
+    // Validate supplier ID
+    if (!supplierId) {
+        console.log('❌ Supplier ID not found');
+        alert('Ishlab chiqaruvchi ma\'lumotlari topilmadi');
+        return;
+    }
+
+    const redirectUrl = `/buyer/messages?manufacturer=${supplierId}`;
+    console.log('🚀 Redirecting to:', redirectUrl);
+    
+    // Redirect to messages page with manufacturer parameter
+    window.location.href = redirectUrl;
 }
 
 function requestQuote() {
@@ -1197,6 +1234,9 @@ function showAllProducts() {
     console.log('Showing all products');
     window.location.href = `/supplier/<%= supplier._id %>/products`;
 }
+
+// Inject user data from server
+window.currentUser = JSON.parse('<%-JSON.stringify(user || null)%>');
 
 // Initialize tooltips if Bootstrap is available
 document.addEventListener('DOMContentLoaded', function() {

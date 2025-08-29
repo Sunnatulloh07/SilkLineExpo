@@ -150,6 +150,9 @@ class OptionalJWTAuthMiddleware {
             userData.role = payload.role || userData.role;
             userData.companyType = payload.companyType || userData.companyType;
             userData.permissions = payload.permissions || userData.permissions || [];
+            
+            // Ensure userId field exists for consistency
+            userData.userId = userData._id;
 
             return userData;
 

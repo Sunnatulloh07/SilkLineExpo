@@ -1374,10 +1374,6 @@ body {
   transition: all 0.3s ease;
 }
 
-.spec-row:nth-child(even) {
-  background: white;
-}
-
 
 .spec-label {
   font-weight: 600;

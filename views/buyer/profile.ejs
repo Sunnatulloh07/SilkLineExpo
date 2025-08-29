@@ -24,7 +24,7 @@
       
       <div class="col-lg-9">
         <!-- Profile Header -->
-        <div class="buyer-profile-header section-bg animate-fade-in">
+        <div class="buyer-profile-header section-bg animate-fade-in" style="background:transparent !important;">
           <div class="profile-header-content">
             <div class="profile-avatar">
               <img src="<%= user.companyLogo?.url || '/assets/images/icons/user.svg' %>" 
@@ -43,7 +43,7 @@
                      accept="image/jpeg,image/png,image/jpg,image/webp"
                      style="display: none;">
             </div>
-            <div class="profile-info">
+            <div class="profile-info" style="background:transparent !important;">
               <h2 class="profile-name text-heading">
                 <%= user.companyName || (user.firstName + ' ' + user.lastName) %>
               </h2>
@@ -844,7 +844,31 @@ function editProfile() {
 
         // Log token status for debugging
         const status = buyerTokenManager.getStatus();
-        console.log('🔍 Buyer token status:', status);
+        
+        // Manually save current user data to localStorage
+        const currentUserData = {
+          id: "<%= user._id %>",
+          name: "<%= user.companyName || user.name %>",
+          email: "<%= user.email %>",
+          role: "<%= user.role %>",
+          userType: "user", // Company admins are userType 'user'
+          companyType: "<%= user.companyType %>",
+          companyName: "<%= user.companyName %>",
+          phone: "<%= user.phone %>",
+          country: "<%= user.country %>"
+        };
+        
+        // Save to localStorage only for distributors
+        if (currentUserData.companyType === 'distributor') {
+          try {
+            localStorage.setItem('slex_buyer_user_data', JSON.stringify(currentUserData));
+            console.log('💾 Profile page: Saved distributor data to localStorage:', currentUserData);
+          } catch (error) {
+            console.warn('❌ Profile page: Failed to save user data to localStorage:', error);
+          }
+        } else {
+          console.log('⚠️ Profile page: User is not distributor, not saving to localStorage. companyType:', currentUserData.companyType);
+        }
       }
     });
     

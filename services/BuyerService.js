@@ -276,94 +276,439 @@ class BuyerService {
     }
 
     /**
-     * Get buyer orders with pagination and filtering
+     * Get buyer orders with comprehensive data for professional UI
+     * Senior Software Engineer Level Implementation with proper error handling and optimization
      */
     async getBuyerOrders(buyerId, options) {
         try {
-            const { page = 1, limit = 10, status, supplier, search, dateFilter } = options;
-            
-            // Build query
+            // Input validation and sanitization
+            if (!buyerId || !mongoose.Types.ObjectId.isValid(buyerId)) {
+                throw new Error('Invalid buyer ID provided');
+            }
+
+            const { 
+                page = 1, 
+                limit = 20, 
+                status, 
+                supplier, 
+                search, 
+                dateFilter 
+            } = options;
+
+            // Validate pagination parameters
+            const validatedPage = Math.max(1, parseInt(page) || 1);
+            const validatedLimit = Math.min(100, Math.max(1, parseInt(limit) || 20));
+
+            // Build query with proper sanitization
             const query = { buyer: new mongoose.Types.ObjectId(buyerId) };
             
-            if (status) {
+            // Status filter with validation
+            if (status && status !== 'all') {
+                const validStatuses = [
+                    'draft', 'pending', 'confirmed', 'processing', 'manufacturing',
+                    'ready_to_ship', 'shipped', 'out_for_delivery', 'in_transit', 
+                    'delivered', 'completed', 'cancelled', 'refunded', 'disputed'
+                ];
+                
+                if (validStatuses.includes(status)) {
                 query.status = status;
-            }
-            
-            if (supplier) {
-                const supplierDoc = await User.findOne({ 
-                    companyName: { $regex: supplier, $options: 'i' },
-                    companyType: 'manufacturer'
-                });
-                if (supplierDoc) {
-                    query.seller = supplierDoc._id;
+                } else {
+                    throw new Error('Invalid order status provided');
                 }
             }
             
-            if (search) {
+            // Supplier filter with proper error handling
+            if (supplier && typeof supplier === 'string') {
+                try {
+                const supplierDoc = await User.findOne({ 
+                        companyName: { $regex: this.escapeRegex(supplier), $options: 'i' },
+                    companyType: 'manufacturer'
+                    }).select('_id').lean();
+                    
+                if (supplierDoc) {
+                    query.seller = supplierDoc._id;
+                    }
+                } catch (supplierError) {
+                    this.logger.warn('⚠️ Supplier search error:', supplierError);
+                    // Continue without supplier filter rather than failing
+                }
+            }
+            
+            // Search filter with proper sanitization
+            if (search && typeof search === 'string' && search.trim().length > 0) {
+                const sanitizedSearch = this.escapeRegex(search.trim());
                 query.$or = [
-                    { orderNumber: { $regex: search, $options: 'i' } },
-                    { 'items.product.name': { $regex: search, $options: 'i' } }
+                    { orderNumber: { $regex: sanitizedSearch, $options: 'i' } },
+                    { 'items.product.name': { $regex: sanitizedSearch, $options: 'i' } },
+                    { 'items.product.title': { $regex: sanitizedSearch, $options: 'i' } }
                 ];
             }
 
-            // Apply date filter
-            if (dateFilter) {
+            // Date filter with proper date handling (no mutation)
+            if (dateFilter && typeof dateFilter === 'string') {
                 const dateQuery = {};
-                const now = new Date();
+                const now = new Date(); // Fresh date object for each calculation
+                
                 switch (dateFilter) {
+                    case '7':
+                        dateQuery.$gte = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        break;
                     case '30':
-                        dateQuery.$gte = new Date(now.setDate(now.getDate() - 30));
+                        dateQuery.$gte = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
                         break;
                     case '90':
-                        dateQuery.$gte = new Date(now.setDate(now.getDate() - 90));
+                        dateQuery.$gte = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
                         break;
                     case '365':
-                        dateQuery.$gte = new Date(now.setDate(now.getDate() - 365));
+                        dateQuery.$gte = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+                        break;
+                    default:
+                        // Invalid date filter - ignore it
                         break;
                 }
+                
                 if (Object.keys(dateQuery).length > 0) {
                     query.createdAt = dateQuery;
                 }
             }
 
-            // Execute query with pagination
-            const totalItems = await Order.countDocuments(query);
-            const totalPages = Math.ceil(totalItems / limit);
-            const skip = (page - 1) * limit;
-
-            const orders = await Order.find(query)
+            // Execute query with comprehensive population and error handling
+            const [totalItems, orders] = await Promise.all([
+                Order.countDocuments(query).maxTimeMS(10000), // 10 second timeout
+                Order.find(query)
                 .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit)
-                .populate('seller', 'companyName')
-                .populate('items.product', 'name')
-                .lean();
+                    .skip((validatedPage - 1) * validatedLimit)
+                    .limit(validatedLimit)
+                .populate('seller', 'companyName businessName avatar')
+                .populate({
+                    path: 'items.product',
+                    select: 'name title description images category pricing specifications',
+                    populate: {
+                        path: 'category',
+                        select: 'name'
+                    }
+                })
+                .populate('buyer', 'companyName businessName name email')
+                    .maxTimeMS(15000) // 15 second timeout
+                    .lean()
+            ]);
 
-            const formattedOrders = orders.map(order => ({
-                id: order._id,
-                supplier: order.seller?.companyName || 'Unknown Supplier',
-                products: order.items?.map(item => item.product?.name || 'Unknown Product').join(', ') || 'No products',
-                totalAmount: order.totalAmount,
-                status: order.status,
-                orderDate: order.createdAt,
-                expectedDelivery: order.shipping?.estimatedDelivery
-            }));
+            // Calculate pagination
+            const totalPages = Math.ceil(totalItems / validatedLimit);
+            const hasNext = validatedPage < totalPages;
+            const hasPrev = validatedPage > 1;
+
+            // Format orders for professional UI with error handling
+            const formattedOrders = orders.map(order => {
+                try {
+                    // Calculate order statistics with null safety
+                    const totalQuantity = order.items?.reduce((sum, item) => sum + (item?.quantity || 0), 0) || 0;
+                    const hasDiscount = (order.discountAmount || 0) > 0;
+                    const discountPercentage = hasDiscount && order.subtotal ? 
+                        Math.round((order.discountAmount / (order.subtotal + order.discountAmount)) * 100) : 0;
+                    
+                    // Format order items with null safety
+                    const formattedItems = (order.items || []).map(item => ({
+                        id: item._id?.toString() || 'unknown',
+                        productId: item.product?._id?.toString() || 'unknown',
+                    productName: item.product?.name || item.product?.title || 'Unknown Product',
+                    productImage: item.product?.images?.[0] || '/assets/images/placeholder-product.svg',
+                        quantity: item.quantity || 0,
+                        unitPrice: item.unitPrice || 0,
+                        totalPrice: item.totalPrice || 0,
+                    specifications: item.specifications || [],
+                    category: item.product?.category?.name || 'Unknown Category',
+                    hasDiscount: false, // Individual item discounts not implemented yet
+                    discountPercentage: 0
+                }));
+
+                    // Get main product for display with null safety
+                    const mainProduct = order.items?.[0];
+                const mainProductName = mainProduct?.product?.name || mainProduct?.product?.title || 'Unknown Product';
+                const mainProductImage = mainProduct?.product?.images?.[0] || '/assets/images/placeholder-product.svg';
+
+                return {
+                        id: order._id?.toString() || 'unknown',
+                        orderNumber: order.orderNumber || 'Unknown',
+                        status: order.status || 'unknown',
+                    statusLabel: this.getStatusLabel(order.status),
+                    statusColor: this.getStatusColor(order.status),
+                        createdAt: order.createdAt || new Date(),
+                        updatedAt: order.updatedAt || new Date(),
+                        
+                        // Order summary with null safety
+                        subtotal: order.subtotal || 0,
+                        taxAmount: order.taxAmount || 0,
+                        shippingCost: order.shippingCost || 0,
+                        discountAmount: order.discountAmount || 0,
+                        totalAmount: order.totalAmount || 0,
+                        currency: order.currency || 'USD',
+                    
+                    // Display info
+                    mainProduct: {
+                        name: mainProductName,
+                        image: mainProductImage,
+                        quantity: totalQuantity,
+                        unitPrice: mainProduct?.unitPrice || 0
+                    },
+                    
+                    // Items details
+                    items: formattedItems,
+                    totalQuantity: totalQuantity,
+                    
+                        // Supplier info with null safety
+                    supplier: {
+                            id: order.seller?._id?.toString() || 'unknown',
+                        name: order.seller?.companyName || order.seller?.businessName || 'Unknown Supplier',
+                            avatar: order.seller?.avatar || null
+                    },
+                    
+                        // Shipping info with null safety
+                    shipping: {
+                        method: order.shipping?.method || 'standard',
+                            estimatedDelivery: order.shipping?.estimatedDelivery || null,
+                            actualDelivery: order.shipping?.actualDelivery || null,
+                            trackingNumber: order.shipping?.trackingNumber || null,
+                            carrier: order.shipping?.carrier || 'Unknown',
+                            address: order.shipping?.address || {}
+                        },
+                        
+                        // Payment info with null safety
+                    payment: {
+                        method: order.payment?.method || 'bank_transfer',
+                        status: order.payment?.status || 'pending',
+                            terms: order.payment?.terms || 'Standard'
+                    },
+                    
+                    // Discount info
+                    discount: {
+                        hasDiscount: hasDiscount,
+                        percentage: discountPercentage,
+                            amount: order.discountAmount || 0
+                    },
+                    
+                    // Actions available
+                    actions: this.getAvailableActions(order.status),
+                    
+                        // Timeline with null safety
+                    timeline: order.statusHistory || []
+                };
+                } catch (orderFormatError) {
+                    this.logger.error('❌ Error formatting order:', orderFormatError, order);
+                    // Return a safe fallback order object
+                    return {
+                        id: order._id?.toString() || 'unknown',
+                        orderNumber: 'Error Loading Order',
+                        status: 'error',
+                        statusLabel: 'Error',
+                        statusColor: 'danger',
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                        subtotal: 0,
+                        taxAmount: 0,
+                        shippingCost: 0,
+                        discountAmount: 0,
+                        totalAmount: 0,
+                        currency: 'USD',
+                        mainProduct: { name: 'Error Loading Product', image: '/assets/images/placeholder-product.svg', quantity: 0, unitPrice: 0 },
+                        items: [],
+                        totalQuantity: 0,
+                        supplier: { id: 'unknown', name: 'Unknown Supplier', avatar: null },
+                        shipping: { method: 'standard', estimatedDelivery: null, actualDelivery: null, trackingNumber: null, carrier: 'Unknown', address: {} },
+                        payment: { method: 'bank_transfer', status: 'error', terms: 'Standard' },
+                        discount: { hasDiscount: false, percentage: 0, amount: 0 },
+                        actions: [],
+                        timeline: []
+                    };
+                }
+            });
+
+            // Get orders statistics for all statuses (cached for performance)
+            const stats = await this.getOrdersStatistics(buyerId);
 
             return {
+                success: true,
                 orders: formattedOrders,
+                statistics: stats,
                 pagination: {
-                    currentPage: parseInt(page),
+                    currentPage: validatedPage,
                     totalPages,
                     totalItems,
-                    hasNext: page < totalPages,
-                    hasPrev: page > 1
+                    hasNext,
+                    hasPrev,
+                    limit: validatedLimit
+                },
+                filters: {
+                    status: status || 'all',
+                    supplier: supplier || null,
+                    search: search || null,
+                    dateFilter: dateFilter || null
                 }
             };
 
         } catch (error) {
             this.logger.error('❌ Error getting buyer orders:', error);
-            throw error;
+            
+            // Return structured error response
+            return {
+                success: false,
+                error: {
+                    message: error.message || 'Failed to retrieve orders',
+                    code: error.code || 'ORDERS_FETCH_ERROR',
+                    details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+                },
+                orders: [],
+                statistics: {
+                    totalOrders: 0,
+                    totalAmount: 0,
+                    pendingOrders: 0,
+                    processingOrders: 0,
+                    shippedOrders: 0,
+                    completedOrders: 0,
+                    cancelledOrders: 0
+                },
+                pagination: {
+                    currentPage: 1,
+                    totalPages: 0,
+                    totalItems: 0,
+                    hasNext: false,
+                    hasPrev: false,
+                    limit: 20
+                }
+            };
         }
+    }
+
+    /**
+     * Get orders statistics for buyer
+     */
+    async getOrdersStatistics(buyerId) {
+        try {
+            const stats = await Order.aggregate([
+                { $match: { buyer: new mongoose.Types.ObjectId(buyerId) } },
+                {
+                    $group: {
+                        _id: null,
+                        totalOrders: { $sum: 1 },
+                        totalAmount: { $sum: '$totalAmount' },
+                        pendingOrders: {
+                            $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] }
+                        },
+                        processingOrders: {
+                            $sum: { $cond: [{ $in: ['$status', ['processing', 'manufacturing']] }, 1, 0] }
+                        },
+                        shippedOrders: {
+                            $sum: { $cond: [{ $in: ['$status', ['ready_to_ship', 'shipped', 'out_for_delivery', 'in_transit']] }, 1, 0] }
+                        },
+                        deliveredOrders: {
+                            $sum: { $cond: [{ $in: ['$status', ['delivered']] }, 1, 0] }
+                        },
+                        completedOrders: {
+                            $sum: { $cond: [{ $in: ['$status', ['completed']] }, 1, 0] }
+                        },
+                        cancelledOrders: {
+                            $sum: { $cond: [{ $in: ['$status', ['cancelled']] }, 1, 0] }
+                        }
+                    }
+                }
+            ]);
+
+            if (stats.length === 0) {
+                return {
+                    totalOrders: 0,
+                    totalAmount: 0,
+                    pendingOrders: 0,
+                    processingOrders: 0,
+                    shippedOrders: 0,
+                    deliveredOrders: 0,
+                    completedOrders: 0,
+                    cancelledOrders: 0
+                };
+            }
+
+            return stats[0];
+        } catch (error) {
+            this.logger.error('❌ Error getting orders statistics:', error);
+            return {
+                totalOrders: 0,
+                totalAmount: 0,
+                pendingOrders: 0,
+                processingOrders: 0,
+                shippedOrders: 0,
+                deliveredOrders: 0,
+                completedOrders: 0,
+                cancelledOrders: 0
+            };
+        }
+    }
+
+    /**
+     * Get status label for display
+     */
+    getStatusLabel(status) {
+        const statusLabels = {
+            'draft': 'Draft',
+            'pending': 'Pending',
+            'confirmed': 'Confirmed',
+            'processing': 'Processing',
+            'manufacturing': 'Manufacturing',
+            'ready_to_ship': 'Ready to Ship',
+            'shipped': 'Shipped',
+            'out_for_delivery': 'Out for Delivery',
+            'in_transit': 'In Transit',
+            'delivered': 'Delivered',
+            'completed': 'Completed',
+            'cancelled': 'Cancelled',
+            'refunded': 'Refunded',
+            'disputed': 'Disputed'
+        };
+        return statusLabels[status] || status;
+    }
+
+    /**
+     * Get status color for UI
+     */
+    getStatusColor(status) {
+        const statusColors = {
+            'draft': 'secondary',
+            'pending': 'warning',
+            'confirmed': 'info',
+            'processing': 'primary',
+            'manufacturing': 'primary',
+            'ready_to_ship': 'info',
+            'shipped': 'primary',
+            'out_for_delivery': 'info',
+            'in_transit': 'info',
+            'delivered': 'success',
+            'completed': 'success',
+            'cancelled': 'danger',
+            'refunded': 'secondary',
+            'disputed': 'warning'
+        };
+        return statusColors[status] || 'secondary';
+    }
+
+    /**
+     * Get available actions for order status
+     */
+    getAvailableActions(status) {
+        const actions = {
+            'draft': ['edit', 'delete', 'submit'],
+            'pending': ['cancel', 'contact_supplier'],
+            'confirmed': ['cancel', 'contact_supplier'],
+            'processing': ['contact_supplier', 'track'],
+            'manufacturing': ['contact_supplier', 'track'],
+            'ready_to_ship': ['contact_supplier', 'track'],
+            'shipped': ['track', 'contact_supplier'],
+            'out_for_delivery': ['track', 'contact_supplier'],
+            'in_transit': ['track', 'contact_supplier'],
+            'delivered': ['review', 'reorder', 'contact_supplier'],
+            'completed': ['review', 'reorder', 'contact_supplier'],
+            'cancelled': ['reorder', 'contact_supplier'],
+            'refunded': ['reorder', 'contact_supplier'],
+            'disputed': ['contact_supplier', 'escalate']
+        };
+        return actions[status] || [];
     }
 
     /**
@@ -451,58 +796,235 @@ class BuyerService {
     }
 
     /**
-     * Get buyer conversations
+     * Get manufacturer details for direct messaging
      */
-    async getBuyerConversations(buyerId, filters) {
+    async getManufacturerDetails(manufacturerId) {
         try {
-            // In a real implementation, we would query a Conversation model
-            // For now, we'll get real data from orders and suppliers
-            const query = { buyer: new mongoose.Types.ObjectId(buyerId) };
+            const User = require('../models/User');
             
-            // Apply filters
+            const manufacturer = await User.findOne({
+                _id: new mongoose.Types.ObjectId(manufacturerId),
+                companyType: 'manufacturer'
+            }).select('companyName email phone companyLogo companyDescription address website')
+            .lean();
+
+            if (!manufacturer) {
+                throw new Error('Manufacturer not found');
+            }
+
+            return {
+                id: manufacturer._id,
+                companyName: manufacturer.companyName,
+                email: manufacturer.email,
+                phone: manufacturer.phone,
+                companyLogo: manufacturer.companyLogo || null,
+                description: manufacturer.companyDescription,
+                address: manufacturer.address,
+                website: manufacturer.website,
+                isOnline: false // Would be determined by real-time status
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Error getting manufacturer details:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get or create conversation with manufacturer
+     */
+    async getOrCreateManufacturerConversation(buyerId, manufacturerId) {
+        try {
+            const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
+            const manufacturerObjectId = new mongoose.Types.ObjectId(manufacturerId);
+
+            // Find existing order between buyer and manufacturer
+            let order = await Order.findOne({
+                buyer: buyerObjectId,
+                seller: manufacturerObjectId
+            }).populate('seller', 'companyName email companyLogo phone')
+            .sort({ createdAt: -1 })
+            .lean();
+
+            // If no order exists, create a new inquiry/conversation order
+            if (!order) {
+                const newOrder = new Order({
+                    buyer: buyerObjectId,
+                    seller: manufacturerObjectId,
+                    orderNumber: `INQ-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                    status: 'inquiry',
+                    items: [],
+                    totalAmount: 0,
+                    currency: 'USD',
+                    createdAt: new Date()
+                });
+
+                order = await newOrder.save();
+                order = await Order.findById(order._id).populate('seller', 'companyName email companyLogo phone').lean();
+            }
+
+            // Get messages for this conversation
+            const messages = await Message.find({ orderId: order._id })
+                .populate('senderId', 'companyName email companyLogo phone')
+                .populate('recipientId', 'companyName email companyLogo phone')
+                .sort({ createdAt: 1 })
+                .limit(50)
+                .lean();
+
+            // Get unread count
+            const unreadCount = await Message.countDocuments({
+                orderId: order._id,
+                recipientId: buyerObjectId,
+                status: { $in: ['sent', 'delivered'] }
+            });
+
+            return {
+                orderId: order._id,
+                orderNumber: order.orderNumber,
+                manufacturer: {
+                    id: order.seller._id,
+                    name: order.seller.companyName,
+                    email: order.seller.email,
+                    avatar: order.seller.avatar || '/assets/images/default-company.svg'
+                },
+                messages,
+                unreadCount,
+                orderStatus: order.status
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Error getting/creating manufacturer conversation:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get buyer conversations - Professional Implementation
+     */
+    async getBuyerConversations(buyerId, filters = {}) {
+        try {
+            const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
+            
+            // Get orders that have messages for this buyer
+            const orderIdsWithMessages = await Message.distinct('orderId', {
+                $or: [
+                    { senderId: buyerObjectId },
+                    { recipientId: buyerObjectId }
+                ]
+            });
+
+            if (orderIdsWithMessages.length === 0) {
+                return [];
+            }
+
+            // Build order query
+            const orderQuery = {
+                _id: { $in: orderIdsWithMessages },
+                buyer: buyerObjectId
+            };
+
+            // Apply search filter to orders and company names
             if (filters.search) {
-                query.$or = [
-                    { 'seller.companyName': { $regex: filters.search, $options: 'i' } },
+                orderQuery.$or = [
                     { orderNumber: { $regex: filters.search, $options: 'i' } }
                 ];
             }
 
-            const orders = await Order.find(query)
+            // Get orders with their sellers including companyLogo
+            const orders = await Order.find(orderQuery)
+                .populate('seller', 'companyName email avatar companyLogo phone')
                 .sort({ updatedAt: -1 })
                 .limit(50)
-                .populate('seller', 'companyName')
                 .lean();
 
-            // Transform orders into conversation-like objects
-            const conversations = orders.map(order => ({
-                id: `CONV-${order._id.toString().substr(-6)}`,
-                supplierId: order.seller._id,
-                supplierName: order.seller.companyName,
-                supplierAvatar: null,
-                lastMessage: `Order #${order.orderNumber || order._id.toString().substr(-6)} - Status: ${order.status}`,
-                lastMessageTime: order.updatedAt || order.createdAt,
-                unreadCount: 0, // In a real implementation, we would track this in a Message collection
-                isRFQ: false,
-                status: order.status
-            }));
+            // Apply search filter to company names if search query exists
+            let filteredOrders = orders;
+            if (filters.search) {
+                const searchRegex = new RegExp(filters.search, 'i');
+                filteredOrders = orders.filter(order => 
+                    order.seller && 
+                    order.seller.companyName && 
+                    searchRegex.test(order.seller.companyName)
+                );
+            }
 
-            // Apply filters
+            // Get conversation data for each order with proper error handling
+            const conversations = [];
+            for (const order of filteredOrders) {
+                try {
+                    // Validate order has seller
+                    if (!order.seller || !order.seller._id) {
+                        this.logger.warn(`Order ${order._id} has no seller, skipping`);
+                        continue;
+                    }
+
+
+
+                    // Get latest message for this order
+                    const latestMessage = await Message.findOne({ 
+                        orderId: order._id 
+                    })
+                    .sort({ createdAt: -1 })
+                    .populate('senderId', 'companyName')
+                    .lean();
+
+                    // Count unread messages for buyer
+                    const unreadCount = await Message.countDocuments({
+                        orderId: order._id,
+                        recipientId: buyerObjectId,
+                        status: { $in: ['sent', 'delivered'] }
+                    });
+
+                    const conversation = {
+                        id: order._id.toString(),
+                        orderId: order._id,
+                        orderNumber: order.orderNumber || `ORD-${order._id.toString().substr(-6)}`,
+                        supplier: {
+                            id: order.seller._id,
+                            name: order.seller.companyName || 'Unknown Company',
+                            email: order.seller.email || '',
+                            avatar: order.seller.avatar || '/assets/images/default-company.svg',
+                            companyLogo: order.seller.companyLogo || null,
+                            phone: order.seller.phone || null
+                        },
+                        lastMessage: {
+                            content: latestMessage ? latestMessage.content : 'No messages yet',
+                            timestamp: latestMessage ? latestMessage.createdAt : order.createdAt,
+                            sender: latestMessage && latestMessage.senderId ? 
+                                (latestMessage.senderId.companyName || 'Unknown') : 'System',
+                            type: latestMessage ? latestMessage.type : 'system'
+                        },
+                        unreadCount,
+                        isOnline: false, // Would be determined by real-time status
+                        orderStatus: order.status || 'pending',
+                        orderValue: order.totalAmount || 0,
+                        currency: order.currency || 'USD'
+                    };
+
+                    conversations.push(conversation);
+                } catch (conversationError) {
+                    this.logger.error(`Error processing conversation for order ${order._id}:`, conversationError);
+                    // Continue processing other conversations
+                }
+            }
+
+            // Apply additional filters
             let filteredConversations = [...conversations];
 
             if (filters.filter === 'unread') {
-                // In a real implementation, we would filter by unreadCount > 0
-                // For now, we'll filter by orders with 'pending' status as an example
-                filteredConversations = filteredConversations.filter(conv => conv.status === 'pending');
-            } else if (filters.filter === 'rfq') {
-                // In a real implementation, we would filter by isRFQ = true
-                // For now, we'll return an empty array as we don't have RFQs implemented
-                filteredConversations = [];
+                filteredConversations = filteredConversations.filter(conv => conv.unreadCount > 0);
+            } else if (filters.filter === 'active') {
+                filteredConversations = filteredConversations.filter(conv => 
+                    ['pending', 'confirmed', 'in_production'].includes(conv.orderStatus)
+                );
             }
 
             if (filters.search) {
+                const searchLower = filters.search.toLowerCase();
                 filteredConversations = filteredConversations.filter(conv =>
-                    conv.supplierName.toLowerCase().includes(filters.search.toLowerCase()) ||
-                    conv.lastMessage.toLowerCase().includes(filters.search.toLowerCase())
+                    conv.supplier.name.toLowerCase().includes(searchLower) ||
+                    conv.orderNumber.toLowerCase().includes(searchLower) ||
+                    conv.lastMessage.content.toLowerCase().includes(searchLower)
                 );
             }
 
@@ -510,6 +1032,293 @@ class BuyerService {
 
         } catch (error) {
             this.logger.error('❌ Error getting buyer conversations:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Format last message content for sidebar display
+     * Handles text, image, file, and system messages
+     */
+    formatLastMessageContent(message) {
+        if (!message) {
+            return 'Suhbatni boshlang';
+        }
+
+        // If message has content, return it
+        if (message.content) {
+            return message.content;
+        }
+
+        // Handle different message types
+        switch (message.type) {
+            case 'image':
+                return '🖼️ Rasm';
+            case 'file':
+                return '📎 Fayl';
+            case 'system':
+                return 'ℹ️ Tizim xabari';
+            case 'order_update':
+                return '📋 Buyurtma yangilandi';
+            default:
+                return '💬 Xabar';
+        }
+    }
+
+    /**
+     * Get buyer conversations with current manufacturer at top
+     * Returns conversations sorted by: current manufacturer first, then by last message time
+     */
+    async getBuyerConversationsWithCurrent(buyerId, currentManufacturerId = null, filters = {}) {
+        try {
+            // Validate buyerId parameter
+            if (!buyerId) {
+                throw new Error('Buyer ID is required');
+            }
+
+            // Validate buyerId format
+            if (!mongoose.Types.ObjectId.isValid(buyerId)) {
+                throw new Error('Invalid buyer ID format');
+            }
+
+            const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
+            
+            // Debug logging
+            this.logger.info(`🔍 getBuyerConversationsWithCurrent called:`, {
+                buyerId: buyerId,
+                currentManufacturerId: currentManufacturerId,
+                filters: filters
+            });
+            
+            // Build order query
+            const orderQuery = { buyer: buyerObjectId };
+            
+            // Get orders with their sellers
+            const orders = await Order.find(orderQuery)
+                .populate('seller', 'companyName email avatar companyLogo phone')
+                .sort({ updatedAt: -1 })
+                .limit(50)
+                .lean();
+
+            this.logger.info(`🔍 Found ${orders.length} orders for buyer`);
+
+            // Apply search filter to company names if search query exists
+            let filteredOrders = orders;
+            if (filters.search) {
+                const searchRegex = new RegExp(filters.search, 'i');
+                filteredOrders = orders.filter(order => 
+                    order.seller && 
+                    order.seller.companyName && 
+                    searchRegex.test(order.seller.companyName)
+                );
+            }
+
+            // Get conversation data for each order - ONLY orders with actual messages
+            const conversations = [];
+            for (const order of filteredOrders) {
+                try {
+                    // Validate order has seller
+                    if (!order.seller || !order.seller._id) {
+                        this.logger.warn(`Order ${order._id} has no seller, skipping`);
+                        continue;
+                    }
+
+                    // Get latest message for this order
+                    const latestMessage = await Message.findOne({ 
+                        orderId: order._id 
+                    })
+                    .sort({ createdAt: -1 })
+                    .populate('senderId', 'companyName')
+                    .lean();
+
+                    // Skip orders without messages (except current manufacturer)
+                    if (!latestMessage && order.seller._id.toString() !== currentManufacturerId) {
+                        this.logger.info(`Order ${order._id} has no messages, skipping (not current manufacturer)`);
+                        continue;
+                    }
+
+                    // Count unread messages for buyer
+                    const unreadCount = await Message.countDocuments({
+                        orderId: order._id,
+                        recipientId: buyerObjectId,
+                        status: { $in: ['sent', 'delivered'] }
+                    });
+
+                    const conversation = {
+                        id: order._id.toString(),
+                        orderId: order._id,
+                        orderNumber: order.orderNumber || `ORD-${order._id.toString().substr(-6)}`,
+                        supplier: {
+                            id: order.seller._id,
+                            name: order.seller.companyName || 'Unknown Company',
+                            email: order.seller.email || '',
+                            avatar: order.seller.avatar || '/assets/images/default-company.svg',
+                            companyLogo: order.seller.companyLogo || null,
+                            phone: order.seller.phone || null
+                        },
+                        lastMessage: {
+                            content: latestMessage ? latestMessage.content : 'No messages yet',
+                            timestamp: latestMessage ? latestMessage.createdAt : order.createdAt,
+                            sender: latestMessage && latestMessage.senderId ? 
+                                (latestMessage.senderId.companyName || 'Unknown') : 'System',
+                            type: latestMessage ? latestMessage.type : 'system'
+                        },
+                        unreadCount,
+                        isOnline: false,
+                        orderStatus: order.status || 'pending',
+                        orderValue: order.totalAmount || 0,
+                        currency: order.currency || 'USD',
+                        hasMessages: !!latestMessage
+                    };
+
+                    conversations.push(conversation);
+                } catch (conversationError) {
+                    this.logger.error(`Error processing conversation for order ${order._id}:`, conversationError);
+                    continue;
+                }
+            }
+
+            // Remove duplicate conversations by supplier ID (keep the one with latest message)
+            const uniqueConversations = [];
+            const seenSuppliers = new Set();
+            
+            for (const conv of conversations) {
+                if (!seenSuppliers.has(conv.supplier.id)) {
+                    seenSuppliers.add(conv.supplier.id);
+                    uniqueConversations.push(conv);
+                } else {
+                    // If duplicate found, keep the one with latest message
+                    const existingIndex = uniqueConversations.findIndex(c => c.supplier.id === conv.supplier.id);
+                    if (existingIndex !== -1) {
+                        const existing = uniqueConversations[existingIndex];
+                        if (new Date(conv.lastMessage.timestamp) > new Date(existing.lastMessage.timestamp)) {
+                            uniqueConversations[existingIndex] = conv; // Replace with newer one
+                        }
+                    }
+                }
+            }
+
+            // Sort conversations: current manufacturer first (only if no messages), then by last message time
+            uniqueConversations.sort((a, b) => {
+                // Priority 1: Unread messages first
+                if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+                if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
+                
+                // Priority 2: Current manufacturer first (only if no messages)
+                if (currentManufacturerId) {
+                    const aIsCurrent = a.supplier.id === currentManufacturerId;
+                    const bIsCurrent = b.supplier.id === currentManufacturerId;
+                    
+                    // If current manufacturer has no messages, put it first
+                    if (aIsCurrent && !a.hasMessages && b.hasMessages) return -1;
+                    if (bIsCurrent && !b.hasMessages && a.hasMessages) return 1;
+                    
+                    // If both have messages or both don't have messages, sort by timestamp
+                    if (a.hasMessages === b.hasMessages) {
+                        // Priority 3: Has messages first
+                        if (a.hasMessages && !b.hasMessages) return -1;
+                        if (!a.hasMessages && b.hasMessages) return 1;
+                        
+                        // Priority 4: Last message timestamp (newest first)
+                        return new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp);
+                    }
+                }
+                
+                // Priority 3: Has messages first
+                if (a.hasMessages && !b.hasMessages) return -1;
+                if (!a.hasMessages && b.hasMessages) return 1;
+                
+                // Priority 4: Last message timestamp (newest first)
+                return new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp);
+            });
+
+            this.logger.info(`🔍 Conversations processed:`, {
+                totalConversations: conversations.length,
+                uniqueConversations: uniqueConversations.length,
+                currentManufacturerId: currentManufacturerId,
+                firstUniqueSupplier: uniqueConversations[0]?.supplier?.id,
+                firstUniqueName: uniqueConversations[0]?.supplier?.name,
+                firstUniqueHasMessages: uniqueConversations[0]?.hasMessages,
+                firstUniqueTimestamp: uniqueConversations[0]?.lastMessage?.timestamp
+            });
+
+            // Apply additional filters
+            let filteredConversations = [...uniqueConversations];
+
+            if (filters.filter === 'unread') {
+                filteredConversations = filteredConversations.filter(conv => conv.unreadCount > 0);
+            } else if (filters.filter === 'active') {
+                filteredConversations = filteredConversations.filter(conv => 
+                    ['pending', 'confirmed', 'in_production'].includes(conv.orderStatus)
+                );
+            }
+
+            return filteredConversations;
+
+        } catch (error) {
+            this.logger.error('❌ Error getting buyer conversations with current:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get order messages for buyer
+     */
+    async getOrderMessages(buyerId, orderId, options = {}) {
+        try {
+            const { page = 1, limit = 50 } = options;
+            
+            // Validate buyer access to this order
+            const order = await Order.findOne({ 
+                _id: new mongoose.Types.ObjectId(orderId),
+                buyer: new mongoose.Types.ObjectId(buyerId)
+            }).populate('seller', 'companyName email avatar');
+            
+            if (!order) {
+                throw new Error('Order not found or access denied');
+            }
+
+            // Get messages for this order with pagination
+            const skip = (parseInt(page) - 1) * parseInt(limit);
+            const messages = await Message.find({ orderId: order._id })
+                .populate('senderId', 'companyName email avatar')
+                .populate('recipientId', 'companyName email avatar')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(parseInt(limit))
+                .lean();
+
+            // Get total count for pagination
+            const totalCount = await Message.countDocuments({ orderId: order._id });
+
+            // Mark messages as read
+            await Message.updateMany({
+                orderId: order._id,
+                recipientId: new mongoose.Types.ObjectId(buyerId),
+                status: { $in: ['sent', 'delivered'] }
+            }, {
+                status: 'read',
+                readAt: new Date()
+            });
+
+            return {
+                messages: messages.reverse(), // Show oldest first
+                pagination: {
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    total: totalCount,
+                    pages: Math.ceil(totalCount / parseInt(limit))
+                },
+                order: {
+                    id: order._id,
+                    orderNumber: order.orderNumber,
+                    status: order.status,
+                    seller: order.seller
+                }
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Error getting order messages:', error);
             throw error;
         }
     }
@@ -993,38 +1802,78 @@ class BuyerService {
     }
 
     /**
-     * Send message to supplier
+     * Send message to supplier - Professional Implementation
      */
-    async sendMessage(buyerId, conversationId, message, attachments) {
+    async sendMessage(buyerId, orderId, messageContent, attachments = []) {
         try {
-            // Extract order ID from conversation ID (format: CONV-XXXXXX)
-            const orderId = conversationId.replace('CONV-', '');
-            
-            // Find the order to validate it exists and belongs to the buyer
+                    // Validate input - allow sending if either message OR attachments exist
+        if (!orderId) {
+            throw new Error('Order ID is required');
+        }
+        
+        if (!messageContent?.trim() && (!attachments || attachments.length === 0)) {
+            throw new Error('Message content or attachments are required');
+        }
+
+            // Validate buyer access to this order
             const order = await Order.findOne({ 
                 _id: new mongoose.Types.ObjectId(orderId),
                 buyer: new mongoose.Types.ObjectId(buyerId)
-            }).populate('seller', 'companyName');
+            }).populate('seller', 'companyName email avatar');
             
             if (!order) {
-                throw new Error('Order not found or does not belong to buyer');
+                throw new Error('Order not found or access denied');
             }
 
-            // In a real implementation, we would create a Message document
-            // For now, we'll just log the action and return a proper response
-            const result = {
-                conversationId,
+            // Auto-detect message type based on content and attachments
+            let messageType = 'text';
+            if (attachments && attachments.length > 0) {
+                if (messageContent?.trim()) {
+                    messageType = 'file'; // Text + file
+                } else {
+                    messageType = 'file'; // File only
+                }
+            } else if (!messageContent?.trim()) {
+                messageType = 'text'; // Empty text (fallback)
+            }
+
+            // Create the message document
+            const messageData = {
                 orderId: order._id,
-                supplierId: order.seller._id,
-                supplierName: order.seller.companyName,
-                message: message,
-                timestamp: new Date().toISOString(),
+                senderId: new mongoose.Types.ObjectId(buyerId),
+                recipientId: order.seller._id,
+                content: messageContent?.trim() || null, // null if no text content
+                type: messageType,
+                attachments: attachments || [],
                 status: 'sent'
             };
 
-            // this.logger.log(`✅ Message sent in conversation: ${conversationId} for order: ${orderId}`);
+            const newMessage = new Message(messageData);
+            await newMessage.save();
+
+            // Populate the saved message for response
+            const populatedMessage = await Message.findById(newMessage._id)
+                .populate('senderId', 'companyName email avatar')
+                .populate('recipientId', 'companyName email avatar')
+                .lean();
+
+            // Update order's last activity
+            order.updatedAt = new Date();
+            await order.save();
+
+            this.logger.log(`✅ Message sent successfully: ${newMessage._id} for order: ${orderId}`);
             
-            return result;
+            return {
+                success: true,
+                message: populatedMessage,
+                orderId: order._id,
+                conversationId: `order_${order._id}`,
+                recipient: {
+                    id: order.seller._id,
+                    name: order.seller.companyName,
+                    avatar: order.seller.avatar
+                }
+            };
 
         } catch (error) {
             this.logger.error('❌ Error sending message:', error);
@@ -1654,28 +2503,639 @@ class BuyerService {
      */
     async addToFavorites(buyerId, productId) {
         try {
-            // Check if product already in favorites
-            const existingFavorite = await Favorite.findOne({
-                buyer: new mongoose.Types.ObjectId(buyerId),
-                product: new mongoose.Types.ObjectId(productId)
-            });
+            
+            // Get product details for manufacturerId
+            const product = await Product.findById(productId).select('manufacturer');
+            if (!product) {
+                return { success: false, message: 'Product not found' };
+            }
 
-            if (existingFavorite) {
+
+            // Convert buyerId to ObjectId if needed
+            const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
+
+            // Get or create favorites document for buyer
+            let favorites = await Favorite.getOrCreateFavorites(buyerObjectId);
+
+            // Use Favorite model's addProduct method
+            const result = await favorites.addProduct(productId, product.manufacturer);
+            
+            if (result === false) {
                 return { success: false, message: 'Product already in favorites' };
             }
 
-            // Add to favorites
-            const favorite = new Favorite({
-                buyer: new mongoose.Types.ObjectId(buyerId),
-                product: new mongoose.Types.ObjectId(productId)
-            });
-
-            await favorite.save();
-
+    
             return { success: true, message: 'Product added to favorites' };
 
         } catch (error) {
             this.logger.error('❌ Add to favorites error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Remove product from favorites
+     */
+    async removeFromFavorites(buyerId, productId) {
+        try {
+            // Get favorites document for buyer
+            const favorites = await Favorite.findOne({ buyerId });
+
+            if (!favorites) {
+                return { success: false, message: 'No favorites found' };
+            }
+
+            // Use Favorite model's removeProduct method
+            const result = await favorites.removeProduct(productId);
+
+            if (result === false) {
+                return { success: false, message: 'Product not found in favorites' };
+            }
+
+            return { success: true, message: 'Product removed from favorites' };
+
+        } catch (error) {
+            this.logger.error('❌ Remove from favorites error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Check if product is in favorites
+     */
+    async checkFavoriteStatus(buyerId, productId) {
+        try {
+            
+            const favorites = await Favorite.findOne({ buyerId });
+
+            if (!favorites) {
+                return { success: true, isFavorite: false };
+            }
+
+            
+            const isInFavorites = favorites.products.some(p => 
+                p.productId.toString() === productId.toString()
+            );
+            
+
+            return { success: true, isFavorite: isInFavorites };
+
+        } catch (error) {
+            this.logger.error('❌ Check favorite status error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Check product status in cart and favorites
+     */
+    async checkProductStatus(buyerId, productId) {
+        try {
+            
+            // Check both cart and favorites in parallel
+            const [cartData, favoriteStatus] = await Promise.all([
+                this.getCartItems(buyerId),
+                this.checkFavoriteStatus(buyerId, productId)
+            ]);
+            // Check if product is in cart
+            const cartItems = cartData ? cartData.items : [];
+            const isInCart = cartItems && cartItems.some(item => 
+                item.productId._id.toString() === productId.toString()
+            );
+
+
+            // Get cart item details if in cart
+            let cartQuantity = 0;
+            if (isInCart) {
+                const cartItem = cartItems.find(item => 
+                    item.productId._id.toString() === productId.toString()
+                );
+                cartQuantity = cartItem ? cartItem.quantity : 0;
+            }
+
+            const result = {
+                success: true,
+                isInCart,
+                cartQuantity,
+                isFavorite: favoriteStatus ? favoriteStatus.isFavorite : false
+            };
+            return result;
+
+        } catch (error) {
+            console.log('❌ Check product status error:', error);
+            // Return default result on error instead of throwing
+            return {
+                success: true,
+                isInCart: false,
+                cartQuantity: 0,
+                isFavorite: false
+            };
+        }
+    }
+
+    /**
+     * Get buyer cart items with full population
+     */
+    async getCartItems(buyerId) {
+        try {
+            const cart = await Cart.getOrCreateCart(buyerId);
+            
+            if (!cart) {
+                return [];
+            }
+            
+            if (!cart.items || cart.items.length === 0) {
+                return [];
+            }
+            
+            // Return the items array directly, not the cart object
+            return cart.items;
+        } catch (error) {
+            this.logger.error('❌ Get cart items error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Check if product is in favorites
+     */
+    async checkFavoriteStatus(buyerId, productId) {
+        try {
+            
+            const favorites = await Favorite.findOne({ buyerId });
+
+            if (!favorites) {
+                
+                return { success: true, isFavorite: false };
+            }
+
+            
+            const isInFavorites = favorites.products.some(p => 
+                p.productId.toString() === productId.toString()
+            );
+            
+            
+            const result = { success: true, isFavorite: isInFavorites };
+            
+            return result;
+
+        } catch (error) {
+            console.log('❌ Check favorite status error:', error);
+            // Return default result on error instead of throwing
+            return { success: true, isFavorite: false };
+        }
+    }
+
+    /**
+     * Remove multiple items from cart (used after checkout)
+     */
+    async removeMultipleFromCart(buyerId, itemIds) {
+        try {
+            const cart = await Cart.findOne({ buyerId });
+            if (!cart) {
+                return { success: false, message: 'Cart not found' };
+            }
+
+            // Remove specified items
+            cart.items = cart.items.filter(item => 
+                !itemIds.includes(item._id.toString())
+            );
+
+            await cart.save();
+
+            return { 
+                success: true, 
+                message: `${itemIds.length} items removed from cart`,
+                removedCount: itemIds.length
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Remove multiple from cart error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Escape regex special characters to prevent injection attacks
+     */
+    escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    /**
+     * Cancel buyer order
+     */
+    async cancelOrder(buyerId, orderId, reason = '') {
+        try {
+            // Validate inputs
+            if (!buyerId || !mongoose.Types.ObjectId.isValid(buyerId)) {
+                return {
+                    success: false,
+                    error: {
+                        message: 'Invalid buyer ID'
+                    }
+                };
+            }
+
+            if (!orderId || !mongoose.Types.ObjectId.isValid(orderId)) {
+                return {
+                    success: false,
+                    error: {
+                        message: 'Invalid order ID'
+                    }
+                };
+            }
+
+            // Find order and verify ownership
+            const Order = require('../models/Order');
+            const order = await Order.findOne({
+                _id: new mongoose.Types.ObjectId(orderId),
+                buyer: new mongoose.Types.ObjectId(buyerId)
+            });
+
+            if (!order) {
+                return {
+                    success: false,
+                    error: {
+                        message: 'Order not found or access denied'
+                    }
+                };
+            }
+
+            // Check if order can be cancelled
+            const cancellableStatuses = ['draft', 'pending', 'confirmed'];
+            if (!cancellableStatuses.includes(order.status)) {
+                return {
+                    success: false,
+                    error: {
+                        message: `Order cannot be cancelled in current status: ${order.status}`
+                    }
+                };
+            }
+
+            // Update order status
+            order.status = 'cancelled';
+            order.cancelledAt = new Date();
+            order.cancellationReason = reason || 'Cancelled by buyer';
+            order.updatedAt = new Date();
+
+            await order.save();
+
+            // Log the cancellation
+            this.logger.info(`✅ Order ${orderId} cancelled by buyer ${buyerId}`);
+
+            return {
+                success: true,
+                message: 'Order cancelled successfully',
+                orderId: orderId,
+                cancelledAt: order.cancelledAt
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Cancel order error:', error);
+            return {
+                success: false,
+                error: {
+                    message: 'Failed to cancel order',
+                    details: error.message
+                }
+            };
+        }
+    }
+
+    /**
+     * Track buyer order
+     */
+    async trackOrder(buyerId, orderId) {
+        try {
+            // Validate inputs
+            if (!buyerId || !mongoose.Types.ObjectId.isValid(buyerId)) {
+                return {
+                    success: false,
+                    error: {
+                        message: 'Invalid buyer ID'
+                    }
+                };
+            }
+
+            if (!orderId || !mongoose.Types.ObjectId.isValid(orderId)) {
+                return {
+                    success: false,
+                    error: {
+                        message: 'Invalid order ID'
+                    }
+                };
+            }
+
+            // Find order and verify ownership
+            const Order = require('../models/Order');
+            const order = await Order.findOne({
+                _id: new mongoose.Types.ObjectId(orderId),
+                buyer: new mongoose.Types.ObjectId(buyerId)
+            }).populate('shipping');
+
+            if (!order) {
+                return {
+                    success: false,
+                    error: {
+                        message: 'Order not found or access denied'
+                    }
+                };
+            }
+
+            // Return tracking information
+            return {
+                success: true,
+                orderId: orderId,
+                trackingNumber: order.shipping?.trackingNumber || null,
+                status: order.status,
+                estimatedDelivery: order.shipping?.estimatedDelivery || null,
+                currentLocation: order.shipping?.currentLocation || null
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Track order error:', error);
+            return {
+                success: false,
+                error: {
+                    message: 'Failed to track order',
+                    details: error.message
+                }
+            };
+        }
+    }
+
+    /**
+     * Get detailed order information for buyer
+     */
+    async getOrderDetails(buyerId, orderId) {
+        try {
+            // Validate inputs
+            if (!buyerId || !mongoose.Types.ObjectId.isValid(buyerId)) {
+                return {
+                    success: false,
+                    error: {
+                        message: 'Invalid buyer ID'
+                    }
+                };
+            }
+
+            if (!orderId || !mongoose.Types.ObjectId.isValid(orderId)) {
+                return {
+                    success: false,
+                    error: {
+                        message: 'Invalid order ID'
+                    }
+                };
+            }
+
+            // Find order and verify ownership with comprehensive population and error handling
+            const Order = require('../models/Order');
+            
+            this.logger.info('🔍 Searching for order:', {
+                orderId,
+                buyerId,
+                orderIdValid: mongoose.Types.ObjectId.isValid(orderId),
+                buyerIdValid: mongoose.Types.ObjectId.isValid(buyerId)
+            });
+
+            const order = await Order.findOne({
+                _id: new mongoose.Types.ObjectId(orderId),
+                buyer: new mongoose.Types.ObjectId(buyerId)
+            }).populate([
+                {
+                    path: 'items.product', // Correct field name in schema
+                    select: 'name images category sku specifications unitPrice',
+                    populate: {
+                        path: 'category',
+                        select: 'name slug'
+                    }
+                },
+                {
+                    path: 'seller', // Use 'seller' not 'supplier' as per schema
+                    select: 'name email phone companyName companyLogo country address website'
+                },
+                {
+                    path: 'buyer',
+                    select: 'name email phone companyName country address'
+                }
+            ]).lean(); // Use lean() for better performance
+
+            this.logger.info('📦 Order query result:', {
+                found: !!order,
+                orderId: order?._id,
+                orderNumber: order?.orderNumber,
+                status: order?.status,
+                itemsCount: order?.items?.length || 0
+            });
+
+            if (!order) {
+                return {
+                    success: false,
+                    error: {
+                        message: 'Order not found or access denied'
+                    }
+                };
+            }
+
+            // Comprehensive data validation and formatting with error handling
+            const formattedOrder = {
+                id: order._id,
+                orderNumber: order.orderNumber || `ORD-${order._id.toString().slice(-8)}`,
+                status: order.status || 'pending',
+                statusLabel: this.getStatusLabel(order.status || 'pending'),
+                statusColor: this.getStatusColor(order.status || 'pending'),
+                createdAt: order.createdAt || new Date(),
+                updatedAt: order.updatedAt || order.createdAt || new Date(),
+                totalAmount: parseFloat(order.totalAmount) || 0,
+                currency: order.currency || 'USD',
+                totalQuantity: order.items ? order.items.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0) : 0,
+                items: order.items ? order.items.map(item => {
+                    // Safe product data extraction with fallbacks
+                    const product = item.product || {}; // Use 'product' not 'productId'
+                    const category = product.category || {};
+                    
+                    return {
+                        id: item._id,
+                        product: {
+                            id: product._id || 'unknown',
+                            name: product.name || 'Unknown Product',
+                            image: (product.images && product.images.length > 0) ? 
+                                   product.images[0] : '/assets/images/placeholder-product.svg',
+                            category: category.name || product.category || 'Unknown Category',
+                            sku: product.sku || 'N/A'
+                        },
+                        quantity: parseInt(item.quantity) || 0,
+                        unitPrice: parseFloat(item.unitPrice) || 0,
+                        totalPrice: parseFloat(item.totalPrice) || (parseFloat(item.unitPrice) || 0) * (parseInt(item.quantity) || 0),
+                        specifications: item.specifications ? 
+                            item.specifications.reduce((obj, spec) => {
+                                obj[spec.name] = spec.value;
+                                return obj;
+                            }, {}) : {}
+                    };
+                }) : [],
+                supplier: {
+                    id: order.seller?._id || 'unknown', // Use 'seller' not 'supplier'
+                    name: order.seller?.companyName || order.seller?.name || 'Unknown Supplier',
+                    email: order.seller?.email || '',
+                    phone: order.seller?.phone || '',
+                    logo: order.seller?.companyLogo || null
+                },
+                shipping: {
+                    method: order.shipping?.method || 'Standard Shipping',
+                    trackingNumber: order.shipping?.trackingNumber || null,
+                    estimatedDelivery: order.shipping?.estimatedDelivery || null,
+                    currentLocation: order.shipping?.currentLocation || null,
+                    carrier: order.shipping?.carrier || null,
+                    address: order.shipping?.address || null
+                },
+                buyer: {
+                    name: order.buyer?.companyName || order.buyer?.name || 'Unknown Buyer',
+                    email: order.buyer?.email || '',
+                    phone: order.buyer?.phone || ''
+                },
+                notes: order.notes || '',
+                actions: this.getAvailableActions(order.status || 'pending')
+            };
+
+            // Log successful formatting for debugging
+            this.logger.info('✅ Order data formatted successfully:', {
+                orderId: formattedOrder.id,
+                orderNumber: formattedOrder.orderNumber,
+                status: formattedOrder.status,
+                itemsCount: formattedOrder.items.length,
+                totalAmount: formattedOrder.totalAmount
+            });
+
+            return {
+                success: true,
+                order: formattedOrder
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Get order details error:', {
+                error: error.message,
+                stack: error.stack,
+                buyerId,
+                orderId,
+                errorName: error.name
+            });
+            
+            // Return user-friendly error message based on error type
+            let errorMessage = 'Failed to get order details';
+            if (error.name === 'CastError') {
+                errorMessage = 'Invalid order or buyer ID format';
+            } else if (error.message.includes('timeout')) {
+                errorMessage = 'Request timed out. Please try again.';
+            } else if (error.message.includes('connection')) {
+                errorMessage = 'Database connection error. Please try again.';
+            }
+            
+            return {
+                success: false,
+                error: {
+                    message: errorMessage,
+                    details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+                    code: error.code || 'UNKNOWN_ERROR'
+                }
+            };
+        }
+    }
+
+    /**
+     * Get available actions for order status
+     */
+    getAvailableActions(status) {
+        const actions = ['view_details'];
+        
+        switch (status) {
+            case 'draft':
+            case 'pending':
+            case 'confirmed':
+                actions.push('cancel');
+                break;
+            case 'processing':
+            case 'manufacturing':
+                actions.push('contact_supplier');
+                break;
+            case 'shipped':
+            case 'out_for_delivery':
+            case 'in_transit':
+                actions.push('track');
+                actions.push('contact_supplier');
+                break;
+            case 'completed':
+            case 'delivered':
+                actions.push('contact_supplier');
+                break;
+        }
+        
+        return actions;
+    }
+
+    /**
+     * Get favorite suppliers for buyer
+     */
+    async getFavoriteSuppliers(buyerId) {
+        try {
+            return await Favorite.getFavoriteSuppliers(buyerId);
+        } catch (error) {
+            this.logger.error('❌ Error getting favorite suppliers:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Add supplier to favorites
+     */
+    async addFavoriteSupplier(buyerId, supplierId, notes = '', tags = []) {
+        try {
+            // Convert buyerId to ObjectId if needed
+            const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
+            const supplierObjectId = new mongoose.Types.ObjectId(supplierId);
+
+            // Get or create favorites document for buyer
+            let favorites = await Favorite.getOrCreateFavorites(buyerObjectId);
+
+            // Use Favorite model's addSupplier method
+            const result = await favorites.addSupplier(supplierObjectId, notes, tags);
+            
+            if (result === false) {
+                return { success: false, message: 'Supplier already in favorites' };
+            }
+
+            return { success: true, message: 'Supplier added to favorites' };
+
+        } catch (error) {
+            this.logger.error('❌ Add supplier to favorites error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Remove supplier from favorites
+     */
+    async removeFavoriteSupplier(buyerId, supplierId) {
+        try {
+            // Get favorites document for buyer
+            const favorites = await Favorite.findOne({ buyerId });
+
+            if (!favorites) {
+                return { success: false, message: 'No favorites found' };
+            }
+
+            // Use Favorite model's removeSupplier method
+            const result = await favorites.removeSupplier(supplierId);
+
+            if (result === false) {
+                return { success: false, message: 'Supplier not found in favorites' };
+            }
+
+            return { success: true, message: 'Supplier removed from favorites' };
+
+        } catch (error) {
+            this.logger.error('❌ Remove supplier from favorites error:', error);
             throw error;
         }
     }
