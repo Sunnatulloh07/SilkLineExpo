@@ -1,5 +1,5 @@
-<%- include('../partials/header', { title: title, lng: lng, user: user }) %>
-<%- include('../partials/sidebar', { user: user, currentPage: 'products' }) %>
+<%- include('../partials/header', { title: title, lng: lng, user: user, t: t, currentUrl: currentUrl }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'products', t: t }) %>
 
 <!-- Main Content -->
 <main class="admin-main">
@@ -10,30 +10,30 @@
       <div class="header-content">
         <div class="header-title-section">
           <div class="breadcrumb">
-            <a href="/manufacturer/dashboard" class="breadcrumb-link">Dashboard</a>
+            <a href="/manufacturer/dashboard" class="breadcrumb-link"><%= t('manufacturer.products.edit.breadcrumb.dashboard') %></a>
             <i class="fas fa-chevron-right breadcrumb-separator"></i>
-            <a href="/manufacturer/marketplace" class="breadcrumb-link">Marketplace</a>
+            <a href="/manufacturer/marketplace" class="breadcrumb-link"><%= t('manufacturer.products.edit.breadcrumb.marketplace') %></a>
             <i class="fas fa-chevron-right breadcrumb-separator"></i>
-            <span class="breadcrumb-current">Mahsulotni tahrirlash</span>
+            <span class="breadcrumb-current"><%= t('manufacturer.products.edit.breadcrumb.editProduct') %></span>
           </div>
           <h1 class="page-title">
             <i class="fas fa-edit"></i>
-            Mahsulotni tahrirlash
+            <%= t('manufacturer.products.edit.pageTitle') %>
           </h1>
-          <p class="page-subtitle">Professional B2B mahsulot ma'lumotlarini yangilang</p>
+          <p class="page-subtitle"><%= t('manufacturer.products.edit.pageSubtitle') %></p>
         </div>
         <div class="header-actions">
           <button class="btn-outline" id="previewBtn">
             <i class="fas fa-eye"></i>
-            Ko'rish
+            <%= t('manufacturer.products.edit.actions.preview') %>
           </button>
           <button class="btn-secondary" id="saveAsDraftBtn">
             <i class="fas fa-save"></i>
-            Qoralama sifatida saqlash
+            <%= t('manufacturer.products.edit.actions.saveAsDraft') %>
           </button>
           <button class="btn-primary" id="publishBtn">
             <i class="fas fa-rocket"></i>
-            Chop etish
+            <%= t('manufacturer.products.edit.actions.publish') %>
           </button>
         </div>
       </div>
@@ -44,7 +44,7 @@
       <div class="alert alert-warning animate-fade-in" style="margin: 1rem 0; padding: 1rem; background: #fff3cd; border: 1px solid #ffecb5; border-radius: 8px; color: #856404;">
         <div style="display: flex; align-items: center; gap: 0.5rem;">
           <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i>
-          <strong>Diqqat!</strong> <%= errorMessage %>
+          <strong><%= t('manufacturer.products.edit.alerts.attention') %></strong> <%= errorMessage %>
         </div>
       </div>
     <% } %>
@@ -62,23 +62,23 @@
             <div class="progress-steps">
               <div class="step active" data-step="1">
                 <div class="step-number">1</div>
-                <div class="step-label">Asosiy ma'lumotlar</div>
+                <div class="step-label"><%= t('manufacturer.products.edit.steps.basicInfo') %></div>
               </div>
               <div class="step" data-step="2">
                 <div class="step-number">2</div>
-                <div class="step-label">Narxlar va MOQ</div>
+                <div class="step-label"><%= t('manufacturer.products.edit.steps.pricingAndMOQ') %></div>
               </div>
               <div class="step" data-step="3">
                 <div class="step-number">3</div>
-                <div class="step-label">Texnik xususiyatlar</div>
+                <div class="step-label"><%= t('manufacturer.products.edit.steps.specifications') %></div>
               </div>
               <div class="step" data-step="4">
                 <div class="step-number">4</div>
-                <div class="step-label">Rasmlar</div>
+                <div class="step-label"><%= t('manufacturer.products.edit.steps.images') %></div>
               </div>
               <div class="step" data-step="5">
                 <div class="step-number">5</div>
-                <div class="step-label">Yetkazib berish</div>
+                <div class="step-label"><%= t('manufacturer.products.edit.steps.shipping') %></div>
               </div>
             </div>
             <div class="progress-bar">
@@ -89,15 +89,15 @@
           <!-- Step 1: Basic Information -->
           <div class="form-step active" data-step="1">
             <div class="step-header">
-              <h3>Asosiy ma'lumotlar</h3>
-              <p class="step-description">Mahsulot haqida umumiy ma'lumotlarni kiriting</p>
+              <h3><%= t('manufacturer.products.edit.steps.basicInfo') %></h3>
+              <p class="step-description"><%= t('manufacturer.products.edit.steps.basicInfoDescription') %></p>
             </div>
             
             <div class="form-grid">
               <div class="form-group full-width">
                 <label for="productName" class="form-label required">
                   <i class="fas fa-tag"></i>
-                  Mahsulot nomi
+                  <%= t('manufacturer.products.edit.form.productName') %>
                 </label>
                 <input 
                   type="text" 
@@ -105,21 +105,21 @@
                   name="name" 
                   class="form-input" 
                   value="<%= product.name || '' %>"
-                  placeholder="Masalan: Premium Paxta Mato" 
+                  placeholder="<%= t('manufacturer.products.edit.form.productNamePlaceholder') %>" 
                   required
                   maxlength="200"
                 >
-                <div class="form-hint">Xaridorlarga tushunarligi uchun aniq va tavsiflovchi nom kiriting</div>
+                <div class="form-hint"><%= t('manufacturer.products.edit.form.productNameHint') %></div>
                 <div class="validation-message"></div>
               </div>
               
               <div class="form-group">
                 <label for="category" class="form-label required">
                   <i class="fas fa-th-large"></i>
-                  Kategoriya
+                  <%= t('manufacturer.products.edit.form.category') %>
                 </label>
                 <select id="category" name="category" class="form-select" required>
-                  <option value="">Kategoriyani tanlang...</option>
+                  <option value=""><%= t('manufacturer.products.edit.form.selectCategory') %></option>
                   <% categories.forEach(function(cat) { %>
                     <%
                       // Professional ObjectId comparison fix - Senior Software Engineer Logic
@@ -152,46 +152,46 @@
               <div class="form-group">
                 <label for="productStatus" class="form-label">
                   <i class="fas fa-toggle-on"></i>
-                  Mahsulot holati
+                  <%= t('manufacturer.products.edit.form.productStatus') %>
                 </label>
                 <select id="productStatus" name="status" class="form-select">
-                  <option value="active" <%= (product.status === 'active') ? 'selected' : '' %>>Faol</option>
-                  <option value="inactive" <%= (product.status === 'inactive') ? 'selected' : '' %>>Nofaol</option>
-                  <option value="draft" <%= (product.status === 'draft') ? 'selected' : '' %>>Qoralama</option>
+                  <option value="active" <%= (product.status === 'active') ? 'selected' : '' %>><%= t('manufacturer.products.status.active') %></option>
+                  <option value="inactive" <%= (product.status === 'inactive') ? 'selected' : '' %>><%= t('manufacturer.products.status.inactive') %></option>
+                  <option value="draft" <%= (product.status === 'draft') ? 'selected' : '' %>><%= t('manufacturer.products.status.draft') %></option>
                 </select>
               </div>
               
               <div class="form-group full-width">
                 <label for="shortDescription" class="form-label">
                   <i class="fas fa-align-left"></i>
-                  Qisqacha tavsif
+                  <%= t('manufacturer.products.edit.form.shortDescription') %>
                 </label>
                 <textarea 
                   id="shortDescription" 
                   name="shortDescription" 
                   class="form-textarea" 
                   rows="3" 
-                  placeholder="Mahsulot haqida qisqacha ma'lumot..."
+                  placeholder="<%= t('manufacturer.products.edit.form.shortDescriptionPlaceholder') %>"
                   maxlength="500"
                 ><%= product.shortDescription || '' %></textarea>
-                <div class="form-hint">Qidiruv natijalarida ko'rsetiladi (maksimal 500 belgi)</div>
+                <div class="form-hint"><%= t('manufacturer.products.edit.form.shortDescriptionHint') %></div>
               </div>
               
               <div class="form-group full-width">
                 <label for="description" class="form-label required">
                   <i class="fas fa-file-text"></i>
-                  Batafsil tavsif
+                  <%= t('manufacturer.products.edit.form.description') %>
                 </label>
                 <textarea 
                   id="description" 
                   name="description" 
                   class="form-textarea rich-editor" 
                   rows="6" 
-                  placeholder="Mahsulot haqida batafsil ma'lumot, xususiyatlari, ishlatilishi..."
+                  placeholder="<%= t('manufacturer.products.edit.form.descriptionPlaceholder') %>"
                   required
                   maxlength="2000"
                 ><%= product.description || '' %></textarea>
-                <div class="form-hint">Xaridorlarga to'liq ma'lumot berish uchun batafsil yozing</div>
+                <div class="form-hint"><%= t('manufacturer.products.edit.form.descriptionHint') %></div>
                 <div class="validation-message"></div>
               </div>
             </div>
@@ -200,15 +200,15 @@
           <!-- Step 2: Pricing & MOQ -->
           <div class="form-step" data-step="2">
             <div class="step-header">
-              <h3>Narxlar va miqdor</h3>
-              <p class="step-description">Narx siyosati va minimum buyurtma miqdorini belgilang</p>
+              <h3><%= t('manufacturer.products.edit.steps.pricingAndMOQ') %></h3>
+              <p class="step-description"><%= t('manufacturer.products.edit.steps.pricingAndMOQDescription') %></p>
             </div>
             
             <div class="form-grid">
               <div class="form-group">
                 <label for="basePrice" class="form-label required">
                   <i class="fas fa-dollar-sign"></i>
-                  Bazaviy narx (USD)
+                  <%= t('manufacturer.products.edit.form.basePrice') %>
                 </label>
                 <div class="price-input-wrapper">
                   <span class="price-currency">$</span>
@@ -230,19 +230,19 @@
               <div class="form-group">
                 <label for="priceType" class="form-label">
                   <i class="fas fa-hand-holding-usd"></i>
-                  Narx turi
+                  <%= t('manufacturer.products.edit.form.priceType') %>
                 </label>
                 <select id="priceType" name="pricing.priceType" class="form-select">
-                  <option value="fixed" <%= (product.pricing?.priceType === 'fixed') ? 'selected' : '' %>>Qat'iy narx</option>
-                  <option value="negotiable" <%= (product.pricing?.priceType === 'negotiable') ? 'selected' : '' %>>Kelishiladi</option>
-                  <option value="quote_based" <%= (product.pricing?.priceType === 'quote_based') ? 'selected' : '' %>>Taklif asosida</option>
+                  <option value="fixed" <%= (product.pricing?.priceType === 'fixed') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.priceTypeFixed') %></option>
+                  <option value="negotiable" <%= (product.pricing?.priceType === 'negotiable') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.priceTypeNegotiable') %></option>
+                  <option value="quote_based" <%= (product.pricing?.priceType === 'quote_based') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.priceTypeQuoteBased') %></option>
                 </select>
               </div>
               
               <div class="form-group">
                 <label for="minOrderQty" class="form-label required">
                   <i class="fas fa-sort-numeric-up"></i>
-                  Minimum buyurtma miqdori (MOQ)
+                  <%= t('manufacturer.products.edit.form.minOrderQty') %>
                 </label>
                 <input 
                   type="number" 
@@ -251,17 +251,17 @@
                   class="form-input" 
                   min="1"
                   value="<%= product.pricing?.minimumOrderQuantity || '' %>"
-                  placeholder="100"
+                  placeholder="<%= t('manufacturer.products.edit.form.minOrderQtyPlaceholder') %>"
                   required
                 >
-                <div class="form-hint">Eng kam buyurtma miqdori</div>
+                <div class="form-hint"><%= t('manufacturer.products.edit.form.minOrderQtyHint') %></div>
                 <div class="validation-message"></div>
               </div>
               
               <div class="form-group">
                 <label for="maxOrderQty" class="form-label">
                   <i class="fas fa-sort-numeric-down"></i>
-                  Maksimum buyurtma miqdori
+                  <%= t('manufacturer.products.edit.form.maxOrderQty') %>
                 </label>
                 <input 
                   type="number" 
@@ -270,9 +270,9 @@
                   class="form-input" 
                   min="1"
                   value="<%= product.pricing?.maximumOrderQuantity || '' %>"
-                  placeholder="10000"
+                  placeholder="<%= t('manufacturer.products.edit.form.maxOrderQtyPlaceholder') %>"
                 >
-                <div class="form-hint">Bo'sh qoldirish - cheklovsiz</div>
+                <div class="form-hint"><%= t('manufacturer.products.edit.form.maxOrderQtyHint') %></div>
               </div>
             </div>
             
@@ -281,11 +281,11 @@
               <div class="section-header">
                 <h4>
                   <i class="fas fa-layer-group"></i>
-                  Ulgurji narxlari
+                  <%= t('manufacturer.products.edit.form.bulkPricing') %>
                 </h4>
                 <button type="button" class="btn-sm btn-outline" id="addBulkPrice">
                   <i class="fas fa-plus"></i>
-                  Qo'shish
+                  <%= t('manufacturer.products.edit.form.add') %>
                 </button>
               </div>
               
@@ -297,7 +297,7 @@
                         <input 
                           type="number" 
                           name="pricing.bulkPricing[<%= index %>].minQuantity" 
-                          placeholder="Min miqdor"
+                          placeholder="<%= t('manufacturer.products.edit.form.minQuantity') %>"
                           value="<%= bulk.minQuantity %>"
                           class="form-input small"
                         >
@@ -305,14 +305,14 @@
                         <input 
                           type="number" 
                           name="pricing.bulkPricing[<%= index %>].maxQuantity" 
-                          placeholder="Max miqdor"
+                          placeholder="<%= t('manufacturer.products.edit.form.maxQuantity') %>"
                           value="<%= bulk.maxQuantity || '' %>"
                           class="form-input small"
                         >
                         <input 
                           type="number" 
                           name="pricing.bulkPricing[<%= index %>].price" 
-                          placeholder="Narx (USD)"
+                          placeholder="<%= t('manufacturer.products.edit.form.price') %>"
                           value="<%= bulk.price %>"
                           step="0.01"
                           class="form-input small"
@@ -320,7 +320,7 @@
                         <input 
                           type="number" 
                           name="pricing.bulkPricing[<%= index %>].discount" 
-                          placeholder="Chegirma %"
+                          placeholder="<%= t('manufacturer.products.edit.form.discount') %>"
                           value="<%= bulk.discount || '' %>"
                           class="form-input small"
                         >
@@ -338,19 +338,19 @@
           <!-- Step 3: Technical Specifications -->
           <div class="form-step" data-step="3">
             <div class="step-header">
-              <h3>Texnik xususiyatlar</h3>
-              <p class="step-description">Mahsulot parametrlari va texnik ko'rsatkichlar</p>
+              <h3><%= t('manufacturer.products.edit.steps.specifications') %></h3>
+              <p class="step-description"><%= t('manufacturer.products.edit.steps.specificationsDescription') %></p>
             </div>
             
             <div class="specifications-section">
               <div class="section-header">
                 <h4>
                   <i class="fas fa-cogs"></i>
-                  Mahsulot spetsifikatsiyalari
+                  <%= t('manufacturer.products.edit.form.productSpecifications') %>
                 </h4>
                 <button type="button" class="btn-sm btn-outline" id="addSpecification">
                   <i class="fas fa-plus"></i>
-                  Qo'shish
+                  <%= t('manufacturer.products.edit.form.add') %>
                 </button>
               </div>
               
@@ -362,21 +362,21 @@
                         <input 
                           type="text" 
                           name="specifications[<%= index %>].name" 
-                          placeholder="Xususiyat nomi (Masalan: Material)"
+                          placeholder="<%= t('manufacturer.products.edit.form.specNamePlaceholder') %>"
                           value="<%= spec.name %>"
                           class="form-input"
                         >
                         <input 
                           type="text" 
                           name="specifications[<%= index %>].value" 
-                          placeholder="Qiymati (Masalan: 100% Paxta)"
+                          placeholder="<%= t('manufacturer.products.edit.form.specValuePlaceholder') %>"
                           value="<%= spec.value %>"
                           class="form-input"
                         >
                         <input 
                           type="text" 
                           name="specifications[<%= index %>].unit" 
-                          placeholder="O'lchov (Masalan: %, kg, m)"
+                          placeholder="<%= t('manufacturer.products.edit.form.specUnitPlaceholder') %>"
                           value="<%= spec.unit || '' %>"
                           class="form-input small"
                         >
@@ -395,7 +395,7 @@
               <div class="section-header">
                 <h4>
                   <i class="fas fa-warehouse"></i>
-                  Ombor ma'lumotlari
+                  <%= t('manufacturer.products.edit.form.inventoryData') %>
                 </h4>
               </div>
               
@@ -403,7 +403,7 @@
                 <div class="form-group">
                   <label for="stockQuantity" class="form-label">
                     <i class="fas fa-boxes"></i>
-                    Mavjud miqdor
+                    <%= t('manufacturer.products.edit.form.stockQuantity') %>
                   </label>
                   <input 
                     type="number" 
@@ -412,14 +412,14 @@
                     class="form-input" 
                     min="0"
                     value="<%= product.inventory?.totalStock || '' %>"
-                    placeholder="1000"
+                    placeholder="<%= t('manufacturer.products.edit.form.stockQuantityPlaceholder') %>"
                   >
                 </div>
                 
                 <div class="form-group">
                   <label for="lowStockThreshold" class="form-label">
                     <i class="fas fa-exclamation-triangle"></i>
-                    Kam qolgan chegara
+                    <%= t('manufacturer.products.edit.form.lowStockThreshold') %>
                   </label>
                   <input 
                     type="number" 
@@ -428,29 +428,29 @@
                     class="form-input" 
                     min="0"
                     value="<%= product.inventory?.lowStockThreshold || '' %>"
-                    placeholder="100"
+                    placeholder="<%= t('manufacturer.products.edit.form.lowStockThresholdPlaceholder') %>"
                   >
-                  <div class="form-hint">Bu miqdordan kam qolganda ogohlantirish</div>
+                  <div class="form-hint"><%= t('manufacturer.products.edit.form.lowStockThresholdHint') %></div>
                 </div>
                 
                 <div class="form-group">
                   <label for="inventoryUnit" class="form-label">
                     <i class="fas fa-ruler"></i>
-                    O'lchov birligi
+                    <%= t('manufacturer.products.edit.form.inventoryUnit') %>
                   </label>
                   <select 
                     id="inventoryUnit" 
                     name="inventory.unit" 
                     class="form-select"
                   >
-                    <option value="pieces" <%= (product.inventory?.unit === 'pieces') ? 'selected' : '' %>>Dona (pieces)</option>
-                    <option value="kg" <%= (product.inventory?.unit === 'kg') ? 'selected' : '' %>>Kilogram (kg)</option>
-                    <option value="meters" <%= (product.inventory?.unit === 'meters') ? 'selected' : '' %>>Metr (m)</option>
-                    <option value="liters" <%= (product.inventory?.unit === 'liters') ? 'selected' : '' %>>Litr (l)</option>
-                    <option value="boxes" <%= (product.inventory?.unit === 'boxes') ? 'selected' : '' %>>Quti (boxes)</option>
-                    <option value="rolls" <%= (product.inventory?.unit === 'rolls') ? 'selected' : '' %>>Rulon (rolls)</option>
+                    <option value="pieces" <%= (product.inventory?.unit === 'pieces') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.unitPieces') %></option>
+                    <option value="kg" <%= (product.inventory?.unit === 'kg') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.unitKg') %></option>
+                    <option value="meters" <%= (product.inventory?.unit === 'meters') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.unitMeters') %></option>
+                    <option value="liters" <%= (product.inventory?.unit === 'liters') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.unitLiters') %></option>
+                    <option value="boxes" <%= (product.inventory?.unit === 'boxes') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.unitBoxes') %></option>
+                    <option value="rolls" <%= (product.inventory?.unit === 'rolls') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.unitRolls') %></option>
                   </select>
-                  <div class="form-hint">Mahsulot qanday o'lchov birligida hisoblanadi</div>
+                  <div class="form-hint"><%= t('manufacturer.products.edit.form.inventoryUnitHint') %></div>
                 </div>
               </div>
             </div>
@@ -459,17 +459,17 @@
           <!-- Step 4: Images -->
           <div class="form-step" data-step="4">
             <div class="step-header">
-              <h3>Mahsulot rasmlari</h3>
-              <p class="step-description">Yuqori sifatli rasmlar mahsulot sotuvini oshiradi</p>
+              <h3><%= t('manufacturer.products.edit.steps.images') %></h3>
+              <p class="step-description"><%= t('manufacturer.products.edit.steps.imagesDescription') %></p>
             </div>
             
             <div class="image-upload-section">
               <!-- Image Counter -->
               <div class="image-counter-section">
-                <div class="image-counter">0/10 rasm</div>
+                <div class="image-counter"><%= t('manufacturer.products.edit.images.counter') %></div>
                 <div class="image-status-info">
-                  <span class="temp-images-count">Yangi: 0</span>
-                  <span class="existing-images-count">Mavjud: 0</span>
+                  <span class="temp-images-count"><%= t('manufacturer.products.edit.images.new') %>: 0</span>
+                  <span class="existing-images-count"><%= t('manufacturer.products.edit.images.existing') %>: 0</span>
                 </div>
               </div>
               
@@ -477,18 +477,18 @@
               <div class="upload-area" id="imageUploadArea">
                 <div class="upload-placeholder">
                   <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                  <h4>Rasmlarni yuklash</h4>
-                  <p>Rasmlarni bu yerga sudrab oling yoki fayllarni tanlash uchun bosing</p>
+                  <h4><%= t('manufacturer.products.edit.images.uploadTitle') %></h4>
+                  <p><%= t('manufacturer.products.edit.images.uploadDescription') %></p>
                   <p class="upload-requirements">
-                    Maksimal 10 ta rasm • JPG, PNG, WebP • Har biri 5MB gacha
+                    <%= t('manufacturer.products.edit.images.uploadRequirements') %>
                   </p>
                   <p class="upload-note">
                     <i class="fas fa-info-circle"></i>
-                    Rasmlar vaqtincha saqlanadi. Product saqlangandagina server'ga yuklanadi.
+                    <%= t('manufacturer.products.edit.images.uploadNote') %>
                   </p>
                   <button type="button" class="btn-outline upload-btn">
                     <i class="fas fa-folder-open"></i>
-                    Fayllarni tanlash
+                    <%= t('manufacturer.products.edit.images.selectFiles') %>
                   </button>
                 </div>
                 <input 
@@ -511,15 +511,15 @@
                         <div class="image-wrapper">
                           <img src="<%= imageUrl %>" alt="<%= (typeof image === 'object' && image.alt) ? image.alt : 'Product Image ' + (index + 1) %>" loading="lazy">
                           <div class="image-overlay">
-                            <button type="button" class="btn-sm btn-ghost set-primary" title="Asosiy qilish">
+                            <button type="button" class="btn-sm btn-ghost set-primary" title="<%= t('manufacturer.products.edit.images.setPrimary') %>">
                               <i class="fas fa-star"></i>
                             </button>
-                            <button type="button" class="btn-sm btn-ghost remove-image" title="O'chirish">
+                            <button type="button" class="btn-sm btn-ghost remove-image" title="<%= t('manufacturer.products.edit.images.remove') %>">
                               <i class="fas fa-trash"></i>
                             </button>
                           </div>
                           <% if (isPrimary) { %>
-                            <div class="primary-badge">Asosiy</div>
+                            <div class="primary-badge"><%= t('manufacturer.products.edit.images.primary') %></div>
                           <% } %>
                         </div>
                       </div>
@@ -531,7 +531,7 @@
               <!-- Upload Progress -->
               <div class="upload-progress" id="uploadProgress" style="display: none;">
                 <div class="progress-info">
-                  <span class="progress-text">Yuklanmoqda...</span>
+                  <span class="progress-text"><%= t('manufacturer.products.edit.images.uploading') %></span>
                   <span class="progress-percentage">0%</span>
                 </div>
                 <div class="progress-bar">
@@ -544,15 +544,15 @@
           <!-- Step 5: Shipping & Delivery -->
           <div class="form-step" data-step="5">
             <div class="step-header">
-              <h3>Yetkazib berish</h3>
-              <p class="step-description">Yetkazib berish parametrlari va muddatlar</p>
+              <h3><%= t('manufacturer.products.edit.steps.shipping') %></h3>
+              <p class="step-description"><%= t('manufacturer.products.edit.steps.shippingDescription') %></p>
             </div>
             
             <div class="form-grid">
               <div class="form-group">
                 <label for="leadTime" class="form-label">
                   <i class="fas fa-clock"></i>
-                  Tayyorlash muddati
+                  <%= t('manufacturer.products.edit.form.leadTime') %>
                 </label>
                 <select id="leadTime" name="shipping.leadTime" class="form-select">
                   <% 
@@ -568,18 +568,18 @@
                       currentLeadTime = product.shipping.leadTime;
                     }
                   %>
-                  <option value="1-3" <%= (currentLeadTime === '1-3') ? 'selected' : '' %>>1-3 kun</option>
-                  <option value="3-7" <%= (currentLeadTime === '3-7') ? 'selected' : '' %>>3-7 kun</option>
-                  <option value="7-15" <%= (currentLeadTime === '7-15') ? 'selected' : '' %>>7-15 kun</option>
-                  <option value="15-30" <%= (currentLeadTime === '15-30') ? 'selected' : '' %>>15-30 kun</option>
-                  <option value="custom" <%= (currentLeadTime === 'custom') ? 'selected' : '' %>>Kelishiladi</option>
+                  <option value="1-3" <%= (currentLeadTime === '1-3') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.leadTime1_3') %></option>
+                  <option value="3-7" <%= (currentLeadTime === '3-7') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.leadTime3_7') %></option>
+                  <option value="7-15" <%= (currentLeadTime === '7-15') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.leadTime7_15') %></option>
+                  <option value="15-30" <%= (currentLeadTime === '15-30') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.leadTime15_30') %></option>
+                  <option value="custom" <%= (currentLeadTime === 'custom') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.leadTimeCustom') %></option>
                 </select>
               </div>
               
               <div class="form-group">
                 <label for="shippingWeight" class="form-label">
                   <i class="fas fa-weight"></i>
-                  Og'irligi (kg)
+                  <%= t('manufacturer.products.edit.form.shippingWeight') %>
                 </label>
                 <input 
                   type="number" 
@@ -589,21 +589,21 @@
                   step="0.1" 
                   min="0"
                   value="<%= product.shipping?.weight || '' %>"
-                  placeholder="1.5"
+                  placeholder="<%= t('manufacturer.products.edit.form.shippingWeightPlaceholder') %>"
                 >
               </div>
               
               <div class="form-group">
                 <label class="form-label">
                   <i class="fas fa-cube"></i>
-                  O'lchamlar
+                  <%= t('manufacturer.products.edit.form.dimensions') %>
                 </label>
                 <div class="dimensions-inputs">
                   <input 
                     type="number" 
                     name="shipping.dimensions.length" 
                     class="form-input small" 
-                    placeholder="Uzunlik"
+                    placeholder="<%= t('manufacturer.products.edit.form.dimensionLength') %>"
                     value="<%= product.shipping?.dimensions?.length || '' %>"
                   >
                   <span>×</span>
@@ -611,7 +611,7 @@
                     type="number" 
                     name="shipping.dimensions.width" 
                     class="form-input small" 
-                    placeholder="Kenglik"
+                    placeholder="<%= t('manufacturer.products.edit.form.dimensionWidth') %>"
                     value="<%= product.shipping?.dimensions?.width || '' %>"
                   >
                   <span>×</span>
@@ -619,7 +619,7 @@
                     type="number" 
                     name="shipping.dimensions.height" 
                     class="form-input small" 
-                    placeholder="Balandlik"
+                    placeholder="<%= t('manufacturer.products.edit.form.dimensionHeight') %>"
                     value="<%= product.shipping?.dimensions?.height || '' %>"
                   >
                   <select 
@@ -637,17 +637,17 @@
               <div class="form-group">
                 <label for="packagingType" class="form-label">
                   <i class="fas fa-box"></i>
-                  Qadoqlash turi
+                  <%= t('manufacturer.products.edit.form.packagingType') %>
                 </label>
                 <select id="packagingType" name="shipping.packagingType" class="form-select">
-                  <option value="">Tanlang...</option>
-                  <option value="Box" <%= (product.shipping?.packagingType === 'Box') ? 'selected' : '' %>>Quti</option>
-                  <option value="Bag" <%= (product.shipping?.packagingType === 'Bag') ? 'selected' : '' %>>Xalta</option>
-                  <option value="Carton" <%= (product.shipping?.packagingType === 'Carton') ? 'selected' : '' %>>Karton</option>
-                  <option value="Pallet" <%= (product.shipping?.packagingType === 'Pallet') ? 'selected' : '' %>>Pallet</option>
-                  <option value="Roll" <%= (product.shipping?.packagingType === 'Roll') ? 'selected' : '' %>>Rulon</option>
-                  <option value="Bundle" <%= (product.shipping?.packagingType === 'Bundle') ? 'selected' : '' %>>Bog'lam</option>
-                  <option value="Custom" <%= (product.shipping?.packagingType === 'Custom') ? 'selected' : '' %>>Boshqa</option>
+                  <option value=""><%= t('manufacturer.products.edit.form.select') %></option>
+                  <option value="Box" <%= (product.shipping?.packagingType === 'Box') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.packagingBox') %></option>
+                  <option value="Bag" <%= (product.shipping?.packagingType === 'Bag') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.packagingBag') %></option>
+                  <option value="Carton" <%= (product.shipping?.packagingType === 'Carton') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.packagingCarton') %></option>
+                  <option value="Pallet" <%= (product.shipping?.packagingType === 'Pallet') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.packagingPallet') %></option>
+                  <option value="Roll" <%= (product.shipping?.packagingType === 'Roll') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.packagingRoll') %></option>
+                  <option value="Bundle" <%= (product.shipping?.packagingType === 'Bundle') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.packagingBundle') %></option>
+                  <option value="Custom" <%= (product.shipping?.packagingType === 'Custom') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.packagingCustom') %></option>
                 </select>
               </div>
               
@@ -655,22 +655,22 @@
               <div class="form-group">
                 <label for="shippingClass" class="form-label">
                   <i class="fas fa-shipping-fast"></i>
-                  Yetkazib berish klassi
+                  <%= t('manufacturer.products.edit.form.shippingClass') %>
                 </label>
                 <select id="shippingClass" name="shipping.shippingClass" class="form-select">
-                  <option value="">Tanlang...</option>
-                  <option value="standard" <%= (product.shipping?.shippingClass === 'standard') ? 'selected' : '' %>>Standart</option>
-                  <option value="fragile" <%= (product.shipping?.shippingClass === 'fragile') ? 'selected' : '' %>>Mo'rt (ehtiyotkorlik bilan)</option>
-                  <option value="hazardous" <%= (product.shipping?.shippingClass === 'hazardous') ? 'selected' : '' %>>Xavfli materiallar</option>
-                  <option value="perishable" <%= (product.shipping?.shippingClass === 'perishable') ? 'selected' : '' %>>Tez buziladigan</option>
-                  <option value="oversized" <%= (product.shipping?.shippingClass === 'oversized') ? 'selected' : '' %>>Katta hajmli</option>
+                  <option value=""><%= t('manufacturer.products.edit.form.select') %></option>
+                  <option value="standard" <%= (product.shipping?.shippingClass === 'standard') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.shippingStandard') %></option>
+                  <option value="fragile" <%= (product.shipping?.shippingClass === 'fragile') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.shippingFragile') %></option>
+                  <option value="hazardous" <%= (product.shipping?.shippingClass === 'hazardous') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.shippingHazardous') %></option>
+                  <option value="perishable" <%= (product.shipping?.shippingClass === 'perishable') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.shippingPerishable') %></option>
+                  <option value="oversized" <%= (product.shipping?.shippingClass === 'oversized') ? 'selected' : '' %>><%= t('manufacturer.products.edit.form.shippingOversized') %></option>
                 </select>
               </div>
               
               <div class="form-group full-width">
                 <label class="form-label">
                   <i class="fas fa-shipping-fast"></i>
-                  Yetkazib berish usullari
+                  <%= t('manufacturer.products.edit.form.shippingMethods') %>
                 </label>
                 <div class="shipping-methods">
                   <% const shippingMethods = product.shipping?.methods || []; %>
@@ -682,7 +682,7 @@
                       <%= (Array.isArray(shippingMethods) && shippingMethods.includes('standard')) ? 'checked' : '' %>
                     >
                     <span class="checkmark"></span>
-                    Standart yetkazib berish
+                    <%= t('manufacturer.products.edit.form.shippingMethodStandard') %>
                   </label>
                   <label class="checkbox-label">
                     <input 
@@ -692,7 +692,7 @@
                       <%= (Array.isArray(shippingMethods) && shippingMethods.includes('express')) ? 'checked' : '' %>
                     >
                     <span class="checkmark"></span>
-                    Tezkor yetkazib berish
+                    <%= t('manufacturer.products.edit.form.shippingMethodExpress') %>
                   </label>
                   <label class="checkbox-label">
                     <input 
@@ -702,7 +702,7 @@
                       <%= (Array.isArray(shippingMethods) && shippingMethods.includes('pickup')) ? 'checked' : '' %>
                     >
                     <span class="checkmark"></span>
-                    O'zi olib ketish
+                    <%= t('manufacturer.products.edit.form.shippingMethodPickup') %>
                   </label>
                 </div>
               </div>
@@ -713,18 +713,18 @@
           <div class="form-navigation">
             <button type="button" class="btn-outline prev-step" id="prevStep" style="display: none;">
               <i class="fas fa-arrow-left"></i>
-              Orqaga
+              <%= t('manufacturer.products.edit.navigation.back') %>
             </button>
             <div class="nav-info">
               <span class="current-step">1</span> / <span class="total-steps">5</span>
             </div>
             <button type="button" class="btn-primary" id="nextStep">
-              Keyingi
+              <%= t('manufacturer.products.edit.navigation.next') %>
               <i class="fas fa-arrow-right"></i>
             </button>
             <button type="submit" class="btn-success" id="submitForm" style="display: none;">
               <i class="fas fa-save"></i>
-              Saqlash
+              <%= t('manufacturer.products.edit.navigation.save') %>
             </button>
           </div>
         </form>
@@ -737,7 +737,7 @@
           <div class="card-header">
             <h4>
               <i class="fas fa-chart-line"></i>
-              Mahsulot statistikasi
+              <%= t('manufacturer.products.edit.analytics.title') %>
             </h4>
           </div>
           <div class="card-body">
@@ -748,7 +748,7 @@
                 </div>
                 <div class="analytics-info">
                   <div class="analytics-value"><%= productAnalytics.views?.total || 0 %></div>
-                  <div class="analytics-label">Ko'rishlar</div>
+                  <div class="analytics-label"><%= t('manufacturer.products.edit.analytics.views') %></div>
                 </div>
               </div>
               <div class="analytics-item">
@@ -757,7 +757,7 @@
                 </div>
                 <div class="analytics-info">
                   <div class="analytics-value"><%= productAnalytics.orders?.totalOrders || 0 %></div>
-                  <div class="analytics-label">Buyurtmalar</div>
+                  <div class="analytics-label"><%= t('manufacturer.products.edit.analytics.orders') %></div>
                 </div>
               </div>
               <div class="analytics-item">
@@ -766,7 +766,7 @@
                 </div>
                 <div class="analytics-info">
                   <div class="analytics-value">$<%= (productAnalytics.orders?.totalRevenue || 0).toLocaleString() %></div>
-                  <div class="analytics-label">Daromad</div>
+                  <div class="analytics-label"><%= t('manufacturer.products.edit.analytics.revenue') %></div>
                 </div>
               </div>
               <div class="analytics-item">
@@ -775,7 +775,7 @@
                 </div>
                 <div class="analytics-info">
                   <div class="analytics-value"><%= productAnalytics.performance?.conversionRate || '0.00' %>%</div>
-                  <div class="analytics-label">Konversiya</div>
+                  <div class="analytics-label"><%= t('manufacturer.products.edit.analytics.conversion') %></div>
                 </div>
               </div>
             </div>
@@ -787,26 +787,26 @@
           <div class="card-header">
             <h4>
               <i class="fas fa-bolt"></i>
-              Tezkor amallar
+              <%= t('manufacturer.products.edit.quickActions.title') %>
             </h4>
           </div>
           <div class="card-body">
             <div class="action-buttons">
               <button class="action-btn" id="duplicateProductBtn">
                 <i class="fas fa-copy"></i>
-                <span>Nusxa olish</span>
+                <span><%= t('manufacturer.products.edit.quickActions.duplicate') %></span>
               </button>
               <button class="action-btn" id="viewAnalyticsBtn">
                 <i class="fas fa-chart-area"></i>
-                <span>Batafsil analitika</span>
+                <span><%= t('manufacturer.products.edit.quickActions.viewAnalytics') %></span>
               </button>
               <button class="action-btn" id="shareProductBtn">
                 <i class="fas fa-share-alt"></i>
-                <span>Ulashish</span>
+                <span><%= t('manufacturer.products.edit.quickActions.share') %></span>
               </button>
               <button class="action-btn danger" id="deleteProductBtn">
                 <i class="fas fa-trash"></i>
-                <span>O'chirish</span>
+                <span><%= t('manufacturer.products.edit.quickActions.delete') %></span>
               </button>
             </div>
           </div>
@@ -817,7 +817,7 @@
           <div class="card-header">
             <h4>
               <i class="fas fa-toggle-on"></i>
-              Holat va ko'rinish
+              <%= t('manufacturer.products.edit.status.title') %>
             </h4>
           </div>
           <div class="card-body">
@@ -833,8 +833,8 @@
                   <span class="toggle-slider"></span>
                 </label>
                 <div class="control-info">
-                  <div class="control-label">Tavsiya etilgan</div>
-                  <div class="control-description">Marketplace'da ajratib ko'rsatish</div>
+                  <div class="control-label"><%= t('manufacturer.products.edit.status.featured') %></div>
+                  <div class="control-description"><%= t('manufacturer.products.edit.status.featuredDescription') %></div>
                 </div>
               </div>
               
@@ -849,8 +849,8 @@
                   <span class="toggle-slider"></span>
                 </label>
                 <div class="control-info">
-                  <div class="control-label">Reklama qilingan</div>
-                  <div class="control-description">Qidiruv natijalarida birinchi</div>
+                  <div class="control-label"><%= t('manufacturer.products.edit.status.promoted') %></div>
+                  <div class="control-description"><%= t('manufacturer.products.edit.status.promotedDescription') %></div>
                 </div>
               </div>
               
@@ -858,13 +858,13 @@
                 <div class="status-indicator <%= product.stockStatus || 'in_stock' %>">
                   <% if (product.stockStatus === 'out_of_stock') { %>
                     <i class="fas fa-times-circle"></i>
-                    Tugagan
+                    <%= t('manufacturer.products.edit.status.outOfStock') %>
                   <% } else if (product.stockStatus === 'low_stock') { %>
                     <i class="fas fa-exclamation-triangle"></i>
-                    Kam qolgan
+                    <%= t('manufacturer.products.edit.status.lowStock') %>
                   <% } else { %>
                     <i class="fas fa-check-circle"></i>
-                    Mavjud
+                    <%= t('manufacturer.products.edit.status.inStock') %>
                   <% } %>
                 </div>
               </div>
@@ -1246,35 +1246,19 @@ class ProductEditManager {
     }
 
     init() {
-        console.log('🏭 Initializing Product Edit Manager...');
-        console.log('📦 Product:', this.product.name || 'Unnamed Product');
-        
+         
         try {
             this.setupFormNavigation();
-            console.log('✅ Form navigation setup complete');
             
             this.setupFormValidation();
-            console.log('✅ Form validation setup complete');
-            
             this.setupImageUpload();
-            console.log('✅ Image upload setup complete');
-            
             this.setupDynamicSections();
-            console.log('✅ Dynamic sections setup complete');
-            
             this.setupAutoSave();
-            console.log('✅ Auto-save setup complete');
-            
             this.setupKeyboardShortcuts();
-            console.log('✅ Keyboard shortcuts setup complete');
-            
             this.setupFormChangeTracking();
-            console.log('✅ Form change tracking setup complete');
-            
             // Initialize form with product data verification
             this.verifyFormData();
-            
-            console.log('✅ Product Edit Manager fully initialized');
+        
         } catch (error) {
             console.error('❌ Product Edit Manager initialization failed:', error);
             throw error;
@@ -1284,7 +1268,6 @@ class ProductEditManager {
     verifyFormData() {
         const form = document.getElementById('productEditForm');
         if (!form) {
-            console.error('❌ Product edit form not found!');
             return;
         }
         
@@ -1292,12 +1275,7 @@ class ProductEditManager {
         const nameField = form.querySelector('input[name="name"]');
         const priceField = form.querySelector('input[name="pricing.basePrice"]');
         const stockField = form.querySelector('input[name="inventory.totalStock"]');
-        
-        console.log('📋 Form Data Verification:');
-        console.log('   Name field value:', nameField?.value || 'EMPTY');
-        console.log('   Price field value:', priceField?.value || 'EMPTY');
-        console.log('   Stock field value:', stockField?.value || 'EMPTY');
-        
+       
         if (!nameField?.value) {
             console.warn('⚠️ Product name field is empty');
         }
@@ -1360,13 +1338,13 @@ class ProductEditManager {
         
         // Update button text and styling based on status
         if (currentStatus === 'draft') {
-            saveAsDraftBtn.innerHTML = '<i class="fas fa-save"></i> Qoralama sifatida saqlash';
-            publishBtn.innerHTML = '<i class="fas fa-rocket"></i> Chop etish';
+            saveAsDraftBtn.innerHTML = '<i class="fas fa-save"></i> ' + (window.t ? window.t('manufacturer.products.edit.actions.saveAsDraft') : 'Qoralama sifatida saqlash');
+            publishBtn.innerHTML = '<i class="fas fa-rocket"></i> ' + (window.t ? window.t('manufacturer.products.edit.actions.publish') : 'Chop etish');
             publishBtn.classList.remove('btn-success');
             publishBtn.classList.add('btn-primary');
         } else if (currentStatus === 'active') {
-            saveAsDraftBtn.innerHTML = '<i class="fas fa-edit"></i> Qoralamaga qaytarish';
-            publishBtn.innerHTML = '<i class="fas fa-check-circle"></i> Chop etilgan';
+            saveAsDraftBtn.innerHTML = '<i class="fas fa-edit"></i> ' + (window.t ? window.t('manufacturer.products.edit.actions.revertToDraft') : 'Qoralamaga qaytarish');
+            publishBtn.innerHTML = '<i class="fas fa-check-circle"></i> ' + (window.t ? window.t('manufacturer.products.edit.actions.published') : 'Chop etilgan');
             publishBtn.classList.remove('btn-primary');
             publishBtn.classList.add('btn-success');
         }
@@ -1377,12 +1355,11 @@ class ProductEditManager {
      */
     async saveAsDraft() {
         try {
-            console.log('💾 Saving product as draft...');
             
             const saveAsDraftBtn = document.getElementById('saveAsDraftBtn');
             
             // Show loading state
-            this.setButtonLoading(saveAsDraftBtn, 'Saqlanmoqda...');
+            this.setButtonLoading(saveAsDraftBtn, window.t ? window.t('manufacturer.products.edit.loading.saving') : 'Saqlanmoqda...');
             
             // Collect current form data
             const formData = this.collectFormData();
@@ -1406,21 +1383,21 @@ class ProductEditManager {
                 this.isDirty = false;
                 
                 // Show success message
-                this.showSuccessToast('Mahsulot qoralama sifatida saqlandi');
+                this.showSuccessToast(window.t ? window.t('manufacturer.products.edit.messages.savedAsDraft') : 'Mahsulot qoralama sifatida saqlandi');
                 
                 console.log('✅ Product saved as draft successfully');
             } else {
-                this.showErrorToast(result.message || 'Qoralama saqlashda xatolik yuz berdi');
+                this.showErrorToast(result.message || (window.t ? window.t('manufacturer.products.edit.errors.saveDraftError') : 'Qoralama saqlashda xatolik yuz berdi'));
                 console.error('❌ Save as draft failed:', result.message);
             }
             
         } catch (error) {
             console.error('❌ Save as draft error:', error);
-            this.showErrorToast('Qoralama saqlashda xatolik yuz berdi');
+            this.showErrorToast(window.t ? window.t('manufacturer.products.edit.errors.saveDraftError') : 'Qoralama saqlashda xatolik yuz berdi');
         } finally {
             // Reset button state
             const saveAsDraftBtn = document.getElementById('saveAsDraftBtn');
-            this.resetButtonLoading(saveAsDraftBtn, '<i class="fas fa-save"></i> Qoralama sifatida saqlash');
+            this.resetButtonLoading(saveAsDraftBtn, '<i class="fas fa-save"></i> ' + (window.t ? window.t('manufacturer.products.edit.actions.saveAsDraft') : 'Qoralama sifatida saqlash'));
         }
     }
     
@@ -1429,7 +1406,7 @@ class ProductEditManager {
      */
     async publishProduct() {
         try {
-            console.log('🚀 Publishing product...');
+           
             
             const publishBtn = document.getElementById('publishBtn');
             
@@ -1468,19 +1445,18 @@ class ProductEditManager {
                 // Show success message with marketplace link
                 this.showPublishSuccessMessage(result.data);
                 
-                console.log('✅ Product published successfully');
             } else {
                 if (result.errors && result.errors.length > 0) {
                     this.showValidationErrors(result.errors);
                 } else {
-                    this.showErrorToast(result.message || 'Chop etishda xatolik yuz berdi');
+                    this.showErrorToast(result.message || (window.t ? window.t('manufacturer.products.edit.errors.publishError') : 'Chop etishda xatolik yuz berdi'));
                 }
                 console.error('❌ Publish failed:', result.message);
             }
             
         } catch (error) {
-            console.error('❌ Publish error:', error);
-            this.showErrorToast('Chop etishda xatolik yuz berdi');
+         
+            this.showErrorToast(window.t ? window.t('manufacturer.products.edit.errors.publishError') : 'Chop etishda xatolik yuz berdi');
         } finally {
             // Reset button state
             const publishBtn = document.getElementById('publishBtn');
@@ -1496,31 +1472,31 @@ class ProductEditManager {
         
         // Required field validations
         if (!formData.name || formData.name.trim().length < 3) {
-            errors.push('Mahsulot nomi kamida 3 ta belgidan iborat bo\'lishi kerak');
+            errors.push(window.t ? window.t('manufacturer.products.edit.validation.productNameMinLength') : 'Mahsulot nomi kamida 3 ta belgidan iborat bo\'lishi kerak');
         }
         
         if (!formData.description || formData.description.trim().length < 20) {
-            errors.push('Mahsulot ta\'rif kamida 20 ta belgidan iborat bo\'lishi kerak');
+            errors.push(window.t ? window.t('manufacturer.products.edit.validation.descriptionMinLength') : 'Mahsulot ta\'rif kamida 20 ta belgidan iborat bo\'lishi kerak');
         }
         
         if (!formData.category) {
-            errors.push('Kategoriya tanlanishi shart');
+            errors.push(window.t ? window.t('manufacturer.products.edit.validation.categoryRequired') : 'Kategoriya tanlanishi shart');
         }
         
         if (!formData.pricing?.basePrice || formData.pricing.basePrice <= 0) {
-            errors.push('Asosiy narx 0 dan katta bo\'lishi kerak');
+            errors.push(window.t ? window.t('manufacturer.products.edit.validation.basePriceRequired') : 'Asosiy narx 0 dan katta bo\'lishi kerak');
         }
         
         if (!formData.pricing?.minimumOrderQuantity || formData.pricing.minimumOrderQuantity <= 0) {
-            errors.push('Eng kam buyurtma miqdori 0 dan katta bo\'lishi kerak');
+            errors.push(window.t ? window.t('manufacturer.products.edit.validation.minOrderQtyRequired') : 'Eng kam buyurtma miqdori 0 dan katta bo\'lishi kerak');
         }
         
         if (!formData.inventory?.totalStock || formData.inventory.totalStock <= 0) {
-            errors.push('Umumiy ombor miqdori 0 dan katta bo\'lishi kerak');
+            errors.push(window.t ? window.t('manufacturer.products.edit.validation.totalStockRequired') : 'Umumiy ombor miqdori 0 dan katta bo\'lishi kerak');
         }
         
         if (!formData.inventory?.unit) {
-            errors.push('O\'lchov birligi tanlanishi shart');
+            errors.push(window.t ? window.t('manufacturer.products.edit.validation.unitRequired') : 'O\'lchov birligi tanlanishi shart');
         }
         
         // Check for uploaded images
@@ -1528,7 +1504,7 @@ class ProductEditManager {
                          (document.querySelectorAll('.image-preview-item').length > 0);
         
         if (!hasImages) {
-            errors.push('Kamida bitta mahsulot rasmi yuklash shart');
+            errors.push(window.t ? window.t('manufacturer.products.edit.validation.imagesRequired') : 'Kamida bitta mahsulot rasmi yuklash shart');
         }
         
         return {
@@ -1547,14 +1523,14 @@ class ProductEditManager {
             <div class="validation-errors-modal">
                 <div class="error-header">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Chop etish uchun quyidagi maydonlarni to'ldiring:</h3>
+                    <h3><%= t('manufacturer.products.edit.validationErrors.header') %></h3>
                 </div>
                 <ul class="error-list">
                     ${errorsList}
                 </ul>
                 <div class="error-actions">
                     <button class="btn btn-primary" onclick="this.parentElement.parentElement.remove()">
-                        Tushunarli
+                        <%= t('manufacturer.products.edit.validationErrors.button') %>
                     </button>
                 </div>
             </div>
@@ -1582,19 +1558,19 @@ class ProductEditManager {
             <div class="publish-success-modal">
                 <div class="success-header">
                     <i class="fas fa-check-circle"></i>
-                    <h3>Mahsulot muvaffaqiyatli chop etildi!</h3>
+                    <h3>${window.t ? window.t('manufacturer.products.edit.success.publishedTitle') : 'Mahsulot muvaffaqiyatli chop etildi!'}</h3>
                 </div>
                 <div class="success-content">
-                    <p>Sizning mahsulotingiz endi marketplace da ko'rinadi va xaridorlar uni topishi mumkin.</p>
+                    <p>${window.t ? window.t('manufacturer.products.edit.success.publishedDescription') : 'Sizning mahsulotingiz endi marketplace da ko\'rinadi va xaridorlar uni topishi mumkin.'}</p>
                     ${data.marketplaceUrl ? 
                         `<a href="${data.marketplaceUrl}" class="btn btn-outline" target="_blank">
-                            <i class="fas fa-external-link-alt"></i> Marketplace da ko'rish
+                            <i class="fas fa-external-link-alt"></i> ${window.t ? window.t('manufacturer.products.edit.success.viewInMarketplace') : 'Marketplace da ko\'rish'}
                         </a>` : ''
                     }
                 </div>
                 <div class="success-actions">
                     <button class="btn btn-success" onclick="this.parentElement.parentElement.parentElement.remove()">
-                        Ajoyib!
+                        ${window.t ? window.t('manufacturer.products.edit.success.great') : 'Ajoyib!'}
                     </button>
                 </div>
             </div>
@@ -1691,8 +1667,6 @@ class ProductEditManager {
     }
 
     setupImageUpload() {
-        console.log('🖼️ Setting up PROFESSIONAL Image Upload - Base64 Temporary Storage');
-        
         // Initialize temporary image storage
         this.temporaryImages = [];
         this.existingImages = [];
@@ -1731,8 +1705,7 @@ class ProductEditManager {
             this.handleImageFilesAdvanced(e.dataTransfer.files);
         });
 
-        console.log('✅ Advanced Image Upload system initialized');
-    }
+        }
 
     setupDynamicSections() {
         // Bulk pricing
@@ -1992,11 +1965,11 @@ class ProductEditManager {
         // Validate files
         const validFiles = Array.from(files).filter(file => {
             if (!allowedTypes.includes(file.type)) {
-                this.showErrorToast(`Noto'g'ri fayl turi: ${file.name}`);
+                this.showErrorToast(window.t ? window.t('manufacturer.products.edit.images.wrongFileType', { fileName: file.name }) : `Noto'g'ri fayl turi: ${file.name}`);
                 return false;
             }
             if (file.size > maxSize) {
-                this.showErrorToast(`Fayl juda katta: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+                this.showErrorToast(window.t ? window.t('manufacturer.products.edit.images.fileTooLarge', { fileName: file.name, fileSize: (file.size / 1024 / 1024).toFixed(1) }) : `Fayl juda katta: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
                 return false;
             }
             return true;
@@ -2007,12 +1980,12 @@ class ProductEditManager {
         // Check total image count
         const currentTotalImages = this.temporaryImages.length + this.existingImages.length;
         if (currentTotalImages + validFiles.length > maxFiles) {
-            this.showErrorToast(`Maksimal ${maxFiles} ta rasm yuklash mumkin. Hozir ${currentTotalImages} ta mavjud.`);
+            this.showErrorToast(window.t ? window.t('manufacturer.products.edit.images.maxImagesReached', { maxFiles: maxFiles, currentTotal: currentTotalImages }) : `Maksimal ${maxFiles} ta rasm yuklash mumkin. Hozir ${currentTotalImages} ta mavjud.`);
             return;
         }
 
         try {
-            this.showProcessingState(true, 'Rasmlar qayta ishlanmoqda...');
+            this.showProcessingState(true, window.t ? window.t('manufacturer.products.edit.images.processing') : 'Rasmlar qayta ishlanmoqda...');
             
             // Convert files to base64 and add to temporary storage
             for (const file of validFiles) {
@@ -2022,14 +1995,14 @@ class ProductEditManager {
             // Refresh UI
             this.refreshImageGrid();
             this.showProcessingState(false);
-            this.showSuccessToast(`${validFiles.length} ta rasm qo'shildi`);
+            this.showSuccessToast(window.t ? window.t('manufacturer.products.edit.images.addedSuccessfully', { count: validFiles.length }) : `${validFiles.length} ta rasm qo'shildi`);
             
             this.isDirty = true;
             
         } catch (error) {
             console.error('❌ Image processing error:', error);
             this.showProcessingState(false);
-            this.showErrorToast('Rasmlarni qayta ishfashda xatolik: ' + error.message);
+            this.showErrorToast(window.t ? window.t('manufacturer.products.edit.images.processingError') : 'Rasmlarni qayta ishfashda xatolik: ' + error.message);
         }
     }
 
@@ -2128,7 +2101,6 @@ class ProductEditManager {
      * Displays both existing and temporary images
      */
     refreshImageGrid() {
-        console.log('🔄 Refreshing image grid...');
         
         const currentImages = document.getElementById('currentImages');
         let imagesGrid = currentImages.querySelector('.images-grid');
@@ -2151,8 +2123,6 @@ class ProductEditManager {
             if (!a.isPrimary && b.isPrimary) return 1;
             return 0;
         });
-        
-        console.log(`📊 Displaying ${allImages.length} images (${this.existingImages.length} existing + ${this.temporaryImages.length} temporary)`);
         
         // Create image previews
         allImages.forEach(image => {
@@ -2305,7 +2275,7 @@ class ProductEditManager {
         
         this.refreshImageGrid();
         this.isDirty = true;
-        this.showSuccessToast('Asosiy rasm o\'zgartirildi');
+        this.showSuccessToast(window.t ? window.t('manufacturer.products.edit.images.primaryChanged') : 'Asosiy rasm o\'zgartirildi');
     }
 
     /**
@@ -2339,13 +2309,13 @@ class ProductEditManager {
         
         // Validate file
         if (!allowedTypes.includes(file.type)) {
-            this.showErrorToast(`Noto'g'ri fayl turi: ${file.name}`);
+            this.showErrorToast(window.t ? window.t('manufacturer.products.edit.images.wrongFileType', { fileName: file.name }) : `Noto'g'ri fayl turi: ${file.name}`);
             this.replacingImageId = null;
             return;
         }
         
         if (file.size > maxSize) {
-            this.showErrorToast(`Fayl juda katta: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+            this.showErrorToast(window.t ? window.t('manufacturer.products.edit.images.fileTooLarge', { fileName: file.name, fileSize: (file.size / 1024 / 1024).toFixed(1) }) : `Fayl juda katta: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
             this.replacingImageId = null;
             return;
         }
@@ -2356,7 +2326,7 @@ class ProductEditManager {
         }
         
         try {
-            this.showProcessingState(true, 'Rasm almashtirilmoqda...');
+            this.showProcessingState(true, window.t ? window.t('manufacturer.products.edit.images.replacing') : 'Rasm almashtirilmoqda...');
             
             console.log(`🔄 Replacing image: ${this.replacingImageId}`);
             
@@ -2396,19 +2366,19 @@ class ProductEditManager {
                 
             } else {
                 console.error(`❌ Image not found for replacement: ${this.replacingImageId}`);
-                this.showErrorToast('Almashtirilayotgan rasm topilmadi');
+                this.showErrorToast(window.t ? window.t('manufacturer.products.edit.images.imageNotFound') : 'Almashtirilayotgan rasm topilmadi');
                 return;
             }
             
             this.refreshImageGrid();
             this.showProcessingState(false);
-            this.showSuccessToast('Rasm muvaffaqiyatli almashtirildi');
+            this.showSuccessToast(window.t ? window.t('manufacturer.products.edit.images.replacedSuccessfully') : 'Rasm muvaffaqiyatli almashtirildi');
             this.isDirty = true;
             
         } catch (error) {
             console.error('❌ Image replacement error:', error);
             this.showProcessingState(false);
-            this.showErrorToast('Rasm almashtirishda xatolik');
+            this.showErrorToast(window.t ? window.t('manufacturer.products.edit.images.replaceError') : 'Rasm almashtirishda xatolik');
         }
         
         // Clear replacement ID
@@ -2664,7 +2634,7 @@ class ProductEditManager {
             this.showLoading(false);
             this.isDirty = false;
             
-            this.showSuccess('Mahsulot muvaffaqiyatli yangilandi!');
+            this.showSuccess(window.t ? window.t('manufacturer.products.edit.messages.updated') : 'Mahsulot muvaffaqiyatli yangilandi!');
             
             // Redirect after successful update
             setTimeout(() => {
@@ -2859,7 +2829,7 @@ class ProductEditManager {
                 } else if (result.error && result.error.includes('validation')) {
                     throw new Error('Ma\'lumotlarni tekshirishda xatolik. Barcha majburiy maydonlarni to\'ldiring.');
                 } else {
-                    throw new Error(result.message || 'Mahsulotni yangilashda xatolik yuz berdi');
+                    throw new Error(result.message || (window.t ? window.t('manufacturer.products.edit.errors.updateError') : 'Mahsulotni yangilashda xatolik yuz berdi'));
                 }
             }
 
@@ -3417,7 +3387,7 @@ class ProductModalManager {
                 if (productId) {
                     this.showProductDetails(productId);
                 } else {
-                    this.showError('Mahsulot ID topilmadi');
+                    this.showError(window.t ? window.t('manufacturer.products.edit.errors.productIdNotFound') : 'Mahsulot ID topilmadi');
                 }
             });
         }
@@ -3477,7 +3447,7 @@ class ProductModalManager {
                 this.modalBody.innerHTML = `
                     <div class="error-content">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <p>${result.message || 'Mahsulot ma\'lumotlarini yuklashda xatolik'}</p>
+                        <p>${result.message || (window.t ? window.t('manufacturer.products.edit.errors.loadProductError') : 'Mahsulot ma\'lumotlarini yuklashda xatolik')}</p>
                     </div>
                 `;
             }
@@ -3533,7 +3503,7 @@ class ProductModalManager {
                                 class="modal-real-image"
                                 data-category="${getCategoryString(product.category)}"
                                 data-product-id="${product._id}"
-                                data-product-name="${product.name || 'Nomsiz mahsulot'}"
+                                data-product-name="${product.name || (window.t ? window.t('manufacturer.products.edit.modal.unnamedProduct') : 'Nomsiz mahsulot')}"
                                 onerror="handleImageError(this)">` :
                             `<img 
                                 src="${(() => {
@@ -3544,23 +3514,23 @@ class ProductModalManager {
                                 class="modal-mock-image" 
                                 data-category="${getCategoryString(product.category)}"
                                 data-product-id="${product._id}"
-                                data-product-name="${product.name || 'Nomsiz mahsulot'}"
+                                data-product-name="${product.name || (window.t ? window.t('manufacturer.products.edit.modal.unnamedProduct') : 'Nomsiz mahsulot')}"
                                 onerror="handleImageError(this)"
                             >`
                         }
                     </div>
                     <div class="modal-product-info">
-                        <h3 class="modal-product-title">${product.name || 'Nomsiz mahsulot'}</h3>
+                        <h3 class="modal-product-title">${product.name || (window.t ? window.t('manufacturer.products.edit.modal.unnamedProduct') : 'Nomsiz mahsulot')}</h3>
                         <p class="modal-product-category">
                             <i class="fas fa-tag"></i>
-                            ${product.category?.name || product.category || 'Kategoriyasiz'}
+                            ${product.category?.name || product.category || (window.t ? window.t('manufacturer.products.edit.modal.noCategory') : 'Kategoriyasiz')}
                         </p>
                         <div class="modal-product-id">ID: ${product._id.toString().slice(-8).toUpperCase()}</div>
                         <div class="modal-product-price">
                             <span class="price-large">${formatPrice(product.pricing)}</span>
                             ${product.pricing?.minimumOrderQuantity ? 
-                                `<span class="moq-large">Eng kam: ${product.pricing.minimumOrderQuantity.toLocaleString()} dona</span>` : 
-                                '<span class="moq-large">Eng kam: 100 dona</span>'
+                                `<span class="moq-large">${window.t ? window.t('manufacturer.products.edit.modal.minOrder') : 'Eng kam'}: ${product.pricing.minimumOrderQuantity.toLocaleString()} ${window.t ? window.t('manufacturer.products.edit.modal.pieces') : 'dona'}</span>` : 
+                                `<span class="moq-large">${window.t ? window.t('manufacturer.products.edit.modal.minOrder') : 'Eng kam'}: 100 ${window.t ? window.t('manufacturer.products.edit.modal.pieces') : 'dona'}</span>`
                             }
                         </div>
                     </div>
@@ -3569,14 +3539,14 @@ class ProductModalManager {
                 <!-- Product Description -->
                 ${product.description ? 
                     `<div class="modal-section">
-                        <h4 class="section-title">Ta'rif</h4>
+                        <h4 class="section-title">${window.t ? window.t('manufacturer.products.edit.modal.description') : 'Ta\'rif'}</h4>
                         <p class="product-description">${product.description}</p>
                     </div>` : ''
                 }
 
                 <!-- Specifications -->
                 <div class="modal-section">
-                    <h4 class="section-title">Texnik xususiyatlar</h4>
+                                            <h4 class="section-title">${window.t ? window.t('manufacturer.products.edit.modal.specifications') : 'Texnik xususiyatlar'}</h4>
                     <div class="specifications-grid">
                         ${formatSpecs(product.specifications)}
                     </div>
@@ -3585,14 +3555,14 @@ class ProductModalManager {
                 <!-- Inventory & Shipping -->
                 <div class="modal-sections-grid">
                     <div class="modal-section">
-                        <h4 class="section-title">Ombor holati</h4>
+                        <h4 class="section-title">${window.t ? window.t('manufacturer.products.edit.modal.inventoryStatus') : 'Ombor holati'}</h4>
                         <div class="inventory-info">
                             <div class="inventory-item">
-                                <span class="inventory-label">Umumiy:</span>
+                                <span class="inventory-label">${window.t ? window.t('manufacturer.products.edit.modal.total') : 'Umumiy'}:</span>
                                 <span class="inventory-value">${product.inventory?.totalStock?.toLocaleString() || '0'} ${product.inventory?.unit || 'dona'}</span>
                             </div>
                             <div class="inventory-item">
-                                <span class="inventory-label">Mavjud:</span>
+                                <span class="inventory-label">${window.t ? window.t('manufacturer.products.edit.modal.available') : 'Mavjud'}:</span>
                                 <span class="inventory-value">${product.inventory?.availableStock?.toLocaleString() || '0'} ${product.inventory?.unit || 'dona'}</span>
                             </div>
                         </div>
@@ -5351,7 +5321,7 @@ window.addEventListener('beforeunload', () => {
 <div class="modal-overlay" id="productDetailsModal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2 class="modal-title">Mahsulot ma'lumotlari</h2>
+      <h2 class="modal-title"><%= t('manufacturer.products.edit.modal.productDetails') %></h2>
       <button class="modal-close" id="closeModal">
         <i class="fas fa-times"></i>
       </button>
@@ -5360,7 +5330,7 @@ window.addEventListener('beforeunload', () => {
       <!-- Dinamik kontent shu yerga yuklanadi -->
       <div class="loading-content">
         <div class="loading-spinner"></div>
-        <p>Ma'lumot yuklanmoqda...</p>
+        <p><%= t('manufacturer.products.edit.modal.loading') %></p>
       </div>
     </div>
   </div>

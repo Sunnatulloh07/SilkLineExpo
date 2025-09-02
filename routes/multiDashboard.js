@@ -182,7 +182,7 @@ router.get('/manufacturer/login', (req, res) => {
  * Legacy distributor login redirect
  */
 router.get('/distributor/login', (req, res) => {
-    res.redirect('/auth/login?type=distributor');
+    res.redirect('/auth/login?type=distributor&redirect=/buyer/profile');
 });
 
 // ===== DASHBOARD ACCESS VALIDATION =====
@@ -341,11 +341,11 @@ router.get('/routes',
                 );
             } else if (payload.companyType === 'distributor') {
                 routes.protected.push(
-                    '/distributor/inventory',
-                    '/distributor/suppliers',
-                    '/distributor/sales',
-                    '/distributor/orders',
-                    '/distributor/analytics'
+                    '/buyer/profile',
+                    '/buyer/orders',
+                    '/buyer/messages',
+                    '/buyer/favorites',
+                    '/buyer/settings'
                 );
             }
 

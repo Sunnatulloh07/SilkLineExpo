@@ -1,5 +1,10 @@
 <%- include('../partials/header', { title: 'Shopping Cart - SLEX' }) %>
-<%- include('../partials/navigation') %>
+<%- include('../partials/navigation', { 
+  cartItemsCount: cartItemsCount, 
+  activeOrdersCount: activeOrdersCount, 
+  unreadMessagesCount: unreadMessagesCount,
+  favoritesCount: favoritesCount 
+}) %>
 
 <!-- Professional Alibaba-Style Shopping Cart Page -->
 <main class="buyer-cart-wrapper">
@@ -53,7 +58,18 @@
             <div class="cart-items-container" id="cartItemsContainer">
               <% cartItems.forEach((item, index) => { %>
               <!-- Professional Alibaba-Style Cart Item -->
-              <div class="professional-cart-item animate-slide-in" data-item-id="<%= item._id || item.id %>" data-product-id="<%= item.productId._id || item.productId.id %>" data-price="<%= item.productId.pricing?.basePrice || item.unitPrice || 0 %>" style="--animation-delay: <%= index %>">
+              <% 
+                // Defensive programming: Check for valid product and manufacturer data
+                const hasValidProduct = item.productId && (item.productId._id || item.productId.id);
+                const hasValidManufacturer = item.manufacturerId && (item.manufacturerId._id || item.manufacturerId.id || item.manufacturerId);
+                const productId = hasValidProduct ? (item.productId._id || item.productId.id) : 'unknown';
+                const manufacturerId = hasValidManufacturer ? (item.manufacturerId._id || item.manufacturerId.id || item.manufacturerId) : 'unknown';
+                const productPrice = hasValidProduct ? (item.productId.pricing?.basePrice || item.unitPrice || 0) : (item.unitPrice || 0);
+                const manufacturerName = hasValidManufacturer ? 
+                  (item.manufacturerId.companyName || item.manufacturerId.businessName || 'Unknown Supplier') : 
+                  'Unknown Supplier';
+              %>
+              <div class="professional-cart-item animate-slide-in" data-item-id="<%= item._id || item.id %>" data-product-id="<%= productId %>" data-price="<%= productPrice %>" style="--animation-delay: <%= index %>">
                 
                 <!-- Item Header with Selection and Actions -->
                 <div class="item-header">
@@ -62,20 +78,28 @@
                       <input type="checkbox" class="item-checkbox" data-item-id="<%= item._id || item.id %>">
                       <span class="checkmark"></span>
                     </label>
-                                          <div class="supplier-info">
-                        <i class="las la-store supplier-icon"></i>
-                        <a href="/supplier/<%= item.manufacturerId._id || item.manufacturerId %>" class="supplier-name">
-                          <%= item.manufacturerId.companyName || item.manufacturerId.businessName || 'Unknown Supplier' %>
+                    <div class="supplier-info">
+                      <i class="las la-store supplier-icon"></i>
+                      <% if (hasValidManufacturer && manufacturerId !== 'unknown') { %>
+                        <a href="/supplier/<%= manufacturerId %>" class="supplier-name">
+                          <%= manufacturerName %>
                         </a>
-                      </div>
+                      <% } else { %>
+                        <span class="supplier-name text-gray-500">
+                          <%= manufacturerName %>
+                        </span>
+                      <% } %>
+                    </div>
                   </div>
                   <div class="item-actions">
+                    <% if (hasValidProduct) { %>
                     <button type="button" class="action-btn btn-favorite" 
-                            data-product-id="<%= item.productId._id || item.productId.id %>" 
+                            data-product-id="<%= productId %>" 
                             data-favorited="false"
                             title="<%- t('cart.addToFavorites') %>">
                       <i class="lar la-heart"></i>
                     </button>
+                    <% } %>
                     <button type="button" class="action-btn btn-remove" data-item-id="<%= item._id || item.id %>" title="<%- t('cart.removeItem') %>">
                       <i class="las la-trash-alt"></i>
                     </button>
@@ -87,17 +111,33 @@
                   <!-- Product Image -->
                   <div class="product-image-container">
                     <div class="product-image-wrapper">
-                                              <img src="<%= (item.productId.images && item.productId.images[0] && item.productId.images[0].url) || '/assets/images/placeholder-product.svg' %>" 
-                             alt="<%= item.productId.name || item.productId.title %>" 
-                           class="product-image"
-                           onerror="this.src='/assets/images/placeholder-product.svg'">
                       <% 
-                        const currentPrice = item.productId.pricing?.basePrice || item.unitPrice || 0;
-                        const originalPrice = item.productId.pricing?.originalPrice || null;
-                        if (originalPrice && originalPrice > currentPrice) { 
+                        // Safe image URL and alt text
+                        const productImageUrl = hasValidProduct && item.productId.images && item.productId.images[0] && item.productId.images[0].url 
+                          ? item.productId.images[0].url 
+                          : '/assets/images/placeholder-product.svg';
+                        const productName = hasValidProduct ? (item.productId.name || item.productId.title || 'Product') : 'Product';
+                        
+                        // Safe pricing calculations
+                        const currentPriceValue = hasValidProduct ? (item.productId.pricing?.basePrice || item.unitPrice || 0) : (item.unitPrice || 0);
+                        const originalPriceValue = hasValidProduct ? (item.productId.pricing?.originalPrice || null) : null;
                       %>
+                      <% if (hasValidProduct && productId !== 'unknown') { %>
+                        <a href="/product-details?id=<%= productId %>" class="product-image-link">
+                          <img src="<%= productImageUrl %>" 
+                               alt="<%= productName %>" 
+                               class="product-image"
+                               onerror="this.src='/assets/images/placeholder-product.svg'">
+                        </a>
+                      <% } else { %>
+                        <img src="<%= productImageUrl %>" 
+                             alt="<%= productName %>" 
+                             class="product-image"
+                             onerror="this.src='/assets/images/placeholder-product.svg'">
+                      <% } %>
+                      <% if (originalPriceValue && originalPriceValue > currentPriceValue) { %>
                       <div class="discount-badge">
-                        -<%= Math.round(((originalPrice - currentPrice) / originalPrice) * 100) %>%
+                        -<%= Math.round(((originalPriceValue - currentPriceValue) / originalPriceValue) * 100) %>%
                       </div>
                       <% } %>
                     </div>
@@ -105,12 +145,18 @@
 
                   <!-- Product Details -->
                   <div class="product-details">
-                                          <div class="product-info">
-                        <h3 class="product-title">
-                          <a href="/product/<%= item.productId._id || item.productId.id %>" class="product-link">
-                            <%= item.productId.name || item.productId.title %>
+                    <div class="product-info">
+                      <h3 class="product-title">
+                        <% if (hasValidProduct && productId !== 'unknown') { %>
+                          <a href="/product-details?id=<%= productId %>" class="product-link">
+                            <%= productName %>
                           </a>
-                        </h3>
+                        <% } else { %>
+                          <span class="product-link text-gray-500">
+                            <%= productName %>
+                          </span>
+                        <% } %>
+                      </h3>
                       
                       <!-- Product Attributes -->
                       <div class="product-attributes">
@@ -130,7 +176,7 @@
                         </div>
                         <% } %>
                         
-                        <% if (item.productId.category) { %>
+                        <% if (hasValidProduct && item.productId.category) { %>
                         <div class="attribute-item">
                           <span class="attr-label"><%- t('cart.category') %>:</span>
                           <span class="attr-value">
@@ -153,12 +199,9 @@
                     <div class="price-quantity-section">
                       <!-- Price Display -->
                       <div class="price-container">
-                        <div class="current-price">$<%
-                          const price = item.productId.pricing?.basePrice || item.unitPrice || 0;
-                          const formattedPrice = parseFloat(price).toFixed(2);
-                        %><%= formattedPrice %></div>
-                        <% if (item.productId.pricing?.originalPrice && item.productId.pricing.originalPrice > (item.productId.pricing?.basePrice || item.unitPrice || 0)) { %>
-                        <div class="original-price">$<%= parseFloat(item.productId.pricing.originalPrice).toFixed(2) %></div>
+                        <div class="current-price">$<%= parseFloat(currentPriceValue).toFixed(2) %></div>
+                        <% if (originalPriceValue && originalPriceValue > currentPriceValue) { %>
+                        <div class="original-price">$<%= parseFloat(originalPriceValue).toFixed(2) %></div>
                         <% } %>
                         <div class="per-unit-text"><%- t('cart.perUnit') %></div>
                       </div>
@@ -170,14 +213,21 @@
                           <button type="button" class="qty-btn qty-decrease" data-item-id="<%= item._id || item.id %>">
                             <i class="las la-minus"></i>
                           </button>
+                          <% 
+                            // Safe quantity limits
+                            const minQty = hasValidProduct ? (item.productId.pricing?.minimumOrderQuantity || 1) : 1;
+                            const maxQty = hasValidProduct ? (item.productId.pricing?.maximumOrderQuantity || 999) : 999;
+                            const availableStock = hasValidProduct ? (item.productId.inventory?.availableStock || 999) : 999;
+                            const actualMaxQty = Math.min(maxQty, availableStock);
+                          %>
                           <input type="number" class="qty-input" 
-                                                            value="<%= item.quantity || 1 %>" 
-                                  min="<%= item.productId.pricing?.minimumOrderQuantity || 1 %>" 
-                                  max="<%= item.productId.pricing?.maximumOrderQuantity || item.productId.inventory?.availableStock || 999 %>" 
-                                  data-item-id="<%= item._id || item.id %>"
-                                  data-min-qty="<%= item.productId.pricing?.minimumOrderQuantity || 1 %>"
-                                  data-max-qty="<%= item.productId.pricing?.maximumOrderQuantity || 999 %>"
-                                  data-stock="<%= item.productId.inventory?.availableStock || 999 %>">
+                                 value="<%= item.quantity || 1 %>" 
+                                 min="<%= minQty %>" 
+                                 max="<%= actualMaxQty %>" 
+                                 data-item-id="<%= item._id || item.id %>"
+                                 data-min-qty="<%= minQty %>"
+                                 data-max-qty="<%= maxQty %>"
+                                 data-stock="<%= availableStock %>">
                           <button type="button" class="qty-btn qty-increase" data-item-id="<%= item._id || item.id %>">
                             <i class="las la-plus"></i>
                           </button>
@@ -980,6 +1030,18 @@
 
 .product-image:hover {
   transform: scale(1.05);
+}
+
+.product-image-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.product-image-link:hover {
+  transform: scale(1.02);
 }
 
 .discount-badge {

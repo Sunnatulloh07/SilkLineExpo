@@ -1,5 +1,10 @@
-<%- include('../partials/header', { title: 'Biznes Xabarlari - Professional B2B Aloqa', lng: lng || 'uz', user: user }) %>
-<%- include('../partials/navigation') %>
+<%- include('../partials/header', { title: t('messages.pageTitle'), lng: lng || 'uz', user: user }) %>
+<%- include('../partials/navigation', { 
+  cartItemsCount: cartItemsCount, 
+  activeOrdersCount: activeOrdersCount, 
+  unreadMessagesCount: unreadMessagesCount,
+  favoritesCount: favoritesCount 
+}) %>
 
 <!-- Professional B2B Messages CSS -->
 <link rel="stylesheet" href="/css/form-validation.css">
@@ -15,13 +20,12 @@
    =============================================== */
 
 /* Profile page classes uchun moslashuv */
-.section-bg {
+.admin-content .section-bg {
   background: hsl(var(--section-bg));
   padding: 0.5rem;
   border-radius: 20px;
   border: 1px solid hsl(var(--border-color));
   box-shadow: var(--box-shadow);
-  height: 135vh;
 }
 
 .text-heading {
@@ -107,8 +111,6 @@
 }
 
 .conversation-item.current-manufacturer {
-  background: linear-gradient(135deg, hsl(var(--main-l-100)) 0%, hsl(var(--main-l-50)) 100%) !important;
-  border-color: hsl(var(--main)) !important;
   border-width: 2px !important;
   box-shadow: 0 4px 12px hsla(var(--main), 0.2) !important;
 }
@@ -150,15 +152,18 @@
   transform: scale(1.05);
 }
 
- /* Telegram Chat Layout Styles */
+ /* Professional Chat Layout - Fixed Structure */
  .telegram-chat-layout {
    display: grid;
-   grid-template-columns: 320px 1fr;
+   grid-template-columns: 380px 1fr;
    gap: 0;
-   min-height: 600px;
+   height: calc(100vh - 160px);
+   min-height: 900px;
    border-radius: 16px;
    overflow: hidden;
-   height: 100%;
+   background: hsl(var(--white));
+   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+   border: 1px solid hsl(var(--border-color));
  }
 
  /* Responsive sidebar width */
@@ -174,13 +179,14 @@
    }
  }
 
+ /* Conversations Sidebar - Left Panel */
  .conversations-sidebar {
    background: hsl(var(--section-bg));
    border-right: 1px solid hsl(var(--border-color));
    display: flex;
    flex-direction: column;
    overflow: hidden;
-   width: 100%;
+  height: 100%;
  }
 
  .sidebar-header {
@@ -189,33 +195,12 @@
  }
 
  .sidebar-search {
-   padding: 16px;
-   border-bottom: 1px solid hsl(var(--border-color));
- }
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
 
- .search-wrapper {
-   position: relative;
- }
-
- .search-wrapper .fa-search {
-   position: absolute;
-   left: 12px;
-   top: 50%;
-   transform: translateY(-50%);
-   color: hsl(var(--body-color));
-   opacity: 0.5;
- }
-
- .search-input {
-   width: 100%;
-   padding: 10px 16px 10px 40px;
-   border: 1px solid hsl(var(--border-color));
-   border-radius: 12px;
-   background: hsl(var(--white));
-   color: hsl(var(--body-color));
-   font-size: 14px;
-   opacity: 0.7;
- }
+ 
 
  .conversations-list {
    flex: 1;
@@ -223,6 +208,15 @@
    overflow-x: hidden;
    width: 100%;
    padding-right: 4px;
+ }
+
+/* Main Chat Area - Right Panel Structure */
+.chat-main-area {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: hsl(var(--white));
+  position: relative;
  }
 
 .conversation-item {
@@ -403,7 +397,7 @@
  }
 
  .last-message-unread-badge {
-   background: hsl(var(--main));
+   background: red;
    color: white;
    border-radius: 10px;
    padding: 2px 6px;
@@ -413,17 +407,22 @@
    flex-shrink: 0;
  }
 
-  /* Chat Main Area */
+/* Chat Main Area - Override previous styles */
  .chat-main-area {
-   background: hsl(var(--section-bg));
-  display: flex;
-  flex-direction: column;
- }
+  background: hsl(var(--white)) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  position: relative !important;
+}
 
+/* Chat Header - Fixed at Top */
  .chat-header-enhanced {
    padding: 20px 24px;
    border-bottom: 1px solid hsl(var(--border-color));
-   background: hsl(var(--section-bg));
+  background: hsl(var(--white));
+  flex-shrink: 0;
+  z-index: 10;
  }
 
  .chat-header-content {
@@ -511,15 +510,18 @@
    font-size: 13px;
  }
 
-  /* Messages Container - Enterprise Telegram Style */
+  /* Messages Container - Professional Chat Style */
  .messages-container {
   flex: 1;
-   padding: 0;
+   padding: 20px 0;
    overflow-y: auto;
+   overflow-x: hidden;
    display: flex;
    flex-direction: column;
    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
    position: relative;
+   height: auto;
+   min-height: 0;
  }
 
  .messages-container::before {
@@ -535,7 +537,7 @@
 
  /* Dark mode support for messages container */
  [data-theme="light"] .messages-container {
-   background: #1e293b;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
  }
 
  .welcome-state {
@@ -588,6 +590,7 @@
   margin: 24px 0 16px 0;
   position: relative;
   z-index: 2;
+  flex-shrink: 0;
 }
 
 .telegram-date-separator::before {
@@ -629,6 +632,13 @@
   padding: 0 20px;
   position: relative;
   animation: messageSlideIn 0.3s ease-out;
+  flex-shrink: 0;
+}
+
+/* Manufacturer messages - with avatar on left */
+.telegram-message:not(.own) {
+  padding-left: 20px;
+  padding-right: 60px; /* Extra space for better alignment */
 }
 
 @keyframes messageSlideIn {
@@ -644,6 +654,8 @@
 
 .telegram-message.own {
   flex-direction: row-reverse;
+  padding-right: 20px;
+  padding-left: 60px; /* Extra space since no avatar */
 }
 
 .telegram-message-avatar {
@@ -693,82 +705,42 @@
   transition: all 0.3s ease;
 }
 
+/* Base message bubble styling - specific styles now in dark mode section above */
 .telegram-message-bubble {
-  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
   border-radius: 20px;
   padding: 12px 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   position: relative;
   word-wrap: break-word;
-  border: 1px solid rgba(0, 0, 0, 0.04);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
-.telegram-message-bubble:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-  border-color: rgba(0, 0, 0, 0.08);
-}
-
-.telegram-message.own .telegram-message-bubble {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
-  border-color: rgba(59, 130, 246, 0.2);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
-}
-
-.telegram-message.own .telegram-message-bubble:hover {
-  box-shadow: 0 6px 24px rgba(59, 130, 246, 0.4);
-  transform: translateY(-1px) scale(1.01);
-}
-
 .telegram-message-bubble::before {
   content: '';
   position: absolute;
-  top: 12px;
   width: 0;
   height: 0;
   transition: all 0.3s ease;
+  z-index: 1;
 }
 
+/* Manufacturer message tail - yuqorida (logo tomon) */
 .telegram-message:not(.own) .telegram-message-bubble::before {
   left: -8px;
+  top: 14px;  /* Yuqori qismida */
   border-top: 8px solid transparent;
   border-bottom: 8px solid transparent;
-  border-right: 8px solid #ffffff;
-  filter: drop-shadow(-2px 0 4px rgba(0, 0, 0, 0.1));
+  border-right: 8px solid #8fc7ff;  /* Triangle asosiy qismi */
 }
 
+/* Buyer message tail - pastda */
 .telegram-message.own .telegram-message-bubble::before {
-  right: -8px;
+  right: -7px;
+  bottom: 11px;  /* Pastki qismida */
   border-top: 8px solid transparent;
   border-bottom: 8px solid transparent;
-  border-left: 8px solid #3b82f6;
-  filter: drop-shadow(2px 0 4px rgba(59, 130, 246, 0.3));
-}
-
-.telegram-message-text {
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 0;
-  font-weight: 400;
-  letter-spacing: 0.01em;
-}
-
-.telegram-message-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 6px;
-  font-size: 11px;
-  opacity: 0.8;
-  transition: opacity 0.3s ease;
-}
-
-.telegram-message-bubble:hover .telegram-message-footer {
-  opacity: 1;
+  border-left: 8px solid #333740;  /* Triangle asosiy qismi */
 }
 
 .telegram-message-time {
@@ -824,17 +796,14 @@
   margin-top: 4px;
 }
 
-.telegram-message + .telegram-message:not(.own) .telegram-message-avatar,
+/* Keep avatars visible for all manufacturer messages */
 .telegram-message + .telegram-message.own .telegram-message-avatar {
   visibility: hidden;
   opacity: 0;
   transition: all 0.3s ease;
 }
 
-.telegram-message + .telegram-message:not(.own) .telegram-message-bubble::before,
-.telegram-message + .telegram-message.own .telegram-message-bubble::before {
-  display: none;
-}
+/* Keep tails visible for all messages for Telegram authenticity */
 
 /* Production-Ready Message Typing Indicator */
 .telegram-typing-indicator {
@@ -905,21 +874,378 @@
   }
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  .telegram-chat-container {
+/* ========================================
+   PROFESSIONAL CHAT LAYOUT DEBUG FIXES
+   ======================================== */
+
+/* Ensure proper flex layout */
+.chat-main-area {
+  min-height: 0 !important;
+  max-height: 100% !important;
+}
+
+.messages-container {
+  /* Override any conflicting styles */
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  flex-grow: 1 !important;
+  flex-shrink: 1 !important;
+}
+
+.b2b-message-input-area {
+  /* Ensure input area stays at bottom */
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+}
+
+/* ========================================
+   MESSAGE DATE GROUPS FOR SCROLLING
+   ======================================== */
+
+/* Message date group container */
+.message-date-group {
+  margin-bottom: 20px;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+/* ========================================
+   TELEGRAM-STYLE DARK MODE SUPPORT 
+   Professional B2B Dark Theme
+   ======================================== */
+
+/* Dark Mode Container Backgrounds */
+[data-theme="dark"] .telegram-chat-container {
     background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   }
   
-  .telegram-date-separator span {
-    background: linear-gradient(135deg, #334155 0%, #475569 100%);
-    color: #e2e8f0;
-    border-color: rgba(255, 255, 255, 0.1);
+[data-theme="dark"] .messages-container::before {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+}
+
+/* Dark Mode Date Separators */
+[data-theme="light"] .telegram-date-separator span {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  color: #d1d5db;
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .telegram-date-separator::before {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+}
+
+/* ========================================
+   MANUFACTURER MESSAGES (Received - Left side)
+   Light Gray/White Theme - Chap tomonda manufacturer
+   ======================================== */
+
+/* Light Mode - Manufacturer Messages (kelayotgan xabarlar) */
+.telegram-message:not(.own) .telegram-message-bubble {
+  background: linear-gradient(135deg, #8fc7ff 0%, #91c8ff 100%);
+  color: #1f2937;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.telegram-message:not(.own) .telegram-message-bubble:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+/* Manufacturer tail color now set inline in main rule */
+
+/* Dark Mode - Manufacturer Messages */
+[data-theme="light"] .telegram-message:not(.own) .telegram-message-bubble {
+  background: linear-gradient(135deg, #01307b 0%, #023d8e 100%);
+  color: hsl(var(--body-color));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .telegram-message:not(.own) .telegram-message-bubble:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="light"] .telegram-message:not(.own) .telegram-message-bubble::before {
+  border-right: 8px solid #01307b !important;  /* Override light mode tail color */
+  filter: drop-shadow(-2px 0 4px rgba(0, 0, 0, 0.3));
+}
+
+/* ========================================
+   BUYER MESSAGES (Sent/Own - Right side)
+   Blue Theme - O'ng tomonda buyer (o'zingiz)
+   ======================================== */
+
+/* Light Mode - Buyer Messages (yuborgan xabarlar - o'zingiz) */
+.telegram-message.own .telegram-message-bubble {
+  background: linear-gradient(135deg, #333740 0%, #222e3e 100%);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25);
+}
+
+.telegram-message.own .telegram-message-bubble:hover {
+  box-shadow: 0 6px 24px rgba(59, 130, 246, 0.35);
+  transform: translateY(-1px) scale(1.01);
+}
+
+/* Buyer tail color now set inline in main rule */
+
+/* Dark Mode - Buyer Messages */
+[data-theme="dark"] .telegram-message.own .telegram-message-bubble {
+  background: linear-gradient(135deg, #d9d9d9 0%, #e2e2e2 100%);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+}
+
+[data-theme="dark"] .telegram-message.own .telegram-message-bubble:hover {
+  box-shadow: 0 6px 24px rgba(37, 99, 235, 0.5);
+  border-color: rgba(37, 99, 235, 0.4);
+}
+
+[data-theme="dark"] .telegram-message.own .telegram-message-bubble::before {
+  border-left: 8px solid #d9d9d9 !important;  /* Override light mode tail color */
+  filter: drop-shadow(2px 0 4px rgba(37, 99, 235, 0.4));
+}
+
+/* ========================================
+   MESSAGE TEXT AND CONTENT
+   ======================================== */
+
+/* Message Text Colors */
+.telegram-message-text {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* Manufacturer message text (already inherit color from bubble) */
+[data-theme="dark"] .telegram-message:not(.own) .telegram-message-text {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* ========================================
+   MESSAGE FOOTER AND TIMESTAMPS
+   ======================================== */
+
+/* Message Footer */
+.telegram-message-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+  font-size: 11px;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.telegram-message-bubble:hover .telegram-message-footer {
+  opacity: 0.9;
+}
+
+/* Time stamps for manufacturer messages */
+.telegram-message:not(.own) .telegram-message-time {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="light"] .telegram-message:not(.own) .telegram-message-time {
+  color: hsl(var(--body-color));
+}
+
+/* Time stamps for buyer messages */
+.telegram-message.own .telegram-message-time {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .telegram-message.own .telegram-message-time {
+  color: #4a4a4a;
+}
+
+/* ========================================
+   MESSAGE ATTACHMENTS
+   ======================================== */
+
+/* Image Attachments */
+.telegram-attachment-image {
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+  max-width: 300px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.telegram-attachment-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.telegram-attachment-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+}
+
+.telegram-image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 12px;
+}
+
+.telegram-attachment-image:hover .telegram-image-overlay {
+  opacity: 1;
+}
+
+.telegram-image-overlay i {
+  color: white;
+  font-size: 24px;
+}
+
+/* File Attachments */
+.telegram-attachment-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  margin-top: 8px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.telegram-attachment-file:hover {
+  background: rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+
+[data-theme="dark"] .telegram-attachment-file:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.telegram-file-icon {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #c9c6c6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.telegram-file-details h6 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: inherit;
+}
+
+.telegram-file-details p {
+  margin: 0;
+  font-size: 11px;
+  opacity: 0.7;
+  color: inherit;
+}
+
+.telegram-file-download {
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  color: inherit;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.telegram-file-download:hover {
+  background: rgba(0, 0, 0, 0.2);
+  transform: scale(1.1);
+  color: inherit;
+}
+
+
+[data-theme="dark"] .telegram-file-download:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ========================================
+   MESSAGE AVATARS
+   ======================================== */
+
+/* Avatar styling for dark mode */
+[data-theme="dark"] .telegram-message-avatar {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .telegram-message-avatar:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* Fallback avatar colors */
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .avatar-placeholder {
+  background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .telegram-message-content {
+    max-width: 85%;
+  }
+  
+  .telegram-attachment-image {
+    max-width: 250px;
+  }
+  
+  .telegram-message-text {
+    font-size: 13px;
   }
   
   .telegram-message-bubble {
-    background: linear-gradient(135deg, #475569 0%, #64748b 100%);
-    border-color: rgba(255, 255, 255, 0.1);
+    padding: 10px 14px;
+  }
+  
+  /* Reduced padding for mobile */
+  .telegram-message:not(.own) {
+    padding-right: 40px;
+  }
+  
+  .telegram-message.own {
+    padding-left: 40px;
   }
  }
 
@@ -1122,12 +1448,15 @@
    color: hsl(var(--body-color));
  }
 
- /* Message Input Area */
+ /* Message Input Area - Fixed at Bottom */
  .b2b-message-input-area {
    padding: 16px 24px;
    border-top: 1px solid hsl(var(--border-color));
    background: hsl(var(--white));
    box-shadow: 0 -2px 8px hsla(0, 0%, 0%, 0.05);
+   flex-shrink: 0;
+   position: relative;
+   z-index: 5;
  }
 
  /* Dark mode support for input area */
@@ -1233,8 +1562,8 @@
 
  .telegram-attachment-menu {
    position: absolute;
-   bottom: 100%;
-   left: 0;
+   bottom: 60px;
+   left: -40px;
    background: hsl(var(--white));
    border: 1px solid hsl(var(--border-color));
    border-radius: 12px;
@@ -1561,18 +1890,6 @@
   max-width: 300px;
 }
 
-.telegram-file-icon {
-  width: 40px;
-  height: 40px;
-  background: var(--telegram-primary);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 16px;
-}
-
 .telegram-file-details {
   flex: 1;
   min-width: 0;
@@ -1607,7 +1924,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   text-decoration: none;
   transition: background 0.2s ease;
 }
@@ -1638,14 +1954,18 @@
   backdrop-filter: blur(5px);
 }
 
+
+
+
+
 .telegram-modal-content {
-  background: var(--telegram-bg-primary);
+  background: #ffffff;
   border-radius: 12px;
   max-width: 90vw;
   max-height: 90vh;
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--telegram-border);
+  border: 1px solid #e5e7eb;
 }
 
 .telegram-modal-header {
@@ -1653,21 +1973,41 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--telegram-border);
-  background: var(--telegram-bg-secondary);
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  position: relative;
+}
+
+.zoom-indicator {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.zoom-indicator.visible {
+  opacity: 1;
 }
 
 .telegram-modal-header h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: var(--telegram-text-primary);
+  color: #111827;
 }
 
 .telegram-modal-close {
   background: none;
   border: none;
-  color: var(--telegram-text-secondary);
+  color: #6b7280;
   font-size: 18px;
   cursor: pointer;
   padding: 4px;
@@ -1676,33 +2016,144 @@
 }
 
 .telegram-modal-close:hover {
-  background: var(--telegram-bg-secondary);
-  color: var(--telegram-text-primary);
+  background: #f3f4f6;
+  color: #3b82f6;
 }
 
 .telegram-modal-body {
   padding: 20px;
   text-align: center;
   max-height: 70vh;
-  overflow: auto;
+  overflow: hidden;
+  position: relative;
+  background: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .telegram-modal-body img {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 85%;
+  max-height: 65vh;
   object-fit: contain;
   border-radius: 8px;
+  cursor: zoom-in;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
+
+.telegram-modal-body img.zoomed {
+  max-width: none;
+  max-height: none;
+  width: auto;
+  height: auto;
+  cursor: grab;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25);
+}
+
+.telegram-modal-body img.zoomed:active {
+  cursor: grabbing;
+}
+
+.telegram-modal-body img.dragging {
+  transition: none !important;
+  cursor: grabbing !important;
+}
+
+.telegram-modal-body img:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.telegram-modal-body img.zoomed:hover {
+  box-shadow: 0 16px 56px rgba(0, 0, 0, 0.3);
+}
+
+/* Image controls */
+.image-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.control-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.control-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+}
+
+.control-btn i {
+  font-size: 14px;
+}
+
+/* Dark mode support for controls */
+@media (prefers-color-scheme: light) {
+  .control-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+  
+  .control-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* Control button colors */
+.control-btn.fit-screen {
+  background: rgba(168, 85, 247, 0.8);
+}
+
+.control-btn.zoom-in {
+  background: rgba(34, 197, 94, 0.8);
+}
+
+.control-btn.zoom-out {
+  background: rgba(239, 68, 68, 0.8);
+}
+
+.control-btn.reset {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+
 
 .telegram-modal-footer {
   padding: 16px 20px;
-  border-top: 1px solid var(--telegram-border);
-  background: var(--telegram-bg-secondary);
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
   text-align: center;
 }
 
 .telegram-modal-download {
-  background: var(--telegram-primary);
+  background: #3b82f6;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -1717,7 +2168,7 @@
 }
 
 .telegram-modal-download:hover {
-  background: var(--telegram-primary-dark);
+  background: #2563eb;
 }
 
 /* Modal Animation */
@@ -1734,6 +2185,40 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* Dark Mode Modal Support */
+[data-theme="dark"] .telegram-modal-content {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+[data-theme="dark"] .telegram-modal-header {
+  background: #111827;
+  border-bottom-color: #374151;
+}
+
+[data-theme="dark"] .telegram-modal-header h3 {
+  color: #f9fafb;
+}
+
+[data-theme="dark"] .zoom-indicator {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+[data-theme="dark"] .telegram-modal-close {
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .telegram-modal-close:hover {
+  background: #374151;
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .telegram-modal-footer {
+  background: #111827;
+  border-top-color: #374151;
 }
 
 /* File-only message info */
@@ -2155,16 +2640,7 @@
   background: var(--buyer-card-gradient);
 }
 
-.messages-container {
-  width: 100%;
-  margin: 0;
-  background: hsl(var(--white));
-  box-shadow: var(--buyer-shadow-lg);
-  overflow: hidden;
-  border: 1px solid var(--border-light);
-  position: relative;
-  overflow-y: auto;
-}
+/* ===== REMOVED DUPLICATE MESSAGES CONTAINER ===== */
 
 .messages-container::before {
   content: '';
@@ -2298,34 +2774,329 @@
 
 .search-wrapper {
   position: relative;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  padding: 0;
 }
+
+
 
 .search-wrapper i {
   position: absolute;
-  left: 12px;
-  top: 50%;
+  left: 16px;
+  top: 32%;
   transform: translateY(-50%);
-  color: var(--text-disabled);
+  color: #9ca3af;
+  font-size: 16px;
+  transition: color 0.3s ease;
+  z-index: 2;
+}
+
+.search-wrapper.focused i {
+  color: #3b82f6;
+}
+
+.search-wrapper.searching i {
+  color: #10b981;
 }
 
 .search-wrapper input {
   width: 100%;
-  padding: 12px 16px 12px 40px;
-  border: 1px solid var(--border-color);
+  padding: 14px 40px 14px 48px;
+  border: 2px solid #e5e7eb;
   border-radius: 12px;
   font-size: 14px;
-  background: var(--surface-color);
-  color: var(--text-primary);
-  font-family: var(--font-family);
+  background: #ffffff;
+  color: #111827;
+  font-family: inherit;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  backdrop-filter: blur(10px);
 }
 
 .search-wrapper input:focus {
   outline: none;
-  border-color: var(--buyer-primary);
-  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
-  background: var(--surface-color);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: #fafbfc;
+  backdrop-filter: blur(10px);
+}
+
+.search-wrapper input.searching {
+  border-color: #10b981;
+  background: #f0fdf4;
+  backdrop-filter: blur(10px);
+}
+
+.search-wrapper input::placeholder {
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* Search clear button */
+.search-clear-btn {
+  position: absolute;
+  right: 12px;
+  top: 20%;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  z-index: 3;
+  line-height: 1;
+  padding: 0;
+  user-select: none;
+}
+
+.search-clear-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Search spinner */
+.search-spinner {
+  position: absolute;
+  right: 80px;
+  top: 20%;
+  transform: translateY(-50%);
+  color: #10b981;
+  font-size: 14px;
+  z-index: 2;
+}
+
+/* Search results count */
+.search-results-count {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-results-count .count-number {
+  font-weight: 600;
+  color: #10b981;
+  margin-right: 4px;
+}
+
+.search-results-count .search-query {
+  font-style: italic;
+  color: #3b82f6;
+  margin-left: 4px;
+}
+
+/* No search results */
+.no-search-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.no-results-icon {
+  font-size: 48px;
+  color: #d1d5db;
+  margin-bottom: 16px;
+}
+
+.no-results-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.no-results-description {
+  font-size: 14px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.no-results-suggestions {
+  text-align: left;
+  max-width: 300px;
+  margin: 0 auto 20px;
+}
+
+.no-results-suggestions p {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+.no-results-suggestions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.no-results-suggestions li {
+  padding: 4px 0;
+  font-size: 13px;
+  color: #6b7280;
+  position: relative;
+  padding-left: 16px;
+}
+
+.no-results-suggestions li:before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #9ca3af;
+}
+
+.clear-search-btn {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.clear-search-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+/* Search tips */
+.search-tips {
+  margin-top: 8px;
+  text-align: center;
+  padding: 0 4px;
+}
+
+.search-tips small {
+  color: #6b7280;
+  font-size: 12px;
+  font-style: normal;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+[data-theme="light"] {
+  .sidebar-search {
+    background: #111827;
+    border-bottom-color: #374151;
+  }
+
+  
+  .search-wrapper input {
+    background: #1f2937;
+    color: #f9fafb;
+    border-color: #374151;
+    backdrop-filter: blur(10px);
+  }
+  
+  .search-wrapper input:focus {
+    background: #111827;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    backdrop-filter: blur(10px);
+  }
+  
+  .search-wrapper input.searching {
+    background: #064e3b;
+    border-color: #10b981;
+    backdrop-filter: blur(10px);
+  }
+  
+  .search-wrapper input::placeholder {
+    color: #9ca3af;
+  }
+
+} 
+
+/* Dark mode support for search */
+@media (prefers-color-scheme: light) {
+
+  
+
+  
+  .search-wrapper i {
+    color: #9ca3af;
+  }
+  
+  .search-wrapper.focused i {
+    color: #3b82f6;
+  }
+  
+  .search-wrapper.searching i {
+    color: #10b981;
+  }
+  
+  .search-clear-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .search-clear-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .search-tips small {
+    color: #9ca3af;
+  }
+  
+  .search-results-count {
+    background: #1f2937;
+    border-color: #374151;
+    color: #9ca3af;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .no-search-results {
+    color: #9ca3af;
+  }
+  
+  .no-results-title {
+    color: #f9fafb;
+  }
+  
+  .no-results-suggestions p {
+    color: #f3f4f6;
+  }
+  
+  .clear-search-btn {
+    background: #374151;
+    border-color: #4b5563;
+    color: #d1d5db;
+  }
+  
+  .clear-search-btn:hover {
+    background: #4b5563;
+    border-color: #6b7280;
+    color: #f9fafb;
+  }
 }
 
 .manufacturers-filters {
@@ -2488,7 +3259,7 @@
 }
 
 .unread-badge {
-  background: var(--error);
+  background: #ef4444;
   color: white;
   padding: 2px 6px;
   border-radius: 10px;
@@ -2496,21 +3267,7 @@
   font-weight: 600;
 }
 
-/* Chat Container */
-.chat-container {
-  display: flex;
-    flex-direction: column;
-  background: var(--bg-primary);
-  }
-  
-  .chat-header {
-  padding: 16px 24px;
-  background: var(--bg-primary);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+/* ===== REMOVED DUPLICATE CHAT CONTAINER ===== */
 
 .chat-breadcrumb {
   display: flex;
@@ -3053,18 +3810,24 @@
            <div class="sidebar-header">
              <h3 class="text-heading">
                <i class="fas fa-comments text-main"></i>
-               Suhbatlar
+              <%= t('messages.sidebar.title') %>
              </h3>
            </div>
            
-           <!-- Search (disabled for now) -->
+           <!-- Professional Search Input -->
            <div class="sidebar-search">
              <div class="search-wrapper">
                <i class="fas fa-search"></i>
                <input type="text" 
                       class="search-input"
-                      placeholder="Avval yozishma qilgan manufacturerni qidirish..." 
-                      id="conversationSearchInput">
+                     placeholder="<%= t('messages.sidebar.searchPlaceholder') %>" 
+                     id="conversationSearchInput"
+                      autocomplete="off"
+                      spellcheck="false"
+                      maxlength="100">
+                             <div class="search-tips">
+                <small><%= t('messages.sidebar.searchTips') %></small>
+              </div>
              </div>
            </div>
           
@@ -3074,7 +3837,7 @@
           </div>
         </div>
         
-                 <!-- Main Chat Area -->
+                 <!-- Main Chat Area - Right Panel -->
          <div class="chat-main-area">
            
            <!-- Enhanced Chat Header with Manufacturer Info -->
@@ -3085,9 +3848,9 @@
                    <!-- Avatar will be shown when manufacturer is selected -->
                  </div>
                  <div class="chat-header-text">
-                   <h3 class="text-heading chat-header-title">Biznes Xabarlari</h3>
+                  <h3 class="text-heading chat-header-title"><%= t('messages.header.defaultTitle') %></h3>
                    <div class="chat-header-meta">
-                     <span class="chat-subtitle">Professional B2B muloqot platformasi</span>
+                                         <span class="chat-subtitle"><%= t('messages.header.defaultSubtitle') %></span>
                    </div>
                  </div>
                </div>
@@ -3105,8 +3868,8 @@
                <div class="welcome-icon">
                  <i class="fas fa-comments text-main"></i>
                </div>
-               <h3 class="text-heading welcome-title">Xabar almashish</h3>
-               <p class="welcome-description">Professional B2B muloqot uchun manufacturerni tanlang</p>
+                             <h3 class="text-heading welcome-title"><%= t('messages.welcome.title') %></h3>
+                              <p class="welcome-description"><%= t('messages.welcome.description') %></p>
                
                <!-- Quick Actions - only shown when manufacturer selected -->
                <div class="quick-actions-grid" style="display: none;">
@@ -3115,9 +3878,9 @@
                      <div class="quick-action-icon secondary">
                        <i class="fas fa-wave-square"></i>
                      </div>
-                     <h5 class="quick-action-title secondary">Salomlashish</h5>
+                    <h5 class="quick-action-title secondary"><%= t('messages.quickActions.greeting.title') %></h5>
                    </div>
-                   <p class="quick-action-description secondary">Professional salomlashish va tanishish xabari yuborish</p>
+                  <p class="quick-action-description secondary"><%= t('messages.quickActions.greeting.description') %></p>
                  </button>
                  
                  <button onclick="startConversationWithTemplate('price_inquiry')" class="quick-action-btn secondary">
@@ -3125,9 +3888,9 @@
                      <div class="quick-action-icon secondary">
                        <i class="fas fa-file-invoice-dollar text-main"></i>
                      </div>
-                     <h5 class="quick-action-title secondary">Narx so'rovi</h5>
+                    <h5 class="quick-action-title secondary"><%= t('messages.quickActions.priceInquiry.title') %></h5>
                    </div>
-                   <p class="quick-action-description secondary">Mahsulot narxlari va shartlar haqida so'rov yuborish</p>
+                  <p class="quick-action-description secondary"><%= t('messages.quickActions.priceInquiry.description') %></p>
                  </button>
                  
                  <button onclick="startConversationWithTemplate('sample_request')" class="quick-action-btn tertiary">
@@ -3135,9 +3898,9 @@
                      <div class="quick-action-icon tertiary">
                        <i class="fas fa-cube text-main"></i>
                      </div>
-                     <h5 class="quick-action-title tertiary">Namuna so'rovi</h5>
+                    <h5 class="quick-action-title tertiary"><%= t('messages.quickActions.sampleRequest.title') %></h5>
                    </div>
-                   <p class="quick-action-description tertiary">Mahsulot namunalari va katalog so'rash</p>
+                  <p class="quick-action-description tertiary"><%= t('messages.quickActions.sampleRequest.description') %></p>
                  </button>
                  
                  <button onclick="startConversationWithTemplate('order_inquiry')" class="quick-action-btn tertiary">
@@ -3145,9 +3908,9 @@
                      <div class="quick-action-icon tertiary">
                        <i class="fas fa-shopping-cart text-main"></i>
                      </div>
-                     <h5 class="quick-action-title tertiary">Buyurtma so'rovi</h5>
+                    <h5 class="quick-action-title tertiary"><%= t('messages.quickActions.orderInquiry.title') %></h5>
                    </div>
-                   <p class="quick-action-description tertiary">Buyurtma berish va yetkazib berish haqida</p>
+                  <p class="quick-action-description tertiary"><%= t('messages.quickActions.orderInquiry.description') %></p>
                  </button>
               </div>
             </div>
@@ -3172,7 +3935,7 @@
                    <div class="message-input-container">
                      <textarea id="messageInput" 
                                class="b2b-message-input"
-                               placeholder="Xabar yozing yoki fayl tanlang (textsiz ham mumkin)..."
+                              placeholder="<%= t('messages.input.placeholder') %>"
                                rows="1"
                                maxlength="10000"
                                onkeydown="handleProfessionalKeyPress(event)"
@@ -3182,7 +3945,7 @@
                    <!-- Attachment and Send Buttons -->
                    <div class="input-actions">
                      <div class="telegram-attachment-wrapper">
-                       <button type="button" class="telegram-attachment-btn" id="attachmentBtn" title="Biriktirishlar">
+                       <button type="button" class="telegram-attachment-btn" id="attachmentBtn" title="<%= t('messages.input.attachments') %>">
                          <i class="fas fa-paperclip"></i>
                        </button>
                        
@@ -3192,19 +3955,19 @@
                            <div class="menu-item-icon file">
                              <i class="fas fa-file-alt"></i>
                            </div>
-                           <span>Fayl</span>
+                                                     <span><%= t('messages.input.file') %></span>
                          </button>
                          <button type="button" class="telegram-menu-item" onclick="window.professionalBuyerMessages.triggerFileInput('image')">
                            <div class="menu-item-icon image">
                              <i class="fas fa-image"></i>
                            </div>
-                           <span>Rasm</span>
+                          <span><%= t('messages.input.image') %></span>
                          </button>
                          <button type="button" class="telegram-menu-item" onclick="insertEmoji()">
                            <div class="menu-item-icon emoji">
                              <i class="fas fa-smile"></i>
                            </div>
-                           <span>Emoji</span>
+                          <span><%= t('messages.input.emoji') %></span>
                          </button>
                        </div>
                      </div>
@@ -3219,11 +3982,11 @@
                  <div class="b2b-input-footer">
                    <div class="b2b-char-counter">
                      <i class="fas fa-keyboard"></i>
-                     <span id="charCount">0</span>/10,000
+                      <span id="charCount"><%= t('messages.input.charCount') %></span>
                    </div>
                    <div class="b2b-input-hints">
-                     <span><kbd class="hint-kbd">Enter</kbd> yuborish</span>
-                     <span><kbd class="hint-kbd">Shift+Enter</kbd> yangi qator</span>
+                      <span><kbd class="hint-kbd">Enter</kbd> <%= t('messages.input.sendHint') %></span>
+                      <span><kbd class="hint-kbd">Shift+Enter</kbd> <%= t('messages.input.newLineHint') %></span>
                    </div>
                  </div>
                  
@@ -3241,6 +4004,269 @@
 </main>
 <!-- Professional B2B Messaging JavaScript -->
 <script>
+// Localization variables
+window.messageTranslations = {
+  sidebar: {
+    clearSearch: '<%= t("messages.sidebar.clearSearch") %>',
+    noConversations: '<%= t("messages.sidebar.noConversations") %>',
+    noConversationsDesc: '<%= t("messages.sidebar.noConversationsDesc") %>',
+    allConversations: '<%= t("messages.sidebar.allConversations") %>',
+    unreadConversations: '<%= t("messages.sidebar.unreadConversations") %>',
+    pinnedConversations: '<%= t("messages.sidebar.pinnedConversations") %>',
+    archivedConversations: '<%= t("messages.sidebar.archivedConversations") %>',
+    filterAll: '<%= t("messages.sidebar.filterAll") %>',
+    filterUnread: '<%= t("messages.sidebar.filterUnread") %>',
+    filterPinned: '<%= t("messages.sidebar.filterPinned") %>',
+    filterArchived: '<%= t("messages.sidebar.filterArchived") %>',
+    sortByDate: '<%= t("messages.sidebar.sortByDate") %>',
+    sortByName: '<%= t("messages.sidebar.sortByName") %>',
+    sortByUnread: '<%= t("messages.sidebar.sortByUnread") %>',
+    sortByRecent: '<%= t("messages.sidebar.sortByRecent") %>',
+    conversationCount: '<%= t("messages.sidebar.conversationCount") %>',
+    conversationCountOne: '<%= t("messages.sidebar.conversationCountOne") %>',
+    conversationCountMany: '<%= t("messages.sidebar.conversationCountMany") %>',
+    newMessage: '<%= t("messages.sidebar.newMessage") %>',
+    newMessages: '<%= t("messages.sidebar.newMessages") %>',
+    noNewMessages: '<%= t("messages.sidebar.noNewMessages") %>',
+    loadMore: '<%= t("messages.sidebar.loadMore") %>',
+    loadAll: '<%= t("messages.sidebar.loadAll") %>',
+    refresh: '<%= t("messages.sidebar.refresh") %>',
+    settings: '<%= t("messages.sidebar.settings") %>'
+  },
+  header: {
+    defaultTitle: '<%= t("messages.header.defaultTitle") %>',
+    defaultSubtitle: '<%= t("messages.header.defaultSubtitle") %>',
+    onlineStatus: '<%= t("messages.header.onlineStatus") %>',
+    offlineStatus: '<%= t("messages.header.offlineStatus") %>',
+    callAction: '<%= t("messages.header.callAction") %>',
+    profileAction: '<%= t("messages.header.profileAction") %>',
+    title: '<%= t("messages.header.title") %>',
+    subtitle: '<%= t("messages.header.subtitle") %>',
+    statusOnline: '<%= t("messages.header.statusOnline") %>',
+    statusOffline: '<%= t("messages.header.statusOffline") %>',
+    statusAway: '<%= t("messages.header.statusAway") %>',
+    statusBusy: '<%= t("messages.header.statusBusy") %>',
+    lastSeen: '<%= t("messages.header.lastSeen") %>',
+    typingIndicator: '<%= t("messages.header.typingIndicator") %>',
+    callButton: '<%= t("messages.header.callButton") %>',
+    videoCallButton: '<%= t("messages.header.videoCallButton") %>',
+    profileButton: '<%= t("messages.header.profileButton") %>',
+    moreActions: '<%= t("messages.header.moreActions") %>',
+    muteConversation: '<%= t("messages.header.muteConversation") %>',
+    unmuteConversation: '<%= t("messages.header.unmuteConversation") %>',
+    pinConversation: '<%= t("messages.header.pinConversation") %>',
+    unpinConversation: '<%= t("messages.header.unpinConversation") %>',
+    archiveConversation: '<%= t("messages.header.archiveConversation") %>',
+    unarchiveConversation: '<%= t("messages.header.unarchiveConversation") %>',
+    deleteConversation: '<%= t("messages.header.deleteConversation") %>',
+    blockUser: '<%= t("messages.header.blockUser") %>',
+    unblockUser: '<%= t("messages.header.unblockUser") %>'
+  },
+  input: {
+    sendButton: '<%= t("messages.input.sendButton") %>',
+    sendButtonWithFiles: '<%= t("messages.input.sendButtonWithFiles") %>',
+    sendButtonPlaceholder: '<%= t("messages.input.sendButtonPlaceholder") %>',
+    charCountFormat: '<%= t("messages.input.charCountFormat") %>',
+    charCountOverLimit: '<%= t("messages.input.charCountOverLimit") %>',
+    inputPlaceholder: '<%= t("messages.input.inputPlaceholder") %>',
+    inputPlaceholderWithAttachments: '<%= t("messages.input.inputPlaceholderWithAttachments") %>',
+    inputPlaceholderEmpty: '<%= t("messages.input.inputPlaceholderEmpty") %>'
+  },
+  quickActions: {
+    inquiry: {
+      title: '<%= t("messages.quickActions.inquiry.title") %>',
+      description: '<%= t("messages.quickActions.inquiry.description") %>'
+    },
+    orderStatus: {
+      title: '<%= t("messages.quickActions.orderStatus.title") %>',
+      description: '<%= t("messages.quickActions.orderStatus.description") %>'
+    }
+  },
+  status: {
+    read: '<%= t("messages.status.read") %>',
+    delivered: '<%= t("messages.status.delivered") %>',
+    sent: '<%= t("messages.status.sent") %>'
+  },
+  attachments: {
+    download: '<%= t("messages.attachments.download") %>',
+    maxFilesReached: '<%= t("messages.attachments.maxFilesReached") %>',
+    maxImagesReached: '<%= t("messages.attachments.maxImagesReached") %>',
+    invalidFileType: '<%= t("messages.attachments.invalidFileType") %>',
+    fileLimitWarning: '<%= t("messages.attachments.fileLimitWarning") %>',
+    imageLimitWarning: '<%= t("messages.attachments.imageLimitWarning") %>',
+    fileTooLarge: '<%= t("messages.attachments.fileTooLarge") %>',
+    imageTooLarge: '<%= t("messages.attachments.imageTooLarge") %>',
+    unsupportedFileType: '<%= t("messages.attachments.unsupportedFileType") %>',
+    uploadInProgress: '<%= t("messages.attachments.uploadInProgress") %>',
+    uploadSuccess: '<%= t("messages.attachments.uploadSuccess") %>',
+    uploadFailed: '<%= t("messages.attachments.uploadFailed") %>',
+    fileSize: '<%= t("messages.attachments.fileSize") %>',
+    fileSizeMB: '<%= t("messages.attachments.fileSizeMB") %>',
+    fileSizeGB: '<%= t("messages.attachments.fileSizeGB") %>',
+    bytes: '<%= t("messages.attachments.bytes") %>',
+    kilobytes: '<%= t("messages.attachments.kilobytes") %>',
+    megabytes: '<%= t("messages.attachments.megabytes") %>',
+    gigabytes: '<%= t("messages.attachments.gigabytes") %>'
+  },
+  search: {
+    searching: '<%= t("messages.search.searching") %>',
+    resultsCount: '<%= t("messages.search.resultsCount") %>',
+    noResults: '<%= t("messages.search.noResults") %>',
+    noResultsDesc: '<%= t("messages.search.noResultsDesc") %>',
+    errorMessage: '<%= t("messages.search.errorMessage") %>',
+    apiError: '<%= t("messages.search.apiError") %>',
+    searchFailed: '<%= t("messages.search.searchFailed") %>',
+    searchPlaceholder: '<%= t("messages.search.searchPlaceholder") %>',
+    searchHint: '<%= t("messages.search.searchHint") %>',
+    clearSearch: '<%= t("messages.search.clearSearch") %>',
+    searchHistory: '<%= t("messages.search.searchHistory") %>',
+    recentSearches: '<%= t("messages.search.recentSearches") %>',
+    popularSearches: '<%= t("messages.search.popularSearches") %>'
+  },
+  loading: {
+    loading: '<%= t("messages.loading.loading") %>',
+    conversations: '<%= t("messages.loading.conversations") %>',
+    messages: '<%= t("messages.loading.messages") %>',
+    searching: '<%= t("messages.loading.searching") %>',
+    sending: '<%= t("messages.loading.sending") %>',
+    uploading: '<%= t("messages.loading.uploading") %>',
+    downloading: '<%= t("messages.loading.downloading") %>',
+    processing: '<%= t("messages.loading.processing") %>',
+    connecting: '<%= t("messages.loading.connecting") %>',
+    syncing: '<%= t("messages.loading.syncing") %>',
+    refreshing: '<%= t("messages.loading.refreshing") %>',
+    pleaseWait: '<%= t("messages.loading.pleaseWait") %>',
+    almostDone: '<%= t("messages.loading.almostDone") %>',
+    loadingMore: '<%= t("messages.loading.loadingMore") %>',
+    loadingAll: '<%= t("messages.loading.loadingAll") %>',
+    loadingFailed: '<%= t("messages.loading.loadingFailed") %>',
+    retryLoading: '<%= t("messages.loading.retryLoading") %>'
+  },
+  errors: {
+    title: '<%= t("messages.errors.title") %>',
+    manufacturerDataFailed: '<%= t("messages.errors.manufacturerDataFailed") %>',
+    conversationDataFailed: '<%= t("messages.errors.conversationDataFailed") %>',
+    manufacturerConnectionFailed: '<%= t("messages.errors.manufacturerConnectionFailed") %>',
+    messagesLoadFailed: '<%= t("messages.errors.messagesLoadFailed") %>',
+    messageSendFailed: '<%= t("messages.errors.messageSendFailed") %>',
+    fileUploadFailed: '<%= t("messages.errors.fileUploadFailed") %>',
+    networkError: '<%= t("messages.errors.networkError") %>',
+    serverError: '<%= t("messages.errors.serverError") %>',
+    loadMessagesFailed: '<%= t("messages.errors.loadMessagesFailed") %>',
+    loadMessagesFailedEn: '<%= t("messages.errors.loadMessagesFailedEn") %>',
+    sendMessageContent: '<%= t("messages.errors.sendMessageContent") %>',
+    sendSuccess: '<%= t("messages.errors.sendSuccess") %>',
+    sendSuccessWithFiles: '<%= t("messages.errors.sendSuccessWithFiles") %>',
+    sendSuccessFilesOnly: '<%= t("messages.errors.sendSuccessFilesOnly") %>',
+    sendFailed: '<%= t("messages.errors.sendFailed") %>',
+    sendFailedGeneral: '<%= t("messages.errors.sendFailedGeneral") %>',
+    clearSearchTitle: '<%= t("messages.errors.clearSearchTitle") %>',
+    retry: '<%= t("messages.errors.retry") %>'
+  },
+  conversation: {
+    startConversation: '<%= t("messages.conversation.startConversation") %>',
+    selected: '<%= t("messages.conversation.selected") %>',
+    newOrder: '<%= t("messages.conversation.newOrder") %>',
+    noConversationsYet: '<%= t("messages.conversation.noConversationsYet") %>',
+    noConversationsYetDesc: '<%= t("messages.conversation.noConversationsYetDesc") %>',
+    conversationStarted: '<%= t("messages.conversation.conversationStarted") %>',
+    conversationEnded: '<%= t("messages.conversation.conversationEnded") %>',
+    messageCount: '<%= t("messages.conversation.messageCount") %>',
+    messageCountOne: '<%= t("messages.conversation.messageCountOne") %>',
+    messageCountMany: '<%= t("messages.conversation.messageCountMany") %>',
+    unreadCount: '<%= t("messages.conversation.unreadCount") %>',
+    unreadCountOne: '<%= t("messages.conversation.unreadCountOne") %>',
+    unreadCountMany: '<%= t("messages.conversation.unreadCountMany") %>',
+    activeConversation: '<%= t("messages.conversation.activeConversation") %>',
+    inactiveConversation: '<%= t("messages.conversation.inactiveConversation") %>',
+    pinnedConversation: '<%= t("messages.conversation.pinnedConversation") %>',
+    archivedConversation: '<%= t("messages.conversation.archivedConversation") %>'
+  },
+  fileTypes: {
+    unknown: '<%= t("messages.fileTypes.unknown") %>',
+    sharedImage: '<%= t("messages.fileTypes.sharedImage") %>',
+    modalImageAlt: '<%= t("messages.fileTypes.modalImageAlt") %>',
+    manufacturer: '<%= t("messages.fileTypes.manufacturer") %>',
+    company: '<%= t("messages.fileTypes.company") %>',
+    product: '<%= t("messages.fileTypes.product") %>',
+    document: '<%= t("messages.fileTypes.document") %>',
+    image: '<%= t("messages.fileTypes.image") %>',
+    file: '<%= t("messages.fileTypes.file") %>'
+  },
+  status: {
+    pending: '<%= t("messages.status.pending") %>',
+    confirmed: '<%= t("messages.status.confirmed") %>',
+    in_production: '<%= t("messages.status.in_production") %>',
+    shipped: '<%= t("messages.status.shipped") %>',
+    delivered: '<%= t("messages.status.delivered") %>',
+    cancelled: '<%= t("messages.status.cancelled") %>'
+  },
+  time: {
+    now: '<%= t("messages.time.now") %>',
+    minutesAgo: '<%= t("messages.time.minutesAgo") %>',
+    hoursAgo: '<%= t("messages.time.hoursAgo") %>',
+    daysAgo: '<%= t("messages.time.daysAgo") %>',
+    weeksAgo: '<%= t("messages.time.weeksAgo") %>',
+    monthsAgo: '<%= t("messages.time.monthsAgo") %>',
+    yearsAgo: '<%= t("messages.time.yearsAgo") %>',
+    today: '<%= t("messages.time.today") %>',
+    yesterday: '<%= t("messages.time.yesterday") %>',
+    thisWeek: '<%= t("messages.time.thisWeek") %>',
+    thisMonth: '<%= t("messages.time.thisMonth") %>',
+    thisYear: '<%= t("messages.time.thisYear") %>'
+  },
+  system: {
+    name: '<%= t("messages.system.name") %>',
+    message: '<%= t("messages.system.message") %>',
+    notification: '<%= t("messages.system.notification") %>',
+    update: '<%= t("messages.system.update") %>',
+    maintenance: '<%= t("messages.system.maintenance") %>'
+  },
+  currency: {
+    usd: '<%= t("messages.currency.usd") %>',
+    uzs: '<%= t("messages.currency.uzs") %>',
+    eur: '<%= t("messages.currency.eur") %>',
+    rub: '<%= t("messages.currency.rub") %>',
+    symbol: '<%= t("messages.currency.symbol") %>',
+    format: '<%= t("messages.currency.format") %>'
+  },
+  imageModal: {
+    title: '<%= t("messages.imageModal.title") %>',
+    zoomIn: '<%= t("messages.imageModal.zoomIn") %>',
+    zoomOut: '<%= t("messages.imageModal.zoomOut") %>',
+    reset: '<%= t("messages.imageModal.reset") %>',
+    fitScreen: '<%= t("messages.imageModal.fitScreen") %>',
+    download: '<%= t("messages.imageModal.download") %>',
+    close: '<%= t("messages.imageModal.close") %>',
+    fullscreen: '<%= t("messages.imageModal.fullscreen") %>',
+    exitFullscreen: '<%= t("messages.imageModal.exitFullscreen") %>',
+    imageInfo: '<%= t("messages.imageModal.imageInfo") %>',
+    imageSize: '<%= t("messages.imageModal.imageSize") %>',
+    imageFormat: '<%= t("messages.imageModal.imageFormat") %>',
+    imageDimensions: '<%= t("messages.imageModal.imageDimensions") %>',
+    imageResolution: '<%= t("messages.imageModal.imageResolution") %>',
+    imageDate: '<%= t("messages.imageModal.imageDate") %>',
+    imageLocation: '<%= t("messages.imageModal.imageLocation") %>',
+    imageDescription: '<%= t("messages.imageModal.imageDescription") %>',
+    imageTags: '<%= t("messages.imageModal.imageTags") %>',
+    imageMetadata: '<%= t("messages.imageModal.imageMetadata") %>',
+    imageProperties: '<%= t("messages.imageModal.imageProperties") %>',
+    imageHistory: '<%= t("messages.imageModal.imageHistory") %>',
+    imageVersions: '<%= t("messages.imageModal.imageVersions") %>',
+    imageShare: '<%= t("messages.imageModal.imageShare") %>',
+    imageEdit: '<%= t("messages.imageModal.imageEdit") %>',
+    imageDelete: '<%= t("messages.imageModal.imageDelete") %>',
+    imageCopy: '<%= t("messages.imageModal.imageCopy") %>',
+    imagePrint: '<%= t("messages.imageModal.imagePrint") %>',
+    imageRotate: '<%= t("messages.imageModal.imageRotate") %>',
+    imageFlip: '<%= t("messages.imageModal.imageFlip") %>',
+    imageCrop: '<%= t("messages.imageModal.imageCrop") %>',
+    imageFilter: '<%= t("messages.imageModal.imageFilter") %>',
+    imageAdjust: '<%= t("messages.imageModal.imageAdjust") %>',
+    imageEnhance: '<%= t("messages.imageModal.imageEnhance") %>'
+  }
+};
+
 class ProfessionalBuyerMessages {
   constructor() {
     this.currentOrderId = null;
@@ -3323,39 +4349,61 @@ class ProfessionalBuyerMessages {
     }
   }
 
-  // Debounced search to avoid too many API calls
+  // Professional debounced search with enhanced functionality
   debouncedSearch() {
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
     }
     
+    // Show search indicator
+    this.showSearchIndicator();
+    
+    // Adjust delay based on query length
+    const delay = this.searchQuery.length < 3 ? 500 : 300;
+    
     this.searchTimeout = setTimeout(() => {
       this.performSearch();
-    }, 300); // 300ms delay
+    }, delay);
   }
 
-  // Perform search with API integration
+  // Professional search with enhanced API integration and error handling
   async performSearch() {
     try {
-      if (!this.searchQuery) {
-        // If no search query, load all conversations
+      // Hide search indicator
+      this.hideSearchIndicator();
+      
+      if (!this.searchQuery || this.searchQuery.length < 2) {
+        // If no search query or too short, load all conversations
         await this.loadConversations();
         return;
       }
       
       this.showLoadingState('conversations');
       
-      // Search conversations by company name using new API
+      // Search conversations by company name, contact person, or order details
       const currentManufacturerId = this.getCurrentManufacturerId();
-      const url = currentManufacturerId ? 
-        `/buyer/api/conversations-with-current?search=${encodeURIComponent(this.searchQuery)}&manufacturer=${currentManufacturerId}` : 
-        `/buyer/api/conversations?search=${encodeURIComponent(this.searchQuery)}`;
+      const searchParams = new URLSearchParams({
+        search: this.searchQuery,
+        limit: '50', // Limit results for better performance
+        include_orders: 'true' // Include order information in search
+      });
       
-      const response = await fetch(url);
+      if (currentManufacturerId) {
+        searchParams.append('manufacturer', currentManufacturerId);
+      }
+      
+      const url = `/buyer/api/conversations-with-current?${searchParams.toString()}`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
       
       if (!response.ok) {
-        console.warn(`Search API error: ${response.status}`);
-        return;
+        throw new Error(`Search API error: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
@@ -3364,14 +4412,30 @@ class ProfessionalBuyerMessages {
         this.conversations = data.data.conversations;
         this.renderConversations();
         
+        // Show search results count
+        this.showSearchResultsCount(this.conversations.length, this.searchQuery);
+        
         if (this.conversations.length === 0) {
-          this.showNoSearchResults();
+          this.showNoSearchResults(this.searchQuery);
         }
+      } else {
+        throw new Error(data.message || window.messageTranslations.search.searchFailed);
       }
       
     } catch (error) {
       console.error('❌ Search error:', error);
-      this.showErrorMessage('Qidiruvda xatolik yuz berdi');
+      
+      // Show appropriate error message
+      if (error.message.includes('API error')) {
+        this.showErrorMessage(window.messageTranslations.search.apiError);
+      } else if (error.message.includes('Search failed')) {
+        this.showErrorMessage(window.messageTranslations.search.searchFailed);
+      } else {
+        this.showErrorMessage(window.messageTranslations.search.errorMessage);
+      }
+      
+      // Fallback to showing all conversations
+      await this.loadConversations();
     } finally {
       this.hideLoadingState('conversations');
     }
@@ -3388,8 +4452,7 @@ class ProfessionalBuyerMessages {
         `/buyer/api/conversations-with-current?manufacturer=${currentManufacturerId}` : 
         '/buyer/api/conversations';
       
-      console.log('🔍 Loading conversations with URL:', url);
-      console.log('🔍 Current Manufacturer ID:', currentManufacturerId);
+
       
       const response = await fetch(url);
       
@@ -3404,15 +4467,19 @@ class ProfessionalBuyerMessages {
       }
       
       const data = await response.json();
-      console.log('🔍 API Response:', data);
       
       if (data.success) {
         this.conversations = data.data.conversations;
-        console.log('🔍 Conversations loaded:', this.conversations);
         this.renderConversations();
         
+        // If we have current manufacturer from URL, keep header active
+        const currentManufacturerId = this.getCurrentManufacturerId();
+        if (currentManufacturerId && this.manufacturerDetails) {
+          this.updateChatHeader(this.manufacturerDetails);
+        } else {
         // Show default chat header when showing all conversations
         this.showDefaultChatHeader();
+        }
         
         // Show welcome state if no conversations
         if (this.conversations.length === 0) {
@@ -3439,6 +4506,119 @@ class ProfessionalBuyerMessages {
   getCurrentManufacturerId() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('manufacturer');
+  }
+
+  // Show search indicator
+  showSearchIndicator() {
+    const searchInput = document.getElementById('conversationSearchInput');
+    if (searchInput) {
+      searchInput.classList.add('searching');
+      // Add loading spinner
+      const searchWrapper = searchInput.parentNode;
+      if (!searchWrapper.querySelector('.search-spinner')) {
+        const spinner = document.createElement('div');
+        spinner.className = 'search-spinner';
+        spinner.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        searchWrapper.appendChild(spinner);
+      }
+    }
+  }
+
+  // Hide search indicator
+  hideSearchIndicator() {
+    const searchInput = document.getElementById('conversationSearchInput');
+    if (searchInput) {
+      searchInput.classList.remove('searching');
+      // Remove loading spinner
+      const searchWrapper = searchInput.parentNode;
+      const spinner = searchWrapper.querySelector('.search-spinner');
+      if (spinner) {
+        spinner.remove();
+      }
+    }
+  }
+
+  // Show search results count
+  showSearchResultsCount(count, query) {
+    const searchInput = document.getElementById('conversationSearchInput');
+    if (searchInput) {
+      const searchWrapper = searchInput.parentNode;
+      
+      // Remove existing count
+      const existingCount = searchWrapper.querySelector('.search-results-count');
+      if (existingCount) {
+        existingCount.remove();
+      }
+      
+      // Add new count
+      const countElement = document.createElement('div');
+      countElement.className = 'search-results-count';
+      countElement.innerHTML = `
+        <span class="count-number">${count}</span>
+        <span class="count-text">natija topildi</span>
+        <span class="search-query">"${query}"</span>
+      `;
+      
+      searchWrapper.appendChild(countElement);
+      
+      // Auto-hide after 3 seconds
+      setTimeout(() => {
+        if (countElement.parentNode) {
+          countElement.remove();
+        }
+      }, 3000);
+    }
+  }
+
+  // Show no search results
+  showNoSearchResults(query) {
+    const conversationsList = document.querySelector('.conversations-list');
+    if (conversationsList) {
+      conversationsList.innerHTML = `
+        <div class="no-search-results">
+          <div class="no-results-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h4 class="no-results-title">Natija topilmadi</h4>
+          <p class="no-results-description">
+            "<strong>${query}</strong>" bilan hech qanday natija topilmadi
+          </p>
+          <div class="no-results-suggestions">
+            <p>Keling, quyidagilarni sinab ko'ring:</p>
+            <ul>
+              <li>Boshqa kalit so'zlar bilan qidiring</li>
+              <li>Kompaniya nomini to'liq yozing</li>
+              <li>Ishonchli raqam yoki email bilan qidiring</li>
+            </ul>
+          </div>
+          <button class="clear-search-btn" onclick="window.professionalBuyerMessages.clearSearch()">
+            <i class="fas fa-times"></i>
+            Qidiruvni tozalash
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  // Clear search and reload conversations
+  clearSearch() {
+    const searchInput = document.getElementById('conversationSearchInput');
+    if (searchInput) {
+      searchInput.value = '';
+      this.searchQuery = '';
+      
+      // Hide clear button
+      const clearButton = searchInput.parentNode.querySelector('.search-clear-btn');
+      if (clearButton) {
+        clearButton.style.display = 'none';
+      }
+      
+      // Remove search classes
+      searchInput.classList.remove('searching');
+      
+      // Reload conversations
+      this.loadConversations();
+    }
   }
 
   // Format last message content for sidebar display
@@ -3476,7 +4656,7 @@ class ProfessionalBuyerMessages {
       ]);
       
       if (!detailsResponse.ok || !conversationResponse.ok) {
-        throw new Error('Failed to load manufacturer data');
+        throw new Error(window.messageTranslations.errors.manufacturerDataFailed);
       }
       
       const detailsData = await detailsResponse.json();
@@ -3484,45 +4664,49 @@ class ProfessionalBuyerMessages {
       
       if (detailsData.success && conversationData.success) {
         this.manufacturerDetails = detailsData.data.manufacturer;
-        this.currentOrderId = conversationData.data.orderId;
+        
+        // Handle both order and inquiry based conversations
+        if (conversationData.data.orderId) {
+          // Order-based conversation
+          this.currentOrderId = conversationData.data.orderId;
+          this.currentInquiryId = null;
+          this.conversationType = 'order';
+        } else if (conversationData.data.inquiryId) {
+          // Inquiry-based conversation  
+          this.currentInquiryId = conversationData.data.inquiryId;
+          this.currentOrderId = null;
+          this.conversationType = 'inquiry';
+        }
+        
         this.messages = conversationData.data.messages;
         
         // Set current conversation ID for active state
-        this.currentConversationId = conversationData.data.orderId.toString();
+        const currentConversationId = this.currentOrderId || this.currentInquiryId;
+        this.currentConversationId = currentConversationId ? currentConversationId.toString() : null;
         
-        console.log('✅ Manufacturer conversation loaded:');
-        console.log('🏭 Manufacturer Details:', this.manufacturerDetails);
-        console.log('🆔 Order ID:', this.currentOrderId);
-        console.log('🆔 Order ID Type:', typeof this.currentOrderId);
-        console.log('📝 Messages Count:', this.messages.length);
-        console.log('📊 Conversation Data:', conversationData.data);
+
         
-        // Ensure currentOrderId is properly set
-        if (!this.currentOrderId) {
-          console.error('❌ Failed to set currentOrderId from conversation data');
-          console.log('🔍 Conversation data structure:', conversationData.data);
-          throw new Error('Order ID not found in conversation data');
+        // Ensure conversation ID is properly set
+        if (!currentConversationId) {
+          throw new Error(window.messageTranslations.errors.conversationDataFailed);
         }
         
         // Convert ObjectId to string if needed
-        if (typeof this.currentOrderId === 'object' && this.currentOrderId._id) {
-          this.currentOrderId = this.currentOrderId._id.toString();
-        } else if (typeof this.currentOrderId === 'object') {
-          this.currentOrderId = this.currentOrderId.toString();
+        if (typeof currentConversationId === 'object' && currentConversationId._id) {
+          this.currentConversationId = currentConversationId._id.toString();
+        } else if (typeof currentConversationId === 'object') {
+          this.currentConversationId = currentConversationId.toString();
         }
         
-        console.log('🔄 Final Order ID:', this.currentOrderId);
-        console.log('🔄 Final Order ID Type:', typeof this.currentOrderId);
+
         
         // Load all conversations including current manufacturer
         await this.loadConversations();
         
         // If loadConversations failed or returned empty, create single conversation for sidebar
         if (this.conversations.length === 0) {
-          this.conversations = [{
-            id: conversationData.data.orderId.toString(),
-            orderId: conversationData.data.orderId,
-            orderNumber: conversationData.data.orderNumber,
+          const conversation = {
+            id: this.currentConversationId,
             supplier: {
               id: this.manufacturerDetails.id,
               name: this.manufacturerDetails.companyName,
@@ -3533,28 +4717,55 @@ class ProfessionalBuyerMessages {
             lastMessage: {
               content: this.messages.length > 0 ? 
                 this.messages[this.messages.length - 1].content : 
-                'Suhbatni boshlang',
+                window.messageTranslations.conversation.startConversation,
               timestamp: this.messages.length > 0 ? 
                 this.messages[this.messages.length - 1].createdAt : 
                 new Date(),
-              sender: 'System',
+              sender: window.messageTranslations.system.name,
               type: 'system'
             },
             unreadCount: conversationData.data.unreadCount,
-            isOnline: this.manufacturerDetails.isOnline,
-            orderStatus: conversationData.data.orderStatus,
-            orderValue: 0,
-            currency: 'USD'
-          }];
+            isOnline: this.manufacturerDetails.isOnline
+          };
+          
+          // Add conversation-specific fields based on type
+          if (this.conversationType === 'order') {
+            conversation.type = 'order';
+            conversation.orderId = conversationData.data.orderId;
+            conversation.orderNumber = conversationData.data.orderNumber;
+            conversation.orderStatus = conversationData.data.orderStatus;
+            conversation.orderValue = 0;
+            conversation.currency = window.messageTranslations.currency.usd;
+          } else if (this.conversationType === 'inquiry') {
+            conversation.type = 'inquiry';
+            conversation.inquiryId = conversationData.data.inquiryId;
+            conversation.inquiryNumber = conversationData.data.inquiryNumber;
+            conversation.inquiryStatus = conversationData.data.inquiryStatus;
+            conversation.subject = 'Inquiry';
+            conversation.priority = 'medium';
+          }
+          
+          this.conversations = [conversation];
         }
         
         // renderConversations() is already called in loadConversations(), so no need to call it again
         this.renderMessages();
-        this.updateChatHeader();
+        this.updateChatHeader(this.manufacturerDetails);
+        
+        // Mark messages as read when conversation is opened
+        const readConversationId = this.currentOrderId || this.currentInquiryId;
+        if (readConversationId) {
+          this.markMessagesAsRead(readConversationId, this.conversationType);
+        }
         
         // Show manufacturer welcome and quick actions if no messages exist
         if (this.messages.length === 0) {
           this.showManufacturerWelcome(this.manufacturerDetails);
+        } else {
+          // Scroll to bottom after loading messages
+          setTimeout(() => {
+            this.scrollToBottom();
+          }, 100);
         }
         
         // Mark first conversation as active
@@ -3563,16 +4774,16 @@ class ProfessionalBuyerMessages {
           if (firstConversation) {
             firstConversation.classList.add('active');
           }
-        }, 100);
+        }, 150);
         
       } else {
-        this.showErrorState('conversations', 'Manufacturer ma\'lumotlarini yuklashda xatolik');
-        this.showErrorState('messages', 'Suhbat ma\'lumotlarini yuklashda xatolik');
+        this.showErrorState('conversations', window.messageTranslations.errors.manufacturerDataFailed);
+        this.showErrorState('messages', window.messageTranslations.errors.conversationDataFailed);
       }
     } catch (error) {
       console.error('Error loading manufacturer conversation:', error);
-      this.showErrorState('conversations', 'Manufacturer bilan bog\'lanishda xatolik');
-      this.showErrorState('messages', 'Xabarlarni yuklashda xatolik');
+              this.showErrorState('conversations', window.messageTranslations.errors.manufacturerConnectionFailed);
+        this.showErrorState('messages', window.messageTranslations.errors.messagesLoadFailed);
     }
   }
 
@@ -3622,7 +4833,7 @@ class ProfessionalBuyerMessages {
       meta.innerHTML = `
         <span>
           <div class="online-indicator ${manufacturer.isOnline ? 'online' : 'offline'}"></div>
-          ${manufacturer.isOnline ? 'Onlayn' : 'Oflayn'}
+          ${manufacturer.isOnline ? window.messageTranslations.header.onlineStatus : window.messageTranslations.header.offlineStatus}
         </span>
         ${manufacturer.email ? `
         <span>
@@ -3645,12 +4856,12 @@ class ProfessionalBuyerMessages {
         ${manufacturer.phone ? `
         <button onclick="window.location.href='tel:${manufacturer.phone}'" class="chat-action-btn">
           <i class="fas fa-phone"></i>
-          <span>Qo'ng'iroq</span>
+          <span>${window.messageTranslations.header.callAction}</span>
         </button>
         ` : ''}
         <button onclick="window.location.href='/supplier/${manufacturer.id}'" class="chat-action-btn">
           <i class="fas fa-building"></i>
-          <span>Profil</span>
+          <span>${window.messageTranslations.header.profileAction}</span>
         </button>
       `;
     }
@@ -3670,9 +4881,9 @@ class ProfessionalBuyerMessages {
     const actions = document.querySelector('.chat-header-actions');
     
     if (avatar) avatar.style.display = 'none';
-    if (title) title.textContent = 'Biznes Xabarlari';
+          if (title) title.textContent = window.messageTranslations.header.defaultTitle;
     if (meta) {
-      meta.innerHTML = '<span class="chat-subtitle">Professional B2B muloqot platformasi</span>';
+              meta.innerHTML = `<span class="chat-subtitle">${window.messageTranslations.header.defaultSubtitle}</span>`;
     }
     if (actions) actions.style.display = 'none';
   }
@@ -3682,10 +4893,7 @@ class ProfessionalBuyerMessages {
     const conversationsList = document.querySelector('.conversations-list');
     if (!conversationsList) return;
 
-    console.log('🔍 Rendering conversations:', this.conversations);
-    console.log('🔍 Conversations length:', this.conversations.length);
-    console.log('🔍 Unique conversations length:', uniqueConversations.length);
-    console.log('🔍 Duplicates removed:', this.conversations.length - uniqueConversations.length);
+
 
     if (this.conversations.length === 0) {
       conversationsList.innerHTML = `
@@ -3693,55 +4901,34 @@ class ProfessionalBuyerMessages {
           <div class="no-conversations-icon">
             <i class="fas fa-comments"></i>
         </div>
-          <h4>Hozircha suhbatlar yo'q</h4>
-          <p>Buyurtma berganingizdan so'ng ishlab chiqaruvchilar bilan suhbat boshlashingiz mumkin</p>
+          <h4>${window.messageTranslations.sidebar.noConversations}</h4>
+          <p>${window.messageTranslations.sidebar.noConversationsDesc}</p>
       </div>
     `;
       return;
     }
 
-    // Remove duplicate conversations by supplier ID (frontend duplicate prevention)
-    const uniqueConversations = [];
-    const seenSuppliers = new Set();
-    
-    for (const conv of this.conversations) {
-      if (!seenSuppliers.has(conv.supplier.id)) {
-        seenSuppliers.add(conv.supplier.id);
-        uniqueConversations.push(conv);
-      } else {
-        // If duplicate found, keep the one with latest message
-        const existingIndex = uniqueConversations.findIndex(c => c.supplier.id === conv.supplier.id);
-        if (existingIndex !== -1) {
-          const existing = uniqueConversations[existingIndex];
-          if (new Date(conv.lastMessage.timestamp) > new Date(existing.lastMessage.timestamp)) {
-            uniqueConversations[existingIndex] = conv; // Replace with newer one
-          }
-        }
-      }
-    }
+
 
     // Separate current manufacturer and other conversations
     const currentManufacturerId = this.getCurrentManufacturerId();
-    const currentConversation = uniqueConversations.find(conv => conv.supplier.id === currentManufacturerId);
-    const otherConversations = uniqueConversations.filter(conv => conv.supplier.id !== currentManufacturerId);
+    const currentConversation = this.conversations.find(conv => conv.supplier.id === currentManufacturerId);
+    const otherConversations = this.conversations.filter(conv => conv.supplier.id !== currentManufacturerId);
 
-    // Only show current manufacturer at top if it has no messages (new conversation)
-    const shouldShowCurrentAtTop = currentConversation && !currentConversation.hasMessages;
+    // Show current manufacturer at top if manufacturer is selected (regardless of message history)
+    const shouldShowCurrentAtTop = currentConversation && currentManufacturerId;
 
-    console.log('🔍 Current Manufacturer ID:', currentManufacturerId);
-    console.log('🔍 Current Conversation:', currentConversation);
-    console.log('🔍 Other Conversations:', otherConversations);
-    console.log('🔍 Other Conversations Count:', otherConversations.length);
+
 
     let conversationsHTML = '';
 
-    // Show current manufacturer at top only if it has no messages (new conversation)
+    // Show current manufacturer at top if manufacturer is selected
     if (shouldShowCurrentAtTop) {
       conversationsHTML += `
         <div class="conversation-item current-manufacturer ${currentConversation.id === this.currentConversationId ? 'active' : ''}" 
              data-conversation-id="${currentConversation.id}"
              data-conversation-index="0"
-             onclick="this.selectConversation('${currentConversation.id}', '${currentConversation.supplier.id}')">
+             data-supplier-id="${currentConversation.supplier.id}">
           <div class="conversation-content">
             <div class="conversation-avatar">
               ${currentConversation.supplier.companyLogo && currentConversation.supplier.companyLogo.url ? 
@@ -3754,7 +4941,7 @@ class ProfessionalBuyerMessages {
             </div>
             <div class="conversation-details">
               <div class="conversation-header">
-                <h4 class="conversation-name">${currentConversation.supplier.name} <span class="current-badge">Hozir</span></h4>
+                <h4 class="conversation-name">${currentConversation.supplier.name} <span class="current-badge">${window.messageTranslations.conversation.selected}</span></h4>
                 <span class="conversation-time">${this.formatTime(currentConversation.lastMessage.timestamp)}</span>
               </div>
               <div class="conversation-preview">
@@ -3771,15 +4958,15 @@ class ProfessionalBuyerMessages {
       `;
     }
 
-    // Show other conversations (including current manufacturer if it has messages)
-    const conversationsToShow = shouldShowCurrentAtTop ? otherConversations : uniqueConversations;
+    // Show other conversations (already filtered to exclude current manufacturer)
+    const conversationsToShow = otherConversations;
     conversationsToShow.forEach((conv, index) => {
-      const isCurrent = conv.supplier.id === currentManufacturerId;
+      const isCurrent = false; // Current manufacturer is already shown at top if needed
       conversationsHTML += `
         <div class="conversation-item ${isCurrent ? 'current-manufacturer' : ''} ${conv.id === this.currentConversationId ? 'active' : ''}" 
              data-conversation-id="${conv.id}"
              data-conversation-index="${index}"
-             onclick="this.selectConversation('${conv.id}', '${conv.supplier.id}')">
+             data-supplier-id="${conv.supplier.id}">
           <div class="conversation-content">
             <div class="conversation-avatar">
               ${conv.supplier.companyLogo && conv.supplier.companyLogo.url ? 
@@ -3792,7 +4979,7 @@ class ProfessionalBuyerMessages {
             </div>
             <div class="conversation-details">
               <div class="conversation-header">
-                <h4 class="conversation-name">${conv.supplier.name}${isCurrent ? ' <span class="current-badge">Hozir</span>' : ''}</h4>
+                <h4 class="conversation-name">${conv.supplier.name}${isCurrent ? ` <span class="current-badge">${window.messageTranslations.conversation.selected}</span>` : ''}</h4>
                 <span class="conversation-time">${this.formatTime(conv.lastMessage.timestamp)}</span>
               </div>
               <div class="conversation-preview">
@@ -3810,6 +4997,24 @@ class ProfessionalBuyerMessages {
     });
 
     conversationsList.innerHTML = conversationsHTML;
+    
+    // Add click event listeners to conversation items
+    this.addConversationEventListeners();
+  }
+
+  // Add click event listeners to conversation items
+  addConversationEventListeners() {
+    const conversationItems = document.querySelectorAll('.conversation-item');
+    conversationItems.forEach(item => {
+      item.addEventListener('click', (event) => {
+        const conversationId = item.getAttribute('data-conversation-id');
+        const supplierId = item.getAttribute('data-supplier-id');
+        
+        if (conversationId && supplierId) {
+          this.selectConversation(conversationId, supplierId);
+        }
+      });
+    });
   }
 
   // Render empty conversations list (when there's an error or no data)
@@ -3874,12 +5079,22 @@ class ProfessionalBuyerMessages {
       if (data.success) {
         this.messages = data.data.messages;
         this.renderMessages();
+        
+        // Mark messages as read when conversation is loaded
+        if (orderId) {
+          this.markMessagesAsRead(orderId, 'order');
+        }
+        
+        // Auto scroll to bottom after loading messages
+        setTimeout(() => {
+          this.scrollToBottom();
+        }, 50);
       } else {
-        this.showErrorState('messages', data.message || 'Failed to load messages');
+        this.showErrorState('messages', data.message || window.messageTranslations.errors.loadMessagesFailedEn);
       }
     } catch (error) {
       console.error('Error loading messages:', error);
-      this.showErrorState('messages', 'Xabarlarni yuklashda xatolik yuz berdi');
+      this.showErrorState('messages', window.messageTranslations.errors.loadMessagesFailed);
     }
   }
 
@@ -3906,8 +5121,416 @@ class ProfessionalBuyerMessages {
       </div>
     `).join('');
     
-    // Scroll to bottom
+    // Enhanced scroll to bottom with smooth behavior
+    this.scrollToBottom(messagesContainer);
+  }
+  
+  // Smooth scroll to bottom functionality
+  scrollToBottom(container = null, smooth = true) {
+    const messagesContainer = container || document.querySelector('.messages-container');
+    if (!messagesContainer) return;
+    
+    // Use requestAnimationFrame for better performance
+    requestAnimationFrame(() => {
+      if (smooth) {
+        messagesContainer.scrollTo({
+          top: messagesContainer.scrollHeight,
+          behavior: 'smooth'
+        });
+      } else {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    });
+  }
+
+
+
+  // Open image modal (class method)
+  openImageModal(imageUrl, imageTitle) {
+    console.log('🖼️ Opening image modal:', imageUrl, imageTitle);
+    
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalTitle = document.getElementById('modalImageTitle');
+    
+    if (!modal) {
+      console.error('❌ Image modal not found');
+      return;
+    }
+    
+    modalImage.src = imageUrl;
+    modalTitle.textContent = imageTitle || 'Image';
+    modal.style.display = 'flex';
+    
+    // Store current image URL for download
+    window.currentModalImageUrl = imageUrl;
+    window.currentModalImageName = imageTitle || 'image';
+    
+    // Initialize image zoom and drag functionality
+    this.initImageZoomAndDrag(modalImage);
+    
+    console.log('✅ Modal opened successfully');
+  }
+
+  // Initialize image zoom and drag functionality
+  initImageZoomAndDrag(imageElement) {
+    let isZoomed = false;
+    let isDragging = false;
+    let startX, startY, translateX = 0, translateY = 0;
+    let currentScale = 1;
+    let lastTouchDistance = 0;
+    let lastTouchCenter = { x: 0, y: 0 };
+    
+    // Store references for external access
+    this.currentImageElement = imageElement;
+    this.imageState = { isZoomed, isDragging, translateX, translateY, currentScale };
+    
+    // Reset image state
+    imageElement.classList.remove('zoomed');
+    imageElement.style.transform = 'scale(1) translate(0px, 0px)';
+    
+    // Apply smooth transitions
+    imageElement.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    
+    // Click to zoom in/out
+    imageElement.addEventListener('click', (e) => {
+      if (!isDragging && !e.ctrlKey) {
+        if (!isZoomed) {
+          // Zoom in to fit screen
+          this.zoomToFit(imageElement);
+        } else {
+          // Zoom out
+          this.resetImage();
+        }
+      }
+    });
+    
+    // Mouse wheel zoom
+    imageElement.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      this.zoomByFactor(delta, e.offsetX, e.offsetY);
+    });
+    
+    // Mouse events for dragging
+    imageElement.addEventListener('mousedown', (e) => {
+      if (isZoomed) {
+        e.preventDefault();
+        isDragging = true;
+        startX = e.clientX - translateX;
+        startY = e.clientY - translateY;
+        imageElement.style.cursor = 'grabbing';
+        imageElement.style.transition = 'none';
+        this.imageState.isDragging = true;
+        
+        // Add event listeners to document for better drag handling
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+      }
+    });
+    
+    const handleMouseMove = (e) => {
+      if (isDragging && isZoomed) {
+        e.preventDefault();
+        translateX = e.clientX - startX;
+        translateY = e.clientY - startY;
+        
+        // Apply bounds to prevent dragging too far
+        const bounds = this.calculateDragBounds(imageElement, currentScale);
+        translateX = Math.max(bounds.minX, Math.min(bounds.maxX, translateX));
+        translateY = Math.max(bounds.minY, Math.min(bounds.maxY, translateY));
+        
+        imageElement.style.transform = `scale(${currentScale}) translate(${translateX}px, ${translateY}px)`;
+        this.imageState.translateX = translateX;
+        this.imageState.translateY = translateY;
+        
+        // Add dragging class for visual feedback
+        imageElement.classList.add('dragging');
+      }
+    };
+    
+    const handleMouseUp = () => {
+      if (isDragging) {
+        isDragging = false;
+        imageElement.style.cursor = 'grab';
+        imageElement.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        this.imageState.isDragging = false;
+        
+        // Remove dragging class
+        imageElement.classList.remove('dragging');
+        
+        // Remove document event listeners
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      }
+    };
+    
+
+    
+    // Touch events for mobile
+    imageElement.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        // Single touch - start dragging
+        if (isZoomed) {
+          e.preventDefault();
+          isDragging = true;
+          const touch = e.touches[0];
+          startX = touch.clientX - translateX;
+          startY = touch.clientY - translateY;
+          imageElement.style.transition = 'none';
+          this.imageState.isDragging = true;
+        }
+      } else if (e.touches.length === 2) {
+        // Two touches - start pinch zoom
+        e.preventDefault();
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        lastTouchDistance = this.getTouchDistance(touch1, touch2);
+        lastTouchCenter = this.getTouchCenter(touch1, touch2);
+      }
+    });
+    
+    imageElement.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      
+      if (e.touches.length === 1 && isDragging) {
+        // Single touch - continue dragging
+        const touch = e.touches[0];
+        translateX = touch.clientX - startX;
+        translateY = touch.clientY - startY;
+        
+        const bounds = this.calculateDragBounds(imageElement, currentScale);
+        translateX = Math.max(bounds.minX, Math.min(bounds.maxX, translateX));
+        translateY = Math.max(bounds.minY, Math.min(bounds.maxY, translateY));
+        
+        imageElement.style.transform = `scale(${currentScale}) translate(${translateX}px, ${translateY}px)`;
+        this.imageState.translateX = translateX;
+        this.imageState.translateY = translateY;
+        
+        // Add dragging class for visual feedback
+        imageElement.classList.add('dragging');
+      } else if (e.touches.length === 2) {
+        // Two touches - pinch zoom
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = this.getTouchDistance(touch1, touch2);
+        const center = this.getTouchCenter(touch1, touch2);
+        
+        if (lastTouchDistance > 0) {
+          const scaleFactor = distance / lastTouchDistance;
+          const newScale = Math.max(0.3, Math.min(5, currentScale * scaleFactor));
+          
+          if (newScale !== currentScale) {
+            currentScale = newScale;
+            isZoomed = newScale > 1.1;
+            
+            // Calculate new position to zoom towards center
+            const rect = imageElement.getBoundingClientRect();
+            const centerX = center.x - rect.left;
+            const centerY = center.y - rect.top;
+            
+            translateX = centerX - (centerX - translateX) * scaleFactor;
+            translateY = centerY - (centerY - translateY) * scaleFactor;
+            
+            const bounds = this.calculateDragBounds(imageElement, currentScale);
+            translateX = Math.max(bounds.minX, Math.min(bounds.maxX, translateX));
+            translateY = Math.max(bounds.minY, Math.min(bounds.maxY, translateY));
+            
+            imageElement.style.transform = `scale(${currentScale}) translate(${translateX}px, ${translateY}px)`;
+            this.imageState = { isZoomed, isDragging, translateX, translateY, currentScale };
+          }
+        }
+        
+        lastTouchDistance = distance;
+        lastTouchCenter = center;
+      }
+    });
+    
+    imageElement.addEventListener('touchend', (e) => {
+      if (e.touches.length === 0) {
+        isDragging = false;
+        lastTouchDistance = 0;
+        imageElement.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        this.imageState.isDragging = false;
+        
+        // Remove dragging class
+        imageElement.classList.remove('dragging');
+      }
+    });
+    
+    // Double click to reset
+    imageElement.addEventListener('dblclick', () => {
+      this.resetImage();
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (this.currentImageElement === imageElement) {
+        switch(e.key) {
+          case 'Escape':
+            this.resetImage();
+            break;
+          case '+':
+          case '=':
+            e.preventDefault();
+            this.zoomByFactor(1.2);
+            break;
+          case '-':
+            e.preventDefault();
+            this.zoomByFactor(0.8);
+            break;
+          case '0':
+            e.preventDefault();
+            this.resetImage();
+            break;
+        }
+      }
+    });
+  }
+
+  // Helper methods for zoom and drag
+  getTouchDistance(touch1, touch2) {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  getTouchCenter(touch1, touch2) {
+    return {
+      x: (touch1.clientX + touch2.clientX) / 2,
+      y: (touch1.clientY + touch2.clientY) / 2
+    };
+  }
+
+  calculateDragBounds(imageElement, scale) {
+    const rect = imageElement.getBoundingClientRect();
+    const modalBody = document.querySelector('.telegram-modal-body');
+    
+    if (!modalBody) {
+      return { minX: -1000, maxX: 1000, minY: -1000, maxY: 1000 };
+    }
+    
+    const modalRect = modalBody.getBoundingClientRect();
+    
+    // Calculate scaled dimensions
+    const scaledWidth = rect.width * scale;
+    const scaledHeight = rect.height * scale;
+    
+    // Calculate maximum allowed translation
+    const maxTranslateX = Math.max(0, (scaledWidth - modalRect.width) / 2);
+    const maxTranslateY = Math.max(0, (scaledHeight - modalRect.height) / 2);
+    
+    // Add some padding to prevent image from going too far
+    const padding = 20;
+    
+    return {
+      minX: -maxTranslateX - padding,
+      maxX: maxTranslateX + padding,
+      minY: -maxTranslateY - padding,
+      maxY: maxTranslateY + padding
+    };
+  }
+
+  zoomToFit(imageElement) {
+    const modalBody = document.querySelector('.telegram-modal-body');
+    const modalRect = modalBody.getBoundingClientRect();
+    const imageRect = imageElement.getBoundingClientRect();
+    
+    const scaleX = modalRect.width / imageRect.width;
+    const scaleY = modalRect.height / imageRect.height;
+    const scale = Math.min(scaleX, scaleY, 2); // Max 2x zoom for fit
+    
+    this.applyZoom(scale);
+  }
+
+  zoomByFactor(factor, centerX = null, centerY = null) {
+    if (!this.currentImageElement) return;
+    
+    const { currentScale, translateX, translateY } = this.imageState;
+    let newScale = Math.max(0.3, Math.min(5, currentScale * factor));
+    
+    // If zooming towards a specific point
+    if (centerX !== null && centerY !== null) {
+      const rect = this.currentImageElement.getBoundingClientRect();
+      const imageCenterX = rect.width / 2;
+      const imageCenterY = rect.height / 2;
+      
+      const newTranslateX = centerX - (centerX - translateX) * factor;
+      const newTranslateY = centerY - (centerY - translateY) * factor;
+      
+      this.imageState.translateX = newTranslateX;
+      this.imageState.translateY = newTranslateY;
+    }
+    
+    this.applyZoom(newScale);
+  }
+
+  applyZoom(scale) {
+    if (!this.currentImageElement) return;
+    
+    this.imageState.currentScale = scale;
+    this.imageState.isZoomed = scale > 1.1;
+    
+    if (scale > 1.1) {
+      this.currentImageElement.classList.add('zoomed');
+    } else {
+      this.currentImageElement.classList.remove('zoomed');
+    }
+    
+    // Apply bounds to prevent image from going too far
+    const bounds = this.calculateDragBounds(this.currentImageElement, scale);
+    this.imageState.translateX = Math.max(bounds.minX, Math.min(bounds.maxX, this.imageState.translateX));
+    this.imageState.translateY = Math.max(bounds.minY, Math.min(bounds.maxY, this.imageState.translateY));
+    
+    this.currentImageElement.style.transform = `scale(${scale}) translate(${this.imageState.translateX}px, ${this.imageState.translateY}px)`;
+    
+    // Update zoom indicator
+    this.updateZoomIndicator(scale);
+  }
+
+  updateZoomIndicator(scale) {
+    const indicator = document.getElementById('zoomIndicator');
+    const percentage = document.getElementById('zoomPercentage');
+    
+    if (indicator && percentage) {
+      const zoomPercent = Math.round(scale * 100);
+      percentage.textContent = `${zoomPercent}%`;
+      
+      // Show indicator when zoomed
+      if (scale > 1.1) {
+        indicator.classList.add('visible');
+        // Hide after 2 seconds
+        setTimeout(() => {
+          indicator.classList.remove('visible');
+        }, 2000);
+      } else {
+        indicator.classList.remove('visible');
+      }
+    }
+  }
+
+  // Zoom image method
+  zoomImage(direction) {
+    if (!this.currentImageElement) return;
+    
+    const factor = direction === 'in' ? 1.3 : 0.8;
+    this.zoomByFactor(factor);
+  }
+
+  // Reset image method
+  resetImage() {
+    if (!this.currentImageElement) return;
+    
+    this.currentImageElement.classList.remove('zoomed');
+    this.currentImageElement.classList.remove('dragging');
+    this.currentImageElement.style.transform = 'scale(1) translate(0px, 0px)';
+    this.imageState = {
+      isZoomed: false,
+      isDragging: false,
+      translateX: 0,
+      translateY: 0,
+      currentScale: 1
+    };
   }
 
   // Render single message with Telegram style
@@ -3920,7 +5543,7 @@ class ProfessionalBuyerMessages {
         ${!isOwn ? `
           <div class="telegram-message-avatar">
             <img src="${this.manufacturerDetails?.companyLogo?.url || '/assets/images/avatars/default-company.png'}" 
-                 alt="${this.manufacturerDetails?.companyName || 'Manufacturer'}"
+                 alt="${this.manufacturerDetails?.companyName || window.messageTranslations.fileTypes.manufacturer}"
                  onerror="this.src='/assets/images/avatars/default-company.png'">
         </div>
         ` : ''}
@@ -3952,10 +5575,10 @@ class ProfessionalBuyerMessages {
               ${isOwn ? `
                 <div class="telegram-message-status">
                   ${message.status === 'read' ? 
-                    '<i class="fas fa-check-double telegram-status-read" title="O\'qildi"></i>' : 
+                    `<i class="fas fa-check-double telegram-status-read" title="${window.messageTranslations.status.read}"></i>` : 
                     message.status === 'delivered' ? 
-                    '<i class="fas fa-check-double telegram-status-delivered" title="Yetkazildi"></i>' : 
-                    '<i class="fas fa-check telegram-status-sent" title="Yuborildi"></i>'
+                    `<i class="fas fa-check-double telegram-status-delivered" title="${window.messageTranslations.status.delivered}"></i>` : 
+                    `<i class="fas fa-check telegram-status-sent" title="${window.messageTranslations.status.sent}"></i>`
                   }
                 </div>
               ` : ''}
@@ -3963,13 +5586,7 @@ class ProfessionalBuyerMessages {
           </div>
         </div>
         
-        ${isOwn ? `
-          <div class="telegram-message-avatar">
-            <img src="<%= user.companyLogo?.url || '/assets/images/avatars/default-company.png' %>" 
-                 alt="<%= user.companyName || 'Buyer' %>"
-                 onerror="this.src='/assets/images/avatars/default-company.png'">
-          </div>
-        ` : ''}
+        ${/* Buyer messages (own) don't show avatar in professional chat */ ''}
       </div>
     `;
   }
@@ -3982,10 +5599,11 @@ class ProfessionalBuyerMessages {
     
     if (isImage) {
       return `
-        <div class="telegram-attachment-image">
+        <div class="telegram-attachment-image" onclick="if(window.professionalBuyerMessages) { window.professionalBuyerMessages.openImageModal('${attachment.url}', '${attachment.originalName || 'Image'}'); } else { console.error('❌ professionalBuyerMessages not found'); }">
           <img src="${attachment.url}" 
-               alt="${attachment.originalName || 'Image'}" 
-               onclick="openImageModal('${attachment.url}', '${attachment.originalName || 'Image'}')"
+                               alt="${attachment.originalName || window.messageTranslations.fileTypes.unknown}" 
+               data-image-url="${attachment.url}"
+                               data-image-title="${attachment.originalName || window.messageTranslations.fileTypes.unknown}"
                onerror="this.src='/assets/images/no-image.png'; this.onerror=null;">
           <div class="telegram-image-overlay">
             <i class="fas fa-search-plus"></i>
@@ -3999,11 +5617,11 @@ class ProfessionalBuyerMessages {
             <i class="fas fa-file-alt"></i>
           </div>
           <div class="telegram-file-details">
-            <h6>${attachment.originalName || 'File'}</h6>
+            <h6>${attachment.originalName || window.messageTranslations.fileTypes.file}</h6>
             <p>${(attachment.size / 1024).toFixed(1)} KB</p>
           </div>
           <div class="telegram-file-actions">
-            <a href="${attachment.url}" download="${attachment.originalName}" class="telegram-file-download" title="Yuklab olish">
+            <a href="${attachment.url}" download="${attachment.originalName}" class="telegram-file-download" title="${window.messageTranslations.attachments.download}">
               <i class="fas fa-download"></i>
             </a>
           </div>
@@ -4029,9 +5647,10 @@ class ProfessionalBuyerMessages {
     const hasAttachments = this.attachments.length > 0;
     
     // Allow sending if there's text OR attachments
-    if ((!messageContent && !hasAttachments) || !this.currentOrderId) {
+    const conversationId = this.currentOrderId || this.currentInquiryId;
+    if ((!messageContent && !hasAttachments) || !conversationId) {
       if (!messageContent && !hasAttachments) {
-        this.showErrorMessage('Xabar matni yoki fayl tanlang');
+        this.showErrorMessage(window.messageTranslations.errors.sendMessageContent);
       }
       return;
     }
@@ -4048,19 +5667,28 @@ class ProfessionalBuyerMessages {
       
       console.log('📤 Sending message:', messageContent);
       console.log('📎 Attachments:', this.attachments.length);
-      console.log('🆔 Current Order ID:', this.currentOrderId);
+      console.log('🆔 Current Conversation ID:', conversationId);
       console.log('🏭 Current Manufacturer ID:', this.currentManufacturerId);
+      console.log('📋 Conversation Type:', this.conversationType);
       
-      // Validate currentOrderId
-      if (!this.currentOrderId) {
-        console.error('❌ No current order ID found');
-        this.showErrorMessage('Buyurtma ma\'lumotlari topilmadi. Iltimos, sahifani yangilang');
+      // Validate conversation ID
+      if (!conversationId) {
+        console.error('❌ No current conversation ID found');
+        this.showErrorMessage('Suhbat ma\'lumotlari topilmadi. Iltimos, sahifani yangilang');
         return;
       }
       
       // Create FormData for file upload
       const formData = new FormData();
-      formData.append('orderId', this.currentOrderId);
+      
+      // Add conversation-specific fields
+      if (this.conversationType === 'order') {
+        formData.append('orderId', conversationId);
+      } else if (this.conversationType === 'inquiry') {
+        formData.append('inquiryId', conversationId);
+      }
+      
+      formData.append('context', this.conversationType || 'order');
       
       // Only append message if user typed something
       if (messageContent && messageContent.trim()) {
@@ -4102,28 +5730,38 @@ class ProfessionalBuyerMessages {
         this.updateSendButton();
         
         // Reload messages
-        await this.loadMessages(this.currentOrderId);
+        if (this.conversationType === 'order' && this.currentOrderId) {
+          await this.loadMessages(this.currentOrderId);
+        } else {
+          // For inquiries, reload the entire conversation
+          await this.loadManufacturerConversation(this.currentManufacturerId);
+        }
         
         // Update conversations list
         await this.loadConversations();
         
+        // Scroll to bottom to show new message
+        setTimeout(() => {
+          this.scrollToBottom();
+        }, 100);
+        
         // Show appropriate success message
         if (messageContent && this.attachments.length > 0) {
-          this.showSuccessMessage('Xabar va fayllar muvaffaqiyatli yuborildi');
+          this.showSuccessMessage(window.messageTranslations.errors.sendSuccessWithFiles);
         } else if (this.attachments.length > 0) {
-          this.showSuccessMessage('Fayllar muvaffaqiyatli yuborildi');
+          this.showSuccessMessage(window.messageTranslations.errors.sendSuccessFilesOnly);
         } else {
-        this.showSuccessMessage('Xabar muvaffaqiyatli yuborildi');
+        this.showSuccessMessage(window.messageTranslations.errors.sendSuccess);
         }
       } else {
         console.log('❌ Message send failed:', data.message);
         this.hideTypingIndicator();
-        this.showErrorMessage(data.message || 'Xabar yuborishda xatolik');
+        this.showErrorMessage(data.message || window.messageTranslations.errors.sendFailed);
       }
     } catch (error) {
       console.error('❌ Error sending message:', error);
       this.hideTypingIndicator();
-      this.showErrorMessage('Xabar yuborishda xatolik yuz berdi');
+      this.showErrorMessage(window.messageTranslations.errors.sendFailedGeneral);
     } finally {
       // Reset sending state
       this.isSending = false;
@@ -4145,22 +5783,77 @@ class ProfessionalBuyerMessages {
     }
   }
 
-  // Setup search input with debounced search
+  // Setup search input with professional search functionality
   setupSearchInput() {
     const searchInput = document.getElementById('conversationSearchInput');
     
     if (searchInput) {
+             // Clear search button
+       const clearButton = document.createElement('button');
+       clearButton.className = 'search-clear-btn';
+       clearButton.innerHTML = '×';
+       clearButton.style.display = 'none';
+       clearButton.title = window.messageTranslations.errors.clearSearchTitle;
+      
+      // Insert clear button after search input
+      searchInput.parentNode.insertBefore(clearButton, searchInput.nextSibling);
+      
+      // Input event with enhanced search
       searchInput.addEventListener('input', (e) => {
-        this.searchQuery = e.target.value.trim();
+        const query = e.target.value.trim();
+        this.searchQuery = query;
+        
+        // Show/hide clear button
+        clearButton.style.display = query ? 'block' : 'none';
+        
+        // Update search placeholder
+        if (query) {
+          searchInput.classList.add('searching');
+        } else {
+          searchInput.classList.remove('searching');
+        }
+        
+        // Debounced search
         this.debouncedSearch();
       });
       
+      // Clear button click
+      clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        this.searchQuery = '';
+        clearButton.style.display = 'none';
+        searchInput.classList.remove('searching');
+        searchInput.focus();
+        this.performSearch(); // Reload all conversations
+      });
+      
+      // Enter key search
       searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
           this.performSearch();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          searchInput.value = '';
+          this.searchQuery = '';
+          clearButton.style.display = 'none';
+          searchInput.classList.remove('searching');
+          this.performSearch(); // Reload all conversations
         }
       });
+      
+      // Focus and blur events
+      searchInput.addEventListener('focus', () => {
+        searchInput.parentNode.classList.add('focused');
+      });
+      
+      searchInput.addEventListener('blur', () => {
+        searchInput.parentNode.classList.remove('focused');
+      });
+      
+      // Initial state
+      this.searchQuery = '';
+      clearButton.style.display = 'none';
     }
   }
 
@@ -4226,20 +5919,20 @@ class ProfessionalBuyerMessages {
       // Check image count limit
       const currentImageCount = this.attachments.filter(att => att.type.startsWith('image/')).length;
       if (currentImageCount >= this.maxImageCount) {
-        this.showErrorMessage(`Rasm soni juda ko'p! Maksimal ${this.maxImageCount} ta rasm tanlash mumkin`);
+        this.showErrorMessage(window.messageTranslations.attachments.maxImagesReached.replace('{max}', this.maxImageCount));
         return false;
       }
     } else {
       const isValidType = Object.values(this.allowedFileTypes).flat().includes(file.type);
       if (!isValidType) {
-        this.showErrorMessage(`Fayl formati noto'g'ri: ${file.type}`);
+        this.showErrorMessage(window.messageTranslations.attachments.invalidFileType.replace('{type}', file.type));
         return false;
       }
       
       // Check file count limit
       const currentFileCount = this.attachments.filter(att => !att.type.startsWith('image/')).length;
       if (currentFileCount >= this.maxFileCount) {
-        this.showErrorMessage(`Fayl soni juda ko'p! Maksimal ${this.maxFileCount} ta fayl tanlash mumkin`);
+        this.showErrorMessage(window.messageTranslations.attachments.maxFilesReached.replace('{max}', this.maxFileCount));
         return false;
       }
     }
@@ -4374,16 +6067,16 @@ class ProfessionalBuyerMessages {
       if (imageCount > 0 || fileCount > 0) {
         countText = ` (${imageCount + fileCount})`;
       }
-      this.attachmentBtn.title = `Biriktirishlar${countText}`;
+      this.attachmentBtn.title = `${window.messageTranslations.input.attachments}${countText}`;
     }
     
     // Show limit warnings if needed
     if (imageCount >= this.maxImageCount) {
-      this.showWarningMessage(`Rasm limitiga yetdingiz! Maksimal ${this.maxImageCount} ta rasm`);
+      this.showWarningMessage(window.messageTranslations.attachments.imageLimitWarning.replace('{max}', this.maxImageCount));
     }
     
     if (fileCount >= this.maxFileCount) {
-      this.showWarningMessage(`Fayl limitiga yetdingiz! Maksimal ${this.maxFileCount} ta fayl`);
+      this.showWarningMessage(window.messageTranslations.attachments.fileLimitWarning.replace('{max}', this.maxFileCount));
     }
   }
 
@@ -4405,6 +6098,71 @@ class ProfessionalBuyerMessages {
       this.renderAttachments();
       this.updateSendButton();
       console.log('🗑️ Attachment removed:', attachmentId);
+    }
+  }
+
+  // Mark messages as read for specific conversation
+  async markMessagesAsRead(conversationId, conversationType = 'order') {
+    try {
+      let endpoint;
+      if (conversationType === 'inquiry') {
+        endpoint = `/buyer/api/inquiries/${conversationId}/mark-read`;
+      } else {
+        endpoint = `/buyer/api/orders/${conversationId}/mark-read`;
+      }
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Update conversations list to reflect read status
+          setTimeout(() => {
+            this.loadConversations();
+          }, 500);
+          
+          // Update navigation badge count
+          this.updateNavigationBadge();
+        }
+      }
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+      // Don't show error to user, this is a background operation
+    }
+  }
+
+  // Update navigation unread messages badge
+  async updateNavigationBadge() {
+    try {
+      // Get fresh unread count from server
+      const response = await fetch('/buyer/api/unread-messages-count');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          const unreadCount = data.count || 0;
+          
+          // Update all navigation badge elements
+          const badgeElements = document.querySelectorAll('.dropdown-badge.badge-danger');
+          badgeElements.forEach(badge => {
+            const parentLink = badge.closest('a[href="/buyer/messages"]');
+            if (parentLink) {
+              if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.style.display = 'inline-block';
+              } else {
+                badge.style.display = 'none';
+              }
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error updating navigation badge:', error);
     }
   }
 
@@ -4485,9 +6243,9 @@ class ProfessionalBuyerMessages {
               <div class="quick-action-icon tertiary">
                 <i class="fas fa-question-circle"></i>
               </div>
-              <h5 class="quick-action-title tertiary">So'rov yuborish</h5>
+                             <h5 class="quick-action-title tertiary">${window.messageTranslations.quickActions.inquiry.title}</h5>
             </div>
-            <p class="quick-action-description tertiary">Mahsulot haqida savol va so'rovlar yuborish</p>
+             <p class="quick-action-description tertiary">${window.messageTranslations.quickActions.inquiry.description}</p>
           </button>
           
           <button onclick="startConversationWithTemplate('order_status')" class="quick-action-btn tertiary">
@@ -4495,9 +6253,9 @@ class ProfessionalBuyerMessages {
               <div class="quick-action-icon tertiary">
                 <i class="fas fa-truck"></i>
               </div>
-              <h5 class="quick-action-title tertiary">Buyurtma holati</h5>
+                             <h5 class="quick-action-title tertiary">${window.messageTranslations.quickActions.orderStatus.title}</h5>
             </div>
-            <p class="quick-action-description tertiary">Buyurtma holati haqida ma'lumot so'rash</p>
+             <p class="quick-action-description tertiary">${window.messageTranslations.quickActions.orderStatus.description}</p>
           </button>
         </div>
       </div>
@@ -4514,7 +6272,7 @@ class ProfessionalBuyerMessages {
       typingIndicator.innerHTML = `
         <div class="telegram-message-avatar">
           <img src="${this.manufacturerDetails?.companyLogo?.url || '/assets/images/avatars/default-company.png'}" 
-               alt="${this.manufacturerDetails?.companyName || 'Manufacturer'}"
+                               alt="${this.manufacturerDetails?.companyName || window.messageTranslations.fileTypes.manufacturer}"
                onerror="this.src='/assets/images/avatars/default-company.png'">
         </div>
         <div class="telegram-message-content">
@@ -4549,21 +6307,21 @@ class ProfessionalBuyerMessages {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'hozir';
-    if (diffMins < 60) return `${diffMins} daqiqa oldin`;
-    if (diffHours < 24) return `${diffHours} soat oldin`;
-    if (diffDays < 7) return `${diffDays} kun oldin`;
+    if (diffMins < 1) return window.messageTranslations.time.now;
+    if (diffMins < 60) return `${diffMins} ${window.messageTranslations.time.minutesAgo}`;
+    if (diffHours < 24) return `${diffHours} ${window.messageTranslations.time.hoursAgo}`;
+    if (diffDays < 7) return `${diffDays} ${window.messageTranslations.time.daysAgo}`;
     return date.toLocaleDateString('uz-UZ');
   }
 
   formatStatus(status) {
     const statusMap = {
-      'pending': 'Kutilmoqda',
-      'confirmed': 'Tasdiqlangan',
-      'in_production': 'Ishlab chiqarilmoqda',
-      'shipped': 'Yuborilgan',
-      'delivered': 'Yetkazilgan',
-      'cancelled': 'Bekor qilingan'
+      'pending': window.messageTranslations.status.pending,
+      'confirmed': window.messageTranslations.status.confirmed,
+      'in_production': window.messageTranslations.status.in_production,
+      'shipped': window.messageTranslations.status.shipped,
+      'delivered': window.messageTranslations.status.delivered,
+      'cancelled': window.messageTranslations.status.cancelled
     };
     return statusMap[status] || status;
   }
@@ -4599,19 +6357,19 @@ class ProfessionalBuyerMessages {
         if (hasAttachments && charLength === 0) {
           // Only attachments, no text
           this.sendButton.querySelector('i').className = 'fas fa-paper-plane';
-          this.sendButton.title = 'Fayllarni yuborish';
+          this.sendButton.title = window.messageTranslations.input.sendButtonWithFiles;
         } else if (charLength > 0 && hasAttachments) {
           // Both text and attachments
           this.sendButton.querySelector('i').className = 'fas fa-paper-plane';
-          this.sendButton.title = 'Xabar va fayllarni yuborish';
+          this.sendButton.title = window.messageTranslations.input.sendButtonWithFiles;
         } else if (charLength > 0) {
           // Only text
           this.sendButton.querySelector('i').className = 'fas fa-paper-plane';
-          this.sendButton.title = 'Xabarni yuborish';
+          this.sendButton.title = window.messageTranslations.input.sendButton;
         } else {
           // Nothing to send
           this.sendButton.querySelector('i').className = 'fas fa-paper-plane';
-          this.sendButton.title = 'Xabar yoki fayl tanlang';
+          this.sendButton.title = window.messageTranslations.input.sendButtonPlaceholder;
         }
       }
     }
@@ -4633,7 +6391,7 @@ class ProfessionalBuyerMessages {
   // Missing image and file render methods
   renderImageMessage(message) {
     return `<div class="message-image">
-      <img src="${message.attachments[0]?.url || ''}" alt="Shared image" onclick="openImageModal(this.src)">
+      <img src="${message.attachments[0]?.url || ''}" alt="${window.messageTranslations.fileTypes.sharedImage}" onclick="openImageModal(this.src)">
     </div>`;
   }
 
@@ -4642,7 +6400,7 @@ class ProfessionalBuyerMessages {
     return `<div class="message-file">
       <div class="file-icon"><i class="fas fa-file"></i></div>
       <div class="file-info">
-        <div class="file-name">${file?.originalName || 'File'}</div>
+        <div class="file-name">${file?.originalName || window.messageTranslations.fileTypes.unknown}</div>
         <div class="file-size">${this.formatFileSize(file?.size || 0)}</div>
       </div>
       <a href="${file?.url || '#'}" download class="file-download">
@@ -4652,9 +6410,14 @@ class ProfessionalBuyerMessages {
   }
 
   formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return `0 ${window.messageTranslations.attachments.bytes}`;
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = [
+      window.messageTranslations.attachments.bytes,
+      window.messageTranslations.attachments.kilobytes,
+      window.messageTranslations.attachments.megabytes,
+      window.messageTranslations.attachments.gigabytes
+    ];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
@@ -4697,7 +6460,6 @@ class ProfessionalBuyerMessages {
       
       // Redirect to manufacturer conversation
       const redirectUrl = `/buyer/messages?manufacturer=${supplierId}`;
-      console.log('🔄 Redirecting to:', redirectUrl);
       window.location.href = redirectUrl;
       
     } catch (error) {
@@ -4717,7 +6479,7 @@ class ProfessionalBuyerMessages {
           <div class="loading-spinner">
             <i class="fas fa-spinner fa-spin"></i>
           </div>
-          <p>Yuklanmoqda...</p>
+          <p>${window.messageTranslations.loading.loading}</p>
         </div>
       `;
     }
@@ -4734,11 +6496,11 @@ class ProfessionalBuyerMessages {
           <div class="error-icon">
             <i class="fas fa-exclamation-triangle"></i>
           </div>
-          <h4>Xatolik</h4>
+          <h4>${window.messageTranslations.errors.title}</h4>
           <p>${message}</p>
           <button onclick="window.location.reload()" class="retry-btn">
             <i class="fas fa-redo"></i>
-            Qayta urinish
+            ${window.messageTranslations.errors.retry}
           </button>
         </div>
       `;
@@ -4950,11 +6712,11 @@ function handleProfessionalInputChange() {
 
 // Action functions
 function requestQuoteFromManufacturer() {
-  console.log('Requesting quote from manufacturer');
+  // console.log('Requesting quote from manufacturer'); // Debug mode only
 }
 
 function viewManufacturerProfile() {
-  console.log('Viewing manufacturer profile');
+  // console.log('Viewing manufacturer profile'); // Debug mode only
 }
 
 function sendMessage() {
@@ -4965,51 +6727,43 @@ function sendMessage() {
 }
 
 function requestNewQuote() {
-  console.log('Requesting new quote');
+  // console.log('Requesting new quote'); // Debug mode only
 }
 
 function requestSample() {
-  console.log('Requesting sample');
+  // console.log('Requesting sample'); // Debug mode only
 }
 
 function downloadCatalog() {
-  console.log('Downloading catalog');
+  // console.log('Downloading catalog'); // Debug mode only
 }
 
 function callManufacturer() {
-  console.log('Calling manufacturer');
+  // console.log('Calling manufacturer'); // Debug mode only
 }
 
 function emailManufacturer() {
-  console.log('Emailing manufacturer');
+  // console.log('Emailing manufacturer'); // Debug mode only
 }
 
 function viewQuoteDetails() {
-  console.log('Viewing quote details');
+  // console.log('Viewing quote details'); // Debug mode only
 }
 
 function viewProfile() {
-  console.log('Viewing manufacturer profile');
+  // console.log('Viewing manufacturer profile'); // Debug mode only
 }
 
-// Image Modal Functions
-function openImageModal(imageUrl, imageTitle) {
-  const modal = document.getElementById('imageModal');
-  const modalImage = document.getElementById('modalImage');
-  const modalTitle = document.getElementById('modalImageTitle');
-  
-  modalImage.src = imageUrl;
-  modalTitle.textContent = imageTitle || 'Image';
-  modal.style.display = 'flex';
-  
-  // Store current image URL for download
-  window.currentModalImageUrl = imageUrl;
-  window.currentModalImageName = imageTitle || 'image';
-}
+// Image Modal Functions - Global functions for modal controls
 
 function closeImageModal() {
   const modal = document.getElementById('imageModal');
   modal.style.display = 'none';
+  
+  // Reset image state when closing modal
+  if (window.professionalBuyerMessages && window.professionalBuyerMessages.currentImageElement) {
+    window.professionalBuyerMessages.resetImage();
+  }
   
   // Clear stored data
   window.currentModalImageUrl = null;
@@ -5083,18 +6837,35 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="imageModal" class="telegram-image-modal">
   <div class="telegram-modal-content">
     <div class="telegram-modal-header">
-      <h3 id="modalImageTitle">Image</h3>
+      <h3 id="modalImageTitle"><%= t('messages.imageModal.title') %></h3>
+      <div class="zoom-indicator" id="zoomIndicator">
+        <span id="zoomPercentage">100%</span>
+      </div>
       <button class="telegram-modal-close" onclick="closeImageModal()">
         <i class="fas fa-times"></i>
                 </button>
               </div>
     <div class="telegram-modal-body">
-      <img id="modalImage" src="" alt="Modal Image">
+      <img id="modalImage" src="" alt="<%= t('messages.fileTypes.modalImageAlt') %>">
+      <div class="image-controls">
+        <button class="control-btn fit-screen" onclick="window.professionalBuyerMessages.zoomToFit(window.professionalBuyerMessages.currentImageElement)" title="<%= t('messages.imageModal.fitScreen') %>">
+          <i class="fas fa-expand-arrows-alt"></i>
+        </button>
+        <button class="control-btn zoom-in" onclick="window.professionalBuyerMessages.zoomImage('in')" title="<%= t('messages.imageModal.zoomIn') %>">
+          <i class="fas fa-search-plus"></i>
+        </button>
+        <button class="control-btn zoom-out" onclick="window.professionalBuyerMessages.zoomImage('out')" title="<%= t('messages.imageModal.zoomOut') %>">
+          <i class="fas fa-search-minus"></i>
+        </button>
+        <button class="control-btn reset" onclick="window.professionalBuyerMessages.resetImage()" title="<%= t('messages.imageModal.reset') %>">
+          <i class="fas fa-undo"></i>
+        </button>
+      </div>
             </div>
     <div class="telegram-modal-footer">
       <button class="telegram-modal-download" onclick="downloadModalImage()">
         <i class="fas fa-download"></i>
-        Yuklab olish
+        <%= t('messages.imageModal.download') %>
                 </button>
         </div>
         </div>

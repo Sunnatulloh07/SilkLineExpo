@@ -398,7 +398,7 @@ class SupplierProfileService {
      * @private
      */
     async _getSupplierProducts(supplierId, options = {}) {
-        const { limit = 20, includeInactive = false } = options;
+        const { limit = 20, includeInactive = false, prioritizeTopProducts = true } = options;
 
         const matchConditions = {
             manufacturer: new mongoose.Types.ObjectId(supplierId),
@@ -409,14 +409,58 @@ class SupplierProfileService {
             matchConditions.status = 'active';
         }
 
-        const [productsData, categoriesData] = await Promise.all([
-            // Get products with pagination
-            Product.find(matchConditions)
+        // First, try to get top products (featured, high-rated, popular, well-reviewed)
+        let topProductsData = [];
+        let fallbackProductsData = [];
+
+        if (prioritizeTopProducts) {
+            // Get top products first with enhanced criteria
+            topProductsData = await Product.find({
+                ...matchConditions,
+                        $or: [
+                            { isFeatured: true },
+                            { averageRating: { $gte: 4.0 } },
+                            { 'analytics.views': { $gte: 100 } },
+                    { totalReviews: { $gte: 5 } }
+                ]
+            })
                 .populate('category', 'name slug description')
                 .select('name shortDescription images pricing inventory averageRating totalReviews isFeatured createdAt analytics')
-                .sort({ isFeatured: -1, averageRating: -1, 'analytics.views': -1 })
+                .sort({ 
+                    isFeatured: -1, 
+                    averageRating: -1,
+                    'analytics.views': -1, 
+                    totalReviews: -1 
+                })
+                .limit(10) // Limit to top 10 products
+                .lean();
+
+            // Smart selection logic: top 10 products or max 20 if less than 5 top products
+            if (topProductsData.length < 5) {
+                // Not enough top products - get max 20 latest products
+                fallbackProductsData = await Product.find(matchConditions)
+                    .populate('category', 'name slug description')
+                    .select('name shortDescription images pricing inventory averageRating totalReviews isFeatured createdAt analytics')
+                    .sort({ createdAt: -1, averageRating: -1 })
+                    .limit(20)
+                    .lean();
+                
+                // Use fallback products instead of top products
+                topProductsData = [];
+            }
+        }
+
+        // Final products selection
+        const productsData = prioritizeTopProducts ? 
+            (topProductsData.length >= 5 ? topProductsData : fallbackProductsData) :
+            await Product.find(matchConditions)
+                .populate('category', 'name slug description')
+                .select('name shortDescription images pricing inventory averageRating totalReviews isFeatured createdAt analytics')
+                .sort({ createdAt: -1, averageRating: -1 })
                 .limit(limit)
-                .lean(),
+                .lean();
+
+        const [categoriesData] = await Promise.all([
 
             // Get product categories with counts
             Product.aggregate([
@@ -454,24 +498,288 @@ class SupplierProfileService {
             ])
         ]);
 
-        // Calculate product statistics
+        // Calculate enhanced product statistics
         const statistics = {
             totalProducts: productsData.length,
             totalCategories: categoriesData.length,
             featuredProducts: productsData.filter(p => p.isFeatured).length,
+            topProducts: topProductsData.length,
+            latestProducts: fallbackProductsData.length,
             averageRating: productsData.length > 0 
-                ? productsData.reduce((sum, p) => sum + (p.averageRating || 0), 0) / productsData.length 
+                ? Math.round((productsData.reduce((sum, p) => sum + (p.averageRating || 0), 0) / productsData.length) * 100) / 100
                 : 0,
             totalReviews: productsData.reduce((sum, p) => sum + (p.totalReviews || 0), 0),
-            totalViews: productsData.reduce((sum, p) => sum + (p.analytics?.views || 0), 0)
+            totalViews: productsData.reduce((sum, p) => sum + (p.analytics?.views || 0), 0),
+            productQualityScore: this._calculateProductQualityScore(productsData),
+            productSelectionType: prioritizeTopProducts ? 
+                (topProductsData.length > 0 ? 'top_products' : 'latest_products') : 
+                'latest_products'
+        };
+
+        // Enhanced product categorization
+        const enhancedProducts = {
+            all: productsData,
+            featured: productsData.filter(p => p.isFeatured),
+            topRated: productsData.filter(p => p.averageRating >= 4.0),
+            popular: productsData.filter(p => (p.analytics?.views || 0) >= 100),
+            latest: prioritizeTopProducts ? fallbackProductsData : productsData.slice(0, 6)
         };
 
         return {
             products: productsData,
             categories: categoriesData,
             statistics,
-            featured: productsData.filter(p => p.isFeatured).slice(0, 6)
+            featured: enhancedProducts.featured.slice(0, 6),
+            topRated: enhancedProducts.topRated.slice(0, 6),
+            latest: enhancedProducts.latest.slice(0, 6),
+            productGroups: enhancedProducts
         };
+    }
+
+    /**
+     * Calculate product quality score based on various factors
+     * @private
+     */
+    _calculateProductQualityScore(products) {
+        if (!products || products.length === 0) return 0;
+
+        let totalScore = 0;
+        let scoredProducts = 0;
+
+        products.forEach(product => {
+            let productScore = 0;
+            let factors = 0;
+
+            // Rating factor (40% weight)
+            if (product.averageRating > 0) {
+                productScore += (product.averageRating / 5) * 40;
+                factors++;
+            }
+
+            // Reviews factor (20% weight)
+            if (product.totalReviews > 0) {
+                const reviewScore = Math.min(product.totalReviews / 10, 1); // Max score at 10+ reviews
+                productScore += reviewScore * 20;
+                factors++;
+            }
+
+            // Views factor (20% weight) 
+            if (product.analytics?.views > 0) {
+                const viewScore = Math.min(product.analytics.views / 500, 1); // Max score at 500+ views
+                productScore += viewScore * 20;
+                factors++;
+            }
+
+            // Featured factor (10% weight)
+            if (product.isFeatured) {
+                productScore += 10;
+                factors++;
+            }
+
+            // Inventory factor (10% weight)
+            if (product.inventory?.quantity > 0) {
+                productScore += 10;
+                factors++;
+            }
+
+            if (factors > 0) {
+                totalScore += productScore;
+                scoredProducts++;
+            }
+        });
+
+        return scoredProducts > 0 ? Math.round(totalScore / scoredProducts) : 0;
+    }
+
+    /**
+     * Get supplier product showcase with enhanced filtering and sorting
+     * @param {string} supplierId - Supplier ID
+     * @param {Object} options - Showcase options
+     * @returns {Object} Product showcase data
+     */
+    async getSupplierProductShowcase(supplierId, options = {}) {
+        try {
+            const {
+                category,
+                search,
+                sortBy = 'top',
+                page = 1,
+                limit = 12,
+                includeAnalytics = true
+            } = options;
+
+            // Enhanced match conditions
+            const matchConditions = {
+                manufacturer: new mongoose.Types.ObjectId(supplierId),
+                visibility: 'public',
+                status: 'active'
+            };
+
+            // Add category filter
+            if (category) {
+                matchConditions.category = new mongoose.Types.ObjectId(category);
+            }
+
+            // Add search filter
+            if (search) {
+                matchConditions.$or = [
+                    { name: { $regex: search, $options: 'i' } },
+                    { shortDescription: { $regex: search, $options: 'i' } },
+                    { 'specifications.value': { $regex: search, $options: 'i' } }
+                ];
+            }
+
+            // Determine sort criteria based on sortBy parameter
+            let sortCriteria = {};
+            let prioritizeTopProducts = true;
+            
+            switch (sortBy) {
+                case 'top':
+                case 'featured':
+                    // Top products: featured, high-rated, popular
+                    prioritizeTopProducts = true;
+                    sortCriteria = { 
+                        isFeatured: -1, 
+                        averageRating: -1, 
+                        'analytics.views': -1, 
+                        totalReviews: -1 
+                    };
+                    break;
+                case 'latest':
+                case 'newest':
+                    // Latest products by creation date
+                    prioritizeTopProducts = false;
+                    sortCriteria = { createdAt: -1, averageRating: -1 };
+                    break;
+                case 'price_low':
+                    sortCriteria = { 'pricing.basePrice': 1, averageRating: -1 };
+                    prioritizeTopProducts = false;
+                    break;
+                case 'price_high':
+                    sortCriteria = { 'pricing.basePrice': -1, averageRating: -1 };
+                    prioritizeTopProducts = false;
+                    break;
+                case 'rating':
+                    sortCriteria = { averageRating: -1, totalReviews: -1 };
+                    prioritizeTopProducts = false;
+                    break;
+                case 'popular':
+                    sortCriteria = { 'analytics.views': -1, totalReviews: -1 };
+                    prioritizeTopProducts = false;
+                    break;
+                default:
+                    prioritizeTopProducts = true;
+                    sortCriteria = { 
+                        isFeatured: -1, 
+                        averageRating: -1, 
+                        'analytics.views': -1 
+                    };
+            }
+
+            // Calculate pagination
+            const skip = (page - 1) * limit;
+
+            // Get products with enhanced logic
+            const products = await this._getShowcaseProducts(
+                matchConditions, 
+                sortCriteria, 
+                limit, 
+                skip, 
+                prioritizeTopProducts
+            );
+
+            // Get total count for pagination
+            const totalProducts = await Product.countDocuments(matchConditions);
+
+            // Calculate pagination info
+            const pagination = {
+                currentPage: page,
+                totalPages: Math.ceil(totalProducts / limit),
+                totalProducts,
+                hasNextPage: page < Math.ceil(totalProducts / limit),
+                hasPrevPage: page > 1,
+                limit
+            };
+
+            // Enhanced response
+            return {
+                success: true,
+                products,
+                pagination,
+                filters: {
+                    category,
+                    search,
+                    sortBy
+                },
+                metadata: {
+                    productSelectionType: prioritizeTopProducts ? 'top_priority' : 'custom_sort',
+                    qualityScore: this._calculateProductQualityScore(products),
+                    featuredCount: products.filter(p => p.isFeatured).length,
+                    averageRating: products.length > 0 
+                        ? Math.round((products.reduce((sum, p) => sum + (p.averageRating || 0), 0) / products.length) * 100) / 100
+                        : 0
+                }
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Get supplier product showcase error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get showcase products with smart selection logic
+     * @private
+     */
+    async _getShowcaseProducts(matchConditions, sortCriteria, limit, skip, prioritizeTopProducts) {
+        if (prioritizeTopProducts && skip === 0) {
+            // For first page with top products priority, use our smart selection
+            const topConditions = {
+                ...matchConditions,
+                $or: [
+                    { isFeatured: true },
+                    { averageRating: { $gte: 4.0 } },
+                    { 'analytics.views': { $gte: 100 } },
+                    { totalReviews: { $gte: 5 } }
+                ]
+            };
+
+            const topProducts = await Product.find(topConditions)
+                .populate('category', 'name slug description')
+                .select('name shortDescription images pricing inventory averageRating totalReviews isFeatured createdAt analytics specifications')
+                .sort(sortCriteria)
+                .limit(limit)
+                .lean();
+
+            // If we need more products, fill with latest
+            if (topProducts.length < limit) {
+                const topProductIds = topProducts.map(p => p._id);
+                const remainingLimit = limit - topProducts.length;
+
+                const fillProducts = await Product.find({
+                    ...matchConditions,
+                    _id: { $nin: topProductIds }
+                })
+                .populate('category', 'name slug description')
+                .select('name shortDescription images pricing inventory averageRating totalReviews isFeatured createdAt analytics specifications')
+                .sort({ createdAt: -1, averageRating: -1 })
+                .limit(remainingLimit)
+                .lean();
+
+                return [...topProducts, ...fillProducts];
+            }
+
+            return topProducts;
+        } else {
+            // Standard pagination
+            return await Product.find(matchConditions)
+                .populate('category', 'name slug description')
+                .select('name shortDescription images pricing inventory averageRating totalReviews isFeatured createdAt analytics specifications')
+                .sort(sortCriteria)
+                .skip(skip)
+                .limit(limit)
+                .lean();
+        }
     }
 
     /**

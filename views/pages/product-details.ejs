@@ -1,5 +1,10 @@
 <%- include('../partials/header') %>
-<%- include('../partials/navigation') %>
+<%- include('../partials/navigation', { 
+  cartItemsCount: cartItemsCount || 0, 
+  activeOrdersCount: activeOrdersCount || 0, 
+  unreadMessagesCount: unreadMessagesCount || 0,
+  favoritesCount: favoritesCount || 0 
+}) %>
 
 <!-- Professional Alibaba-Style B2B Product Detail Page -->
 <!-- Senior Software Engineer Implementation -->
@@ -5537,6 +5542,7 @@ class ProductDetailManager {
         this.currentUser = null;
         this.isAuthenticated = false;
         this.userType = null;
+        this.companyType = null;
         this.productData = {
             id: null,
             manufacturerId: null,
@@ -5594,6 +5600,7 @@ class ProductDetailManager {
                 this.isAuthenticated = false;
                 this.currentUser = null;
                 this.userType = null;
+                this.companyType = null;
                
                 return;
             }
@@ -5608,17 +5615,12 @@ class ProductDetailManager {
                 try {
                     const parsedData = JSON.parse(userData);
                    
-                    // If localStorage exists with companyType = distributor, this is a distributor
-                    if (parsedData.companyType === 'distributor') {
+                    // If localStorage exists, set userType and companyType properly
+                    if (parsedData.companyType || parsedData.userType) {
                         this.currentUser = parsedData;
-                        this.userType = 'distributor';
+                        this.userType = parsedData.userType || 'user';
+                        this.companyType = parsedData.companyType || null;
                         return;
-                    }
-                    // If localStorage exists but companyType is not distributor
-                    else if (parsedData.companyType) {
-                        this.currentUser = parsedData;
-                        this.userType = parsedData.companyType; // manufacturer or other
-                       return;
                     }
                 } catch (e) {
                    
@@ -5631,8 +5633,7 @@ class ProductDetailManager {
                 const apiEndpoints = [
                     '/api/user/profile',
                     '/buyer/api/profile', 
-                    '/api/profile',
-                    '/distributor/api/profile'
+                    '/api/profile'
                 ];
                 
                 for (const endpoint of apiEndpoints) {
@@ -5660,17 +5661,17 @@ class ProductDetailManager {
                             if (user) {
                                 this.currentUser = user;
                                 
-                                // Determine user type
-                                if (user.companyType) {
-                                    this.userType = user.companyType;
-                                } else if (user.role === 'super_admin' || user.role === 'admin') {
-                                    this.userType = 'super_admin';
-                                } else {
-                                    this.userType = 'manufacturer'; // default assumption
+                                // Set userType from actual userType field and companyType separately  
+                                this.userType = user.userType || 'user'; // user, admin, etc.
+                                this.companyType = user.companyType || null; // distributor, manufacturer, etc.
+                                
+                                // For legacy compatibility, also check role-based logic
+                                if (user.role === 'super_admin' || user.role === 'admin') {
+                                    this.userType = 'admin';
                                 }
                                 
                                 // Update localStorage only for distributors
-                                if (this.userType === 'distributor') {
+                                if (this.companyType === 'distributor') {
                                     try {
                                         localStorage.setItem('slex_buyer_user_data', JSON.stringify(user));
                                        
@@ -5695,12 +5696,14 @@ class ProductDetailManager {
             } catch (apiError) {
                // Fallback: has tokens but unknown type - assume manufacturer/admin
                 this.userType = 'manufacturer';
+                this.companyType = 'manufacturer';
             }
             
         } catch (error) {
             this.isAuthenticated = false;
             this.currentUser = null;
             this.userType = null;
+            this.companyType = null;
         }
     }
     
@@ -5714,15 +5717,15 @@ class ProductDetailManager {
     async initializeUI() {
         await this.checkAuthStatus();
         
-        // Only disable buttons for logged-in non-distributors  
-        if (this.isAuthenticated && this.userType !== 'distributor') {
+        // Only disable buttons for non-buyer companies
+        if (this.isAuthenticated && this.userType === 'user' && this.companyType !== 'distributor') {
             this.disableButtons();
         } else {
             this.enableButtons();
         }
         
-        // Check product status via API for distributors
-        if (this.isAuthenticated && this.userType === 'distributor') {
+        // Check product status via API for distributor companies  
+        if (this.isAuthenticated && this.userType === 'user' && this.companyType === 'distributor') {
             await this.checkProductStatus();
         }
     }
@@ -5892,11 +5895,11 @@ class ProductDetailManager {
             return;
         }
 
-        if (this.userType !== 'distributor') {
+        if (this.userType !== 'user' || this.companyType !== 'distributor') {
             let message = '';
-            if (this.userType === 'manufacturer') {
+            if (this.companyType === 'manufacturer') {
                 message = 'Manufacturers cannot add products to cart';
-            } else if (this.userType === 'super-admin') {
+            } else if (this.userType === 'admin') {
                 message = 'Admins cannot add products to cart';
             } else {
                 message = window.translations.productDetails.buyerOnly;
@@ -5945,9 +5948,8 @@ class ProductDetailManager {
                 this.showToast(`✅ ${window.translations.productDetails.addedToCart}`, 'success');
                 this.updateCartCounter();
                 
-                // Update button to show "In Cart" state
-                const quantity = parseInt(document.getElementById('productQuantity').value) || 1;
-                this.updateAddToCartButton(true, quantity);
+                // Refresh product status from server to ensure consistency
+                await this.checkProductStatus();
             } else {
                 this.showToast(data.message || window.translations.productDetails.failedToAddCart, 'error');
             }
@@ -5976,11 +5978,11 @@ class ProductDetailManager {
             return;
         }
 
-        if (this.userType !== 'distributor') {
+        if (this.userType !== 'user' || this.companyType !== 'distributor') {
             let message = '';
-            if (this.userType === 'manufacturer') {
+            if (this.companyType === 'manufacturer') {
                 message = 'Manufacturers cannot add favorites';
-            } else if (this.userType === 'super-admin') {
+            } else if (this.userType === 'admin') {
                 message = 'Admins cannot add favorites';
             } else {
                 message = window.translations.productDetails.buyerOnly;
@@ -6017,14 +6019,15 @@ class ProductDetailManager {
             const data = await response.json();
 
             if (data.success) {
-                // Update button state using helper method
+                // Show success message
                 if (isCurrentlyFavorite) {
-                    this.updateFavoriteButton(false);
                     this.showToast(`❤️ ${window.translations.productDetails.removedFromFavorites}`, 'success');
                 } else {
-                    this.updateFavoriteButton(true);
                     this.showToast(`❤️ ${window.translations.productDetails.addedToFavorites}`, 'success');
                 }
+                
+                // Refresh product status from server to ensure consistency
+                await this.checkProductStatus();
             } else {
                 this.showToast(data.message || window.translations.productDetails.failedToUpdateFavorites, 'error');
             }
@@ -6046,12 +6049,23 @@ class ProductDetailManager {
     }
 
     async checkProductStatus() {
-        if (!this.isAuthenticated || this.userType !== 'distributor') return;
+        console.log('🔍 CheckProductStatus called:', {
+            isAuthenticated: this.isAuthenticated,
+            userType: this.userType,
+            companyType: this.companyType,
+            currentUser: this.currentUser
+        });
+        
+        // Allow both distributor and buyers (since distributor routes moved to buyer)
+        if (!this.isAuthenticated || (this.companyType !== 'distributor' && this.userType !== 'user')) {
+            console.log('❌ CheckProductStatus skipped - not authenticated or wrong user type');
+            return;
+        }
 
         try {
             const response = await this.fetchWithAuth(`/buyer/api/product-status/${this.productData.id}`);
             const data = await response.json();
-
+            
            
 
             if (data.success) {
@@ -6268,20 +6282,30 @@ class ProductDetailManager {
         }
 
         // Check if user is distributor/buyer (correct logic for SLEX system)
-        const isDistributor = window.currentUser.userType === 'user' && 
-                              window.currentUser.role === 'company_admin' && 
-                              window.currentUser.companyType === 'distributor';
+        console.log('🔍 Chat authentication check:', {
+            windowCurrentUser: window.currentUser,
+            productDetailManagerUser: this.currentUser,
+            userType: window.currentUser?.userType,
+            role: window.currentUser?.role,
+            companyType: window.currentUser?.companyType
+        });
         
-        if (!isDistributor) {
+        const isBuyer = window.currentUser && 
+                        window.currentUser.role === 'company_admin' && 
+                        (window.currentUser.companyType === 'distributor' || window.currentUser.companyType === 'buyer');
+        
+        console.log('🔍 isBuyer result:', isBuyer);
+        
+        if (!isBuyer) {
             let message = '';
-            if (window.currentUser.userType === 'user' && window.currentUser.companyType === 'manufacturer') {
+            if (window.currentUser?.companyType === 'manufacturer') {
                 message = 'Ishlab chiqaruvchilar chat qila olmaydi';
-            } else if (window.currentUser.userType === 'admin') {
+            } else if (window.currentUser?.role === 'admin' || window.currentUser?.role === 'super_admin') {
                 message = 'Adminlar chat qila olmaydi';
             } else {
                 message = 'Faqat distribyutor/haridor kompanyalar chat qila oladi';
             }
-            console.log('User not allowed for chat:', window.currentUser);
+            console.log('❌ User not allowed for chat:', window.currentUser);
             this.showToast(`⚠️ ${message}`, 'warning');
             return;
         }
@@ -6317,17 +6341,26 @@ window.openChat = function(manufacturerId) {
     } else {
         console.log('❌ ProductDetailManager not found, creating direct redirect');
         
-        // Check if user is distributor (correct SLEX logic)
-        const isDistributor = window.currentUser && 
-                              window.currentUser.userType === 'user' && 
-                              window.currentUser.role === 'company_admin' && 
-                              window.currentUser.companyType === 'distributor';
+        // Check if user is distributor/buyer (correct SLEX logic)
+        console.log('🔍 Global openChat authentication check:', {
+            windowCurrentUser: window.currentUser,
+            userType: window.currentUser?.userType,
+            role: window.currentUser?.role,
+            companyType: window.currentUser?.companyType
+        });
         
-        if (isDistributor) {
+        const isBuyer = window.currentUser && 
+                        window.currentUser.role === 'company_admin' && 
+                        (window.currentUser.companyType === 'distributor' || window.currentUser.companyType === 'buyer');
+        
+        console.log('🔍 Global isBuyer result:', isBuyer);
+        
+        if (isBuyer) {
             const redirectUrl = `/buyer/messages?manufacturer=${manufacturerId}`;
             console.log('🚀 Direct redirect to:', redirectUrl);
             window.location.href = redirectUrl;
         } else {
+            console.log('❌ Global openChat - User not allowed:', window.currentUser);
             alert('Chat uchun distribyutor/haridor kompaniya sifatida tizimga kiring');
         }
     }
@@ -7299,9 +7332,11 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .favorite-btn {
-    color: #ffffff;
     border-color: #dc2626;
     box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+[data-theme="light"] .favorite-btn {
+  color: hsl(var(--static-white)) !important;
 }
 
 .favorite-btn:hover:not(:disabled) {

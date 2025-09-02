@@ -7,7 +7,7 @@
            class="user-avatar"
            onerror="this.src='/assets/images/icons/user.svg'">
       <div class="user-details">
-        <h4 class="user-name text-white"><%= user.companyName || (user.firstName + ' ' + user.lastName) %></h4>
+        <h4 class="user-name text-white"><%= user.companyName || user.contactPerson || 'Professional Buyer' %></h4>
         <p class="user-type text-white opacity-80"><%- t('buyer.profile.type') %></p>
       </div>
     </div>
@@ -42,7 +42,7 @@
             <i class="las la-shopping-cart text-main"></i>
             <span class="text-heading"><%- t('buyer.profile.shoppingCart') %></span>
             <% if (typeof cartItemsCount !== 'undefined' && cartItemsCount > 0) { %>
-              <span class="nav-badge bg-main text-white"><%= cartItemsCount %></span>
+              <span class="nav-badge text-white"><%= cartItemsCount %></span>
             <% } %>
           </a>
         </li>
@@ -59,6 +59,9 @@
           <a href="/buyer/favorites" class="nav-link <%= currentPage === 'favorites' ? 'active' : '' %>">
             <i class="las la-heart text-main"></i>
             <span class="text-heading"><%- t('buyer.profile.favorites') %></span>
+            <% if (typeof favoritesCount !== 'undefined' && favoritesCount > 0) { %>
+              <span class="nav-badge badge-success"><%= favoritesCount %></span>
+            <% } %>
           </a>
         </li>
       </ul>
@@ -265,15 +268,22 @@
   border-radius: 10px;
   min-width: 18px;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .nav-badge.badge-warning {
   background: #ffc107;
-  color: #333;
 }
 
 .nav-badge.badge-danger {
   background: #dc3545;
+  color: white;
+}
+
+.nav-badge.badge-success {
+  background: #28a745;
   color: white;
 }
 
@@ -363,20 +373,14 @@
     background: var(--dark-black-five) !important;
     color: hsl(var(--danger)) !important;
   }
-  
-  /* Nav badges */
-  .nav-badge {
-    background: hsl(var(--main)) !important;
+
+  .nav-badge.badge-danger {
+    background: hsl(var(--danger)) !important;
     color: hsl(var(--static-white)) !important;
   }
   
-  .nav-badge.badge-warning {
-    background: hsl(var(--warning)) !important;
-    color: hsl(var(--static-black)) !important;
-  }
-  
-  .nav-badge.badge-danger {
-    background: hsl(var(--danger)) !important;
+  .nav-badge.badge-success {
+    background: hsl(var(--success)) !important;
     color: hsl(var(--static-white)) !important;
   }
 }

@@ -86,10 +86,34 @@
                 <% } else { %>
                   <!-- Buyer/Distributor Links - Mobile -->
                   <a class="user-dropdown__item" href="/buyer/profile"><i class="las la-user-circle"></i> <span><%= t('nav.myProfile') %></span></a>
-                  <a class="user-dropdown__item" href="/buyer/orders"><i class="las la-shopping-bag"></i> <span><%= t('nav.myOrders') %></span></a>
-                  <a class="user-dropdown__item" href="/buyer/favorites"><i class="las la-heart"></i> <span><%= t('nav.favorites') %></span></a>
-                  <a class="user-dropdown__item" href="/buyer/cart"><i class="las la-shopping-cart"></i> <span><%= t('nav.cart') %></span></a>
-                  <a class="user-dropdown__item" href="/buyer/messages"><i class="las la-comments"></i> <span><%= t('nav.messages') %></span></a>
+                  <a class="user-dropdown__item" href="/buyer/orders">
+                    <i class="las la-shopping-bag"></i> 
+                    <span><%= t('nav.myOrders') %></span>
+                    <% if ((activeOrdersCount || locals.activeOrdersCount || 0) > 0) { %>
+                      <span class="dropdown-badge badge-warning"><%= activeOrdersCount || locals.activeOrdersCount || 0 %></span>
+                    <% } %>
+                  </a>
+                  <a class="user-dropdown__item" href="/buyer/favorites">
+                    <i class="las la-heart"></i> 
+                    <span><%= t('nav.favorites') %></span>
+                    <% if ((favoritesCount || locals.favoritesCount || 0) > 0) { %>
+                      <span class="dropdown-badge badge-success"><%= favoritesCount || locals.favoritesCount || 0 %></span>
+                    <% } %>
+                  </a>
+                  <a class="user-dropdown__item" href="/buyer/cart">
+                    <i class="las la-shopping-cart"></i> 
+                    <span><%= t('nav.cart') %></span>
+                    <% if ((cartItemsCount || locals.cartItemsCount || 0) > 0) { %>
+                      <span class="dropdown-badge"><%= cartItemsCount || locals.cartItemsCount || 0 %></span>
+                    <% } %>
+                  </a>
+                  <a class="user-dropdown__item" href="/buyer/messages">
+                    <i class="las la-comments"></i> 
+                    <span><%= t('nav.messages') %></span>
+                    <% if ((unreadMessagesCount || locals.unreadMessagesCount || 0) > 0) { %>
+                      <span class="dropdown-badge badge-danger"><%= unreadMessagesCount || locals.unreadMessagesCount || 0 %></span>
+                    <% } %>
+                  </a>
                 <% } %>
                 
                 <div class="user-dropdown__divider"></div>
@@ -229,12 +253,36 @@
                       <a class="user-dropdown__item" href="/manufacturer/products"><i class="las la-box"></i> <span><%= t('nav.myProducts') %></span></a>
                       <a class="user-dropdown__item" href="/manufacturer/orders"><i class="las la-shopping-bag"></i> <span><%= t('nav.orders') %></span></a>
                     <% } else { %>
-                      <!-- Buyer/Distributor Links -->
+                  
                       <a class="user-dropdown__item" href="/buyer/profile"><i class="las la-user-circle"></i> <span><%= t('nav.myProfile') %></span></a>
-                      <a class="user-dropdown__item" href="/buyer/orders"><i class="las la-shopping-bag"></i> <span><%= t('nav.myOrders') %></span></a>
-                      <a class="user-dropdown__item" href="/buyer/favorites"><i class="las la-heart"></i> <span><%= t('nav.favorites') %></span></a>
-                      <a class="user-dropdown__item" href="/buyer/cart"><i class="las la-shopping-cart"></i> <span><%= t('nav.cart') %></span></a>
-                      <a class="user-dropdown__item" href="/buyer/messages"><i class="las la-comments"></i> <span><%= t('nav.messages') %></span></a>
+                      <a class="user-dropdown__item" href="/buyer/orders">
+                        <i class="las la-shopping-bag"></i> 
+                        <span><%= t('nav.myOrders') %></span>
+                        <% if ((activeOrdersCount || locals.activeOrdersCount || 0) > 0) { %>
+                          <span class="dropdown-badge badge-warning"><%= activeOrdersCount || locals.activeOrdersCount || 0 %></span>
+                        <% } %>
+                      </a>
+                      <a class="user-dropdown__item" href="/buyer/favorites">
+                        <i class="las la-heart"></i> 
+                        <span><%= t('nav.favorites') %></span>
+                        <% if ((favoritesCount || locals.favoritesCount || 0) > 0) { %>
+                          <span class="dropdown-badge badge-success"><%= favoritesCount || locals.favoritesCount || 0 %></span>
+                        <% } %>
+                      </a>
+                      <a class="user-dropdown__item" href="/buyer/cart">
+                        <i class="las la-shopping-cart"></i> 
+                        <span><%= t('nav.cart') %></span>
+                        <% if ((cartItemsCount || locals.cartItemsCount || 0) > 0) { %>
+                          <span class="dropdown-badge"><%= cartItemsCount || locals.cartItemsCount || 0 %></span>
+                        <% } %>
+                      </a>
+                      <a class="user-dropdown__item" href="/buyer/messages">
+                        <i class="las la-comments"></i> 
+                        <span><%= t('nav.messages') %></span>
+                        <% if ((unreadMessagesCount || locals.unreadMessagesCount || 0) > 0) { %>
+                          <span class="dropdown-badge badge-danger"><%= unreadMessagesCount || locals.unreadMessagesCount || 0 %></span>
+                        <% } %>
+                      </a>
                     <% } %>
                     
                     <div class="user-dropdown__divider"></div>

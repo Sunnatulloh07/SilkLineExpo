@@ -27,6 +27,20 @@ router.get('/', MessagingController.showMessagingPage);
 router.get('/order/:orderId', MessagingController.showOrderChat);
 
 /**
+ * @route   GET /manufacturer/messages/api/conversations
+ * @desc    Get conversations list with pagination and filters
+ * @access  Private (Manufacturer)
+ */
+router.get('/api/conversations', MessagingController.getConversations);
+
+/**
+ * @route   POST /manufacturer/messages/api/order/:orderId/mark-read
+ * @desc    Mark order messages as read
+ * @access  Private (Manufacturer)
+ */
+router.post('/api/order/:orderId/mark-read', MessagingController.markOrderMessagesAsRead);
+
+/**
  * @route   POST /api/messages/send
  * @desc    Send a message in order conversation
  * @access  Private (Manufacturer/Distributor)

@@ -67,6 +67,16 @@ class ManufacturerOrdersController {
                 _id: { $in: customers } 
             }).select('name companyName email').lean();
 
+            // Get unread messages count
+            let unreadMessages = 0;
+            try {
+                const ManufacturerService = require('../services/ManufacturerService');
+                const manufacturerService = new ManufacturerService();
+                unreadMessages = await manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (error) {
+                unreadMessages = 0;
+            }
+
 
 
             res.render('manufacturer/orders/index', {
@@ -78,6 +88,7 @@ class ManufacturerOrdersController {
                 customers: customerDetails,
                 // Add any additional data needed for the page
                 currentPage: 'orders',
+                unreadMessages: unreadMessages || 0,
                 // Helper functions for EJS
                 formatCurrency: (amount, currency = 'USD') => {
                     return new Intl.NumberFormat('uz-UZ', {
@@ -419,12 +430,23 @@ class ManufacturerOrdersController {
             console.log(`👁️ Loading order details: ${orderId} for manufacturer: ${manufacturerId}`);
             console.log(`📊 Order contains ${order.items?.length || 0} items, total: $${order.totalAmount?.toFixed(2) || '0.00'}`);
 
+            // Get unread messages count for sidebar badge
+            let unreadMessages = 0;
+            try {
+                const ManufacturerService = require('../services/ManufacturerService');
+                const manufacturerService = new ManufacturerService();
+                unreadMessages = await manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (error) {
+                unreadMessages = 0;
+            }
+
             res.render('manufacturer/orders/detail', {
                 title: `Buyurtma #${order.orderNumber || order._id.toString().slice(-8).toUpperCase()} - Manufacturing Dashboard`,
                 lng,
                 user: req.user,
                 order,
-                currentPage: 'orders'
+                currentPage: 'orders',
+                unreadMessages: unreadMessages || 0
             });
 
         } catch (error) {
@@ -593,13 +615,24 @@ class ManufacturerOrdersController {
 
             console.log(`✏️ Loading order edit: ${orderId} for manufacturer: ${manufacturerId}`);
 
+            // Get unread messages count for sidebar badge
+            let unreadMessages = 0;
+            try {
+                const ManufacturerService = require('../services/ManufacturerService');
+                const manufacturerService = new ManufacturerService();
+                unreadMessages = await manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (error) {
+                unreadMessages = 0;
+            }
+
             res.render('manufacturer/orders/edit', {
                 title: `Buyurtmani tahrirlash #${order.orderNumber || order._id.toString().slice(-8).toUpperCase()} - Manufacturing Dashboard`,
                 lng,
                 user: req.user,
                 order,
                 products,
-                currentPage: 'orders'
+                currentPage: 'orders',
+                unreadMessages: unreadMessages || 0
             });
 
         } catch (error) {

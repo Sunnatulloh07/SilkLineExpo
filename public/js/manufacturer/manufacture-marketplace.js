@@ -1,10 +1,10 @@
-// Server ma'lumotlarini oling
+// Get server data
 const marketplaceData = JSON.parse(document.getElementById('marketplace-data').textContent);
 
 /**
- * Biznes bozori boshqaruv tizimi
- * Ishlab chiqaruvchilar uchun professional bozor interfeysi
- * Senior Software Engineer amalga oshirish - Tuzatilgan versiya
+ * Business marketplace management system
+ * Professional marketplace interface for manufacturers
+ * Senior Software Engineer implementation - Fixed version
  */
 class MarketplaceManager {
     constructor(options = {}) {
@@ -13,7 +13,7 @@ class MarketplaceManager {
             userName: marketplaceData.user.name,
             companyName: marketplaceData.user.companyName,
             autoRefresh: true,
-            refreshInterval: 300000, // 5 daqiqa
+            refreshInterval: 300000, // 5 minutes
             apiEndpoints: {
                 marketplaceMetrics: '/manufacturer/api/marketplace-metrics',
                 featuredProducts: '/manufacturer/api/featured-products',
@@ -31,7 +31,7 @@ class MarketplaceManager {
     }
 
     /**
-     * Bozor menejerini ishga tushirish
+     * Initialize marketplace manager
      */
     async init() {
         try {
@@ -55,7 +55,7 @@ class MarketplaceManager {
 
         } catch (error) {
             this.logger.error('❌ Marketplace initialization failed:', error);
-            this.showError('Marketplace ishga tushirishda xatolik');
+            this.showError(window.t ? window.t('manufacturer.marketplace.errors.initializationFailed') : 'Marketplace initialization failed');
         }
     }
 
@@ -167,16 +167,21 @@ class MarketplaceManager {
             this.charts.performance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['1 hafta', '2 hafta', '3 hafta', '4 hafta'],
+                    labels: [
+                    window.t ? window.t('manufacturer.marketplace.charts.week1') : 'Week 1',
+                    window.t ? window.t('manufacturer.marketplace.charts.week2') : 'Week 2',
+                    window.t ? window.t('manufacturer.marketplace.charts.week3') : 'Week 3',
+                    window.t ? window.t('manufacturer.marketplace.charts.week4') : 'Week 4'
+                ],
                     datasets: [{
-                        label: 'Ko\'rishlar',
+                        label: window.t ? window.t('manufacturer.marketplace.charts.views') : 'Views',
                         data: [viewsGrowth, viewsGrowth + 5, viewsGrowth + 8, viewsGrowth + 12],
                         borderColor: '#3b82f6',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         tension: 0.4,
                         fill: true
                     }, {
-                        label: 'So\'rovlar',
+                        label: window.t ? window.t('manufacturer.marketplace.charts.inquiries') : 'Inquiries',
                         data: [inquiriesGrowth, inquiriesGrowth + 3, inquiriesGrowth + 5, inquiriesGrowth + 8],
                         borderColor: '#10b981',
                         backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -433,7 +438,7 @@ class MarketplaceManager {
                         <div class="empty-icon">
                             <i class="fas fa-inbox"></i>
                         </div>
-                        <p class="empty-text">Yangi so'rovlar yo'q</p>
+                        <p class="empty-text">${window.t ? window.t('manufacturer.marketplace.recentInquiries.noInquiries') : 'No new inquiries'}</p>
                     </div>
                 `;
             } else {
@@ -511,14 +516,14 @@ class MarketplaceManager {
                 }
                 <div class="product-badge featured">
                     <i class="fas fa-star"></i>
-                    Tavsiya
+                    ${window.t ? window.t('manufacturer.marketplace.featuredProducts.featured') : 'Featured'}
                 </div>
             </div>
             <div class="product-info">
-                <h4 class="product-title" title="${product.title || 'Nomsiz mahsulot'}">
+                <h4 class="product-title" title="${product.title || (window.t ? window.t('manufacturer.marketplace.featuredProducts.unnamedProduct') : 'Unnamed Product')}">
                     ${product.title && product.title.length > 40 ? 
                         product.title.substring(0, 40) + '...' : 
-                        product.title || 'Nomsiz mahsulot'
+                        product.title || (window.t ? window.t('manufacturer.marketplace.featuredProducts.unnamedProduct') : 'Unnamed Product')
                     }
                 </h4>
                 <p class="product-category">
@@ -529,10 +534,10 @@ class MarketplaceManager {
                     <span class="price-range">
                         ${product.price && product.price.min ? 
                             `$${product.price.min}-${product.price.max || product.price.min}` :
-                            'Narx so\'raladi'
+                            window.t ? window.t('manufacturer.marketplace.featuredProducts.priceOnRequest') : 'Price on Request'
                         }
                     </span>
-                                                <span class="moq">Eng kam: ${product.moq || 100} dona</span>
+                    <span class="moq">${window.t ? window.t('manufacturer.marketplace.featuredProducts.minimum') : 'Minimum'} : ${product.moq || 100} ${window.t ? window.t('manufacturer.marketplace.featuredProducts.unit') : 'unit'}</span>
                 </div>
                 <div class="product-stats">
                     <div class="product-stat">
@@ -552,11 +557,11 @@ class MarketplaceManager {
             <div class="product-actions">
                 <button class="btn-sm btn-primary" data-action="edit" data-product-id="${product._id || ''}">
                     <i class="fas fa-edit"></i>
-                    Tahrirlash
+                    ${window.t ? window.t('manufacturer.marketplace.featuredProducts.edit') : 'Edit'}
                 </button>
                 <button class="btn-sm btn-outline" data-action="stats" data-product-id="${product._id || ''}">
                     <i class="fas fa-chart-bar"></i>
-                    Statistika
+                    ${window.t ? window.t('manufacturer.marketplace.featuredProducts.statistics') : 'Statistics'}
                 </button>
             </div>
         `;
@@ -574,7 +579,7 @@ class MarketplaceManager {
 
         const createdDate = inquiry.createdAt ? 
             new Date(inquiry.createdAt).toLocaleDateString('uz-UZ') : 
-            'Bugun';
+            (window.t ? window.t('manufacturer.marketplace.recentInquiries.today') : 'Today');
 
         element.innerHTML = `
             <div class="inquiry-header">
@@ -583,49 +588,49 @@ class MarketplaceManager {
                         ${(inquiry.company || 'U').charAt(0)}
                     </div>
                     <div class="company-details">
-                        <h4 class="company-name">${inquiry.company || 'Unknown Company'}</h4>
+                        <h4 class="company-name">${inquiry.company || (window.t ? window.t('manufacturer.marketplace.recentInquiries.unknownCompany') : 'Unknown Company')}</h4>
                         <span class="inquiry-time">${createdDate}</span>
                     </div>
                 </div>
                 <div class="inquiry-priority priority-${inquiry.priority || 'medium'}">
                     ${inquiry.priority === 'high' ? 
-                        '<i class="fas fa-exclamation-circle"></i>Shoshilinch' :
+                        `<i class="fas fa-exclamation-circle"></i>${window.t ? window.t('manufacturer.marketplace.recentInquiries.priority.high') : 'Urgent'}` :
                         inquiry.priority === 'medium' ? 
-                        '<i class="fas fa-circle"></i>O\'rta' :
-                        '<i class="fas fa-circle"></i>Oddiy'
+                        `<i class="fas fa-circle"></i>${window.t ? window.t('manufacturer.marketplace.recentInquiries.priority.medium') : 'Medium'}` :
+                        `<i class="fas fa-circle"></i>${window.t ? window.t('manufacturer.marketplace.recentInquiries.priority.low') : 'Normal'}`
                     }
                 </div>
             </div>
             <div class="inquiry-content">
                 <p class="inquiry-product">
                     <i class="fas fa-cube"></i>
-                    ${inquiry.product || 'General Inquiry'}
+                    ${inquiry.product || (window.t ? window.t('manufacturer.marketplace.recentInquiries.generalInquiry') : 'General Inquiry')}
                 </p>
                 <div class="inquiry-details">
                     <span class="quantity">
                         <i class="fas fa-sort-numeric-up"></i>
-                        ${inquiry.quantity || 'So\'raladi'}
+                        ${inquiry.quantity || (window.t ? window.t('manufacturer.marketplace.recentInquiries.toBeDiscussed') : 'To be discussed')}
                     </span>
                     <span class="budget">
                         <i class="fas fa-dollar-sign"></i>
-                        ${inquiry.budget || 'Muhokama'}
+                        ${inquiry.budget || (window.t ? window.t('manufacturer.marketplace.recentInquiries.toBeDiscussed') : 'To be discussed')}
                     </span>
                 </div>
                 <p class="inquiry-message">
                     ${inquiry.message && inquiry.message.length > 80 ? 
                         inquiry.message.substring(0, 80) + '...' : 
-                        inquiry.message || 'Inquiry message'
+                        inquiry.message || (window.t ? window.t('manufacturer.marketplace.recentInquiries.inquiryMessage') : 'Inquiry message')
                     }
                 </p>
             </div>
             <div class="inquiry-actions">
                 <button class="btn-sm btn-primary" data-action="respond" data-inquiry-id="${inquiry.id || ''}">
                     <i class="fas fa-reply"></i>
-                    Javob berish
+                    ${window.t ? window.t('manufacturer.marketplace.recentInquiries.respond') : 'Respond'}
                 </button>
                 <button class="btn-sm btn-outline" data-action="quote" data-inquiry-id="${inquiry.id || ''}">
                     <i class="fas fa-file-invoice-dollar"></i>
-                    Taklif
+                    ${window.t ? window.t('manufacturer.marketplace.recentInquiries.quote') : 'Quote'}
                 </button>
             </div>
         `;
@@ -663,10 +668,10 @@ class MarketplaceManager {
             this.showRefreshIndicator();
             await this.loadMarketplaceData();
             this.hideRefreshIndicator();
-            this.showSuccessMessage('Ma\'lumotlar yangilandi');
+            this.showSuccessMessage(window.t ? window.t('manufacturer.marketplace.messages.dataUpdated') : 'Data updated');
         } catch (error) {
             this.hideRefreshIndicator();
-            this.showError('Ma\'lumotlarni yangilashda xatolik');
+            this.showError(window.t ? window.t('manufacturer.marketplace.errors.updateFailed') : 'Failed to update data');
         }
     }
 
@@ -690,7 +695,7 @@ class MarketplaceManager {
      */
     handleProductAction(action, productId) {
         if (!productId) {
-            this.showError('Mahsulot ID topilmadi');
+            this.showError(window.t ? window.t('manufacturer.marketplace.errors.productIdNotFound') : 'Product ID not found');
             return;
         }
 
@@ -734,10 +739,10 @@ class MarketplaceManager {
      */
     async duplicateProduct(productId) {
         try {
-            const confirmation = confirm('Mahsulotni nusxalashni xohlaysizmi?');
+            const confirmation = confirm(window.t ? window.t('manufacturer.marketplace.confirmations.copyProduct') : 'Do you want to copy this product?');
             if (!confirmation) return;
 
-            this.showInfoMessage('Mahsulot nusxalanmoqda...');
+            this.showInfoMessage(window.t ? window.t('manufacturer.marketplace.messages.copyingProduct') : 'Copying product...');
             
             const response = await fetch(`/manufacturer/api/products/${productId}/duplicate`, {
                 method: 'POST',
@@ -750,18 +755,18 @@ class MarketplaceManager {
             const result = await response.json();
 
             if (result.success) {
-                this.showInfoMessage('Mahsulot muvaffaqiyatli nusxalandi');
+                this.showInfoMessage(window.t ? window.t('manufacturer.marketplace.messages.productCopied') : 'Product copied successfully');
                 // Navigate to edit the new product
                 setTimeout(() => {
                     window.location.href = `/manufacturer/products/edit/${result.data.newProductId}`;
                 }, 1500);
             } else {
-                this.showError(result.message || 'Nusxalashda xatolik yuz berdi');
+                this.showError(result.message || (window.t ? window.t('manufacturer.marketplace.errors.copyFailed') : 'Copy operation failed'));
             }
 
         } catch (error) {
             this.logger.error('❌ Duplicate product error:', error);
-            this.showError('Nusxalashda xatolik yuz berdi');
+            this.showError(window.t ? window.t('manufacturer.marketplace.errors.copyFailed') : 'Copy operation failed');
         }
     }
 
@@ -770,10 +775,10 @@ class MarketplaceManager {
      */
     async deleteProduct(productId) {
         try {
-            const confirmation = confirm('Mahsulotni o\'chirishni xohlaysizmi? Bu amalni qaytarib bo\'lmaydi.');
+            const confirmation = confirm(window.t ? window.t('manufacturer.marketplace.confirmations.deleteProduct') : 'Do you want to delete this product? This action cannot be undone.');
             if (!confirmation) return;
 
-            this.showInfoMessage('Mahsulot o\'chirilmoqda...');
+            this.showInfoMessage(window.t ? window.t('manufacturer.marketplace.messages.deletingProduct') : 'Deleting product...');
             
             const response = await fetch(`/manufacturer/api/products/${productId}`, {
                 method: 'DELETE',
@@ -786,18 +791,18 @@ class MarketplaceManager {
             const result = await response.json();
 
             if (result.success) {
-                this.showInfoMessage('Mahsulot muvaffaqiyatli o\'chirildi');
+                this.showInfoMessage(window.t ? window.t('manufacturer.marketplace.messages.productDeleted') : 'Product deleted successfully');
                 // Refresh the products list
                 setTimeout(() => {
                     this.loadFeaturedProducts();
                 }, 1000);
             } else {
-                this.showError(result.message || 'O\'chirishda xatolik yuz berdi');
+                this.showError(result.message || (window.t ? window.t('manufacturer.marketplace.errors.deleteFailed') : 'Delete operation failed'));
             }
 
         } catch (error) {
             this.logger.error('❌ Delete product error:', error);
-            this.showError('O\'chirishda xatolik yuz berdi');
+            this.showError(window.t ? window.t('manufacturer.marketplace.errors.deleteFailed') : 'Delete operation failed');
         }
     }
 
@@ -821,7 +826,7 @@ class MarketplaceManager {
             modalBody.innerHTML = `
                 <div class="loading-content">
                     <div class="loading-spinner"></div>
-                    <p>Ma'lumot yuklanmoqda...</p>
+                    <p>${window.t ? window.t('manufacturer.marketplace.modal.loading') : 'Loading data...'}</p>
                 </div>
             `;
 
@@ -844,11 +849,11 @@ class MarketplaceManager {
                     const htmlContent = this.generateProductDetailsHTML(product);
                     modalBody.innerHTML = htmlContent;
                 } catch (htmlError) {
-                    console.error('🚨 HTML yaratishda xatolik:', htmlError);
+                    console.error('🚨 HTML creation error:', htmlError);
                     modalBody.innerHTML = `
                         <div class="error-content">
                             <i class="fas fa-exclamation-triangle"></i>
-                            <p>HTML yaratishda xatolik: ${htmlError.message}</p>
+                            <p>${window.t ? window.t('manufacturer.marketplace.errors.htmlCreationFailed') : 'HTML creation error'}: ${htmlError.message}</p>
                         </div>
                     `;
                 }
@@ -856,24 +861,18 @@ class MarketplaceManager {
                 modalBody.innerHTML = `
                     <div class="error-content">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <p>${result.message || 'Mahsulot ma\'lumotlarini yuklashda xatolik'}</p>
+                        <p>${result.message || (window.t ? window.t('manufacturer.marketplace.errors.loadProductDataFailed') : 'Failed to load product data')}</p>
                     </div>
                 `;
             }
 
         } catch (error) {
-            console.error('🚨 Modal ochishda xatolik:', {
-                error: error.message,
-                stack: error.stack,
-                productId: productId
-            });
-            this.logger.error('❌ Show product details error:', error);
             const modalBody = document.getElementById('modalBody');
             if (modalBody) {
                 modalBody.innerHTML = `
                     <div class="error-content">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <p>Ma'lumotlarni yuklashda xatolik yuz berdi: ${error.message}</p>
+                        <p>${window.t ? window.t('manufacturer.marketplace.errors.loadDataFailed') : 'Failed to load data'}: ${error.message}</p>
                     </div>
                 `;
             }
@@ -895,7 +894,7 @@ class MarketplaceManager {
         };
         
         const formatPrice = (pricing) => {
-            if (!pricing || !pricing.basePrice) return 'Narx so\'raladi';
+            if (!pricing || !pricing.basePrice) return window.t ? window.t('manufacturer.marketplace.featuredProducts.priceOnRequest') : 'Price on Request';
             const currency = pricing.currency === 'USD' ? '$' : pricing.currency;
             return `${currency}${pricing.basePrice.toLocaleString()}`;
         };
@@ -921,7 +920,7 @@ class MarketplaceManager {
                                 class="modal-real-image"
                                 data-category="${getCategoryString(product.category)}"
                                 data-product-id="${product._id}"
-                                data-product-name="${product.name || 'Nomsiz mahsulot'}"
+                                data-product-name="${product.name || (window.t ? window.t('manufacturer.marketplace.featuredProducts.unnamedProduct') : 'Unnamed Product')}"
                                 onerror="handleImageError(this)">` :
                             `<img 
                                 src="${(() => {
@@ -932,23 +931,23 @@ class MarketplaceManager {
                                 class="modal-mock-image" 
                                 data-category="${getCategoryString(product.category)}"
                                 data-product-id="${product._id}"
-                                data-product-name="${product.name || 'Nomsiz mahsulot'}"
+                                data-product-name="${product.name || (window.t ? window.t('manufacturer.marketplace.featuredProducts.unnamedProduct') : 'Unnamed Product')}"
                                 onerror="handleImageError(this)"
                             >`
                         }
                     </div>
                     <div class="modal-product-info">
-                        <h3 class="modal-product-title">${product.name || 'Nomsiz mahsulot'}</h3>
+                        <h3 class="modal-product-title">${product.name || (window.t ? window.t('manufacturer.marketplace.featuredProducts.unnamedProduct') : 'Unnamed Product')}</h3>
                         <p class="modal-product-category">
                             <i class="fas fa-tag"></i>
-                            ${product.category?.name || product.category || 'Kategoriyasiz'}
+                            ${product.category?.name || product.category || (window.t ? window.t('manufacturer.marketplace.featuredProducts.noCategory') : 'No Category')}
                         </p>
                         <div class="modal-product-id">ID: ${product._id.toString().slice(-8).toUpperCase()}</div>
                         <div class="modal-product-price">
                             <span class="price-large">${formatPrice(product.pricing)}</span>
                             ${product.pricing?.minimumOrderQuantity ? 
-                                `<span class="moq-large">Eng kam: ${product.pricing.minimumOrderQuantity.toLocaleString()} dona</span>` : 
-                                '<span class="moq-large">Eng kam: 100 dona</span>'
+                                `<span class="moq-large">${window.t ? window.t('manufacturer.marketplace.featuredProducts.minimum') : 'Minimum'}: ${product.pricing.minimumOrderQuantity.toLocaleString()} ${window.t ? window.t('manufacturer.marketplace.featuredProducts.unit') : 'unit'}</span>` : 
+                                `<span class="moq-large">${window.t ? window.t('manufacturer.marketplace.featuredProducts.minimum') : 'Minimum'}: 100 ${window.t ? window.t('manufacturer.marketplace.featuredProducts.unit') : 'unit'}</span>`
                             }
                         </div>
                     </div>
@@ -957,14 +956,14 @@ class MarketplaceManager {
                 <!-- Product Description -->
                 ${product.description ? 
                     `<div class="modal-section">
-                        <h4 class="section-title">Ta'rif</h4>
+                        <h4 class="section-title">${window.t ? window.t('manufacturer.marketplace.modal.description') : 'Description'}</h4>
                         <p class="product-description">${product.description}</p>
                     </div>` : ''
                 }
 
                 <!-- Specifications -->
                 <div class="modal-section">
-                    <h4 class="section-title">Texnik xususiyatlar</h4>
+                    <h4 class="section-title">${window.t ? window.t('manufacturer.marketplace.modal.specifications') : 'Technical Specifications'}</h4>
                     <div class="specifications-grid">
                         ${formatSpecs(product.specifications)}
                     </div>
@@ -973,31 +972,31 @@ class MarketplaceManager {
                 <!-- Inventory & Shipping -->
                 <div class="modal-sections-grid">
                     <div class="modal-section">
-                        <h4 class="section-title">Ombor holati</h4>
+                        <h4 class="section-title">${window.t ? window.t('manufacturer.marketplace.modal.inventoryStatus') : 'Inventory Status'}</h4>
                         <div class="inventory-info">
                             <div class="inventory-item">
-                                <span class="inventory-label">Umumiy:</span>
-                                <span class="inventory-value">${product.inventory?.totalStock?.toLocaleString() || '0'} ${product.inventory?.unit || 'dona'}</span>
+                                <span class="inventory-label">${window.t ? window.t('manufacturer.marketplace.modal.total') : 'Total'}:</span>
+                                <span class="inventory-value">${product.inventory?.totalStock?.toLocaleString() || '0'} ${product.inventory?.unit || (window.t ? window.t('manufacturer.marketplace.featuredProducts.unit') : 'unit')}</span>
                             </div>
                             <div class="inventory-item">
-                                <span class="inventory-label">Mavjud:</span>
-                                <span class="inventory-value">${product.inventory?.availableStock?.toLocaleString() || '0'} ${product.inventory?.unit || 'dona'}</span>
+                                <span class="inventory-label">${window.t ? window.t('manufacturer.marketplace.modal.available') : 'Available'}:</span>
+                                <span class="inventory-value">${product.inventory?.availableStock?.toLocaleString() || '0'} ${product.inventory?.unit || (window.t ? window.t('manufacturer.marketplace.featuredProducts.unit') : 'unit')}</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="modal-section">
-                        <h4 class="section-title">Yetkazish</h4>
+                        <h4 class="section-title">${window.t ? window.t('manufacturer.marketplace.modal.shipping') : 'Shipping'}</h4>
                         <div class="shipping-info">
                             ${product.shipping?.leadTime ? 
                                 `<div class="shipping-item">
-                                    <span class="shipping-label">Muddat:</span>
-                                    <span class="shipping-value">${product.shipping.leadTime.min}-${product.shipping.leadTime.max} kun</span>
+                                    <span class="shipping-label">${window.t ? window.t('manufacturer.marketplace.modal.leadTime') : 'Lead Time'}:</span>
+                                    <span class="shipping-value">${product.shipping.leadTime.min}-${product.shipping.leadTime.max} ${window.t ? window.t('manufacturer.marketplace.modal.days') : 'days'}</span>
                                 </div>` : ''
                             }
                             ${product.shipping?.weight ? 
                                 `<div class="shipping-item">
-                                    <span class="shipping-label">Og'irlik:</span>
+                                    <span class="shipping-label">${window.t ? window.t('manufacturer.marketplace.modal.weight') : 'Weight'}:</span>
                                     <span class="shipping-value">${product.shipping.weight} kg</span>
                                 </div>` : ''
                             }
@@ -1007,34 +1006,34 @@ class MarketplaceManager {
 
                 <!-- Product Stats -->
                 <div class="modal-section">
-                    <h4 class="section-title">Statistika</h4>
+                    <h4 class="section-title">${window.t ? window.t('manufacturer.marketplace.modal.statistics') : 'Statistics'}</h4>
                     <div class="modal-stats-grid">
                         <div class="modal-stat">
                             <i class="fas fa-eye"></i>
                             <div class="stat-info">
                                 <span class="stat-value">${(product.views || 0).toLocaleString()}</span>
-                                <span class="stat-label">Ko'rishlar</span>
+                                <span class="stat-label">${window.t ? window.t('manufacturer.marketplace.modal.views') : 'Views'}</span>
                             </div>
                         </div>
                         <div class="modal-stat">
                             <i class="fas fa-star"></i>
                             <div class="stat-info">
                                 <span class="stat-value">${product.rating || 4.5}</span>
-                                <span class="stat-label">Reyting</span>
+                                <span class="stat-label">${window.t ? window.t('manufacturer.marketplace.modal.rating') : 'Rating'}</span>
                             </div>
                         </div>
                         <div class="modal-stat">
                             <i class="fas fa-shopping-cart"></i>
                             <div class="stat-info">
                                 <span class="stat-value">${product.orderCount || 0}</span>
-                                <span class="stat-label">Buyurtmalar</span>
+                                <span class="stat-label">${window.t ? window.t('manufacturer.marketplace.modal.orders') : 'Orders'}</span>
                             </div>
                         </div>
                         <div class="modal-stat">
                             <i class="fas fa-calendar-plus"></i>
                             <div class="stat-info">
-                                <span class="stat-value">${product.createdAt ? new Date(product.createdAt).toLocaleDateString('uz-UZ') : 'Noma\'lum'}</span>
-                                <span class="stat-label">Yaratilgan</span>
+                                <span class="stat-value">${product.createdAt ? new Date(product.createdAt).toLocaleDateString('uz-UZ') : (window.t ? window.t('manufacturer.marketplace.modal.unknown') : 'Unknown')}</span>
+                                <span class="stat-label">${window.t ? window.t('manufacturer.marketplace.modal.created') : 'Created'}</span>
                             </div>
                         </div>
                     </div>
@@ -1044,11 +1043,11 @@ class MarketplaceManager {
                 <div class="modal-actions">
                     <button class="btn-modal btn-primary" onclick="window.location.href='/manufacturer/products/edit/${product._id}'">
                         <i class="fas fa-edit"></i>
-                        Tahrirlash
+                        ${window.t ? window.t('manufacturer.marketplace.featuredProducts.edit') : 'Edit'}
                     </button>
                     <button class="btn-modal btn-secondary" onclick="window.location.href='/manufacturer/products/${product._id}/analytics'">
                         <i class="fas fa-chart-line"></i>
-                        Tahlil
+                        ${window.t ? window.t('manufacturer.marketplace.modal.analytics') : 'Analytics'}
                     </button>
                     <button class="btn-modal btn-outline" onclick="document.getElementById('productDetailsModal').classList.remove('active')">
                         <i class="fas fa-times"></i>

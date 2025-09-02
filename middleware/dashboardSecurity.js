@@ -27,7 +27,7 @@ class DashboardSecurityMiddleware {
             '/distributor': {
                 allowedUserTypes: ['user'],
                 allowedRoles: ['company_admin'],
-                requiredCompanyTypes: ['distributor'],
+                requiredCompanyTypes: ['distributor', 'buyer', 'customer'],
                 requiredPermissions: []
             }
         };
@@ -173,6 +173,7 @@ class DashboardSecurityMiddleware {
     validateApiAccess = (requiredDashboard) => {
         return async (req, res, next) => {
             try {
+                
                 if (!req.user) {
                     return res.status(401).json({
                         success: false,
@@ -181,11 +182,23 @@ class DashboardSecurityMiddleware {
                     });
                 }
 
+                // Fix: Use correct user ID extraction
+                const userId = req.user._id || req.user.userId;
+
+                if (!userId) {
+                    return res.status(401).json({
+                        success: false,
+                        message: 'User ID not found in authentication data',
+                        code: 'INVALID_USER_DATA'
+                    });
+                }
+
                 // Check if user has access to the required dashboard
                 const userDashboardRoute = MultiDashboardAuthService.getDashboardRoute(req.user);
                 const expectedRoute = `/${requiredDashboard}/dashboard`;
-
+                
                 if (!userDashboardRoute.startsWith(`/${requiredDashboard}`)) {
+                    
                     return res.status(403).json({
                         success: false,
                         message: `API access denied. This endpoint requires ${requiredDashboard} dashboard access.`,
@@ -193,11 +206,10 @@ class DashboardSecurityMiddleware {
                         userDashboard: userDashboardRoute.split('/')[1]
                     });
                 }
-
                 next();
 
             } catch (error) {
-                this.logger.error('❌ API access validation error:', error);
+                console.error('❌ API access validation error:', error);
                 return res.status(500).json({
                     success: false,
                     message: 'API security validation failed',

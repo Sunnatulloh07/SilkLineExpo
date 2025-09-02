@@ -1,5 +1,10 @@
 <%- include('../partials/header', { title: t('buyer.settings.title') + ' - SLEX', lng: lng, user: user }) %>
-<%- include('../partials/navigation') %>
+<%- include('../partials/navigation', { 
+  cartItemsCount: cartItemsCount || 0, 
+  activeOrdersCount: activeOrdersCount || 0, 
+  unreadMessagesCount: unreadMessagesCount || 0,
+  favoritesCount: favoritesCount || 0 
+}) %>
 
 <!-- Buyer Settings Page - Professional B2B Style -->
 <main class="main-wrapper buyer-settings-wrapper position-relative z-index-1">
@@ -109,7 +114,7 @@
                     </label>
                     <input type="text" name="companyName" class="form-control" 
                            value="<%= currentUser.companyName || '' %>" 
-                           placeholder="Enter your company name" required>
+                           placeholder="<%= t('buyer.settings.profile.companyNamePlaceholder') || 'Enter your company name' %>" required>
                   </div>
 
                   <div class="form-group">
@@ -118,7 +123,7 @@
                     </label>
                     <input type="text" name="contactPerson" class="form-control" 
                            value="<%= currentUser.contactPerson || '' %>" 
-                           placeholder="Primary contact person">
+                           placeholder="<%= t('buyer.settings.profile.contactPersonPlaceholder') || 'Primary contact person' %>">
                   </div>
 
                   <div class="form-group">
@@ -127,7 +132,7 @@
                     </label>
                     <input type="email" name="email" class="form-control" 
                            value="<%= currentUser.email || '' %>" 
-                           placeholder="your@email.com" required>
+                           placeholder="<%= t('buyer.settings.profile.emailPlaceholder') || 'your@email.com' %>" required>
                   </div>
 
                   <div class="form-group">
@@ -136,7 +141,7 @@
                     </label>
                     <input type="tel" name="phone" class="form-control" 
                            value="<%= currentUser.phone || '' %>" 
-                           placeholder="+998 90 123 45 67">
+                           placeholder="<%= t('buyer.settings.profile.phonePlaceholder') || '+998 90 123 45 67' %>">
                   </div>
 
                   <div class="form-group">
@@ -144,12 +149,93 @@
                       <%= t('buyer.settings.profile.country') || 'Country' %>
                     </label>
                     <select name="country" class="form-control">
-                      <option value="">Select Country</option>
-                      <option value="UZ" <%= currentUser.country === 'UZ' ? 'selected' : '' %>>🇺🇿 Uzbekistan</option>
-                      <option value="US" <%= currentUser.country === 'US' ? 'selected' : '' %>>🇺🇸 United States</option>
-                      <option value="RU" <%= currentUser.country === 'RU' ? 'selected' : '' %>>🇷🇺 Russia</option>
-                      <option value="TR" <%= currentUser.country === 'TR' ? 'selected' : '' %>>🇹🇷 Turkey</option>
-                      <option value="CN" <%= currentUser.country === 'CN' ? 'selected' : '' %>>🇨🇳 China</option>
+                      <option value=""><%= t('buyer.settings.profile.selectCountry') || 'Select Country' %></option>
+                      <option value="UZ" <%= currentUser.country === 'Uzbekistan' ? 'selected' : '' %>>🇺🇿 Uzbekistan</option>
+                      <option value="US" <%= currentUser.country === 'United States' ? 'selected' : '' %>>🇺🇸 United States</option>
+                      <option value="RU" <%= currentUser.country === 'Russia' ? 'selected' : '' %>>🇷🇺 Russia</option>
+                      <option value="TR" <%= currentUser.country === 'Turkey' ? 'selected' : '' %>>🇹🇷 Turkey</option>
+                      <option value="CN" <%= currentUser.country === 'China' ? 'selected' : '' %>>🇨🇳 China</option>
+                      <option value="KZ" <%= currentUser.country === 'Kazakhstan' ? 'selected' : '' %>>🇰🇿 Kazakhstan</option>
+                      <option value="KG" <%= currentUser.country === 'Kyrgyzstan' ? 'selected' : '' %>>🇰🇬 Kyrgyzstan</option>
+                      <option value="TJ" <%= currentUser.country === 'Tajikistan' ? 'selected' : '' %>>🇹🇯 Tajikistan</option>
+                      <option value="TM" <%= currentUser.country === 'Turkmenistan' ? 'selected' : '' %>>🇹🇲 Turkmenistan</option>
+                      <option value="AF" <%= currentUser.country === 'Afghanistan' ? 'selected' : '' %>>🇦🇫 Afghanistan</option>
+                      <option value="IR" <%= currentUser.country === 'Iran' ? 'selected' : '' %>>🇮🇷 Iran</option>
+                      <option value="PK" <%= currentUser.country === 'Pakistan' ? 'selected' : '' %>>🇵🇰 Pakistan</option>
+                      <option value="IN" <%= currentUser.country === 'India' ? 'selected' : '' %>>🇮🇳 India</option>
+                      <option value="MN" <%= currentUser.country === 'Mongolia' ? 'selected' : '' %>>🇲🇳 Mongolia</option>
+                      <option value="AZ" <%= currentUser.country === 'Azerbaijan' ? 'selected' : '' %>>🇦🇿 Azerbaijan</option>
+                      <option value="GE" <%= currentUser.country === 'Georgia' ? 'selected' : '' %>>🇬🇪 Georgia</option>
+                      <option value="AM" <%= currentUser.country === 'Armenia' ? 'selected' : '' %>>🇦🇲 Armenia</option>
+                      <option value="GB" <%= currentUser.country === 'United Kingdom' ? 'selected' : '' %>>🇬🇧 United Kingdom</option>
+                      <option value="DE" <%= currentUser.country === 'Germany' ? 'selected' : '' %>>🇩🇪 Germany</option>
+                      <option value="FR" <%= currentUser.country === 'France' ? 'selected' : '' %>>🇫🇷 France</option>
+                      <option value="IT" <%= currentUser.country === 'Italy' ? 'selected' : '' %>>🇮🇹 Italy</option>
+                      <option value="ES" <%= currentUser.country === 'Spain' ? 'selected' : '' %>>🇪🇸 Spain</option>
+                      <option value="NL" <%= currentUser.country === 'Netherlands' ? 'selected' : '' %>>🇳🇱 Netherlands</option>
+                      <option value="BE" <%= currentUser.country === 'Belgium' ? 'selected' : '' %>>🇧🇪 Belgium</option>
+                      <option value="CH" <%= currentUser.country === 'Switzerland' ? 'selected' : '' %>>🇨🇭 Switzerland</option>
+                      <option value="AT" <%= currentUser.country === 'Austria' ? 'selected' : '' %>>🇦🇹 Austria</option>
+                      <option value="SE" <%= currentUser.country === 'Sweden' ? 'selected' : '' %>>🇸🇪 Sweden</option>
+                      <option value="NO" <%= currentUser.country === 'Norway' ? 'selected' : '' %>>🇳🇴 Norway</option>
+                      <option value="DK" <%= currentUser.country === 'Denmark' ? 'selected' : '' %>>🇩🇰 Denmark</option>
+                      <option value="FI" <%= currentUser.country === 'Finland' ? 'selected' : '' %>>🇫🇮 Finland</option>
+                      <option value="PL" <%= currentUser.country === 'Poland' ? 'selected' : '' %>>🇵🇱 Poland</option>
+                      <option value="CZ" <%= currentUser.country === 'Czech Republic' ? 'selected' : '' %>>🇨🇿 Czech Republic</option>
+                      <option value="HU" <%= currentUser.country === 'Hungary' ? 'selected' : '' %>>🇭🇺 Hungary</option>
+                      <option value="RO" <%= currentUser.country === 'Romania' ? 'selected' : '' %>>🇷🇴 Romania</option>
+                      <option value="BG" <%= currentUser.country === 'Bulgaria' ? 'selected' : '' %>>🇧🇬 Bulgaria</option>
+                      <option value="GR" <%= currentUser.country === 'Greece' ? 'selected' : '' %>>🇬🇷 Greece</option>
+                      <option value="PT" <%= currentUser.country === 'Portugal' ? 'selected' : '' %>>🇵🇹 Portugal</option>
+                      <option value="IE" <%= currentUser.country === 'Ireland' ? 'selected' : '' %>>🇮🇪 Ireland</option>
+                      <option value="CA" <%= currentUser.country === 'Canada' ? 'selected' : '' %>>🇨🇦 Canada</option>
+                      <option value="AU" <%= currentUser.country === 'Australia' ? 'selected' : '' %>>🇦🇺 Australia</option>
+                      <option value="JP" <%= currentUser.country === 'Japan' ? 'selected' : '' %>>🇯🇵 Japan</option>
+                      <option value="KR" <%= currentUser.country === 'South Korea' ? 'selected' : '' %>>🇰🇷 South Korea</option>
+                      <option value="SG" <%= currentUser.country === 'Singapore' ? 'selected' : '' %>>🇸🇬 Singapore</option>
+                      <option value="MY" <%= currentUser.country === 'Malaysia' ? 'selected' : '' %>>🇲🇾 Malaysia</option>
+                      <option value="TH" <%= currentUser.country === 'Thailand' ? 'selected' : '' %>>🇹🇭 Thailand</option>
+                      <option value="VN" <%= currentUser.country === 'Vietnam' ? 'selected' : '' %>>🇻🇳 Vietnam</option>
+                      <option value="PH" <%= currentUser.country === 'Philippines' ? 'selected' : '' %>>🇵🇭 Philippines</option>
+                      <option value="ID" <%= currentUser.country === 'Indonesia' ? 'selected' : '' %>>🇮🇩 Indonesia</option>
+                      <option value="BR" <%= currentUser.country === 'Brazil' ? 'selected' : '' %>>🇧🇷 Brazil</option>
+                      <option value="AR" <%= currentUser.country === 'Argentina' ? 'selected' : '' %>>🇦🇷 Argentina</option>
+                      <option value="CL" <%= currentUser.country === 'Chile' ? 'selected' : '' %>>🇨🇱 Chile</option>
+                      <option value="MX" <%= currentUser.country === 'Mexico' ? 'selected' : '' %>>🇲🇽 Mexico</option>
+                      <option value="CO" <%= currentUser.country === 'Colombia' ? 'selected' : '' %>>🇨🇴 Colombia</option>
+                      <option value="PE" <%= currentUser.country === 'Peru' ? 'selected' : '' %>>🇵🇪 Peru</option>
+                      <option value="VE" <%= currentUser.country === 'Venezuela' ? 'selected' : '' %>>🇻🇪 Venezuela</option>
+                      <option value="ZA" <%= currentUser.country === 'South Africa' ? 'selected' : '' %>>🇿🇦 South Africa</option>
+                      <option value="EG" <%= currentUser.country === 'Egypt' ? 'selected' : '' %>>🇪🇬 Egypt</option>
+                      <option value="MA" <%= currentUser.country === 'Morocco' ? 'selected' : '' %>>🇲🇦 Morocco</option>
+                      <option value="NG" <%= currentUser.country === 'Nigeria' ? 'selected' : '' %>>🇳🇬 Nigeria</option>
+                      <option value="KE" <%= currentUser.country === 'Kenya' ? 'selected' : '' %>>🇰🇪 Kenya</option>
+                      <option value="GH" <%= currentUser.country === 'Ghana' ? 'selected' : '' %>>🇬🇭 Ghana</option>
+                      <option value="ET" <%= currentUser.country === 'Ethiopia' ? 'selected' : '' %>>🇪🇹 Ethiopia</option>
+                      <option value="UG" <%= currentUser.country === 'Uganda' ? 'selected' : '' %>>🇺🇬 Uganda</option>
+                      <option value="TZ" <%= currentUser.country === 'Tanzania' ? 'selected' : '' %>>🇹🇿 Tanzania</option>
+                      <option value="DZ" <%= currentUser.country === 'Algeria' ? 'selected' : '' %>>🇩🇿 Algeria</option>
+                      <option value="TN" <%= currentUser.country === 'Tunisia' ? 'selected' : '' %>>🇹🇳 Tunisia</option>
+                      <option value="LY" <%= currentUser.country === 'Libya' ? 'selected' : '' %>>🇱🇾 Libya</option>
+                      <option value="SD" <%= currentUser.country === 'Sudan' ? 'selected' : '' %>>🇸🇩 Sudan</option>
+                      <option value="SO" <%= currentUser.country === 'Somalia' ? 'selected' : '' %>>🇸🇴 Somalia</option>
+                      <option value="DJ" <%= currentUser.country === 'Djibouti' ? 'selected' : '' %>>🇩🇯 Djibouti</option>
+                      <option value="ER" <%= currentUser.country === 'Eritrea' ? 'selected' : '' %>>🇪🇷 Eritrea</option>
+                      <option value="YE" <%= currentUser.country === 'Yemen' ? 'selected' : '' %>>🇾🇪 Yemen</option>
+                      <option value="OM" <%= currentUser.country === 'Oman' ? 'selected' : '' %>>🇴🇲 Oman</option>
+                      <option value="AE" <%= currentUser.country === 'UAE' ? 'selected' : '' %>>🇦🇪 UAE</option>
+                      <option value="QA" <%= currentUser.country === 'Qatar' ? 'selected' : '' %>>🇶🇦 Qatar</option>
+                      <option value="KW" <%= currentUser.country === 'Kuwait' ? 'selected' : '' %>>🇰🇼 Kuwait</option>
+                      <option value="BH" <%= currentUser.country === 'Bahrain' ? 'selected' : '' %>>🇧🇭 Bahrain</option>
+                      <option value="SA" <%= currentUser.country === 'Saudi Arabia' ? 'selected' : '' %>>🇸🇦 Saudi Arabia</option>
+                      <option value="JO" <%= currentUser.country === 'Jordan' ? 'selected' : '' %>>🇯🇴 Jordan</option>
+                      <option value="LB" <%= currentUser.country === 'Lebanon' ? 'selected' : '' %>>🇱🇧 Lebanon</option>
+                      <option value="SY" <%= currentUser.country === 'Syria' ? 'selected' : '' %>>🇸🇾 Syria</option>
+                      <option value="IQ" <%= currentUser.country === 'Iraq' ? 'selected' : '' %>>🇮🇶 Iraq</option>
+                      <option value="IL" <%= currentUser.country === 'Israel' ? 'selected' : '' %>>🇮🇱 Israel</option>
+                      <option value="PS" <%= currentUser.country === 'Palestine' ? 'selected' : '' %>>🇵🇸 Palestine</option>
+                      <option value="CY" <%= currentUser.country === 'Cyprus' ? 'selected' : '' %>>🇨🇾 Cyprus</option>
+                      <option value="MT" <%= currentUser.country === 'Malta' ? 'selected' : '' %>>🇲🇹 Malta</option>
                     </select>
                   </div>
 
@@ -158,7 +244,7 @@
                       <%= t('buyer.settings.profile.address') || 'Business Address' %>
                     </label>
                     <textarea name="address" class="form-control" rows="3" 
-                              placeholder="Enter your full business address"><%= currentUser.address || '' %></textarea>
+                              placeholder="<%= t('buyer.settings.profile.addressPlaceholder') || 'Enter your full business address' %>"><%= currentUser.address || '' %></textarea>
                   </div>
                 </div>
               </div>
@@ -195,12 +281,12 @@
                     <%= t('buyer.settings.account.language') || 'Language' %>
                   </label>
                   <select id="language-select" class="form-control">
-                    <option value="uz" <%= lng === 'uz' ? 'selected' : '' %>>🇺🇿 O'zbekcha</option>
-                    <option value="en" <%= lng === 'en' ? 'selected' : '' %>>🇺🇸 English</option>
-                    <option value="ru" <%= lng === 'ru' ? 'selected' : '' %>>🇷🇺 Русский</option>
-                    <option value="tr" <%= lng === 'tr' ? 'selected' : '' %>>🇹🇷 Türkçe</option>
-                    <option value="fa" <%= lng === 'fa' ? 'selected' : '' %>>🇮🇷 فارسی</option>
-                    <option value="zh" <%= lng === 'zh' ? 'selected' : '' %>>🇨🇳 中文</option>
+                    <option value="uz" <%= lng === 'uz' ? 'selected' : '' %>><%= t('buyer.settings.preferences.languages.uzbek') || '🇺🇿 O\'zbekcha' %></option>
+                    <option value="en" <%= lng === 'en' ? 'selected' : '' %>><%= t('buyer.settings.preferences.languages.english') || '🇺🇸 English' %></option>
+                    <option value="ru" <%= lng === 'ru' ? 'selected' : '' %>><%= t('buyer.settings.preferences.languages.russian') || '🇷🇺 Русский' %></option>
+                    <option value="tr" <%= lng === 'tr' ? 'selected' : '' %>><%= t('buyer.settings.preferences.languages.turkish') || '🇹🇷 Türkçe' %></option>
+                    <option value="fa" <%= lng === 'fa' ? 'selected' : '' %>><%= t('buyer.settings.preferences.languages.persian') || '🇮🇷 فارسی' %></option>
+                    <option value="zh" <%= lng === 'zh' ? 'selected' : '' %>><%= t('buyer.settings.preferences.languages.chinese') || '🇨🇳 中文' %></option>
                   </select>
                 </div>
 
@@ -209,11 +295,11 @@
                     <%= t('buyer.settings.account.timezone') || 'Timezone' %>
                   </label>
                   <select name="timezone" class="form-control">
-                    <option value="Asia/Tashkent" selected>Asia/Tashkent (UTC+5)</option>
-                    <option value="UTC">UTC (UTC+0)</option>
-                    <option value="America/New_York">America/New_York (UTC-5)</option>
-                    <option value="Europe/London">Europe/London (UTC+0)</option>
-                    <option value="Asia/Shanghai">Asia/Shanghai (UTC+8)</option>
+                    <option value="Asia/Tashkent" selected><%= t('buyer.settings.preferences.timezones.tashkent') || 'Asia/Tashkent (UTC+5)' %></option>
+                    <option value="UTC"><%= t('buyer.settings.preferences.timezones.utc') || 'UTC (UTC+0)' %></option>
+                    <option value="America/New_York"><%= t('buyer.settings.preferences.timezones.newyork') || 'America/New_York (UTC-5)' %></option>
+                    <option value="Europe/London"><%= t('buyer.settings.preferences.timezones.london') || 'Europe/London (UTC+0)' %></option>
+                    <option value="Asia/Shanghai"><%= t('buyer.settings.preferences.timezones.shanghai') || 'Asia/Shanghai (UTC+8)' %></option>
                   </select>
                 </div>
 
@@ -222,11 +308,11 @@
                     <%= t('buyer.settings.preferences.currency') || 'Preferred Currency' %>
                   </label>
                   <select name="currency" class="form-control">
-                    <option value="UZS" selected>UZS - Uzbek Som</option>
-                    <option value="USD">USD - US Dollar</option>
-                    <option value="EUR">EUR - Euro</option>
-                    <option value="RUB">RUB - Russian Ruble</option>
-                    <option value="CNY">CNY - Chinese Yuan</option>
+                    <option value="UZS" selected><%= t('buyer.settings.preferences.currencies.uzs') || 'UZS - Uzbek Som' %></option>
+                    <option value="USD"><%= t('buyer.settings.preferences.currencies.usd') || 'USD - US Dollar' %></option>
+                    <option value="EUR"><%= t('buyer.settings.preferences.currencies.eur') || 'EUR - Euro' %></option>
+                    <option value="RUB"><%= t('buyer.settings.preferences.currencies.rub') || 'RUB - Russian Ruble' %></option>
+                    <option value="CNY"><%= t('buyer.settings.preferences.currencies.cny') || 'CNY - Chinese Yuan' %></option>
                   </select>
                 </div>
               </div>
@@ -263,24 +349,74 @@
                     <label class="form-label text-heading">
                       <%= t('buyer.settings.security.currentPassword') || 'Current Password' %>
                     </label>
-                    <input type="password" name="currentPassword" class="form-control" 
-                           placeholder="Enter your current password" required>
+                    <div class="password-input-wrapper">
+                      <input type="password" name="currentPassword" id="currentPassword" class="form-control" 
+                             placeholder="<%= t('buyer.settings.security.currentPasswordPlaceholder') || 'Enter your current password' %>" required>
+                      <button type="button" class="password-toggle-btn" data-target="currentPassword">
+                        <i class="las la-eye"></i>
+                      </button>
+                    </div>
                   </div>
 
                   <div class="form-group">
                     <label class="form-label text-heading">
                       <%= t('buyer.settings.security.newPassword') || 'New Password' %>
                     </label>
-                    <input type="password" name="newPassword" class="form-control" 
-                           placeholder="Enter new password" required>
+                    <div class="password-input-wrapper">
+                      <input type="password" name="newPassword" id="newPassword" class="form-control" 
+                             placeholder="<%= t('buyer.settings.security.newPasswordPlaceholder') || 'Enter new password' %>" required>
+                      <button type="button" class="password-toggle-btn" data-target="newPassword">
+                        <i class="las la-eye"></i>
+                      </button>
+                      <button type="button" class="password-generate-btn" data-target="newPassword">
+                        <i class="las la-magic"></i>
+                      </button>
+                    </div>
+                    <div class="password-strength-meter">
+                      <div class="strength-bar">
+                        <div class="strength-fill" id="newPasswordStrength"></div>
+                      </div>
+                      <span class="strength-text" id="newPasswordStrengthText"><%= t('buyer.settings.security.passwordStrength') || 'Password strength' %></span>
+                    </div>
+                    <div class="password-requirements" id="newPasswordRequirements">
+                      <div class="requirement" data-requirement="length">
+                        <i class="las la-circle"></i>
+                        <span><%= t('buyer.settings.security.requirementLength') || 'At least 8 characters' %></span>
+                      </div>
+                      <div class="requirement" data-requirement="uppercase">
+                        <i class="las la-circle"></i>
+                        <span><%= t('buyer.settings.security.requirementUppercase') || 'One uppercase letter' %></span>
+                      </div>
+                      <div class="requirement" data-requirement="lowercase">
+                        <i class="las la-circle"></i>
+                        <span><%= t('buyer.settings.security.requirementLowercase') || 'One lowercase letter' %></span>
+                      </div>
+                      <div class="requirement" data-requirement="number">
+                        <i class="las la-circle"></i>
+                        <span><%= t('buyer.settings.security.requirementNumber') || 'One number' %></span>
+                      </div>
+                      <div class="requirement" data-requirement="special">
+                        <i class="las la-circle"></i>
+                        <span><%= t('buyer.settings.security.requirementSpecial') || 'One special character' %></span>
+                      </div>
+                    </div>
                   </div>
 
                   <div class="form-group">
                     <label class="form-label text-heading">
                       <%= t('buyer.settings.security.confirmPassword') || 'Confirm New Password' %>
                     </label>
-                    <input type="password" name="confirmPassword" class="form-control" 
-                           placeholder="Confirm your new password" required>
+                    <div class="password-input-wrapper">
+                      <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" 
+                             placeholder="<%= t('buyer.settings.security.confirmPasswordPlaceholder') || 'Confirm your new password' %>" required>
+                      <button type="button" class="password-toggle-btn" data-target="confirmPassword">
+                        <i class="las la-eye"></i>
+                      </button>
+                    </div>
+                    <div class="password-match-indicator" id="passwordMatchIndicator">
+                      <i class="las la-circle"></i>
+                      <span><%= t('buyer.settings.security.passwordsMustMatch') || 'Passwords must match' %></span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -299,107 +435,102 @@
 
         <!-- Notification Settings -->
         <div id="notifications-section" class="settings-section section-bg">
-          <form id="notifications-form" action="/buyer/api/settings/notifications" method="POST">
-            <div class="settings-card">
-              <div class="card-header">
-                <h3 class="card-title text-heading flx-align gap-2">
-                  <i class="las la-envelope text-main"></i>
-                  <%= t('buyer.settings.notifications.title') || 'Email Notifications' %>
-                </h3>
-                <p class="card-description text-gray-600">
-                  <%= t('buyer.settings.notifications.description') || 'Choose how and when you want to receive notifications' %>
-                </p>
-              </div>
-              
-              <div class="card-body">
-                <div class="notification-settings">
-                  <div class="notification-item">
-                    <div class="notification-info">
-                      <h4 class="text-heading">
-                        <%= t('buyer.settings.notifications.email') || 'Order Updates' %>
-                      </h4>
-                      <p class="text-gray-600">
-                        <%= t('buyer.settings.notifications.emailDescription') || 'Receive notifications about your order status and delivery updates' %>
-                      </p>
-                    </div>
-                    <label class="toggle-switch">
-                      <input type="checkbox" name="emailNotifications" <%= currentUser.emailNotifications !== false ? 'checked' : '' %>>
-                      <span class="toggle-slider"></span>
-                    </label>
+          <div class="settings-card">
+            <div class="card-header">
+              <h3 class="card-title text-heading flx-align gap-2">
+                <i class="las la-envelope text-main"></i>
+                <%= t('buyer.settings.notifications.title') || 'Email Notifications' %>
+              </h3>
+              <p class="card-description text-gray-600">
+                <%= t('buyer.settings.notifications.description') || 'Choose how and when you want to receive notifications' %>
+              </p>
+            </div>
+            
+            <div class="card-body">
+              <div class="notification-settings">
+                <div class="notification-item">
+                  <div class="notification-info">
+                    <h4 class="text-heading">
+                      <%= t('buyer.settings.notifications.email') || 'Email Notifications' %>
+                    </h4>
+                    <p class="text-gray-600">
+                      <%= t('buyer.settings.notifications.emailDescription') || 'Receive notifications about your order status and delivery updates' %>
+                    </p>
                   </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="emailNotifications" data-setting="emailNotifications" <%= (currentUser.emailNotifications === true || currentUser.emailNotifications === 'true') ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
 
-                  <div class="notification-item">
-                    <div class="notification-info">
-                      <h4 class="text-heading">
-                        <%= t('buyer.settings.notifications.orderUpdates') || 'Order Updates' %>
-                      </h4>
-                      <p class="text-gray-600">
-                        <%= t('buyer.settings.notifications.orderUpdatesDescription') || 'Get notified about order status changes, shipping updates, and deliveries' %>
-                      </p>
-                    </div>
-                    <label class="toggle-switch">
-                      <input type="checkbox" name="orderUpdates" <%= currentUser.orderUpdates === true ? 'checked' : '' %>>
-                      <span class="toggle-slider"></span>
-                    </label>
+                <div class="notification-item">
+                  <div class="notification-info">
+                    <h4 class="text-heading">
+                      <%= t('buyer.settings.notifications.orderUpdates') || 'Order Updates' %>
+                    </h4>
+                    <p class="text-gray-600">
+                      <%= t('buyer.settings.notifications.orderUpdatesDescription') || 'Get notified about order status changes, shipping updates, and deliveries' %>
+                    </p>
                   </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="orderUpdates" data-setting="orderUpdates" <%= (currentUser.orderUpdates === true || currentUser.orderUpdates === 'true') ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
 
-                  <div class="notification-item">
-                    <div class="notification-info">
-                      <h4 class="text-heading">
-                        <%= t('buyer.settings.notifications.marketing') || 'Marketing Communications' %>
-                      </h4>
-                      <p class="text-gray-600">
-                        <%= t('buyer.settings.notifications.marketingDescription') || 'Receive promotional offers, new product announcements, and market insights' %>
-                      </p>
-                    </div>
-                    <label class="toggle-switch">
-                      <input type="checkbox" name="marketingEmails" <%= currentUser.marketingEmails === true ? 'checked' : '' %>>
-                      <span class="toggle-slider"></span>
-                    </label>
+                <div class="notification-item">
+                  <div class="notification-info">
+                    <h4 class="text-heading">
+                      <%= t('buyer.settings.notifications.marketing') || 'Marketing Communications' %>
+                    </h4>
+                    <p class="text-gray-600">
+                      <%= t('buyer.settings.notifications.marketingDescription') || 'Receive promotional offers, new product announcements, and market insights' %>
+                    </p>
                   </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="marketingEmails" data-setting="marketingEmails" <%= (currentUser.marketingEmails === true || currentUser.marketingEmails === 'true') ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
 
-                  <div class="notification-item">
-                    <div class="notification-info">
-                      <h4 class="text-heading">
-                        <%= t('buyer.settings.notifications.priceAlerts') || 'Price Alerts' %>
-                      </h4>
-                      <p class="text-gray-600">
-                        <%= t('buyer.settings.notifications.priceAlertsDescription') || 'Get notified when product prices change or special discounts are available' %>
-                      </p>
-                    </div>
-                    <label class="toggle-switch">
-                      <input type="checkbox" name="priceAlerts" <%= currentUser.priceAlerts === true ? 'checked' : '' %>>
-                      <span class="toggle-slider"></span>
-                    </label>
+                <div class="notification-item">
+                  <div class="notification-info">
+                    <h4 class="text-heading">
+                      <%= t('buyer.settings.notifications.priceAlerts') || 'Price Alerts' %>
+                    </h4>
+                    <p class="text-gray-600">
+                      <%= t('buyer.settings.notifications.priceAlertsDescription') || 'Get notified when product prices change or special discounts are available' %>
+                    </p>
                   </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="priceAlerts" data-setting="priceAlerts" <%= (currentUser.priceAlerts === true || currentUser.priceAlerts === 'true') ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
 
-                  <div class="notification-item">
-                    <div class="notification-info">
-                      <h4 class="text-heading">
-                        <%= t('buyer.settings.notifications.weeklyDigest') || 'Weekly Digest' %>
-                      </h4>
-                      <p class="text-gray-600">
-                        <%= t('buyer.settings.notifications.weeklyDigestDescription') || 'Receive a weekly summary of new products, market trends, and platform updates' %>
-                      </p>
-                    </div>
-                    <label class="toggle-switch">
-                      <input type="checkbox" name="weeklyDigest" <%= currentUser.weeklyDigest === true ? 'checked' : '' %>>
-                      <span class="toggle-slider"></span>
-                    </label>
+                <div class="notification-item">
+                  <div class="notification-info">
+                    <h4 class="text-heading">
+                      <%= t('buyer.settings.notifications.weeklyDigest') || 'Weekly Digest' %>
+                    </h4>
+                    <p class="text-gray-600">
+                      <%= t('buyer.settings.notifications.weeklyDigestDescription') || 'Receive a weekly summary of new products, market trends, and platform updates' %>
+                    </p>
                   </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="weeklyDigest" data-setting="weeklyDigest" <%= (currentUser.weeklyDigest === true || currentUser.weeklyDigest === 'true') ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                  </label>
                 </div>
               </div>
-              
-              <div class="card-footer">
-                <button type="submit" class="btn btn-main pill">
-                  <span class="icon-left icon">
-                    <i class="las la-save"></i>
-                  </span>
-                  <%= t('buyer.settings.save') || 'Save Preferences' %>
-                </button>
+            </div>
+            
+            <div class="card-footer">
+              <div class="notification-status">
+                <span class="status-text" id="notification-status"></span>
               </div>
             </div>
-          </form>
+          </div>
         </div>
 
         <!-- Preferences Settings -->
@@ -490,10 +621,10 @@
                     <%= t('buyer.settings.preferences.currency') || 'Currency' %>
                   </label>
                   <select name="currency" class="form-control">
-                    <option value="USD" <%= (user.preferences?.currency === 'USD') ? 'selected' : '' %>>USD - US Dollar</option>
-                    <option value="UZS" <%= (user.preferences?.currency === 'UZS') ? 'selected' : '' %>>UZS - O'zbek so'mi</option>
-                    <option value="EUR" <%= (user.preferences?.currency === 'EUR') ? 'selected' : '' %>>EUR - Euro</option>
-                    <option value="RUB" <%= (user.preferences?.currency === 'RUB') ? 'selected' : '' %>>RUB - Russian Ruble</option>
+                                    <option value="USD" <%= (user.preferences?.currency === 'USD') ? 'selected' : '' %>><%= t('buyer.settings.preferences.currencies.usd') || 'USD - US Dollar' %></option>
+                <option value="UZS" <%= (user.preferences?.currency === 'UZS') ? 'selected' : '' %>><%= t('buyer.settings.preferences.currencies.uzs') || 'UZS - O\'zbek so\'mi' %></option>
+                <option value="EUR" <%= (user.preferences?.currency === 'EUR') ? 'selected' : '' %>><%= t('buyer.settings.preferences.currencies.eur') || 'EUR - Euro' %></option>
+                <option value="RUB" <%= (user.preferences?.currency === 'RUB') ? 'selected' : '' %>><%= t('buyer.settings.preferences.currencies.rub') || 'RUB - Russian Ruble' %></option>
                   </select>
                 </div>
 
@@ -794,15 +925,11 @@
   padding: 1rem;
   border: 1px solid hsl(var(--border-color));
   border-radius: var(--border-radius-sm, 8px);
-  background: hsl(var(--gray-one));
+  border-color: hsl(var(--main));
+  background: hsl(var(--static-white));
   transition: all 0.3s ease;
 }
 
-.notification-item:hover,
-.preference-item:hover {
-  border-color: hsl(var(--main));
-  background: hsl(var(--static-white));
-}
 
 .notification-info h4,
 .preference-info h4 {
@@ -818,43 +945,194 @@
   line-height: 1.4;
 }
 
-/* Toggle Switch */
+/* Professional Toggle Switch */
 .toggle-switch {
   position: relative;
   width: 50px;
   height: 26px;
-  background: hsl(var(--gray-three));
+  background: #e5e7eb !important;
   border-radius: 13px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+  border: 2px solid transparent !important;
+}
+
+.toggle-switch:hover {
+  background: #d1d5db;
 }
 
 .toggle-switch input {
   opacity: 0;
   width: 0;
   height: 0;
+  position: absolute;
 }
 
 .toggle-slider {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 22px;
-  height: 22px;
-  background: hsl(var(--static-white));
+  width: 18px;
+  height: 18px;
+  background: #ffffff;
   border-radius: 50%;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  z-index: 2;
+}
+
+/* Checked State - Blue Background */
+.toggle-switch input:checked + .toggle-slider {
+  transform: translateX(24px);
+  background: #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-switch input:checked + .toggle-slider {
-  transform: translateX(24px);
+/* Professional Checked State - High Specificity */
+.toggle-switch input:checked ~ .toggle-switch,
+.toggle-switch.toggle-active,
+.toggle-switch input:checked + .toggle-slider ~ .toggle-switch {
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
 }
 
+/* Alternative: Direct checked state with higher specificity */
+.toggle-switch input:checked ~ .toggle-switch {
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Dark mode support */
+[data-theme='dark'] .toggle-switch {
+  background: #4b5563;
+}
+
+[data-theme='dark'] .toggle-switch:hover {
+  background: #6b7280;
+}
+
+[data-theme='dark'] .toggle-switch input:checked ~ .toggle-switch,
+[data-theme='dark'] .toggle-switch:has(input:checked) {
+  background: #3b82f6 !important;
+}
+
+[data-theme='dark'] .toggle-slider {
+  background: #f9fafb;
+}
+
+[data-theme='dark'] .toggle-switch input:checked + .toggle-slider {
+  background: #ffffff;
+}
+
+/* Professional Toggle Switch Active State */
+.toggle-switch.active,
+.toggle-switch.toggle-active {
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.toggle-switch.active:hover,
+.toggle-switch.toggle-active:hover {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Force blue background for checked state */
 .toggle-switch input:checked ~ .toggle-switch,
-.toggle-switch:has(input:checked) {
-  background: hsl(var(--main));
+.toggle-switch input:checked + .toggle-slider ~ .toggle-switch {
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Smooth transitions for all states */
+.toggle-switch,
+.toggle-slider {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus states for accessibility */
+.toggle-switch input:focus + .toggle-slider {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Disabled state */
+.toggle-switch input:disabled + .toggle-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-switch input:disabled ~ .toggle-switch {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading state */
+.toggle-switch.loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.toggle-switch.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 10;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.toggle-switch.loading .toggle-slider {
+  opacity: 0.3;
+}
+
+/* Notification Status Styling */
+.notification-status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 16px;
+}
+
+.status-text {
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.status-text.loading {
+  opacity: 1;
+  color: #3b82f6;
+}
+
+.status-text.success {
+  opacity: 1;
+  color: #10b981;
+}
+
+.status-text.error {
+  opacity: 1;
+  color: #ef4444;
+}
+
+.status-text.info {
+  opacity: 1;
+  color: #6b7280;
 }
 
 /* Header Z-Index Fix for Settings */
@@ -873,6 +1151,15 @@
 
 .lang-dropdown {
   z-index: 100 !important;
+}
+
+[data-theme="dark"] {
+  .btn-main {
+    background-color: white !important;
+    border: 2px solid hsl(var(--main)) !important;
+    color: hsl(var(--main)) !important;
+    z-index: 1;
+}
 }
 
 /* Dark Mode Support - Professional Implementation */
@@ -984,7 +1271,6 @@
 
   .notification-item:hover,
   .preference-item:hover {
-    background: var(--dark-black-five) !important;
     border-color: hsl(var(--main)) !important;
   }
 
@@ -1085,13 +1371,6 @@
     border: 1px solid var(--dark-black-five) !important;
   }
 
-  .toggle-slider {
-    background: hsl(var(--gray-four)) !important;
-  }
-
-  .toggle-switch input:checked + .toggle-slider {
-    background: hsl(var(--main)) !important;
-  }
 
   /* Error and success messages */
   .alert-message .alert-content {
@@ -1192,6 +1471,32 @@
 <!-- Settings JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize toggle switches immediately on page load
+    function initializeToggleSwitches() {
+        const toggleSwitches = document.querySelectorAll('.toggle-switch input[type="checkbox"]');
+        
+        toggleSwitches.forEach(toggle => {
+            const toggleSwitch = toggle.closest('.toggle-switch');
+            const settingName = toggle.getAttribute('data-setting');
+            
+            // Only process notification settings (ignore preferences toggles)
+            if (settingName) {
+                
+                if (toggle.checked) {
+                    toggleSwitch.style.setProperty('background', '#3b82f6', 'important');
+                    toggleSwitch.style.setProperty('border-color', '#3b82f6', 'important');
+                    toggleSwitch.classList.add('toggle-active');
+                    toggleSwitch.classList.add('active');
+                }
+            } else {
+                console.log(`⚠️ Toggle without data-setting: ${toggle.name || 'unnamed'}`);
+            }
+        });
+    }
+    
+    // Initialize immediately
+    initializeToggleSwitches();
+    
     // Tab Navigation
     const tabBtns = document.querySelectorAll('.tab-btn');
     const sections = document.querySelectorAll('.settings-section');
@@ -1246,37 +1551,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Form Submissions
-    const forms = document.querySelectorAll('form[id$="-form"]');
-    forms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showAlert('success', data.message || 'Settings updated successfully');
-                    if (data.redirect) {
-                        setTimeout(() => window.location.href = data.redirect, 1500);
-                    }
-                } else {
-                    showAlert('error', data.message || 'Failed to update settings');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert('error', 'An error occurred while updating settings');
-            });
-        });
-    });
+    // REMOVED: Old form submission handler - replaced with professional handler below
 
     // Show Alert Function
     function showAlert(type, message) {
@@ -1301,22 +1576,160 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => alert.remove(), 5000);
     }
 
-    // Toggle Switch Handling
+    // Professional Toggle Switch Handling
     const toggleSwitches = document.querySelectorAll('.toggle-switch input[type="checkbox"]');
+    
+    // Function to update toggle switch appearance
+    function updateToggleSwitch(toggle, isChecked) {
+        const toggleSwitch = toggle.closest('.toggle-switch');
+        
+        if (isChecked) {
+            toggleSwitch.style.setProperty('background', '#3b82f6', 'important');
+            toggleSwitch.style.setProperty('border-color', '#3b82f6', 'important');
+            toggleSwitch.classList.add('toggle-active');
+            toggleSwitch.classList.add('active');
+        } else {
+            toggleSwitch.style.removeProperty('background');
+            toggleSwitch.style.removeProperty('border-color');
+            toggleSwitch.classList.remove('toggle-active');
+            toggleSwitch.classList.remove('active');
+        }
+    }
+    
+    // Professional Notification Settings Handler
+    let notificationUpdateTimeout;
+    const notificationStatus = document.getElementById('notification-status');
+    
+    function updateNotificationStatus(message, type = 'info') {
+        if (notificationStatus) {
+            notificationStatus.textContent = message;
+            notificationStatus.className = `status-text ${type}`;
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                notificationStatus.textContent = '';
+                notificationStatus.className = 'status-text';
+            }, 3000);
+        }
+    }
+    
+    async function updateNotificationSetting(settingName, isEnabled) {
+        const toggle = document.querySelector(`[data-setting="${settingName}"]`);
+        const toggleSwitch = toggle?.closest('.toggle-switch');
+        
+        try {
+            // Disable toggle during API call
+            if (toggle) {
+                toggle.disabled = true;
+                toggleSwitch?.classList.add('loading');
+            }
+            
+            updateNotificationStatus('Saving...', 'loading');
+            
+            // Get authentication token
+            const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+            
+            const response = await fetch('/buyer/api/settings/notifications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Authorization': token ? `Bearer ${token}` : '',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    [settingName]: isEnabled
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                updateNotificationStatus('✅ Setting updated successfully', 'success');
+                
+                // Update user data in localStorage if provided
+                if (result.data && result.data.user) {
+                    const currentUserData = JSON.parse(localStorage.getItem('userData') || '{}');
+                    const updatedUserData = { ...currentUserData, ...result.data.user };
+                    localStorage.setItem('userData', JSON.stringify(updatedUserData));
+                }
+            } else {
+                throw new Error(result.message || 'Failed to update setting');
+            }
+        } catch (error) {
+           let errorMessage = '❌ Network error';
+            if (error.message.includes('401')) {
+                errorMessage = '❌ Session expired. Please login again.';
+                setTimeout(() => {
+                    window.location.href = '/auth/login';
+                }, 2000);
+            } else if (error.message.includes('403')) {
+                errorMessage = '❌ Access denied';
+            } else if (error.message.includes('500')) {
+                errorMessage = '❌ Server error. Please try again.';
+            }
+            
+            updateNotificationStatus(errorMessage, 'error');
+            
+            // Revert the toggle
+            if (toggle) {
+                toggle.checked = !isEnabled;
+                updateToggleSwitch(toggle, toggle.checked);
+            }
+        } finally {
+            // Re-enable toggle after API call
+            if (toggle) {
+                toggle.disabled = false;
+                toggleSwitch?.classList.remove('loading');
+            }
+        }
+    }
+    
     toggleSwitches.forEach(toggle => {
+        // Set initial state immediately
+        updateToggleSwitch(toggle, toggle.checked);
+        
         toggle.addEventListener('change', function() {
             const toggleSwitch = this.closest('.toggle-switch');
-            if (this.checked) {
-                toggleSwitch.style.background = 'hsl(var(--main))';
-            } else {
-                toggleSwitch.style.background = 'hsl(var(--gray-three))';
+            const settingName = this.getAttribute('data-setting');
+            const isEnabled = this.checked;
+            
+            // Validate setting name
+            if (!settingName) {
+               
+                updateNotificationStatus('❌ Configuration error', 'error');
+                return;
             }
+            
+            // Update appearance
+            updateToggleSwitch(this, isEnabled);
+            
+            // Add visual feedback
+            toggleSwitch.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                toggleSwitch.style.transform = 'scale(1)';
+            }, 150);
+            
+            // Debounce API calls
+            clearTimeout(notificationUpdateTimeout);
+            notificationUpdateTimeout = setTimeout(() => {
+                updateNotificationSetting(settingName, isEnabled);
+            }, 500);
         });
-
-        // Set initial state
-        if (toggle.checked) {
-            toggle.closest('.toggle-switch').style.background = 'hsl(var(--main))';
-        }
+    });
+    
+    // Professional error handling for network issues
+    window.addEventListener('online', function() {
+        updateNotificationStatus('✅ Connection restored', 'success');
+    });
+    
+    window.addEventListener('offline', function() {
+        updateNotificationStatus('❌ No internet connection', 'error');
     });
 });
 </script>
@@ -1331,7 +1744,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.buyerTokenManager) {
         // Setup token event listeners
         buyerTokenManager.on('token-refreshed', (data) => {
-            console.log('✅ Settings page: Tokens refreshed successfully');
+          
             // Also save updated user data if available
             if (data.data && data.data.user && data.data.user.companyType === 'distributor') {
                 buyerTokenManager.saveUserDataToStorage(data.data.user);
@@ -1339,7 +1752,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         buyerTokenManager.on('auth-error', (data) => {
-            console.warn('⚠️ Settings page: Authentication error:', data.reason);
+            
             if (data.reason === 'refresh-failed') {
                 showAlert('error', 'Your session has expired. Please login again.');
                 setTimeout(() => {
@@ -1355,14 +1768,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const tokenStatus = buyerTokenManager.getStatus();
             
             if (!tokenStatus.hasTokens) {
-                console.warn('⚠️ No tokens available for API call');
+                
                 window.location.href = '/auth/login';
                 return;
             }
 
             // If token is about to expire, refresh first
             if (tokenStatus.expiresIn < 5 * 60 * 1000) { // 5 minutes
-                console.log('🔄 Token expiring soon, refreshing before API call...');
                 await buyerTokenManager.forceRefresh();
             }
 
@@ -1390,12 +1802,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (settingsUserData.companyType === 'distributor') {
           try {
             localStorage.setItem('slex_buyer_user_data', JSON.stringify(settingsUserData));
-            console.log('💾 Settings page: Saved distributor data to localStorage:', settingsUserData);
-          } catch (error) {
-            console.warn('❌ Settings page: Failed to save user data to localStorage:', error);
+            } catch (error) {
           }
         } else {
-          console.log('⚠️ Settings page: User is not distributor, not saving to localStorage. companyType:', settingsUserData.companyType);
         }
     }
 
@@ -1449,12 +1858,115 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="las la-spinner la-spin"></i> Saving...';
 
-            // Submit form via fetch
+            // Submit form via fetch with debugging - USING JSON INSTEAD OF FORMDATA
             const formData = new FormData(form);
+            const jsonData = {};
+            
+            // Convert FormData to JSON with country mapping
+            for (let [key, value] of formData.entries()) {
+                if (key === 'country') {
+                    // Map country codes to full names
+                    const countryMap = {
+                        'UZ': 'Uzbekistan',
+                        'KZ': 'Kazakhstan',
+                        'CN': 'China',
+                        'TJ': 'Tajikistan',
+                        'TM': 'Turkmenistan',
+                        'AF': 'Afghanistan',
+                        'KG': 'Kyrgyzstan',
+                        'TR': 'Turkey',
+                        'RU': 'Russia',
+                        'IR': 'Iran',
+                        'PK': 'Pakistan',
+                        'IN': 'India',
+                        'MN': 'Mongolia',
+                        'AZ': 'Azerbaijan',
+                        'GE': 'Georgia',
+                        'AM': 'Armenia',
+                        'US': 'United States',
+                        'GB': 'United Kingdom',
+                        'DE': 'Germany',
+                        'FR': 'France',
+                        'IT': 'Italy',
+                        'ES': 'Spain',
+                        'NL': 'Netherlands',
+                        'BE': 'Belgium',
+                        'CH': 'Switzerland',
+                        'AT': 'Austria',
+                        'SE': 'Sweden',
+                        'NO': 'Norway',
+                        'DK': 'Denmark',
+                        'FI': 'Finland',
+                        'PL': 'Poland',
+                        'CZ': 'Czech Republic',
+                        'HU': 'Hungary',
+                        'RO': 'Romania',
+                        'BG': 'Bulgaria',
+                        'GR': 'Greece',
+                        'PT': 'Portugal',
+                        'IE': 'Ireland',
+                        'CA': 'Canada',
+                        'AU': 'Australia',
+                        'JP': 'Japan',
+                        'KR': 'South Korea',
+                        'SG': 'Singapore',
+                        'MY': 'Malaysia',
+                        'TH': 'Thailand',
+                        'VN': 'Vietnam',
+                        'PH': 'Philippines',
+                        'ID': 'Indonesia',
+                        'BR': 'Brazil',
+                        'AR': 'Argentina',
+                        'CL': 'Chile',
+                        'MX': 'Mexico',
+                        'CO': 'Colombia',
+                        'PE': 'Peru',
+                        'VE': 'Venezuela',
+                        'ZA': 'South Africa',
+                        'EG': 'Egypt',
+                        'MA': 'Morocco',
+                        'NG': 'Nigeria',
+                        'KE': 'Kenya',
+                        'GH': 'Ghana',
+                        'ET': 'Ethiopia',
+                        'UG': 'Uganda',
+                        'TZ': 'Tanzania',
+                        'DZ': 'Algeria',
+                        'TN': 'Tunisia',
+                        'LY': 'Libya',
+                        'SD': 'Sudan',
+                        'SO': 'Somalia',
+                        'DJ': 'Djibouti',
+                        'ER': 'Eritrea',
+                        'YE': 'Yemen',
+                        'OM': 'Oman',
+                        'AE': 'UAE',
+                        'QA': 'Qatar',
+                        'KW': 'Kuwait',
+                        'BH': 'Bahrain',
+                        'SA': 'Saudi Arabia',
+                        'JO': 'Jordan',
+                        'LB': 'Lebanon',
+                        'SY': 'Syria',
+                        'IQ': 'Iraq',
+                        'IL': 'Israel',
+                        'PS': 'Palestine',
+                        'CY': 'Cyprus',
+                        'MT': 'Malta'
+                    };
+                    jsonData[key] = countryMap[value] || value;
+                } else {
+                    jsonData[key] = value;
+                }
+            }
+            
+            
+            
             const response = await fetch(form.action, {
                 method: 'POST',
-                body: formData,
+                body: JSON.stringify(jsonData),
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
@@ -1485,7 +1997,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
         } catch (error) {
-            console.error('Form submission error:', error);
+            
             showAlert('error', 'An error occurred while saving changes');
         } finally {
             // Reset button state
@@ -1493,6 +2005,187 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.innerHTML = originalBtnContent;
         }
     }
+
+    /**
+     * Password Security Features
+     */
+    class PasswordSecurityManager {
+        constructor() {
+            this.initializePasswordFeatures();
+        }
+
+        initializePasswordFeatures() {
+            // Password toggle functionality
+            document.querySelectorAll('.password-toggle-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = btn.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    const icon = btn.querySelector('i');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.className = 'las la-eye-slash';
+                        btn.classList.add('active');
+                    } else {
+                        input.type = 'password';
+                        icon.className = 'las la-eye';
+                        btn.classList.remove('active');
+                    }
+                });
+            });
+
+            // Password generator functionality
+            document.querySelectorAll('.password-generate-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = btn.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    const generatedPassword = this.generateStrongPassword();
+                    input.value = generatedPassword;
+                    input.type = 'text';
+                    
+                    // Update toggle button
+                    const toggleBtn = document.querySelector(`[data-target="${targetId}"].password-toggle-btn`);
+                    if (toggleBtn) {
+                        toggleBtn.classList.add('active');
+                        toggleBtn.querySelector('i').className = 'las la-eye-slash';
+                    }
+                    
+                    // Trigger validation
+                    this.validatePassword(generatedPassword);
+                    this.checkPasswordMatch();
+                    
+                    // Show success message
+                    showAlert('success', '<%= t("buyer.settings.security.passwordGenerated") || "Strong password generated!" %>');
+                });
+            });
+
+            // Password validation
+            const newPasswordInput = document.getElementById('newPassword');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            
+            if (newPasswordInput) {
+                newPasswordInput.addEventListener('input', (e) => {
+                    this.validatePassword(e.target.value);
+                    this.checkPasswordMatch();
+                });
+            }
+            
+            if (confirmPasswordInput) {
+                confirmPasswordInput.addEventListener('input', () => {
+                    this.checkPasswordMatch();
+                });
+            }
+        }
+
+        generateStrongPassword() {
+            const length = 16;
+            const charset = {
+                lowercase: 'abcdefghijklmnopqrstuvwxyz',
+                uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                numbers: '0123456789',
+                symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?'
+            };
+            
+            let password = '';
+            
+            // Ensure at least one character from each category
+            password += this.getRandomChar(charset.lowercase);
+            password += this.getRandomChar(charset.uppercase);
+            password += this.getRandomChar(charset.numbers);
+            password += this.getRandomChar(charset.symbols);
+            
+            // Fill the rest randomly
+            const allChars = charset.lowercase + charset.uppercase + charset.numbers + charset.symbols;
+            for (let i = 4; i < length; i++) {
+                password += this.getRandomChar(allChars);
+            }
+            
+            // Shuffle the password
+            return this.shuffleString(password);
+        }
+
+        getRandomChar(str) {
+            return str.charAt(Math.floor(Math.random() * str.length));
+        }
+
+        shuffleString(str) {
+            const arr = str.split('');
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr.join('');
+        }
+
+        validatePassword(password) {
+            const requirements = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /\d/.test(password),
+                special: /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)
+            };
+
+            // Update requirement indicators
+            Object.keys(requirements).forEach(req => {
+                const element = document.querySelector(`[data-requirement="${req}"]`);
+                if (element) {
+                    if (requirements[req]) {
+                        element.classList.add('valid');
+                    } else {
+                        element.classList.remove('valid');
+                    }
+                }
+            });
+
+            // Calculate strength
+            const validCount = Object.values(requirements).filter(Boolean).length;
+            const strengthFill = document.getElementById('newPasswordStrength');
+            const strengthText = document.getElementById('newPasswordStrengthText');
+            
+            if (strengthFill && strengthText) {
+                strengthFill.className = 'strength-fill';
+                
+                if (validCount <= 2) {
+                    strengthFill.classList.add('weak');
+                    strengthText.textContent = '<%= t("buyer.settings.security.strengthWeak") || "Weak" %>';
+                } else if (validCount === 3) {
+                    strengthFill.classList.add('fair');
+                    strengthText.textContent = '<%= t("buyer.settings.security.strengthFair") || "Fair" %>';
+                } else if (validCount === 4) {
+                    strengthFill.classList.add('good');
+                    strengthText.textContent = '<%= t("buyer.settings.security.strengthGood") || "Good" %>';
+                } else {
+                    strengthFill.classList.add('strong');
+                    strengthText.textContent = '<%= t("buyer.settings.security.strengthStrong") || "Strong" %>';
+                }
+            }
+        }
+
+        checkPasswordMatch() {
+            const newPassword = document.getElementById('newPassword')?.value || '';
+            const confirmPassword = document.getElementById('confirmPassword')?.value || '';
+            const indicator = document.getElementById('passwordMatchIndicator');
+            
+            if (indicator) {
+                if (confirmPassword === '') {
+                    indicator.className = 'password-match-indicator';
+                    indicator.innerHTML = '<i class="las la-circle"></i><span><%= t("buyer.settings.security.passwordsMustMatch") || "Passwords must match" %></span>';
+                } else if (newPassword === confirmPassword) {
+                    indicator.className = 'password-match-indicator valid';
+                    indicator.innerHTML = '<i class="las la-check-circle"></i><span><%= t("buyer.settings.security.passwordsMatch") || "Passwords match" %></span>';
+                } else {
+                    indicator.className = 'password-match-indicator invalid';
+                    indicator.innerHTML = '<i class="las la-times-circle"></i><span><%= t("buyer.settings.security.passwordsDoNotMatch") || "Passwords do not match" %></span>';
+                }
+            }
+        }
+    }
+
+    // Initialize password security features
+    new PasswordSecurityManager();
 
     /**
      * Professional alert system for settings page
@@ -1570,6 +2263,160 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             .alert-close:hover {
                 opacity: 1;
+            }
+            
+            /* Password Security Features */
+            .password-input-wrapper {
+              position: relative;
+              display: flex;
+              align-items: center;
+            }
+            
+            .password-input-wrapper .form-control {
+              padding-right: 80px;
+            }
+            
+            .password-toggle-btn,
+            .password-generate-btn {
+              position: absolute;
+              right: 8px;
+              top: 50%;
+              transform: translateY(-50%);
+              background: none;
+              border: none;
+              color: #6c757d;
+              cursor: pointer;
+              padding: 8px;
+              border-radius: 4px;
+              transition: all 0.3s ease;
+              z-index: 2;
+            }
+            
+            .password-generate-btn {
+              right: 40px;
+            }
+            
+            .password-toggle-btn:hover,
+            .password-generate-btn:hover {
+              background-color: #f8f9fa;
+              color: #495057;
+            }
+            
+            .password-toggle-btn.active {
+              color: #007bff;
+            }
+            
+            .password-strength-meter {
+              margin-top: 8px;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            }
+            
+            .strength-bar {
+              flex: 1;
+              height: 4px;
+              background-color: #e9ecef;
+              border-radius: 2px;
+              overflow: hidden;
+            }
+            
+            .strength-fill {
+              height: 100%;
+              width: 0%;
+              transition: all 0.3s ease;
+              border-radius: 2px;
+            }
+            
+            .strength-fill.weak { width: 25%; background-color: #dc3545; }
+            .strength-fill.fair { width: 50%; background-color: #ffc107; }
+            .strength-fill.good { width: 75%; background-color: #17a2b8; }
+            .strength-fill.strong { width: 100%; background-color: #28a745; }
+            
+            .strength-text {
+              font-size: 12px;
+              color: #6c757d;
+              min-width: 80px;
+            }
+            
+            .password-requirements {
+              margin-top: 12px;
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+              gap: 8px;
+            }
+            
+            .requirement {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              font-size: 12px;
+              color: #6c757d;
+            }
+            
+            .requirement i {
+              font-size: 8px;
+              transition: all 0.3s ease;
+            }
+            
+            .requirement.valid i {
+              color: #28a745;
+            }
+            
+            .requirement.valid i::before {
+              content: "\\f00c";
+            }
+            
+            .password-match-indicator {
+              margin-top: 8px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              font-size: 12px;
+              color: #6c757d;
+            }
+            
+            .password-match-indicator i {
+              font-size: 8px;
+              transition: all 0.3s ease;
+            }
+            
+            .password-match-indicator.valid i {
+              color: #28a745;
+            }
+            
+            .password-match-indicator.valid i::before {
+              content: "\\f00c";
+            }
+            
+            .password-match-indicator.invalid i {
+              color: #dc3545;
+            }
+            
+            .password-match-indicator.invalid i::before {
+              content: "\\f00d";
+            }
+            
+            /* Dark mode support */
+            [data-theme='light'] .password-toggle-btn,
+            [data-theme='light'] .password-generate-btn {
+              color: #adb5bd;
+            }
+            
+            [data-theme='light'] .password-toggle-btn:hover,
+            [data-theme='light'] .password-generate-btn:hover {
+              background-color: #495057;
+              color: #f8f9fa;
+            }
+            
+            [data-theme='dark'] .strength-bar {
+              background-color: #495057;
+            }
+            
+            [data-theme='light'] .strength-text,
+            [data-theme='light'] .requirement,
+            [data-theme='light'] .password-match-indicator {
+              color: #adb5bd;
             }
         `;
         document.head.appendChild(style);

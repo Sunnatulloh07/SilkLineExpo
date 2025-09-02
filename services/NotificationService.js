@@ -35,9 +35,7 @@ class NotificationService {
                 isUpdate = false
             } = data;
 
-            this.logger.log(`📧 Creating order comment notification for order ${orderNumber}`);
-
-            // Create notification in database
+    // Create notification in database
             const notification = await Notification.createOrderCommentNotification({
                 recipientId,
                 recipientModel,
@@ -64,8 +62,7 @@ class NotificationService {
                 commentType
             });
 
-            this.logger.log(`✅ Order comment notification created: ${notification._id}`);
-            return notification;
+              return notification;
 
         } catch (error) {
             this.logger.error('❌ Error creating order comment notification:', error);
@@ -112,12 +109,10 @@ class NotificationService {
 
             await notification.save();
 
-            this.logger.log(`📬 Notification delivery completed: ${notification._id}`);
-            return notification;
+     return notification;
 
         } catch (error) {
-            this.logger.error('❌ Error delivering notification:', error);
-            notification.status = 'failed';
+             notification.status = 'failed';
             notification.attempts = (notification.attempts || 0) + 1;
             notification.lastAttemptAt = new Date();
             await notification.save();
@@ -159,7 +154,6 @@ class NotificationService {
             // Update delivery status
             await notification.updateDeliveryStatus('email', true);
             
-            this.logger.log(`📧 Email notification sent: ${notification._id}`);
             return result;
 
         } catch (error) {
@@ -185,9 +179,7 @@ class NotificationService {
 
             const smsText = `${notification.title}\n${notification.message}\nBuyurtma: ${notification.metadata.orderNumber}`;
 
-            // TODO: Implement actual SMS sending
-            this.logger.log(`📱 SMS notification (simulated): ${recipient.phone} - ${smsText}`);
-            
+       
             // Simulate successful delivery
             await notification.updateDeliveryStatus('sms', true);
             return { success: true, messageId: 'sim_' + Date.now() };
@@ -217,9 +209,7 @@ class NotificationService {
                 }
             };
 
-            // TODO: Implement actual push notification sending
-            this.logger.log(`🔔 Push notification (simulated): ${JSON.stringify(pushData)}`);
-            
+         
             // Simulate successful delivery
             await notification.updateDeliveryStatus('push', true);
             return { success: true, messageId: 'push_' + Date.now() };
@@ -308,8 +298,7 @@ class NotificationService {
                 ]
             }).limit(100);
 
-            this.logger.log(`🔄 Retrying ${failedNotifications.length} failed notifications`);
-
+     
             for (const notification of failedNotifications) {
                 try {
                     await this.deliverNotification(notification);
@@ -338,7 +327,6 @@ class NotificationService {
                 'readStatus.isRead': true
             });
 
-            this.logger.log(`🧹 Cleaned up ${result.deletedCount} old notifications`);
             return result.deletedCount;
         } catch (error) {
             this.logger.error('❌ Error cleaning up old notifications:', error);

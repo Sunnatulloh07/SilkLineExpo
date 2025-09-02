@@ -1,5 +1,10 @@
 <%- include('../partials/header') %>
-<%- include('../partials/navigation') %>
+<%- include('../partials/navigation', { 
+  cartItemsCount: cartItemsCount || 0, 
+  activeOrdersCount: activeOrdersCount || 0, 
+  unreadMessagesCount: unreadMessagesCount || 0,
+  favoritesCount: favoritesCount || 0 
+}) %>
 
 <main class="main-wrapper all-products-wrapper position-relative z-index-1">
 
@@ -601,10 +606,6 @@ document.addEventListener('DOMContentLoaded', function() {
   transition: color 0.2s;
 }
 
-.filter-sidebar-list__text:hover {
-  color: #3b82f6;
-}
-
 .filter-sidebar-list__text .qty {
   background: #e5e7eb;
   color: #6b7280;
@@ -857,13 +858,9 @@ document.addEventListener('DOMContentLoaded', function() {
   color: white;
 }
 
-/* Active Filter States */
-.filter-sidebar-list__text.active {
-  background: #3b82f6;
-  color: white !important;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  margin: 0 0.5rem;
+.filter-sidebar-list__item:has(a.active) {
+  background: rgba(59, 130, 246, 0.05);
+  border-left: 2px solid #3b82f6;
 }
 
 .filter-sidebar-list__text.active .qty {
@@ -895,10 +892,6 @@ document.addEventListener('DOMContentLoaded', function() {
   transition: all 0.2s ease;
 }
 
-.filter-sidebar-list__text:hover {
-  background: #f3f4f6;
-  transform: translateX(2px);
-}
 
 /* Loading States for Filters */
 .filter-loading {
@@ -929,11 +922,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 [data-theme="light"] {
   
-  /* Main Section Background */
-  .all-product {
-    background: var(--dark-black-one) !important;
-    color: hsl(var(--static-white)) !important;
-  }
+
   
   /* Breadcrumb Section - Dark Mode */
   .breadcrumb {
@@ -1074,19 +1063,10 @@ document.addEventListener('DOMContentLoaded', function() {
     color: hsl(var(--static-white)) !important;
     transition: all 0.3s ease !important;
   }
-  
-  .filter-sidebar-list__text:hover {
-    background: var(--dark-black-five) !important;
-    color: hsl(var(--main)) !important;
-    transform: translateX(8px) !important;
-    border-radius: 6px !important;
-  }
-  
+ 
   .filter-sidebar-list__text.active {
-    background: hsl(var(--main)) !important;
     color: hsl(var(--static-white)) !important;
     border-radius: 6px !important;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
   }
   
   .filter-sidebar-list__text .qty {
@@ -1095,10 +1075,7 @@ document.addEventListener('DOMContentLoaded', function() {
     border: 1px solid var(--dark-black-five) !important;
   }
   
-  .filter-sidebar-list__text.active .qty {
-    background: rgba(255, 255, 255, 0.2) !important;
-    color: hsl(var(--static-white)) !important;
-  }
+
   
   .filter-sidebar-list__text:hover .qty {
     background: rgba(59, 130, 246, 0.2) !important;
@@ -1237,9 +1214,6 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: left 0.5s !important;
   }
   
-  .filter-sidebar-list__text:hover::before {
-    left: 100% !important;
-  }
   
   /* Price Range Input Success State - Dark */
   .form-control.price-applied {
@@ -1307,11 +1281,10 @@ document.addEventListener('DOMContentLoaded', function() {
   .filter-sidebar-list__item:hover {
     background: rgba(59, 130, 246, 0.05) !important;
     border-radius: 6px !important;
-    margin: 0 0.5rem !important;
-    padding: 0.5rem !important;
     transition: all 0.3s ease !important;
   }
-  
+
+
   /* Professional Scrollbar for Sidebar */
   .filter-sidebar::-webkit-scrollbar {
     width: 8px !important;

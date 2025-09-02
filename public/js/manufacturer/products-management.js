@@ -76,7 +76,7 @@
             
         } catch (error) {
             logger.error('❌ Failed to initialize Products Management:', error);
-            showToast('Tizimni yuklashda xatolik yuz berdi', 'error');
+            showToast(window.t ? window.t('manufacturer.products.errors.systemLoadFailed') : 'System loading failed', 'error');
         }
     }
 
@@ -322,7 +322,7 @@
      */
     function handleBulkActionsOpen() {
         if (selectedProducts.size === 0) {
-            showToast('Iltimos, kamida bitta mahsulotni tanlang', 'warning');
+            showToast(window.t ? window.t('manufacturer.products.messages.selectAtLeastOne') : 'Please select at least one product', 'warning');
             return;
         }
 
@@ -362,7 +362,7 @@
         if (isLoading) return;
         
         logger.log('🔄 Refreshing products');
-        showToast('Mahsulotlar yangilanmoqda...', 'info');
+                    showToast(window.t ? window.t('manufacturer.products.messages.updatingProducts') : 'Updating products...', 'info');
         
         // Reload current page
         window.location.reload();
@@ -403,6 +403,9 @@
         logger.log(`🎯 Product action: ${action} for product: ${productId}`);
 
         switch (action) {
+            case 'view':
+                handleViewProduct(productId);
+                break;
             case 'edit':
                 handleEditProduct(productId);
                 break;
@@ -430,6 +433,112 @@
     }
 
     /**
+     * Handle view product details
+     */
+    async function handleViewProduct(productId) {
+        try {
+            
+            // Show loading state
+            const modal = document.getElementById('productDetailsModal');
+            const content = document.getElementById('productDetailsContent');
+            
+            if (modal && content) {
+                modal.classList.remove('hidden');
+                content.innerHTML = `
+                    <div class="loading-content">
+                        <div class="loading-spinner"></div>
+                        <p>${window.t ? window.t('manufacturer.products.modal.loading') : 'Loading...'}</p>
+                    </div>
+                `;
+            }
+            
+            // Fetch product details
+            const response = await fetch(`/api/manufacturer/products/${productId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const result = await response.json();
+            
+            if (result.success && result.product) {
+                // Render product details with multi-language support
+                renderProductDetails(result.product);
+            } else {
+                throw new Error(result.message || 'Failed to load product details');
+            }
+            
+        } catch (error) {
+            logger.error('❌ Failed to load product details:', error);
+            showToast(window.t ? window.t('manufacturer.products.errors.generalError') : 'Failed to load product details', 'error');
+            
+            // Show error state
+            const content = document.getElementById('productDetailsContent');
+            if (content) {
+                content.innerHTML = `
+                    <div class="error-content">
+                        <i class="fas fa-exclamation-circle text-danger"></i>
+                        <p>${window.t ? window.t('manufacturer.products.errors.generalError') : 'Failed to load product details'}</p>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    /**
+     * Render product details in modal
+     */
+    function renderProductDetails(product) {
+        const content = document.getElementById('productDetailsContent');
+        if (!content) return;
+        
+        const productDetails = `
+            <div class="product-details">
+                <div class="product-header">
+                    <h3 class="product-title">${product.name || (window.t ? window.t('manufacturer.products.noCategory') : 'Unnamed Product')}</h3>
+                    <span class="product-category">${product.category?.name || product.category || (window.t ? window.t('manufacturer.products.noCategory') : 'No Category')}</span>
+                </div>
+                
+                <div class="product-info">
+                    <div class="info-section">
+                        <h4>${window.t ? window.t('manufacturer.products.modal.description') : 'Description'}</h4>
+                        <p>${product.description || (window.t ? window.t('manufacturer.products.noDescription') : 'No description available')}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>${window.t ? window.t('manufacturer.products.modal.price') : 'Price'}</h4>
+                        <p>${product.price ? `${window.t ? window.t('manufacturer.products.modal.currency') : '$'}${product.price}` : (window.t ? window.t('manufacturer.products.modal.priceOnRequest') : 'Price on request')}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>${window.t ? window.t('manufacturer.products.modal.quantity') : 'Quantity'}</h4>
+                        <p>${product.quantity || 0} ${window.t ? window.t('manufacturer.products.unit') : 'units'}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>${window.t ? window.t('manufacturer.products.modal.status') : 'Status'}</h4>
+                        <span class="status-badge ${product.status}">${window.t ? window.t(`manufacturer.products.status.${product.status}`) : product.status}</span>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>${window.t ? window.t('manufacturer.products.modal.marketplace') : 'Marketplace'}</h4>
+                        <span class="marketplace-badge ${product.visibility === 'public' ? 'published' : 'unpublished'}">
+                            ${product.visibility === 'public' ? 
+                                (window.t ? window.t('manufacturer.products.marketplace.published') : 'Published') : 
+                                (window.t ? window.t('manufacturer.products.marketplace.unpublished') : 'Unpublished')
+                            }
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        content.innerHTML = productDetails;
+    }
+
+    /**
      * Handle marketplace publish/unpublish toggle
      */
     async function handleMarketplaceToggle(productId, action) {
@@ -438,8 +547,10 @@
         try {
             isLoading = true;
             
-            const actionText = action === 'publish' ? 'nashr etilmoqda' : 'yashirilmoqda';
-            showToast(`Mahsulot ${actionText}...`, 'info');
+            const actionText = action === 'publish' ? 
+            (window.t ? window.t('manufacturer.products.messages.publishing') : 'publishing') : 
+            (window.t ? window.t('manufacturer.products.messages.hiding') : 'hiding');
+            showToast(window.t ? window.t('manufacturer.products.messages.processingProduct', { action: actionText }) : `Processing product ${actionText}...`, 'info');
             
             const response = await fetch(`/api/manufacturer/products/${productId}/marketplace/${action}`, {
                 method: 'POST',
@@ -452,8 +563,10 @@
             const result = await response.json();
             
             if (result.success) {
-                const successText = action === 'publish' ? 'nashr etildi' : 'yashirildi';
-                showToast(`Mahsulot muvaffaqiyatli ${successText}`, 'success');
+                const successText = action === 'publish' ? 
+                    (window.t ? window.t('manufacturer.products.messages.published') : 'published') : 
+                    (window.t ? window.t('manufacturer.products.messages.hidden') : 'hidden');
+                showToast(window.t ? window.t('manufacturer.products.messages.productSuccessfullyProcessed', { action: successText }) : `Product successfully ${successText}`, 'success');
                 
                 // Update button state
                 updateMarketplaceButton(productId, action);
@@ -462,12 +575,12 @@
                 updateStatisticsAfterAction(action);
                 
             } else {
-                throw new Error(result.message || 'Xatolik yuz berdi');
-            }
-            
-        } catch (error) {
-            logger.error('❌ Marketplace toggle failed:', error);
-            showToast('Marketplace holati o\'zgartirishda xatolik', 'error');
+                            throw new Error(result.message || (window.t ? window.t('manufacturer.products.errors.generalError') : 'An error occurred'));
+        }
+        
+    } catch (error) {
+        logger.error('❌ Marketplace toggle failed:', error);
+        showToast(window.t ? window.t('manufacturer.products.errors.marketplaceToggleFailed') : 'Failed to change marketplace status', 'error');
         } finally {
             isLoading = false;
         }
@@ -487,7 +600,7 @@
             // Update button to unpublish
             marketplaceBtn.dataset.action = 'unpublish';
             marketplaceBtn.className = 'btn-action btn-warning marketplace-toggle';
-            marketplaceBtn.innerHTML = '<i class="fas fa-eye-slash"></i><span>Marketplace dan olib tashlash</span>';
+            marketplaceBtn.innerHTML = `<i class="fas fa-eye-slash"></i><span>${window.t ? window.t('manufacturer.products.actions.removeFromMarketplace') : 'Remove from Marketplace'}</span>`;
             
             // Add marketplace badge if not exists
             if (!marketplaceBadge) {
@@ -495,7 +608,7 @@
                 if (badgesContainer) {
                     const badge = document.createElement('span');
                     badge.className = 'marketplace-badge published';
-                    badge.innerHTML = '<i class="fas fa-globe"></i>Marketplace';
+                    badge.innerHTML = `<i class="fas fa-globe"></i>${window.t ? window.t('manufacturer.products.marketplace.title') : 'Marketplace'}`;
                     badgesContainer.appendChild(badge);
                 }
             }
@@ -503,7 +616,7 @@
             // Update button to publish
             marketplaceBtn.dataset.action = 'publish';
             marketplaceBtn.className = 'btn-action btn-success marketplace-toggle';
-            marketplaceBtn.innerHTML = '<i class="fas fa-globe"></i><span>Marketplace ga joylashtirish</span>';
+            marketplaceBtn.innerHTML = `<i class="fas fa-globe"></i><span>${window.t ? window.t('manufacturer.products.actions.addToMarketplace') : 'Add to Marketplace'}</span>`;
             
             // Remove marketplace badge
             if (marketplaceBadge) {
@@ -536,7 +649,7 @@
         
         try {
             isLoading = true;
-            showToast('Mahsulot nusxalanmoqda...', 'info');
+            showToast(window.t ? window.t('manufacturer.products.messages.duplicatingProduct') : 'Duplicating product...', 'info');
             
             const response = await fetch(`/api/manufacturer/products/${productId}/duplicate`, {
                 method: 'POST',
@@ -549,7 +662,7 @@
             const result = await response.json();
             
             if (result.success) {
-                showToast('Mahsulot muvaffaqiyatli nusxalandi', 'success');
+                showToast(window.t ? window.t('manufacturer.products.messages.productDuplicated') : 'Product duplicated successfully', 'success');
                 
                 // Refresh page to show new product
                 setTimeout(() => {
@@ -557,12 +670,12 @@
                 }, 1000);
                 
             } else {
-                throw new Error(result.message || 'Nusxalashda xatolik');
+                throw new Error(result.message || (window.t ? window.t('manufacturer.products.errors.duplicationFailed') : 'Duplication failed'));
             }
             
         } catch (error) {
             logger.error('❌ Product duplication failed:', error);
-            showToast('Mahsulotni nusxalashda xatolik', 'error');
+            showToast(window.t ? window.t('manufacturer.products.errors.duplicationFailed') : 'Failed to duplicate product', 'error');
         } finally {
             isLoading = false;
         }
@@ -572,13 +685,13 @@
      * Handle product archiving
      */
     async function handleArchiveProduct(productId) {
-        if (!confirm('Mahsulotni arxivlashni xohlaysizmi?')) return;
+        if (!confirm(window.t ? window.t('manufacturer.products.confirmations.archiveProduct') : 'Do you want to archive this product?')) return;
         
         if (isLoading) return;
         
         try {
             isLoading = true;
-            showToast('Mahsulot arxivlanmoqda...', 'info');
+            showToast(window.t ? window.t('manufacturer.products.messages.archivingProduct') : 'Archiving product...', 'info');
             
             const response = await fetch(`/api/manufacturer/products/${productId}/archive`, {
                 method: 'POST',
@@ -591,7 +704,7 @@
             const result = await response.json();
             
             if (result.success) {
-                showToast('Mahsulot muvaffaqiyatli arxivlandi', 'success');
+                showToast(window.t ? window.t('manufacturer.products.messages.productArchived') : 'Product archived successfully', 'success');
                 
                 // Remove product card from view
                 const productCard = document.querySelector(`[data-product-id="${productId}"]`);
@@ -603,12 +716,12 @@
                 }
                 
             } else {
-                throw new Error(result.message || 'Arxivlashda xatolik');
+                throw new Error(result.message || (window.t ? window.t('manufacturer.products.errors.archiveFailed') : 'Archive failed'));
             }
             
         } catch (error) {
             logger.error('❌ Product archiving failed:', error);
-            showToast('Mahsulotni arxivlashda xatolik', 'error');
+            showToast(window.t ? window.t('manufacturer.products.errors.archiveFailed') : 'Failed to archive product', 'error');
         } finally {
             isLoading = false;
         }
@@ -618,13 +731,13 @@
      * Handle product deletion
      */
     async function handleDeleteProduct(productId) {
-        if (!confirm('Mahsulotni butunlay o\'chirishni xohlaysizmi? Bu amalni ortga qaytarib bo\'lmaydi.')) return;
+        if (!confirm(window.t ? window.t('manufacturer.products.confirmations.deleteProduct') : 'Do you want to completely delete this product? This action cannot be undone.')) return;
         
         if (isLoading) return;
         
         try {
             isLoading = true;
-            showToast('Mahsulot o\'chirilmoqda...', 'info');
+            showToast(window.t ? window.t('manufacturer.products.messages.deletingProduct') : 'Deleting product...', 'info');
             
             const response = await fetch(`/api/manufacturer/products/${productId}`, {
                 method: 'DELETE',
@@ -637,7 +750,7 @@
             const result = await response.json();
             
             if (result.success) {
-                showToast('Mahsulot muvaffaqiyatli o\'chirildi', 'success');
+                showToast(window.t ? window.t('manufacturer.products.messages.productDeleted') : 'Product deleted successfully', 'success');
                 
                 // Remove product card from view with animation
                 const productCard = document.querySelector(`[data-product-id="${productId}"]`);
@@ -653,12 +766,12 @@
                 updateStatisticsAfterDelete();
                 
             } else {
-                throw new Error(result.message || 'O\'chirishda xatolik');
+                throw new Error(result.message || (window.t ? window.t('manufacturer.products.errors.deleteFailed') : 'Delete failed'));
             }
             
         } catch (error) {
             logger.error('❌ Product deletion failed:', error);
-            showToast('Mahsulotni o\'chirishda xatolik', 'error');
+            showToast(window.t ? window.t('manufacturer.products.errors.deleteFailed') : 'Failed to delete product', 'error');
         } finally {
             isLoading = false;
         }
@@ -699,14 +812,16 @@
     async function handleBulkStatusChange(status) {
         if (selectedProducts.size === 0) return;
         
-        const statusText = status === 'active' ? 'faollashtirish' : 'nofaollashtirish';
-        if (!confirm(`${selectedProducts.size} ta mahsulotni ${statusText}ni xohlaysizmi?`)) return;
+        const statusText = status === 'active' ? 
+            (window.t ? window.t('manufacturer.products.actions.activate') : 'activate') : 
+            (window.t ? window.t('manufacturer.products.actions.deactivate') : 'deactivate');
+        if (!confirm(window.t ? window.t('manufacturer.products.confirmations.bulkStatusChange', { count: selectedProducts.size, action: statusText }) : `Do you want to ${statusText} ${selectedProducts.size} products?`)) return;
         
         hideModal('bulkActionsModal');
         
         try {
             isLoading = true;
-            showToast(`${selectedProducts.size} ta mahsulot ${statusText}...`, 'info');
+            showToast(window.t ? window.t('manufacturer.products.messages.bulkStatusChange', { count: selectedProducts.size, action: statusText }) : `${selectedProducts.size} products ${statusText}...`, 'info');
             
             const response = await fetch(`/api/manufacturer/products/bulk/status`, {
                 method: 'POST',
@@ -723,8 +838,10 @@
             const result = await response.json();
             
             if (result.success) {
-                const successText = status === 'active' ? 'faollashtirildi' : 'nofaollashtirildi';
-                showToast(`${result.affectedCount} ta mahsulot muvaffaqiyatli ${successText}`, 'success');
+                        const successText = status === 'active' ? 
+            (window.t ? window.t('manufacturer.products.messages.activated') : 'activated') : 
+            (window.t ? window.t('manufacturer.products.messages.deactivated') : 'deactivated');
+        showToast(window.t ? window.t('manufacturer.products.messages.bulkStatusSuccess', { count: result.affectedCount, action: successText }) : `${result.affectedCount} products successfully ${successText}`, 'success');
                 
                 // Clear selection and refresh page
                 clearProductSelection();
@@ -734,13 +851,13 @@
                     window.location.reload();
                 }, 1500);
                 
-            } else {
-                throw new Error(result.message || 'Xatolik yuz berdi');
-            }
-            
-        } catch (error) {
-            logger.error('❌ Bulk status change failed:', error);
-            showToast('Ommaviy holat o\'zgartirishda xatolik', 'error');
+                    } else {
+            throw new Error(result.message || (window.t ? window.t('manufacturer.products.errors.bulkStatusChangeFailed') : 'Bulk status change failed'));
+        }
+        
+    } catch (error) {
+        logger.error('❌ Bulk status change failed:', error);
+        showToast(window.t ? window.t('manufacturer.products.errors.bulkStatusChangeFailed') : 'Bulk status change failed', 'error');
         } finally {
             isLoading = false;
         }
@@ -752,14 +869,16 @@
     async function handleBulkMarketplaceToggle(action) {
         if (selectedProducts.size === 0) return;
         
-        const actionText = action === 'publish' ? 'nashr etish' : 'yashirish';
-        if (!confirm(`${selectedProducts.size} ta mahsulotni marketplace da ${actionText}ni xohlaysizmi?`)) return;
+        const actionText = action === 'publish' ? 
+            (window.t ? window.t('manufacturer.products.actions.publish') : 'publish') : 
+            (window.t ? window.t('manufacturer.products.actions.unpublish') : 'unpublish');
+        if (!confirm(window.t ? window.t('manufacturer.products.confirmations.bulkMarketplaceChange', { count: selectedProducts.size, action: actionText }) : `Do you want to ${actionText} ${selectedProducts.size} products in marketplace?`)) return;
         
         hideModal('bulkActionsModal');
         
         try {
             isLoading = true;
-            showToast(`${selectedProducts.size} ta mahsulot ${actionText}...`, 'info');
+            showToast(window.t ? window.t('manufacturer.products.messages.bulkMarketplaceChange', { count: selectedProducts.size, action: actionText }) : `${selectedProducts.size} products ${actionText}...`, 'info');
             
             const response = await fetch(`/api/manufacturer/products/bulk/marketplace/${action}`, {
                 method: 'POST',
@@ -775,8 +894,10 @@
             const result = await response.json();
             
             if (result.success) {
-                const successText = action === 'publish' ? 'nashr etildi' : 'yashirildi';
-                showToast(`${result.affectedCount} ta mahsulot muvaffaqiyatli ${successText}`, 'success');
+                        const successText = action === 'publish' ? 
+            (window.t ? window.t('manufacturer.products.messages.published') : 'published') : 
+            (window.t ? window.t('manufacturer.products.messages.hidden') : 'hidden');
+        showToast(window.t ? window.t('manufacturer.products.messages.bulkMarketplaceSuccess', { count: result.affectedCount, action: successText }) : `${result.affectedCount} products successfully ${successText}`, 'success');
                 
                 // Update UI for affected products
                 selectedProducts.forEach(productId => {
@@ -789,13 +910,13 @@
                 // Update statistics
                 updateStatisticsAfterBulkAction(action, result.affectedCount);
                 
-            } else {
-                throw new Error(result.message || 'Xatolik yuz berdi');
-            }
-            
-        } catch (error) {
-            logger.error('❌ Bulk marketplace toggle failed:', error);
-            showToast('Ommaviy amalda xatolik yuz berdi', 'error');
+                    } else {
+            throw new Error(result.message || (window.t ? window.t('manufacturer.products.errors.bulkActionFailed') : 'Bulk action failed'));
+        }
+        
+    } catch (error) {
+        logger.error('❌ Bulk marketplace toggle failed:', error);
+        showToast(window.t ? window.t('manufacturer.products.errors.bulkActionFailed') : 'Bulk action failed', 'error');
         } finally {
             isLoading = false;
         }

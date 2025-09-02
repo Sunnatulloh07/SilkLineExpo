@@ -4,43 +4,43 @@
     <!-- Brand -->
     <a href="/manufacturer/dashboard" class="sidebar-brand">
       <div class="sidebar-brand-logo">M</div>
-      <span class="sidebar-brand-text">Ishlab chiqarish</span>
+      <span class="sidebar-brand-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.brand') : 'Manufacturing' %></span>
     </a>
 
     <!-- Navigation -->
     <nav class="sidebar-nav">
       <!-- Main Section -->
       <div class="nav-section">
-        <div class="nav-section-title">Asosiy</div>
+        <div class="nav-section-title"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.sections.main') : 'Main' %></div>
 
-        <a href="/manufacturer/dashboard" class="nav-item <%= currentPage === 'dashboard' ? 'active' : '' %>" data-tooltip="Boshqaruv paneli">
+        <a href="/manufacturer/dashboard" class="nav-item <%= currentPage === 'dashboard' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.dashboard') : 'Dashboard' %>">
           <i class="fas fa-tachometer-alt nav-icon"></i>
-          <span class="nav-text">Dashboard</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.dashboard') : 'Dashboard' %></span>
         </a>
 
-        <a href="/manufacturer/marketplace" class="nav-item <%= currentPage === 'marketplace' ? 'active' : '' %>" data-tooltip="B2B Marketplace">
+        <a href="/manufacturer/marketplace" class="nav-item <%= currentPage === 'marketplace' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.marketplace') : 'Marketplace' %>">
           <i class="fas fa-store nav-icon"></i>
-          <span class="nav-text">Sotuv xizmatlari</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.marketplace') : 'Sales Services' %></span>
         </a>
       </div>
 
       <!-- Products & Inventory -->
       <div class="nav-section">
-        <div class="nav-section-title">Mahsulotlar</div>
+        <div class="nav-section-title"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.sections.products') : 'Products' %></div>
 
-        <a href="/manufacturer/products" class="nav-item <%= currentPage === 'products' ? 'active' : '' %>" data-tooltip="Mahsulotlar ro'yxati">
+        <a href="/manufacturer/products" class="nav-item <%= currentPage === 'products' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.products') : 'Products List' %>">
           <i class="fas fa-box-open nav-icon"></i>
-          <span class="nav-text">Mahsulotlar</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.products') : 'Products' %></span>
         </a>
 
-        <!-- <a href="/manufacturer/products/add" class="nav-item <%= currentPage === 'add-product' ? 'active' : '' %>" data-tooltip="Yangi mahsulot">
+        <!-- <a href="/manufacturer/products/add" class="nav-item <%= currentPage === 'add-product' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.addProduct') : 'Add Product' %>">
           <i class="fas fa-plus-circle nav-icon"></i>
-          <span class="nav-text">Qo'shish</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.addProduct') : 'Add' %></span>
         </a> -->
 
-        <a href="/manufacturer/inventory" class="nav-item <%= currentPage === 'inventory' ? 'active' : '' %>" data-tooltip="Ombor boshqaruvi">
+        <a href="/manufacturer/inventory" class="nav-item <%= currentPage === 'inventory' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.inventory') : 'Inventory Management' %>">
           <i class="fas fa-warehouse nav-icon"></i>
-          <span class="nav-text">Ombor</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.inventory') : 'Inventory' %></span>
           <% if (typeof lowStock !== 'undefined' && lowStock > 0) { %>
             <span class="nav-badge badge-warning"><%= lowStock %></span>
           <% } %>
@@ -49,65 +49,65 @@
 
       <!-- Orders & Communication -->
       <div class="nav-section">
-        <div class="nav-section-title">Savdo</div>
+        <div class="nav-section-title"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.sections.sales') : 'Sales' %></div>
 
-        <a href="/manufacturer/orders" class="nav-item <%= currentPage === 'orders' ? 'active' : '' %>" data-tooltip="Buyurtmalar">
+        <a href="/manufacturer/orders" class="nav-item <%= currentPage === 'orders' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.orders') : 'Orders' %>">
           <i class="fas fa-clipboard-list nav-icon"></i>
-          <span class="nav-text">Buyurtmalar</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.orders') : 'Orders' %></span>
           <% if (typeof pendingOrders !== 'undefined' && pendingOrders > 0) { %>
             <span class="nav-badge badge-danger"><%= pendingOrders %></span>
           <% } %>
         </a>
 
-        <a href="/manufacturer/inquiries" class="nav-item <%= currentPage === 'inquiries' ? 'active' : '' %>" data-tooltip="So'rovlar">
+        <a href="/manufacturer/inquiries" class="nav-item <%= currentPage === 'inquiries' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.inquiries') : 'Inquiries' %>">
           <i class="fas fa-envelope nav-icon"></i>
-          <span class="nav-text">So'rovlar</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.inquiries') : 'Inquiries' %></span>
           <% if (typeof newInquiries !== 'undefined' && newInquiries > 0) { %>
             <span class="nav-badge badge-info"><%= newInquiries %></span>
           <% } %>
         </a>
 
-        <a href="/manufacturer/messages" class="nav-item <%= currentPage === 'messages' ? 'active' : '' %>" data-tooltip="Xabarlar">
+        <a href="/manufacturer/messages" class="nav-item <%= currentPage === 'messages' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.messages') : 'Messages' %>">
           <i class="fas fa-comments nav-icon"></i>
-          <span class="nav-text">Xabarlar</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.messages') : 'Messages' %></span>
           <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
             <span class="nav-badge badge-primary"><%= unreadMessages %></span>
           <% } %>
         </a>
 
-        <a href="/manufacturer/shipping" class="nav-item <%= currentPage === 'shipping' ? 'active' : '' %>" data-tooltip="Yetkazib berish">
+        <a href="/manufacturer/shipping" class="nav-item <%= currentPage === 'shipping' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.shipping') : 'Shipping' %>">
           <i class="fas fa-truck nav-icon"></i>
-          <span class="nav-text">Yetkazib berish</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.shipping') : 'Shipping' %></span>
         </a>
 
-        <a href="/manufacturer/analytics" class="nav-item <%= currentPage === 'analytics' ? 'active' : '' %>" data-tooltip="Tahlillar">
+        <a href="/manufacturer/analytics" class="nav-item <%= currentPage === 'analytics' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.analytics') : 'Analytics' %>">
           <i class="fas fa-chart-bar nav-icon"></i>
-          <span class="nav-text">Tahlillar</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.analytics') : 'Analytics' %></span>
         </a>
       </div>
 
       <!-- System Section -->
       <div class="nav-section">
-        <div class="nav-section-title">Tizim</div>
+        <div class="nav-section-title"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.sections.system') : 'System' %></div>
 
-        <a href="/manufacturer/settings" class="nav-item <%= currentPage === 'settings' ? 'active' : '' %>" data-tooltip="Sozlamalar">
+        <a href="/manufacturer/settings" class="nav-item <%= currentPage === 'settings' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.settings') : 'Settings' %>">
           <i class="fas fa-cog nav-icon"></i>
-          <span class="nav-text">Sozlamalar</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.settings') : 'Settings' %></span>
         </a>
 
-        <a href="/manufacturer/profile" class="nav-item <%= currentPage === 'profile' ? 'active' : '' %>" data-tooltip="Profil">
+        <a href="/manufacturer/profile" class="nav-item <%= currentPage === 'profile' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.profile') : 'Profile' %>">
           <i class="fas fa-user-circle nav-icon"></i>
-          <span class="nav-text">Profil</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.profile') : 'Profile' %></span>
         </a>
 
-        <a href="/manufacturer/support" class="nav-item" data-tooltip="Qo'llab-quvvatlash">
+        <a href="/manufacturer/support" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.support') : 'Support' %>">
           <i class="fas fa-headset nav-icon"></i>
-          <span class="nav-text">Qo'llab-quvvatlash</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.support') : 'Support' %></span>
         </a>
 
-        <a href="/auth/logout" class="nav-item" data-tooltip="Chiqish">
+        <a href="/auth/logout" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('manufacturer.sidebar.logout') : 'Logout' %>">
           <i class="fas fa-sign-out-alt nav-icon"></i>
-          <span class="nav-text">Chiqish</span>
+          <span class="nav-text"><%= typeof t !== 'undefined' ? t('manufacturer.sidebar.logout') : 'Logout' %></span>
         </a>
       </div>
     </nav>

@@ -23,7 +23,7 @@ function initializeProfilePage() {
  * Load profile statistics
  */
 function loadProfileStats() {
-    fetch('/distributor/api/profile-stats')
+    fetch('/buyer/api/profile-stats')
         .then(response => response.json())
         .then(data => {
             if (data.success) {

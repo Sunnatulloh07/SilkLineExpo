@@ -51,8 +51,6 @@ class TokenManager {
      * Initialize token management
      */
     init() {
-        this.log('🚀 Initializing Professional Token Management System');
-        
         // Setup request interceptors
         this.setupRequestInterceptors();
         
@@ -64,8 +62,6 @@ class TokenManager {
         
         // Handle beforeunload
         this.setupBeforeUnload();
-        
-        this.log('✅ Token Manager initialized successfully');
         
         // Mark as ready and notify waiting systems
         this.isReady = true;
@@ -184,8 +180,7 @@ class TokenManager {
         // Initial check
         setTimeout(() => this.checkAndRefreshToken(), 1000);
         
-        this.log('✅ Token monitoring started');
-    }
+         }
 
     /**
      * Check if token needs refresh and refresh if necessary
@@ -195,9 +190,7 @@ class TokenManager {
             const tokenInfo = this.getTokenInfo();
             
             if (!tokenInfo.hasTokens) {
-                this.log('ℹ️ No tokens found - checking authentication status');
-                this.log('🔍 DEBUG: document.cookie at no tokens:', document.cookie);
-                
+            
                 // Check if user is on a protected page
                 const isProtectedPage = this.isProtectedRoute(window.location.pathname);
                 if (isProtectedPage && this.shouldRedirectToLogin()) {
@@ -212,11 +205,9 @@ class TokenManager {
             const minutesUntilExpiry = Math.round(timeUntilExpiry / 60000);
             const secondsUntilExpiry = Math.round(timeUntilExpiry / 1000);
             
-            this.log(`🔍 DEBUG: Token expiry status - Minutes: ${minutesUntilExpiry}, Seconds: ${secondsUntilExpiry}, Threshold: ${this.config.refreshThreshold/1000}s`);
-            
+           
             if (timeUntilExpiry <= this.config.refreshThreshold) {
-                this.log(`🔄 Token expires in ${secondsUntilExpiry}s - refreshing now`);
-                await this.refreshToken();
+               await this.refreshToken();
             } else {
                 this.log(`✅ Token valid for ${minutesUntilExpiry} minutes`);
             }
@@ -279,7 +270,6 @@ class TokenManager {
     async ensureValidToken() {
         // CIRCUIT BREAKER CHECK
         if (this.isCircuitBreakerOpen()) {
-            this.log('🚫 Circuit breaker OPEN - blocking token validation');
             throw new Error('Circuit breaker open - authentication temporarily unavailable');
         }
         
@@ -301,13 +291,11 @@ class TokenManager {
             while (attempts < maxAttempts) {
                 newTokenInfo = this.getTokenInfo();
                 if (newTokenInfo.hasTokens) {
-                    this.log('✅ Tokens found after authentication - attempt', attempts + 1);
                     break;
                 }
                 
                 attempts++;
-                this.log(`⏳ Attempt ${attempts}/${maxAttempts} - tokens not yet accessible, waiting...`);
-                
+               
                 if (attempts < maxAttempts) {
                     // Wait progressively longer between attempts
                     await this.sleep(500 * attempts); // 500ms, 1s, 1.5s
@@ -358,15 +346,11 @@ class TokenManager {
      */
     async performTokenRefresh() {
         try {
-            this.log('🔄 Performing token refresh');
-            this.log('🔍 DEBUG: document.cookie at refresh:', document.cookie);
             
             const refreshToken = this.getCookieWithFallback('refreshToken');
-            this.log('🔍 DEBUG: Retrieved refresh token:', refreshToken ? 'Present (' + refreshToken.substring(0, 20) + '...)' : 'Not found');
-            
+           
             if (!refreshToken) {
-                this.log('❌ No refresh token available - cannot refresh');
-                throw new Error('No refresh token available');
+                   throw new Error('No refresh token available');
             }
             
             const response = await fetch(this.config.refreshEndpoint, {
@@ -381,8 +365,7 @@ class TokenManager {
             
             if (response.ok) {
                 const data = await response.json();
-                this.log('✅ Token refresh successful');
-                
+               
                 // Process queued requests
                 this.processFailedQueue(null);
                 
@@ -393,7 +376,6 @@ class TokenManager {
             }
             
         } catch (error) {
-            this.log('❌ Token refresh failed:', error);
             
             // Process queued requests with error
             this.processFailedQueue(error);
@@ -554,9 +536,7 @@ class TokenManager {
      * Enhanced logging
      */
     log(...args) {
-        if (this.config.debugMode || localStorage.getItem('slex_token_debug') === 'true') {
-            console.log('[TokenManager]', new Date().toLocaleTimeString(), ...args);
-        }
+        // Silent logging for production
     }
 
     /**
@@ -843,7 +823,7 @@ window.tokenManager = tokenManager;
 
 // IMMEDIATE TOKEN MANAGER READY EVENT
 if (typeof window !== 'undefined') {
-    console.log('🚀 TokenManager ready - dispatching event');
+            // TokenManager ready - dispatching event
     window.dispatchEvent(new CustomEvent('tokenManagerReady', { detail: tokenManager }));
 }
 

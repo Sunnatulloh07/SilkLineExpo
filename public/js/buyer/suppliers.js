@@ -3,7 +3,7 @@
  */
 class BuyerSuppliers {
     constructor() {
-        this.apiBase = '/distributor/api';
+        this.apiBase = '/buyer/api';
         this.filters = {};
         this.suppliers = [];
         this.init();
@@ -189,7 +189,7 @@ window.viewSupplierDetails = (supplierId) => {
 };
 
 window.contactSupplier = (supplierId) => {
-    window.location.href = `/distributor/communication?supplier=${supplierId}`;
+    window.location.href = `/buyer/messages?supplier=${supplierId}`;
 };
 
 window.openSupplierDiscovery = () => {

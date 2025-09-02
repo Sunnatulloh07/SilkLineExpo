@@ -17,18 +17,18 @@ class SLEXDashboard {
   }
 
   async waitForTokenManagerAndInit() {
-    console.log('🔍 DEBUG: Waiting for TokenManager to be ready...');
+            // Waiting for TokenManager to be ready...
     
     // Listen for TokenManager ready event
     const tokenManagerReady = new Promise((resolve) => {
       if (window.tokenManager && window.tokenManager.isReady) {
-        console.log('✅ TokenManager already ready');
+        // TokenManager already ready
         resolve();
         return;
       }
       
       const onReady = () => {
-        console.log('✅ TokenManager ready event received');
+        // TokenManager ready event received
         window.removeEventListener('tokenManagerReady', onReady);
         resolve();
       };
@@ -37,7 +37,7 @@ class SLEXDashboard {
       
       // Fallback timeout
       setTimeout(() => {
-        console.log('⚠️ TokenManager ready timeout - proceeding anyway');
+        // TokenManager ready timeout - proceeding anyway
         window.removeEventListener('tokenManagerReady', onReady);
         resolve();
       }, 3000);
@@ -76,12 +76,10 @@ class SLEXDashboard {
     this.setupQuickActions();
     
     // CHECK CIRCUIT BREAKER BEFORE MESSAGES/NOTIFICATIONS SETUP
-    console.log('🔍 DEBUG: About to check circuit breaker for messages/notifications');
-    const circuitBreakerOpen = this.isCircuitBreakerOpen();
-    console.log('🔍 DEBUG: Circuit breaker check result:', circuitBreakerOpen);
+            const circuitBreakerOpen = this.isCircuitBreakerOpen();
     
     if (!circuitBreakerOpen) {
-      console.log('✅ Circuit breaker closed - proceeding with messages/notifications setup');
+              // Circuit breaker closed - proceeding with messages/notifications setup
       this.setupMessagesAndNotifications();
     } else {
       console.log('🚫 Skipping messages/notifications initialization - circuit breaker open');
@@ -407,7 +405,7 @@ class SLEXDashboard {
         if (!this.isCircuitBreakerOpen()) {
           this.loadNotifications();
         } else {
-          console.log('⚠️ Circuit breaker open - showing fallback notifications');
+          // Circuit breaker open - showing fallback notifications
           this.showFallbackNotifications();
         }
       });
@@ -1267,7 +1265,7 @@ class SLEXDashboard {
   setupGrowthChart() {
     const chartContainer = document.getElementById('growthChart');
     if (!chartContainer) {
-      console.warn('Chart container not found');
+              // Chart container not found
       return;
     }
 
@@ -1808,7 +1806,7 @@ class SLEXDashboard {
     }
     
     // Professional performance-optimized updates
-    console.log('🚀 Starting performance-optimized updates...');
+            // Starting performance-optimized updates...
     
     // Initialize performance optimizer
     if (window.dashboardOptimizer) {
@@ -1816,7 +1814,7 @@ class SLEXDashboard {
     }
     
     // PERFORMANCE FIX: Proper 5-minute refresh interval (300,000ms)
-    console.log('🔧 Setting up proper 5-minute auto-refresh interval...');
+            // Setting up proper 5-minute auto-refresh interval...
     
     // Main dashboard data refresh every 5 minutes - WITH CIRCUIT BREAKER CHECK
     this.dashboardRefreshInterval = setInterval(() => {
@@ -1840,7 +1838,7 @@ class SLEXDashboard {
       }
     }, 120000); // 2 minutes = 120,000 ms
 
-    console.log('✅ Professional 5-minute refresh cycle initialized');
+            // Professional 5-minute refresh cycle initialized
   }
 
   async updateDashboardData() {
@@ -1856,7 +1854,7 @@ class SLEXDashboard {
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {
-          console.log('✅ Real data received from backend:', result.data);
+          // Real data received from backend
           
           // Save last known good data
           if (window.dashboardOptimizer && !window.DISABLE_DASHBOARD_PERFORMANCE) {
@@ -1875,7 +1873,7 @@ class SLEXDashboard {
           this.updateRecentActivity(result.data);
           this.updateSystemStatus(result.data);
           
-          console.log('✅ Dashboard UI updated with real data');
+          // Dashboard UI updated with real data
         } else {
           console.warn('⚠️ Backend returned unsuccessful response:', result);
         }
@@ -1897,7 +1895,7 @@ class SLEXDashboard {
       const data = await window.dashboardOptimizer.loadDashboardDataFast('high');
       if (data && data.success && data.data) {
         this.updateStatCards(data.data);
-        console.log('⚡ Fast dashboard update completed');
+        // Fast dashboard update completed
       }
     } else {
       // Fallback to standard update
@@ -3398,7 +3396,7 @@ class SLEXDashboard {
     }
     
     // Poll for new notifications every 3 minutes to reduce API calls
-    console.log('📢 Setting up notification polling - every 3 minutes');
+            // Setting up notification polling - every 3 minutes
     this.notificationPollingInterval = setInterval(() => {
       if (!this.isCircuitBreakerOpen()) {
         this.checkForNewNotifications();
@@ -4696,12 +4694,12 @@ class SLEXDashboard {
 
 // Initialize dashboard when DOM is ready - WAIT FOR TOKEN MANAGER
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🎯 Professional dashboard initialization starting...');
+  // Professional dashboard initialization starting...
   
   // Wait for TokenManager ready event
   const initDashboard = () => {
     try {
-      console.log('🚀 Initializing dashboard after TokenManager ready');
+      // Initializing dashboard after TokenManager ready
       window.slexDashboard = new SLEXDashboard();
       
       // Initialize enhanced components after dashboard loads
@@ -4709,7 +4707,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.slexDashboard.initEnhancedComponents();
       }, 200);
       
-      console.log('✅ Professional dashboard initialization completed');
+      // Professional dashboard initialization completed
     } catch (error) {
       console.error('❌ Dashboard initialization error:', error);
     }
@@ -4721,7 +4719,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fallback: Initialize after delay if TokenManager event not received
   setTimeout(() => {
     if (!window.slexDashboard) {
-      console.log('⚠️ Fallback dashboard initialization (TokenManager event not received)');
+      // Fallback dashboard initialization (TokenManager event not received)
       initDashboard();
     }
   }, 2000);
@@ -5316,7 +5314,7 @@ window.markNotificationAsRead = async function(notificationId) {
 document.addEventListener('DOMContentLoaded', function() {
   
   try {
-    console.log('🎯 Professional dashboard initialization starting...');
+    // Professional dashboard initialization starting...
     
     // Create dashboard instance with consistent naming
     window.SLEXDashboard = new SLEXDashboard();
@@ -5325,7 +5323,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize dashboard
     window.SLEXDashboard.init();
     
-    console.log('✅ Professional dashboard initialization completed');
+    // Professional dashboard initialization completed
     
   } catch (error) {
     console.error('❌ Dashboard initialization failed:', error);
@@ -6056,21 +6054,21 @@ SLEXDashboard.prototype.isCircuitBreakerOpen = function() {
   try {
     // Enhanced debugging for circuit breaker state
     if (!window.tokenManager) {
-      console.log('🔍 DEBUG: window.tokenManager is not available');
+              // window.tokenManager is not available
       return false;
     }
     
     if (!window.tokenManager.circuitBreaker) {
-      console.log('🔍 DEBUG: tokenManager.circuitBreaker is not available');
+              // tokenManager.circuitBreaker is not available
       return false;
     }
     
     const isOpen = window.tokenManager.circuitBreaker.state === 'OPEN';
-    console.log('🔍 DEBUG: Circuit breaker state:', window.tokenManager.circuitBreaker.state, 'isOpen:', isOpen);
+            // Circuit breaker state checked
     
     return isOpen;
   } catch (error) {
-    console.log('🔍 DEBUG: Error checking circuit breaker:', error);
+            // Error checking circuit breaker
     return false;
   }
 };
@@ -6148,7 +6146,7 @@ SLEXDashboard.prototype.showCircuitBreakerMessage = function() {
       5000
     );
   } else {
-    console.log(`⚠️ Authentication unavailable for ${resetTime} seconds`);
+            // Authentication unavailable for ${resetTime} seconds
   }
 };
 
@@ -6180,7 +6178,7 @@ SLEXDashboard.prototype.cleanupIntervals = function() {
     clearInterval(this.generalUpdateInterval);
     this.generalUpdateInterval = null;
   }
-  console.log('✅ All dashboard intervals cleaned up');
+          // All dashboard intervals cleaned up
 };
 
 // CIRCUIT BREAKER UTILITIES FOR ADMIN HEADER DROPDOWN FIX
@@ -6303,7 +6301,7 @@ window.initializeThemeSystem = function() {
         icon.className = newTheme === 'dark' ? 'fas fa-sun theme-icon' : 'fas fa-moon theme-icon';
       }
       
-      console.log(`✅ Theme switched to: ${newTheme}`);
+              // Theme switched to: ${newTheme}
     });
   }
 };

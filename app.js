@@ -48,7 +48,7 @@ app.use(helmet({
       scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", "https://www.google-analytics.com", "https://analytics.google.com"],
       frameSrc: ["'self'", "https://maps.google.com", "https://www.google.com"], // Allow Google Maps
       baseUri: ["'self'"],
       formAction: ["'self'"],
@@ -123,6 +123,10 @@ app.use((req, res, next) => {
   next();
 });
 
+// Global Badge Middleware - Provides badge counts to all templates
+const badgeMiddleware = require('./middleware/badgeMiddleware');
+app.use(badgeMiddleware);
+
 // View engine setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -149,7 +153,7 @@ const multiDashboardRoutes = require('./routes/multiDashboard');
 // const authFixedRoutes = require('./routes/authFixed'); // Merged into main auth routes
 const adminRoutes = require('./routes/admin');
 const manufacturerRoutes = require('./routes/manufacturer');
-const distributorRoutes = require('./routes/distributor');
+const buyerRoutes = require('./routes/buyer');
 const userRoutes = require('./routes/user');
 const apiRoutes = require('./routes/api');
 const dashboardRoutes = require('./routes/dashboard');
@@ -280,12 +284,14 @@ app.get('/language/:lng', (req, res) => {
 
 // ===== PROFESSIONAL DASHBOARD SECURITY SYSTEM =====
 const {
-    authenticationGuard,
     dashboardAccessControl,
     smartDashboardRouter,
     crossDashboardPrevention,
     dashboardSecurityHeaders
 } = require('./middleware/dashboardRouting');
+
+// Import JWT middleware for authentication
+const { authenticate } = require('./middleware/jwtAuth');
 
 // ===== AUTHENTICATION ROUTES (PUBLIC) =====
 // Enhanced Multi-Dashboard Authentication (Production)
@@ -342,41 +348,35 @@ app.use('/', publicRoutes);
 // Admin Dashboard (Super Admin, Admin, Moderator)
 app.use('/admin', 
     dashboardSecurityHeaders,
-    authenticationGuard,
+    authenticate,
     adminRoutes
 );
 
 // Company Dashboards (Company Admins)
 app.use('/manufacturer', 
     dashboardSecurityHeaders,
-    authenticationGuard,
+    authenticate,
     manufacturerRoutes
 );    
 
-app.use('/distributor', 
-    dashboardSecurityHeaders,
-    authenticationGuard,
-    distributorRoutes
-);      
-
-// Buyer Profile Routes (Same as distributor but with /buyer path)
+// Buyer Profile Routes (Professional dedicated buyer routes)
 app.use('/buyer', 
     dashboardSecurityHeaders,
-    authenticationGuard,
-    distributorRoutes
+    authenticate,
+    buyerRoutes
 );      
 
 // User Management Routes
 app.use('/user', 
     dashboardSecurityHeaders,
-    authenticationGuard,
+    authenticate,
     userRoutes
 );
 
 // Universal Dashboard Router (handles /dashboard requests)
 app.use('/dashboard', 
     dashboardSecurityHeaders,
-    authenticationGuard,
+    authenticate,
     smartDashboardRouter,
     dashboardRoutes
 );

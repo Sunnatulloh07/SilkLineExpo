@@ -35,7 +35,6 @@ class SupplierProfileController {
 
             // Validate supplier ID format
             if (!mongoose.Types.ObjectId.isValid(supplierId)) {
-                this.logger.warn('Invalid supplier ID format:', supplierId);
                 return this._renderErrorPage(res, {
                     title: 'Supplier Not Found',
                     message: 'Invalid supplier ID format',
@@ -50,8 +49,7 @@ class SupplierProfileController {
             });
 
             if (!profileData) {
-                this.logger.warn('Supplier not found:', supplierId);
-                return this._renderErrorPage(res, {
+    return this._renderErrorPage(res, {
                     title: 'Supplier Not Found',
                     message: 'The supplier you are looking for does not exist or is not available.',
                     code: 'SUPPLIER_NOT_FOUND'
@@ -60,8 +58,7 @@ class SupplierProfileController {
 
             // Check if supplier is active
             if (profileData.supplier.status !== 'active') {
-                this.logger.warn('Supplier not active:', supplierId, profileData.supplier.status);
-                return this._renderErrorPage(res, {
+    return this._renderErrorPage(res, {
                     title: 'Supplier Not Available',
                     message: 'This supplier profile is not currently available.',
                     code: 'SUPPLIER_INACTIVE'
@@ -83,7 +80,6 @@ class SupplierProfileController {
             res.render('pages/supplier-profile', templateData);
 
         } catch (error) {
-            this.logger.error('❌ Show supplier profile error:', error);
             return this._renderErrorPage(res, {
                 title: 'Server Error',
                 message: 'Unable to load supplier profile at this time.',

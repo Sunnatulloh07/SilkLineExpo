@@ -435,6 +435,9 @@ const boundMethods = {
   setInquiryPriority: inquiryController.setInquiryPriority.bind(inquiryController),
   addInquiryNote: inquiryController.addInquiryNote.bind(inquiryController),
   exportInquiry: inquiryController.exportInquiry.bind(inquiryController),
+
+  // Messages API
+  getUnreadMessagesCount: ManufacturerController.getUnreadMessagesCount.bind(ManufacturerController),
 };
 
 const router = express.Router();
@@ -592,7 +595,7 @@ router.get(
 // ===== DASHBOARD WIDGET API ROUTES =====
 router.get("/api/distributor-inquiries", boundMethods.getDistributorInquiries);
 router.get("/api/communication-center", boundMethods.getCommunicationCenter);
-router.get("/api/messages", boundMethods.getCommunicationCenter); // Use communication center for messages
+// Note: /api/messages route moved to Messages API Routes section
 router.get("/api/inventory-management", boundMethods.getInventoryManagement);
 
 // ===== B2B MARKETPLACE API ROUTES =====
@@ -699,10 +702,42 @@ router.get('/messages',
   MessagingController.showMessagingPage
 );
 
-router.get('/messages/order/:orderId', 
+// API Routes for B2B Messaging System - MUST COME BEFORE DYNAMIC ROUTES
+console.log('🔍 Registering messaging API routes...');
+
+router.get('/messages/api/conversations',
   authenticate,
   manufacturerOnly,
-  MessagingController.showOrderChat
+  MessagingController.getConversations
+);
+
+console.log('🔍 Route registered: /messages/api/conversations');
+
+router.get('/messages/api/order/:orderId/messages',
+  authenticate,
+  manufacturerOnly,
+  MessagingController.getOrderMessages
+);
+
+console.log('🔍 Route registered: /messages/api/order/:orderId/messages');
+
+router.post('/messages/api/order/:orderId/mark-read',
+  authenticate,
+  manufacturerOnly,
+  MessagingController.markOrderMessagesAsRead
+);
+
+// Inquiry-based messaging routes
+router.get('/messages/api/inquiry/:inquiryId/messages',
+  authenticate,
+  manufacturerOnly,
+  MessagingController.getInquiryMessages
+);
+
+router.post('/messages/api/inquiry/:inquiryId/mark-read',
+  authenticate,
+  manufacturerOnly,
+  MessagingController.markInquiryMessagesAsRead
 );
 
 router.post('/messages/api/send', 
@@ -712,23 +747,17 @@ router.post('/messages/api/send',
   MessagingController.sendMessage
 );
 
-// API Routes for B2B Messaging System
-router.get('/messages/api/conversations',
+// Static routes - MUST COME AFTER API ROUTES
+router.get('/messages/order/:orderId', 
   authenticate,
   manufacturerOnly,
-  MessagingController.getConversations
+  MessagingController.showOrderChat
 );
 
-router.get('/messages/api/order/:orderId/messages',
+router.get('/messages/inquiry/:inquiryId', 
   authenticate,
   manufacturerOnly,
-  MessagingController.getOrderMessages
-);
-
-router.post('/messages/api/order/:orderId/mark-read',
-  authenticate,
-  manufacturerOnly,
-  MessagingController.markOrderMessagesAsRead
+  MessagingController.showInquiryChat
 );
 
 router.post('/messages/api/upload',
@@ -753,7 +782,20 @@ router.post("/inquiries/:inquiryId/archive", validateManufacturerApiAccess, boun
 router.get("/inquiries/:inquiryId/export", validateManufacturerApiAccess, boundMethods.exportInquiry);
 router.delete("/inquiries/:inquiryId", validateManufacturerApiAccess, boundMethods.deleteInquiry);
 
+// ===== MESSAGES API ROUTES =====
+router.get("/api/unread-messages-count", validateManufacturerApiAccess, boundMethods.getUnreadMessagesCount);
+router.get("/api/messages", validateManufacturerApiAccess, MessagingController.getHeaderMessages);
+router.post("/api/messages/mark-all-read", validateManufacturerApiAccess, MessagingController.markAllMessagesAsRead);
+router.post("/api/messages/mark-read", validateManufacturerApiAccess, MessagingController.markMessageAsRead);
 
+// ===== ORDERS API ROUTES =====
+router.get("/api/orders", validateManufacturerApiAccess, boundMethods.getRecentOrders);
+router.post("/api/orders/mark-all-read", validateManufacturerApiAccess, MessagingController.markAllOrdersAsRead);
+router.post("/api/orders/mark-read", validateManufacturerApiAccess, MessagingController.markOrderAsRead);
+
+// ===== INQUIRIES API ROUTES =====
+router.post("/api/inquiries/mark-all-read", validateManufacturerApiAccess, MessagingController.markAllInquiriesAsRead);
+router.post("/api/inquiries/mark-read", validateManufacturerApiAccess, MessagingController.markInquiryAsRead);
 
 // ===== MARKETPLACE API ROUTES =====
 // Include marketplace specific routes

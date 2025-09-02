@@ -27,7 +27,6 @@
             this.setupStorageListener();
             
             this.initialized = true;
-            console.log('🎨 Universal Theme Manager initialized');
         }
 
         getCurrentTheme() {
@@ -40,11 +39,9 @@
 
         setTheme(theme) {
             if (!['light', 'dark'].includes(theme)) {
-                console.warn('Invalid theme:', theme);
                 return;
             }
 
-            console.log('🎨 Universal: Setting theme to', theme);
 
             // Update all localStorage keys
             this.themeKeys.forEach(key => {
@@ -72,7 +69,7 @@
             // Force CSS recomputation by triggering a reflow
             document.documentElement.offsetHeight;
             
-            console.log('🎨 Universal: Theme applied to DOM:', theme);
+            // Theme applied to DOM
         }
 
         updateThemeUI(theme) {
@@ -100,22 +97,19 @@
                 radio.checked = radio.value === theme;
             });
 
-            console.log('🎨 Universal: UI updated for theme:', theme);
+            // UI updated for theme
         }
 
         toggleTheme() {
             const currentTheme = this.getCurrentTheme();
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             
-            console.log('🎨 Universal: Toggling theme from', currentTheme, 'to', newTheme);
             this.setTheme(newTheme);
         }
 
         syncAllThemes() {
             const currentTheme = this.getCurrentTheme();
-            
-            console.log('🎨 Universal: Syncing all themes to:', currentTheme);
-            
+         
             // Ensure all keys have the same value
             this.themeKeys.forEach(key => {
                 localStorage.setItem(key, currentTheme);
@@ -142,15 +136,12 @@
                     this.toggleTheme();
                 });
             });
-
-            console.log('🎨 Universal: Theme toggle listeners setup');
-        }
+ }
 
         setupStorageListener() {
             window.addEventListener('storage', (e) => {
                 if (this.themeKeys.includes(e.key)) {
-                    console.log('🎨 Universal: Storage change detected for', e.key, ':', e.newValue);
-                    this.syncAllThemes();
+                   this.syncAllThemes();
                 }
             });
         }
@@ -218,9 +209,7 @@
         })
     };
 
-    console.log('🎨 Universal Theme Manager loaded!');
-    console.log('🔧 Available: window.UniversalTheme, window.toggleTheme()');
-    console.log('🐛 Debug: ThemeDebug.universal.status()');
+  
 
 })();
 

@@ -110,6 +110,7 @@ class CategoriesManagement {
             await this.loadParentCategories();
             await this.loadInitialData();
             this.setupThemeListener(); // Add theme listener setup
+            this.setupDropdownManager(); // Professional dropdown management
             
             console.log('✅ Categories Management initialized successfully');
         } catch (error) {
@@ -521,25 +522,25 @@ class CategoriesManagement {
                         <button class="btn-action btn-analytics" onclick="window.categoriesManager.viewAnalytics('${category._id}')" title="View Analytics">
                             <i class="las la-chart-bar"></i>
                         </button>
-                        <div class="dropdown">
-                            <button class="btn-action btn-more dropdown-toggle" data-bs-toggle="dropdown" title="More Actions">
+                        <div class="category-dropdown" data-category-id="${category._id}">
+                            <button class="btn-action btn-more" data-dropdown-trigger="${category._id}" title="More Actions">
                                 <i class="las la-ellipsis-v"></i>
                             </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="window.categoriesManager.toggleCategoryStatus('${category._id}')">
+                            <ul class="category-dropdown-menu" data-dropdown-menu="${category._id}">
+                                <li><a class="dropdown-item" href="#" data-action="toggle-status" data-category-id="${category._id}">
                                     <i class="las ${category.settings?.isActive ? 'la-pause' : 'la-play'}"></i>
                                     ${category.settings?.isActive ? 'Deactivate' : 'Activate'}
                                 </a></li>
-                                <li><a class="dropdown-item" href="#" onclick="window.categoriesManager.toggleFeatureStatus('${category._id}')">
+                                <li><a class="dropdown-item" href="#" data-action="toggle-feature" data-category-id="${category._id}">
                                     <i class="las ${category.settings?.isFeatured ? 'la-star-o' : 'la-star'}"></i>
                                     ${category.settings?.isFeatured ? 'Unfeature' : 'Feature'}
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#" onclick="window.categoriesManager.duplicateCategory('${category._id}')">
+                                <li><a class="dropdown-item" href="#" data-action="duplicate" data-category-id="${category._id}">
                                     <i class="las la-copy"></i>
                                     Duplicate
                                 </a></li>
-                                <li><a class="dropdown-item text-danger" href="#" onclick="window.categoriesManager.archiveCategory('${category._id}')">
+                                <li><a class="dropdown-item text-danger" href="#" data-action="archive" data-category-id="${category._id}">
                                     <i class="las la-archive"></i>
                                     Archive
                                 </a></li>
@@ -1135,286 +1136,536 @@ class CategoriesManagement {
     }
 
     /**
-     * Create comprehensive category modal
+     * Create PROFESSIONAL category modal - Senior Engineer Level
+     * Features:
+     * - Modern Material Design principles
+     * - Advanced animations and transitions
+     * - Professional accessibility support
+     * - Real-time validation and feedback
+     * - Responsive design patterns
+     * - Progressive disclosure UX
      */
     createCategoryModal() {
         const modal = document.createElement('div');
-        modal.className = 'category-modal-overlay';
-        modal.innerHTML = `
-            <div class="category-modal">
-                <div class="modal-header">
-                    <h2 class="modal-title">
-                        <i class="las la-plus-circle text-primary"></i>
-                        Create New Category
-                    </h2>
-                    <button type="button" class="modal-close-btn" onclick="this.closest('.category-modal-overlay').remove()">
+        modal.className = 'professional-modal-overlay';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-labelledby', 'modalTitle');
+        modal.setAttribute('aria-modal', 'true');
+        
+        modal.innerHTML = this.generateProfessionalModalHTML();
+        return modal;
+    }
+
+    /**
+     * Generate comprehensive professional modal HTML
+     */
+    generateProfessionalModalHTML() {
+        return `
+            <div class="professional-modal" data-modal-type="category-create">
+                ${this.generateModalHeader()}
+                
+                <div class="modal-progress-bar">
+                    <div class="progress-track">
+                        <div class="progress-fill" data-progress="0"></div>
+                    </div>
+                    <div class="progress-steps">
+                        <div class="step active" data-step="1">Basic</div>
+                        <div class="step" data-step="2">Design</div>
+                        <div class="step" data-step="3">Settings</div>
+                        <div class="step" data-step="4">Review</div>
+                    </div>
+                </div>
+
+                <form class="professional-form" id="createCategoryForm" novalidate>
+                    <div class="modal-content-container">
+                        ${this.generateFormSteps()}
+                    </div>
+                    
+                    ${this.generateModalFooter()}
+                </form>
+                
+                <!-- Professional Loading Overlay -->
+                <div class="modal-loading-overlay" data-loading="false">
+                    <div class="loading-spinner">
+                        <div class="spinner-ring"></div>
+                        <div class="spinner-ring"></div>
+                        <div class="spinner-ring"></div>
+                    </div>
+                    <div class="loading-text">Processing your request...</div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Generate professional modal header
+     */
+    generateModalHeader() {
+        return `
+            <div class="modal-header professional-header">
+                <div class="header-content">
+                    <div class="header-icon-wrapper">
+                        <div class="header-icon">
+                            <i class="las la-plus-circle"></i>
+                        </div>
+                        <div class="icon-pulse"></div>
+                    </div>
+                    <div class="header-text">
+                        <h2 class="modal-title" id="modalTitle">Create New Category</h2>
+                        <p class="modal-subtitle">Build a comprehensive category structure for your marketplace</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button type="button" class="modal-minimize" title="Minimize" aria-label="Minimize modal">
+                        <i class="las la-minus"></i>
+                    </button>
+                    <button type="button" class="modal-close" title="Close" aria-label="Close modal">
                         <i class="las la-times"></i>
                     </button>
                 </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Generate multi-step form with professional UX
+     */
+    generateFormSteps() {
+        return `
+            <!-- Step 1: Basic Information -->
+            <div class="form-step active" data-step="1">
+                <div class="step-header">
+                    <h3 class="step-title">
+                        <i class="las la-info-circle"></i>
+                        Basic Information
+                    </h3>
+                    <p class="step-description">Essential details about your category</p>
+                </div>
                 
-                <form class="category-form" id="createCategoryForm">
-                    <div class="modal-body">
+                <div class="professional-form-grid">
+                    <div class="form-group-enhanced required">
+                        <label for="categoryName" class="professional-label">
+                            <span class="label-text">Category Name</span>
+                            <span class="label-required">*</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="text" id="categoryName" name="name" class="professional-input" 
+                                   placeholder="e.g., Electronics, Food & Beverages" 
+                                   autocomplete="off" spellcheck="true" required
+                                   data-validation="required|min:2|max:100">
+                            <div class="input-icon">
+                                <i class="las la-tag"></i>
+                            </div>
+                            <div class="input-feedback"></div>
+                        </div>
+                        <div class="field-help">Choose a clear, descriptive name that represents your category</div>
+                    </div>
+                    
+                    <div class="form-group-enhanced">
+                        <label for="categorySlug" class="professional-label">
+                            <span class="label-text">URL Slug</span>
+                            <span class="label-status">Auto-generated</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="text" id="categorySlug" name="slug" class="professional-input" 
+                                   placeholder="auto-generated-from-name" readonly tabindex="-1">
+                            <div class="input-icon">
+                                <i class="las la-link"></i>
+                            </div>
+                        </div>
+                        <div class="field-help">URL-friendly version automatically created from name</div>
+                    </div>
+                    
+                    <div class="form-group-enhanced required full-width">
+                        <label for="categoryDescription" class="professional-label">
+                            <span class="label-text">Description</span>
+                            <span class="label-required">*</span>
+                            <span class="character-counter" data-target="categoryDescription">0/1000</span>
+                        </label>
+                        <div class="textarea-wrapper">
+                            <textarea id="categoryDescription" name="description" class="professional-textarea" 
+                                      placeholder="Provide a comprehensive description that helps users understand what products belong in this category..."
+                                      rows="4" maxlength="1000" required
+                                      data-validation="required|min:10|max:1000"></textarea>
+                            <div class="textarea-tools">
+                                <button type="button" class="text-tool" title="Bold" data-tool="bold">
+                                    <i class="las la-bold"></i>
+                                </button>
+                                <button type="button" class="text-tool" title="Italic" data-tool="italic">
+                                    <i class="las la-italic"></i>
+                                </button>
+                                <button type="button" class="text-tool" title="Clear" data-tool="clear">
+                                    <i class="las la-eraser"></i>
+                                </button>
+                            </div>
+                            <div class="input-feedback"></div>
+                        </div>
+                        <div class="field-help">Detailed description for SEO and user understanding</div>
+                    </div>
+                    
+                    <div class="form-group-enhanced full-width">
+                        <label for="categoryShortDescription" class="professional-label">
+                            <span class="label-text">Short Description</span>
+                            <span class="character-counter" data-target="categoryShortDescription">0/200</span>
+                        </label>
+                        <div class="textarea-wrapper">
+                            <textarea id="categoryShortDescription" name="shortDescription" class="professional-textarea" 
+                                      placeholder="Brief summary for category listings and previews..." 
+                                      rows="2" maxlength="200"
+                                      data-validation="max:200"></textarea>
+                            <div class="input-feedback"></div>
+                        </div>
+                        <div class="field-help">Concise summary displayed in category listings</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 2: Design & Hierarchy -->
+            <div class="form-step" data-step="2">
+                <div class="step-header">
+                    <h3 class="step-title">
+                        <i class="las la-palette"></i>
+                        Design & Structure
+                    </h3>
+                    <p class="step-description">Visual design and category hierarchy</p>
+                </div>
+                
+                <div class="professional-form-grid">
+                    <div class="form-group-enhanced">
+                        <label class="professional-label">
+                            <span class="label-text">Parent Category</span>
+                        </label>
+                        <div class="select-wrapper">
+                            <select id="parentCategory" name="parentCategory" class="professional-select">
+                                <option value="">🏠 Root Category (Top Level)</option>
+                                ${this.generateParentCategoryOptions()}
+                            </select>
+                            <div class="select-icon">
+                                <i class="las la-chevron-down"></i>
+                            </div>
+                        </div>
+                        <div class="field-help">Choose parent category or leave as root level</div>
+                    </div>
+                    
+                    <div class="form-group-enhanced">
+                        <label for="sortOrder" class="professional-label">
+                            <span class="label-text">Sort Order</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="sortOrder" name="sortOrder" class="professional-input" 
+                                   min="0" max="999" value="0" placeholder="0"
+                                   data-validation="numeric|min:0|max:999">
+                            <div class="input-icon">
+                                <i class="las la-sort-numeric-up"></i>
+                            </div>
+                            <div class="input-feedback"></div>
+                        </div>
+                        <div class="field-help">Lower numbers appear first in listings (0-999)</div>
+                    </div>
+                    
+                    <div class="form-group-enhanced">
+                        <label class="professional-label">
+                            <span class="label-text">Category Icon</span>
+                        </label>
+                        <div class="icon-selector-professional">
+                            <div class="icon-input-wrapper">
+                                <input type="text" id="categoryIcon" name="icon" class="professional-input" 
+                                       value="las la-folder" placeholder="las la-folder"
+                                       data-validation="icon">
+                                <div class="input-icon">
+                                    <i class="las la-icons"></i>
+                                </div>
+                            </div>
+                            <div class="icon-preview-professional">
+                                <div class="icon-display" id="iconPreview">
+                                    <i class="las la-folder"></i>
+                                </div>
+                            </div>
+                            <button type="button" class="icon-browser-btn" data-action="browse-icons">
+                                <i class="las la-search"></i>
+                                Browse Icons
+                            </button>
+                        </div>
+                        <div class="field-help">Line Awesome icon class for visual identification</div>
+                    </div>
+                    
+                    <div class="form-group-enhanced">
+                        <label class="professional-label">
+                            <span class="label-text">Brand Color</span>
+                        </label>
+                        <div class="color-selector-professional">
+                            <div class="color-input-group">
+                                <input type="color" id="categoryColor" name="color" class="professional-color-picker" value="#3B82F6">
+                                <input type="text" id="categoryColorText" class="professional-input color-text" value="#3B82F6">
+                            </div>
+                            <div class="color-presets">
+                                <button type="button" class="color-preset" data-color="#3B82F6" style="background:#3B82F6" title="Blue"></button>
+                                <button type="button" class="color-preset" data-color="#10B981" style="background:#10B981" title="Green"></button>
+                                <button type="button" class="color-preset" data-color="#F59E0B" style="background:#F59E0B" title="Orange"></button>
+                                <button type="button" class="color-preset" data-color="#EF4444" style="background:#EF4444" title="Red"></button>
+                                <button type="button" class="color-preset" data-color="#8B5CF6" style="background:#8B5CF6" title="Purple"></button>
+                                <button type="button" class="color-preset" data-color="#06B6D4" style="background:#06B6D4" title="Cyan"></button>
+                            </div>
+                        </div>
+                        <div class="field-help">Primary color for category identification and theming</div>
+                    </div>
+                </div>
+                
+                <!-- Live Preview -->
+                <div class="category-preview-panel">
+                    <h4 class="preview-title">
+                        <i class="las la-eye"></i>
+                        Live Preview
+                    </h4>
+                    <div class="category-preview-card" id="categoryPreview">
+                        <div class="preview-icon">
+                            <i class="las la-folder"></i>
+                        </div>
+                        <div class="preview-content">
+                            <h5 class="preview-name">Category Name</h5>
+                            <p class="preview-description">Category description will appear here...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 3: Advanced Settings -->
+            <div class="form-step" data-step="3">
+                <div class="step-header">
+                    <h3 class="step-title">
+                        <i class="las la-cogs"></i>
+                        Advanced Settings
+                    </h3>
+                    <p class="step-description">Configure category behavior and permissions</p>
+                </div>
+                
+                <div class="settings-professional-grid">
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">
+                            <i class="las la-toggle-on"></i>
+                            Visibility & Status
+                        </h4>
                         
-                        <!-- Basic Information Section -->
-                        <div class="form-section">
-                            <div class="section-header">
-                                <h3 class="section-title">
-                                    <i class="las la-info-circle"></i>
-                                    Basic Information
-                                </h3>
-                            </div>
-                            <div class="form-grid">
-                                <div class="form-group required">
-                                    <label for="categoryName" class="form-label">Category Name</label>
-                                    <input type="text" id="categoryName" name="name" class="form-control" 
-                                           placeholder="e.g., Electronics, Food & Beverages" required>
-                                    <div class="field-help">Primary display name for the category</div>
+                        <div class="professional-toggle-group">
+                            <div class="professional-toggle-item">
+                                <div class="toggle-wrapper">
+                                    <input type="checkbox" id="isActive" name="isActive" class="professional-toggle" checked>
+                                    <label for="isActive" class="toggle-label">
+                                        <span class="toggle-slider"></span>
+                                    </label>
                                 </div>
-                                
-                                <div class="form-group">
-                                    <label for="categorySlug" class="form-label">URL Slug</label>
-                                    <input type="text" id="categorySlug" name="slug" class="form-control" 
-                                           placeholder="auto-generated-from-name" readonly>
-                                    <div class="field-help">Automatically generated from name</div>
+                                <div class="toggle-content">
+                                    <div class="toggle-title">Active Status</div>
+                                    <div class="toggle-description">Category is active and functional</div>
                                 </div>
-                                
-                                <div class="form-group required full-width">
-                                    <label for="categoryDescription" class="form-label">Description</label>
-                                    <textarea id="categoryDescription" name="description" class="form-control" rows="3" 
-                                              placeholder="Detailed description of the category and its purpose" required></textarea>
-                                    <div class="field-help">Comprehensive description for SEO and user understanding</div>
-                                </div>
-                                
-                                <div class="form-group full-width">
-                                    <label for="categoryShortDescription" class="form-label">Short Description</label>
-                                    <textarea id="categoryShortDescription" name="shortDescription" class="form-control" rows="2" 
-                                              placeholder="Brief summary for listings and previews"></textarea>
-                                    <div class="field-help">Brief summary displayed in category listings</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Hierarchy Section -->
-                        <div class="form-section">
-                            <div class="section-header">
-                                <h3 class="section-title">
-                                    <i class="las la-sitemap"></i>
-                                    Category Hierarchy
-                                </h3>
-                            </div>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="parentCategory" class="form-label">Parent Category</label>
-                                    <select id="parentCategory" name="parentCategory" class="form-control">
-                                        <option value="">-- Root Category --</option>
-                                        ${this.generateParentCategoryOptions()}
-                                    </select>
-                                    <div class="field-help">Leave empty to create a top-level category</div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="sortOrder" class="form-label">Sort Order</label>
-                                    <input type="number" id="sortOrder" name="sortOrder" class="form-control" 
-                                           min="0" max="999" value="0" placeholder="0">
-                                    <div class="field-help">Lower numbers appear first in listings</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Visual Design Section -->
-                        <div class="form-section">
-                            <div class="section-header">
-                                <h3 class="section-title">
-                                    <i class="las la-palette"></i>
-                                    Visual Design
-                                </h3>
-                            </div>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="categoryIcon" class="form-label">Icon</label>
-                                    <div class="icon-selector">
-                                        <input type="text" id="categoryIcon" name="icon" class="form-control" 
-                                               value="las la-folder" placeholder="las la-folder">
-                                        <div class="icon-preview">
-                                            <i class="las la-folder" id="iconPreview"></i>
-                                        </div>
-                                    </div>
-                                    <div class="field-help">Line Awesome icon class (e.g., las la-folder)</div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="categoryColor" class="form-label">Brand Color</label>
-                                    <div class="color-input-wrapper">
-                                        <input type="color" id="categoryColor" name="color" class="form-control color-picker" value="#3B82F6">
-                                        <input type="text" class="color-text" value="#3B82F6" readonly>
-                                    </div>
-                                    <div class="field-help">Primary color for category identification</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Multi-language Support -->
-                        <div class="form-section">
-                            <div class="section-header">
-                                <h3 class="section-title">
-                                    <i class="las la-globe"></i>
-                                    Multi-language Support
-                                </h3>
-                                <div class="language-tabs">
-                                    <button type="button" class="lang-tab active" data-lang="uz">O'zbek</button>
-                                    <button type="button" class="lang-tab" data-lang="en">English</button>
-                                    <button type="button" class="lang-tab" data-lang="ru">Русский</button>
-                                    <button type="button" class="lang-tab" data-lang="tr">Türkçe</button>
-                                    <button type="button" class="lang-tab" data-lang="fa">فارسی</button>
-                                    <button type="button" class="lang-tab" data-lang="zh">中文</button>
+                                <div class="toggle-status" data-toggle="isActive">
+                                    <span class="status-indicator active"></span>
+                                    <span class="status-text">Active</span>
                                 </div>
                             </div>
                             
-                            ${this.generateLanguageForms()}
-                        </div>
-
-                        <!-- SEO Optimization -->
-                        <div class="form-section">
-                            <div class="section-header">
-                                <h3 class="section-title">
-                                    <i class="las la-search"></i>
-                                    SEO Optimization
-                                </h3>
-                            </div>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="metaTitle" class="form-label">Meta Title</label>
-                                    <input type="text" id="metaTitle" name="metaTitle" class="form-control" 
-                                           maxlength="60" placeholder="SEO-optimized title">
-                                    <div class="field-help">Recommended: 50-60 characters</div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="metaDescription" class="form-label">Meta Description</label>
-                                    <textarea id="metaDescription" name="metaDescription" class="form-control" rows="2" 
-                                              maxlength="160" placeholder="SEO-optimized description"></textarea>
-                                    <div class="field-help">Recommended: 150-160 characters</div>
-                                </div>
-                                
-                                <div class="form-group full-width">
-                                    <label for="metaKeywords" class="form-label">Meta Keywords</label>
-                                    <input type="text" id="metaKeywords" name="metaKeywords" class="form-control" 
-                                           placeholder="keyword1, keyword2, keyword3">
-                                    <div class="field-help">Comma-separated keywords for search optimization</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Category Settings -->
-                        <div class="form-section">
-                            <div class="section-header">
-                                <h3 class="section-title">
-                                    <i class="las la-cogs"></i>
-                                    Category Settings 
-                                </h3>
-                            </div>
-                            <div class="settings-grid">
-                                <div class="setting-item">
-                                    <label class="switch-label">
-                                        <input type="checkbox" name="isActive" checked>
-                                        <span class="switch-slider"></span>
-                                        <span class="switch-text">Active</span>
+                            <div class="professional-toggle-item">
+                                <div class="toggle-wrapper">
+                                    <input type="checkbox" id="isVisible" name="isVisible" class="professional-toggle" checked>
+                                    <label for="isVisible" class="toggle-label">
+                                        <span class="toggle-slider"></span>
                                     </label>
-                                    <div class="setting-help">Category is active and visible to users</div>
                                 </div>
-                                
-                                <div class="setting-item">
-                                    <label class="switch-label">
-                                        <input type="checkbox" name="isVisible" checked>
-                                        <span class="switch-slider"></span>
-                                        <span class="switch-text">Visible</span>
-                                    </label>
-                                    <div class="setting-help">Show in public category listings</div>
+                                <div class="toggle-content">
+                                    <div class="toggle-title">Public Visibility</div>
+                                    <div class="toggle-description">Show in public category listings</div>
                                 </div>
-                                
-                                <div class="setting-item">
-                                    <label class="switch-label">
-                                        <input type="checkbox" name="isFeatured">
-                                        <span class="switch-slider"></span>
-                                        <span class="switch-text">Featured</span>
-                                    </label>
-                                    <div class="setting-help">Highlight in featured sections</div>
-                                </div>
-                                
-                                <div class="setting-item">
-                                    <label class="switch-label">
-                                        <input type="checkbox" name="allowProducts" checked>
-                                        <span class="switch-slider"></span>
-                                        <span class="switch-text">Allow Products</span>
-                                    </label>
-                                    <div class="setting-help">Allow products to be added to this category</div>
+                                <div class="toggle-status" data-toggle="isVisible">
+                                    <span class="status-indicator active"></span>
+                                    <span class="status-text">Visible</span>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Business Rules -->
-                        <div class="form-section">
-                            <div class="section-header">
-                                <h3 class="section-title">
-                                    <i class="las la-briefcase"></i>
-                                    Business Rules
-                                </h3>
-                            </div>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="allowedCompanyTypes" class="form-label">Allowed Company Types</label>
-                                    <select id="allowedCompanyTypes" name="allowedCompanyTypes" class="form-control" multiple>
-                                        <option value="manufacturer" selected>Manufacturer</option>
-                                        <option value="distributor" selected>Distributor</option>
-                                        <option value="wholesaler">Wholesaler</option>
-                                        <option value="retailer">Retailer</option>
-                                    </select>
-                                    <div class="field-help">Company types allowed to list products in this category</div>
+                            
+                            <div class="professional-toggle-item">
+                                <div class="toggle-wrapper">
+                                    <input type="checkbox" id="isFeatured" name="isFeatured" class="professional-toggle">
+                                    <label for="isFeatured" class="toggle-label">
+                                        <span class="toggle-slider"></span>
+                                    </label>
                                 </div>
-                                
-                                <div class="form-group">
-                                    <label for="minimumOrderQuantity" class="form-label">Minimum Order Quantity</label>
-                                    <input type="number" id="minimumOrderQuantity" name="minimumOrderQuantity" 
-                                           class="form-control" min="1" value="1">
-                                    <div class="field-help">Default minimum order quantity for products</div>
+                                <div class="toggle-content">
+                                    <div class="toggle-title">Featured Category</div>
+                                    <div class="toggle-description">Highlight in featured sections</div>
+                                </div>
+                                <div class="toggle-status" data-toggle="isFeatured">
+                                    <span class="status-indicator inactive"></span>
+                                    <span class="status-text">Normal</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" onclick="this.closest('.category-modal-overlay').remove()">
-                            <i class="las la-times"></i>
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn btn-primary" id="createCategoryBtn">
-                            <i class="las la-plus"></i>
-                            <span class="btn-text">Create Category</span>
-                            <span class="btn-loading d-none">
-                                <i class="las la-spinner la-spin"></i>
-                                Creating...
-                            </span>
-                        </button>
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">
+                            <i class="las la-shield-alt"></i>
+                            Business Rules
+                        </h4>
+                        
+                        <div class="business-rules-grid">
+                            <div class="form-group-enhanced">
+                                <label class="professional-label">
+                                    <span class="label-text">Allowed Company Types</span>
+                                </label>
+                                <div class="multi-select-wrapper">
+                                    <div class="multi-select-tags" id="companyTypeTags"></div>
+                                    <select id="allowedCompanyTypes" name="allowedCompanyTypes" class="professional-multi-select" multiple>
+                                        <option value="manufacturer" selected>🏭 Manufacturer</option>
+                                        <option value="distributor" selected>📦 Distributor</option>
+                                        <option value="wholesaler">🏪 Wholesaler</option>
+                                        <option value="retailer">🛍️ Retailer</option>
+                                        <option value="trading_company">🤝 Trading Company</option>
+                                    </select>
+                                </div>
+                                <div class="field-help">Select which company types can list products in this category</div>
+                            </div>
+                            
+                            <div class="form-group-enhanced">
+                                <label for="minimumOrderQuantity" class="professional-label">
+                                    <span class="label-text">Minimum Order Quantity</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="minimumOrderQuantity" name="minimumOrderQuantity" 
+                                           class="professional-input" min="1" value="1"
+                                           data-validation="numeric|min:1">
+                                    <div class="input-icon">
+                                        <i class="las la-calculator"></i>
+                                    </div>
+                                    <div class="input-suffix">units</div>
+                                    <div class="input-feedback"></div>
+                                </div>
+                                <div class="field-help">Default minimum order quantity for products</div>
+                            </div>
+                        </div>
                     </div>
-                </form>
+                </div>
+            </div>
+            
+            <!-- Step 4: Review & Confirmation -->
+            <div class="form-step" data-step="4">
+                <div class="step-header">
+                    <h3 class="step-title">
+                        <i class="las la-check-circle"></i>
+                        Review & Create
+                    </h3>
+                    <p class="step-description">Review your category details before creating</p>
+                </div>
+                
+                <div class="review-panel">
+                    <div class="review-sections">
+                        <div class="review-section">
+                            <h4 class="review-section-title">Basic Information</h4>
+                            <div class="review-items" id="reviewBasic">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <div class="review-section">
+                            <h4 class="review-section-title">Design & Structure</h4>
+                            <div class="review-items" id="reviewDesign">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <div class="review-section">
+                            <h4 class="review-section-title">Settings & Rules</h4>
+                            <div class="review-items" id="reviewSettings">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="final-preview">
+                        <h4 class="preview-title">Final Category Preview</h4>
+                        <div class="final-category-card" id="finalPreview">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
-        
-        return modal;
     }
 
     /**
-     * Generate parent category options for dropdown
+     * Generate professional modal footer
+     */
+    generateModalFooter() {
+        return `
+            <div class="modal-footer professional-footer">
+                <div class="footer-left">
+                    <button type="button" class="btn-professional btn-secondary modal-close-action">
+                        <i class="las la-times"></i>
+                        <span>Cancel</span>
+                    </button>
+                </div>
+                
+                <div class="footer-center">
+                    <div class="step-indicator">
+                        <span class="current-step">1</span> of <span class="total-steps">4</span>
+                    </div>
+                </div>
+                
+                <div class="footer-right">
+                    <button type="button" class="btn-professional btn-outline" id="prevStepBtn" disabled>
+                        <i class="las la-chevron-left"></i>
+                        <span>Previous</span>
+                    </button>
+                    
+                    <button type="button" class="btn-professional btn-primary" id="nextStepBtn">
+                        <span class="btn-text">Next</span>
+                        <i class="las la-chevron-right"></i>
+                    </button>
+                    
+                    <button type="submit" class="btn-professional btn-success" id="createCategoryBtn" style="display: none;">
+                        <i class="las la-plus"></i>
+                        <span class="btn-text">Create Category</span>
+                        <span class="btn-loading">
+                            <div class="btn-spinner"></div>
+                            <span>Creating...</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Generate parent category options with professional formatting
      */
     generateParentCategoryOptions() {
         if (!this.parentCategories || this.parentCategories.length === 0) {
-            return '<option value="" disabled>No parent categories available</option>';
+            return '<option value="" disabled style="color: #999; font-style: italic;">📂 No parent categories available</option>';
         }
         
         return this.parentCategories.map(category => {
-            const indent = '—'.repeat(category.level || 0);
-            return `<option value="${category._id}">${indent} ${category.name}</option>`;
+            const level = category.level || 0;
+            const indent = '  '.repeat(level);
+            const levelIcon = this.getCategoryLevelIcon(level);
+            const statusIcon = category.status === 'active' ? '✅' : '⚠️';
+            
+            return `<option value="${category._id}" data-level="${level}">
+                ${indent}${levelIcon} ${category.name} ${statusIcon}
+            </option>`;
         }).join('');
+    }
+
+    /**
+     * Get appropriate icon for category level
+     */
+    getCategoryLevelIcon(level) {
+        const icons = {
+            0: '🏠', // Root
+            1: '📁', // Level 1
+            2: '📂', // Level 2
+            3: '🗂️', // Level 3
+            4: '🏷️', // Level 4
+            5: '🔖'  // Level 5
+        };
+        return icons[level] || '📄';
     }
 
     /**
@@ -2113,6 +2364,318 @@ class CategoriesManagement {
 
         // Initial theme setup
         this.updateModalTheme();
+    }
+
+    // ===============================================
+    // PROFESSIONAL DROPDOWN MANAGEMENT SYSTEM
+    // ===============================================
+
+    /**
+     * Setup professional dropdown management with proper event delegation
+     */
+    setupDropdownManager() {
+        console.log('🎯 Setting up professional dropdown manager...');
+        
+        this.activeDropdown = null;
+        this.dropdownState = new Map();
+        
+        // Remove any existing event listeners to avoid duplicates
+        this.removeDropdownListeners();
+        
+        // Setup professional event delegation
+        this.setupDropdownDelegation();
+        
+        // Setup outside click handler
+        this.setupOutsideClickHandler();
+        
+        console.log('✅ Professional dropdown manager initialized');
+    }
+
+    /**
+     * Setup dropdown event delegation with senior engineer approach
+     */
+    setupDropdownDelegation() {
+        // Professional event delegation for dropdown triggers
+        document.addEventListener('click', (e) => {
+            const trigger = e.target.closest('[data-dropdown-trigger]');
+            if (trigger) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const categoryId = trigger.getAttribute('data-dropdown-trigger');
+                this.toggleDropdown(categoryId, trigger);
+                return;
+            }
+            
+            // Handle dropdown item clicks
+            const dropdownItem = e.target.closest('[data-action]');
+            if (dropdownItem && dropdownItem.hasAttribute('data-category-id')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const action = dropdownItem.getAttribute('data-action');
+                const categoryId = dropdownItem.getAttribute('data-category-id');
+                
+                // Close dropdown before executing action
+                this.closeAllDropdowns();
+                
+                // Execute the action with professional error handling
+                this.executeDropdownAction(action, categoryId);
+                return;
+            }
+        });
+    }
+
+    /**
+     * Professional dropdown toggle with state management
+     */
+    toggleDropdown(categoryId, trigger) {
+        try {
+            if (!categoryId || !trigger) {
+                console.error('❌ Invalid dropdown toggle parameters:', { categoryId, trigger });
+                return;
+            }
+            
+            const dropdownMenu = document.querySelector(`[data-dropdown-menu="${categoryId}"]`);
+            if (!dropdownMenu) {
+                console.error(`❌ Dropdown menu not found for category: ${categoryId}`);
+                return;
+            }
+            
+            const isCurrentlyOpen = this.activeDropdown === categoryId;
+            
+            // Always close all dropdowns first
+            this.closeAllDropdowns();
+            
+            // If it wasn't open, open it with professional positioning
+            if (!isCurrentlyOpen) {
+                this.openDropdown(categoryId, dropdownMenu, trigger);
+            }
+            
+            console.log(`🎯 Dropdown toggle: ${categoryId}, isOpen: ${!isCurrentlyOpen}`);
+            
+        } catch (error) {
+            console.error('❌ Dropdown toggle error:', error);
+            this.closeAllDropdowns(); // Fallback safety
+        }
+    }
+
+    /**
+     * Open dropdown with professional positioning and state management
+     */
+    openDropdown(categoryId, dropdownMenu, trigger) {
+        try {
+            // Set active state
+            this.activeDropdown = categoryId;
+            this.dropdownState.set(categoryId, { isOpen: true, timestamp: Date.now() });
+            
+            // Add visual classes
+            dropdownMenu.classList.add('show', 'dropdown-menu-animated');
+            trigger.classList.add('dropdown-active');
+            
+            // Professional positioning with viewport detection
+            this.positionDropdown(dropdownMenu, trigger);
+            
+            // Add ARIA accessibility
+            trigger.setAttribute('aria-expanded', 'true');
+            dropdownMenu.setAttribute('aria-hidden', 'false');
+            
+            // Setup keyboard navigation
+            this.setupKeyboardNavigation(dropdownMenu);
+            
+            console.log(`✅ Dropdown opened: ${categoryId}`);
+            
+        } catch (error) {
+            console.error('❌ Open dropdown error:', error);
+            this.closeDropdown(categoryId);
+        }
+    }
+
+    /**
+     * Close specific dropdown with cleanup
+     */
+    closeDropdown(categoryId) {
+        try {
+            const dropdownMenu = document.querySelector(`[data-dropdown-menu="${categoryId}"]`);
+            const trigger = document.querySelector(`[data-dropdown-trigger="${categoryId}"]`);
+            
+            if (dropdownMenu) {
+                dropdownMenu.classList.remove('show', 'dropdown-menu-animated');
+                dropdownMenu.setAttribute('aria-hidden', 'true');
+            }
+            
+            if (trigger) {
+                trigger.classList.remove('dropdown-active');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+            
+            // Clean up state
+            if (this.activeDropdown === categoryId) {
+                this.activeDropdown = null;
+            }
+            this.dropdownState.delete(categoryId);
+            
+        } catch (error) {
+            console.error('❌ Close dropdown error:', error);
+        }
+    }
+
+    /**
+     * Close all dropdowns - professional cleanup
+     */
+    closeAllDropdowns() {
+        try {
+            // Close all category dropdowns
+            document.querySelectorAll('.category-dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show', 'dropdown-menu-animated');
+                menu.setAttribute('aria-hidden', 'true');
+            });
+            
+            // Clean up all triggers
+            document.querySelectorAll('[data-dropdown-trigger]').forEach(trigger => {
+                trigger.classList.remove('dropdown-active');
+                trigger.setAttribute('aria-expanded', 'false');
+            });
+            
+            // Reset state
+            this.activeDropdown = null;
+            this.dropdownState.clear();
+            
+        } catch (error) {
+            console.error('❌ Close all dropdowns error:', error);
+        }
+    }
+
+    /**
+     * Professional dropdown positioning with viewport detection
+     */
+    positionDropdown(dropdownMenu, trigger) {
+        try {
+            const rect = trigger.getBoundingClientRect();
+            const menuRect = dropdownMenu.getBoundingClientRect();
+            const viewport = {
+                width: window.innerWidth,
+                height: window.innerHeight
+            };
+            
+            // Reset positioning classes
+            dropdownMenu.classList.remove('dropdown-up', 'dropdown-left', 'dropdown-right');
+            
+            // Check if dropdown fits below trigger
+            const fitsBelow = rect.bottom + menuRect.height <= viewport.height - 20;
+            const fitsRight = rect.right + menuRect.width <= viewport.width - 20;
+            
+            if (!fitsBelow) {
+                dropdownMenu.classList.add('dropdown-up');
+            }
+            
+            if (!fitsRight) {
+                dropdownMenu.classList.add('dropdown-right');
+            }
+            
+            console.log(`🎯 Dropdown positioned: ${fitsBelow ? 'below' : 'above'}, ${fitsRight ? 'right' : 'left'}`);
+            
+        } catch (error) {
+            console.error('❌ Dropdown positioning error:', error);
+        }
+    }
+
+    /**
+     * Setup outside click handler for professional UX
+     */
+    setupOutsideClickHandler() {
+        document.addEventListener('click', (e) => {
+            // Don't close if clicking on dropdown elements
+            if (e.target.closest('.category-dropdown')) {
+                return;
+            }
+            
+            // Close all dropdowns when clicking outside
+            if (this.activeDropdown) {
+                this.closeAllDropdowns();
+            }
+        });
+        
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.activeDropdown) {
+                this.closeAllDropdowns();
+                // Return focus to trigger
+                const trigger = document.querySelector(`[data-dropdown-trigger="${this.activeDropdown}"]`);
+                if (trigger) trigger.focus();
+            }
+        });
+    }
+
+    /**
+     * Setup keyboard navigation for accessibility
+     */
+    setupKeyboardNavigation(dropdownMenu) {
+        const items = dropdownMenu.querySelectorAll('.dropdown-item');
+        let currentIndex = -1;
+        
+        dropdownMenu.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    currentIndex = Math.min(currentIndex + 1, items.length - 1);
+                    items[currentIndex]?.focus();
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    currentIndex = Math.max(currentIndex - 1, 0);
+                    items[currentIndex]?.focus();
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    items[currentIndex]?.click();
+                    break;
+            }
+        });
+    }
+
+    /**
+     * Execute dropdown actions with professional error handling
+     */
+    executeDropdownAction(action, categoryId) {
+        try {
+            console.log(`🎯 Executing action: ${action} for category: ${categoryId}`);
+            
+            switch (action) {
+                case 'toggle-status':
+                    this.toggleCategoryStatus(categoryId);
+                    break;
+                case 'toggle-feature':
+                    this.toggleFeatureStatus(categoryId);
+                    break;
+                case 'duplicate':
+                    this.duplicateCategory(categoryId);
+                    break;
+                case 'archive':
+                    this.archiveCategory(categoryId);
+                    break;
+                default:
+                    console.warn(`⚠️ Unknown dropdown action: ${action}`);
+                    this.showError(`Unknown action: ${action}`);
+            }
+            
+        } catch (error) {
+            console.error(`❌ Error executing action ${action}:`, error);
+            this.showError(`Failed to execute ${action}`);
+        }
+    }
+
+    /**
+     * Remove existing dropdown listeners to prevent duplicates
+     */
+    removeDropdownListeners() {
+        // Clean up any existing listeners
+        const existingTriggers = document.querySelectorAll('[data-dropdown-trigger]');
+        existingTriggers.forEach(trigger => {
+            // Clone node to remove all event listeners
+            const newTrigger = trigger.cloneNode(true);
+            trigger.parentNode.replaceChild(newTrigger, trigger);
+        });
     }
 }
 

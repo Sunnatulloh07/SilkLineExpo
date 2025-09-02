@@ -9,10 +9,17 @@ const orderSupplier = safeOrder.supplier || {};
 const orderPayment = safeOrder.payment || {};
 const orderTotal = safeOrder.totalAmount || 0;
 const orderCurrency = safeOrder.currency || 'USD';
+
+
 %>
 
 <%- include('../partials/header', { title: (t('orderDetails.pageTitle') || 'Order Details') + ' - SLEX' }) %>
-<%- include('../partials/navigation') %>
+<%- include('../partials/navigation', { 
+  cartItemsCount: cartItemsCount || 0, 
+  activeOrdersCount: activeOrdersCount || 0, 
+  unreadMessagesCount: unreadMessagesCount || 0,
+  favoritesCount: favoritesCount || 0 
+}) %>
 
 <!-- Professional Alibaba-Style Order Details Page -->
 <main class="order-details-page">
@@ -33,7 +40,7 @@ const orderCurrency = safeOrder.currency || 'USD';
               <div class="order-title-section">
                 <div class="order-number-badge">
                   <span class="order-label"><%- t('orderDetails.orderNumber') || 'Order Number' %></span>
-                  <h1 class="order-number">#<%= orderNumber %></h1>
+                  <h5 class="order-number" >#<%= orderNumber %></h5>
                 </div>
                 <div class="order-dates">
                   <div class="date-info">
@@ -255,6 +262,7 @@ const orderCurrency = safeOrder.currency || 'USD';
                             </thead>
                             <tbody class="datagrid-body">
                               <% orderItems.forEach((item, index) => { %>
+
                               <tr class="data-row" data-row-id="<%= index %>">
                                 <!-- Checkbox Column -->
                                 <td class="data-cell cell-checkbox">
@@ -265,14 +273,70 @@ const orderCurrency = safeOrder.currency || 'USD';
                                 <td class="data-cell cell-product">
                                   <div class="product-cell-content">
                                     <div class="product-avatar">
-                                      <img src="<%= (item.product && item.product.image) ? item.product.image : '/assets/images/placeholder-product.svg' %>" 
-                                           alt="<%= (item.product && item.product.name) ? item.product.name : 'Product' %>" 
-                                           class="product-image"
-                                           onerror="this.src='/assets/images/placeholder-product.svg'">
+                                      <% 
+                                        // Smart image extraction for order details
+                                        const productImageUrl = (() => {
+                                          // First try item.productImage (from order data)
+                                          if (item.productImage) {
+                                            if (typeof item.productImage === 'string') return item.productImage;
+                                            if (item.productImage.url) return item.productImage.url;
+                                            if (item.productImage.src) return item.productImage.src;
+                                          }
+                                          
+                                          // Fallback to product.images
+                                          const product = item.product || item.productId || {};
+                                          if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+                                            const primaryImage = product.images.find(img => img && (img.isPrimary || img.primary)) || product.images[0];
+                                            if (primaryImage) {
+                                              if (typeof primaryImage === 'string') return primaryImage;
+                                              if (primaryImage.url) return primaryImage.url;
+                                              if (primaryImage.src) return primaryImage.src;
+                                            }
+                                          }
+
+                                          
+                                          // Fallback to product.image
+                                          if (product.image) {
+                                            if (typeof product.image === 'string') return product.image;
+                                            if (product.image.url) return product.image.url;
+                                            if (product.image.src) return product.image.src;
+                                          }
+                                          
+                                          return '/assets/images/placeholder-product.svg';
+                                        })();
+                                        
+                                        
+                                        const productName = (item.productName) ? item.productName : ((item.product && item.product.name) ? item.product.name : 'Product');
+                                        const cleanImageUrl = productImageUrl.replace(/\/undefined|\/null/g, '');
+                                        const finalImageUrl = cleanImageUrl.startsWith('//') ? 'https:' + cleanImageUrl : cleanImageUrl;
+                                      %>
+                                      <% if (item.productId && item.productId.trim() !== '') { %>
+                                        <a href="/product-details?id=<%= item.productId %>" class="product-image-link">
+                                          <img src="<%= finalImageUrl %>" 
+                                               alt="<%= productName %>" 
+                                               class="product-image"
+                                               onerror="handleOrderDetailImageError(this)"
+                                               onload="handleOrderDetailImageSuccess(this)"
+                                               data-product-id="<%= item.productId %>">
+                                        </a>
+                                      <% } else { %>
+                                        <img src="<%= finalImageUrl %>" 
+                                             alt="<%= productName %>" 
+                                             class="product-image"
+                                             onerror="handleOrderDetailImageError(this)"
+                                             onload="handleOrderDetailImageSuccess(this)"
+                                             data-product-id="">
+                                      <% } %>
                                     </div>
                                     <div class="product-info">
                                       <div class="product-title">
-                                        <%= (item.product && item.product.name) ? item.product.name : 'Unknown Product' %>
+                                        <% if (item.productId && item.productId.trim() !== '') { %>
+                                          <a href="/product-details?id=<%= item.productId %>" class="product-link">
+                                            <%= (item.productName) ? item.productName : ((item.product && item.product.name) ? item.product.name : 'Unknown Product') %>
+                                          </a>
+                                        <% } else { %>
+                                          <%= (item.productName) ? item.productName : ((item.product && item.product.name) ? item.product.name : 'Unknown Product') %>
+                                        <% } %>
                                       </div>
                                       <div class="product-category">
                                         <i class="las la-tag"></i>
@@ -346,12 +410,22 @@ const orderCurrency = safeOrder.currency || 'USD';
                                 <!-- Actions Column -->
                                 <td class="data-cell cell-actions">
                                   <div class="action-buttons">
-                                    <% const productId = (item.product && item.product._id) ? item.product._id : ''; %>
+                                    <% 
+                                      const productId = item.productId || (item.product && item.product._id) || '';
+                                    %>
                                     <% const viewDetailsTitle = t('common.viewDetails') || 'View Details'; %>
                                     <% const customReqTitle = t('orderDetails.customRequirements') || 'Custom Requirements'; %>
-                                    <button class="btn btn-sm btn-outline-primary view-product-btn" data-product-id="<%= productId %>" title="<%- t('common.viewDetails') || 'View Details' %>">
-                                      <i class="las la-eye"></i>
-                                    </button>
+                                    <% if (item.productId && item.productId.trim() !== '') { %>
+                                      <a href="/product-details?id=<%= item.productId %>" 
+                                         class="btn btn-sm btn-outline-primary view-product-btn" 
+                                         title="<%- t('common.viewDetails') || 'View Details' %>">
+                                        <i class="las la-eye"></i>
+                                      </a>
+                                    <% } else { %>
+                                      <button class="btn btn-sm btn-outline-secondary" disabled title="Product details not available">
+                                        <i class="las la-eye"></i>
+                                      </button>
+                                    <% } %>
                                     <% if (item.customRequirements) { %>
                                     <button class="btn btn-sm btn-outline-warning show-custom-btn" data-index="<%= index %>" title="<%- t('orderDetails.customRequirements') || 'Custom Requirements' %>">
                                       <i class="las la-sticky-note"></i>
@@ -615,11 +689,21 @@ const orderCurrency = safeOrder.currency || 'USD';
                   <div class="supplier-profile">
                     <div class="supplier-avatar">
                       <% if (orderSupplier && orderSupplier.logo) { %>
-                      <img src="<%= orderSupplier.logo %>" alt="<%= orderSupplier.name %>" class="avatar-image">
+                        <img src="<%= orderSupplier.logo %>" 
+                             alt="<%= orderSupplier.name %>" 
+                             class="avatar-image"
+                             onerror="handleSupplierImageError(this)"
+                             onload="handleSupplierImageSuccess(this)">
+                      <% } else if (orderSupplier && orderSupplier.avatar && orderSupplier.avatar.url) { %>
+                        <img src="<%= orderSupplier.avatar.url %>" 
+                             alt="<%= orderSupplier.name %>" 
+                             class="avatar-image"
+                             onerror="handleSupplierImageError(this)"
+                             onload="handleSupplierImageSuccess(this)">
                       <% } else { %>
-                      <div class="avatar-placeholder">
-                        <i class="las la-building"></i>
-                      </div>
+                        <div class="avatar-placeholder">
+                          <i class="las la-building"></i>
+                        </div>
                       <% } %>
                     </div>
                     
@@ -843,13 +927,12 @@ body {
 }
 
 .order-number {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   font-weight: 900;
   color: var(--bs-gray-900);
   margin: 0;
   background: linear-gradient(135deg, hsl(var(--main)) 0%, hsl(var(--main-d-100)) 100%);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
@@ -1302,6 +1385,9 @@ body {
   display: flex;
   gap: 8px;
 }
+[data-theme="dark"] .view-options .btn{
+  color: #16213e !important;
+}
 
 .view-options .btn {
   border: 1px solid #e0e0e0;
@@ -1582,6 +1668,28 @@ body {
   object-fit: cover;
 }
 
+.product-image-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.product-image-link:hover {
+  transform: scale(1.02);
+}
+
+.product-link {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.3s ease;
+}
+
+.product-link:hover {
+  color: hsl(var(--main));
+}
+
 .product-info {
   flex: 1;
   min-width: 0;
@@ -1742,6 +1850,14 @@ body {
   align-items: center;
 }
 
+[data-theme="dark"] {
+  .action-buttons .btn{
+  color: #16213e !important;
+  }
+  .action-buttons .btn:hover{
+    color: #ffffff !important;
+  }
+}
 .action-buttons .btn {
   padding: 6px;
   border-radius: 6px;
@@ -2552,6 +2668,16 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.avatar-image.image-loaded {
+  opacity: 1;
+}
+
+.avatar-image:hover {
+  transform: scale(1.05);
 }
 
 .avatar-placeholder {
@@ -4270,16 +4396,10 @@ function initCustomScrollbar() {
   });
   
   updateScrollbar();
-  
-  // Log viewport info for debugging
-  console.log('Viewport width:', window.innerWidth);
-  console.log('Table min-width:', table.style.minWidth || 'CSS controlled');
-  console.log('Container width:', scrollContainer.clientWidth);
 }
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('Professional MUI Data Grid loaded');
   
   // Initialize custom scrollbar
   initCustomScrollbar();
@@ -4360,6 +4480,133 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+
+// Advanced Image Error Handler for Order Details
+const OrderDetailImageHandler = {
+    failedImages: new Set(),
+    retryCount: new Map(),
+    maxRetries: 2,
+    retryDelay: 1000,
+    
+    fallbackImages: [
+        '/assets/images/placeholder-product.svg',
+        '/assets/images/no-image.svg',
+        '/images/placeholder-product.png',
+        '/assets/images/default-product.png'
+    ],
+    
+    handleError(img) {
+        const originalSrc = img.dataset.originalSrc || img.src;
+        const currentRetryCount = this.retryCount.get(originalSrc) || 0;
+        
+        // Store original src for tracking
+        if (!img.dataset.originalSrc) {
+            img.dataset.originalSrc = originalSrc;
+        }
+        
+        // Check if we've already marked this as permanently failed
+        if (this.failedImages.has(originalSrc)) {
+            this.showFinalFallback(img);
+            return;
+        }
+        
+        // Check retry limit
+        if (currentRetryCount >= this.maxRetries) {
+            this.failedImages.add(originalSrc);
+            this.tryFallbackImage(img, 0);
+            return;
+        }
+        
+        // Increment retry count and retry
+        this.retryCount.set(originalSrc, currentRetryCount + 1);
+        
+        setTimeout(() => {
+            img.src = originalSrc + '?retry=' + Date.now();
+        }, this.retryDelay);
+    },
+    
+    tryFallbackImage(img, fallbackIndex = 0) {
+        if (fallbackIndex >= this.fallbackImages.length) {
+            this.showFinalFallback(img);
+            return;
+        }
+        
+        const fallbackSrc = this.fallbackImages[fallbackIndex];
+        
+        // Create a test image to check if fallback works
+        const testImg = new Image();
+        testImg.onload = () => {
+            img.src = fallbackSrc;
+            img.dataset.fallbackUsed = 'true';
+           };
+        testImg.onerror = () => {
+           this.tryFallbackImage(img, fallbackIndex + 1);
+        };
+        testImg.src = fallbackSrc;
+    },
+    
+    showFinalFallback(img) {
+        // Show a CSS-only fallback for order details
+        const container = img.closest('.product-avatar') || img.parentElement;
+        if (container) {
+            container.innerHTML = `
+                <div class="no-image-placeholder" style="
+                    width: 100%; 
+                    height: 100%; 
+                    display: flex; 
+                    flex-direction: column; 
+                    align-items: center; 
+                    justify-content: center; 
+                    background: #f8f9fa; 
+                    color: #6c757d; 
+                    font-size: 0.8rem;
+                    border-radius: 8px;
+                ">
+                    <i class="las la-image" style="font-size: 1.5rem; margin-bottom: 0.25rem;"></i>
+                    <span>No Image</span>
+                </div>
+            `;
+        }
+      },
+    
+    handleSuccess(img) {
+        const originalSrc = img.dataset.originalSrc || img.src;
+        
+        // Remove from failed list if it was there
+        this.failedImages.delete(originalSrc);
+        this.retryCount.delete(originalSrc);
+        
+        // Add success class for CSS animations
+        img.classList.add('image-loaded');
+        }
+};
+
+// Global functions for order detail image handling
+function handleOrderDetailImageError(img) {
+    OrderDetailImageHandler.handleError(img);
+}
+
+function handleOrderDetailImageSuccess(img) {
+    OrderDetailImageHandler.handleSuccess(img);
+}
+
+// Supplier image error handling
+function handleSupplierImageError(img) {
+    const container = img.parentElement;
+    if (container) {
+        container.innerHTML = `
+            <div class="avatar-placeholder">
+                <i class="las la-building"></i>
+            </div>
+        `;
+    }
+}
+
+function handleSupplierImageSuccess(img) {
+    img.classList.add('image-loaded');
+}
+
+
 </script>
 
 <%- include('../partials/footer') %>

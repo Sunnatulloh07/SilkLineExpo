@@ -91,12 +91,174 @@
     font-weight: 500;
 }
 
+/* Header Dropdown Container */
+.header-dropdown {
+    position: relative;
+}
+
 /* Dropdown Menu Styles */
 .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 320px;
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04));
+    overflow: hidden;
+    z-index: 1000;
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
     transition: all 0.3s ease;
+}
+
+/* Dropdown Header */
+.dropdown-header {
+    padding: 1rem 1.5rem;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dropdown-title {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Dropdown Content */
+.dropdown-content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Dropdown Footer */
+.dropdown-footer {
+    padding: 1rem 1.5rem;
+    background: var(--bg-elevated);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.view-all-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.view-all-link:hover {
+    color: var(--color-primary-dark);
+}
+
+/* Messages Dropdown Enhancements */
+.messages-dropdown .message-item {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.messages-dropdown .message-item:hover {
+    background: var(--bg-hover);
+}
+
+.messages-dropdown .message-item.unread {
+    background: rgba(var(--color-primary-rgb), 0.05);
+    border-left: 3px solid var(--color-primary);
+}
+
+.messages-dropdown .message-order {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.no-messages {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-muted);
+}
+
+.no-messages i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+
+.no-messages p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.loading-messages {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-muted);
+}
+
+.loading-messages i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-primary);
+}
+
+.loading-messages p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+/* Notifications Sections */
+.notifications-section {
+    margin-bottom: 1rem;
+}
+
+.notifications-section:last-child {
+    margin-bottom: 0;
+}
+
+.section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted, #6b7280);
+    margin: 0 0 0.75rem 0;
+    padding: 0.5rem 1rem;
+    background: var(--bg-elevated, #f9fafb);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section-title i {
+    font-size: 1rem;
+}
+
+.inquiry-item {
+    border-left: 3px solid var(--color-primary, #3b82f6);
+}
+
+.order-item {
+    border-left: 3px solid var(--color-success, #10b981);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-muted, #6b7280);
+}
+
+.empty-state i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 0.875rem;
 }
 
 .dropdown-menu.hidden {
@@ -374,4 +536,58 @@
 
 .view-all-link:hover {
     text-decoration: underline;
+}
+
+/* Mark All as Read button styling */
+.mark-all-read-section {
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+    background: var(--bg-elevated);
+    margin-top: 1rem;
+}
+
+.mark-all-read-btn {
+    width: 100%;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+
+.mark-all-read-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.mark-all-read-btn i {
+    margin-right: 0.5rem;
+}
+
+/* Loading state for clickable items */
+.notification-item.loading,
+.message-item.loading {
+    opacity: 0.7;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.notification-item.loading::after,
+.message-item.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    width: 16px;
+    height: 16px;
+    margin-top: -8px;
+    border: 2px solid #007bff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

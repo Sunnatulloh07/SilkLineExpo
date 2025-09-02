@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROFESSIONAL Category Modal - SLEX Enterprise System</title>
+    
+    <!-- Line Awesome Icons -->
+    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
+    
+    <!-- Professional Modal CSS -->
+    <link rel="stylesheet" href="/admin/css/categories-management.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .demo-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+        }
+        
+        .demo-title {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .demo-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.25rem;
+            margin-bottom: 32px;
+            font-weight: 400;
+        }
+        
+        .demo-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 32px 0;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            color: #FFD700;
+        }
+        
+        .feature-title {
+            color: white;
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .feature-desc {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .launch-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 16px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .launch-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .launch-btn i {
+            font-size: 1.25rem;
+        }
+        
+        .theme-switcher {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .theme-switcher:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .version-badge {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .demo-container {
+                margin: 10px;
+                padding: 24px;
+            }
+            
+            .demo-title {
+                font-size: 2rem;
+            }
+            
+            .demo-features {
+                grid-template-columns: 1fr;
+            }
+            
+            .version-badge,
+            .theme-switcher {
+                position: relative;
+                top: auto;
+                left: auto;
+                right: auto;
+                margin: 12px auto;
+                display: block;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="version-badge">
+        🚀 Enterprise v2.0
+    </div>
+    
+    <button class="theme-switcher" onclick="toggleTheme()">
+        <i class="las la-moon"></i>
+        Toggle Theme
+    </button>
+    
+    <div class="demo-container">
+        <h1 class="demo-title">
+            🏢 SLEX Professional
+        </h1>
+        <p class="demo-subtitle">
+            Enterprise-Grade Category Management Modal
+        </p>
+        
+        <div class="demo-features">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="las la-rocket"></i>
+                </div>
+                <div class="feature-title">Multi-Step Wizard</div>
+                <div class="feature-desc">Professional 4-step creation process with validation and progress tracking</div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="las la-paint-brush"></i>
+                </div>
+                <div class="feature-title">Live Preview</div>
+                <div class="feature-desc">Real-time category preview with color picker and icon selector</div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="las la-shield-alt"></i>
+                </div>
+                <div class="feature-title">Advanced Validation</div>
+                <div class="feature-desc">Real-time field validation with professional error handling</div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="las la-save"></i>
+                </div>
+                <div class="feature-title">Auto-Save</div>
+                <div class="feature-desc">Automatic draft saving with recovery functionality</div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="las la-keyboard"></i>
+                </div>
+                <div class="feature-title">Keyboard Navigation</div>
+                <div class="feature-desc">Full keyboard shortcuts support for power users</div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="las la-mobile"></i>
+                </div>
+                <div class="feature-title">Responsive Design</div>
+                <div class="feature-desc">Perfectly optimized for all devices and screen sizes</div>
+            </div>
+        </div>
+        
+        <button class="launch-btn" onclick="launchProfessionalModal()">
+            <i class="las la-plus-circle"></i>
+            Launch Professional Modal
+        </button>
+    </div>
+
+    <!-- Professional Modal JavaScript -->
+    <script>
+        // Professional Modal System - Demo Version
+        class ProfessionalModalDemo {
+            constructor() {
+                this.parentCategories = [
+                    { _id: '1', name: 'Electronics', level: 0, status: 'active' },
+                    { _id: '2', name: 'Smartphones', level: 1, status: 'active' },
+                    { _id: '3', name: 'Laptops', level: 1, status: 'active' },
+                    { _id: '4', name: 'Food & Beverages', level: 0, status: 'active' },
+                    { _id: '5', name: 'Organic Foods', level: 1, status: 'active' }
+                ];
+                
+                this.modalState = {
+                    currentStep: 1,
+                    totalSteps: 4,
+                    isValid: false,
+                    formData: {},
+                    hasChanges: false
+                };
+            }
+            
+            // Generate parent category options with professional formatting
+            generateParentCategoryOptions() {
+                if (!this.parentCategories || this.parentCategories.length === 0) {
+                    return '<option value="" disabled style="color: #999; font-style: italic;">📂 No parent categories available</option>';
+                }
+                
+                return this.parentCategories.map(category => {
+                    const level = category.level || 0;
+                    const indent = '  '.repeat(level);
+                    const levelIcon = this.getCategoryLevelIcon(level);
+                    const statusIcon = category.status === 'active' ? '✅' : '⚠️';
+                    
+                    return `<option value="${category._id}" data-level="${level}">
+                        ${indent}${levelIcon} ${category.name} ${statusIcon}
+                    </option>`;
+                }).join('');
+            }
+            
+            // Get appropriate icon for category level
+            getCategoryLevelIcon(level) {
+                const icons = {
+                    0: '🏠', // Root
+                    1: '📁', // Level 1
+                    2: '📂', // Level 2
+                    3: '🗂️', // Level 3
+                    4: '🏷️', // Level 4
+                    5: '🔖'  // Level 5
+                };
+                return icons[level] || '📄';
+            }
+            
+            // Create PROFESSIONAL category modal
+            createCategoryModal() {
+                const modal = document.createElement('div');
+                modal.className = 'professional-modal-overlay';
+                modal.setAttribute('role', 'dialog');
+                modal.setAttribute('aria-labelledby', 'modalTitle');
+                modal.setAttribute('aria-modal', 'true');
+                
+                modal.innerHTML = this.generateProfessionalModalHTML();
+                
+                // Add to DOM first
+                document.body.appendChild(modal);
+                
+                // Initialize professional features
+                this.initializeModalFeatures(modal);
+                
+                // Show with animation
+                setTimeout(() => {
+                    modal.classList.add('show');
+                }, 10);
+                
+                return modal;
+            }
+            
+            // Generate comprehensive professional modal HTML
+            generateProfessionalModalHTML() {
+                return `
+                    <div class="professional-modal" data-modal-type="category-create">
+                        ${this.generateModalHeader()}
+                        
+                        <div class="modal-progress-bar">
+                            <div class="progress-track">
+                                <div class="progress-fill" data-progress="0" style="width: 25%"></div>
+                            </div>
+                            <div class="progress-steps">
+                                <div class="step active" data-step="1">Basic</div>
+                                <div class="step" data-step="2">Design</div>
+                                <div class="step" data-step="3">Settings</div>
+                                <div class="step" data-step="4">Review</div>
+                            </div>
+                        </div>
+
+                        <form class="professional-form" id="createCategoryForm" novalidate>
+                            <div class="modal-content-container">
+                                ${this.generateFormSteps()}
+                            </div>
+                            
+                            ${this.generateModalFooter()}
+                        </form>
+                        
+                        <!-- Professional Loading Overlay -->
+                        <div class="modal-loading-overlay" data-loading="false">
+                            <div class="loading-spinner">
+                                <div class="spinner-ring"></div>
+                                <div class="spinner-ring"></div>
+                                <div class="spinner-ring"></div>
+                            </div>
+                            <div class="loading-text">Processing your request...</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Generate professional modal header
+            generateModalHeader() {
+                return `
+                    <div class="modal-header professional-header">
+                        <div class="header-content">
+                            <div class="header-icon-wrapper">
+                                <div class="header-icon">
+                                    <i class="las la-plus-circle"></i>
+                                </div>
+                                <div class="icon-pulse"></div>
+                            </div>
+                            <div class="header-text">
+                                <h2 class="modal-title" id="modalTitle">Create New Category</h2>
+                                <p class="modal-subtitle">Build a comprehensive category structure for your marketplace</p>
+                            </div>
+                        </div>
+                        <div class="header-actions">
+                            <button type="button" class="modal-minimize" title="Minimize" aria-label="Minimize modal">
+                                <i class="las la-minus"></i>
+                            </button>
+                            <button type="button" class="modal-close" title="Close" aria-label="Close modal">
+                                <i class="las la-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Generate form steps (simplified for demo)
+            generateFormSteps() {
+                return `
+                    <!-- Step 1: Basic Information -->
+                    <div class="form-step active" data-step="1">
+                        <div class="step-header">
+                            <h3 class="step-title">
+                                <i class="las la-info-circle"></i>
+                                Basic Information
+                            </h3>
+                            <p class="step-description">Essential details about your category</p>
+                        </div>
+                        
+                        <div class="professional-form-grid">
+                            <div class="form-group-enhanced required">
+                                <label for="categoryName" class="professional-label">
+                                    <span class="label-text">Category Name</span>
+                                    <span class="label-required">*</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="categoryName" name="name" class="professional-input" 
+                                           placeholder="e.g., Electronics, Food & Beverages" 
+                                           autocomplete="off" spellcheck="true" required>
+                                    <div class="input-icon">
+                                        <i class="las la-tag"></i>
+                                    </div>
+                                    <div class="input-feedback"></div>
+                                </div>
+                                <div class="field-help">Choose a clear, descriptive name</div>
+                            </div>
+                            
+                            <div class="form-group-enhanced required full-width">
+                                <label for="categoryDescription" class="professional-label">
+                                    <span class="label-text">Description</span>
+                                    <span class="label-required">*</span>
+                                </label>
+                                <div class="textarea-wrapper">
+                                    <textarea id="categoryDescription" name="description" class="professional-textarea" 
+                                              placeholder="Comprehensive category description..." 
+                                              rows="4" required></textarea>
+                                    <div class="input-feedback"></div>
+                                </div>
+                                <div class="field-help">Detailed description for SEO</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional steps would be here in full implementation -->
+                `;
+            }
+            
+            // Generate modal footer
+            generateModalFooter() {
+                return `
+                    <div class="modal-footer professional-footer">
+                        <div class="footer-left">
+                            <button type="button" class="btn-professional btn-secondary modal-close-action">
+                                <i class="las la-times"></i>
+                                <span>Cancel</span>
+                            </button>
+                        </div>
+                        
+                        <div class="footer-center">
+                            <div class="step-indicator">
+                                <span class="current-step">1</span> of <span class="total-steps">4</span>
+                            </div>
+                        </div>
+                        
+                        <div class="footer-right">
+                            <button type="button" class="btn-professional btn-primary demo-success-btn">
+                                <i class="las la-check"></i>
+                                <span class="btn-text">Demo Success</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Initialize modal features (simplified for demo)
+            initializeModalFeatures(modal) {
+                // Close functionality
+                const closeButtons = modal.querySelectorAll('.modal-close, .modal-close-action');
+                closeButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.closeModal(modal);
+                    });
+                });
+                
+                // Demo success button
+                const successBtn = modal.querySelector('.demo-success-btn');
+                if (successBtn) {
+                    successBtn.addEventListener('click', () => {
+                        this.showSuccessDemo(modal);
+                    });
+                }
+                
+                // Outside click
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        this.closeModal(modal);
+                    }
+                });
+                
+                // ESC key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && modal.classList.contains('show')) {
+                        this.closeModal(modal);
+                    }
+                });
+                
+                console.log('✅ Professional modal features initialized');
+            }
+            
+            // Show success demo
+            showSuccessDemo(modal) {
+                const successOverlay = document.createElement('div');
+                successOverlay.className = 'success-animation-overlay';
+                successOverlay.innerHTML = `
+                    <div class="success-animation">
+                        <div class="success-checkmark">
+                            <div class="check-icon">
+                                <span class="icon-line line-tip"></span>
+                                <span class="icon-line line-long"></span>
+                                <div class="icon-circle"></div>
+                            </div>
+                        </div>
+                        <h3>Category Created Successfully!</h3>
+                        <p>Your professional modal is working perfectly! 🎉</p>
+                    </div>
+                `;
+                
+                modal.appendChild(successOverlay);
+                setTimeout(() => successOverlay.classList.add('show'), 10);
+                
+                setTimeout(() => {
+                    this.closeModal(modal);
+                }, 3000);
+            }
+            
+            // Close modal with animation
+            closeModal(modal) {
+                modal.classList.remove('show');
+                setTimeout(() => {
+                    modal.remove();
+                    document.body.style.overflow = '';
+                }, 400);
+            }
+        }
+        
+        // Global functions
+        function launchProfessionalModal() {
+            document.body.style.overflow = 'hidden';
+            const demo = new ProfessionalModalDemo();
+            demo.createCategoryModal();
+        }
+        
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            
+            const btn = document.querySelector('.theme-switcher i');
+            btn.className = newTheme === 'dark' ? 'las la-sun' : 'las la-moon';
+        }
+        
+        // Initialize demo
+        console.log('🚀 SLEX Professional Modal Demo Ready!');
+    </script>
+</body>
+</html>

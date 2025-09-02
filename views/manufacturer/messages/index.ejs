@@ -83,8 +83,9 @@
             <label class="products-filter-label">Holat</label>
             <select name="status" id="messagesStatusFilter" class="products-form-select">
               <option value="">Barcha holatlar</option>
-              <option value="active">Faol</option>
+              <option value="active">Faol (yangi xabarlar bor)</option>
               <option value="read">O'qilgan</option>
+              <option value="no_messages">Hali yozishma yo'q</option>
               <option value="archived">Arxivlangan</option>
             </select>
           </div>
@@ -214,7 +215,7 @@
                     <i class="fas fa-sort sort-icon"></i>
                   </th>
                   <th class="order-id-col sortable" data-sort="order">
-                    Buyurtma ID
+                    Buyurtma/So'rov ID
                     <i class="fas fa-sort sort-icon"></i>
                   </th>
                   <th class="message-col">

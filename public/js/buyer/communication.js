@@ -3,7 +3,7 @@
  */
 class BuyerCommunication {
     constructor() {
-        this.apiBase = '/distributor/api';
+        this.apiBase = '/buyer/api';
         this.currentConversation = null;
         this.conversations = [];
         this.init();

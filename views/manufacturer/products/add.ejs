@@ -1,5 +1,5 @@
-<%- include('../partials/header', { title: title, lng: lng, user: user }) %>
-<%- include('../partials/sidebar', { user: user, currentPage: 'products' }) %>
+<%- include('../partials/header', { title: title, lng: lng, user: user, t: t, currentUrl: currentUrl }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'products', t: t }) %>
 
 <!-- Main Content -->
 <main class="admin-main">
@@ -10,30 +10,30 @@
       <div class="header-content">
         <div class="header-title-section">
           <div class="breadcrumb">
-            <a href="/manufacturer/dashboard" class="breadcrumb-link">Dashboard</a>
+            <a href="/manufacturer/dashboard" class="breadcrumb-link"><%= t('manufacturer.products.add.breadcrumb.dashboard') %></a>
             <i class="fas fa-chevron-right breadcrumb-separator"></i>
-            <a href="/manufacturer/marketplace" class="breadcrumb-link">Marketplace</a>
+            <a href="/manufacturer/marketplace" class="breadcrumb-link"><%= t('manufacturer.products.add.breadcrumb.marketplace') %></a>
             <i class="fas fa-chevron-right breadcrumb-separator"></i>
-            <span class="breadcrumb-current">Yangi mahsulot qo'shish</span>
+            <span class="breadcrumb-current"><%= t('manufacturer.products.add.breadcrumb.addProduct') %></span>
           </div>
           <h1 class="page-title">
             <i class="fas fa-plus-circle"></i>
-            Yangi mahsulot qo'shish
+            <%= t('manufacturer.products.add.pageTitle') %>
           </h1>
-          <p class="page-subtitle">Professional B2B marketplace uchun yangi mahsulot yaratish</p>
+          <p class="page-subtitle"><%= t('manufacturer.products.add.pageSubtitle') %></p>
         </div>
         <div class="header-actions">
           <button class="btn-outline" id="previewBtn">
             <i class="fas fa-eye"></i>
-            Oldindan ko'rish
+            <%= t('manufacturer.products.add.actions.preview') %>
           </button>
           <button class="btn-secondary" id="saveAsDraftBtn">
             <i class="fas fa-save"></i>
-            Qoralama sifatida saqlash
+            <%= t('manufacturer.products.add.actions.saveAsDraft') %>
           </button>
           <button class="btn-primary" id="publishBtn">
             <i class="fas fa-rocket"></i>
-            Chop etish
+            <%= t('manufacturer.products.add.actions.publish') %>
           </button>
         </div>
       </div>
@@ -47,7 +47,7 @@
             <i class="fas fa-exclamation-triangle"></i>
           </div>
           <div class="alert-message">
-            <strong>Diqqat!</strong> <%= errorMessage %>
+            <strong><%= t('manufacturer.products.add.alert.attention') %></strong> <%= errorMessage %>
           </div>
           <button class="alert-close" onclick="this.parentElement.parentElement.remove()">
             <i class="fas fa-times"></i>
@@ -68,23 +68,23 @@
             <div class="progress-steps">
               <div class="step active" data-step="1">
                 <div class="step-number">1</div>
-                <div class="step-label">Asosiy ma'lumotlar</div>
+                <div class="step-label"><%= t('manufacturer.products.add.steps.basicInfo') %></div>
               </div>
               <div class="step" data-step="2">
                 <div class="step-number">2</div>
-                <div class="step-label">Narxlar va MOQ</div>
+                <div class="step-label"><%= t('manufacturer.products.add.steps.pricingAndMOQ') %></div>
               </div>
               <div class="step" data-step="3">
                 <div class="step-number">3</div>
-                <div class="step-label">Texnik xususiyatlar</div>
+                <div class="step-label"><%= t('manufacturer.products.add.steps.specifications') %></div>
               </div>
               <div class="step" data-step="4">
                 <div class="step-number">4</div>
-                <div class="step-label">Rasmlar</div>
+                <div class="step-label"><%= t('manufacturer.products.add.steps.images') %></div>
               </div>
               <div class="step" data-step="5">
                 <div class="step-number">5</div>
-                <div class="step-label">Yetkazib berish</div>
+                <div class="step-label"><%= t('manufacturer.products.add.steps.shipping') %></div>
               </div>
             </div>
             <div class="progress-bar">
@@ -95,15 +95,15 @@
           <!-- Step 1: Basic Information -->
           <div class="form-step active" data-step="1">
             <div class="step-header">
-              <h3>Asosiy ma'lumotlar</h3>
-              <p class="step-description">Mahsulot haqida umumiy ma'lumotlarni kiriting</p>
+              <h3><%= t('manufacturer.products.add.steps.basicInfo') %></h3>
+              <p class="step-description"><%= t('manufacturer.products.add.steps.basicInfoDescription') %></p>
             </div>
             
             <div class="form-grid">
               <div class="form-group full-width">
                 <label for="productName" class="form-label required">
                   <i class="fas fa-tag"></i>
-                  Mahsulot nomi
+                  <%= t('manufacturer.products.add.form.productName') %>
                 </label>
                 <input 
                   type="text" 
@@ -111,21 +111,21 @@
                   name="name" 
                   class="form-input" 
                   value=""
-                  placeholder="Masalan: Premium Paxta Mato" 
+                  placeholder="<%= t('manufacturer.products.add.form.productNamePlaceholder') %>" 
                   required
                   maxlength="200"
                 >
-                <div class="form-hint">Xaridorlarga tushunarligi uchun aniq va tavsiflovchi nom kiriting</div>
+                <div class="form-hint"><%= t('manufacturer.products.add.form.productNameHint') %></div>
                 <div class="validation-message"></div>
               </div>
               
               <div class="form-group">
                 <label for="category" class="form-label required">
                   <i class="fas fa-th-large"></i>
-                  Kategoriya
+                  <%= t('manufacturer.products.add.form.category') %>
                 </label>
                 <select id="category" name="category" class="form-select" required>
-                  <option value="">Kategoriyani tanlang...</option>
+                  <option value=""><%= t('manufacturer.products.add.form.selectCategory') %></option>
                   <% categories.forEach(function(cat) { %>
                     <option value="<%= cat._id %>" 
                             data-level="<%= cat.level || 0 %>"
@@ -141,46 +141,46 @@
               <div class="form-group">
                 <label for="productStatus" class="form-label">
                   <i class="fas fa-toggle-on"></i>
-                  Mahsulot holati
+                  <%= t('manufacturer.products.add.form.productStatus') %>
                 </label>
                 <select id="productStatus" name="status" class="form-select">
-                  <option value="draft" selected>Qoralama</option>
-                  <option value="active">Faol</option>
-                  <option value="inactive">Nofaol</option>
+                  <option value="draft" selected><%= t('manufacturer.products.status.draft') %></option>
+                  <option value="active"><%= t('manufacturer.products.status.active') %></option>
+                  <option value="inactive"><%= t('manufacturer.products.status.inactive') %></option>
                 </select>
               </div>
               
               <div class="form-group full-width">
                 <label for="shortDescription" class="form-label">
                   <i class="fas fa-align-left"></i>
-                  Qisqacha tavsif
+                  <%= t('manufacturer.products.add.form.shortDescription') %>
                 </label>
                 <textarea 
                   id="shortDescription" 
                   name="shortDescription" 
                   class="form-textarea" 
                   rows="3" 
-                  placeholder="Mahsulot haqida qisqacha ma'lumot..."
+                  placeholder="<%= t('manufacturer.products.add.form.shortDescriptionPlaceholder') %>" 
                   maxlength="500"
                 ></textarea>
-                <div class="form-hint">Qidiruv natijalarida ko'rsetiladi (maksimal 500 belgi)</div>
+                <div class="form-hint"><%= t('manufacturer.products.add.form.shortDescriptionHint') %></div>
               </div>
               
               <div class="form-group full-width">
                 <label for="description" class="form-label required">
                   <i class="fas fa-file-text"></i>
-                  Batafsil tavsif
+                  <%= t('manufacturer.products.add.form.description') %>
                 </label>
                 <textarea 
                   id="description" 
                   name="description" 
                   class="form-textarea rich-editor" 
                   rows="6" 
-                  placeholder="Mahsulot haqida batafsil ma'lumot, xususiyatlari, ishlatilishi..."
+                  placeholder="<%= t('manufacturer.products.add.form.descriptionPlaceholder') %>"
                   required
                   maxlength="2000"
                 ></textarea>
-                <div class="form-hint">Xaridorlarga to'liq ma'lumot berish uchun batafsil yozing</div>
+                <div class="form-hint"><%= t('manufacturer.products.add.form.descriptionHint') %></div>
                 <div class="validation-message"></div>
               </div>
             </div>
@@ -189,15 +189,15 @@
           <!-- Step 2: Pricing & MOQ -->
           <div class="form-step" data-step="2">
             <div class="step-header">
-              <h3>Narxlar va miqdor</h3>
-              <p class="step-description">Narx siyosati va minimum buyurtma miqdorini belgilang</p>
+              <h3><%= t('manufacturer.products.add.steps.pricingAndMOQ') %></h3>
+              <p class="step-description"><%= t('manufacturer.products.add.steps.pricingAndMOQDescription') %></p>
             </div>
             
             <div class="form-grid">
               <div class="form-group">
                 <label for="basePrice" class="form-label required">
                   <i class="fas fa-dollar-sign"></i>
-                  Bazaviy narx (USD)
+                  <%= t('manufacturer.products.add.form.basePrice') %>
                 </label>
                 <div class="price-input-wrapper">
                   <span class="price-currency">$</span>
@@ -219,19 +219,19 @@
               <div class="form-group">
                 <label for="priceType" class="form-label">
                   <i class="fas fa-hand-holding-usd"></i>
-                  Narx turi
+                  <%= t('manufacturer.products.add.form.priceType') %>
                 </label>
                 <select id="priceType" name="pricing.priceType" class="form-select">
-                  <option value="fixed">Qat'iy narx</option>
-                  <option value="negotiable">Kelishiladi</option>
-                  <option value="quote_based">Taklif asosida</option>
+                  <option value="fixed"><%= t('manufacturer.products.add.form.priceTypeFixed') %></option>
+                  <option value="negotiable"><%= t('manufacturer.products.add.form.priceTypeNegotiable') %></option>
+                  <option value="quote_based"><%= t('manufacturer.products.add.form.priceTypeQuoteBased') %></option>
                 </select>
               </div>
               
               <div class="form-group">
                 <label for="minOrderQty" class="form-label required">
                   <i class="fas fa-sort-numeric-up"></i>
-                  Minimum buyurtma miqdori (MOQ)
+                  <%= t('manufacturer.products.add.form.minOrderQty') %>
                 </label>
                 <input 
                   type="number" 
@@ -240,17 +240,17 @@
                   class="form-input" 
                   min="1"
                   value=""
-                  placeholder="100"
+                  placeholder="<%= t('manufacturer.products.add.form.minOrderQtyPlaceholder') %>"
                   required
                 >
-                <div class="form-hint">Eng kam buyurtma miqdori</div>
+                <div class="form-hint"><%= t('manufacturer.products.add.form.minOrderQtyHint') %></div>
                 <div class="validation-message"></div>
               </div>
               
               <div class="form-group">
                 <label for="maxOrderQty" class="form-label">
                   <i class="fas fa-sort-numeric-down"></i>
-                  Maksimum buyurtma miqdori
+                  <%= t('manufacturer.products.add.form.maxOrderQty') %>
                 </label>
                 <input 
                   type="number" 
@@ -259,9 +259,9 @@
                   class="form-input" 
                   min="1"
                   value=""
-                  placeholder="10000"
+                  placeholder="<%= t('manufacturer.products.add.form.maxOrderQtyPlaceholder') %>"
                 >
-                <div class="form-hint">Bo'sh qoldirish - cheklovsiz</div>
+                <div class="form-hint"><%= t('manufacturer.products.add.form.maxOrderQtyHint') %></div>
               </div>
             </div>
             
@@ -270,11 +270,11 @@
               <div class="section-header">
                 <h4>
                   <i class="fas fa-layer-group"></i>
-                  Ulgurji narxlari
+                  <%= t('manufacturer.products.add.form.bulkPricing') %>
                 </h4>
                 <button type="button" class="btn-sm btn-outline" id="addBulkPrice">
                   <i class="fas fa-plus"></i>
-                  Qo'shish
+                  <%= t('manufacturer.products.add.form.add') %>
                 </button>
               </div>
               
@@ -287,19 +287,19 @@
           <!-- Step 3: Technical Specifications -->
           <div class="form-step" data-step="3">
             <div class="step-header">
-              <h3>Texnik xususiyatlar</h3>
-              <p class="step-description">Mahsulot parametrlari va texnik ko'rsatkichlar</p>
+              <h3><%= t('manufacturer.products.add.steps.specifications') %></h3>
+              <p class="step-description"><%= t('manufacturer.products.add.steps.specificationsDescription') %></p>
             </div>
             
             <div class="specifications-section">
               <div class="section-header">
                 <h4>
                   <i class="fas fa-cogs"></i>
-                  Mahsulot spetsifikatsiyalari
+                  <%= t('manufacturer.products.add.form.productSpecifications') %>
                 </h4>
                 <button type="button" class="btn-sm btn-outline" id="addSpecification">
                   <i class="fas fa-plus"></i>
-                  Qo'shish
+                  <%= t('manufacturer.products.add.form.add') %>
                 </button>
               </div>
               
@@ -313,7 +313,7 @@
               <div class="section-header">
                 <h4>
                   <i class="fas fa-warehouse"></i>
-                  Ombor ma'lumotlari
+                  <%= t('manufacturer.products.add.form.inventoryInfo') %>
                 </h4>
               </div>
               
@@ -321,7 +321,7 @@
                 <div class="form-group">
                   <label for="stockQuantity" class="form-label">
                     <i class="fas fa-boxes"></i>
-                    Mavjud miqdor
+                    <%= t('manufacturer.products.add.form.stockQuantity') %>
                   </label>
                   <input 
                     type="number" 
@@ -330,14 +330,14 @@
                     class="form-input" 
                     min="0"
                     value=""
-                    placeholder="1000"
+                    placeholder="<%= t('manufacturer.products.add.form.stockQuantityPlaceholder') %>"
                   >
                 </div>
                 
                 <div class="form-group">
                   <label for="lowStockThreshold" class="form-label">
                     <i class="fas fa-exclamation-triangle"></i>
-                    Kam qolgan chegara
+                    <%= t('manufacturer.products.add.form.lowStockThreshold') %>
                   </label>
                   <input 
                     type="number" 
@@ -346,29 +346,29 @@
                     class="form-input" 
                     min="0"
                     value=""
-                    placeholder="100"
+                    placeholder="<%= t('manufacturer.products.add.form.lowStockThresholdPlaceholder') %>"
                   >
-                  <div class="form-hint">Bu miqdordan kam qolganda ogohlantirish</div>
+                  <div class="form-hint"><%= t('manufacturer.products.add.form.lowStockThresholdHint') %></div>
                 </div>
                 
                 <div class="form-group">
                   <label for="inventoryUnit" class="form-label">
                     <i class="fas fa-ruler"></i>
-                    O'lchov birligi
+                    <%= t('manufacturer.products.add.form.inventoryUnit') %>
                   </label>
                   <select 
                     id="inventoryUnit" 
                     name="inventory.unit" 
                     class="form-select"
                   >
-                    <option value="pieces" selected>Dona (pieces)</option>
-                    <option value="kg">Kilogram (kg)</option>
-                    <option value="meters">Metr (m)</option>
-                    <option value="liters">Litr (l)</option>
-                    <option value="boxes">Quti (boxes)</option>
-                    <option value="rolls">Rulon (rolls)</option>
+                    <option value="pieces" selected><%= t('manufacturer.products.add.form.unitPieces') %></option>
+                    <option value="kg"><%= t('manufacturer.products.add.form.unitKg') %></option>
+                    <option value="meters"><%= t('manufacturer.products.add.form.unitM') %></option>
+                    <option value="liters"><%= t('manufacturer.products.add.form.unitL') %></option>
+                    <option value="boxes"><%= t('manufacturer.products.add.form.unitBoxes') %></option>
+                    <option value="rolls"><%= t('manufacturer.products.add.form.unitRolls') %></option>
                   </select>
-                  <div class="form-hint">Mahsulot qanday o'lchov birligida hisoblanadi</div>
+                  <div class="form-hint"><%= t('manufacturer.products.add.form.inventoryUnitHint') %></div>
                 </div>
               </div>
             </div>
@@ -377,17 +377,17 @@
           <!-- Step 4: Images -->
           <div class="form-step" data-step="4">
             <div class="step-header">
-              <h3>Mahsulot rasmlari</h3>
-              <p class="step-description">Yuqori sifatli rasmlar mahsulot sotuvini oshiradi</p>
+              <h3><%= t('manufacturer.products.add.steps.images') %></h3>
+              <p class="step-description"><%= t('manufacturer.products.add.steps.imagesDescription') %></p>
             </div>
             
             <div class="image-upload-section">
               <!-- PROFESSIONAL Image Counter Section -->
               <div class="image-counter-section">
-                <div class="image-counter">0/10 rasm</div>
+                <div class="image-counter"><%= t('manufacturer.products.add.form.imagesCounter') %></div>
                 <div class="image-status-info">
-                  <span class="temp-images-count">Yangi: 0</span>
-                  <span class="existing-images-count">Yuklangan: 0</span>
+                  <span class="temp-images-count"><%= t('manufacturer.products.add.form.newImages') %>: 0</span>
+                  <span class="existing-images-count"><%= t('manufacturer.products.add.form.uploadedImages') %>: 0</span>
                 </div>
               </div>
               
@@ -395,18 +395,18 @@
               <div class="upload-area" id="imageUploadArea">
                 <div class="upload-placeholder">
                   <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                  <h4>Rasmlarni yuklash</h4>
-                  <p>Rasmlarni bu yerga sudrab oling yoki fayllarni tanlash uchun bosing</p>
+                  <h4><%= t('manufacturer.products.add.form.uploadImages') %></h4>
+                  <p><%= t('manufacturer.products.add.form.uploadImagesDescription') %></p>
                   <p class="upload-requirements">
-                    Maksimal 10 ta rasm • JPG, PNG, WebP • Har biri 5MB gacha
+                    <%= t('manufacturer.products.add.form.uploadRequirements') %>
                   </p>
                   <p class="upload-note">
                     <i class="fas fa-info-circle"></i>
-                    Rasmlar vaqtincha saqlanadi. Product saqlangandagina server'ga yuklanadi.
+                    <%= t('manufacturer.products.add.form.uploadNote') %>
                   </p>
                   <button type="button" class="btn-outline upload-btn">
                     <i class="fas fa-folder-open"></i>
-                    Fayllarni tanlash
+                    <%= t('manufacturer.products.add.form.selectFiles') %>
                   </button>
                 </div>
                 <input 
@@ -433,7 +433,7 @@
               <!-- Enhanced Upload Progress -->
               <div class="upload-progress" id="uploadProgress" style="display: none;">
                 <div class="progress-info">
-                  <span class="progress-text">Yuklanmoqda...</span>
+                  <span class="progress-text"><%= t('manufacturer.products.add.form.uploading') %></span>
                   <span class="progress-percentage">0%</span>
                 </div>
                 <div class="progress-bar">
@@ -446,29 +446,29 @@
           <!-- Step 5: Shipping & Delivery -->
           <div class="form-step" data-step="5">
             <div class="step-header">
-              <h3>Yetkazib berish</h3>
-              <p class="step-description">Yetkazib berish parametrlari va muddatlar</p>
+              <h3><%= t('manufacturer.products.add.steps.shipping') %></h3>
+              <p class="step-description"><%= t('manufacturer.products.add.steps.shippingDescription') %></p>
             </div>
             
             <div class="form-grid">
               <div class="form-group">
                 <label for="leadTime" class="form-label">
                   <i class="fas fa-clock"></i>
-                  Tayyorlash muddati
+                  <%= t('manufacturer.products.add.form.leadTime') %>
                 </label>
                 <select id="leadTime" name="shipping.leadTime" class="form-select">
-                  <option value="1-3">1-3 kun</option>
-                  <option value="3-7" selected>3-7 kun</option>
-                  <option value="7-15">7-15 kun</option>
-                  <option value="15-30">15-30 kun</option>
-                  <option value="custom">Kelishiladi</option>
+                  <option value="1-3"><%= t('manufacturer.products.add.form.leadTime1to3') %></option>
+                  <option value="3-7" selected><%= t('manufacturer.products.add.form.leadTime3to7') %></option>
+                  <option value="7-15"><%= t('manufacturer.products.add.form.leadTime7to15') %></option>
+                  <option value="15-30"><%= t('manufacturer.products.add.form.leadTime15to30') %></option>
+                  <option value="custom"><%= t('manufacturer.products.add.form.leadTimeCustom') %></option>
                 </select>
               </div>
               
               <div class="form-group">
                 <label for="shippingWeight" class="form-label">
                   <i class="fas fa-weight"></i>
-                  Og'irligi (kg)
+                  <%= t('manufacturer.products.add.form.shippingWeight') %>
                 </label>
                 <input 
                   type="number" 
@@ -478,21 +478,21 @@
                   step="0.1" 
                   min="0"
                   value=""
-                  placeholder="1.5"
+                  placeholder="<%= t('manufacturer.products.add.form.shippingWeightPlaceholder') %>"
                 >
               </div>
               
               <div class="form-group">
                 <label class="form-label">
                   <i class="fas fa-cube"></i>
-                  O'lchamlar
+                  <%= t('manufacturer.products.add.form.dimensions') %>
                 </label>
                 <div class="dimensions-inputs">
                   <input 
                     type="number" 
                     name="shipping.dimensions.length" 
                     class="form-input small" 
-                    placeholder="Uzunlik"
+                    placeholder="<%= t('manufacturer.products.add.form.length') %>"
                     value=""
                   >
                   <span>×</span>
@@ -500,7 +500,7 @@
                     type="number" 
                     name="shipping.dimensions.width" 
                     class="form-input small" 
-                    placeholder="Kenglik"
+                    placeholder="<%= t('manufacturer.products.add.form.width') %>"
                     value=""
                   >
                   <span>×</span>
@@ -508,7 +508,7 @@
                     type="number" 
                     name="shipping.dimensions.height" 
                     class="form-input small" 
-                    placeholder="Balandlik"
+                    placeholder="<%= t('manufacturer.products.add.form.height') %>"
                     value=""
                   >
                   <select 
@@ -516,8 +516,8 @@
                     class="form-select small"
                     style="max-width: 70px; margin-left: 8px;"
                   >
-                    <option value="cm" selected>cm</option>
-                    <option value="inch">inch</option>
+                    <option value="cm" selected><%= t('manufacturer.products.add.form.cm') %></option>
+                    <option value="inch"><%= t('manufacturer.products.add.form.inch') %></option>
                   </select>
                 </div>
               </div>
@@ -525,39 +525,39 @@
               <div class="form-group">
                 <label for="packagingType" class="form-label">
                   <i class="fas fa-box"></i>
-                  Qadoqlash turi
+                  <%= t('manufacturer.products.add.form.packagingType') %>
                 </label>
                 <select id="packagingType" name="shipping.packagingType" class="form-select">
-                  <option value="">Tanlang...</option>
-                  <option value="Box">Quti</option>
-                  <option value="Bag">Xalta</option>
-                  <option value="Carton">Karton</option>
-                  <option value="Pallet">Pallet</option>
-                  <option value="Roll">Rulon</option>
-                  <option value="Bundle">Bog'lam</option>
-                  <option value="Custom">Boshqa</option>
+                  <option value=""><%= t('manufacturer.products.add.form.select') %></option>
+                  <option value="Box"><%= t('manufacturer.products.add.form.packagingBox') %></option>
+                  <option value="Bag"><%= t('manufacturer.products.add.form.packagingBag') %></option>
+                  <option value="Carton"><%= t('manufacturer.products.add.form.packagingCarton') %></option>
+                  <option value="Pallet"><%= t('manufacturer.products.add.form.packagingPallet') %></option>
+                  <option value="Roll"><%= t('manufacturer.products.add.form.packagingRoll') %></option>
+                  <option value="Bundle"><%= t('manufacturer.products.add.form.packagingBundle') %></option>
+                  <option value="Custom"><%= t('manufacturer.products.add.form.packagingCustom') %></option>
                 </select>
               </div>
               
               <div class="form-group">
                 <label for="shippingClass" class="form-label">
                   <i class="fas fa-shipping-fast"></i>
-                  Yetkazib berish klassi
+                  <%= t('manufacturer.products.add.form.shippingClass') %>
                 </label>
                 <select id="shippingClass" name="shipping.shippingClass" class="form-select">
-                  <option value="">Tanlang...</option>
-                  <option value="standard" selected>Standart</option>
-                  <option value="fragile">Mo'rt (ehtiyotkorlik bilan)</option>
-                  <option value="hazardous">Xavfli materiallar</option>
-                  <option value="perishable">Tez buziladigan</option>
-                  <option value="oversized">Katta hajmli</option>
+                  <option value=""><%= t('manufacturer.products.add.form.select') %></option>
+                  <option value="standard" selected><%= t('manufacturer.products.add.form.shippingStandard') %></option>
+                  <option value="fragile"><%= t('manufacturer.products.add.form.shippingFragile') %></option>
+                  <option value="hazardous"><%= t('manufacturer.products.add.form.shippingHazardous') %></option>
+                  <option value="perishable"><%= t('manufacturer.products.add.form.shippingPerishable') %></option>
+                  <option value="oversized"><%= t('manufacturer.products.add.form.shippingOversized') %></option>
                 </select>
               </div>
               
               <div class="form-group full-width">
                 <label class="form-label">
                   <i class="fas fa-shipping-fast"></i>
-                  Yetkazib berish usullari
+                  <%= t('manufacturer.products.add.form.shippingMethods') %>
                 </label>
                 <div class="shipping-methods">
                   <label class="checkbox-label">
@@ -568,7 +568,7 @@
                       checked
                     >
                     <span class="checkmark"></span>
-                    Standart yetkazib berish
+                    <%= t('manufacturer.products.add.form.shippingStandard') %>
                   </label>
                   <label class="checkbox-label">
                     <input 
@@ -577,7 +577,7 @@
                       value="express"
                     >
                     <span class="checkmark"></span>
-                    Tezkor yetkazib berish
+                    <%= t('manufacturer.products.add.form.shippingExpress') %>
                   </label>
                   <label class="checkbox-label">
                     <input 
@@ -586,7 +586,7 @@
                       value="pickup"
                     >
                     <span class="checkmark"></span>
-                    O'zi olib ketish
+                    <%= t('manufacturer.products.add.form.shippingPickup') %>
                   </label>
                 </div>
               </div>
@@ -597,18 +597,18 @@
           <div class="form-navigation">
             <button type="button" class="btn-outline prev-step" id="prevStep" style="display: none;">
               <i class="fas fa-arrow-left"></i>
-              Orqaga
+              <%= t('manufacturer.products.add.navigation.back') %>
             </button>
             <div class="nav-info">
               <span class="current-step">1</span> / <span class="total-steps">5</span>
             </div>
             <button type="button" class="btn-primary" id="nextStep">
-              Keyingi
+              <%= t('manufacturer.products.add.navigation.next') %>
               <i class="fas fa-arrow-right"></i>
             </button>
             <button type="submit" class="btn-success" id="submitForm" style="display: none;">
               <i class="fas fa-save"></i>
-              Yaratish
+              <%= t('manufacturer.products.add.navigation.save') %>
             </button>
           </div>
         </form>
@@ -621,7 +621,7 @@
           <div class="card-header">
             <h4>
               <i class="fas fa-lightbulb"></i>
-              Yaratish bo'yicha maslahatlar
+              <%= t('manufacturer.products.add.sidebar.creationGuide') %>
             </h4>
           </div>
           <div class="card-body">
@@ -629,29 +629,29 @@
               <div class="tip-item">
                 <i class="fas fa-star tip-icon"></i>
                 <div class="tip-content">
-                  <h5>Sifatli rasmlar</h5>
-                  <p>Yuqori sifatli mahsulot rasmlari sotuvni 60% ga oshiradi</p>
+                  <h5><%= t('manufacturer.products.add.sidebar.qualityImages') %></h5>
+                  <p><%= t('manufacturer.products.add.sidebar.qualityImagesDescription') %></p>
                 </div>
               </div>
               <div class="tip-item">
                 <i class="fas fa-edit tip-icon"></i>
                 <div class="tip-content">
-                  <h5>Batafsil tavsif</h5>
-                  <p>Mahsulot xususiyatlarini to'liq va aniq kiriting</p>
+                  <h5><%= t('manufacturer.products.add.sidebar.detailedDescription') %></h5>
+                  <p><%= t('manufacturer.products.add.sidebar.completeProductDetails') %></p>
                 </div>
               </div>
               <div class="tip-item">
                 <i class="fas fa-dollar-sign tip-icon"></i>
                 <div class="tip-content">
-                  <h5>Raqobatbardosh narx</h5>
-                  <p>Bozor narxlarini tahlil qiling va MOQ ni to'g'ri belgilang</p>
+                  <h5><%= t('manufacturer.products.add.sidebar.competitivePrice') %></h5>
+                  <p><%= t('manufacturer.products.add.sidebar.competitivePriceDescription') %></p>
                 </div>
               </div>
               <div class="tip-item">
                 <i class="fas fa-shipping-fast tip-icon"></i>
                 <div class="tip-content">
-                  <h5>Yetkazish ma'lumotlari</h5>
-                  <p>Aniq yetkazib berish muddati va usullarini ko'rsating</p>
+                  <h5><%= t('manufacturer.products.add.sidebar.shippingInfo') %></h5>
+                  <p><%= t('manufacturer.products.add.sidebar.shippingInfoDescription') %></p>
                 </div>
               </div>
             </div>
@@ -663,26 +663,26 @@
           <div class="card-header">
             <h4>
               <i class="fas fa-bolt"></i>
-              Tezkor amallar
+              <%= t('manufacturer.products.add.quickActions.title') %>
             </h4>
           </div>
           <div class="card-body">
             <div class="action-buttons">
               <button class="action-btn" id="templateBtn">
                 <i class="fas fa-clipboard"></i>
-                <span>Shablon yuklash</span>
+                <span><%= t('manufacturer.products.add.quickActions.templateUpload') %></span>
               </button>
               <button class="action-btn" id="categoryGuideBtn">
                 <i class="fas fa-th-large"></i>
-                <span>Kategoriya bo'yicha yordam</span>
+                <span><%= t('manufacturer.products.add.quickActions.categoryGuide') %></span>
               </button>
               <button class="action-btn" id="marketResearchBtn">
                 <i class="fas fa-chart-line"></i>
-                <span>Bozor tahlili</span>
+                <span><%= t('manufacturer.products.add.quickActions.marketResearch') %></span>
               </button>
               <button class="action-btn" id="bulkUploadBtn">
                 <i class="fas fa-upload"></i>
-                <span>Ommaviy yuklash</span>
+                <span><%= t('manufacturer.products.add.quickActions.bulkUpload') %></span>
               </button>
             </div>
           </div>
@@ -693,34 +693,34 @@
           <div class="card-header">
             <h4>
               <i class="fas fa-tasks"></i>
-              Yaratish jarayoni
+              <%= t('manufacturer.products.add.status.title') %>
             </h4>
           </div>
           <div class="card-body">
             <div class="progress-checklist">
               <div class="progress-item" id="progress-step-1">
                 <i class="fas fa-circle-notch progress-icon"></i>
-                <span>Asosiy ma'lumotlar</span>
+                <span><%= t('manufacturer.products.add.status.basicInfo') %></span>
                 <div class="progress-status">0%</div>
               </div>
               <div class="progress-item" id="progress-step-2">
                 <i class="far fa-circle progress-icon"></i>
-                <span>Narx va miqdor</span>
+                <span><%= t('manufacturer.products.add.status.pricingAndMOQ') %></span>
                 <div class="progress-status">0%</div>
               </div>
               <div class="progress-item" id="progress-step-3">
                 <i class="far fa-circle progress-icon"></i>
-                <span>Texnik xususiyatlar</span>
+                <span><%= t('manufacturer.products.add.status.specifications') %></span>
                 <div class="progress-status">0%</div>
               </div>
               <div class="progress-item" id="progress-step-4">
                 <i class="far fa-circle progress-icon"></i>
-                <span>Rasmlar</span>
+                <span><%= t('manufacturer.products.add.status.images') %></span>
                 <div class="progress-status">0%</div>
               </div>
               <div class="progress-item" id="progress-step-5">
                 <i class="far fa-circle progress-icon"></i>
-                <span>Yetkazib berish</span>
+                <span><%= t('manufacturer.products.add.status.shipping') %></span>
                 <div class="progress-status">0%</div>
               </div>
             </div>
@@ -912,7 +912,7 @@
                 console.log('💾 Saving product as draft...');
                 
                 const saveAsDraftBtn = document.getElementById('saveAsDraftBtn');
-                this.setButtonLoading(saveAsDraftBtn, 'Saqlanmoqda...');
+                this.setButtonLoading(saveAsDraftBtn, window.t('manufacturer.products.add.loading.savingAsDraft'));
                 
                 const formData = this.collectFormData();
                 formData.status = 'draft';
@@ -930,7 +930,7 @@
                 
                 if (result.success) {
                     this.isDirty = false;
-                    this.showSuccessToast('Mahsulot qoralama sifatida saqlandi');
+                    this.showSuccessToast(window.t('manufacturer.products.add.success.savedAsDraft'));
                     console.log('✅ Product saved as draft successfully');
                     
                     // Optionally redirect to edit page
@@ -938,16 +938,16 @@
                         window.location.href = `/manufacturer/products/edit/${result.data.productId}`;
                     }, 1500);
                 } else {
-                    this.showErrorToast(result.message || 'Qoralama saqlashda xatolik yuz berdi');
+                    this.showErrorToast(result.message || window.t('manufacturer.products.add.errors.saveDraftFailed'));
                     console.error('❌ Save as draft failed:', result.message);
                 }
                 
             } catch (error) {
                 console.error('❌ Save as draft error:', error);
-                this.showErrorToast('Qoralama saqlashda xatolik yuz berdi');
+                this.showErrorToast(window.t('manufacturer.products.add.errors.saveDraftError'));
             } finally {
                 const saveAsDraftBtn = document.getElementById('saveAsDraftBtn');
-                this.resetButtonLoading(saveAsDraftBtn, '<i class="fas fa-save"></i> Qoralama sifatida saqlash');
+                this.resetButtonLoading(saveAsDraftBtn, `<i class="fas fa-save"></i> ${window.t('manufacturer.products.add.actions.saveAsDraft')}`);
             }
         }
         
@@ -989,17 +989,17 @@
                     if (result.errors && result.errors.length > 0) {
                         this.showValidationErrors(result.errors);
                     } else {
-                        this.showErrorToast(result.message || 'Chop etishda xatolik yuz berdi');
+                        this.showErrorToast(result.message || window.t('manufacturer.products.add.errors.publishFailed'));
                     }
                     console.error('❌ Publish failed:', result.message);
                 }
                 
             } catch (error) {
                 console.error('❌ Publish error:', error);
-                this.showErrorToast('Chop etishda xatolik yuz berdi');
+                this.showErrorToast(window.t('manufacturer.products.add.errors.publishError'));
             } finally {
                 const publishBtn = document.getElementById('publishBtn');
-                this.resetButtonLoading(publishBtn, '<i class="fas fa-rocket"></i> Chop etish');
+                this.resetButtonLoading(publishBtn, `<i class="fas fa-rocket"></i> ${window.t('manufacturer.products.add.actions.publish')}`);
             }
         }
         
@@ -1008,31 +1008,31 @@
             
             // Required field validations
             if (!formData.name || formData.name.trim().length < 3) {
-                errors.push('Mahsulot nomi kamida 3 ta belgidan iborat bo\'lishi kerak');
+                errors.push(window.t('manufacturer.products.add.validation.productNameLength'));
             }
             
             if (!formData.description || formData.description.trim().length < 20) {
-                errors.push('Mahsulot ta\'rif kamida 20 ta belgidan iborat bo\'lishi kerak');
+                errors.push(window.t('manufacturer.products.add.validation.descriptionLength'));
             }
             
             if (!formData.category) {
-                errors.push('Kategoriya tanlanishi shart');
+                errors.push(window.t('manufacturer.products.add.validation.categoryRequired'));
             }
             
             if (!formData.pricing?.basePrice || formData.pricing.basePrice <= 0) {
-                errors.push('Asosiy narx 0 dan katta bo\'lishi kerak');
+                errors.push(window.t('manufacturer.products.add.validation.basePriceRequired'));
             }
             
             if (!formData.pricing?.minimumOrderQuantity || formData.pricing.minimumOrderQuantity <= 0) {
-                errors.push('Eng kam buyurtma miqdori 0 dan katta bo\'lishi kerak');
+                errors.push(window.t('manufacturer.products.add.validation.minOrderQtyRequired'));
             }
             
             if (!formData.inventory?.totalStock || formData.inventory.totalStock <= 0) {
-                errors.push('Umumiy ombor miqdori 0 dan katta bo\'lishi kerak');
+                errors.push(window.t('manufacturer.products.add.validation.stockQuantityRequired'));
             }
             
             if (!formData.inventory?.unit) {
-                errors.push('O\'lchov birligi tanlanishi shart');
+                errors.push(window.t('manufacturer.products.add.validation.unitRequired'));
             }
             
             // Check for uploaded images
@@ -1040,7 +1040,7 @@
                              (document.querySelectorAll('.image-preview-item').length > 0);
             
             if (!hasImages) {
-                errors.push('Kamida bitta mahsulot rasmi yuklash shart');
+                errors.push(window.t('manufacturer.products.add.validation.imageRequired'));
             }
             
             return {
@@ -1336,7 +1336,7 @@
             const modalHtml = `
                 <div class="template-modal">
                     <div class="modal-header">
-                        <h3><i class="fas fa-clipboard-list"></i>Shablon tanlang</h3>
+                        <h3><i class="fas fa-clipboard-list"></i><%= t('manufacturer.products.add.templates.selectTemplate') %></h3>
                         <button onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
                     </div>
                     <div class="modal-body">
@@ -1367,7 +1367,7 @@
             // Close modal
             document.querySelector('.template-modal-overlay')?.remove();
             
-            this.showSuccessToast('Shablon muvaffaqiyatli qo\'llandi');
+            this.showSuccessToast(window.t('manufacturer.products.add.success.templateApplied'));
             this.isDirty = true;
         }
     
@@ -1417,15 +1417,15 @@
                     </div>
                     <div class="modal-body">
                         <div class="category-tips">
-                            <h4>Bozor tendentsiyalari:</h4>
+                            <h4><%= t('manufacturer.products.add.templates.marketTrends') %>:</h4>
                             <ul>
-                                <li><strong>Tekstil eksporti</strong> - 25% o'sish prognozi</li>
-                                <li><strong>Paxta mahsulotlari</strong> - yuqori talab</li>
-                                <li><strong>Ekologik mahsulotlar</strong> - yangi trend</li>
-                                <li><strong>B2B onlayn savdo</strong> - tez rivojlanmoqda</li>
+                                <li><strong><%= t('manufacturer.products.add.templates.textileExport') %></strong> - <%= t('manufacturer.products.add.templates.growthForecast') %></li>
+                                <li><strong><%= t('manufacturer.products.add.templates.cottonProducts') %></strong> - <%= t('manufacturer.products.add.templates.highDemand') %></li>
+                                <li><strong><%= t('manufacturer.products.add.templates.ecoProducts') %></strong> - <%= t('manufacturer.products.add.templates.newTrend') %></li>
+                                <li><strong><%= t('manufacturer.products.add.templates.b2bOnline') %></strong> - <%= t('manufacturer.products.add.templates.rapidDevelopment') %></li>
                             </ul>
                             <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.875rem;">
-                                <strong>Tavsiya:</strong> Mahsulotingizni bozor ehtiyojlariga moslashtiring
+                                <strong><%= t('manufacturer.products.add.templates.recommendation') %>:</strong> <%= t('manufacturer.products.add.templates.adaptToMarket') %>
                             </p>
                         </div>
                     </div>
@@ -1519,8 +1519,7 @@
             this.refreshImageGrid();
             this.updateImageCounter();
             
-            console.log('✅ Professional image upload system initialized');
-        }
+         }
     
         /**
          * PROFESSIONAL Advanced Image Files Handler
@@ -1535,11 +1534,11 @@
     
             const validFiles = Array.from(files).filter(file => {
                 if (!allowedTypes.includes(file.type)) {
-                    this.showErrorToast(`${file.name} fayli qo'llab-quvvatlanmaydi. Faqat JPG, PNG, WebP fayllar mumkin.`);
+                    this.showErrorToast(window.t('manufacturer.products.add.errors.fileTypeNotSupported', {fileName: file.name}));
                     return false;
                 }
                 if (file.size > maxSize) {
-                    this.showErrorToast(`${file.name} fayli juda katta (maksimal 5MB)`);
+                    this.showErrorToast(window.t('manufacturer.products.add.errors.fileTooLarge', {fileName: file.name}));
                     return false;
                 }
                 return true;
@@ -1549,12 +1548,12 @@
     
             const currentImageCount = this.temporaryImages.length + this.existingImages.length;
             if (currentImageCount + validFiles.length > maxFiles) {
-                this.showErrorToast(`Maksimal ${maxFiles} ta rasm yuklash mumkin`);
+                this.showErrorToast(window.t('manufacturer.products.add.errors.maxImagesExceeded', {maxFiles: maxFiles}));
                 return;
             }
     
             try {
-                this.showUploadProgress(true, 'Base64 ga konvertatsiya qilinmoqda...');
+                this.showUploadProgress(true, window.t ? window.t('manufacturer.products.add.loading.convertingToBase64') : 'Base64 ga konvertatsiya qilinmoqda...');
                 
                 // Process each file and convert to Base64
                 for (let i = 0; i < validFiles.length; i++) {
@@ -1569,14 +1568,14 @@
                 this.showUploadProgress(false);
                 this.refreshImageGrid();
                 this.updateImageCounter();
-                this.showSuccessToast(`${validFiles.length} ta rasm qo'shildi`);
+                this.showSuccessToast(window.t('manufacturer.products.add.success.imagesAdded', {count: validFiles.length}));
                 this.isDirty = true;
                 
                 console.log('✅ Files processed successfully:', validFiles.length);
             } catch (error) {
                 this.showUploadProgress(false);
                 console.error('❌ Image processing failed:', error);
-                this.showErrorToast('Rasmlarni qayta ishlashda xatolik yuz berdi');
+                this.showErrorToast(window.t('manufacturer.products.add.errors.imageProcessingError'));
             }
         }
 
@@ -1671,8 +1670,7 @@
             this.setupAdvancedImageHandlers();
             this.updateImageCounter();
             
-            console.log(`✅ Image grid refreshed with ${allImages.length} images`);
-        }
+          }
 
         /**
          * Create advanced image preview with professional controls
@@ -1697,13 +1695,13 @@
                     
                     <!-- Professional Controls -->
                     <div class="image-controls">
-                        <button type="button" class="control-btn set-primary-btn" title="Asosiy rasm qilish">
+                        <button type="button" class="control-btn set-primary-btn" title="${window.t ? window.t('manufacturer.products.add.images.setPrimary') : 'Asosiy rasm qilish'}"
                             <i class="fas fa-star"></i>
                         </button>
-                        <button type="button" class="control-btn replace-btn" title="Almashtirib yuklash">
+                        <button type="button" class="control-btn replace-btn" title="${window.t ? window.t('manufacturer.products.add.images.replace') : 'Almashtirib yuklash'}"
                             <i class="fas fa-sync-alt"></i>
                         </button>
-                        <button type="button" class="control-btn remove-btn" title="O'chirish">
+                        <button type="button" class="control-btn remove-btn" title="${window.t ? window.t('manufacturer.products.add.images.remove') : 'O\'chirish'}"
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -1758,10 +1756,6 @@
         }
     
         /**
-         * PROFESSIONAL Image Management Methods
-         */
-
-        /**
          * Update image counter with visual indicators
          */
         updateImageCounter() {
@@ -1775,7 +1769,7 @@
             const maxImages = 10;
             
             // Update main counter with status color
-            counter.textContent = `${totalImages}/${maxImages} rasm`;
+            counter.textContent = window.t ? window.t('manufacturer.products.add.images.counter', {current: totalImages, max: maxImages}) : `${totalImages}/${maxImages} rasm`;
             counter.className = 'image-counter';
             
             if (totalImages >= maxImages) {
@@ -1785,15 +1779,14 @@
             }
             
             // Update detailed counts
-            tempCount.textContent = `Yangi: ${this.temporaryImages.length}`;
-            existingCount.textContent = `Yuklangan: ${this.existingImages.length}`;
+            tempCount.textContent = `${window.t ? window.t('manufacturer.products.add.images.new') : 'Yangi'}: ${this.temporaryImages.length}`;
+            existingCount.textContent = `${window.t ? window.t('manufacturer.products.add.images.existing') : 'Yuklangan'}: ${this.existingImages.length}`;
         }
 
         /**
          * Remove image with professional confirmation
          */
         removeImageAdvanced(imageId) {
-            console.log('🗑️ Removing image:', imageId);
             
             // Find image in arrays
             const tempIndex = this.temporaryImages.findIndex(img => img.id === imageId);
@@ -1803,11 +1796,9 @@
             
             if (tempIndex !== -1) {
                 removedImage = this.temporaryImages.splice(tempIndex, 1)[0];
-                console.log('📦 Removed from temporary storage');
             } else if (existingIndex !== -1) {
                 removedImage = this.existingImages.splice(existingIndex, 1)[0];
                 this.deletedImages.push(removedImage);
-                console.log('🗂️ Moved to deleted images for cleanup');
             }
             
             if (removedImage) {
@@ -1816,12 +1807,11 @@
                     const remainingImages = [...this.temporaryImages, ...this.existingImages];
                     if (remainingImages.length > 0) {
                         remainingImages[0].isPrimary = true;
-                        console.log('⭐ Set new primary image');
                     }
                 }
                 
                 this.refreshImageGrid();
-                this.showSuccessToast('Rasm o\'chirildi');
+                this.showSuccessToast(window.t('manufacturer.products.add.success.imageRemoved'));
                 this.isDirty = true;
             }
         }
@@ -1830,7 +1820,6 @@
          * Set primary image with validation
          */
         setPrimaryImageAdvanced(imageId) {
-            console.log('⭐ Setting primary image:', imageId);
             
             // Clear all primary statuses
             [...this.temporaryImages, ...this.existingImages].forEach(img => {
@@ -1844,9 +1833,8 @@
             if (primaryImage) {
                 primaryImage.isPrimary = true;
                 this.refreshImageGrid();
-                this.showSuccessToast('Asosiy rasm o\'zgartirildi');
+                this.showSuccessToast(window.t('manufacturer.products.add.success.primaryImageChanged'));
                 this.isDirty = true;
-                console.log('✅ Primary image set successfully');
             }
         }
 
@@ -1854,7 +1842,6 @@
          * Replace image functionality
          */
         replaceImageAdvanced(imageId) {
-            console.log('🔄 Replacing image:', imageId);
             this.replaceImageId = imageId;
             document.getElementById('imageReplaceInput').click();
         }
@@ -1866,20 +1853,18 @@
             const file = e.target.files[0];
             if (!file || !this.replaceImageId) return;
             
-            console.log('🔄 Processing image replacement...');
-            
             try {
                 // Validate file
                 const maxSize = 5 * 1024 * 1024; // 5MB
                 const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
                 
                 if (!allowedTypes.includes(file.type)) {
-                    this.showErrorToast('Fayl turi qo\'llab-quvvatlanmaydi');
+                    this.showErrorToast(window.t('manufacturer.products.add.errors.unsupportedFileType'));
                     return;
                 }
                 
                 if (file.size > maxSize) {
-                    this.showErrorToast('Fayl juda katta (maksimal 5MB)');
+                    this.showErrorToast(window.t('manufacturer.products.add.errors.fileTooLarge', {fileName: file.name}));
                     return;
                 }
                 
@@ -1909,12 +1894,12 @@
                 }
                 
                 this.refreshImageGrid();
-                this.showSuccessToast('Rasm almashtirildi');
+                this.showSuccessToast(window.t('manufacturer.products.add.success.imageReplaced'));
                 this.isDirty = true;
                 
             } catch (error) {
                 console.error('❌ Image replacement failed:', error);
-                this.showErrorToast('Rasmni almashtirish amalga oshmadi');
+                this.showErrorToast(window.t('manufacturer.products.add.errors.imageReplaceFailed'));
             } finally {
                 this.replaceImageId = null;
             }
@@ -1993,14 +1978,6 @@
                     type: img.type
                 }))
             };
-            
-            console.log('📦 Optimized image data prepared for product creation:', {
-                temporary: optimizedData.temporaryImages.length,
-                existing: optimizedData.existingImages.length,
-                deleted: optimizedData.deletedImages.length,
-                totalSize: JSON.stringify(optimizedData).length + ' bytes'
-            });
-            
             return optimizedData;
         }
 
@@ -2009,13 +1986,9 @@
          */
         async uploadTemporaryImages() {
             if (!this.temporaryImages || this.temporaryImages.length === 0) {
-                console.log('📭 No temporary images to upload');
                 return [];
             }
-            
-            console.log(`📤 Uploading ${this.temporaryImages.length} temporary images...`);
-            
-            try {
+              try {
                 const formData = new FormData();
                 
                 // Add files and metadata
@@ -2042,8 +2015,6 @@
                 if (!result.success) {
                     throw new Error(result.message || 'Upload failed');
                 }
-                
-                console.log('✅ Images uploaded successfully:', result.data);
                 
                 // Extract URLs from response objects to match edit.ejs behavior
                 if (Array.isArray(result.data)) {
@@ -2131,11 +2102,11 @@
             
             row.innerHTML = `
                 <div class="bulk-inputs">
-                    <input type="number" name="pricing.bulkPricing[${index}].minQuantity" placeholder="Min miqdor" class="form-input small">
+                    <input type="number" name="pricing.bulkPricing[${index}].minQuantity" placeholder="${window.t ? window.t('manufacturer.products.add.form.minQuantity') : 'Min miqdor'}" class="form-input small">
                     <span>-</span>
-                    <input type="number" name="pricing.bulkPricing[${index}].maxQuantity" placeholder="Max miqdor" class="form-input small">
-                    <input type="number" name="pricing.bulkPricing[${index}].price" placeholder="Narx (USD)" step="0.01" class="form-input small">
-                    <input type="number" name="pricing.bulkPricing[${index}].discount" placeholder="Chegirma %" class="form-input small">
+                    <input type="number" name="pricing.bulkPricing[${index}].maxQuantity" placeholder="${window.t ? window.t('manufacturer.products.add.form.maxQuantity') : 'Max miqdor'}" class="form-input small">
+                    <input type="number" name="pricing.bulkPricing[${index}].price" placeholder="${window.t ? window.t('manufacturer.products.add.form.price') : 'Narx (USD)'}" step="0.01" class="form-input small">
+                    <input type="number" name="pricing.bulkPricing[${index}].discount" placeholder="${window.t ? window.t('manufacturer.products.add.form.discount') : 'Chegirma %'}" class="form-input small">
                 </div>
                 <button type="button" class="btn-sm btn-ghost remove-bulk-price">
                     <i class="fas fa-trash"></i>
@@ -2156,9 +2127,9 @@
             
             row.innerHTML = `
                 <div class="spec-inputs">
-                    <input type="text" name="specifications[${index}].name" placeholder="Xususiyat nomi (Masalan: Material)" class="form-input">
-                    <input type="text" name="specifications[${index}].value" placeholder="Qiymati (Masalan: 100% Paxta)" class="form-input">
-                    <input type="text" name="specifications[${index}].unit" placeholder="O'lchov (Masalan: %, kg, m)" class="form-input small">
+                    <input type="text" name="specifications[${index}].name" placeholder="${window.t ? window.t('manufacturer.products.add.specifications.namePlaceholder') : 'Xususiyat nomi (Masalan: Material)'}" class="form-input">
+                    <input type="text" name="specifications[${index}].value" placeholder="${window.t ? window.t('manufacturer.products.add.specifications.valuePlaceholder') : 'Qiymati (Masalan: 100% Paxta)'}" class="form-input">
+                    <input type="text" name="specifications[${index}].unit" placeholder="${window.t ? window.t('manufacturer.products.add.specifications.unitPlaceholder') : 'O\'lchov (Masalan: %, kg, m)'}" class="form-input small">
                 </div>
                 <button type="button" class="btn-sm btn-ghost remove-specification">
                     <i class="fas fa-trash"></i>
@@ -2322,9 +2293,7 @@
         }
     
         validateCurrentStep() {
-            console.log(`🔍 Validating step ${this.currentStep}...`);
-            
-            const currentStepElement = document.querySelector(`.form-step[data-step="${this.currentStep}"]`);
+           const currentStepElement = document.querySelector(`.form-step[data-step="${this.currentStep}"]`);
             if (!currentStepElement) {
                 console.log('❌ Step element not found');
                 return false;
@@ -2345,8 +2314,7 @@
             });
     
             if (!isValid) {
-                console.log('❌ Step validation failed. Invalid fields:', invalidFields);
-                this.showErrorToast(`Iltimos, barcha majburiy maydonlarni to'ldiring: ${invalidFields.join(', ')}`);
+                 this.showErrorToast(`Iltimos, barcha majburiy maydonlarni to'ldiring: ${invalidFields.join(', ')}`);
                 
                 // Highlight first invalid field
                 const firstInvalidField = currentStepElement.querySelector('[required]:invalid, .form-group.error [required]');
@@ -2569,8 +2537,6 @@
                 data.shipping = data.shipping || {};
                 data.shipping.methods = shippingMethods;
             }
-    
-            console.log('📋 Form data collected for new product:', data);
             return data;
         }
     
@@ -2599,17 +2565,14 @@
          * Optimized for payload size and enhanced error handling
          */
         async createProduct(data) {
-            console.log('🚀 OPTIMIZED: Creating new product');
-            console.log('📦 Payload size:', JSON.stringify(data).length + ' bytes');
-            
+              
             try {
                 // Step 1: Upload temporary images first if any exist
                 let uploadedImageUrls = [];
                 if (this.temporaryImages && this.temporaryImages.length > 0) {
-                    console.log(`📤 Uploading ${this.temporaryImages.length} temporary images first...`);
+                  
                     try {
                         uploadedImageUrls = await this.uploadTemporaryImages();
-                        console.log(`✅ Uploaded ${uploadedImageUrls.length} images`);
                     } catch (uploadError) {
                         console.error('❌ Image upload failed:', uploadError);
                         throw new Error('Rasmlarni yuklashda xatolik. Iltimos, qayta urinib ko\'ring.');
@@ -2618,7 +2581,7 @@
                 
                 // Step 2: Update product data with uploaded image URLs
                 if (uploadedImageUrls.length > 0 && data.imageData) {
-                    console.log('🔍 DEBUG: uploadedImageUrls structure:', uploadedImageUrls);
+                  
                     
                     // Add uploaded images to existing images (now URLs array like edit.ejs)
                     const newImages = uploadedImageUrls.map((url, index) => {
@@ -2636,16 +2599,12 @@
                         ...newImages
                     ];
                     
-                    console.log('✅ Updated data.imageData.existingImages:', data.imageData.existingImages);
+                 
                     
                     // Clear temporary images since they're now uploaded
                     data.imageData.temporaryImages = [];
                     
-                    console.log('🔄 Final imageData before sending:', {
-                        existingImages: data.imageData.existingImages.length,
-                        temporaryImages: data.imageData.temporaryImages.length,
-                        deletedImages: data.imageData.deletedImages?.length || 0
-                    });
+                 
                 }
                 
                 // Step 3: Send optimized product creation request
@@ -2660,7 +2619,6 @@
                 });
     
                 const result = await response.json();
-                console.log('📥 Server response:', result);
                 
                 if (!result.success) {
                     // Enhanced error handling for different error types
@@ -2691,15 +2649,11 @@
                             isPrimary: tempImg.isPrimary || false
                         });
                     });
-                    
-                    console.log(`🔄 Moved ${uploadedImageUrls.length} temporary images to existing images`);
-                }
+                   }
     
-                console.log('✅ Product created successfully with optimized process');
                 return result.data;
                 
             } catch (error) {
-                console.error('❌ Optimized product creation failed:', error);
                 
                 // Enhanced user-friendly error messages
                 if (error.message.includes('PayloadTooLargeError') || error.message.includes('request entity too large')) {
@@ -2767,7 +2721,7 @@
                 <div class="auto-save-icon">
                     <i class="fas fa-cloud-upload-alt"></i>
                 </div>
-                <span class="auto-save-text">Avtomatik saqlandi</span>
+                <span class="auto-save-text"><%= t('manufacturer.products.add.autoSave.autoSaved') %></span>
             `;
             
             // Professional auto-save styling

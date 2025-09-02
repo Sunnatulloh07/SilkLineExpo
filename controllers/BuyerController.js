@@ -46,11 +46,12 @@ class BuyerController {
             }
 
             // Get all profile data in parallel
-            const [profileStats, cartItems, unreadMessagesCount, recentActivity] = await Promise.all([
+            const [profileStats, cartItems, unreadMessagesCount, recentActivity, favoritesItems] = await Promise.all([
                 this.buyerService.getProfileStats(buyerId),
                 this.buyerService.getCartItems(buyerId),
                 this.buyerService.getUnreadMessagesCount(buyerId),
-                this.buyerService.getRecentActivity(buyerId)
+                this.buyerService.getRecentActivity(buyerId),
+                this.buyerService.getFavoriteItems(buyerId)
             ]);
 
             res.render('buyer/profile', {
@@ -65,6 +66,7 @@ class BuyerController {
                 unreadMessages: unreadMessagesCount || 0,
                 activeOrdersCount: profileStats?.activeOrders || 0,
                 unreadMessagesCount: unreadMessagesCount || 0,
+                favoritesCount: favoritesItems.length || 0,
                 recentActivity: recentActivity || []
             });
 
@@ -139,10 +141,11 @@ class BuyerController {
             }
             
             // Get sidebar data
-            const [cartItems, unreadMessagesCount, profileStats] = await Promise.all([
+            const [cartItems, unreadMessagesCount, profileStats, favoritesItems] = await Promise.all([
                 this.buyerService.getCartItems(buyerId),
                 this.buyerService.getUnreadMessagesCount(buyerId),
-                this.buyerService.getProfileStats(buyerId)
+                this.buyerService.getProfileStats(buyerId),
+                this.buyerService.getFavoriteItems(buyerId)
             ]);
 
             res.render('buyer/orders', {
@@ -154,11 +157,11 @@ class BuyerController {
                 lng: this.getLanguagePreference(req),
                 cartItemsCount: cartItems ? cartItems.length : 0,
                 activeOrdersCount: profileStats?.activeOrders || 0,
-                unreadMessagesCount: unreadMessagesCount || 0
+                unreadMessagesCount: unreadMessagesCount || 0,
+                favoritesCount: favoritesItems.length || 0
             });
 
         } catch (error) {
-            this.logger.error('❌ Orders page error:', error);
             return this.renderErrorPage(res, req, {
                 statusCode: 500,
                 title: 'Orders Page Error',
@@ -175,16 +178,7 @@ class BuyerController {
         const lng = this.getLanguagePreference(req);
 
         // Log error details for debugging
-        if (error) {
-            this.logger.error(`❌ Error ${statusCode}:`, {
-                url: req.originalUrl,
-                method: req.method,
-                userId: req.user?.userId,
-                error: error.message,
-                stack: error.stack
-            });
-        }
-
+       
         const templateData = {
             title: title,
             message: message,
@@ -213,16 +207,10 @@ class BuyerController {
             const buyerId = req.user?.userId;
             const { orderId } = req.params;
 
-            this.logger.info('🔍 Order details request:', {
-                buyerId,
-                orderId,
-                userAgent: req.get('User-Agent'),
-                ip: req.ip
-            });
+
 
             // 2. Validate buyer ID
             if (!buyerId) {
-                this.logger.warn('⚠️ No buyer ID in request');
                 return this.renderErrorPage(res, req, {
                     statusCode: 401,
                     title: 'Authentication Required',
@@ -232,8 +220,7 @@ class BuyerController {
 
             // 3. Validate order ID format
             if (!orderId) {
-                this.logger.warn('⚠️ No order ID provided');
-                return this.renderErrorPage(res, req, {
+                 return this.renderErrorPage(res, req, {
                     statusCode: 400,
                     title: 'Missing Order ID',
                     message: 'Order ID is required to view order details.'
@@ -241,8 +228,7 @@ class BuyerController {
             }
 
             if (!mongoose.Types.ObjectId.isValid(orderId)) {
-                this.logger.warn('⚠️ Invalid order ID format:', orderId);
-                return this.renderErrorPage(res, req, {
+  return this.renderErrorPage(res, req, {
                     statusCode: 400,
                     title: 'Invalid Order ID',
                     message: 'The provided order ID format is invalid.'
@@ -255,7 +241,6 @@ class BuyerController {
                 user = await User.findById(buyerId).select('-password').lean();
                 
                 if (!user) {
-                    this.logger.error('❌ User not found for buyerId:', buyerId);
                     return this.renderErrorPage(res, req, {
                         statusCode: 404,
                         title: 'User Not Found',
@@ -263,11 +248,6 @@ class BuyerController {
                     });
                 }
 
-                this.logger.info('✅ User retrieved:', {
-                    userId: user._id,
-                    companyName: user.companyName,
-                    companyType: user.companyType
-                });
 
             } catch (userError) {
                 this.logger.error('❌ Database error fetching user:', userError);
@@ -282,17 +262,10 @@ class BuyerController {
             // 5. Get order details with comprehensive error handling
             let orderDetails;
             try {
-                this.logger.info('📦 Fetching order details from service...');
-                orderDetails = await this.buyerService.getOrderDetails(buyerId, orderId);
+                 orderDetails = await this.buyerService.getOrderDetails(buyerId, orderId);
                 
-                this.logger.info('📦 Order details service response:', {
-                    success: orderDetails.success,
-                    hasOrder: !!orderDetails.order,
-                    orderNumber: orderDetails.order?.orderNumber
-                });
-
+              
             } catch (serviceError) {
-                this.logger.error('❌ Service error getting order details:', serviceError);
                 return this.renderErrorPage(res, req, {
                     statusCode: 500,
                     title: 'Service Error',
@@ -305,11 +278,7 @@ class BuyerController {
             // 6. Validate order details response
             if (!orderDetails || !orderDetails.success) {
                 const errorMessage = orderDetails?.error?.message || 'Order not found or access denied.';
-                this.logger.warn('⚠️ Order not found or access denied:', {
-                    orderId,
-                    buyerId,
-                    errorMessage
-                });
+             
 
                 return this.renderErrorPage(res, req, {
                     statusCode: 404,
@@ -321,8 +290,7 @@ class BuyerController {
 
             // 7. Validate order data integrity
             if (!orderDetails.order) {
-                this.logger.error('❌ Invalid service response - missing order data');
-                return this.renderErrorPage(res, req, {
+               return this.renderErrorPage(res, req, {
                     statusCode: 500,
                     title: 'Invalid Response',
                     message: 'Invalid order data received. Please contact support.',
@@ -349,12 +317,7 @@ class BuyerController {
 
             // 9. Log successful render
             const duration = Date.now() - startTime;
-            this.logger.info('✅ Order details page rendered successfully:', {
-                orderId: orderDetails.order._id,
-                orderNumber: orderDetails.order.orderNumber,
-                buyerId,
-                duration: `${duration}ms`
-            });
+       
 
             // 10. Render the page with error handling
             try {
@@ -409,9 +372,11 @@ class BuyerController {
             }
             
             // Get sidebar data
-            const [cartItems, unreadMessagesCount] = await Promise.all([
+            const [cartItems, unreadMessagesCount, profileStats, favoritesItems] = await Promise.all([
                 this.buyerService.getCartItems(buyerId),
-                this.buyerService.getUnreadMessagesCount(buyerId)
+                this.buyerService.getUnreadMessagesCount(buyerId),
+                this.buyerService.getProfileStats(buyerId),
+                this.buyerService.getFavoriteItems(buyerId)
             ]);
 
             // Validate manufacturer ID if provided
@@ -435,8 +400,9 @@ class BuyerController {
                 currentUserRole: freshUser?.companyType || 'distributor',
                 lng: this.getLanguagePreference(req),
                 cartItemsCount: cartItems ? cartItems.length : 0,
-                activeOrdersCount: 0, // Will be fetched dynamically
+                activeOrdersCount: profileStats?.activeOrders || 0,
                 unreadMessagesCount: unreadMessagesCount || 0,
+                favoritesCount: favoritesItems.length || 0,
                 manufacturerId: manufacturerId || null,
                 manufacturerDetails: manufacturerDetails || null
             };
@@ -478,13 +444,25 @@ class BuyerController {
                 throw new Error('User not found');
             }
             
+            // Get sidebar data
+            const [cartItems, unreadMessagesCount, profileStats, favoritesItems] = await Promise.all([
+                this.buyerService.getCartItems(buyerId),
+                this.buyerService.getUnreadMessagesCount(buyerId),
+                this.buyerService.getProfileStats(buyerId),
+                this.buyerService.getFavoriteItems(buyerId)
+            ]);
+            
             res.render('buyer/inquiries', {
                 title: 'Product Inquiries - SLEX',
                 currentPage: 'inquiries',
                 user: freshUser,  // Fresh data with latest companyLogo
                 currentUser: freshUser,  // Fresh data for navigation
                 currentUserRole: freshUser?.companyType || 'distributor',
-                lng: this.getLanguagePreference(req)
+                lng: this.getLanguagePreference(req),
+                cartItemsCount: cartItems ? cartItems.length : 0,
+                activeOrdersCount: profileStats?.activeOrders || 0,
+                unreadMessagesCount: unreadMessagesCount || 0,
+                favoritesCount: favoritesItems.length || 0
             });
 
         } catch (error) {
@@ -514,10 +492,11 @@ class BuyerController {
         try {
             const buyerId = req.user.userId;
             
-            // Get fresh user data from database (includes latest companyLogo)
+            // Get fresh user data from database (includes latest companyLogo and notification settings)
             const User = require('../models/User');
             const freshUser = await User.findById(buyerId).select('-password');
             
+            // Validate user data
             if (!freshUser) {
                 throw new Error('User not found');
             }
@@ -526,15 +505,18 @@ class BuyerController {
             const [
                 cartItems,
                 profileStats,
-                unreadMessagesCount
+                unreadMessagesCount,
+                favoritesItems
             ] = await Promise.all([
                 this.buyerService.getCartItems(buyerId).catch(() => []),
                 this.buyerService.getProfileStats(buyerId).catch(() => ({ activeOrders: 0 })),
-                this.buyerService.getUnreadMessagesCount(buyerId).catch(() => 0)
+                this.buyerService.getUnreadMessagesCount(buyerId).catch(() => 0),
+                this.buyerService.getFavoriteItems(buyerId).catch(() => [])
             ]);
 
             const cartItemsCount = cartItems.length || 0;
             const activeOrdersCount = profileStats.activeOrders || 0;
+            const favoritesCount = favoritesItems.length || 0;
 
             res.render('buyer/settings', {
                 title: 'Settings - SLEX',
@@ -548,12 +530,13 @@ class BuyerController {
                 // Sidebar data
                 cartItemsCount,
                 activeOrdersCount,
-                unreadMessagesCount
+                unreadMessagesCount,
+                favoritesCount
             });
 
         } catch (error) {
             this.logger.error('❌ Settings page error:', error);
-            this.renderSettingsErrorPage(res, req, error, 'Failed to load settings page');
+            this.renderErrorPage(res, req, error, 'Failed to load settings page');
         }
     }
 
@@ -566,41 +549,121 @@ class BuyerController {
      */
     async updateProfile(req, res) {
         try {
-            const buyerId = req.user.userId;
-            const updateData = {
-                companyName: req.body.companyName,
-                contactPerson: req.body.contactPerson,
-                email: req.body.email,
-                phone: req.body.phone,
-                country: req.body.country,
-                address: req.body.address
-            };
-
-            // Update user in database
-            const updatedUser = await this.buyerService.updateProfile(buyerId, updateData);
-
-            if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-                return res.json({
-                    success: true,
-                    message: 'Profile updated successfully',
-                    user: updatedUser
+            const buyerId = req.user?.userId;
+            
+            // Enhanced input validation
+            if (!buyerId) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Authentication required',
+                    code: 'AUTH_REQUIRED'
                 });
             }
 
-            req.flash('success', 'Profile updated successfully');
+            // Validate ObjectId format
+            if (!mongoose.isValidObjectId(buyerId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid user ID format',
+                    code: 'INVALID_USER_ID'
+                });
+            }
+
+            // Sanitize and validate input data
+            const updateData = {
+                companyName: req.body.companyName?.trim(),
+                contactPerson: req.body.contactPerson?.trim(),
+                email: req.body.email?.trim()?.toLowerCase(),
+                phone: req.body.phone?.trim(),
+                country: req.body.country?.trim(),
+                address: req.body.address?.trim()
+            };
+
+            // Remove empty fields
+            Object.keys(updateData).forEach(key => {
+                if (!updateData[key] || updateData[key] === '') {
+                    delete updateData[key];
+                }
+            });
+
+            // Business validation rules
+            if (updateData.companyName && updateData.companyName.length < 2) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Kompaniya nomi kamida 2 ta belgidan iborat bo\'lishi kerak',
+                    code: 'COMPANY_NAME_TOO_SHORT'
+                });
+            }
+
+            if (updateData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updateData.email)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Noto\'g\'ri email format',
+                    code: 'INVALID_EMAIL_FORMAT'
+                });
+            }
+
+            if (updateData.phone && !/^\+[1-9]\d{7,15}$/.test(updateData.phone)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Noto\'g\'ri telefon format (+998901234567)',
+                    code: 'INVALID_PHONE_FORMAT'
+                });
+            }
+
+         
+            // Update user in database
+            const updatedUser = await this.buyerService.updateProfile(buyerId, updateData);
+            // Success response
+            const responseData = {
+                success: true,
+                message: 'Profil muvaffaqiyatli yangilandi',
+                data: {
+                    companyName: updatedUser.companyName,
+                    contactPerson: updatedUser.contactPerson,
+                    email: updatedUser.email,
+                    phone: updatedUser.phone,
+                    country: updatedUser.country,
+                    address: updatedUser.address,
+                    updatedAt: updatedUser.updatedAt
+                }
+            };
+
+            if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+                return res.json(responseData);
+            }
+
+            req.flash('success', 'Profil muvaffaqiyatli yangilandi');
             res.redirect('/buyer/settings#profile');
 
         } catch (error) {
-            this.logger.error('❌ Profile update error:', error);
+            this.logger.error('❌ Profile update error:', {
+                error: error.message,
+                stack: error.stack,
+                userId: req.user?.userId,
+                timestamp: new Date().toISOString()
+            });
+
+            // Specific error handling
+            let statusCode = 500;
+            let errorMessage = 'Profil yangilashda xatolik';
+            let errorCode = 'PROFILE_UPDATE_FAILED';
+
+            if (error.message.includes('email') && error.message.includes('use')) {
+                statusCode = 409;
+                errorMessage = 'Bu email allaqachon ishlatilmoqda';
+                errorCode = 'EMAIL_ALREADY_EXISTS';
+            }
 
             if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-                return res.status(400).json({
+                return res.status(statusCode).json({
                     success: false,
-                    message: error.message || 'Failed to update profile'
+                    message: errorMessage,
+                    code: errorCode
                 });
             }
 
-            req.flash('error', error.message || 'Failed to update profile');
+            req.flash('error', errorMessage);
             res.redirect('/buyer/settings#profile');
         }
     }
@@ -680,47 +743,191 @@ class BuyerController {
     }
 
     /**
-     * Update notifications settings
+     * Update buyer password with enhanced security
+     */
+    async updatePassword(req, res) {
+        try {
+            const buyerId = req.user.userId;
+            const { currentPassword, newPassword, confirmPassword } = req.body;
+
+            // Enhanced input validation
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Barcha maydonlar to\'ldirilishi shart',
+                    code: 'MISSING_FIELDS'
+                });
+            }
+
+            if (newPassword !== confirmPassword) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Yangi parollar mos kelmaydi',
+                    code: 'PASSWORDS_MISMATCH'
+                });
+            }
+
+            // Password strength validation
+            if (newPassword.length < 6) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Yangi parol kamida 6 ta belgidan iborat bo\'lishi kerak',
+                    code: 'PASSWORD_TOO_WEAK'
+                });
+            }
+
+            // Strong password pattern validation
+            const strongPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{6,}$/;
+            if (!strongPasswordPattern.test(newPassword)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Parol kamida bitta kichik harf, bitta katta harf va bitta raqam bo\'lishi kerak',
+                    code: 'PASSWORD_PATTERN_INVALID'
+                });
+            }
+
+            // Update password through service
+            await this.buyerService.updatePassword(buyerId, currentPassword, newPassword);
+
+
+            res.json({
+                success: true,
+                message: 'Parol muvaffaqiyatli yangilandi',
+                data: {
+                    lastPasswordChange: new Date(),
+                    securityLevel: 'High'
+                }
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Password update error:', {
+                error: error.message,
+                userId: req.user?.userId,
+                timestamp: new Date().toISOString()
+            });
+
+            // Specific error handling
+            let statusCode = 500;
+            let errorMessage = 'Parol yangilashda xatolik';
+            let errorCode = 'PASSWORD_UPDATE_FAILED';
+
+            if (error.message.includes('current password')) {
+                statusCode = 400;
+                errorMessage = 'Joriy parol noto\'g\'ri';
+                errorCode = 'INVALID_CURRENT_PASSWORD';
+            }
+
+            res.status(statusCode).json({
+                success: false,
+                message: errorMessage,
+                code: errorCode
+            });
+        }
+    }
+
+    /**
+     * Update notifications settings - Professional Implementation
      */
     async updateNotifications(req, res) {
         try {
-            const buyerId = req.user.userId;
-            const notificationSettings = {
-                emailNotifications: req.body.emailNotifications === 'on',
-                orderUpdates: req.body.orderUpdates === 'on',
-                marketingEmails: req.body.marketingEmails === 'on',
-                priceAlerts: req.body.priceAlerts === 'on',
-                weeklyDigest: req.body.weeklyDigest === 'on'
-            };
+            // Validate authentication
+            if (!req.user || !req.user.userId) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Authentication required',
+                    code: 'AUTHENTICATION_REQUIRED'
+                });
+            }
 
-            // this.logger.log(`🔔 Updating notifications for buyer: ${buyerId}`);
+            // Validate user type - allow distributors, buyers, and customers
+            const allowedTypes = ['distributor', 'buyer', 'customer'];
+            if (!allowedTypes.includes(req.user.companyType)) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Access denied. User type '${req.user.companyType}' cannot update notification settings.`,
+                    code: 'ACCESS_DENIED'
+                });
+            }
+            const buyerId = req.user.userId;
+            
+            // Validate buyerId
+            if (!buyerId || !require('mongoose').Types.ObjectId.isValid(buyerId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid buyer ID',
+                    code: 'INVALID_BUYER_ID'
+                });
+            }
+            
+            // Professional notification settings extraction
+            const notificationSettings = {};
+            const validSettings = ['emailNotifications', 'orderUpdates', 'marketingEmails', 'priceAlerts', 'weeklyDigest'];
+            
+            validSettings.forEach(setting => {
+                if (req.body.hasOwnProperty(setting)) {
+                    // Handle both boolean and string values
+                    const value = req.body[setting];
+                    notificationSettings[setting] = typeof value === 'boolean' ? value : value === true || value === 'true' || value === 'on';
+                }
+            });
+            
+            // Validate that at least one setting is provided
+            if (Object.keys(notificationSettings).length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No notification settings provided',
+                    code: 'NO_SETTINGS_PROVIDED'
+                });
+            }
+
 
             // Update notifications in database
             const updatedUser = await this.buyerService.updateNotifications(buyerId, notificationSettings);
 
-            if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-                return res.json({
-                    success: true,
-                    message: 'Notification settings updated successfully',
-                    user: updatedUser
-                });
-            }
-
-            req.flash('success', 'Notification settings updated successfully');
-            res.redirect('/buyer/settings#notifications');
+            // Return JSON response for AJAX requests
+            return res.json({
+                success: true,
+                message: 'Notification preferences updated successfully',
+                data: {
+                    updatedSettings: notificationSettings,
+                    user: {
+                        id: updatedUser._id,
+                        emailNotifications: updatedUser.emailNotifications,
+                        orderUpdates: updatedUser.orderUpdates,
+                        marketingEmails: updatedUser.marketingEmails,
+                        priceAlerts: updatedUser.priceAlerts,
+                        weeklyDigest: updatedUser.weeklyDigest,
+                        updatedAt: updatedUser.updatedAt
+                    },
+                    timestamp: new Date().toISOString()
+                }
+            });
 
         } catch (error) {
             this.logger.error('❌ Notifications update error:', error);
 
-            if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-                return res.status(400).json({
+            // Handle specific error types
+            if (error.message.includes('not found')) {
+                return res.status(404).json({
                     success: false,
-                    message: error.message || 'Failed to update notifications'
+                    message: 'User not found',
+                    code: 'USER_NOT_FOUND'
                 });
             }
 
-            req.flash('error', error.message || 'Failed to update notifications');
-            res.redirect('/buyer/settings#notifications');
+            if (error.message.includes('Invalid user type')) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Invalid user type for this operation',
+                    code: 'INVALID_USER_TYPE'
+                });
+            }
+
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to update notifications',
+                code: 'UPDATE_FAILED'
+            });
         }
     }
 
@@ -738,8 +945,6 @@ class BuyerController {
                 compactView: req.body.compactView === 'on',
                 itemsPerPage: parseInt(req.body.itemsPerPage) || 20
             };
-
-            this.logger.log(`⚙️ Updating preferences for buyer: ${buyerId}`);
 
             // Update preferences in database
             const updatedUser = await this.buyerService.updatePreferences(buyerId, preferences);
@@ -786,10 +991,7 @@ class BuyerController {
             if (newPassword.length < 6) {
                 throw new Error('Parol kamida 6 ta belgidan iborat bo\'lishi kerak');
             }
-
-            this.logger.log(`🔒 Password update request from buyer: ${buyerId}`);
-
-            // Update password using service
+       // Update password using service
             const result = await this.buyerService.updatePassword(buyerId, currentPassword, newPassword);
 
             if (req.xhr || req.headers.accept.indexOf('json') > -1) {
@@ -817,44 +1019,7 @@ class BuyerController {
         }
     }
 
-    /**
-     * Update notification preferences
-     */
-    async updateNotifications(req, res) {
-        try {
-            const buyerId = req.user.userId;
-            const notificationSettings = {
-                emailNotifications: req.body.emailNotifications === 'on',
-                marketingEmails: req.body.marketingEmails === 'on'
-            };
 
-            // Update notifications in database
-            await this.buyerService.updateNotifications(buyerId, notificationSettings);
-
-            if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-                return res.json({
-                    success: true,
-                    message: 'Notification preferences updated successfully'
-                });
-            }
-
-            req.flash('success', 'Notification preferences updated successfully');
-            res.redirect('/buyer/settings#notifications');
-
-        } catch (error) {
-            this.logger.error('❌ Notifications update error:', error);
-
-            if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-                return res.status(400).json({
-                    success: false,
-                    message: error.message || 'Failed to update notification preferences'
-                });
-            }
-
-            req.flash('error', error.message || 'Failed to update notification preferences');
-            res.redirect('/buyer/settings#notifications');
-        }
-    }
 
     /**
      * Render cart page (Alibaba-style)
@@ -872,9 +1037,11 @@ class BuyerController {
             }
 
             // Get cart and sidebar data with full population
-            const [cartItems, unreadMessagesCount] = await Promise.all([
+            const [cartItems, unreadMessagesCount, profileStats, favoritesItems] = await Promise.all([
                 this.buyerService.getCartItems(buyerId),
-                this.buyerService.getUnreadMessagesCount(buyerId)
+                this.buyerService.getUnreadMessagesCount(buyerId),
+                this.buyerService.getProfileStats(buyerId),
+                this.buyerService.getFavoriteItems(buyerId)
             ]);
 
             // getCartItems() returns array directly, not an object with items property
@@ -888,8 +1055,9 @@ class BuyerController {
                 cartItems: cartItems,
                 lng: this.getLanguagePreference(req),
                 cartItemsCount: cartItems ? cartItems.length : 0,
-                activeOrdersCount: 0, // Will be fetched dynamically
-                unreadMessagesCount: unreadMessagesCount || 0
+                activeOrdersCount: profileStats?.activeOrders || 0,
+                unreadMessagesCount: unreadMessagesCount || 0,
+                favoritesCount: favoritesItems.length || 0
             });
 
         } catch (error) {
@@ -914,10 +1082,12 @@ class BuyerController {
             }
 
             // Get favorites and sidebar data
-            const [favorites, cartItems, unreadMessagesCount] = await Promise.all([
+            const [favorites, cartItems, unreadMessagesCount, profileStats, favoritesItems] = await Promise.all([
                 this.buyerService.getFavoriteProducts(buyerId),
                 this.buyerService.getCartItems(buyerId),
-                this.buyerService.getUnreadMessagesCount(buyerId)
+                this.buyerService.getUnreadMessagesCount(buyerId),
+                this.buyerService.getProfileStats(buyerId),
+                this.buyerService.getFavoriteItems(buyerId)
             ]);
 
             res.render('buyer/favorites', {
@@ -929,8 +1099,9 @@ class BuyerController {
                 favorites: favorites,
                 lng: this.getLanguagePreference(req),
                 cartItemsCount: cartItems ? cartItems.length : 0,
-                activeOrdersCount: 0, // Will be fetched dynamically
-                unreadMessagesCount: unreadMessagesCount || 0
+                activeOrdersCount: profileStats?.activeOrders || 0,
+                unreadMessagesCount: unreadMessagesCount || 0,
+                favoritesCount: favoritesItems.length || 0
             });
 
         } catch (error) {
@@ -944,16 +1115,51 @@ class BuyerController {
     // ===============================================
 
     /**
-     * API: Get buyer profile statistics
+     * API: Get buyer profile statistics with enhanced validation
      */
     async getProfileStats(req, res) {
         try {
-            const buyerId = req.user.userId;
+            const buyerId = req.user?.userId;
+            
+            // Enhanced input validation
+            if (!buyerId) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Authentication required',
+                    code: 'AUTH_REQUIRED'
+                });
+            }
+
+            // Validate ObjectId format
+            if (!mongoose.isValidObjectId(buyerId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid user ID format',
+                    code: 'INVALID_USER_ID'
+                });
+            }
+
             const stats = await this.buyerService.getProfileStats(buyerId);
             
+            // Additional data integrity checks
+            if (!stats || typeof stats !== 'object') {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to generate profile statistics',
+                    code: 'STATS_GENERATION_FAILED'
+                });
+            }
+
             this.sendSuccess(res, stats, 'Profile statistics retrieved successfully');
 
         } catch (error) {
+            this.logger.error('❌ GetProfileStats API Error:', {
+                error: error.message,
+                stack: error.stack,
+                userId: req.user?.userId,
+                timestamp: new Date().toISOString()
+            });
+            
             this.handleAPIError(res, error, 'Failed to get profile statistics');
         }
     }
@@ -1005,14 +1211,13 @@ class BuyerController {
     }
 
     /**
-     * API: Send message to supplier - Professional Implementation with Enhanced Validation
+     * API: Send message to supplier - Updated to support both Order and Inquiry contexts
      */
     async sendMessage(req, res) {
         try {
             const buyerId = req.user.userId;
             
-            
-            const { orderId, message } = req.body;
+            const { orderId, inquiryId, message, context } = req.body;
             const uploadedFiles = req.files || [];
             
             // Enhanced input validation
@@ -1026,14 +1231,22 @@ class BuyerController {
                 });
             }
 
-            if (!orderId) {
+            // Determine conversation context
+            let conversationId, conversationContext;
+            if (inquiryId) {
+                conversationId = inquiryId;
+                conversationContext = 'inquiry';
+            } else if (orderId) {
+                conversationId = orderId;
+                conversationContext = 'order';
+            } else {
                 return res.status(400).json({
                     success: false,
                     error: {
-                        message: 'Order ID kerak',
+                        message: 'Order ID yoki Inquiry ID kerak',
                         code: 'VALIDATION_ERROR',
                         details: {
-                            orderId: 'Order ID is required'
+                            conversationId: 'Either orderId or inquiryId is required'
                         }
                     }
                 });
@@ -1041,7 +1254,6 @@ class BuyerController {
 
             // Allow sending if either message OR files exist
             if (!message?.trim() && uploadedFiles.length === 0) {
-                
                 return res.status(400).json({
                     success: false,
                     error: {
@@ -1070,13 +1282,13 @@ class BuyerController {
             if (uploadedFiles.length > 0) {
                 try {
                     processedAttachments = await this.processUploadedFiles(uploadedFiles);
-                   } catch (fileError) {
+                } catch (fileError) {
                     console.error('❌ File processing error:', fileError);
                     return res.status(400).json({
                         success: false,
                         error: {
                             message: 'Fayllarni qayta ishlashda xatolik',
-                            code: 'FILE_PROCESSING_ERROR'
+                        code: 'FILE_PROCESSING_ERROR'
                         }
                     });
                 }
@@ -1084,20 +1296,21 @@ class BuyerController {
             
             // Send message with or without text content
             const messageContent = message?.trim() || null; // null if no text
-            const result = await this.buyerService.sendMessage(buyerId, orderId, messageContent, processedAttachments);
+            const result = await this.buyerService.sendMessage(buyerId, conversationId, messageContent, processedAttachments, conversationContext);
             
             this.sendSuccess(res, result, 'Message sent successfully');
 
         } catch (error) {
             this.logger.error('❌ Send message error:', error);
             
-            // Enhanced error handling
-            if (error.message.includes('Order not found')) {
+            // Enhanced error handling for both contexts
+            if (error.message.includes('not found')) {
+                const entityType = error.message.includes('Inquiry') ? 'Inquiry' : 'Order';
                 return res.status(404).json({
                     success: false,
                     error: {
-                        message: 'Order not found or access denied',
-                        code: 'ORDER_NOT_FOUND'
+                        message: `${entityType} not found or access denied`,
+                        code: `${entityType.toUpperCase()}_NOT_FOUND`
                     }
                 });
             }
@@ -1106,7 +1319,7 @@ class BuyerController {
                 return res.status(403).json({
                     success: false,
                     error: {
-                        message: 'Access denied to this order',
+                        message: 'Access denied to this conversation',
                         code: 'ACCESS_DENIED'
                     }
                 });
@@ -1117,7 +1330,7 @@ class BuyerController {
     }
 
     /**
-     * Process uploaded files for message attachments
+     * Process uploaded files for message attachments - Memory Storage Compatible
      */
     async processUploadedFiles(files) {
         try {
@@ -1136,12 +1349,9 @@ class BuyerController {
                     fs.mkdirSync(uploadsDir, { recursive: true });
                 }
                 
-                // Move file to uploads directory
+                // Write file buffer to disk (for memory storage)
                 const destinationPath = path.join(uploadsDir, filename);
-                await fs.promises.copyFile(file.path, destinationPath);
-                
-                // Clean up temp file
-                await fs.promises.unlink(file.path);
+                await fs.promises.writeFile(destinationPath, file.buffer);
                 
                 // Create attachment object
                 const attachment = {
@@ -1497,8 +1707,7 @@ class BuyerController {
      * Handle API errors consistently
      */
     handleAPIError(res, error, message = 'An error occurred') {
-        this.logger.error(`❌ API Error: ${message}`, error);
-        
+         
         res.status(500).json({
             success: false,
             message,
@@ -1989,6 +2198,27 @@ class BuyerController {
         }
     }
 
+    /**
+     * API: Clear all favorites (products and suppliers)
+     */
+    async clearAllFavorites(req, res) {
+        try {
+            const buyerId = req.user.userId;
+            
+            const result = await this.buyerService.clearAllFavorites(buyerId);
+            
+            if (result.success) {
+                this.sendSuccess(res, result, result.message || 'All favorites cleared successfully');
+            } else {
+                this.sendError(res, result.message || 'Failed to clear favorites', 400);
+            }
+            
+        } catch (error) {
+            this.logger.error('❌ Clear all favorites error:', error);
+            this.sendError(res, error.message || 'Failed to clear favorites', 500);
+        }
+    }
+
     // ===============================================
     // CHECKOUT AND ORDER API METHODS
     // ===============================================
@@ -2129,8 +2359,6 @@ class BuyerController {
                     phoneNumber: this.sanitizeInput(rawData.deliveryAddress.phoneNumber || '')
                 } : null
             };
-
-            this.logger.log(`🛒 Processing checkout for buyer: ${buyerId}`);
 
             // Rate limiting check (could be implemented with redis)
             // TODO: Implement rate limiting for checkout attempts
@@ -2287,16 +2515,13 @@ class BuyerController {
                 ]);
 
                 createdOrders.push(savedOrder);
-                this.logger.log(`✅ Order created: ${savedOrder.orderNumber} for manufacturer: ${manufacturerId}`);
-            }
+               }
 
             // Remove selected items from cart
             cart.items = cart.items.filter(item => 
                 !selectedItemIds.includes(item._id.toString())
             );
             await cart.save();
-
-            this.logger.log(`🗑️ Removed ${selectedItemIds.length} items from cart for buyer: ${buyerId}`);
 
             // Return success response
             res.json({
@@ -2503,8 +2728,6 @@ class BuyerController {
             // Remove processed items from cart
             await this.buyerService.removeMultipleFromCart(buyerId, selectedItemIds);
 
-            this.logger.log(`✅ Orders created successfully: ${createdOrders.length} orders for buyer ${buyerId}`);
-
             res.json({
                 success: true,
                 message: `Orders created successfully! ${createdOrders.length} order(s) placed.`,
@@ -2547,6 +2770,186 @@ class BuyerController {
                 success: false,
                 message: message,
                 code: error.code || 'CHECKOUT_ERROR'
+            });
+        }
+    }
+
+    /**
+     * API: Mark order messages as read
+     */
+    async markOrderMessagesAsRead(req, res) {
+        try {
+            const { orderId } = req.params;
+            const userId = req.user.userId || req.user._id;
+            
+            // Import Message model
+            const Message = require('../models/Message');
+            
+            // Update all unread messages for this order and user
+            const result = await Message.updateMany(
+                {
+                    orderId: orderId,
+                    recipientId: userId,
+                    status: { $ne: 'read' }
+                },
+                {
+                    $set: {
+                        status: 'read',
+                        readAt: new Date()
+                    }
+                }
+            );
+            
+            res.json({
+                success: true,
+                message: 'Xabarlar o\'qilgan deb belgilandi',
+                updatedCount: result.modifiedCount
+            });
+            
+        } catch (error) {
+            console.error('❌ Error marking messages as read:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Xabarlarni belgilashda xatolik yuz berdi',
+                error: process.env.NODE_ENV === 'development' ? error.message : null
+            });
+        }
+    }
+
+    /**
+     * API: Get unread messages count for buyer
+     */
+    async getUnreadMessagesCount(req, res) {
+        try {
+            const buyerId = req.user.userId || req.user._id;
+            
+            if (!buyerId) {
+                return res.status(401).json({
+                    success: false,
+                    error: {
+                        message: 'Authentication required',
+                        code: 'AUTH_REQUIRED'
+                    }
+                });
+            }
+            
+            const count = await this.buyerService.getUnreadMessagesCount(buyerId);
+            
+            res.json({
+                success: true,
+                count: count || 0,
+                message: 'Unread messages count retrieved successfully'
+            });
+            
+        } catch (error) {
+            this.logger.error('❌ Error getting unread messages count:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to get unread messages count',
+                count: 0
+            });
+        }
+    }
+
+    // ===============================================
+    // INQUIRY MANAGEMENT METHODS
+    // ===============================================
+
+    /**
+     * API: Create new inquiry
+     */
+    async createInquiry(req, res) {
+        try {
+            const buyerId = req.user.userId;
+            const inquiryData = req.body;
+
+            // Validate required fields
+            if (!inquiryData.supplierId || !inquiryData.subject || !inquiryData.message) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Supplier ID, subject, and message are required'
+                });
+            }
+
+            // Create inquiry using service
+            const result = await this.buyerService.createInquiry(buyerId, inquiryData);
+
+            if (result.success) {
+                res.status(201).json({
+                    success: true,
+                    message: 'Inquiry sent successfully',
+                    inquiry: result.inquiry
+                });
+            } else {
+                res.status(400).json({
+                    success: false,
+                    message: result.message || 'Failed to create inquiry'
+                });
+            }
+
+        } catch (error) {
+            this.logger.error('❌ Create inquiry error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to create inquiry',
+                error: process.env.NODE_ENV === 'development' ? error.message : null
+            });
+        }
+    }
+
+    /**
+     * API: Get buyer inquiries
+     */
+    async getBuyerInquiries(req, res) {
+        try {
+            const buyerId = req.user.userId;
+            const inquiries = await this.buyerService.getBuyerInquiries(buyerId);
+
+            res.json({
+                success: true,
+                inquiries: inquiries,
+                message: 'Inquiries retrieved successfully'
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Get buyer inquiries error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to get inquiries',
+                error: process.env.NODE_ENV === 'development' ? error.message : null
+            });
+        }
+    }
+
+    /**
+     * API: Get specific inquiry
+     */
+    async getInquiry(req, res) {
+        try {
+            const buyerId = req.user.userId;
+            const { inquiryId } = req.params;
+
+            const inquiry = await this.buyerService.getInquiry(buyerId, inquiryId);
+
+            if (inquiry) {
+                res.json({
+                    success: true,
+                    inquiry: inquiry,
+                    message: 'Inquiry retrieved successfully'
+                });
+            } else {
+                res.status(404).json({
+                    success: false,
+                    message: 'Inquiry not found'
+                });
+            }
+
+        } catch (error) {
+            this.logger.error('❌ Get inquiry error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to get inquiry',
+                error: process.env.NODE_ENV === 'development' ? error.message : null
             });
         }
     }

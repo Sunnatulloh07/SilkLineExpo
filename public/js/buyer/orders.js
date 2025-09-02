@@ -34,7 +34,7 @@ function loadOrders() {
     if (dateFilter !== 'all') params.append('date', dateFilter);
     if (searchQuery) params.append('search', searchQuery);
     
-    fetch(`/distributor/api/buyer-orders?${params.toString()}`)
+    fetch(`/buyer/api/buyer-orders?${params.toString()}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -117,7 +117,7 @@ window.viewOrderDetails = (orderId) => {
 };
 
 window.contactSupplier = (supplierId) => {
-    window.location.href = `/distributor/communication?supplier=${supplierId}`;
+    window.location.href = `/buyer/messages?supplier=${supplierId}`;
 };
 
 window.createNewOrder = () => {

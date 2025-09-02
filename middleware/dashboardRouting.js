@@ -71,8 +71,6 @@ class DashboardRoutingMiddleware {
                 return next();
             }
 
-            this.logger.log(`🔒 Auth Guard: ${req.method} ${req.path} from ${req.ip}`);
-
             // Extract and verify token
             const tokens = TokenService.extractTokensFromRequest(req);
             
@@ -93,15 +91,7 @@ class DashboardRoutingMiddleware {
             req.user = verification.payload;
             req.user.isAuthenticated = true;
             
-            // Debug: Log the JWT payload to see what's missing
-            this.logger.log(`🔍 JWT Payload Debug:`, {
-                userId: req.user.userId,
-                userType: req.user.userType,
-                role: req.user.role,
-                companyType: req.user.companyType,
-                email: req.user.email,
-                fullPayload: req.user
-            });
+            // Debug: Log user data in dashboard routing (removed in production)
 
             // Validate user still exists and is active
             const userData = await MultiDashboardAuthService.getUserById(

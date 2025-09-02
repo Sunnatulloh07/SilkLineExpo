@@ -1,5 +1,5 @@
-<%- include('../partials/header', { title: title, lng: lng || 'uz', user: user }) %>
-<%- include('../partials/sidebar', { user: user, currentPage: 'products' }) %>
+<%- include('../partials/header', { title: title, lng: lng || 'uz', user: user, t: t }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'products', t: t }) %>
 
 <!-- Enhanced CSS Imports - Marketplace Style -->
 <link rel="stylesheet" href="/css/products-management-redesign.css">
@@ -21,22 +21,22 @@
         <div class="products-title-section">
           <h1 class="products-main-title">
             <i class="fas fa-store-alt"></i>
-            Mahsulotlar Boshqaruvi
+            <%= t('manufacturer.products.pageTitle') %>
           </h1>
-          <p class="products-subtitle">Professional B2B mahsulotlar boshqaruvi va Sotuv tizimiga integratsiyasi</p>
+          <p class="products-subtitle"><%= t('manufacturer.products.pageSubtitle') %></p>
         </div>
         <div class="products-header-actions">
           <button class="products-btn products-btn-primary" id="addProductBtn">
             <i class="fas fa-plus"></i>
-            Yangi Mahsulot
+            <%= t('manufacturer.products.actions.addProduct') %>
           </button>
           <button class="products-btn products-btn-outline" id="bulkActionsBtn">
             <i class="fas fa-tasks"></i>
-            Ommaviy Amallar
+            <%= t('manufacturer.products.actions.bulkActions') %>
           </button>
           <button class="products-btn products-btn-secondary" id="exportProductsBtn">
             <i class="fas fa-download"></i>
-            Export
+            <%= t('manufacturer.products.actions.export') %>
           </button>
         </div>
       </div>
@@ -48,7 +48,7 @@
       <!-- Total Products -->
       <div class="stat-card primary animate-fade-in" data-kpi="totalProducts">
         <div class="stat-header">
-          <h3 class="stat-title">Jami Mahsulotlar</h3>
+          <h3 class="stat-title"><%= t('manufacturer.products.kpiCards.totalProducts') %></h3>
           <div class="stat-icon primary">
             <i class="fas fa-boxes"></i>
           </div>
@@ -60,14 +60,14 @@
         </div>
         <div class="stat-change positive">
           <i class="fas fa-arrow-up stat-change-icon"></i>
-          <span class="metric-trend">Barcha mahsulotlar</span>
+          <span class="metric-trend"><%= t('manufacturer.products.kpiCards.allProducts') %></span>
         </div>
       </div>
 
       <!-- Active Products -->
       <div class="stat-card success animate-fade-in" data-kpi="activeProducts">
         <div class="stat-header">
-          <h3 class="stat-title">Faol Mahsulotlar</h3>
+          <h3 class="stat-title"><%= t('manufacturer.products.kpiCards.activeProducts') %></h3>
           <div class="stat-icon success">
             <i class="fas fa-check-circle"></i>
           </div>
@@ -79,14 +79,14 @@
         </div>
         <div class="stat-change positive">
           <i class="fas fa-arrow-up stat-change-icon"></i>
-          <span class="metric-trend">Sotuvda mavjud</span>
+          <span class="metric-trend"><%= t('manufacturer.products.kpiCards.availableForSale') %></span>
         </div>
       </div>
 
       <!-- Marketplace Products -->
       <div class="stat-card info animate-fade-in" data-kpi="marketplaceProducts">
         <div class="stat-header">
-          <h3 class="stat-title">Marketplace da</h3>
+          <h3 class="stat-title"><%= t('manufacturer.products.kpiCards.marketplaceProducts') %></h3>
           <div class="stat-icon info">
             <i class="fas fa-store-alt"></i>
           </div>
@@ -98,14 +98,14 @@
         </div>
         <div class="stat-change positive">
           <i class="fas fa-arrow-up stat-change-icon"></i>
-          <span class="metric-trend">Ommaviy savdo</span>
+          <span class="metric-trend"><%= t('manufacturer.products.kpiCards.publicSales') %></span>
         </div>
       </div>
 
       <!-- Draft Products -->
       <div class="stat-card warning animate-fade-in" data-kpi="draftProducts">
         <div class="stat-header">
-          <h3 class="stat-title">Qoralama Mahsulotlar</h3>
+          <h3 class="stat-title"><%= t('manufacturer.products.kpiCards.draftProducts') %></h3>
           <div class="stat-icon warning">
             <i class="fas fa-edit"></i>
           </div>
@@ -117,7 +117,7 @@
         </div>
         <div class="stat-change neutral">
           <i class="fas fa-arrow-right stat-change-icon"></i>
-          <span class="metric-trend">Tayyorlanmoqda</span>
+          <span class="metric-trend"><%= t('manufacturer.products.kpiCards.inPreparation') %></span>
         </div>
       </div>
 
@@ -128,16 +128,16 @@
       <div class="products-filters-header">
         <h3 class="products-filters-title">
           <i class="fas fa-filter"></i>
-          Filtr va Qidiruv
+          <%= t('manufacturer.products.filters.title') %>
         </h3>
         <div class="products-filters-actions">
           <button class="products-btn products-btn-sm products-btn-secondary" id="resetFiltersBtn">
             <i class="fas fa-undo"></i>
-            Reset
+            <%= t('manufacturer.products.filters.reset') %>
           </button>
           <button class="products-btn products-btn-sm products-btn-outline" id="advancedFiltersBtn">
             <i class="fas fa-cog"></i>
-            Kengaytirilgan
+            <%= t('manufacturer.products.filters.advanced') %>
           </button>
         </div>
       </div>
@@ -146,14 +146,14 @@
           
           <!-- Search Input -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Qidiruv</label>
+            <label class="products-filter-label"><%= t('manufacturer.products.filters.search') %></label>
             <div class="products-search-wrapper">
               <i class="fas fa-search products-search-icon"></i>
               <input 
                 type="text" 
                 id="searchInput" 
                 name="search" 
-                placeholder="Mahsulot nomi, tavsifi..."
+                placeholder="<%= t('manufacturer.products.filters.searchPlaceholder') %>"
                 value="<%= filters.search || '' %>"
                 class="products-form-input search"
               >
@@ -162,21 +162,21 @@
 
           <!-- Status Filter -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Holat</label>
+            <label class="products-filter-label"><%= t('manufacturer.products.filters.status') %></label>
             <select name="status" id="statusFilter" class="products-form-select">
-              <option value="all" <%= filters.status === 'all' ? 'selected' : '' %>>Barcha holatlar</option>
-              <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Faol</option>
-              <option value="draft" <%= filters.status === 'draft' ? 'selected' : '' %>>Qoralama</option>
-              <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>>Nofaol</option>
-              <option value="discontinued" <%= filters.status === 'discontinued' ? 'selected' : '' %>>To'xtatilgan</option>
+              <option value="all" <%= filters.status === 'all' ? 'selected' : '' %>><%= t('manufacturer.products.filters.allStatuses') %></option>
+              <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>><%= t('manufacturer.products.filters.active') %></option>
+              <option value="draft" <%= filters.status === 'draft' ? 'selected' : '' %>><%= t('manufacturer.products.filters.draft') %></option>
+              <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>><%= t('manufacturer.products.filters.inactive') %></option>
+              <option value="discontinued" <%= filters.status === 'discontinued' ? 'selected' : '' %>><%= t('manufacturer.products.filters.discontinued') %></option>
             </select>
           </div>
 
           <!-- Category Filter -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Kategoriya</label>
+            <label class="products-filter-label"><%= t('manufacturer.products.filters.category') %></label>
             <select name="category" id="categoryFilter" class="products-form-select">
-              <option value="all">Barcha kategoriyalar</option>
+              <option value="all"><%= t('manufacturer.products.filters.allCategories') %></option>
               <% if (categories && categories.length > 0) { %>
                 <% categories.forEach(category => { %>
                   <option value="<%= category._id %>" <%= filters.category && filters.category.toString() === category._id.toString() ? 'selected' : '' %>>
@@ -187,45 +187,45 @@
             </select>
           </div>
 
-          <!-- Marketplace Status -->
-          <div class="products-filter-group">
-            <label class="products-filter-label">Sotuvda</label>
-            <select name="marketplace" id="marketplaceFilter" class="products-form-select">
-              <option value="all" <%= filters.marketplaceStatus === 'all' ? 'selected' : '' %>>Barchasi</option>
-              <option value="published" <%= filters.marketplaceStatus === 'published' ? 'selected' : '' %>>Nashr etilgan</option>
-              <option value="unpublished" <%= filters.marketplaceStatus === 'unpublished' ? 'selected' : '' %>>Nashr etilmagan</option>
-            </select>
-          </div>
+                      <!-- Marketplace Status -->
+            <div class="products-filter-group">
+              <label class="products-filter-label"><%= t('manufacturer.products.filters.marketplace') %></label>
+              <select name="marketplace" id="marketplaceFilter" class="products-form-select">
+                <option value="all" <%= filters.marketplaceStatus === 'all' ? 'selected' : '' %>><%= t('manufacturer.products.filters.all') %></option>
+                <option value="published" <%= filters.marketplaceStatus === 'published' ? 'selected' : '' %>><%= t('manufacturer.products.filters.published') %></option>
+                <option value="unpublished" <%= filters.marketplaceStatus === 'unpublished' ? 'selected' : '' %>><%= t('manufacturer.products.filters.unpublished') %></option>
+              </select>
+            </div>
 
           <!-- Sort Options -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Saralash</label>
+            <label class="products-filter-label"><%= t('manufacturer.products.filters.sortBy') %></label>
             <select name="sortBy" id="sortFilter" class="products-form-select">
-              <option value="createdAt" <%= filters.sortBy === 'createdAt' ? 'selected' : '' %>>Yaratilgan vaqt</option>
-              <option value="name" <%= filters.sortBy === 'name' ? 'selected' : '' %>>Nomi</option>
-              <option value="analytics.views" <%= filters.sortBy === 'analytics.views' ? 'selected' : '' %>>Ko'rishlar</option>
-              <option value="analytics.orders" <%= filters.sortBy === 'analytics.orders' ? 'selected' : '' %>>Buyurtmalar</option>
-              <option value="inventory.availableStock" <%= filters.sortBy === 'inventory.availableStock' ? 'selected' : '' %>>Zaxira</option>
+              <option value="createdAt" <%= filters.sortBy === 'createdAt' ? 'selected' : '' %>><%= t('manufacturer.products.filters.createdAt') %></option>
+              <option value="name" <%= filters.sortBy === 'name' ? 'selected' : '' %>><%= t('manufacturer.products.filters.name') %></option>
+              <option value="analytics.views" <%= filters.sortBy === 'analytics.views' ? 'selected' : '' %>><%= t('manufacturer.products.filters.views') %></option>
+              <option value="analytics.orders" <%= filters.sortBy === 'analytics.orders' ? 'selected' : '' %>><%= t('manufacturer.products.filters.orders') %></option>
+              <option value="inventory.availableStock" <%= filters.sortBy === 'inventory.availableStock' ? 'selected' : '' %>><%= t('manufacturer.products.filters.inventory') %></option>
             </select>
           </div>
 
           <!-- Sort Order -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Tartib</label>
+            <label class="products-filter-label"><%= t('manufacturer.products.filters.sortOrder') %></label>
             <select name="sortOrder" id="sortOrderFilter" class="products-form-select">
-              <option value="desc" <%= filters.sortOrder === 'desc' ? 'selected' : '' %>>Kamayish tartibida</option>
-              <option value="asc" <%= filters.sortOrder === 'asc' ? 'selected' : '' %>>O'sish tartibida</option>
+              <option value="desc" <%= filters.sortOrder === 'desc' ? 'selected' : '' %>><%= t('manufacturer.products.filters.sortOrderDesc') %></option>
+              <option value="asc" <%= filters.sortOrder === 'asc' ? 'selected' : '' %>><%= t('manufacturer.products.filters.sortOrderAsc') %></option>
             </select>
           </div>
           
           <div class="products-filters-submit">
             <button type="submit" class="products-btn products-btn-primary" id="searchFiltersBtn">
               <i class="fas fa-search"></i>
-              Qidiruv
+              <%= t('manufacturer.products.filters.search') %>
             </button>
             <button type="button" class="products-btn products-btn-secondary" id="clearFiltersBtn">
               <i class="fas fa-times"></i>
-              Tozalash
+              <%= t('manufacturer.products.filters.reset') %>
             </button>
           </div>
         </form>
@@ -237,20 +237,20 @@
       <div class="products-content-header">
         <h3 class="products-content-title">
           <i class="fas fa-box-open"></i>
-          Mahsulotlar
+          <%= t('manufacturer.products.productsList') %>
           <% if (pagination && pagination.totalItems) { %>
             <span class="products-count"><%= pagination.totalItems %> ta</span>
           <% } %>
         </h3>
         <div class="products-content-actions">
           <div class="products-view-toggle">
-            <button class="products-view-btn" data-view="card" title="Card ko'rinish">
+            <button class="products-view-btn" data-view="card" title="<%= t('manufacturer.products.viewToggle.card') %>">
               <i class="fas fa-th"></i>
-              <span>Cards</span>
+              <span><%= t('manufacturer.products.viewToggle.cards') %></span>
             </button>
-            <button class="products-view-btn active" data-view="table" title="Table ko'rinish">
+            <button class="products-view-btn active" data-view="table" title="<%= t('manufacturer.products.viewToggle.table') %>">
               <i class="fas fa-list"></i>
-              <span>Table</span>
+              <span><%= t('manufacturer.products.viewToggle.table') %></span>
             </button>
           </div>
           <button class="products-btn products-btn-sm products-btn-secondary" id="refreshProductsBtn">
@@ -284,7 +284,7 @@
                     <% } else { %>
                       <div class="card-image-placeholder">
                         <i class="fas fa-image"></i>
-                        <span>Rasm yo'q</span>
+                        <span><%= t('manufacturer.products.imagePlaceholder') %></span>
                       </div>
                     <% } %>
                   </div>
@@ -292,20 +292,20 @@
                   <!-- Status Badges -->
                   <div class="card-badges">
                     <span class="card-status-badge status-<%= product.status %>">
-                      <%= product.status === 'active' ? 'Faol' : 
-                          product.status === 'draft' ? 'Qoralama' : 
-                          product.status === 'inactive' ? 'Nofaol' : 'To\'xtatilgan' %>
+                      <%= product.status === 'active' ? t('manufacturer.products.status.active') : 
+                          product.status === 'draft' ? t('manufacturer.products.status.draft') : 
+                          product.status === 'inactive' ? t('manufacturer.products.status.inactive') : t('manufacturer.products.status.discontinued') %>
                     </span>
                     <% if (product.visibility === 'public') { %>
                       <span class="card-marketplace-badge published">
                         <i class="fas fa-globe"></i>
-                        Sotuvda
+                        <%= t('manufacturer.products.marketplace.published') %>
                       </span>
                     <% } %>
                     <% if (product.lowStock) { %>
                       <span class="card-stock-badge low-stock">
                         <i class="fas fa-exclamation-triangle"></i>
-                        Kam zaxira
+                        <%= t('manufacturer.products.stock.low') %>
                       </span>
                     <% } %>
                   </div>
@@ -322,11 +322,11 @@
 
                   <div class="card-product-category">
                     <i class="fas fa-tag"></i>
-                    <%= product.category ? product.category.name : 'Kategoriyasiz' %>
+                    <%= product.category ? product.category.name : t('manufacturer.products.noCategory') %>
                   </div>
 
                   <div class="card-product-description">
-                    <%= product.shortDescription || (product.description ? product.description.substring(0, 100) + '...' : 'Tavsif mavjud emas') %>
+                    <%= product.shortDescription || (product.description ? product.description.substring(0, 100) + '...' : t('manufacturer.products.noDescription')) %>
                   </div>
 
                   <!-- Product Metrics -->
@@ -356,11 +356,11 @@
                         <%= (product.pricing?.basePrice || 0).toFixed(2) %> UZS
                       </span>
                       <span class="card-price-unit">
-                        /<%= product.inventory?.unit || 'dona' %>
+                        /<%= product.inventory?.unit || t('manufacturer.products.unit') %>
                       </span>
                     </div>
                     <div class="card-price-moq">
-                      Min: <%= product.pricing?.minimumOrderQuantity || 1 %> <%= product.inventory?.unit || 'dona' %>
+                      <%= t('manufacturer.products.minOrder') %>: <%= product.pricing?.minimumOrderQuantity || 1 %> <%= product.inventory?.unit || t('manufacturer.products.unit') %>
                     </div>
                   </div>
                 </div>
@@ -370,11 +370,11 @@
                   <div class="card-primary-actions">
                     <button class="card-action-btn btn-primary" data-action="edit" data-product-id="<%= product._id %>">
                       <i class="fas fa-edit"></i>
-                      <span>Tahrirlash</span>
+                      <span><%= t('manufacturer.products.actions.edit') %></span>
                     </button>
                     <button class="card-action-btn btn-secondary" data-action="analytics" data-product-id="<%= product._id %>">
                       <i class="fas fa-chart-line"></i>
-                      <span>Statistika</span>
+                      <span><%= t('manufacturer.products.actions.analytics') %></span>
                     </button>
                   </div>
                   
@@ -382,12 +382,12 @@
                     <% if (product.visibility === 'public') { %>
                       <button class="card-marketplace-toggle unpublish" data-action="unpublish" data-product-id="<%= product._id %>">
                         <i class="fas fa-eye-slash"></i>
-                        <span>Sotuvdan o'chirish</span>
+                        <span><%= t('manufacturer.products.actions.unpublish') %></span>
                       </button>
                     <% } else { %>
                       <button class="card-marketplace-toggle publish" data-action="publish" data-product-id="<%= product._id %>">
                         <i class="fas fa-globe"></i>
-                        <span>Sotuvga qo'shish</span>
+                        <span><%= t('manufacturer.products.actions.publish') %></span>
                       </button>
                     <% } %>
                     
@@ -398,15 +398,15 @@
                       <div class="card-more-menu hidden">
                         <button class="card-more-item" data-action="duplicate" data-product-id="<%= product._id %>">
                           <i class="fas fa-copy"></i>
-                          Nusxalash
+                          <%= t('manufacturer.products.actions.duplicate') %>
                         </button>
                         <button class="card-more-item" data-action="archive" data-product-id="<%= product._id %>">
                           <i class="fas fa-archive"></i>
-                          Arxivlash
+                          <%= t('manufacturer.products.actions.archive') %>
                         </button>
                         <button class="card-more-item danger" data-action="delete" data-product-id="<%= product._id %>">
                           <i class="fas fa-trash"></i>
-                          O'chirish
+                          <%= t('manufacturer.products.actions.delete') %>
                         </button>
                       </div>
                     </div>
@@ -424,16 +424,16 @@
             <div class="products-table-header">
               <h3 class="products-table-title">
                 <i class="fas fa-table"></i>
-                Mahsulotlar Jadvali
+                <%= t('manufacturer.products.productsList') %>
               </h3>
               <div class="products-table-actions">
-                <button class="products-btn products-btn-sm products-btn-outline" id="selectAllProductsBtn">
-                  <i class="fas fa-check-square"></i>
-                  Hammasini tanlash
-                </button>
+                        <button class="products-btn products-btn-sm products-btn-outline" id="selectAllProductsBtn">
+          <i class="fas fa-check-square"></i>
+          <%= t('manufacturer.products.actions.selectAll') %>
+        </button>
                 <button class="products-btn products-btn-sm products-btn-secondary" id="exportTableBtn">
                   <i class="fas fa-file-excel"></i>
-                  Excel Export
+                  <%= t('manufacturer.products.actions.export') %>
                 </button>
               </div>
             </div>
@@ -444,14 +444,14 @@
                     <th class="table-cell-select">
                       <input type="checkbox" class="table-checkbox" id="selectAllCheckbox">
                     </th>
-                    <th class="sortable" data-sort="name">Mahsulot</th>
-                    <th class="sortable" data-sort="status">Holat</th>
-                    <th class="sortable" data-sort="category">Kategoriya</th>
-                    <th class="sortable" data-sort="pricing.basePrice">Narx</th>
-                    <th class="sortable" data-sort="inventory.availableStock">Zaxira</th>
-                    <th class="sortable" data-sort="analytics.views">Statistika</th>
-                    <th>Sotuv</th>  
-                    <th>Amallar</th>
+                    <th class="sortable" data-sort="name"><%= t('manufacturer.products.filters.name') %></th>
+                    <th class="sortable" data-sort="status"><%= t('manufacturer.products.filters.status') %></th>
+                    <th class="sortable" data-sort="category"><%= t('manufacturer.products.filters.category') %></th>
+                    <th class="sortable" data-sort="pricing.basePrice"><%= t('manufacturer.products.filters.price') %></th>
+                    <th class="sortable" data-sort="inventory.availableStock"><%= t('manufacturer.products.filters.inventory') %></th>
+                    <th class="sortable" data-sort="analytics.views"><%= t('manufacturer.products.filters.views') %></th>
+                    <th><%= t('manufacturer.products.filters.marketplace') %></th>  
+                    <th><%= t('manufacturer.products.actions.actions') %></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -482,28 +482,28 @@
                       </td>
                       <td>
                         <span class="table-status-badge status-<%= product.status %>">
-                          <%= product.status === 'active' ? 'Faol' : 
-                              product.status === 'draft' ? 'Qoralama' : 
-                              product.status === 'inactive' ? 'Nofaol' : 'To\'xtatilgan' %>
+                          <%= product.status === 'active' ? t('manufacturer.products.status.active') : 
+                              product.status === 'draft' ? t('manufacturer.products.status.draft') : 
+                              product.status === 'inactive' ? t('manufacturer.products.status.inactive') : t('manufacturer.products.status.discontinued') %>
                         </span>
                       </td>
                       <td>
                         <div class="table-category">
                           <i class="fas fa-tag"></i>
-                          <%= product.category ? product.category.name : 'Kategoriyasiz' %>
+                          <%= product.category ? product.category.name : t('manufacturer.products.filters.noCategory') %>
                         </div>
                       </td>
                       <td>
                         <div class="table-price">
                           <span class="table-price-main"><%= (product.pricing?.basePrice || 0).toFixed(2) %> UZS</span>
-                          <span class="table-price-unit">/<%= product.inventory?.unit || 'dona' %></span>
+                          <span class="table-price-unit">/<%= product.inventory?.unit || t('manufacturer.products.unit') %></span>
                         </div>
                       </td>
                       <td>
                         <div class="table-stock">
                           <span class="table-stock-amount"><%= product.inventory?.availableStock || 0 %></span>
                           <span class="table-stock-level <%= product.lowStock ? 'low' : 'high' %>">
-                            <%= product.lowStock ? 'Kam' : 'Yetarli' %>
+                            <%= product.lowStock ? t('manufacturer.products.stock.low') : t('manufacturer.products.stock.high') %>
                           </span>
                         </div>
                       </td>
@@ -511,11 +511,11 @@
                         <div class="table-metrics">
                           <div class="table-metric">
                             <span class="table-metric-value"><%= product.analytics?.views || 0 %></span>
-                            <span class="table-metric-label">Views</span>
+                            <span class="table-metric-label"><%= t('manufacturer.products.filters.views') %></span>
                           </div>
                           <div class="table-metric">
                             <span class="table-metric-value"><%= product.analytics?.orders || 0 %></span>
-                            <span class="table-metric-label">Orders</span>
+                            <span class="table-metric-label"><%= t('manufacturer.products.filters.orders') %></span>
                           </div>
                         </div>
                       </td>
@@ -523,25 +523,25 @@
                         <% if (product.visibility === 'public') { %>
                           <span class="table-marketplace-badge published">
                             <i class="fas fa-check"></i>
-                            Nashr etilgan
+                            <%= t('manufacturer.products.marketplace.published') %>
                           </span>
                         <% } else { %>
                           <span class="table-marketplace-badge unpublished">
                             <i class="fas fa-times"></i>
-                            Nashr etilmagan
+                            <%= t('manufacturer.products.marketplace.unpublished') %>
                           </span>
                         <% } %>
                       </td>
                       <td>
                         <div class="table-actions">
-                          <button class="table-action-btn info" data-action="view" data-product-id="<%= product._id %>" title="Ko'rish">
+                          <button class="table-action-btn info" data-action="view" data-product-id="<%= product._id %>" title="<%= t('manufacturer.products.actions.view') %>">
                             <i class="fas fa-eye"></i>
                           </button>
-                          <button class="table-action-btn primary" data-action="edit" data-product-id="<%= product._id %>" title="Tahrirlash">
+                          <button class="table-action-btn primary" data-action="edit" data-product-id="<%= product._id %>" title="<%= t('manufacturer.products.actions.edit') %>">
                             <i class="fas fa-edit"></i>
                           </button>
                           <div class="table-more-actions">
-                            <button class="table-action-btn dropdown-toggle" data-product-id="<%= product._id %>" title="Boshqa amallar">
+                            <button class="table-action-btn dropdown-toggle" data-product-id="<%= product._id %>" title="<%= t('manufacturer.products.actions.moreActions') %>">
                               <i class="fas fa-ellipsis-v"></i>
                             </button>
                             <div class="table-more-menu hidden">
@@ -549,18 +549,18 @@
                               <% if (product.visibility === 'public') { %>
                                 <button class="table-more-item warning" data-action="unpublish" data-product-id="<%= product._id %>">
                                   <i class="fas fa-eye-slash"></i>
-                                  Sotuvdan olib tashlash
+                                  <%= t('manufacturer.products.actions.unpublish') %>
                                 </button>
                               <% } else { %>
                                 <% if (product.status === 'active') { %>
                                   <button class="table-more-item success" data-action="publish" data-product-id="<%= product._id %>">
                                     <i class="fas fa-globe"></i>
-                                    Sotuvga chiqarish
+                                    <%= t('manufacturer.products.actions.publish') %>
                                   </button>
                                 <% } else { %>
                                   <button class="table-more-item" data-action="publish" data-product-id="<%= product._id %>">
                                     <i class="fas fa-globe"></i>
-                                    Sotuvga chiqarish
+                                    <%= t('manufacturer.products.actions.publish') %>
                                     <small class="text-muted">(avtomatik faollashtiriladi)</small>
                                   </button>
                                 <% } %>
@@ -569,24 +569,24 @@
                               <!-- Other Actions -->
                               <button class="table-more-item" data-action="analytics" data-product-id="<%= product._id %>">
                                 <i class="fas fa-chart-line"></i>
-                                Statistika
+                                <%= t('manufacturer.products.actions.analytics') %>
                               </button>
                               <button class="table-more-item" data-action="duplicate" data-product-id="<%= product._id %>">
                                 <i class="fas fa-copy"></i>
-                                Nusxalash
+                                <%= t('manufacturer.products.actions.duplicate') %>
                               </button>
                               <button class="table-more-item" data-action="status-change" data-product-id="<%= product._id %>">
                                 <i class="fas fa-toggle-on"></i>
-                                Holat o'zgartirish
+                                <%= t('manufacturer.products.actions.statusChange') %>
                               </button>
                               <button class="table-more-item" data-action="archive" data-product-id="<%= product._id %>">
                                 <i class="fas fa-archive"></i>
-                                Arxivlash
+                                <%= t('manufacturer.products.actions.archive') %>
                               </button>
                               <div class="dropdown-divider"></div>
                               <button class="table-more-item danger" data-action="delete" data-product-id="<%= product._id %>">
                                 <i class="fas fa-trash"></i>
-                                O'chirish
+                                <%= t('manufacturer.products.actions.delete') %>
                               </button>
                             </div>
                           </div>
@@ -599,8 +599,8 @@
             </div>
             <div class="table-pagination">
               <div class="table-pagination-info">
-                <span><%= ((pagination.currentPage - 1) * pagination.itemsPerPage) + 1 %>-<%= Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems) %></span>
-                dan <span><%= pagination.totalItems %></span> ta ko'rsatilmoqda
+                <span><%= ((pagination.currentPage - 1) * pagination.limit) + 1 %>-<%= Math.min(pagination.currentPage * pagination.limit, pagination.totalItems) %></span>
+                dan <span><%= pagination.totalItems %></span> ta <%= t('manufacturer.products.pagination.items') %>
               </div>
               <div class="table-pagination-controls">
                 <% if (pagination.hasPrev) { %>
@@ -632,24 +632,24 @@
           <div class="table-empty-icon">
             <i class="fas fa-box-open"></i>
           </div>
-          <h3 class="table-empty-title">Mahsulotlar topilmadi</h3>
+          <h3 class="table-empty-title"><%= t('manufacturer.products.productsNotFound') %></h3>
           <p class="table-empty-description">
             <% if (filters.search || filters.status !== 'all' || filters.category !== 'all' || filters.marketplaceStatus !== 'all') { %>
-              Filtr shartlariga mos mahsulot topilmadi. Filtrlarni o'zgartirib ko'ring.
+              <%= t('manufacturer.products.productsNotFound.filter') %>
             <% } else { %>
-              Hali birorta mahsulot qo'shilmagan. Birinchi mahsulotingizni qo'shing.
+              <%= t('manufacturer.products.productsNotFound.noProducts') %>
             <% } %>
           </p>
           <div class="table-empty-actions">
             <% if (filters.search || filters.status !== 'all' || filters.category !== 'all' || filters.marketplaceStatus !== 'all') { %>
               <button class="products-btn products-btn-outline" id="clearAllFiltersBtn">
                 <i class="fas fa-filter"></i>
-                Filtrlarni tozalash
+                <%= t('manufacturer.products.filters.reset') %>
               </button>
             <% } %>
             <button class="products-btn products-btn-primary" id="addFirstProductBtn">
               <i class="fas fa-plus"></i>
-              Birinchi mahsulot qo'shish
+              <%= t('manufacturer.products.actions.addFirstProduct') %>
             </button>
           </div>
         </div>
@@ -664,7 +664,7 @@
 <div class="modal-overlay hidden" id="bulkActionsModal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2 class="modal-title">Ommaviy Amallar</h2>
+      <h2 class="modal-title"><%= t('manufacturer.products.actions.bulkActions') %></h2>
       <button class="modal-close" data-modal="bulkActionsModal">
         <i class="fas fa-times"></i>
       </button>
@@ -674,29 +674,29 @@
         <button class="bulk-action-item" data-action="publish-selected">
           <i class="fas fa-globe"></i>
           <div class="action-info">
-            <h4>Marketplace ga joylashtirish</h4>
-            <p>Tanlangan mahsulotlarni marketplace da nashr etish</p>
+            <h4><%= t('manufacturer.products.actions.publish') %></h4>
+            <p><%= t('manufacturer.products.actions.publishDescription') %></p>
           </div>
         </button>
         <button class="bulk-action-item" data-action="unpublish-selected">
           <i class="fas fa-eye-slash"></i>
           <div class="action-info">
-            <h4>Marketplace dan olib tashlash</h4>
-            <p>Tanlangan mahsulotlarni marketplace dan yashirish</p>
+            <h4><%= t('manufacturer.products.actions.unpublish') %></h4>
+            <p><%= t('manufacturer.products.actions.unpublishDescription') %></p>
           </div>
         </button>
         <button class="bulk-action-item" data-action="activate-selected">
           <i class="fas fa-play"></i>
           <div class="action-info">
-            <h4>Faollashtirish</h4>
-            <p>Tanlangan mahsulotlarni faol holatga o'tkazish</p>
+            <h4><%= t('manufacturer.products.actions.activate') %></h4>
+            <p><%= t('manufacturer.products.actions.activateDescription') %></p>
           </div>
         </button>
         <button class="bulk-action-item" data-action="deactivate-selected">
           <i class="fas fa-pause"></i>
           <div class="action-info">
-            <h4>Nofaollashtirish</h4>
-            <p>Tanlangan mahsulotlarni nofaol holatga o'tkazish</p>
+            <h4><%= t('manufacturer.products.actions.deactivate') %></h4>
+            <p><%= t('manufacturer.products.actions.deactivateDescription') %></p>
           </div>
         </button>
       </div>
@@ -729,16 +729,16 @@
 <div class="modal-overlay" id="productDetailsModal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2 class="modal-title">Mahsulot ma'lumotlari</h2>
+      <h2 class="modal-title"><%= t('manufacturer.products.modal.productDetails') %></h2>
       <button class="modal-close" id="closeProductModal">
         <i class="fas fa-times"></i>
       </button>
     </div>
     <div class="modal-body" id="productDetailsContent">
-      <!-- Dinamik kontent shu yerga yuklanadi -->
+              <!-- <%= t('manufacturer.products.modal.dynamicContent') %> -->
       <div class="loading-content">
         <div class="loading-spinner"></div>
-        <p>Ma'lumot yuklanmoqda...</p>
+        <p><%= t('manufacturer.products.modal.loading') %></p>
       </div>
     </div>
   </div>
@@ -751,7 +751,7 @@
       <div class="modal-header bg-danger text-white">
         <h5 class="modal-title" id="deleteProductModalLabel">
           <i class="fas fa-trash-alt"></i>
-          Mahsulotni O'chirish
+          <%= t('manufacturer.products.modal.deleteProduct') %>
         </h5>
         <button type="button" class="btn-close btn-close-white" onclick="hideModal('deleteProductModal')" aria-label="Close">
           <i class="fas fa-times"></i>
@@ -760,9 +760,9 @@
       <div class="modal-body">
         <div class="alert alert-warning">
           <i class="fas fa-exclamation-triangle"></i>
-          <strong>Diqqat!</strong> Bu amalni bekor qilib bo'lmaydi.
+          <strong><%= t('manufacturer.products.modal.attention') %></strong> <%= t('manufacturer.products.modal.deleteProductDescription') %>
         </div>
-        <p>Ushbu mahsulotni o'chirmoqchimisiz?</p>
+        <p><%= t('manufacturer.products.modal.deleteProductQuestion') %></p>
         <div class="product-delete-info" id="deleteProductInfo">
           <!-- Product info will be populated here -->
         </div>
@@ -770,11 +770,11 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="hideModal('deleteProductModal')">
           <i class="fas fa-times"></i>
-          Bekor qilish
+          <%= t('manufacturer.products.modal.cancel') %>
         </button>
         <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
           <i class="fas fa-trash-alt"></i>
-          O'chirish
+          <%= t('manufacturer.products.modal.delete') %>
         </button>
       </div>
     </div>
@@ -788,7 +788,7 @@
       <div class="modal-header">
         <h5 class="modal-title" id="statusChangeModalLabel">
           <i class="fas fa-toggle-on"></i>
-          Mahsulot Holatini O'zgartirish
+          <%= t('manufacturer.products.modal.statusChange') %>
         </h5>
         <button type="button" class="btn-close" onclick="hideModal('statusChangeModal')" aria-label="Close">
           <i class="fas fa-times"></i>
@@ -797,18 +797,18 @@
       <div class="modal-body">
         <form id="statusChangeForm">
           <div class="mb-3">
-            <label for="newStatus" class="form-label">Yangi holat:</label>
+            <label for="newStatus" class="form-label"><%= t('manufacturer.products.modal.newStatus') %>:</label>
             <select class="form-select" id="newStatus" name="status" required>
-              <option value="">Holatni tanlang</option>
-              <option value="active">✅ Faol</option>
-              <option value="inactive">⏸️ Nofaol</option>
-              <option value="draft">📝 Qoralama</option>
-              <option value="archived">📦 Arxivlangan</option>
+              <option value=""><%= t('manufacturer.products.modal.statusSelect') %></option>
+              <option value="active">✅ <%= t('manufacturer.products.status.active') %></option>
+              <option value="inactive">⏸️ <%= t('manufacturer.products.status.inactive') %></option>
+              <option value="draft">📝 <%= t('manufacturer.products.status.draft') %></option>
+              <option value="archived">📦 <%= t('manufacturer.products.status.archived') %></option>
             </select>
           </div>
           <div class="mb-3">
-            <label for="statusReason" class="form-label">Sabab (ixtiyoriy):</label>
-            <textarea class="form-control" id="statusReason" name="reason" rows="3" placeholder="Holat o'zgarishining sababini kiriting..."></textarea>
+            <label for="statusReason" class="form-label"><%= t('manufacturer.products.modal.statusReason') %>:</label>
+            <textarea class="form-control" id="statusReason" name="reason" rows="3" placeholder="<%= t('manufacturer.products.modal.statusReasonPlaceholder') %>"></textarea>
           </div>
           <input type="hidden" id="statusProductId" name="productId">
         </form>
@@ -816,11 +816,11 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="hideModal('statusChangeModal')">
           <i class="fas fa-times"></i>
-          Bekor qilish
+          <%= t('manufacturer.products.modal.cancel') %>
         </button>
         <button type="submit" form="statusChangeForm" class="btn btn-primary" id="statusChangeSubmitBtn">
           <i class="fas fa-save"></i>
-          Saqlash
+          <%= t('manufacturer.products.modal.save') %>
         </button>
       </div>
     </div>
@@ -834,7 +834,7 @@
       <div class="modal-header">
         <h5 class="modal-title" id="marketplaceModalLabel">
           <i class="fas fa-store"></i>
-          Sotuvga Chiqarish
+          <%= t('manufacturer.products.modal.publish') %>
         </h5>
         <button type="button" class="btn-close" onclick="hideModal('marketplaceModal')" aria-label="Close">
           <i class="fas fa-times"></i>
@@ -844,31 +844,31 @@
         <form id="marketplaceForm">
           <div class="alert alert-info">
             <i class="fas fa-info-circle"></i>
-            <strong>Ma'lumot:</strong> Mahsulot sotuvga chiqarilgandan so'ng, uni barcha foydalanuvchilar ko'ra oladi.
+            <strong><%= t('manufacturer.products.modal.info') %>:</strong> <%= t('manufacturer.products.modal.publishDescription') %>
           </div>
           
           <div class="mb-3">
-            <label for="marketplacePrice" class="form-label">Sotuv narxi:</label>
+            <label for="marketplacePrice" class="form-label"><%= t('manufacturer.products.modal.price') %>:</label>
             <div class="input-group">
               <input type="number" class="form-control" id="marketplacePrice" name="price" step="0.01" min="0" required>
-              <span class="input-group-text">UZS</span>
+              <span class="input-group-text"><%= t('manufacturer.products.modal.currency') %></span>
             </div>
           </div>
           
           <div class="mb-3">
-            <label for="marketplaceQuantity" class="form-label">Mavjud miqdor:</label>
+            <label for="marketplaceQuantity" class="form-label"><%= t('manufacturer.products.modal.quantity') %>:</label>
             <input type="number" class="form-control" id="marketplaceQuantity" name="quantity" min="1" required>
           </div>
           
           <div class="mb-3">
-            <label for="marketplaceDiscount" class="form-label">Chegirma (%):</label>
+            <label for="marketplaceDiscount" class="form-label"><%= t('manufacturer.products.modal.discount') %>:</label>
             <input type="number" class="form-control" id="marketplaceDiscount" name="discount" min="0" max="100" value="0">
           </div>
           
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="featuredProduct" name="featured">
             <label class="form-check-label" for="featuredProduct">
-              ⭐ Tavsiya etilgan mahsulot
+              ⭐ <%= t('manufacturer.products.modal.featured') %>
             </label>
           </div>
           
@@ -878,11 +878,11 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="hideModal('marketplaceModal')">
           <i class="fas fa-times"></i>
-          Bekor qilish
+          <%= t('manufacturer.products.modal.cancel') %>
         </button>
         <button type="submit" form="marketplaceForm" class="btn btn-success" id="marketplaceSubmitBtn">
           <i class="fas fa-upload"></i>
-          Sotuvga Chiqarish
+          <%= t('manufacturer.products.modal.publish') %>
         </button>
       </div>
     </div>
@@ -896,7 +896,7 @@
       <div class="modal-header">
         <h5 class="modal-title" id="duplicateModalLabel">
           <i class="fas fa-copy"></i>
-          Mahsulotni Nusxalash
+          <%= t('manufacturer.products.modal.duplicate') %>
         </h5>
         <button type="button" class="btn-close" onclick="hideModal('duplicateModal')" aria-label="Close">
           <i class="fas fa-times"></i>
@@ -905,17 +905,17 @@
       <div class="modal-body">
         <form id="duplicateForm">
           <div class="mb-3">
-            <label for="duplicateName" class="form-label">Yangi mahsulot nomi:</label>
+            <label for="duplicateName" class="form-label"><%= t('manufacturer.products.modal.name') %>:</label>
             <input type="text" class="form-control" id="duplicateName" name="name" required>
           </div>
           <div class="mb-3">
-            <label for="duplicateCode" class="form-label">Yangi mahsulot kodi:</label>
+            <label for="duplicateCode" class="form-label"><%= t('manufacturer.products.modal.code') %>:</label>
             <input type="text" class="form-control" id="duplicateCode" name="code" required>
           </div>
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="duplicateImages" name="includeImages" checked>
             <label class="form-check-label" for="duplicateImages">
-              Rasmlarni ham nusxalash
+              <%= t('manufacturer.products.modal.images') %>
             </label>
           </div>
           <input type="hidden" id="duplicateProductId" name="productId">
@@ -924,11 +924,11 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="hideModal('duplicateModal')">
           <i class="fas fa-times"></i>
-          Bekor qilish
+          <%= t('manufacturer.products.modal.cancel') %>
         </button>
         <button type="submit" form="duplicateForm" class="btn btn-primary" id="duplicateSubmitBtn">
           <i class="fas fa-copy"></i>
-          Nusxalash
+          <%= t('manufacturer.products.modal.duplicate') %>
         </button>
       </div>
     </div>
@@ -948,7 +948,6 @@
     // Load real products statistics
     async function loadProductsData() {
       try {
-        console.log('📊 Loading real products data...');
         
         const response = await fetch('/api/manufacturer/products/stats', {
           method: 'GET',
@@ -1014,7 +1013,6 @@
         draftProductsElement.innerHTML = data.draftProducts !== undefined ? data.draftProducts.toLocaleString() : '0';
       }
       
-      console.log('✅ Products KPIs updated with real data');
     }
 
     // Get cookie helper function
@@ -1027,12 +1025,10 @@
 
     // Initialize products page functionality
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('📦 Initializing Products Management...');
       
       // Load real products data
       loadProductsData();
       
-      console.log('✅ Products Management initialized successfully');
     });
   </script>
   

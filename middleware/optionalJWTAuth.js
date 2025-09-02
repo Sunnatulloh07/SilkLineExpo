@@ -18,10 +18,11 @@ class OptionalJWTAuthMiddleware {
      * Checks for JWT tokens and sets req.user and res.locals.currentUser if valid
      * Continues regardless of authentication status
      */
-    optionalAuth = async (req, res, next) => {
+    async optionalAuth(req, res, next) {
         try {
             // Extract tokens from request
             const tokens = TokenService.extractTokensFromRequest(req);
+          
             
             if (!tokens.accessToken) {
                 // No token, continue as anonymous user
@@ -33,9 +34,9 @@ class OptionalJWTAuthMiddleware {
 
             // Verify access token
             const verification = TokenService.verifyAccessToken(tokens.accessToken);
-            
+             
             if (!verification.valid) {
-                // Token invalid, try refresh if available
+               // Token invalid, try refresh if available
                 if (tokens.refreshToken) {
                     try {
                         const refreshResult = await this.tryRefreshToken(req, res, tokens.refreshToken);
@@ -43,11 +44,13 @@ class OptionalJWTAuthMiddleware {
                             req.user = refreshResult.user;
                             res.locals.currentUser = refreshResult.user;
                             res.locals.currentUserRole = this.getUserRole(refreshResult.user);
-                            return next();
+                           return next();
                         }
                     } catch (refreshError) {
-
+                        console.log('❌ Refresh error:', refreshError.message);
                     }
+                } else {
+                    console.log('❌ No refresh token available');
                 }
                 
                 // Clear invalid cookies
@@ -60,15 +63,14 @@ class OptionalJWTAuthMiddleware {
 
             // Token is valid, get user data
             try {
-                const userData = await this.getUserFromPayload(verification.payload);
+                 const userData = await this.getUserFromPayload(verification.payload);
                 
                 if (userData) {
                     // Set user data in request and response locals
                     req.user = userData;
                     res.locals.currentUser = userData;
                     res.locals.currentUserRole = this.getUserRole(userData);
-                    
-
+                  
                 } else {
                     // User not found in database
                     TokenService.clearAuthCookies(res);
@@ -77,8 +79,7 @@ class OptionalJWTAuthMiddleware {
                     res.locals.currentUserRole = null;
                 }
             } catch (userError) {
-                console.error('❌ Error getting user data:', userError);
-                req.user = null;
+               req.user = null;
                 res.locals.currentUser = null;
                 res.locals.currentUserRole = null;
             }
@@ -86,14 +87,14 @@ class OptionalJWTAuthMiddleware {
             next();
 
         } catch (error) {
-            console.error('❌ Optional JWT auth middleware error:', error);
+           
             // On any error, continue as anonymous user
             req.user = null;
             res.locals.currentUser = null;
             res.locals.currentUserRole = null;
             next();
         }
-    };
+    }
 
     /**
      * Try to refresh tokens
@@ -180,5 +181,7 @@ class OptionalJWTAuthMiddleware {
     }
 }
 
-// Export instance
-module.exports = new OptionalJWTAuthMiddleware();
+const middleware = new OptionalJWTAuthMiddleware();
+module.exports = {
+    optionalAuth: middleware.optionalAuth.bind(middleware)
+};

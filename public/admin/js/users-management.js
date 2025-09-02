@@ -105,7 +105,7 @@ class UsersManagement {
             this.closeAllSmartDropdowns();
         }, { passive: true });
         
-        console.log('✅ Professional smart dropdown listeners initialized');
+        // Professional smart dropdown listeners initialized
     }
 
 
@@ -720,12 +720,8 @@ class UsersManagement {
      * Render users in the table
      */
     renderUsers(users) {
-        console.log('🎨 renderUsers called with:', {
-            usersCount: users ? users.length : 'null/undefined',
-            users: users,
-            tableBodyExists: !!document.getElementById('usersTableBody'),
-            mobileViewExists: !!document.getElementById('mobileCardsView')
-        });
+        // renderUsers called with
+   
         
         const tableBody = document.getElementById('usersTableBody');
         const mobileView = document.getElementById('mobileCardsView');
@@ -2874,9 +2870,7 @@ class UsersManagement {
                     }
                 });
                 
-                console.log('🔥 DEBUG: Token cookie value:', token);
-                console.log('🔥 DEBUG: All cookies:', document.cookie);
-                console.log('🔐 Request made with token:', token ? 'Present' : 'Missing');
+                        // Token cookie value and request status
                 
                 if (response.ok || response.status < 500) {
                     return response;
@@ -3990,7 +3984,7 @@ class UsersManagement {
      */
     async showActivateUserModal(userId) {
         try {
-            console.log('✅ Opening activate user modal for:', userId);
+            // Opening activate user modal
             
             const user = await this.getUserDetails(userId);
             if (!user) return;
@@ -4097,7 +4091,7 @@ class UsersManagement {
                 company.textContent = `${user.companyType || 'Unknown'} • ${user.country || 'Unknown'}`;
             }
             
-            console.log(`✅ Modal populated for ${action} action`);
+            // Modal populated for action
             
         } catch (error) {
             console.error('❌ Error populating modal:', error);
@@ -4573,7 +4567,7 @@ class UsersManagement {
                 </div>
             `).join('');
             
-            console.log(`✅ Bulk ${action} modal populated with ${validUsers.length} users`);
+            // Bulk action modal populated
             
         } catch (error) {
             console.error('❌ Error populating bulk modal:', error);
@@ -4874,12 +4868,12 @@ window.toggleSmartDropdown = (userId, event) => {
         
         if (isCurrentlyOpen) {
             dropdown.classList.remove('show');
-            console.log('✅ Dropdown closed');
+            // Dropdown closed
         } else {
             // Smart positioning before showing
             window.positionSmartDropdown(dropdown, button);
             dropdown.classList.add('show');
-            console.log('✅ Dropdown opened with smart positioning');
+            // Dropdown opened with smart positioning
         }
         
     } catch (error) {
@@ -5108,4 +5102,4 @@ window.setupModalFocusManagement = (modalId, focusElementId = null) => {
     });
 };
 
-console.log('✅ Users Management JavaScript loaded successfully'); 
+        // Users Management JavaScript loaded successfully 

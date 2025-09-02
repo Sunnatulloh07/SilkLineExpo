@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Minimal delay to ensure DOM is fully ready 
     setTimeout(() => {
-      console.log('📡 Starting initial conversations load...');
+
       loadConversations();
     }, 10);
     
@@ -90,7 +90,7 @@ function initializeMessagesPage() {
     const fiveMinutes = 5 * 60 * 1000;
     
     if (isPageVisible && timeSinceActivity < fiveMinutes) {
-      console.log('🔄 Auto-refresh triggered (2-minute interval)');
+      
       loadConversations(true);
     }
   }, 120000); // 2 minutes = 120000 milliseconds
@@ -99,11 +99,11 @@ function initializeMessagesPage() {
 // 📡 LOAD CONVERSATIONS FROM API
 async function loadConversations(silent = false) {
   try {
-    console.log('📡 Loading conversations... silent:', silent);
-    console.log('📋 Current pagination state:', window.MessagesPage.pagination);
+
+    
     
     if (!silent) {
-      console.log('🔄 Showing loading state...');
+      
       showLoadingState();
     }
     
@@ -137,7 +137,7 @@ async function loadConversations(silent = false) {
     params.append('_t', Date.now());
     
     const apiUrl = `/manufacturer/messages/api/conversations?${params}`;
-    console.log('🌐 Making API request to:', apiUrl);
+    
     
     const response = await fetch(apiUrl, {
       method: 'GET',
@@ -153,11 +153,7 @@ async function loadConversations(silent = false) {
     }
     
     const data = await response.json();
-    console.log('📊 API Response received:', {
-      success: data.success,
-      conversationsCount: data.conversations?.length || 0,
-      total: data.pagination?.total || 0
-    });
+    
     
     if (data.success) {
       const conversations = data.conversations || [];
@@ -190,7 +186,7 @@ async function loadConversations(silent = false) {
 
 // 📊 DISPLAY CONVERSATIONS IN TABLE - ORDERS PAGE EXACT STYLE
 function displayConversations(conversations) {
-  console.log('📊 Displaying conversations:', conversations?.length || 0);
+
   
   const tbody = document.getElementById('conversationsTableBody');
   if (!tbody) {
@@ -199,15 +195,15 @@ function displayConversations(conversations) {
   }
   
   if (!conversations || conversations.length === 0) {
-    console.log('📭 No conversations - showing empty state');
+    
     showEmptyState();
     return;
   }
   
   tbody.innerHTML = conversations.map(conversation => `
-    <tr class="table-row ${conversation.unreadCount > 0 ? 'unread-conversation' : ''}" data-conversation-id="${conversation.orderId}">
+    <tr class="table-row ${conversation.unreadCount > 0 ? 'unread-conversation' : ''}" data-conversation-id="${conversation.conversationId || conversation.orderId || conversation.inquiryId}">
       <td class="table-checkbox-col">
-        <input type="checkbox" class="table-checkbox conversation-checkbox" data-conversation-id="${conversation.orderId}">
+        <input type="checkbox" class="table-checkbox conversation-checkbox" data-conversation-id="${conversation.conversationId || conversation.orderId || conversation.inquiryId}">
       </td>
       
       <!-- Partner Column - Orders Page Style -->
@@ -222,12 +218,12 @@ function displayConversations(conversations) {
         </div>
       </td>
       
-      <!-- Order ID Column - Orders Page Style -->
+      <!-- Order/Inquiry ID Column - Orders Page Style -->
       <td class="order-id-cell">
         <div class="order-id-content">
-          <span class="order-number">#${conversation.orderNumber}</span>
+          <span class="order-number">#${conversation.orderNumber || conversation.inquiryNumber}</span>
           <div class="order-meta">
-            <span class="order-type badge-sm">${conversation.type || 'B2B'}</span>
+            <span class="order-type badge-sm">${conversation.conversationType === 'inquiry' ? 'So\'rov' : 'Buyurtma'}</span>
             ${conversation.unreadCount > 0 ? `<span class="unread-badge">${conversation.unreadCount} yangi</span>` : ''}
           </div>
         </div>
@@ -236,12 +232,15 @@ function displayConversations(conversations) {
       <!-- Message Column - Custom Design -->
       <td class="message-name-cell">
         <div class="message-name-content">
-          <span class="message-text" title="${conversation.lastMessage || 'Yangi suhbat...'}">
-            ${truncateMessage(conversation.lastMessage || 'Yangi suhbat...', 60)}
+          <span class="message-text" title="${conversation.lastMessage || 'Hali yozishma boshlanmagan'}">
+            ${conversation.status === 'no_messages' ? 
+              '<span class="no-messages-text"><i class="fas fa-envelope-open"></i> Hali yozishma yo\'q</span>' : 
+              truncateMessage(conversation.lastMessage || 'Buyurtma yaratildi - hali yozishma yo\'q', 60)
+            }
           </span>
           <span class="message-type">
             <i class="fas fa-comment"></i>
-            ${getMessageTypeText(conversation.lastMessage)}
+            ${conversation.status === 'no_messages' ? 'Yozishma yo\'q' : getMessageTypeText(conversation.lastMessage)}
           </span>
         </div>
       </td>
@@ -256,16 +255,17 @@ function displayConversations(conversations) {
       
       <!-- Status Column - Orders Page Style -->
       <td>
-        <span class="status-badge status-${conversation.orderStatus || 'pending'}">
-          ${getOrderStatusTextUz(conversation.orderStatus)}
+        <span class="status-badge status-${conversation.orderStatus || conversation.inquiryStatus || 'pending'}">
+          ${getOrderStatusTextUz(conversation.orderStatus || conversation.inquiryStatus)}
         </span>
         ${conversation.status === 'active' ? '<div class="conversation-active-indicator"></div>' : ''}
+        ${conversation.status === 'no_messages' ? '<div class="no-messages-indicator" title="Hali yozishma yo\'q"><i class="fas fa-envelope-open"></i></div>' : ''}
       </td>
       
       <!-- Actions Column - Orders Page Style -->
       <td class="actions-cell">
         <div class="table-actions">
-          <button class="table-action-btn primary" data-action="view" data-conversation-id="${conversation.orderId}" title="Suhbatni ochish" onclick="openConversation('${conversation.orderId}')">
+          <button class="table-action-btn primary" data-action="view" data-conversation-id="${conversation.conversationId || conversation.orderId || conversation.inquiryId}" title="Suhbatni ochish" onclick="openConversation('${conversation.conversationId || conversation.orderId || conversation.inquiryId}', '${conversation.conversationType || 'order'}')">
             <i class="fas fa-comments"></i>
           </button>
           <div class="table-more-actions">
@@ -276,15 +276,21 @@ function displayConversations(conversations) {
               <!-- ASOSIY AMALLAR -->
               <div class="menu-section">
                 <h6 class="menu-section-title">Asosiy amallar</h6>
-                <button class="menu-item" onclick="openConversation('${conversation.orderId}')">
+                <button class="menu-item" onclick="openConversation('${conversation.conversationId || conversation.orderId || conversation.inquiryId}', '${conversation.conversationType || 'order'}')">
                   <i class="fas fa-comments menu-icon"></i>
                   <span class="menu-text">Suhbatni ochish</span>
                 </button>
-                <button class="menu-item" onclick="viewOrder('${conversation.orderId}')">
-                  <i class="fas fa-shopping-cart menu-icon"></i>
-                  <span class="menu-text">Buyurtmani ko'rish</span>
-                </button>
-                <button class="menu-item" onclick="markAsRead('${conversation.orderId}')">
+                ${conversation.conversationType === 'inquiry' ? 
+                  `<button class="menu-item" onclick="viewInquiry('${conversation.inquiryId}')">
+                    <i class="fas fa-question-circle menu-icon"></i>
+                    <span class="menu-text">So'rovni ko'rish</span>
+                  </button>` :
+                  `<button class="menu-item" onclick="viewOrder('${conversation.orderId}')">
+                    <i class="fas fa-shopping-cart menu-icon"></i>
+                    <span class="menu-text">Buyurtmani ko'rish</span>
+                  </button>`
+                }
+                <button class="menu-item" onclick="markAsRead('${conversation.conversationId || conversation.orderId || conversation.inquiryId}', '${conversation.conversationType || 'order'}')">
                   <i class="fas fa-check menu-icon"></i>
                   <span class="menu-text">O'qilgan deb belgilash</span>
                 </button>
@@ -293,15 +299,15 @@ function displayConversations(conversations) {
               <!-- QOSHIMCHA AMALLAR -->
               <div class="menu-section">
                 <h6 class="menu-section-title">Qo'shimcha</h6>
-                <button class="menu-item" onclick="archiveConversation('${conversation.orderId}')">
+                <button class="menu-item" onclick="archiveConversation('${conversation.conversationId || conversation.orderId || conversation.inquiryId}')">
                   <i class="fas fa-archive menu-icon"></i>
                   <span class="menu-text">Arxivlash</span>
                 </button>
-                <button class="menu-item" onclick="exportConversation('${conversation.orderId}')">
+                <button class="menu-item" onclick="exportConversation('${conversation.conversationId || conversation.orderId || conversation.inquiryId}')">
                   <i class="fas fa-download menu-icon"></i>
                   <span class="menu-text">Eksport qilish</span>
                 </button>
-                <button class="menu-item" onclick="pinConversation('${conversation.orderId}')">
+                <button class="menu-item" onclick="pinConversation('${conversation.conversationId || conversation.orderId || conversation.inquiryId}')">
                   <i class="fas fa-thumbtack menu-icon"></i>
                   <span class="menu-text">Qadash</span>
                 </button>
@@ -310,7 +316,7 @@ function displayConversations(conversations) {
               <!-- XAVFLI AMALLAR -->
               <div class="menu-section danger-section">
                 <h6 class="menu-section-title">Xavfli amallar</h6>
-                <button class="menu-item danger" onclick="deleteConversation('${conversation.orderId}')">
+                <button class="menu-item danger" onclick="deleteConversation('${conversation.conversationId || conversation.orderId || conversation.inquiryId}')">
                   <i class="fas fa-trash menu-icon"></i>
                   <span class="menu-text">Suhbatni o'chirish</span>
                 </button>
@@ -338,7 +344,7 @@ function updatePagination(pagination) {
   
   // Show/hide pagination
   if (pagination.total > 0 && pagination.totalPages > 1) {
-    console.log('📄 Showing pagination:', pagination);
+    
     paginationContainer.style.display = 'flex';
     
     // Update info text - Products page style
@@ -425,7 +431,7 @@ function showLoadingState() {
 function hideLoadingState() {
   // Loading state is automatically hidden when displayConversations() runs
   // and replaces tbody content with actual conversation data
-  console.log('✅ Loading state hidden - data displayed');
+  
 }
 
 function showEmptyState() {
@@ -604,6 +610,10 @@ function truncateMessage(message, maxLength) {
 function getMessageTypeText(message) {
   if (!message) return 'Xabar yo\'q';
   
+  // Check for system messages
+  if (message.includes('Buyurtma yaratildi - hali yozishma yo\'q')) return 'Sistema xabari';
+  if (message.includes('Hali yozishma yo\'q')) return 'Sistema xabari';
+  
   // Check for file extensions
   if (message.includes('.pdf')) return 'PDF fayl';
   if (message.includes('.jpg') || message.includes('.png') || message.includes('.jpeg')) return 'Rasm';
@@ -622,9 +632,9 @@ function updateConversationCount(total) {
 }
 
 // 🎯 ACTION FUNCTIONS
-function openConversation(orderId) {
+function openConversation(orderId, type) {
   if (orderId) {
-    window.location.href = `/manufacturer/messages/order/${orderId}`;
+    window.location.href = `/manufacturer/messages/${type}/${orderId}`;
   }
 }
 
@@ -634,9 +644,9 @@ function viewOrder(orderId) {
   }
 }
 
-async function markAsRead(orderId) {
+async function markAsRead(orderId, type) {
   try {
-    const response = await fetch(`/manufacturer/messages/api/order/${orderId}/mark-read`, {
+    const response = await fetch(`/manufacturer/messages/api/${type}/${orderId}/mark-read`, {
       method: 'POST',
       credentials: 'include'
     });
@@ -833,7 +843,7 @@ function initializeOrdersTableInteractions() {
       e.stopPropagation();
       const conversationId = btn.dataset.conversationId;
       if (conversationId) {
-        openConversation(conversationId);
+        openConversation(conversationId, 'order'); // Assuming it's an order conversation
       }
     });
   });
@@ -857,6 +867,12 @@ function deleteConversation(orderId) {
 function pinConversation(orderId) {
   if (window.showToast) {
     window.showToast('Qadash funksiyasi tez orada qo\'shiladi', 'info');
+  }
+}
+
+function viewInquiry(inquiryId) {
+  if (inquiryId) {
+    window.location.href = `/manufacturer/inquiries/${inquiryId}`;
   }
 }
 
@@ -885,7 +901,7 @@ function refreshConversations() {
 
 // 🔍 FILTER FUNCTIONALITY - ORDERS PAGE STYLE
 function initializeFilters() {
-  console.log('🔧 Initializing filters...');
+
   
   const form = document.getElementById('messagesFiltersForm');
   const searchBtn = document.getElementById('searchMessagesFiltersBtn');
@@ -893,13 +909,7 @@ function initializeFilters() {
   const resetBtn = document.getElementById('resetMessagesFiltersBtn');
   const refreshBtn = document.getElementById('refreshConversationsBtn');
   
-  console.log('🔧 Filter elements found:', {
-    form: !!form,
-    searchBtn: !!searchBtn,
-    clearBtn: !!clearBtn,
-    resetBtn: !!resetBtn,
-    refreshBtn: !!refreshBtn
-  });
+  
   
   // Form submit - only search on button click (Orders page style)
   if (form) {
@@ -914,7 +924,7 @@ function initializeFilters() {
   if (searchBtn) {
     searchBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      console.log('🔍 Search button clicked - triggering filter search');
+
       window.MessagesPage.pagination.page = 1;
       loadConversations();
     });
@@ -924,7 +934,7 @@ function initializeFilters() {
   if (clearBtn) {
     clearBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      console.log('🧹 Clear button clicked - resetting filters');
+
       clearMessagesFilters();
       window.MessagesPage.pagination.page = 1;
       loadConversations();

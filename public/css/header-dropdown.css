@@ -346,3 +346,56 @@
     border-radius: 10px;
     font-weight: 600;
 }
+
+/* Professional Dropdown Badges - Enhanced */
+.dropdown-badge {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #ff6a00;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.2rem 0.45rem;
+  border-radius: 8px;
+  min-width: 16px;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  animation: badge-pulse 2s infinite;
+}
+
+.dropdown-badge.badge-warning {
+  background: #ffc107;
+}
+
+.dropdown-badge.badge-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.dropdown-badge.badge-success {
+  background: #28a745;
+  color: white;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { transform: translateY(-50%) scale(1); }
+  50% { transform: translateY(-50%) scale(1.1); }
+}
+
+/* Adjust dropdown item for badges */
+.user-dropdown__item {
+  position: relative !important;
+  padding-right: 50px !important; /* Space for badge */
+}
+
+
+
+[data-theme="light"] .dropdown-badge.badge-success {
+  background: hsl(var(--success)) !important;
+  color: hsl(var(--static-white)) !important;
+}

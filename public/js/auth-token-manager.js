@@ -50,14 +50,14 @@ class AuthTokenManager {
         try {
             const accessToken = this.getCookie('accessToken');
             if (!accessToken) {
-                console.log('🔍 No access token found');
+                // No access token found
                 return;
             }
             
             // Decode token to check expiry
             const tokenPayload = this.decodeJWT(accessToken);
             if (!tokenPayload) {
-                console.log('🔍 Invalid token format');
+                // Invalid token format
                 return;
             }
             
@@ -65,11 +65,9 @@ class AuthTokenManager {
             const expiryTime = tokenPayload.exp;
             const timeUntilExpiry = (expiryTime - currentTime) * 1000;
             
-            console.log(`🔍 Token expires in: ${Math.round(timeUntilExpiry / 60000)} minutes`);
             
             // Refresh if token expires in less than buffer time
             if (timeUntilExpiry <= this.refreshBuffer) {
-                console.log('🔄 Token needs refresh, refreshing...');
                 await this.refreshToken();
             }
         } catch (error) {
@@ -82,14 +80,12 @@ class AuthTokenManager {
      */
     async refreshToken() {
         if (this.refreshInProgress) {
-            console.log('🔄 Refresh already in progress');
             return false;
         }
         
         this.refreshInProgress = true;
         
         try {
-            console.log('🔄 Attempting token refresh...');
             
             const response = await fetch('/api/auth/refresh-token', {
                 method: 'POST',
@@ -101,7 +97,6 @@ class AuthTokenManager {
             
             if (response.ok) {
                 const result = await response.json();
-                console.log('✅ Token refreshed successfully');
                 this.refreshRetries = 0;
                 return true;
             } else {
@@ -131,7 +126,6 @@ class AuthTokenManager {
                 (response) => response,
                 async (error) => {
                     if (error.response?.status === 401 && !this.refreshInProgress) {
-                        console.log('🔄 Got 401, attempting token refresh...');
                         const refreshed = await this.refreshToken();
                         
                         if (refreshed) {
@@ -197,7 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Only initialize on protected pages (not login/register pages)
     if (!window.location.pathname.includes('/auth/')) {
         window.authTokenManager = new AuthTokenManager();
-        console.log('🛡️ Auth Token Manager initialized');
     }
 });
 

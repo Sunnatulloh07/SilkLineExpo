@@ -36,9 +36,7 @@ class CategoryController {
   async showCategories(req, res) {
     try {
       const adminId = req.user.userId;
-      
-      this.logger.log(`📂 Categories page request from admin: ${adminId}`);
-      
+       
       // Get language preference
       const lng = this.getLanguagePreference(req);
       
@@ -91,8 +89,6 @@ class CategoryController {
         language: req.query.language || 'en'
       };
 
-      this.logger.log(`📂 Categories API request from admin: ${adminId}`, options);
-
       const result = await CategoryService.getAllCategories(adminId, options);
 
       this.sendSuccess(res, result.data, result.message);
@@ -108,8 +104,6 @@ class CategoryController {
   async getCategoryStatistics(req, res) {
     try {
       const adminId = req.user.userId;
-      
-      this.logger.log(`📊 Category statistics request from admin: ${adminId}`);
 
       const statistics = await CategoryService.getCategoryStatistics(adminId);
 
@@ -155,8 +149,6 @@ class CategoryController {
         content: req.body.content || {}
       };
 
-      this.logger.log(`📂 Creating category: ${categoryData.name} by admin: ${adminId}`);
-
       const result = await CategoryService.createCategory(adminId, categoryData);
 
       this.sendSuccess(res, result.data, result.message);
@@ -201,8 +193,6 @@ class CategoryController {
         }
       });
 
-      this.logger.log(`📂 Updating category: ${categoryId} by admin: ${adminId}`, updateData);
-
       const result = await CategoryService.updateCategory(adminId, categoryId, updateData);
 
       this.sendSuccess(res, result.data, result.message);
@@ -227,8 +217,6 @@ class CategoryController {
         return this.sendValidationError(res, errors);
       }
 
-      this.logger.log(`📂 Deleting category: ${categoryId} by admin: ${adminId}`, { reason });
-
       const result = await CategoryService.deleteCategory(adminId, categoryId, reason);
 
       this.sendSuccess(res, null, result.message);
@@ -244,8 +232,6 @@ class CategoryController {
   async getCategoryHierarchy(req, res) {
     try {
       const language = req.query.language || 'en';
-
-      this.logger.log(`📂 Category hierarchy request for language: ${language}`);
 
       const result = await CategoryService.getCategoryHierarchy(language);
 
@@ -271,8 +257,6 @@ class CategoryController {
 
       const { categoryIds, action, reason = '' } = req.body;
 
-      this.logger.log(`📂 Bulk ${action} operation on ${categoryIds.length} categories by admin: ${adminId}`);
-
       const result = await CategoryService.bulkUpdateCategories(adminId, categoryIds, action, { reason });
 
       this.sendSuccess(res, result.data, result.message);
@@ -290,8 +274,6 @@ class CategoryController {
       const adminId = req.user.userId;
       const format = req.query.format || 'csv';
       
-      this.logger.log(`📊 Categories export request from admin: ${adminId}, format: ${format}`);
-
       // Get filters from query
       const filters = {
         status: req.query.status,
@@ -331,8 +313,6 @@ class CategoryController {
       const options = {
         dateRange: req.query.dateRange || '30d'
       };
-
-      this.logger.log(`📊 Category analytics request for category: ${categoryId} by admin: ${adminId}`);
 
       const result = await CategoryService.getCategoryAnalytics(adminId, categoryId, options);
 
@@ -459,8 +439,7 @@ class CategoryController {
   }
 
   renderError(res, req, error, message = 'An error occurred') {
-    this.logger.error(message, error);
-    
+
     res.status(500).render('pages/error', {
       title: 'Error',
       message,

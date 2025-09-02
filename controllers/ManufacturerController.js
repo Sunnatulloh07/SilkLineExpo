@@ -17,7 +17,8 @@ class ManufacturerController {
      * Get language preference from request
      */
     getLanguagePreference(req) {
-        return req.lng || req.query.lng || req.body.lng || 'uz';
+        // Use the same logic as app.js middleware
+        return req.language || req.query.lng || req.cookies.selectedLanguage || req.cookies.i18next || 'uz';
     }
 
     // ===============================================
@@ -30,24 +31,31 @@ class ManufacturerController {
     async showDashboard(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            this.logger.log(`🏭 Manufacturer dashboard request from: ${manufacturerId}`);
-
+            const lng = req.language || res.locals.lng || this.getLanguagePreference(req);
+            
             // Get dashboard data in parallel for better performance
-            const [dashboardStats, productionMetrics, recentOrders, equipmentStatus] = await Promise.all([
+            const [dashboardStats, productionMetrics, recentOrders, equipmentStatus, unreadMessages] = await Promise.all([
                 this.manufacturerService.getDashboardStats(manufacturerId),
                 this.manufacturerService.getProductionMetrics(manufacturerId),
                 this.manufacturerService.getRecentProductionOrders(manufacturerId, 5),
-                this.manufacturerService.getEquipmentStatus(manufacturerId)
+                this.manufacturerService.getEquipmentStatus(manufacturerId),
+                this.manufacturerService.getUnreadMessagesCount(manufacturerId)
             ]);
 
+            // Language detection completed
+            
             res.render('manufacturer/dashboard/index', {
                 title: 'Manufacturer Dashboard',
                 currentPage: 'dashboard',
                 user: req.user,
+                lng: lng,
+                t: req.t, // Add translation function
+                currentUrl: req.originalUrl, // Add current URL for language redirects
                 stats: dashboardStats,
                 productionMetrics,
                 recentOrders,
-                equipmentStatus
+                equipmentStatus,
+                unreadMessages: unreadMessages || 0
                 // Layout removed - using admin structure
             });
 
@@ -55,10 +63,16 @@ class ManufacturerController {
             this.logger.error('❌ Manufacturer dashboard error:', error);
             
             // Professional fallback: render dashboard with basic fallback data
+            const lng = req.language || res.locals.lng || this.getLanguagePreference(req);
+            
             res.render('manufacturer/dashboard/index', {
                 title: 'Manufacturer Dashboard',
                 currentPage: 'dashboard',
                 user: req.user,
+                lng: lng,
+                t: req.t, // Add translation function
+                currentUrl: req.originalUrl, // Add current URL for language redirects
+                unreadMessages: 0,
                 stats: {
                     overview: {
                         totalRevenue: 0,
@@ -110,11 +124,24 @@ class ManufacturerController {
     async showProduction(req, res) {
         try {
             const manufacturerId = req.user.userId;
+            const lng = this.getLanguagePreference(req);
+
+            // Get unread messages count
+            let unreadMessages;
+            try {
+                unreadMessages = await this.manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (error) {
+                unreadMessages = 0;
+            }
 
             res.render('manufacturer/production/index', {
                 title: 'Production Management',
                 currentPage: 'production',
                 user: req.user,
+                lng: lng,
+                t: req.t,
+                currentUrl: req.originalUrl,
+                unreadMessages: unreadMessages || 0,
                 layout: 'manufacturer/layout'
             });
 
@@ -130,6 +157,7 @@ class ManufacturerController {
     async showProducts(req, res) {
         try {
             const manufacturerId = req.user.userId;
+            const lng = req.language || res.locals.lng || this.getLanguagePreference(req);
             
             // Get filters from query
             const filters = {
@@ -146,7 +174,7 @@ class ManufacturerController {
             const limit = 12;
 
             // Get products with filters and pagination
-            let result, categories, productStats;
+            let result, categories, productStats, unreadMessages;
             
             try {
                 result = await this.manufacturerService.getProductsWithFilters(
@@ -177,17 +205,26 @@ class ManufacturerController {
                 };
             }
 
+            try {
+                unreadMessages = await this.manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (err) {
+                unreadMessages = 0;
+            }
+
             res.render('manufacturer/products/index', {
                 title: 'Mahsulotlar Boshqaruvi',
                 currentPage: 'products',
                 user: req.user,
-                lng: req.query.lng || 'uz',
+                lng: lng,
+                t: req.t,
+                currentUrl: req.originalUrl,
                 products: result.products,
                 pagination: result.pagination,
                 filters: filters,
                 categories: categories,
                 productStats: productStats,
-                layout: 'manufacturer/layout'
+                unreadMessages: unreadMessages || 0
+                // Layout removed - using admin structure
             });
 
         } catch (error) {
@@ -207,20 +244,29 @@ class ManufacturerController {
             const manufacturerId = req.user.userId;
             const lng = this.getLanguagePreference(req);
             
-           // Get categories for the form
-            let categories = [];
+                       // Get categories for the form
+            let categories = [], unreadMessages;
             try {
                 categories = await this.manufacturerService.getActiveCategories();
             } catch (error) {
                 categories = [];
             }
 
+            try {
+                unreadMessages = await this.manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (error) {
+                unreadMessages = 0;
+            }
+
             res.render('manufacturer/products/add', {
                 title: 'Yangi mahsulot qo\'shish',
                 lng: lng,
+                t: req.t,
+                currentUrl: req.originalUrl,
                 currentPage: 'products',
                 user: req.user,
-                categories: categories
+                categories: categories,
+                unreadMessages: unreadMessages || 0
             });
 
         } catch (error) {
@@ -254,18 +300,20 @@ class ManufacturerController {
             }
 
             // Get product data, categories, and analytics in parallel
-            let productData, categories, analytics;
+            let productData, categories, analytics, unreadMessages;
             
             try {
-                const [product, categoriesResult, analyticsResult] = await Promise.all([
+                const [product, categoriesResult, analyticsResult, unreadMessagesResult] = await Promise.all([
                     this.manufacturerService.getProductById(productId, manufacturerId),
                     this.manufacturerService.getActiveCategories(),
-                    this.manufacturerService.getProductAnalytics(productId, manufacturerId)
+                    this.manufacturerService.getProductAnalytics(productId, manufacturerId),
+                    this.manufacturerService.getUnreadMessagesCount(manufacturerId)
                 ]);
                 
                 productData = product;
                 categories = categoriesResult;
                 analytics = analyticsResult;
+                unreadMessages = unreadMessagesResult;
                 
             } catch (error) {
                   
@@ -277,6 +325,7 @@ class ManufacturerController {
                     inquiries: { total: 0, thisMonth: 0, change: 0 },
                     orders: { total: 0, thisMonth: 0, change: 0 }
                 };
+                unreadMessages = 0;
             }
 
             if (!productData) {
@@ -295,7 +344,8 @@ class ManufacturerController {
                 user: req.user,
                 product: productData,
                 categories: categories,
-                analytics: analytics
+                analytics: analytics,
+                unreadMessages: unreadMessages || 0
             });
 
         } catch (error) {
@@ -314,11 +364,24 @@ class ManufacturerController {
     async showDistribution(req, res) {
         try {
             const manufacturerId = req.user.userId;
+            const lng = req.language || res.locals.lng || this.getLanguagePreference(req);
+
+            // Get unread messages count
+            let unreadMessages;
+            try {
+                unreadMessages = await this.manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (error) {
+                unreadMessages = 0;
+            }
 
             res.render('manufacturer/distribution/index', {
                 title: 'Distribution Network',
                 currentPage: 'distribution',
                 user: req.user,
+                lng: lng,
+                t: req.t,
+                currentUrl: req.originalUrl,
+                unreadMessages: unreadMessages || 0,
                 layout: 'manufacturer/layout'
             });
 
@@ -333,11 +396,24 @@ class ManufacturerController {
     async showSales(req, res) {
         try {
             const manufacturerId = req.user.userId;
+            const lng = req.language || res.locals.lng || this.getLanguagePreference(req);
+
+            // Get unread messages count
+            let unreadMessages;
+            try {
+                unreadMessages = await this.manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (error) {
+                unreadMessages = 0;
+            }
 
             res.render('manufacturer/sales/index', {
                 title: 'Sales & Marketing',
                 currentPage: 'sales',
                 user: req.user,
+                lng: lng,
+                t: req.t,
+                currentUrl: req.originalUrl,
+                unreadMessages: unreadMessages || 0,
                 layout: 'manufacturer/layout'
             });
 
@@ -352,11 +428,24 @@ class ManufacturerController {
     async showOperations(req, res) {
         try {
             const manufacturerId = req.user.userId;
+            const lng = req.language || res.locals.lng || this.getLanguagePreference(req);
+
+            // Get unread messages count
+            let unreadMessages;
+            try {
+                unreadMessages = await this.manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (error) {
+                unreadMessages = 0;
+            }
 
             res.render('manufacturer/operations/index', {
                 title: 'Operations Management',
                 currentPage: 'operations',
                 user: req.user,
+                lng: lng,
+                t: req.t,
+                currentUrl: req.originalUrl,
+                unreadMessages: unreadMessages || 0,
                 layout: 'manufacturer/layout'
             });
 
@@ -380,37 +469,47 @@ class ManufacturerController {
                 marketplaceMetrics,
                 featuredProducts,
                 recentInquiries,
-                competitorAnalysis
+                competitorAnalysis,
+                unreadMessages
             ] = await Promise.all([
                 this.manufacturerService.getDashboardStats(manufacturerId),
                 this.manufacturerService.getMarketplaceMetrics(manufacturerId),  
                 this.manufacturerService.getFeaturedProducts(manufacturerId, 8),
                 this.manufacturerService.getRecentInquiries(manufacturerId, 10),
-                this.manufacturerService.getCompetitorAnalysis(manufacturerId)
+                this.manufacturerService.getCompetitorAnalysis(manufacturerId),
+                this.manufacturerService.getUnreadMessagesCount(manufacturerId)
             ]);
 
+            const lng = req.language || res.locals.lng || this.getLanguagePreference(req);
+            
             res.render('manufacturer/marketplace/index', {
                 title: 'B2B Marketplace',
                 currentPage: 'marketplace',
                 user: req.user,
-                lng: req.lng || 'uz',
-                t: req.t || ((key) => key),
+                lng: lng,
+                t: req.t,
+                currentUrl: req.originalUrl,
                 stats: dashboardStats || {},
                 marketplaceMetrics: marketplaceMetrics || {},
                 featuredProducts: featuredProducts || [],
                 recentInquiries: recentInquiries || [],
-                competitorAnalysis: competitorAnalysis || {}
+                competitorAnalysis: competitorAnalysis || {},
+                unreadMessages: unreadMessages || 0
             });
 
         } catch (error) {
              
             // Render page with fallback data instead of error page
+            const lng = req.language || res.locals.lng || this.getLanguagePreference(req);
+            
             res.render('manufacturer/marketplace/index', {
                 title: 'B2B Marketplace',
                 currentPage: 'marketplace',
                 user: req.user,
-                lng: req.lng || 'uz',
-                t: req.t || ((key) => key),
+                lng: lng,
+                t: req.t,
+                currentUrl: req.originalUrl,
+                unreadMessages: 0,
                 stats: {},
                 marketplaceMetrics: {
                     totalViews: 25000,
@@ -440,9 +539,13 @@ class ManufacturerController {
     async showSettings(req, res) {
         try {
             const manufacturerId = req.user.userId;
+            const lng = req.language || res.locals.lng || this.getLanguagePreference(req);
             
             // Get full user data including companyLogo for initial display
-            const fullUserData = await this.manufacturerService.getManufacturerSettings(manufacturerId);
+            const [fullUserData, unreadMessages] = await Promise.all([
+                this.manufacturerService.getManufacturerSettings(manufacturerId),
+                this.manufacturerService.getUnreadMessagesCount(manufacturerId)
+            ]);
             
             // Merge with req.user for backwards compatibility
             const userData = {
@@ -450,13 +553,14 @@ class ManufacturerController {
                 ...fullUserData
             };
 
-            this.logger.log(`⚙️ Rendering settings page for: ${userData.companyName || userData.email}`);
-            this.logger.log(`🖼️ Company logo in user data:`, userData.companyLogo);
-
             res.render('manufacturer/settings/index', {
                 title: 'Settings',
                 currentPage: 'settings',
                 user: userData,
+                lng: lng,
+                t: req.t,
+                currentUrl: req.originalUrl,
+                unreadMessages: unreadMessages || 0,
                 layout: 'manufacturer/layout'
             });
 
@@ -477,9 +581,7 @@ class ManufacturerController {
     async loadSettings(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            this.logger.log(`⚙️ Loading settings for manufacturer: ${manufacturerId}`);
-
-            const settingsData = await this.manufacturerService.getManufacturerSettings(manufacturerId);
+              const settingsData = await this.manufacturerService.getManufacturerSettings(manufacturerId);
 
             res.json({
                 success: true,
@@ -505,8 +607,6 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
             const companyData = req.body;
-
-            this.logger.log(`💼 Saving company info for manufacturer: ${manufacturerId}`);
 
             // Validate required fields
             const requiredFields = ['companyName', 'activityType', 'taxNumber'];
@@ -578,10 +678,7 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
             const contactData = req.body;
-
-            this.logger.log(`📞 Saving contact info for manufacturer: ${manufacturerId}`);
-
-            // Validate email format
+    // Validate email format
             if (contactData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactData.email)) {
                 return res.status(400).json({
                     success: false,
@@ -616,8 +713,6 @@ class ManufacturerController {
             const manufacturerId = req.user.userId;
             const businessData = req.body;
 
-            this.logger.log(`🏭 Saving business info for manufacturer: ${manufacturerId}`);
-
             const result = await this.manufacturerService.updateBusinessInfo(manufacturerId, businessData);
 
             res.json({
@@ -644,10 +739,7 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
             const { currentPassword, newPassword } = req.body;
-
-            this.logger.log(`🔐 Password change request for manufacturer: ${manufacturerId}`);
-
-            // Validate required fields
+      // Validate required fields
             if (!currentPassword || !newPassword) {
                 return res.status(400).json({
                     success: false,
@@ -697,10 +789,7 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
             const preferences = req.body;
-
-            this.logger.log(`⚙️ Saving preferences for manufacturer: ${manufacturerId}`);
-
-            const result = await this.manufacturerService.updatePreferences(manufacturerId, preferences);
+     const result = await this.manufacturerService.updatePreferences(manufacturerId, preferences);
 
             res.json({
                 success: true,
@@ -727,8 +816,6 @@ class ManufacturerController {
             const manufacturerId = req.user.userId;
             const integrations = req.body;
 
-            this.logger.log(`🔌 Saving integrations for manufacturer: ${manufacturerId}`);
-
             const result = await this.manufacturerService.updateIntegrations(manufacturerId, integrations);
 
             res.json({
@@ -754,15 +841,7 @@ class ManufacturerController {
     async uploadLogo(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            
-            this.logger.log(`📷 Logo upload request for manufacturer: ${manufacturerId}`);
-            this.logger.log(`📁 File received:`, {
-                filename: req.file?.filename,
-                originalname: req.file?.originalname,
-                size: req.file?.size,
-                mimetype: req.file?.mimetype
-            });
-
+        
             if (!req.file) {
                 return res.status(400).json({
                     success: false,
@@ -826,7 +905,11 @@ class ManufacturerController {
      */
     async getDashboardStats(req, res) {
         try {
-            const manufacturerId = req.user.userId;
+            const manufacturerId = req.user.userId || req.user._id;
+            
+            if (!manufacturerId) {
+                return this.handleAPIError(res, new Error('User ID not found'), 'User authentication required');
+            }
             
             const { period = '30' } = req.query;
             const stats = await this.manufacturerService.getDashboardStats(manufacturerId, period);
@@ -843,7 +926,12 @@ class ManufacturerController {
      */
     async getProductionMetrics(req, res) {
         try {
-            const manufacturerId = req.user.userId;
+            const manufacturerId = req.user.userId || req.user._id;
+            
+            if (!manufacturerId) {
+                return this.handleAPIError(res, new Error('User ID not found'), 'User authentication required');
+            }
+            
             const { period = '30' } = req.query;
             
             const metrics = await this.manufacturerService.getProductionMetrics(manufacturerId, period);
@@ -860,7 +948,12 @@ class ManufacturerController {
      */
     async getSalesAnalytics(req, res) {
         try {
-            const manufacturerId = req.user.userId;
+            const manufacturerId = req.user.userId || req.user._id;
+            
+            if (!manufacturerId) {
+                return this.handleAPIError(res, new Error('User ID not found'), 'User authentication required');
+            }
+            
             const { period = '30' } = req.query;
             
             const analytics = await this.manufacturerService.getSalesAnalytics(manufacturerId, period);
@@ -877,7 +970,11 @@ class ManufacturerController {
      */
     async getEquipmentStatus(req, res) {
         try {
-            const manufacturerId = req.user.userId;
+            const manufacturerId = req.user.userId || req.user._id;
+            
+            if (!manufacturerId) {
+                return this.handleAPIError(res, new Error('User ID not found'), 'User authentication required');
+            }
             
             const equipmentStatus = await this.manufacturerService.getEquipmentStatus(manufacturerId);
             
@@ -893,7 +990,12 @@ class ManufacturerController {
      */
     async getQualityMetrics(req, res) {
         try {
-            const manufacturerId = req.user.userId;
+            const manufacturerId = req.user.userId || req.user._id;
+            
+            if (!manufacturerId) {
+                return this.handleAPIError(res, new Error('User ID not found'), 'User authentication required');
+            }
+            
             const { period = '30' } = req.query;
             
             const qualityMetrics = await this.manufacturerService.getQualityMetrics(manufacturerId, period);
@@ -910,7 +1012,12 @@ class ManufacturerController {
      */
     async getNotifications(req, res) {
         try {
-            const manufacturerId = req.user.userId;
+            const manufacturerId = req.user.userId || req.user._id;
+            
+            if (!manufacturerId) {
+                return this.handleAPIError(res, new Error('User ID not found'), 'User authentication required');
+            }
+            
             const options = {
                 page: parseInt(req.query.page) || 1,
                 limit: parseInt(req.query.limit) || 10,
@@ -936,7 +1043,12 @@ class ManufacturerController {
      */
     async getProductionOrders(req, res) {
         try {
-            const manufacturerId = req.user.userId;
+            const manufacturerId = req.user.userId || req.user._id;
+            
+            if (!manufacturerId) {
+                return this.handleAPIError(res, new Error('User ID not found'), 'User authentication required');
+            }
+            
             const options = {
                 page: parseInt(req.query.page) || 1,
                 limit: parseInt(req.query.limit) || 20,
@@ -1398,7 +1510,6 @@ class ManufacturerController {
      * Handle API errors
      */
     handleAPIError(res, error, message) {
-        this.logger.error(`❌ ${message}:`, error);
         
         if (error.name === 'ValidationError') {
             return this.sendError(res, error.message, 400);
@@ -1416,20 +1527,8 @@ class ManufacturerController {
     async getDistributorInquiries(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            this.logger.log(`🔍 Getting distributor inquiries for manufacturer: ${manufacturerId}`);
-            this.logger.log(`🔍 User object:`, {
-                userId: req.user.userId,
-                role: req.user.role,
-                companyName: req.user.companyName
-            });
-
+            
             const inquiriesData = await this.manufacturerService.getDistributorInquiries(manufacturerId);
-
-            this.logger.log(`🔍 Controller received inquiries data:`, {
-                totalCount: inquiriesData.totalCount,
-                inquiriesCount: inquiriesData.inquiries?.length,
-                unreadCount: inquiriesData.unreadCount
-            });
 
             res.json({
                 success: true,
@@ -1478,8 +1577,6 @@ class ManufacturerController {
     async getInventoryManagement(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            this.logger.log(`📦 Getting inventory management for manufacturer: ${manufacturerId}`);
-
             const inventoryData = await this.manufacturerService.getInventoryManagement(manufacturerId);
 
             res.json({
@@ -1508,9 +1605,7 @@ class ManufacturerController {
     async getMarketplaceMetrics(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            this.logger.log(`📊 Getting marketplace metrics for manufacturer: ${manufacturerId}`);
-
-            const metrics = await this.manufacturerService.getMarketplaceMetrics(manufacturerId);
+             const metrics = await this.manufacturerService.getMarketplaceMetrics(manufacturerId);
 
             res.json({
                 success: true,
@@ -1531,9 +1626,7 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
             const { limit = 8 } = req.query;
-            this.logger.log(`⭐ Getting featured products for manufacturer: ${manufacturerId}`);
-
-            const products = await this.manufacturerService.getFeaturedProducts(manufacturerId, parseInt(limit));
+             const products = await this.manufacturerService.getFeaturedProducts(manufacturerId, parseInt(limit));
 
             res.json({
                 success: true,
@@ -1554,7 +1647,6 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
             const { limit = 10 } = req.query;
-            this.logger.log(`💬 Getting recent inquiries for manufacturer: ${manufacturerId}`);
 
             const inquiries = await this.manufacturerService.getRecentInquiries(manufacturerId, parseInt(limit));
 
@@ -1576,9 +1668,7 @@ class ManufacturerController {
     async getCompetitorAnalysis(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            this.logger.log(`📊 Getting competitor analysis for manufacturer: ${manufacturerId}`);
-
-            const analysis = await this.manufacturerService.getCompetitorAnalysis(manufacturerId);
+              const analysis = await this.manufacturerService.getCompetitorAnalysis(manufacturerId);
 
             res.json({
                 success: true,
@@ -1601,15 +1691,12 @@ class ManufacturerController {
         try {
             const productId = req.params.id;
             const manufacturerId = req.user.userId;
-            
-            this.logger.log(`🏭 Loading product edit page for ID: ${productId}, Manufacturer: ${manufacturerId}`);
-            
+      
             // Get product data
             const product = await this.manufacturerService.getProductForEdit(productId, manufacturerId);
             
             if (!product) {
-                this.logger.warn(`❌ Product not found - rendering page with error message instead of 404`);
-                
+                 
                 // Professional approach: render edit page with error message instead of error view
                 const fallbackCategories = await this.manufacturerService.getProductCategories() || [];
                 
@@ -1762,9 +1849,7 @@ class ManufacturerController {
     async showAddProduct(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            
-            this.logger.log(`🏭 Loading product add page for Manufacturer: ${manufacturerId}`);
-            
+              
             // Get categories for dropdown
             const categories = await this.manufacturerService.getProductCategories();
             
@@ -1802,19 +1887,23 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
             const productId = req.query.product; // Product ID from query param
-            
-            this.logger.log(`📊 Loading analytics dashboard for Manufacturer: ${manufacturerId}, Product: ${productId || 'all'}`);
-            
-            // Get comprehensive analytics data with period support
+                 // Get comprehensive analytics data with period support
             const period = req.query.period ? parseInt(req.query.period) : 30; // Default 30 days
-            const dashboardStats = await this.manufacturerService.getDashboardStats(manufacturerId, period.toString());
-            const businessIntelligence = await this.manufacturerService.getBusinessIntelligence(manufacturerId, period);
+            const [dashboardStats, businessIntelligence, unreadMessages] = await Promise.all([
+                this.manufacturerService.getDashboardStats(manufacturerId, period.toString()),
+                this.manufacturerService.getBusinessIntelligence(manufacturerId, period),
+                this.manufacturerService.getUnreadMessagesCount(manufacturerId)
+            ]);
             
             let productAnalytics = null;
             let productInfo = null;
             if (productId) {
-                productAnalytics = await this.manufacturerService.getProductAnalytics(productId, manufacturerId);
-                productInfo = await this.manufacturerService.getProductForEdit(productId, manufacturerId);
+                const [productAnalyticsResult, productInfoResult] = await Promise.all([
+                    this.manufacturerService.getProductAnalytics(productId, manufacturerId),
+                    this.manufacturerService.getProductForEdit(productId, manufacturerId)
+                ]);
+                productAnalytics = productAnalyticsResult;
+                productInfo = productInfoResult;
             }
             
             const lng = this.getLanguagePreference(req);
@@ -1830,6 +1919,7 @@ class ManufacturerController {
                 productAnalytics: productAnalytics || {},
                 productInfo: productInfo || null,
                 productId: productId || null,
+                unreadMessages: unreadMessages || 0,
                 errorMessage: null
             });
             
@@ -1848,6 +1938,7 @@ class ManufacturerController {
                 productAnalytics: {},
                 productInfo: null,
                 productId: null,
+                unreadMessages: 0,
                 errorMessage: 'Tahlil ma\'lumotlarini yuklashda xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.'
             });
         }
@@ -1860,9 +1951,7 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
             const productId = req.params.id;
-            
-            this.logger.log(`📊 Loading product analytics for Product: ${productId}, Manufacturer: ${manufacturerId}`);
-            
+              
             // Get product analytics data
             const productAnalytics = await this.manufacturerService.getProductAnalytics(productId, manufacturerId);
             
@@ -1890,9 +1979,7 @@ class ManufacturerController {
         try {
             const productId = req.params.id;
             const manufacturerId = req.user.userId;
-            
-            this.logger.log(`💾 Saving product as draft: ${productId} for manufacturer: ${manufacturerId}`);
-            
+     
             // Get product and verify ownership
             const product = await this.manufacturerService.getProductForEdit(productId, manufacturerId);
             
@@ -1921,9 +2008,7 @@ class ManufacturerController {
                     message: 'Qoralama saqlashda xatolik yuz berdi'
                 });
             }
-            
-            this.logger.log(`✅ Product saved as draft: ${productId}`);
-            
+                     
             res.json({
                 success: true,
                 message: 'Mahsulot qoralama sifatida saqlandi',
@@ -1951,9 +2036,7 @@ class ManufacturerController {
         try {
             const productId = req.params.id;
             const manufacturerId = req.user.userId;
-            
-            this.logger.log(`🚀 Publishing product: ${productId} for manufacturer: ${manufacturerId}`);
-            
+      
             // Get product and verify ownership
             const product = await this.manufacturerService.getProductForEdit(productId, manufacturerId);
             
@@ -1993,9 +2076,7 @@ class ManufacturerController {
                     message: 'Chop etishda xatolik yuz berdi'
                 });
             }
-            
-            this.logger.log(`✅ Product published: ${productId}`);
-            
+                  
             res.json({
                 success: true,
                 message: 'Mahsulot muvaffaqiyatli chop etildi va marketplace da ko\'rinadi',
@@ -2220,11 +2301,8 @@ class ManufacturerController {
                         await fs.access(filePath);
                         await fs.unlink(filePath);
                         deletedCount++;
-                        this.logger.log(`🗑️ Deleted: ${filename}`);
                     } catch (fileError) {
-                        if (fileError.code !== 'ENOENT') {
-                            this.logger.warn(`⚠️ Could not delete ${filename}:`, fileError.message);
-                        }
+                      
                     }
                 }
             } catch (error) {
@@ -2251,9 +2329,7 @@ class ManufacturerController {
                     message: 'Rasm fayllari topilmadi'
                 });
             }
-            
-            this.logger.log(`📤 Uploading ${req.files.length} product images for manufacturer: ${manufacturerId}`);
-            
+      
             const imageUrls = req.files.map(file => `/uploads/products/${file.filename}`);
             
             res.status(200).json({
@@ -2288,10 +2364,7 @@ class ManufacturerController {
                     message: 'Rasm fayllari topilmadi'
                 });
             }
-            
-            this.logger.log(`📤 FINAL: Uploading ${req.files.length} images for manufacturer: ${manufacturerId}`);
-            
-            // Debug file information
+               // Debug file information
             req.files.forEach((file, index) => {
                 this.logger.log(`📁 File ${index + 1}: ${file.originalname} → ${file.filename}`);
             });
@@ -2312,18 +2385,13 @@ class ManufacturerController {
                     mimeType: file.mimetype
                 };
             });
-            
-            this.logger.log(`✅ Processed ${processedImages.length} images with metadata`);
-            this.logger.log(`🔗 Generated URLs:`, processedImages.map(img => img.url));
-            
+                    
             const response = {
                 success: true,
                 message: 'Rasmlar muvaffaqiyatli yuklandi',
                 data: processedImages
             };
-            
-            this.logger.log('📤 Sending upload response:', JSON.stringify(response, null, 2));
-            
+             
             res.status(200).json(response);
             
         } catch (error) {
@@ -2351,10 +2419,7 @@ class ManufacturerController {
                     message: 'O\'chiriladigan rasmlar ro\'yxati topilmadi'
                 });
             }
-            
-            this.logger.log(`🗑️ Deleting ${imageUrls.length} unused images for manufacturer: ${manufacturerId}`);
-            
-            const fs = require('fs').promises;
+                   const fs = require('fs').promises;
             const path = require('path');
             let deletedCount = 0;
             
@@ -2367,15 +2432,12 @@ class ManufacturerController {
                     // Check if file exists and delete it
                     await fs.unlink(filePath);
                     deletedCount++;
-                    this.logger.log(`✅ Deleted file: ${filename}`);
                 } catch (fileError) {
                     this.logger.error(`❌ Failed to delete file: ${imageUrl}`, fileError);
                     // Continue with other files even if one fails
                 }
             }
-            
-            this.logger.log(`✅ Cleanup completed: ${deletedCount}/${imageUrls.length} files deleted`);
-            
+                 
             res.status(200).json({
                 success: true,
                 message: `${deletedCount} ta rasm o'chirildi`,
@@ -2402,20 +2464,12 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
             const productData = { ...req.body, manufacturer: manufacturerId };
-            
-            this.logger.log(`➕ OPTIMIZED: Creating new product for manufacturer: ${manufacturerId}`, {
-                productName: productData.name,
-                category: productData.category,
-                requestIP: req.ip
-            });
+       
             
             // Extract image data for separate processing
             const imageData = productData.imageData;
             delete productData.imageData; // Remove from main product data
-            
-            this.logger.log(`📊 Image operations: ${imageData?.temporaryImages?.length || 0} new, ${imageData?.existingImages?.length || 0} existing`);
-            this.logger.log(`🔍 Full imageData structure:`, JSON.stringify(imageData, null, 2));
-            
+               
             // Professional validation
             if (!productData.name || !productData.category || !productData.description) {
                 return res.status(400).json({
@@ -2440,26 +2494,14 @@ class ManufacturerController {
                 // Note: temporaryImages are handled separately by frontend upload process
             ];
             
-            this.logger.log(`🔍 Prepared finalImages:`, JSON.stringify(finalImages, null, 2));
-            
             // Add final images to product data
             if (finalImages.length > 0) {
                 productData.images = finalImages;
-                this.logger.log(`✅ Added ${finalImages.length} images to productData`);
-            } else {
-                this.logger.log(`⚠️ No images to add - finalImages.length = 0`);
-            }
+             } 
             
             // Step 2: Create product with optimized data
             const newProduct = await this.manufacturerService.createProduct(productData);
-            
-            this.logger.log(`✅ Product created successfully:`, {
-                productId: newProduct._id,
-                productName: newProduct.name,
-                manufacturer: manufacturerId,
-                imagesCount: finalImages.length
-            });
-            
+         
             res.status(201).json({
                 success: true,
                 message: 'Mahsulot muvaffaqiyatli yaratildi',
@@ -2512,7 +2554,6 @@ class ManufacturerController {
             const manufacturerId = req.user.userId;
             const productData = { ...req.body, manufacturer: manufacturerId, status: 'draft' };
             
-            this.logger.log(`💾 Saving product as draft for manufacturer: ${manufacturerId}`);
             
             const draftProduct = await this.manufacturerService.createProduct(productData);
             
@@ -2542,9 +2583,7 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
             const productData = { ...req.body, manufacturer: manufacturerId, status: 'active' };
-            
-            this.logger.log(`🚀 Publishing product for manufacturer: ${manufacturerId}`);
-            
+                 
             // Enhanced validation for publishing
             const validationErrors = [];
             
@@ -2581,9 +2620,7 @@ class ManufacturerController {
             }
             
             const publishedProduct = await this.manufacturerService.createProduct(productData);
-            
-            this.logger.log(`✅ Product published successfully: ${publishedProduct._id}`);
-            
+   
             res.status(201).json({
                 success: true,
                 message: 'Mahsulot muvaffaqiyatli chop etildi',
@@ -2612,9 +2649,7 @@ class ManufacturerController {
     async uploadProductImages(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            
-            this.logger.log(`📷 Uploading product images for manufacturer: ${manufacturerId}`);
-            
+    
             if (!req.files || !req.files.images) {
                 return res.status(400).json({
                     success: false,
@@ -2664,9 +2699,7 @@ class ManufacturerController {
                     throw new Error(`File upload failed for ${file.name}`);
                 }
             }));
-            
-            this.logger.log(`✅ Images uploaded successfully: ${uploadedUrls.length} files`);
-            
+                 
             res.json({
                 success: true,
                 message: `${uploadedUrls.length} ta rasm muvaffaqiyatli yuklandi`,
@@ -2693,9 +2726,7 @@ class ManufacturerController {
         try {
             const productId = req.params.id;
             const manufacturerId = req.user.userId;
-            
-            this.logger.log(`🗑️ Deleting product: ${productId} for manufacturer: ${manufacturerId}`);
-            
+              
             const deleted = await this.manufacturerService.deleteProduct(productId, manufacturerId);
             
             if (!deleted) {
@@ -2704,9 +2735,7 @@ class ManufacturerController {
                     message: 'Mahsulot topilmadi yoki o\'chirish imkoni yo\'q'
                 });
             }
-            
-            this.logger.log(`✅ Product deleted successfully: ${productId}`);
-            
+      
             res.json({
                 success: true,
                 message: 'Mahsulot muvaffaqiyatli o\'chirildi'
@@ -2728,9 +2757,7 @@ class ManufacturerController {
     async uploadProductImages(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            
-            this.logger.log(`📸 LEGACY: Uploading product images for manufacturer: ${manufacturerId}`);
-            
+   
             if (!req.files || req.files.length === 0) {
                 return res.status(400).json({
                     success: false,
@@ -2739,9 +2766,7 @@ class ManufacturerController {
             }
             
             const imageUrls = await this.manufacturerService.uploadProductImages(req.files);
-            
-            this.logger.log(`✅ Legacy images uploaded successfully: ${imageUrls.length} files`);
-            
+    
             res.json({
                 success: true,
                 message: 'Rasmlar muvaffaqiyatli yuklandi',
@@ -2775,9 +2800,7 @@ class ManufacturerController {
                     message: 'Rasmlar yuklanmadi'
                 });
             }
-            
-            this.logger.log(`🎯 FINAL UPLOAD: Processing ${req.files.length} images for manufacturer: ${manufacturerId}`);
-            
+      
             const uploadedImages = [];
             
             // Process each image with metadata
@@ -2835,8 +2858,6 @@ class ManufacturerController {
                 });
             }
             
-            this.logger.log(`🗑️ CLEANUP: Deleting ${imageUrls.length} unused images for manufacturer: ${manufacturerId}`);
-            
             const fs = require('fs').promises;
             const path = require('path');
             let deletedCount = 0;
@@ -2853,7 +2874,6 @@ class ManufacturerController {
                         await fs.access(filePath);
                         await fs.unlink(filePath);
                         deletedCount++;
-                        this.logger.log(`✅ Deleted: ${filename}`);
                     } catch (fileError) {
                         if (fileError.code !== 'ENOENT') { // File not found is OK
                             errors.push(`Failed to delete ${filename}: ${fileError.message}`);
@@ -2927,16 +2947,11 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
             const period = parseInt(req.query.period) || 30; // Default 30 days
-            
-            this.logger.log(`📊 API: Getting business analytics for Manufacturer: ${manufacturerId}, Period: ${period} days`);
-            
-            const [dashboardStats, businessIntelligence] = await Promise.all([
+        const [dashboardStats, businessIntelligence] = await Promise.all([
                 this.manufacturerService.getDashboardStats(manufacturerId, period.toString()),
                 this.manufacturerService.getBusinessIntelligence(manufacturerId, period)
             ]);
-            
-            this.logger.log(`✅ API: Business analytics loaded successfully`);
-            
+             
             res.json({
                 success: true,
                 data: {
@@ -2964,8 +2979,6 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
             const productId = req.params.id;
-            
-            this.logger.log(`📥 Exporting product report for Product: ${productId}`);
             
             // For now, return a JSON response
             // In production, you would generate a PDF/Excel file
@@ -3000,9 +3013,7 @@ class ManufacturerController {
     async exportBusinessReport(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            
-            this.logger.log(`📥 Exporting business report for Manufacturer: ${manufacturerId}`);
-            
+                   
             // For now, return a JSON response
             // In production, you would generate a PDF/Excel file
             res.json({
@@ -3033,10 +3044,19 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
 
+            // Get unread messages count
+            let unreadMessages;
+            try {
+                unreadMessages = await this.manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (error) {
+                unreadMessages = 0;
+            }
+
             res.render('manufacturer/profile/index', {
                 title: 'Kompaniya Profili',
                 currentPage: 'profile',
                 user: req.user,
+                unreadMessages: unreadMessages || 0,
                 layout: 'manufacturer/layout'
             });
 
@@ -3052,10 +3072,21 @@ class ManufacturerController {
      */
     async showSupport(req, res) {
         try {
+            const manufacturerId = req.user.userId;
+
+            // Get unread messages count
+            let unreadMessages;
+            try {
+                unreadMessages = await this.manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (error) {
+                unreadMessages = 0;
+            }
+
             res.render('manufacturer/support/index', {
                 title: 'Qo\'llab-quvvatlash',
                 currentPage: 'support',
                 user: req.user,
+                unreadMessages: unreadMessages || 0,
                 layout: 'manufacturer/layout'
             });
 
@@ -3071,10 +3102,21 @@ class ManufacturerController {
      */
     async showShipping(req, res) {
         try {
+            const manufacturerId = req.user.userId;
+
+            // Get unread messages count
+            let unreadMessages;
+            try {
+                unreadMessages = await this.manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (error) {
+                unreadMessages = 0;
+            }
+
             res.render('manufacturer/shipping/index', {
                 title: 'Yetkazib berish',
                 currentPage: 'shipping',
                 user: req.user,
+                unreadMessages: unreadMessages || 0,
                 layout: 'manufacturer/layout'
             });
 
@@ -3090,10 +3132,21 @@ class ManufacturerController {
      */
     async showInventory(req, res) {
         try {
+            const manufacturerId = req.user.userId;
+
+            // Get unread messages count
+            let unreadMessages;
+            try {
+                unreadMessages = await this.manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (error) {
+                unreadMessages = 0;
+            }
+
             res.render('manufacturer/inventory/index', {
                 title: 'Ombor boshqaruvi',
                 currentPage: 'inventory',
                 user: req.user,
+                unreadMessages: unreadMessages || 0,
                 layout: 'manufacturer/layout'
             });
 
@@ -3110,8 +3163,7 @@ class ManufacturerController {
     async getProfileData(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            this.logger.log(`👤 Loading profile data for manufacturer: ${manufacturerId}`);
-
+       
             const profileData = await this.manufacturerService.getProfileData(manufacturerId);
 
             res.json({
@@ -3202,6 +3254,28 @@ class ManufacturerController {
                 success: false,
                 error: 'Failed to load chart data',
                 message: error.message
+            });
+        }
+    }
+
+    /**
+     * API: Get unread messages count for manufacturer
+     */
+    async getUnreadMessagesCount(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const count = await this.manufacturerService.getUnreadMessagesCount(manufacturerId);
+            
+            res.json({
+                success: true,
+                count: count
+            });
+        } catch (error) {
+            console.error('❌ Error getting unread messages count:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to get unread messages count',
+                count: 0
             });
         }
     }

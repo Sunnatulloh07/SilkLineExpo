@@ -1,6 +1,5 @@
-<%- include('../partials/header', { title: title, lng: lng, user: user }) %>
-<%- include('../partials/sidebar', { user: user, currentPage: 'marketplace' }) %>
-
+<%- include('../partials/header', { title: title, lng: lng || 'uz', user: user, t: t }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'marketplace', t: t }) %>
 <!-- Main Content -->
 <main class="admin-main">
   <div class="admin-content">
@@ -11,18 +10,18 @@
         <div class="header-title-section">
           <h1 class="page-title">
             <i class="fas fa-store-alt"></i>
-            B2B Marketplace
+            <%= t('manufacturer.marketplace.pageTitle') %>
           </h1>
-          <p class="page-subtitle">Sizning mahsulotlaringizni global B2B bozorida taqdim eting</p>
+          <p class="page-subtitle"><%= t('manufacturer.marketplace.pageSubtitle') %></p>
         </div>
         <div class="header-actions">
           <button class="btn-primary" id="addProductBtn">
             <i class="fas fa-plus"></i>
-            Mahsulot qo'shish
+            <%= t('manufacturer.marketplace.actions.addProduct') %>
           </button>
           <button class="btn-outline" id="marketplaceAnalyticsBtn">
             <i class="fas fa-chart-bar"></i>
-            Analitika
+            <%= t('manufacturer.marketplace.actions.analytics') %>
           </button>
         </div>
       </div>
@@ -34,7 +33,7 @@
       <!-- Total Views -->
       <div class="stat-card info animate-fade-in" data-metric="views">
         <div class="stat-header">
-          <h3 class="stat-title">Umumiy ko'rishlar</h3>
+          <h3 class="stat-title"><%= t('manufacturer.marketplace.metrics.totalViews') %></h3>
           <div class="stat-icon info">
             <i class="fas fa-eye"></i>
           </div>
@@ -46,14 +45,14 @@
         </div>
         <div class="stat-change positive">
           <i class="fas fa-arrow-up stat-change-icon"></i>
-          <span class="metric-trend">+<%= marketplaceMetrics?.growth?.views || 15 %>% bu oy</span>
+          <span class="metric-trend">+<%= marketplaceMetrics?.growth?.views || 15 %>% <%= t('manufacturer.marketplace.metrics.thisMonth') %></span>
         </div>
       </div>
 
       <!-- Conversion Rate -->
       <div class="stat-card success animate-fade-in" data-metric="conversion">
         <div class="stat-header">
-          <h3 class="stat-title">Konversiya darajasi</h3>
+          <h3 class="stat-title"><%= t('manufacturer.marketplace.metrics.conversionRate') %></h3>
           <div class="stat-icon success">
             <i class="fas fa-chart-line"></i>
           </div>
@@ -65,14 +64,14 @@
         </div>
         <div class="stat-change positive">
           <i class="fas fa-arrow-up stat-change-icon"></i>
-          <span class="metric-trend">+<%= marketplaceMetrics?.growth?.orders || 12 %>% o'sish</span>
+          <span class="metric-trend">+<%= marketplaceMetrics?.growth?.orders || 12 %>% <%= t('manufacturer.marketplace.metrics.growth') %></span>
         </div>
       </div>
 
       <!-- Inquiry Response Rate -->
       <div class="stat-card warning animate-fade-in" data-metric="response">
         <div class="stat-header">
-          <h3 class="stat-title">Javob berish darajasi</h3>
+          <h3 class="stat-title"><%= t('manufacturer.marketplace.metrics.responseRate') %></h3>
           <div class="stat-icon warning">
             <i class="fas fa-reply"></i>
           </div>
@@ -84,14 +83,14 @@
         </div>
         <div class="stat-change positive">
           <i class="fas fa-arrow-up stat-change-icon"></i>
-          <span class="metric-trend">+<%= marketplaceMetrics?.growth?.inquiries || 8 %>% yaxshilandi</span>
+          <span class="metric-trend">+<%= marketplaceMetrics?.growth?.inquiries || 8 %>% <%= t('manufacturer.marketplace.metrics.improved') %></span>
         </div>
       </div>
 
       <!-- Marketplace Ranking -->
       <div class="stat-card primary animate-fade-in" data-metric="ranking">
         <div class="stat-header">
-          <h3 class="stat-title">Bozor reytingi</h3>
+          <h3 class="stat-title"><%= t('manufacturer.marketplace.metrics.marketplaceRanking') %></h3>
           <div class="stat-icon primary">
             <i class="fas fa-trophy"></i>
           </div>
@@ -107,7 +106,7 @@
         </div>
         <div class="stat-change neutral">
           <i class="fas fa-arrow-right stat-change-icon"></i>
-          <span class="metric-trend">Barqaror pozitsiya</span>
+          <span class="metric-trend"><%= t('manufacturer.marketplace.metrics.stablePosition') %></span>
         </div>
       </div>
 
@@ -122,14 +121,14 @@
           <div class="widget-header">
             <h3 class="widget-title">
               <i class="fas fa-star"></i>
-              Tavsiya etiladigan mahsulotlar
+              <%= t('manufacturer.marketplace.featuredProducts.title') %>
             </h3>
             <div class="widget-actions">
               <button class="btn-sm btn-ghost" id="refreshProductsBtn">
                 <i class="fas fa-sync-alt"></i>
               </button>
               <a href="/manufacturer/products" class="widget-action-link">
-                Barchasini ko'rish
+                <%= t('manufacturer.marketplace.featuredProducts.viewAll') %>
               </a>
             </div>
           </div>
@@ -213,14 +212,14 @@
                       </div>
 
                       <!-- View Details Button - Top Right -->
-                      <button class="view-details-btn" data-action="view-details" data-product-id="<%= product._id || '' %>" title="To'liq ma'lumot">
+                      <button class="view-details-btn" data-action="view-details" data-product-id="<%= product._id || '' %>" title="<%= t('manufacturer.marketplace.featuredProducts.viewDetails') %>">
                         <i class="fas fa-eye"></i>
                       </button>
 
                       <!-- Stock Status - Bottom Right -->
                       <div class="stock-status stock-<%= product.availabilityInfo?.status || 'available' %>">
                         <i class="fas fa-<%= product.availabilityInfo?.status === 'available' ? 'check-circle' : product.availabilityInfo?.status === 'limited' ? 'exclamation-triangle' : 'times-circle' %>"></i>
-                        <%= product.availabilityInfo?.message || 'Mavjud' %>
+                        <%= product.availabilityInfo?.message || t('manufacturer.marketplace.featuredProducts.available') %>
                       </div>
                     </div>
 
@@ -229,8 +228,8 @@
                       
                       <!-- Product Header -->
                       <div class="product-header">
-                        <h3 class="product-title" title="<%= product.title || product.name || 'Unnamed Product' %>">
-                          <%= (product.title || product.name || 'Unnamed Product') %>
+                        <h3 class="product-title" title="<%= product.title || product.name || t('manufacturer.marketplace.featuredProducts.unnamedProduct') %>">
+                          <%= (product.title || product.name || t('manufacturer.marketplace.featuredProducts.unnamedProduct')) %>
                         </h3>
                         <div class="product-id">ID: <%= product._id.toString().slice(-8).toUpperCase() %></div>
                       </div>
@@ -239,7 +238,7 @@
                       <div class="product-category-desc">
                         <div class="product-category">
                           <i class="fas fa-tag"></i>
-                          <%= typeof product.category === 'string' ? product.category : (product.category && product.category.name ? product.category.name : (product.category && product.category._id ? product.category._id : 'Kategoriyasiz')) %>
+                          <%= typeof product.category === 'string' ? product.category : (product.category && product.category.name ? product.category.name : (product.category && product.category._id ? product.category._id : t('manufacturer.marketplace.featuredProducts.noCategory'))) %>
                         </div>
                       </div>
 
@@ -252,17 +251,17 @@
                                 <%= product.priceDisplay.display %>
                               </span>
                               <% if (product.priceDisplay.type === 'range') { %>
-                                <span class="price-note">Dona uchun</span>
+                                <span class="price-note"><%= t('manufacturer.marketplace.featuredProducts.perUnit') %></span>
                               <% } %>
                             <% } else { %>
-                              <span class="price-amount price-quote">Narx so'raladi</span>
+                              <span class="price-amount price-quote"><%= t('manufacturer.marketplace.featuredProducts.priceOnRequest') %></span>
                             <% } %>
                           </div>
                           
                           <div class="pricing-details">
                             <div class="moq-info">
-                              <span class="moq-label">Eng kam:</span>
-                              <span class="moq-value"><%= (product.moq || 100).toLocaleString() %> dona</span>
+                              <span class="moq-label"><%= t('manufacturer.marketplace.featuredProducts.minimum') %>:</span>
+                              <span class="moq-value"><%= (product.moq || 100).toLocaleString() %> <%= t('manufacturer.marketplace.featuredProducts.unit') %></span>
                             </div>
                           </div>
                         </div>
@@ -288,11 +287,11 @@
                       <div class="product-actions">
                         <button class="btn-action btn-primary" data-action="edit" data-product-id="<%= product._id || '' %>">
                           <i class="fas fa-edit"></i>
-                          <span>Tahrirlash</span>
+                          <span><%= t('manufacturer.marketplace.featuredProducts.edit') %></span>
                         </button>
                         <button class="btn-action btn-secondary" data-action="stats" data-product-id="<%= product._id || '' %>">
                           <i class="fas fa-chart-line"></i>
-                          <span>Statistika</span>
+                          <span><%= t('manufacturer.marketplace.featuredProducts.statistics') %></span>
                         </button>
                       </div>
 
@@ -304,11 +303,11 @@
                   <div class="empty-icon">
                     <i class="fas fa-box-open"></i>
                   </div>
-                  <h3 class="empty-title">Mahsulotlar topilmadi</h3>
-                  <p class="empty-description">Marketplace'da ko'rsatish uchun mahsulot qo'shing</p>
+                  <h3 class="empty-title"><%= t('manufacturer.marketplace.featuredProducts.noProducts') %></h3>
+                  <p class="empty-description"><%= t('manufacturer.marketplace.featuredProducts.noProductsDesc') %></p>
                   <button class="btn-primary" onclick="window.location.href='/manufacturer/products/add';">
                     <i class="fas fa-plus"></i>
-                    Birinchi mahsulotni qo'shish
+                    <%= t('manufacturer.marketplace.featuredProducts.addFirstProduct') %>
                   </button>
                 </div>
               <% } %>
@@ -326,10 +325,10 @@
           <div class="widget-header">
             <h3 class="widget-title">
               <i class="fas fa-envelope-open"></i>
-              So'nggi so'rovlar
+              <%= t('manufacturer.marketplace.recentInquiries.title') %>
             </h3>
             <a href="/manufacturer/inquiries" class="widget-action-link">
-              Barchasini ko'rish
+              <%= t('manufacturer.marketplace.recentInquiries.viewAll') %>
             </a>
           </div>
           <div class="widget-body">
@@ -344,52 +343,52 @@
                           <%= (inquiry.company || 'U').charAt(0) %>
                         </div>
                         <div class="company-details">
-                          <h4 class="company-name"><%= inquiry.company || 'Noma\'lum kompaniya' %></h4>
+                          <h4 class="company-name"><%= inquiry.company || t('manufacturer.marketplace.recentInquiries.unknownCompany') %></h4>
                           <span class="inquiry-time">
-                            <%= inquiry.createdAt ? new Date(inquiry.createdAt).toLocaleDateString('uz-UZ') : 'Bugun' %>
+                            <%= inquiry.createdAt ? new Date(inquiry.createdAt).toLocaleDateString('uz-UZ') : t('manufacturer.marketplace.recentInquiries.today') %>
                           </span>
                         </div>
                       </div>
                       <div class="inquiry-priority priority-<%= inquiry.priority || 'medium' %>">
                         <% if (inquiry.priority === 'high') { %>
                           <i class="fas fa-exclamation-circle"></i>
-                          Shoshilinch
+                          <%= t('manufacturer.marketplace.recentInquiries.priority.high') %>
                         <% } else if (inquiry.priority === 'medium') { %>
                           <i class="fas fa-circle"></i>
-                          O'rta
+                          <%= t('manufacturer.marketplace.recentInquiries.priority.medium') %>
                         <% } else { %>
                           <i class="fas fa-circle"></i>
-                          Oddiy
+                          <%= t('manufacturer.marketplace.recentInquiries.priority.low') %>
                         <% } %>
                       </div>
                     </div>
                     <div class="inquiry-content">
                       <p class="inquiry-product">
                         <i class="fas fa-cube"></i>
-                        <%= inquiry.product || 'Umumiy so\'rov' %>
+                        <%= inquiry.product || t('manufacturer.marketplace.recentInquiries.generalInquiry') %>
                       </p>
                       <div class="inquiry-details">
                         <span class="quantity">
                           <i class="fas fa-sort-numeric-up"></i>
-                          <%= inquiry.quantity || 'So\'raladi' %>
+                          <%= inquiry.quantity || t('manufacturer.marketplace.recentInquiries.toBeDiscussed') %>
                         </span>
                         <span class="budget">
                           <i class="fas fa-dollar-sign"></i>
-                          <%= inquiry.budget || 'Muhokama' %>
+                          <%= inquiry.budget || t('manufacturer.marketplace.recentInquiries.toBeDiscussed') %>
                         </span>
                       </div>
                       <p class="inquiry-message">
-                        <%= inquiry.message ? (inquiry.message.length > 80 ? inquiry.message.substring(0, 80) + '...' : inquiry.message) : 'So\'rov xabari' %>
+                        <%= inquiry.message ? (inquiry.message.length > 80 ? inquiry.message.substring(0, 80) + '...' : inquiry.message) : t('manufacturer.marketplace.recentInquiries.inquiryMessage') %>
                       </p>
                     </div>
                     <div class="inquiry-actions">
                       <button class="btn-sm btn-primary" data-action="respond" data-inquiry-id="<%= inquiry.id || '' %>">
                         <i class="fas fa-reply"></i>
-                        Javob berish
+                        <%= t('manufacturer.marketplace.recentInquiries.respond') %>
                       </button>
                       <button class="btn-sm btn-outline" data-action="quote" data-inquiry-id="<%= inquiry.id || '' %>">
                         <i class="fas fa-file-invoice-dollar"></i>
-                        Taklif
+                        <%= t('manufacturer.marketplace.recentInquiries.quote') %>
                       </button>
                     </div>
                   </div>
@@ -399,7 +398,7 @@
                   <div class="empty-icon">
                     <i class="fas fa-inbox"></i>
                   </div>
-                  <p class="empty-text">Yangi so'rovlar yo'q</p>
+                  <p class="empty-text"><%= t('manufacturer.marketplace.recentInquiries.noInquiries') %></p>
                 </div>
               <% } %>
               
@@ -412,7 +411,7 @@
           <div class="widget-header">
             <h3 class="widget-title">
               <i class="fas fa-chart-pie"></i>
-              Bozor ko'rsatkichlari
+              <%= t('manufacturer.marketplace.performance.title') %>
             </h3>
           </div>
           <div class="widget-body">
@@ -423,9 +422,9 @@
                   <i class="fas fa-eye"></i>
                 </div>
                 <div class="performance-info">
-                  <span class="performance-label">Ko'rinish</span>
+                  <span class="performance-label"><%= t('manufacturer.marketplace.performance.visibility') %></span>
                   <span class="performance-value high">
-                    <%= marketplaceMetrics?.visibility || 'Yuqori' %>
+                    <%= marketplaceMetrics?.visibility || t('manufacturer.marketplace.performance.high') %>
                   </span>
                 </div>
               </div>
@@ -435,7 +434,7 @@
                   <i class="fas fa-medal"></i>
                 </div>
                 <div class="performance-info">
-                  <span class="performance-label">Raqobat ballari</span>
+                  <span class="performance-label"><%= t('manufacturer.marketplace.performance.competitiveScore') %></span>
                   <span class="performance-value score">
                     <%= marketplaceMetrics?.competitiveScore || 75 %>/100
                   </span>
@@ -447,7 +446,7 @@
                   <i class="fas fa-trending-up"></i>
                 </div>
                 <div class="performance-info">
-                  <span class="performance-label">O'sish sur'ati</span>
+                  <span class="performance-label"><%= t('manufacturer.marketplace.performance.growthRate') %></span>
                   <span class="performance-value positive">
                     +<%= marketplaceMetrics?.growth?.views || 15 %>%
                   </span>
@@ -472,7 +471,7 @@
       <div class="widget-header">
         <h3 class="widget-title">
           <i class="fas fa-users-cog"></i>
-          Raqobat tahlili
+          <%= t('manufacturer.marketplace.competitorAnalysis.title') %>
         </h3>
         <div class="widget-actions">
           <button class="btn-sm btn-ghost" id="refreshCompetitorBtn">
@@ -480,7 +479,7 @@
           </button>
           <button class="btn-sm btn-outline" id="detailedAnalysisBtn">
             <i class="fas fa-chart-area"></i>
-            Batafsil tahlil
+            <%= t('manufacturer.marketplace.competitorAnalysis.detailedAnalysis') %>
           </button>
         </div>
       </div>
@@ -490,20 +489,20 @@
           <!-- Market Position -->
           <div class="competitor-card">
             <div class="competitor-header">
-              <h4 class="competitor-title">Bozordagi pozitsiya</h4>
+              <h4 class="competitor-title"><%= t('manufacturer.marketplace.competitorAnalysis.marketPosition') %></h4>
               <div class="position-badge position-<%= (competitorAnalysis?.marketPosition || 'good').toLowerCase() %>">
-                <%= competitorAnalysis?.marketPosition || 'Yaxshi' %>
+                <%= competitorAnalysis?.marketPosition || t('manufacturer.marketplace.competitorAnalysis.good') %>
               </div>
             </div>
             <div class="competitor-content">
               <div class="position-stats">
                 <div class="stat-item">
-                  <span class="stat-label">Raqobatchilar</span>
+                  <span class="stat-label"><%= t('manufacturer.marketplace.competitorAnalysis.competitors') %></span>
                   <span class="stat-value"><%= competitorAnalysis?.competitorCount || 20 %></span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-label">Narx raqobati</span>
-                  <span class="stat-value"><%= competitorAnalysis?.priceCompetitiveness || 'O\'rtacha' %></span>
+                  <span class="stat-label"><%= t('manufacturer.marketplace.competitorAnalysis.priceCompetitiveness') %></span>
+                  <span class="stat-value"><%= competitorAnalysis?.priceCompetitiveness || t('manufacturer.marketplace.competitorAnalysis.average') %></span>
                 </div>
               </div>
             </div>
@@ -512,9 +511,9 @@
           <!-- Strengths -->
           <div class="competitor-card">
             <div class="competitor-header">
-              <h4 class="competitor-title">Kuchli tomonlar</h4>
+              <h4 class="competitor-title"><%= t('manufacturer.marketplace.competitorAnalysis.strengths') %></h4>
               <div class="strengths-count">
-                <%= (competitorAnalysis?.strengths || []).length %> ta
+                <%= (competitorAnalysis?.strengths || []).length %> <%= t('manufacturer.marketplace.competitorAnalysis.items') %>
               </div>
             </div>
             <div class="competitor-content">
@@ -529,11 +528,11 @@
                 <% } else { %>
                   <li class="strength-item">
                     <i class="fas fa-check-circle"></i>
-                    Sifatli mahsulotlar
+                    <%= t('manufacturer.marketplace.competitorAnalysis.defaultStrengths.qualityProducts') %>
                   </li>
                   <li class="strength-item">
                     <i class="fas fa-check-circle"></i>
-                    Tez yetkazib berish
+                    <%= t('manufacturer.marketplace.competitorAnalysis.defaultStrengths.fastDelivery') %>
                   </li>
                 <% } %>
               </ul>
@@ -543,9 +542,9 @@
           <!-- Opportunities -->
           <div class="competitor-card">
             <div class="competitor-header">
-              <h4 class="competitor-title">Imkoniyatlar</h4>
+              <h4 class="competitor-title"><%= t('manufacturer.marketplace.competitorAnalysis.opportunities') %></h4>
               <div class="opportunities-count">
-                <%= (competitorAnalysis?.opportunities || []).length %> ta
+                <%= (competitorAnalysis?.opportunities || []).length %> <%= t('manufacturer.marketplace.competitorAnalysis.items') %>
               </div>
             </div>
             <div class="competitor-content">
@@ -560,11 +559,11 @@
                 <% } else { %>
                   <li class="opportunity-item">
                     <i class="fas fa-lightbulb"></i>
-                    Mahsulot assortimentini kengaytirish
+                    <%= t('manufacturer.marketplace.competitorAnalysis.defaultOpportunities.expandAssortment') %>
                   </li>
                   <li class="opportunity-item">
                     <i class="fas fa-lightbulb"></i>
-                    Marketing faolligini oshirish
+                    <%= t('manufacturer.marketplace.competitorAnalysis.defaultOpportunities.increaseMarketing') %>
                   </li>
                 <% } %>
               </ul>
@@ -582,7 +581,7 @@
 <div class="modal-overlay" id="productDetailsModal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2 class="modal-title">Mahsulot ma'lumotlari</h2>
+      <h2 class="modal-title"><%= t('manufacturer.marketplace.modal.productDetails') %></h2>
       <button class="modal-close" id="closeModal">
         <i class="fas fa-times"></i>
       </button>
@@ -591,7 +590,7 @@
       <!-- Dinamik kontent shu yerga yuklanadi -->
       <div class="loading-content">
         <div class="loading-spinner"></div>
-        <p>Ma'lumot yuklanmoqda...</p>
+        <p><%= t('manufacturer.marketplace.modal.loading') %></p>
       </div>
     </div>
   </div>

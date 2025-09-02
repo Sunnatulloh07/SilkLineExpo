@@ -74,7 +74,7 @@ class AnalyticsCharts {
      */
     async fetchAllAnalyticsData() {
         try {
-            console.log('🔄 Fetching all analytics data with consistent time range:', this.currentTimeRange);
+            // Fetching all analytics data with consistent time range
             
             // Fetch all data in parallel with SAME time range parameters
             const [overviewData, revenueData, userActivity, productData, geographicData] = await Promise.all([
@@ -112,7 +112,7 @@ class AnalyticsCharts {
             // Hide loading state
             this.hideLoadingState();
             
-            console.log('✅ All analytics data fetched and synced successfully');
+            // All analytics data fetched and synced successfully
             
         } catch (error) {
             console.error('❌ Error fetching analytics data:', error);
@@ -135,7 +135,7 @@ class AnalyticsCharts {
             const overviewActiveUsers = overview.activeUsers || 0;
             const overviewTotalUsers = overview.totalUsers || 0;
             
-            console.log('📊 User Data Validation:');
+            // User Data Validation
             console.log('  - Overview total users:', overviewTotalUsers);
             console.log('  - Overview active users:', overviewActiveUsers);
             console.log('  - User chart total:', userChartTotal);
@@ -154,7 +154,7 @@ class AnalyticsCharts {
                         Math.max(0, overview.rawUserData.total - overview.rawUserData.active - (overview.rawUserData.blocked || 0) - (overview.rawUserData.pending || 0))
                     ];
                     
-                    console.log('🔧 Applying consistent user data to charts:', consistentSeries);
+                    // Applying consistent user data to charts
                     
                     // Update stored data for consistency
                     this.analyticsData.users.series = consistentSeries;
@@ -166,14 +166,14 @@ class AnalyticsCharts {
             
             // Revenue consistency
             if (overview.totalRevenue) {
-                console.log('💰 Revenue Data:');
+                // Revenue Data
                 console.log('  - Overview total revenue:', overview.totalRevenue);
                 console.log('  - Revenue trend:', overview.trends?.revenue);
             }
             
             // Product consistency
             if (products?.products) {
-                console.log('📦 Product Data:');
+                // Product Data
                 console.log('  - Product count:', products.products.length);
                 console.log('  - Top product revenue:', products.products[0]?.revenue || 'N/A');
             }
@@ -181,7 +181,7 @@ class AnalyticsCharts {
             // Geographic consistency  
             if (geographic?.countries) {
                 const geoTotal = geographic.countries.reduce((sum, country) => sum + country.users, 0);
-                console.log('🌍 Geographic Data:');
+                // Geographic Data
                 console.log('  - Countries count:', geographic.countries.length);
                 console.log('  - Geographic total users:', geoTotal);
                 console.log('  - Percentage of total users:', ((geoTotal / overviewTotalUsers) * 100).toFixed(1) + '%');
@@ -190,7 +190,7 @@ class AnalyticsCharts {
             // Show consistency status
             const isConsistent = Math.abs(userChartTotal - overviewActiveUsers) <= overviewActiveUsers * 0.05; // 5% tolerance
             if (isConsistent) {
-                console.log('✅ Data consistency validation PASSED');
+                // Data consistency validation PASSED
                 this.showDataConsistencyBadge(true);
             } else {
                 console.warn('⚠️ Data consistency validation FAILED - applying corrections');
@@ -248,7 +248,7 @@ class AnalyticsCharts {
                 throw new Error(result.message || 'Failed to fetch overview data');
             }
             
-            console.log('✅ Real overview data fetched:', result.data);
+            // Real overview data fetched
             return result.data;
         } catch (error) {
             console.error('❌ Overview API error:', error);
@@ -278,7 +278,7 @@ class AnalyticsCharts {
                 throw new Error(result.message || 'Failed to fetch revenue data');
             }
             
-            console.log('✅ Real revenue data fetched:', result.data);
+            // Real revenue data fetched
             return result.data;
         } catch (error) {
             console.error('❌ Revenue API error:', error);
@@ -307,7 +307,7 @@ class AnalyticsCharts {
                 throw new Error(result.message || 'Failed to fetch user activity data');
             }
             
-            console.log('✅ Real user activity data fetched:', result.data);
+            // Real user activity data fetched
             return result.data;
         } catch (error) {
             console.error('❌ User activity API error:', error);
@@ -334,7 +334,7 @@ class AnalyticsCharts {
                 throw new Error(result.message || 'Failed to fetch product data');
             }
             
-            console.log('✅ Real product data fetched:', result.data);
+            // Real product data fetched
             return result.data;
         } catch (error) {
             console.error('❌ Product API error:', error);
@@ -360,7 +360,7 @@ class AnalyticsCharts {
                 throw new Error(result.message || 'Failed to fetch geographic data');
             }
             
-            console.log('✅ Real geographic data fetched:', result.data);
+            // Real geographic data fetched
             return result.data;
         } catch (error) {
             console.error('❌ Geographic API error:', error);
@@ -375,7 +375,7 @@ class AnalyticsCharts {
      * Update overview metrics in the UI (Real Data Integration)
      */
     updateOverviewMetrics(data) {
-        console.log('🔄 Updating UI with real overview data:', data);
+        // Updating UI with real overview data
         
         // Update total revenue
         const revenueEl = document.querySelector('#totalRevenue');
@@ -398,7 +398,7 @@ class AnalyticsCharts {
             this.updateGrowthIndicators(data.trends);
         }
         
-        console.log('✅ UI metrics updated successfully');
+        // UI metrics updated successfully
     }
 
     /**
@@ -873,7 +873,7 @@ class AnalyticsCharts {
                     const revenueData = await this.fetchRevenueData();
                     this.initializeRevenueChart(revenueData);
                     
-                    console.log('✅ Revenue chart updated with filter:', filter);
+                    // Revenue chart updated with filter
                     this.showToast(`Revenue chart updated for ${filter}`, 'success');
                 } catch (error) {
                     console.error('❌ Error updating revenue chart:', error);
@@ -1081,7 +1081,7 @@ class AnalyticsCharts {
             </div>
         `).join('');
         
-        console.log('✅ Real-time activities updated with', activities.length, 'items');
+        // Real-time activities updated
     }
 
     /**
@@ -1107,7 +1107,7 @@ class AnalyticsCharts {
      * Start real-time updates (Real Database Integration)
      */
     startRealTimeUpdates() {
-        console.log('🔄 Starting real-time updates with database integration...');
+        // Starting real-time updates with database integration
         
         // Clear any existing interval first
         if (this.realtimeInterval) {
@@ -1130,7 +1130,7 @@ class AnalyticsCharts {
                     throw new Error(result.message || 'Failed to fetch realtime data');
                 }
                 
-                console.log('✅ Real-time data received:', result.data);
+                // Real-time data received
                 this.updateRealtimeMetrics(result.data);
                 
             } catch (error) {
@@ -1168,7 +1168,7 @@ class AnalyticsCharts {
      * Update real-time metrics (Real Data Integration)
      */
     updateRealtimeMetrics(data) {
-        console.log('🔄 Updating real-time metrics:', data);
+        // Updating real-time metrics
         
         // Update online users
         const onlineUsersEl = document.querySelector('[data-metric="onlineUsers"]');
@@ -1183,14 +1183,14 @@ class AnalyticsCharts {
             this.updateRecentActivities(data.recentActivities);
         }
         
-        console.log('✅ Real-time metrics updated successfully');
+        // Real-time metrics updated successfully
     }
 
     /**
      * Show loading state (Enhanced for Real Data)
      */
     showLoadingState() {
-        console.log('🔄 Showing loading state...');
+        // Showing loading state
         
         document.querySelectorAll('.chart-container').forEach(container => {
             container.classList.add('loading');
@@ -1291,7 +1291,7 @@ class AnalyticsCharts {
             </tr>
         `).join('');
         
-        console.log('✅ Products table updated with real data');
+        // Products table updated with real data
     }
     
     /**
@@ -1331,7 +1331,7 @@ class AnalyticsCharts {
             </tr>
         `).join('');
         
-        console.log('✅ Geographic table updated with real data');
+        // Geographic table updated with real data
     }
 }
 

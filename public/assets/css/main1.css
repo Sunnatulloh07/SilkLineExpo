@@ -7296,8 +7296,8 @@ input[type='number'] {
   content: '\f107';
   font-weight: 900;
   font-family: 'Line Awesome Free';
-  right: 0;
-  top: 0px;
+  right: 10px;
+  top: 16px;
   transition: 0.2s linear;
 }
 

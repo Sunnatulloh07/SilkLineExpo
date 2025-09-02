@@ -39,14 +39,14 @@ class DashboardPerformanceOptimizer {
     // Check if token manager is already ready
     if (window.tokenManager && window.tokenManager.isReady) {
       this.tokenManagerReady = true;
-      console.log('✅ Token Manager already ready for dashboard');
+              // Token Manager already ready for dashboard
       return;
     }
     
     // Listen for token manager ready event
     window.addEventListener('tokenManagerReady', () => {
       this.tokenManagerReady = true;
-      console.log('✅ Token Manager ready - dashboard can proceed');
+              // Token Manager ready - dashboard can proceed
     }, { once: true });
   }
 
@@ -59,18 +59,17 @@ class DashboardPerformanceOptimizer {
       return;
     }
     
-    console.log('⏳ Waiting for Token Manager...');
     
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
-        console.log('⏰ Token Manager wait timeout - proceeding anyway');
+              // Token Manager wait timeout - proceeding anyway
         resolve();
       }, this.config.tokenManagerTimeout);
       
       window.addEventListener('tokenManagerReady', () => {
         clearTimeout(timeout);
         this.tokenManagerReady = true;
-        console.log('✅ Token Manager ready for dashboard');
+        // Token Manager ready for dashboard  
         resolve();
       }, { once: true });
     });
@@ -126,10 +125,10 @@ class DashboardPerformanceOptimizer {
        
        // Schedule restart after circuit breaker resets
        if (cbInfo.timeUntilReset > 0) {
-         console.log(`⏰ Dashboard will resume in ${Math.round(cbInfo.timeUntilReset/1000)} seconds`);
+              // Dashboard will resume in ${Math.round(cbInfo.timeUntilReset/1000)} seconds
          setTimeout(() => {
            if (!this.isCircuitBreakerOpen()) {
-             console.log('🔄 Circuit breaker reset - resuming dashboard updates');
+             // Circuit breaker reset - resuming dashboard updates
              this.resumeDashboardUpdates();
            }
          }, cbInfo.timeUntilReset + 1000); // Add 1s buffer
@@ -145,7 +144,7 @@ class DashboardPerformanceOptimizer {
        resumeDashboardUpdates() {
       try {
         if (!this.smartUpdateInterval && !this.disabled && !this.isCircuitBreakerOpen()) {
-          console.log('✅ Resuming dashboard smart updates');
+          // Resuming dashboard smart updates
           this.startSmartUpdates();
         }
       } catch (error) {
@@ -177,14 +176,13 @@ class DashboardPerformanceOptimizer {
    */
   async loadDashboardDataFast(priority = 'high') {
     if (this.disabled) {
-      console.log('🚫 Dashboard performance optimizer is disabled');
+      // Dashboard performance optimizer is disabled
       return null;
     }
     
     // CHECK CIRCUIT BREAKER FIRST
     if (this.isCircuitBreakerOpen()) {
       const cbInfo = this.getCircuitBreakerInfo();
-      console.log(`🚫 Dashboard: Circuit breaker ${cbInfo.state} - skipping data load (reset in ${Math.round(cbInfo.timeUntilReset/1000)}s)`);
       this.handleCircuitBreakerOpen(cbInfo);
       return null;
     }
@@ -202,7 +200,6 @@ class DashboardPerformanceOptimizer {
     const cached = this.getCachedData(cacheKey);
     
     if (cached) {
-      console.log('📈 Using cached data for instant display');
       return cached;
     }
 
@@ -224,7 +221,6 @@ class DashboardPerformanceOptimizer {
       
       return data;
     } catch (error) {
-      console.error('❌ Fast data loading failed:', error);
       this.handleLoadingError(priority, error);
       return this.getFallbackData();
     }
@@ -237,7 +233,6 @@ class DashboardPerformanceOptimizer {
     // CHECK CIRCUIT BREAKER BEFORE ANY ATTEMPT
     if (this.isCircuitBreakerOpen()) {
       const cbInfo = this.getCircuitBreakerInfo();
-      console.log(`🚫 Dashboard: Circuit breaker ${cbInfo.state} - blocking request (reset in ${Math.round(cbInfo.timeUntilReset/1000)}s)`);
       throw new Error(`Circuit breaker ${cbInfo.state} - dashboard requests suspended`);
     }
 
@@ -265,12 +260,10 @@ class DashboardPerformanceOptimizer {
       // CHECK CIRCUIT BREAKER BEFORE RETRY
       if (this.isCircuitBreakerOpen()) {
         const cbInfo = this.getCircuitBreakerInfo();
-        console.log(`🚫 Dashboard: Circuit breaker ${cbInfo.state} during retry - stopping (reset in ${Math.round(cbInfo.timeUntilReset/1000)}s)`);
         throw new Error(`Circuit breaker ${cbInfo.state} - retry suspended`);
       }
       
       if (attempt < this.config.retryAttempts) {
-        console.warn(`⚠️ Attempt ${attempt} failed, retrying in ${this.config.retryDelay}ms...`);
         await this.delay(this.config.retryDelay);
         return this.fetchWithRetry(url, options, attempt + 1);
       }
@@ -311,8 +304,6 @@ class DashboardPerformanceOptimizer {
     // Update specific KPI cards based on priority
     if (priority === 'high') {
       this.updateCriticalCards(loadingHtml);
-    } else {
-      this.updateNonCriticalCards(loadingHtml);
     }
   }
 
@@ -370,7 +361,7 @@ class DashboardPerformanceOptimizer {
   getFallbackData() {
     const lastKnown = localStorage.getItem('dashboard_last_known');
     if (lastKnown) {
-      console.log('📋 Using last known data during error');
+      // Using last known data during error
       return JSON.parse(lastKnown);
     }
 
@@ -397,7 +388,7 @@ class DashboardPerformanceOptimizer {
    * Smart Update Strategy
    */
   startSmartUpdates() {
-    console.log('🚀 Starting smart dashboard updates...');
+    // Starting smart dashboard updates...
     
     // Fast updates for critical data (5 seconds)
     setInterval(() => {
@@ -414,7 +405,6 @@ class DashboardPerformanceOptimizer {
    * Retry Loading
    */
   async retryLoading(priority) {
-    console.log(`🔄 Retrying ${priority} priority data...`);
     await this.loadDashboardDataFast(priority);
   }
 
@@ -429,7 +419,7 @@ class DashboardPerformanceOptimizer {
    * Initialize Performance Optimizer
    */
   init() {
-    console.log('⚡ Dashboard Performance Optimizer initialized');
+            // Dashboard Performance Optimizer initialized
     
     // Load initial data immediately
     this.loadDashboardDataFast('high');
@@ -450,7 +440,6 @@ class DashboardPerformanceOptimizer {
         this.cache.delete(key);
       }
     }
-    console.log('🧹 Cache cleanup completed');
   }
 }
 
@@ -458,7 +447,6 @@ class DashboardPerformanceOptimizer {
 if (!window.DISABLE_DASHBOARD_PERFORMANCE) {
   window.dashboardOptimizer = new DashboardPerformanceOptimizer();
 } else {
-  console.log('🚫 Dashboard performance optimizer disabled');
   window.dashboardOptimizer = null;
 }
 

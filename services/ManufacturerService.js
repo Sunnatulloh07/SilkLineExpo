@@ -59,10 +59,7 @@ class ManufacturerService {
     metrics.minTime = Math.min(metrics.minTime, duration);
     metrics.maxTime = Math.max(metrics.maxTime, duration);
     
-    // Log slow operations (over 2 seconds)
-    if (duration > 2000) {
-      this.logger.warn(`🐌 Slow operation detected: ${operation} took ${duration}ms`);
-    }
+
   }
 
   /**
@@ -103,10 +100,7 @@ class ManufacturerService {
       requests.shift();
     }
     
-    // Warn if too many requests
-    if (requests.length > 30) { // 30 requests per minute limit
-      this.logger.warn(`⚠️ High request frequency: ${operation} from ${userId} - ${requests.length} requests/min`);
-    }
+
   }
 
   /**
@@ -125,8 +119,7 @@ class ManufacturerService {
       if (cached && (Date.now() - cached.timestamp < timeout)) {
         const duration = Date.now() - startTime;
         this.trackPerformance(operation, duration, true);
-        this.logger.log(`📦 Cache hit for: ${key} (${duration}ms)`);
-        return cached.data;
+       return cached.data;
       }
 
       // Execute query and cache result
@@ -624,11 +617,7 @@ class ManufacturerService {
         repeatCustomerRate: 0, // Real customer analytics needed
         inventoryTurnover: 0 // Real inventory system needed
       };
-
-    this.logger.log(`✅ Real B2B marketplace stats retrieved for manufacturer: ${manufacturerObjectId}`);
-    this.logger.log(`📊 Stats summary: Products: ${totalProducts}, Orders: ${activeOrders.totalOrders}, Revenue: $${monthlyRevenue.totalRevenue}`);
-    
-    // Clear cache to ensure fresh data
+// Clear cache to ensure fresh data
     this.clearCache();
     
     return stats;
@@ -784,11 +773,8 @@ class ManufacturerService {
    */
   _processTopProducts(topProductsData) {
     try {
-      // Debug: Log raw data
-      this.logger.log(`📊 Processing ${topProductsData.length} top products with real ratings only`);
       
       if (topProductsData.length === 0) {
-        this.logger.log('📊 No top products with real ratings found - returning empty array');
         return [];
       }
       
@@ -796,9 +782,7 @@ class ManufacturerService {
         // Since we filtered for realRating > 0, we can use the rating directly
         const realRating = product.realRating;
         
-        // Debug: Log each product's rating
-        this.logger.log(`📊 Top Product ${index + 1}: "${product.name}" - Rating: ${realRating}, OrderCount: ${product.orderCount}, Sales: $${product.totalSales}`);
-        
+       
         return {
           rank: index + 1,
           id: product.productId,
@@ -815,7 +799,6 @@ class ManufacturerService {
         };
       });
       
-      this.logger.log(`✅ Processed ${processedProducts.length} top products with real ratings only`);
       return processedProducts;
     } catch (error) {
       this.logger.error('❌ Error processing top products:', error);
@@ -980,8 +963,7 @@ class ManufacturerService {
    */
   async getDistributorInquiries(manufacturerId) {
     try {
-      this.logger.log(`🔍 Getting distributor inquiries for manufacturer: ${manufacturerId}`);
-      
+       
       if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
       }
@@ -998,11 +980,7 @@ class ManufacturerService {
         // Debug: Check total inquiries in database
         const totalInDB = await Inquiry.countDocuments({});
         const totalForThisManufacturer = await Inquiry.countDocuments({ supplier: manufacturerObjectId });
-        this.logger.log(`🔍 DB Inquiry Check:`, {
-          totalInquiriesInDB: totalInDB,
-          totalForThisManufacturer: totalForThisManufacturer,
-          manufacturerId: manufacturerObjectId.toString()
-        });
+ 
         
         const [totalInquiries, recentInquiries] = await Promise.all([
           // Get total count
@@ -1015,17 +993,7 @@ class ManufacturerService {
             .limit(5)
         ]);
 
-        this.logger.log(`🔍 Inquiry Query Results:`, {
-          manufacturerObjectId: manufacturerObjectId.toString(),
-          totalInquiries,
-          recentInquiriesCount: recentInquiries.length,
-          recentInquiries: recentInquiries.map(inq => ({
-            id: inq._id.toString(),
-            inquiryNumber: inq.inquiryNumber,
-            status: inq.status,
-            inquirer: inq.inquirer?.companyName || inq.inquirer?.name || 'No inquirer'
-          }))
-        });
+   
 
         // Process inquiries for dashboard format
         const inquiries = recentInquiries.map(inquiry => {
@@ -1079,7 +1047,6 @@ class ManufacturerService {
    */
   async getCommunicationCenter(manufacturerId) {
     try {
-      this.logger.log(`💬 Getting communication center data for manufacturer: ${manufacturerId}`);
       
       if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
@@ -1135,20 +1102,7 @@ class ManufacturerService {
           .limit(20)
         ]);
 
-        this.logger.log(`💬 Communication Center Query Results:`, {
-          manufacturerObjectId: manufacturerObjectId.toString(),
-          recentDistributorsCount: recentDistributors.length,
-          realMessagesCount: realMessages.length,
-          realMessages: realMessages.slice(0, 3).map(msg => ({
-            id: msg._id.toString(),
-            senderId: msg.senderId._id.toString(),
-            recipientId: msg.recipientId._id.toString(),
-            content: msg.content?.substring(0, 50) + '...',
-            status: msg.status,
-            orderId: msg.orderId?._id?.toString()
-          }))
-        });
-
+  
         // Process real messages into chat previews
         const chatPreviews = [];
         
@@ -1258,7 +1212,6 @@ class ManufacturerService {
    */
   async getInventoryManagement(manufacturerId) {
     try {
-      this.logger.log(`📦 Getting inventory management data for manufacturer: ${manufacturerId}`);
       
       if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
@@ -1506,8 +1459,7 @@ class ManufacturerService {
    */
   async getProductionMetrics(manufacturerId, period = '30') {
     try {
-      this.logger.log(`📊 Getting real B2B production metrics for manufacturer: ${manufacturerId}, period: ${period}`);
-
+    
       // Validate manufacturer ID
       if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
@@ -1802,9 +1754,6 @@ class ManufacturerService {
         recentOrders: [] // This would be populated from a separate query if needed
       };
 
-      this.logger.log(`✅ Real B2B production metrics retrieved for manufacturer: ${manufacturerId}`);
-      this.logger.log(`📊 Metrics summary: Orders: ${totalOrders}, Products: ${totalProducts}, Customers: ${customerData.totalCustomers}`);
-      
       return metrics;
 
     } catch (error) {
@@ -1857,8 +1806,6 @@ class ManufacturerService {
    */
   async getRecentProductionOrders(manufacturerId, limit = 10) {
     try {
-      this.logger.log(`🏭 Getting recent production orders for manufacturer: ${manufacturerId}`);
-      
       // Validate manufacturer ID
       if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
@@ -1961,7 +1908,7 @@ class ManufacturerService {
           },
           // Production line assignment (this would come from a production system)
           assignedLine: {
-            $concat: ['Line-', { $substr: [{ $toString: '$_id' }, -2, 2] }]
+            $concat: ['Line-', { $substr: [{ $toString: '$_id' }, 0, 2] }]
           }
         }
       },
@@ -1987,7 +1934,6 @@ class ManufacturerService {
       updatedAt: order.updatedAt
     }));
 
-    this.logger.log(`✅ Retrieved ${transformedOrders.length} recent production orders`);
     return transformedOrders;
   }
 
@@ -2015,7 +1961,6 @@ class ManufacturerService {
    */
   async getEquipmentStatus(manufacturerId) {
     try {
-      this.logger.log(`🏭 Getting equipment status for manufacturer: ${manufacturerId}`);
       
       // Validate manufacturer ID
       if (!ObjectId.isValid(manufacturerId)) {
@@ -2098,7 +2043,6 @@ class ManufacturerService {
       lastUpdated: new Date()
     };
 
-    this.logger.log(`✅ Generated equipment status: ${totalLines} lines, ${operational} operational`);
     return equipment;
   }
 
@@ -2112,6 +2056,7 @@ class ManufacturerService {
     const lines = [];
     const lineTypes = ['Weaving', 'Dyeing', 'Finishing', 'Cutting', 'Packaging'];
     const baseLineCount = Math.max(5, Math.min(15, products.length + 2));
+    const totalLines = baseLineCount; // Define totalLines variable
 
     for (let i = 0; i < baseLineCount; i++) {
       const lineId = `Line-${String.fromCharCode(65 + Math.floor(i / 3))}-${String(i % 3 + 1).padStart(2, '0')}`;
@@ -2267,8 +2212,7 @@ class ManufacturerService {
    */
   async getSalesAnalytics(manufacturerId, period = '30') {
     try {
-      this.logger.log(`📈 Getting real sales analytics for manufacturer: ${manufacturerId}, period: ${period}`);
-
+   
       // Validate manufacturer ID
       if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
@@ -2559,8 +2503,8 @@ class ManufacturerService {
         products: products.length > 0 ? products : []
       };
 
-      this.logger.log(`✅ Real sales analytics retrieved for manufacturer: ${manufacturerId}`);
-      this.logger.log(`💰 Analytics summary: Revenue: $${currentData.totalRevenue}, Orders: ${currentData.totalOrders}, Growth: ${revenueGrowth.toFixed(1)}%`);
+       
+     
       
       return analytics;
 
@@ -2601,7 +2545,7 @@ class ManufacturerService {
    */
   async getProductionOrders(manufacturerId, options = {}) {
     try {
-      this.logger.log(`🏭 Getting production orders for manufacturer: ${manufacturerId}`, options);
+
       
       // Validate manufacturer ID
       if (!ObjectId.isValid(manufacturerId)) {
@@ -2723,7 +2667,7 @@ class ManufacturerService {
               }
             },
             assignedLine: {
-              $concat: ['Line-', { $substr: [{ $toString: '$_id' }, -2, 2] }]
+              $concat: ['Line-', { $substr: [{ $toString: '$_id' }, 0, 2] }]
             },
             supervisor: 'Production Manager', // This would come from a separate system
             // Quality metrics based on order status
@@ -2818,7 +2762,7 @@ class ManufacturerService {
         }
       };
 
-      this.logger.log(`✅ Retrieved ${transformedOrders.length} production orders (${totalCount} total)`);
+     
       return response;
 
     } catch (error) {
@@ -2919,7 +2863,7 @@ class ManufacturerService {
    */
   async createProductionOrder(manufacturerId, orderData) {
     try {
-      this.logger.log(`🏭 Creating production order for manufacturer: ${manufacturerId}`, orderData);
+       
 
       // Validate manufacturer ID
       if (!ObjectId.isValid(manufacturerId)) {
@@ -3014,7 +2958,6 @@ class ManufacturerService {
         mongoId: savedOrder._id
       };
 
-      this.logger.log(`✅ Production order created: ${response.id}`);
       return response;
 
     } catch (error) {
@@ -3033,9 +2976,7 @@ class ManufacturerService {
    */
   async updateProductionStatus(orderId, manufacturerId, status, notes = '') {
     try {
-      this.logger.log(`🔄 Updating production status for order: ${orderId} -> ${status}`);
-
-      // Validate manufacturer ID
+ // Validate manufacturer ID
       if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
       }
@@ -3121,8 +3062,7 @@ class ManufacturerService {
         progress: this._calculateProgressFromStatus(status)
       };
 
-      this.logger.log(`✅ Production status updated: ${orderId} -> ${status}`);
-      return response;
+ return response;
 
     } catch (error) {
       this.logger.error('❌ Update production status error:', error);
@@ -3171,11 +3111,6 @@ class ManufacturerService {
    */
   async createProduct(productData) {
     try {
-      this.logger.log('🏭 Creating new product...', {
-        manufacturer: productData.manufacturer,
-        name: productData.name,
-        category: productData.category
-      });
 
       // Validate manufacturer ID
       if (!ObjectId.isValid(productData.manufacturer)) {
@@ -3191,28 +3126,15 @@ class ManufacturerService {
       });
       
       if (!manufacturer) {
-        this.logger.error('❌ Manufacturer validation failed:', {
-          searchedId: manufacturerObjectId,
-          searchedRoles: ['manufacturer', 'company_admin']
-        });
+       
         throw new Error('Manufacturer not found or invalid role');
       }
-      
-      this.logger.log('✅ Manufacturer validated:', {
-        id: manufacturer._id,
-        role: manufacturer.role,
-        name: manufacturer.name || manufacturer.companyName
-      });
+
 
       // Professional product data validation and sanitization
       const sanitizedProductData = await this._validateAndSanitizeProductData(productData);
       
-      // Create product with professional structure
-      this.logger.log(`🔍 Final product data before saving:`, {
-        hasImages: !!sanitizedProductData.images,
-        imagesCount: sanitizedProductData.images?.length || 0,
-        images: sanitizedProductData.images
-      });
+
       
       const newProduct = new Product({
         ...sanitizedProductData,
@@ -3259,12 +3181,6 @@ class ManufacturerService {
       // Save to database
       const savedProduct = await newProduct.save();
       
-      this.logger.log(`🔍 Product saved to database:`, {
-        productId: savedProduct._id,
-        savedImagesCount: savedProduct.images?.length || 0,
-        savedImages: savedProduct.images
-      });
-      
       // Professional success response with complete data
       const productResponse = {
         _id: savedProduct._id,
@@ -3283,12 +3199,7 @@ class ManufacturerService {
         createdAt: savedProduct.createdAt,
         marketplaceUrl: `/marketplace/product/${savedProduct._id}`
       };
-      
-      this.logger.log('✅ Product created successfully:', {
-        productId: savedProduct._id,
-        name: savedProduct.name,
-        manufacturer: manufacturer.companyName
-      });
+
       
       // Clear relevant caches
       this.clearManufacturerCaches(productData.manufacturer);
@@ -3296,7 +3207,6 @@ class ManufacturerService {
       return productResponse;
       
     } catch (error) {
-      this.logger.error('❌ Create product error:', error);
       
       // Professional error handling with specific messages
       if (error.name === 'ValidationError') {
@@ -3384,13 +3294,7 @@ class ManufacturerService {
       methods: Array.isArray(productData.shipping?.methods) ? productData.shipping.methods : ['standard']
     };
     
-    // Images (URLs from upload)
-    this.logger.log(`🔍 Processing images in _validateAndSanitizeProductData:`, {
-      hasImages: !!productData.images,
-      isArray: Array.isArray(productData.images),
-      imagesData: productData.images
-    });
-    
+
     // Handle both string array (legacy) and object array (new) formats
     if (Array.isArray(productData.images)) {
       sanitized.images = productData.images.filter(item => {
@@ -3409,11 +3313,7 @@ class ManufacturerService {
     } else {
       sanitized.images = [];
     }
-    
-    this.logger.log(`✅ Sanitized images result:`, {
-      count: sanitized.images.length,
-      images: sanitized.images
-    });
+
     
     return sanitized;
   }
@@ -3561,13 +3461,7 @@ class ManufacturerService {
    */
   async updateProductStatus(productId, manufacturerId, status, notes) {
     try {
-      this.logger.log('🔄 Updating product status:', {
-        productId,
-        manufacturerId,
-        status,
-        notes
-      });
-      
+
       // Validate inputs
       if (!ObjectId.isValid(productId) || !ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid ID format');
@@ -3601,10 +3495,7 @@ class ManufacturerService {
       if (!product) {
         throw new Error('Product not found or access denied');
       }
-      
-      this.logger.log('✅ Product status updated successfully');
-      
-      // Clear relevant caches
+      //  Clear relevant caches
       this.clearManufacturerCaches(manufacturerId);
       
       return {
@@ -3628,11 +3519,7 @@ class ManufacturerService {
    */
   async updateProduct(productId, manufacturerId, updateData) {
     try {
-      this.logger.log('🔄 Updating product:', {
-        productId,
-        manufacturerId,
-        fieldsToUpdate: Object.keys(updateData)
-      });
+
 
       // Step 1: Validate IDs
       if (!ObjectId.isValid(productId) || !ObjectId.isValid(manufacturerId)) {
@@ -3761,11 +3648,6 @@ class ManufacturerService {
         marketplaceUrl: `/marketplace/product/${updatedProduct._id}`
       };
 
-      this.logger.log('✅ Product updated successfully:', {
-        productId: updatedProduct._id,
-        name: updatedProduct.name,
-        fieldsUpdated: Object.keys(sanitizedUpdateData)
-      });
 
       return response;
 
@@ -3938,8 +3820,7 @@ class ManufacturerService {
 
   async getBusinessIntelligence(manufacturerId, period = 30) {
     try {
-      this.logger.log(`📊 Getting business intelligence for manufacturer: ${manufacturerId}, period: ${period}`);
-      
+    
       // Validate manufacturer ID
       if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
@@ -4055,7 +3936,6 @@ class ManufacturerService {
    */
   async getQualityMetrics(manufacturerId, period = '30') {
     try {
-      this.logger.log(`📊 Getting real quality metrics for manufacturer: ${manufacturerId}, period: ${period}`);
 
       // Validate manufacturer ID
       if (!ObjectId.isValid(manufacturerId)) {
@@ -4200,9 +4080,7 @@ class ManufacturerService {
         ordersWithRating: customerFeedback.length
       }
     };
-
-    this.logger.log(`✅ Generated quality metrics: Score: ${qualityMetrics.overview.overallQualityScore}, Defect Rate: ${qualityMetrics.overview.defectRate}%`);
-    return qualityMetrics;
+  return qualityMetrics;
   }
 
   /**
@@ -4570,9 +4448,7 @@ class ManufacturerService {
         }
       };
 
-      this.logger.log(`✅ Real notifications retrieved for manufacturer: ${manufacturerId}`);
-      this.logger.log(`📬 Notifications summary: Total: ${notifications.length}, Unread: ${unreadCount}`);
-      
+ 
       return result;
 
     } catch (error) {
@@ -4614,8 +4490,7 @@ class ManufacturerService {
    */
   async getMarketplaceMetrics(manufacturerId) {
     try {
-      this.logger.log(`🛍️ Getting real marketplace metrics for manufacturer: ${manufacturerId}`);
-      
+ 
       if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
       }
@@ -4806,9 +4681,7 @@ class ManufacturerService {
    */
   async getFeaturedProducts(manufacturerId, limit = 8) {
     try {
-      this.logger.log(`⭐ Getting professional B2B featured products for manufacturer: ${manufacturerId}`);
-      
-      if (!ObjectId.isValid(manufacturerId)) {
+        if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
       }
 
@@ -4961,8 +4834,6 @@ class ManufacturerService {
       const enhancedProducts = products.map((product, index) => {
         const realRating = product.rating && product.rating > 0 ? product.rating : 0.0;
         
-        // Debug: Log each product's rating
-        this.logger.log(`📊 Marketplace Product ${index + 1}: "${product.name}" - Real Rating: ${realRating}, OrderCount: ${product.orderCount}`);
         
         return {
           ...product,
@@ -4986,13 +4857,7 @@ class ManufacturerService {
         };
       });
 
-      // Debug: Log rating information for each product
-      enhancedProducts.forEach((product, index) => {
-        this.logger.log(`📊 Product ${index + 1}: "${product.name}" - Rating: ${product.rating}, AverageRating: ${product.averageRating}, OrderCount: ${product.orderCount}`);
-      });
-      
-      this.logger.log(`✅ Found ${enhancedProducts.length} professional B2B featured products`);
-      return enhancedProducts;
+       return enhancedProducts;
 
     } catch (error) {
       this.logger.error('❌ Get featured products error:', error);
@@ -5088,9 +4953,7 @@ class ManufacturerService {
    */
   async getRecentInquiries(manufacturerId, limit = 10) {
     try {
-      this.logger.log(`💬 Getting real recent inquiries for manufacturer: ${manufacturerId}`);
-      
-      if (!ObjectId.isValid(manufacturerId)) {
+       if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
       }
 
@@ -5202,9 +5065,7 @@ class ManufacturerService {
         };
       });
 
-      // Return actual database inquiries without fake supplements
-      this.logger.log(`✅ Found ${inquiries.length} real inquiries from database`);
-      return inquiries.slice(0, limit);
+       return inquiries.slice(0, limit);
 
     } catch (error) {
       this.logger.error('❌ Get recent inquiries error:', error);
@@ -5223,8 +5084,7 @@ class ManufacturerService {
    */
   async getCompetitorAnalysis(manufacturerId) {
     try {
-      this.logger.log(`📊 Getting real competitor analysis for manufacturer: ${manufacturerId}`);
-      
+   
       if (!ObjectId.isValid(manufacturerId)) {
         throw new Error('Invalid manufacturer ID format');
       }
@@ -5449,21 +5309,7 @@ class ManufacturerService {
 
 
 
-  /**
-   * Log manufacturer activity
-   * @param {String} manufacturerId - Manufacturer MongoDB ObjectId
-   * @param {String} action - Action performed
-   * @param {Object} metadata - Additional data
-   */
-  async logActivity(manufacturerId, action, metadata = {}) {
-    try {
-      // Implementation for activity logging
-      this.logger.log(`📝 Manufacturer Activity: ${manufacturerId} - ${action}`, metadata);
-    } catch (error) {
-      this.logger.error('❌ Log activity error:', error);
-      // Don't throw error for logging failures
-    }
-      }
+
 
     // ===== PRODUCT MANAGEMENT METHODS =====
 
@@ -5474,13 +5320,11 @@ class ManufacturerService {
         try {
             // Validate ObjectId format
             if (!ObjectId.isValid(productId)) {
-                this.logger.warn(`❌ Invalid product ID format: ${productId}`);
                 return null;
             }
 
             if (!ObjectId.isValid(manufacturerId)) {
-                this.logger.warn(`❌ Invalid manufacturer ID format: ${manufacturerId}`);
-                return null;
+                 return null;
             }
 
             const product = await Product.findOne({
@@ -5492,7 +5336,6 @@ class ManufacturerService {
             .lean();
 
             if (!product) {
-                this.logger.warn(`❌ Product not found or not owned by manufacturer: ${productId}`);
                 return null;
             }
 
@@ -5515,7 +5358,6 @@ class ManufacturerService {
             
             // Don't throw, return null for graceful handling
             if (error.name === 'CastError' || error.message.includes('Cast to ObjectId failed')) {
-                this.logger.warn('⚠️ Invalid ObjectId provided, returning null');
                 return null;
             }
             
@@ -5528,8 +5370,7 @@ class ManufacturerService {
      */
     async getProductCategories() {
         try {
-            this.logger.log('📋 Getting product categories with hierarchy - PROFESSIONAL FIX');
-
+            
             const Category = require('../models/Category');
 
             // FIXED: Use proper schema fields instead of non-existent 'isActive'
@@ -5551,12 +5392,10 @@ class ManufacturerService {
             // Build hierarchical structure for dropdown with proper indentation
             const hierarchicalCategories = this.buildCategoryHierarchy(categories);
 
-            this.logger.log(`✅ FIXED: Found ${categories.length} total categories, ${hierarchicalCategories.length} for dropdown`);
-            return hierarchicalCategories;
+ return hierarchicalCategories;
 
         } catch (error) {
-            this.logger.error('❌ Get categories error:', error);
-            
+ 
             // Enhanced fallback categories with proper ObjectIds
             const mongoose = require('mongoose');
             const fallbackCategories = [
@@ -5597,7 +5436,6 @@ class ManufacturerService {
                 }
             ];
             
-            this.logger.log(`📋 Using ${fallbackCategories.length} professional fallback categories`);
             return fallbackCategories;
         }
     }
@@ -5632,7 +5470,6 @@ class ManufacturerService {
                 });
             });
             
-            this.logger.log(`✅ Built hierarchy with ${result.length} categories for dropdown`);
             return result;
             
         } catch (error) {
@@ -5659,7 +5496,6 @@ class ManufacturerService {
 
             // Validate ObjectId format first
             if (!mongoose.Types.ObjectId.isValid(productId)) {
-                this.logger.warn(`⚠️ Invalid product ID format: ${productId}`);
                 return null;
             }
             
@@ -5672,7 +5508,6 @@ class ManufacturerService {
             }).lean();
 
             if (!product) {
-                this.logger.warn(`⚠️ Product ${productId} not found or not owned by manufacturer ${manufacturerId}`);
                 return null;
             }
             const now = new Date();
@@ -5859,10 +5694,7 @@ class ManufacturerService {
                     stockHealth: inventory.totalStock > inventory.lowStockThreshold
                 })
             };
-
-            this.logger.log(`✅ Comprehensive analytics calculated for product: ${productId}`);
-            
-            return analytics;
+    return analytics;
 
         } catch (error) {
             this.logger.error('❌ Get product analytics error:', error);
@@ -6657,10 +6489,7 @@ class ManufacturerService {
 
             const duration = Date.now() - startTime;
             this.trackPerformance('getProductsWithFilters', duration);
-
-            this.logger.log(`✅ Retrieved ${products.length} filtered products in ${duration}ms`);
-            
-            return {
+  return {
                 products,
                 pagination: pagination_result
             };
@@ -6704,9 +6533,7 @@ class ManufacturerService {
 
             const duration = Date.now() - startTime;
             this.trackPerformance('getActiveCategories', duration);
-
-            this.logger.log(`✅ Retrieved ${categories.length} active categories in ${duration}ms`);
-            return categories;
+    return categories;
 
         } catch (error) {
             this.logger.error('❌ Get active categories error:', error);
@@ -6875,9 +6702,6 @@ class ManufacturerService {
                 }
             };
 
-            this.logger.log(`📊 Settings data prepared for manufacturer: ${manufacturerId}`);
-            this.logger.log(`🖼️ Company logo in settings:`, settingsData.companyLogo);
-
             this.trackPerformance('getManufacturerSettings', Date.now() - startTime, false);
             return settingsData;
 
@@ -6896,45 +6720,35 @@ class ManufacturerService {
     async updateCompanyInfo(manufacturerId, companyData) {
         try {
             const startTime = Date.now();
-            
-            this.logger.log(`📝 Updating company info for manufacturer: ${manufacturerId}`);
-            this.logger.log(`📤 Received company data:`, companyData);
-
+          
             const updateData = {};
             
             // Validate and prepare update data
             if (companyData.companyName) {
                 updateData.companyName = companyData.companyName.trim();
-                this.logger.log(`✓ Company name: ${updateData.companyName}`);
-            }
+                }
             if (companyData.activityType) {
                 updateData.activityType = companyData.activityType;
-                this.logger.log(`✓ Activity type: ${updateData.activityType}`);
-            }
+              }
             if (companyData.taxNumber) {
                 updateData.taxNumber = companyData.taxNumber.trim();
-                this.logger.log(`✓ Tax number: ${updateData.taxNumber}`);
-            }
+}
             if (companyData.establishedYear) {
                 updateData.establishedYear = parseInt(companyData.establishedYear);
-                this.logger.log(`✓ Established year: ${updateData.establishedYear}`);
-            }
+                 }
             if (companyData.employeeCount) {
                 updateData.employeeCount = companyData.employeeCount;
-                this.logger.log(`✓ Employee count: ${updateData.employeeCount}`);
-            }
+               }
             if (companyData.annualRevenue) {
                 updateData.annualRevenue = companyData.annualRevenue;
-                this.logger.log(`✓ Annual revenue: ${updateData.annualRevenue}`);
-            }
+  }
             if (companyData.companyDescription) {
                 updateData.description = companyData.companyDescription.trim();
-                this.logger.log(`✓ Description: ${updateData.description.substring(0, 50)}...`);
-            }
+ }
 
             updateData.updatedAt = new Date();
-            
-            this.logger.log(`💾 Final update data:`, updateData);
+
+          
 
             const result = await User.findByIdAndUpdate(
                 manufacturerId,
@@ -6946,7 +6760,7 @@ class ManufacturerService {
                 throw new Error('Manufacturer not found');
             }
 
-            this.logger.log(`✅ Company info updated successfully for: ${result.companyName || result.email}`);
+       
 
             // Clear cache
             this.clearUserCache(manufacturerId);
@@ -6968,8 +6782,7 @@ class ManufacturerService {
             return { success: true, data: responseData };
 
         } catch (error) {
-            this.logger.error('❌ Error updating company info:', error);
-            this.logger.error('❌ Error details:', {
+          this.logger.error('❌ Error details:', {
                 manufacturerId,
                 companyData,
                 errorMessage: error.message,
@@ -7190,11 +7003,7 @@ class ManufacturerService {
         try {
             const startTime = Date.now();
             const path = require('path');
-            const fs = require('fs');
-
-            this.logger.log(`📷 Uploading company logo for manufacturer: ${manufacturerId}`);
-            this.logger.log(`📁 File details: ${file.filename} (${file.size} bytes, ${file.mimetype})`);
-
+        
             // Get current user to check for existing logo
             const currentUser = await User.findById(manufacturerId);
             if (!currentUser) {
@@ -7207,10 +7016,9 @@ class ManufacturerService {
                 try {
                     if (fs.existsSync(oldLogoPath)) {
                         fs.unlinkSync(oldLogoPath);
-                        this.logger.log(`🗑️ Deleted old logo file: ${currentUser.companyLogo.filename}`);
-                    }
+  }
                 } catch (deleteError) {
-                    this.logger.warn(`⚠️ Could not delete old logo file: ${deleteError.message}`);
+                    
                 }
             }
 
@@ -7240,7 +7048,7 @@ class ManufacturerService {
                 throw new Error('Failed to update user with new logo');
             }
 
-            this.logger.log(`✅ Logo uploaded successfully: ${logoData.url}`);
+ 
 
             // Clear cache
             this.clearUserCache(manufacturerId);
@@ -7648,8 +7456,7 @@ class ManufacturerService {
     async getAverageRating(manufacturerId) {
         try {
             const startTime = Date.now();
-            this.logger.log(`📊 Calculating company average rating for manufacturer: ${manufacturerId}`);
-
+          
             // Validate manufacturer ID
             if (!ObjectId.isValid(manufacturerId)) {
                 throw new Error('Invalid manufacturer ID format');
@@ -7664,7 +7471,7 @@ class ManufacturerService {
             );
 
             if (!products || products.length === 0) {
-                this.logger.log(`ℹ️ No products found for manufacturer: ${manufacturerId}`);
+           
                 return 0;
             }
 
@@ -7681,13 +7488,12 @@ class ManufacturerService {
 
             if (totalReviews > 0) {
                 const weightedAverage = totalWeightedRating / totalReviews;
-                this.logger.log(`✅ Company rating calculated from products: ${weightedAverage.toFixed(1)} (based on ${totalReviews} reviews)`);
+           
                 this.trackPerformance('getAverageRating', Date.now() - startTime);
                 return Math.round(weightedAverage * 10) / 10;
             }
 
-            // Method 2: Try to get from Review model for company reviews
-            try {
+           try {
                 const Review = require('../models/Review');
                 const companyReviews = await Review.aggregate([
                     { 
@@ -7708,7 +7514,7 @@ class ManufacturerService {
 
                 if (companyReviews.length > 0 && companyReviews[0].totalReviews > 0) {
                     const companyRating = companyReviews[0].averageRating;
-                    this.logger.log(`✅ Company rating from company reviews: ${companyRating.toFixed(1)} (${companyReviews[0].totalReviews} reviews)`);
+                 
                     this.trackPerformance('getAverageRating', Date.now() - startTime);
                     return Math.round(companyRating * 10) / 10;
                 }
@@ -7740,8 +7546,7 @@ class ManufacturerService {
 
                 if (commentStats.length > 0 && commentStats[0].totalComments > 0) {
                     const commentRating = commentStats[0].averageRating;
-                    this.logger.log(`✅ Company rating from product comments: ${commentRating.toFixed(1)} (${commentStats[0].totalComments} comments)`);
-                    this.trackPerformance('getAverageRating', Date.now() - startTime);
+                     this.trackPerformance('getAverageRating', Date.now() - startTime);
                     return Math.round(commentRating * 10) / 10;
                 }
             } catch (commentError) {
@@ -7756,7 +7561,7 @@ class ManufacturerService {
             const totalOrders = await Order.countDocuments({ seller: manufacturerObjectId });
             
             if (totalOrders === 0) {
-                this.logger.log(`ℹ️ No rating data found for manufacturer: ${manufacturerId}`);
+           
                 return 0;
             }
             
@@ -7764,8 +7569,7 @@ class ManufacturerService {
             const completionRate = completedOrders / totalOrders;
             const fallbackRating = Math.round((3.5 + (completionRate * 1.5)) * 10) / 10; // 3.5-5.0 range
             
-            this.logger.log(`✅ Company rating from order completion: ${fallbackRating} (${completedOrders}/${totalOrders} completed)`);
-            this.trackPerformance('getAverageRating', Date.now() - startTime);
+           this.trackPerformance('getAverageRating', Date.now() - startTime);
             return fallbackRating;
 
         } catch (error) {
@@ -7782,7 +7586,7 @@ class ManufacturerService {
     async getTotalReviews(manufacturerId) {
         try {
             const startTime = Date.now();
-            this.logger.log(`📊 Calculating total reviews count for manufacturer: ${manufacturerId}`);
+           
 
             if (!ObjectId.isValid(manufacturerId)) {
                 return 0;
@@ -7799,12 +7603,10 @@ class ManufacturerService {
 
             const productReviews = products.reduce((sum, product) => {
                 return sum + (product.totalReviews || 0);
-            }, 0);
+            }, 0);  
 
             totalReviews += productReviews;
-            this.logger.log(`📊 Product reviews count: ${productReviews}`);
-
-            // Method 2: Count from Review model (company reviews)
+           
             try {
                 const Review = require('../models/Review');
                 const companyReviewsCount = await Review.countDocuments({
@@ -7813,10 +7615,8 @@ class ManufacturerService {
                     status: 'approved'
                 });
                 totalReviews += companyReviewsCount;
-                this.logger.log(`📊 Company reviews count: ${companyReviewsCount}`);
-            } catch (reviewError) {
-                this.logger.warn('⚠️ Review model not available for company reviews count');
-            }
+                } catch (reviewError) {
+             }
 
             // Method 3: Count from Comment model (product comments with ratings)
             try {
@@ -7833,12 +7633,11 @@ class ManufacturerService {
                 if (productReviews === 0) {
                     totalReviews += commentsCount;
                 }
-                this.logger.log(`📊 Product comments with ratings: ${commentsCount}`);
+                
             } catch (commentError) {
                 this.logger.warn('⚠️ Comment model not available for comments count');
             }
 
-            this.logger.log(`✅ Total reviews count: ${totalReviews}`);
             this.trackPerformance('getTotalReviews', Date.now() - startTime);
             return totalReviews;
 
@@ -7923,7 +7722,6 @@ class ManufacturerService {
                 index === self.findIndex(c => c.title === capability.title)
             ).slice(0, 6);
 
-            this.logger.log(`✅ Generated ${uniqueCapabilities.length} production capabilities for manufacturer: ${manufacturerId}`);
             return uniqueCapabilities;
 
         } catch (error) {
@@ -8171,8 +7969,7 @@ class ManufacturerService {
             };
 
             this.trackPerformance('uploadProductImage', Date.now() - startTime, false);
-            this.logger.log(`✅ Product image uploaded: ${filename}`);
-            
+           
             return result;
 
         } catch (error) {
@@ -8399,11 +8196,6 @@ class ManufacturerService {
             // Clear relevant caches
             this.clearCacheByPattern(`products_${manufacturerId}`);
             this.clearCacheByPattern(`product_${productId}`);
-
-            this.logger.log('✅ Product updated successfully:', {
-                productId: updatedProduct._id,
-                name: updatedProduct.name
-            });
 
             return updatedProduct;
 
@@ -8675,6 +8467,23 @@ class ManufacturerService {
             if (key.includes(pattern)) {
                 this.cache.delete(key);
             }
+        }
+    }
+
+    /**
+     * Get unread messages count for manufacturer
+     */
+    async getUnreadMessagesCount(manufacturerId) {
+        try {
+            const Message = require('../models/Message');
+            const count = await Message.countDocuments({
+                recipientId: new mongoose.Types.ObjectId(manufacturerId),
+                status: { $in: ['sent', 'delivered'] }
+            });
+            return count;
+        } catch (error) {
+            this.logger.error('❌ Error getting unread messages count:', error);
+            return 0;
         }
     }
 }

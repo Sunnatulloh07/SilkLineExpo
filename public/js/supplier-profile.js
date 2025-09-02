@@ -435,7 +435,48 @@ class SupplierProfileManager {
         const filterType = event.target.name;
         const filterValue = event.target.value;
         
+        // Enhanced filtering with smart product selection
+        if (filterType === 'sortBy') {
+            this.updateProductSortDisplay(filterValue);
+        }
+        
         this.filterProducts(filterType, filterValue);
+    }
+    
+    updateProductSortDisplay(sortType) {
+        const productGrid = document.querySelector('.products-grid');
+        const sortIndicator = document.querySelector('.sort-indicator');
+        
+        if (sortIndicator) {
+            let sortText = 'Default';
+            switch(sortType) {
+                case 'top':
+                case 'featured':
+                    sortText = 'Top Products (Featured, High-rated, Popular)';
+                    break;
+                case 'latest':
+                    sortText = 'Latest Products (Newest First)';
+                    break;
+                case 'rating':
+                    sortText = 'Best Rated Products';
+                    break;
+                case 'popular':
+                    sortText = 'Most Popular Products';
+                    break;
+                case 'price_low':
+                    sortText = 'Price: Low to High';
+                    break;
+                case 'price_high':
+                    sortText = 'Price: High to Low';
+                    break;
+            }
+            sortIndicator.textContent = sortText;
+        }
+        
+        // Add loading animation to product grid
+        if (productGrid) {
+            productGrid.classList.add('loading');
+        }
     }
     
     filterProducts(filterType, filterValue) {
@@ -721,7 +762,7 @@ class SupplierProfileManager {
         
         if (!carousel || !prevBtn || !nextBtn) return;
         
-        const items = carousel.querySelectorAll('.carousel-item');
+        const items = carousel.querySelectorAll('.product-carousel-item');
         if (items.length <= this.getVisibleItemsCount()) {
             // Hide controls if not enough items
             const controls = document.querySelector('.carousel-controls');
@@ -731,40 +772,60 @@ class SupplierProfileManager {
         
         let currentIndex = 0;
         
-        // Calculate item width based on Bootstrap grid and screen size
+        // Professional responsive width calculation
         const getItemWidth = () => {
             const containerWidth = carousel.parentElement.clientWidth;
             const visibleItems = this.getVisibleItemsCount();
-            const gap = 32; // 2rem gap
+            const screenWidth = window.innerWidth;
+            
+            // Responsive gap calculation
+            let gap = 32; // 2rem default
+            if (screenWidth < 768) gap = 16; // 1rem on mobile
+            else if (screenWidth < 992) gap = 24; // 1.5rem on tablet
+            
             const totalGap = gap * (visibleItems - 1);
             return (containerWidth - totalGap) / visibleItems;
         };
         
-        // Update carousel position
+        // Enhanced carousel update with responsive logic
         const updateCarousel = () => {
             const itemWidth = getItemWidth();
-            const gap = 32;
-            const itemWidthWithGap = itemWidth + gap;
+            const screenWidth = window.innerWidth;
             const visibleItems = this.getVisibleItemsCount();
             const maxIndex = Math.max(0, items.length - visibleItems);
+            
+            // Responsive gap
+            let gap = 32;
+            if (screenWidth < 768) gap = 16;
+            else if (screenWidth < 992) gap = 24;
+            
+            const itemWidthWithGap = itemWidth + gap;
             
             // Ensure currentIndex is within bounds
             if (currentIndex > maxIndex) {
                 currentIndex = maxIndex;
             }
             
-            // Set proper widths for responsive grid
+            // Set responsive widths and ensure visibility
             items.forEach((item, index) => {
                 item.style.width = `${itemWidth}px`;
                 item.style.maxWidth = `${itemWidth}px`;
+                item.style.minWidth = `${itemWidth}px`;
+                item.style.flex = '0 0 auto';
+                item.style.display = 'block';
+                item.style.opacity = '1';
             });
             
             const translateX = -(currentIndex * itemWidthWithGap);
             carousel.style.transform = `translateX(${translateX}px)`;
             
-            // Update button states
+            // Update button states with enhanced UX
             prevBtn.disabled = currentIndex === 0;
             nextBtn.disabled = currentIndex >= maxIndex;
+            
+            // Add visual feedback
+            prevBtn.classList.toggle('disabled', currentIndex === 0);
+            nextBtn.classList.toggle('disabled', currentIndex >= maxIndex);
         };
         
         // Previous button click
@@ -928,8 +989,9 @@ class SupplierProfileManager {
     getVisibleItemsCount() {
         const screenWidth = window.innerWidth;
         if (screenWidth < 768) return 1; // Mobile: 1 column
-        if (screenWidth < 1200) return 2; // Tablet: 2 columns (lg-6, md-6)
-        return 3; // Desktop: 3 columns (xl-4)
+        if (screenWidth < 992) return 2; // Tablet: 2 columns (md-6)
+        if (screenWidth < 1200) return 3; // Large: 3 columns (lg-4)
+        return 4; // Desktop XL: 4 columns (xl-3)
     }
     
     // Image Error Handling
@@ -983,4 +1045,64 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     };
+});
+
+// Professional product navigation function
+function navigateToProduct(productUrl) {
+    if (productUrl && productUrl.trim() !== '') {
+        // Add loading state to card
+        const clickedCard = event?.currentTarget;
+        if (clickedCard) {
+            clickedCard.style.opacity = '0.7';
+            clickedCard.style.transform = 'scale(0.98)';
+        }
+        
+        // Navigate with a slight delay for visual feedback
+        setTimeout(() => {
+            window.location.href = productUrl;
+        }, 150);
+    } else {
+        console.error('❌ Invalid product URL provided');
+    }
+}
+
+// Initialize Supplier Profile Manager when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the supplier profile manager
+    window.supplierProfile = new SupplierProfileManager();
+    
+    // Debug log for carousel
+    const carousel = document.getElementById('productsCarousel');
+    const items = carousel?.querySelectorAll('.product-carousel-item');
+    
+    if (carousel && items) {
+        console.log('🎠 Carousel found:', carousel);
+        console.log('📦 Products found:', items.length);
+        console.log('🔧 First product item:', items[0]);
+        
+        // Add additional click handlers for accessibility
+        items.forEach((item, index) => {
+            const card = item.querySelector('.product-item');
+            if (card) {
+                // Add keyboard support
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-label', `View product details`);
+                
+                // Keyboard navigation
+                card.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        card.click();
+                    }
+                });
+                
+                console.log(`✅ Enhanced product card ${index + 1} with accessibility features`);
+            }
+        });
+    } else {
+        console.log('❌ Carousel or products not found');
+        console.log('🔍 Available carousel:', document.getElementById('productsCarousel'));
+        console.log('🔍 Available items:', document.querySelectorAll('.product-carousel-item'));
+    }
 });

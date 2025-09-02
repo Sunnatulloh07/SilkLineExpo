@@ -125,10 +125,22 @@ cartSchema.methods.addItem = function(itemData) {
   } = itemData;
   
   // Check if item already exists
-  const existingItemIndex = this.items.findIndex(item => 
-    item.productId.toString() === productId.toString() &&
-    JSON.stringify(item.selectedSpecs) === JSON.stringify(selectedSpecs)
-  );
+  const existingItemIndex = this.items.findIndex(item => {
+    // Handle both populated and non-populated productId
+    let existingProductId;
+    if (item.productId && typeof item.productId === 'object' && item.productId._id) {
+      // If populated product object, get the _id
+      existingProductId = item.productId._id;
+    } else {
+      // If ObjectId, use as is
+      existingProductId = item.productId;
+    }
+    
+    const productMatch = existingProductId.toString() === productId.toString();
+    const specsMatch = JSON.stringify(item.selectedSpecs) === JSON.stringify(selectedSpecs);
+    
+    return productMatch && specsMatch;
+  });
   
   if (existingItemIndex !== -1) {
     // Update existing item

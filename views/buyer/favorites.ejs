@@ -1,5 +1,10 @@
 <%- include('../partials/header', { title: (t('favorites.pageTitle') || 'My Favorites') + ' - SLEX' }) %>
-<%- include('../partials/navigation') %>
+<%- include('../partials/navigation', { 
+  cartItemsCount: cartItemsCount, 
+  activeOrdersCount: activeOrdersCount, 
+  unreadMessagesCount: unreadMessagesCount,
+  favoritesCount: favoritesCount 
+}) %>
 
 <!-- Professional Favorites Page -->
 <main class="favorites-page">
@@ -420,11 +425,58 @@
   border-color: hsl(var(--main));
 }
 
-.product-image {
+.product-image-container {
   width: 100%;
   height: 200px;
-  object-fit: cover;
   background: #f8f9fa;
+  position: relative;
+  overflow: hidden;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.product-image.image-loaded {
+  opacity: 1;
+}
+
+.product-image:hover {
+  transform: scale(1.05);
+}
+
+/* No Image Placeholder */
+.no-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(45deg, #f8f9fa 25%, transparent 25%), 
+              linear-gradient(-45deg, #f8f9fa 25%, transparent 25%), 
+              linear-gradient(45deg, transparent 75%, #f8f9fa 75%), 
+              linear-gradient(-45deg, transparent 75%, #f8f9fa 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  color: #6c757d;
+  text-align: center;
+}
+
+.no-image-placeholder i {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+.no-image-placeholder span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  opacity: 0.7;
 }
 
 .product-info {
@@ -489,6 +541,8 @@
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .remove-favorite:hover {
@@ -745,6 +799,199 @@
     color: rgba(255, 255, 255, 0.6);
   }
 }
+
+/* ========== TOAST NOTIFICATIONS ========== */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+}
+
+.toast-notification {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e9ecef;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.toast-notification.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast-notification::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: #6c757d;
+}
+
+.toast-notification.toast-success::before {
+  background: #28a745;
+}
+
+.toast-notification.toast-error::before {
+  background: #dc3545;
+}
+
+.toast-notification.toast-info::before {
+  background: #17a2b8;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.toast-content i {
+  font-size: 1.25rem;
+  color: #6c757d;
+}
+
+.toast-success .toast-content i {
+  color: #28a745;
+}
+
+.toast-error .toast-content i {
+  color: #dc3545;
+}
+
+.toast-info .toast-content i {
+  color: #17a2b8;
+}
+
+.toast-content span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #495057;
+  line-height: 1.4;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  border-radius: 4px;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.toast-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #495057;
+}
+
+.toast-close i {
+  font-size: 0.875rem;
+}
+
+/* Mobile responsiveness for toasts */
+@media (max-width: 768px) {
+  .toast-container {
+    left: 10px;
+    right: 10px;
+    max-width: none;
+  }
+  
+  .toast-notification {
+    padding: 0.875rem;
+  }
+  
+  .toast-content span {
+    font-size: 0.85rem;
+  }
+}
+
+/* ========== LOADING STATES ========== */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+.btn.btn-success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+/* Cart count animation */
+#cartItemCount {
+  transition: transform 0.2s ease;
+}
+
+/* Add More button styling */
+.btn.btn-outline-secondary {
+  border-color: #6c757d;
+  color: #6c757d;
+}
+
+.btn.btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+.btn.already-in-cart {
+  position: relative;
+}
+
+.btn.already-in-cart::after {
+  content: '✓';
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #28a745;
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* Spinner animation */
+.la-spinner.la-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 </style>
 
 <!-- Professional JavaScript -->
@@ -859,42 +1106,81 @@ function loadProducts() {
   productsGrid.style.display = 'grid';
   emptyState.style.display = 'none';
   
-  productsGrid.innerHTML = currentProducts.map(product => `
-    <div class="product-card" data-product-id="${product.productId?._id || product._id}">
-      <button class="remove-favorite" onclick="removeFromFavorites('${product.productId?._id || product._id}')" title="<%= t('favorites.actions.removeFromFavorites') || 'Remove from favorites' %>">
+  productsGrid.innerHTML = currentProducts.map(product => {
+    // Smart image URL handling
+    const productData = product.productId || product;
+    const imageArray = productData.images || [];
+    
+    // Find primary image or use first available
+    const primaryImage = imageArray.find(img => img && (img.isPrimary || img.primary)) || imageArray[0];
+    
+    // Extract proper image URL with multiple fallbacks
+    let imageUrl = '/assets/images/placeholder-product.svg';
+    if (primaryImage) {
+      if (typeof primaryImage === 'string') {
+        imageUrl = primaryImage;
+      } else if (primaryImage.url) {
+        imageUrl = primaryImage.url;
+      } else if (primaryImage.src) {
+        imageUrl = primaryImage.src;
+      }
+    }
+    
+    // Clean the URL (remove any undefined/null parts)
+    if (imageUrl && imageUrl !== '/assets/images/placeholder-product.svg') {
+      imageUrl = imageUrl.replace(/\/undefined|\/null/g, '');
+      // Add protocol if missing for external URLs
+      if (imageUrl.startsWith('//')) {
+        imageUrl = 'https:' + imageUrl;
+      }
+    }
+    
+    const productName = productData.name || productData.title || '<%= t("favorites.labels.unknownProduct") || "Unknown Product" %>';
+    const manufacturerName = (product.manufacturerId?.companyName || productData.manufacturer?.companyName || '<%= t("favorites.labels.unknownManufacturer") || "Unknown Manufacturer" %>');
+    const productPrice = productData.pricing?.basePrice || productData.pricing?.unitPrice || productData.price || 0;
+    const productId = productData._id || product._id;
+    
+    return `
+      <div class="product-card" data-product-id="${productId}">
+        <button class="remove-favorite" onclick="removeFromFavorites('${productId}')" title="<%= t('favorites.actions.removeFromFavorites') || 'Remove from favorites' %>">
         <i class="las la-times"></i>
       </button>
       
-      <img src="${product.productId?.images?.[0] || product.images?.[0] || '/assets/images/placeholder-product.svg'}" 
-           alt="${product.productId?.name || product.name}" 
+        <div class="product-image-container">
+          <img src="${imageUrl}" 
+               alt="${productName}" 
            class="product-image"
-           onerror="this.src='/assets/images/placeholder-product.svg'">
+               onerror="handleFavoriteImageError(this)"
+               onload="handleFavoriteImageSuccess(this)"
+               data-product-id="${productId}">
+        </div>
       
       <div class="product-info">
-        <h4 class="product-title">${product.productId?.name || product.name || '<%= t("favorites.labels.unknownProduct") || "Unknown Product" %>'}</h4>
+          <h4 class="product-title">${productName}</h4>
         
         <div class="product-manufacturer">
           <i class="las la-building"></i>
-          <span>${product.manufacturerId?.companyName || '<%= t("favorites.labels.unknownManufacturer") || "Unknown Manufacturer" %>'}</span>
+            <span>${manufacturerName}</span>
         </div>
         
         <div class="product-price">
-          $${(product.productId?.pricing?.unitPrice || product.pricing?.unitPrice || 0).toFixed(2)}
+            $${productPrice.toFixed(2)}
         </div>
         
         <div class="product-actions">
-          <button class="btn btn-primary" onclick="viewProduct('${product.productId?._id || product._id}')">
+            <a href="/product-details?id=${productId}" class="btn btn-primary">
             <i class="las la-eye"></i>
             <%= t('favorites.actions.viewProduct') || 'View Product' %>
-          </button>
-          <button class="btn btn-outline-primary" onclick="addToCart('${product.productId?._id || product._id}')">
+          </a>
+            <button class="btn btn-outline-primary" onclick="addToCart('${productId}')">
             <i class="las la-shopping-cart"></i>
             <%= t('favorites.actions.addToCart') || 'Add to Cart' %>
           </button>
         </div>
       </div>
     </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 // Load suppliers
@@ -941,10 +1227,10 @@ function loadSuppliers() {
       </div>
       
       <div class="supplier-actions">
-        <button class="btn btn-primary" onclick="viewSupplier('${supplier.supplierId?._id || supplier._id}')">
+        <a href="/supplier-details?id=${supplier.supplierId?._id || supplier._id}" class="btn btn-primary">
           <i class="las la-eye"></i>
           <%= t('favorites.actions.viewSupplier') || 'View Supplier' %>
-        </button>
+        </a>
         <button class="btn btn-outline-primary" onclick="contactSupplier('${supplier.supplierId?._id || supplier._id}')">
           <i class="las la-comments"></i>
           <%= t('favorites.actions.contact') || 'Contact' %>
@@ -1243,6 +1529,22 @@ async function clearAllFavorites() {
   try {
     showLoading();
     
+    // Make API call to clear all favorites
+    const response = await fetch('/buyer/api/favorites/clear-all', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to clear favorites');
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
     // Clear local arrays
     currentProducts = [];
     currentSuppliers = [];
@@ -1253,6 +1555,9 @@ async function clearAllFavorites() {
     updateCounts();
     
     showNotification('<%= t("favorites.notifications.allCleared") || "All favorites cleared" %>', 'success');
+    } else {
+      throw new Error(data.message || '<%= t("favorites.notifications.failedToClear") || "Failed to clear favorites" %>');
+    }
     
   } catch (error) {
     console.error('Error clearing favorites:', error);
@@ -1267,8 +1572,112 @@ function viewProduct(productId) {
   window.open(`/products/${productId}`, '_blank');
 }
 
-function addToCart(productId) {
-  window.open(`/products/${productId}?addToCart=true`, '_blank');
+async function addToCart(productId) {
+  // Find the add to cart button (could be primary or secondary after first add)
+  const button = document.querySelector(`[data-product-id="${productId}"] .btn-outline-primary`) ||
+                document.querySelector(`[data-product-id="${productId}"] .btn-outline-secondary`);
+  
+  // Check if product is already being added to prevent double-clicks
+  if (button && button.disabled) {
+    return; // Already processing
+  }
+  
+  try {
+    // Find the product data from current products
+    const productData = currentProducts.find(p => (p.productId?._id || p._id) === productId);
+    if (!productData) {
+      showNotification('<%= t("favorites.notifications.productNotFound") || "Product not found" %>', 'error');
+      return;
+    }
+    
+    // Extract necessary data
+    const product = productData.productId || productData;
+    const manufacturerId = productData.manufacturerId?._id || product.manufacturer?._id;
+    const unitPrice = product.pricing?.basePrice || product.pricing?.unitPrice || product.price || 0;
+    
+    if (!manufacturerId) {
+      showNotification('<%= t("favorites.notifications.manufacturerNotFound") || "Manufacturer information not found" %>', 'error');
+      return;
+    }
+    
+    // Immediately disable button and show loading state
+    if (button) {
+      button.disabled = true;
+      button.innerHTML = '<i class="las la-spinner la-spin"></i> Adding...';
+    }
+    
+    // Make API call to add to cart
+    const response = await fetch('/buyer/api/cart/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({
+        productId: productId,
+        manufacturerId: manufacturerId,
+        quantity: 1, // Default quantity
+        unitPrice: unitPrice,
+        selectedSpecs: {}, // Empty specs for now
+        notes: '' // Empty notes
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to add product to cart');
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      // Check if this is a repeat add (button already has already-in-cart class)
+      const isRepeatAdd = button && button.classList.contains('already-in-cart');
+      
+      // Show appropriate notification
+      if (isRepeatAdd) {
+        showNotification('<%= t("favorites.notifications.quantityIncreased") || "Quantity increased in cart!" %>', 'success');
+      } else {
+        showNotification('<%= t("favorites.notifications.addedToCart") || "Product added to cart successfully!" %>', 'success');
+      }
+      
+      // Update cart count in header
+      updateCartCount();
+      
+      // Update button to show success and then change to "Add More"
+      if (button) {
+        button.innerHTML = '<i class="las la-check"></i> Added!';
+        button.classList.remove('btn-outline-primary', 'btn-outline-secondary');
+        button.classList.add('btn-success');
+        
+        // After 2 seconds, change to "Add More" state
+        setTimeout(() => {
+          button.innerHTML = '<i class="las la-plus"></i> Add More';
+          button.classList.remove('btn-success');
+          button.classList.add('btn-outline-secondary');
+          button.disabled = false;
+          
+          // Add special class to track that it's been added
+          button.classList.add('already-in-cart');
+          
+          // Update the click handler to show different message
+          button.setAttribute('title', 'Add another quantity to cart');
+        }, 2000);
+      }
+      
+    } else {
+      throw new Error(data.message || '<%= t("favorites.notifications.failedToAddToCart") || "Failed to add product to cart" %>');
+    }
+    
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    showNotification('<%= t("favorites.notifications.failedToAddToCart") || "Failed to add product to cart" %>: ' + error.message, 'error');
+    
+    // Reset button on error
+    if (button) {
+      button.innerHTML = '<i class="las la-shopping-cart"></i> <%= t("favorites.actions.addToCart") || "Add to Cart" %>';
+      button.disabled = false;
+    }
+  }
 }
 
 function viewSupplier(supplierId) {
@@ -1293,27 +1702,202 @@ function debounce(func, wait) {
 }
 
 function showLoading() {
-  // Implement loading state
+  // Show loading overlay or spinner
+  const loadingElement = document.getElementById('loadingOverlay');
+  if (loadingElement) {
+    loadingElement.style.display = 'flex';
+  } else {
   console.log('Loading...');
+  }
 }
 
 function hideLoading() {
-  // Implement loading state
+  // Hide loading overlay or spinner
+  const loadingElement = document.getElementById('loadingOverlay');
+  if (loadingElement) {
+    loadingElement.style.display = 'none';
+  } else {
   console.log('Loading complete');
+  }
 }
 
 function showNotification(message, type = 'info') {
-  // Implement notification system
-  console.log(`${type.toUpperCase()}: ${message}`);
+  // Create a modern toast notification
+  const toast = document.createElement('div');
+  toast.className = `toast-notification toast-${type}`;
+  toast.innerHTML = `
+    <div class="toast-content">
+      <i class="las ${type === 'success' ? 'la-check-circle' : type === 'error' ? 'la-exclamation-circle' : 'la-info-circle'}"></i>
+      <span>${message}</span>
+    </div>
+    <button class="toast-close" onclick="this.parentElement.remove()">
+      <i class="las la-times"></i>
+    </button>
+  `;
   
-  // Simple alert for now
-  if (type === 'error') {
-    alert('Error: ' + message);
-  } else if (type === 'success') {
-    alert('Success: ' + message);
-  } else {
-    alert(message);
+  // Add to page
+  let toastContainer = document.getElementById('toastContainer');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toastContainer';
+    toastContainer.className = 'toast-container';
+    document.body.appendChild(toastContainer);
   }
+  
+  toastContainer.appendChild(toast);
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.remove();
+    }
+  }, 5000);
+  
+  // Animate in
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 100);
+}
+
+// Update cart count in header
+function updateCartCount() {
+  // Try to update cart count in navigation
+  const cartCountElement = document.getElementById('cartItemCount') || 
+                          document.querySelector('.cart-count') ||
+                          document.querySelector('[data-cart-count]');
+  
+  if (cartCountElement) {
+    // For now, just add visual feedback that something was added
+    // Add bounce animation
+    cartCountElement.style.transform = 'scale(1.2)';
+    cartCountElement.style.color = '#28a745';
+    
+    setTimeout(() => {
+      cartCountElement.style.transform = 'scale(1)';
+      cartCountElement.style.color = '';
+    }, 300);
+    
+    // Optional: Try to fetch actual count if API becomes available
+    // This is a graceful fallback that won't break if API doesn't exist
+    fetch('/buyer/api/cart')
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.cart && data.cart.items) {
+          const count = data.cart.items.length;
+          cartCountElement.textContent = count > 0 ? `(${count})` : '';
+        }
+      })
+      .catch(error => {
+        // Silently fail - this is just an enhancement
+        console.log('Cart count update unavailable:', error);
+      });
+  }
+}
+
+// Advanced Image Error Handler for Favorites
+const FavoriteImageHandler = {
+  failedImages: new Set(),
+  retryCount: new Map(),
+  maxRetries: 2,
+  retryDelay: 1000,
+  
+  fallbackImages: [
+    '/assets/images/placeholder-product.svg',
+    '/assets/images/no-image.svg',
+    '/images/placeholder-product.png',
+    '/assets/images/default-product.png'
+  ],
+  
+  handleError(img) {
+    const originalSrc = img.dataset.originalSrc || img.src;
+    const currentRetryCount = this.retryCount.get(originalSrc) || 0;
+    
+    console.log(`🖼️ Image load failed: ${originalSrc} (attempt ${currentRetryCount + 1})`);
+    
+    // Store original src for tracking
+    if (!img.dataset.originalSrc) {
+      img.dataset.originalSrc = originalSrc;
+    }
+    
+    // Check if we've already marked this as permanently failed
+    if (this.failedImages.has(originalSrc)) {
+      this.showFinalFallback(img);
+      return;
+    }
+    
+    // Check retry limit
+    if (currentRetryCount >= this.maxRetries) {
+      this.failedImages.add(originalSrc);
+      this.tryFallbackImage(img, 0);
+      return;
+    }
+    
+    // Increment retry count and retry
+    this.retryCount.set(originalSrc, currentRetryCount + 1);
+    
+    setTimeout(() => {
+      console.log(`🔄 Retrying image: ${originalSrc}`);
+      img.src = originalSrc + '?retry=' + Date.now();
+    }, this.retryDelay);
+  },
+  
+  tryFallbackImage(img, fallbackIndex = 0) {
+    if (fallbackIndex >= this.fallbackImages.length) {
+      this.showFinalFallback(img);
+      return;
+    }
+    
+    const fallbackSrc = this.fallbackImages[fallbackIndex];
+    console.log(`🔄 Trying fallback image ${fallbackIndex}: ${fallbackSrc}`);
+    
+    // Create a test image to check if fallback works
+    const testImg = new Image();
+    testImg.onload = () => {
+      img.src = fallbackSrc;
+      img.dataset.fallbackUsed = 'true';
+      console.log(`✅ Fallback image loaded: ${fallbackSrc}`);
+    };
+    testImg.onerror = () => {
+      console.log(`❌ Fallback image failed: ${fallbackSrc}`);
+      this.tryFallbackImage(img, fallbackIndex + 1);
+    };
+    testImg.src = fallbackSrc;
+  },
+  
+  showFinalFallback(img) {
+    // Show a CSS-only fallback with product info
+    const container = img.closest('.product-image-container') || img.parentElement;
+    if (container) {
+      container.innerHTML = `
+        <div class="no-image-placeholder">
+          <i class="las la-image"></i>
+          <span>No Image</span>
+        </div>
+      `;
+    }
+    console.log(`🚫 All fallbacks failed, showing CSS placeholder`);
+  },
+  
+  handleSuccess(img) {
+    const originalSrc = img.dataset.originalSrc || img.src;
+    
+    // Remove from failed list if it was there
+    this.failedImages.delete(originalSrc);
+    this.retryCount.delete(originalSrc);
+    
+    // Add success class for CSS animations
+    img.classList.add('image-loaded');
+    console.log(`✅ Image loaded successfully: ${originalSrc}`);
+  }
+};
+
+// Global functions for image handling
+function handleFavoriteImageError(img) {
+  FavoriteImageHandler.handleError(img);
+}
+
+function handleFavoriteImageSuccess(img) {
+  FavoriteImageHandler.handleSuccess(img);
 }
 </script>
 

@@ -10,6 +10,7 @@ const Product = require('../models/Product');
 const Cart = require('../models/Cart');
 const Favorite = require('../models/Favorite');
 const Message = require('../models/Message');
+const Inquiry = require('../models/Inquiry');
 const mongoose = require('mongoose');
 
 class BuyerService {
@@ -29,13 +30,13 @@ class BuyerService {
                 totalSpent,
                 activeSuppliers
             ] = await Promise.all([
-                Order.countDocuments({ buyer: new new mongoose.Types.ObjectId(buyerId) }),
+                Order.countDocuments({ buyer: new mongoose.Types.ObjectId(buyerId) }),
                 Order.countDocuments({ 
-                    buyer: new new mongoose.Types.ObjectId(buyerId),
+                    buyer: new mongoose.Types.ObjectId(buyerId),
                     status: { $in: ['pending', 'confirmed', 'processing', 'manufacturing', 'shipped'] }
                 }),
                 Order.aggregate([
-                    { $match: { buyer: new new mongoose.Types.ObjectId(buyerId) } },
+                    { $match: { buyer: new mongoose.Types.ObjectId(buyerId) } },
                     { $group: { _id: null, total: { $sum: "$totalAmount" } } }
                 ]),
                 User.countDocuments({ 
@@ -831,40 +832,44 @@ class BuyerService {
     }
 
     /**
-     * Get or create conversation with manufacturer
+     * Get or create manufacturer conversation - Fixed to use Inquiry model
      */
     async getOrCreateManufacturerConversation(buyerId, manufacturerId) {
         try {
             const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
             const manufacturerObjectId = new mongoose.Types.ObjectId(manufacturerId);
 
-            // Find existing order between buyer and manufacturer
-            let order = await Order.findOne({
-                buyer: buyerObjectId,
-                seller: manufacturerObjectId
-            }).populate('seller', 'companyName email companyLogo phone')
+            // First, try to find existing inquiry between buyer and manufacturer
+            let inquiry = await Inquiry.findOne({
+                inquirer: buyerObjectId,
+                supplier: manufacturerObjectId
+            }).populate('supplier', 'companyName email companyLogo phone')
             .sort({ createdAt: -1 })
             .lean();
 
-            // If no order exists, create a new inquiry/conversation order
-            if (!order) {
-                const newOrder = new Order({
-                    buyer: buyerObjectId,
-                    seller: manufacturerObjectId,
-                    orderNumber: `INQ-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-                    status: 'inquiry',
-                    items: [],
-                    totalAmount: 0,
-                    currency: 'USD',
+            // If no inquiry exists, create a new one for initial conversation
+            if (!inquiry) {
+                const newInquiry = new Inquiry({
+                    inquirer: buyerObjectId,
+                    supplier: manufacturerObjectId,
+                    inquiryNumber: `INQ-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                    type: 'product_inquiry',
+                    subject: 'Initial Inquiry',
+                    message: 'Initial contact and inquiry',
+                    status: 'open',
+                    priority: 'medium',
+                    timeline: {
+                        urgency: 'flexible'
+                    },
                     createdAt: new Date()
                 });
 
-                order = await newOrder.save();
-                order = await Order.findById(order._id).populate('seller', 'companyName email companyLogo phone').lean();
+                inquiry = await newInquiry.save();
+                inquiry = await Inquiry.findById(inquiry._id).populate('supplier', 'companyName email companyLogo phone').lean();
             }
 
             // Get messages for this conversation
-            const messages = await Message.find({ orderId: order._id })
+            const messages = await Message.find({ inquiryId: inquiry._id })
                 .populate('senderId', 'companyName email companyLogo phone')
                 .populate('recipientId', 'companyName email companyLogo phone')
                 .sort({ createdAt: 1 })
@@ -873,23 +878,23 @@ class BuyerService {
 
             // Get unread count
             const unreadCount = await Message.countDocuments({
-                orderId: order._id,
+                inquiryId: inquiry._id,
                 recipientId: buyerObjectId,
                 status: { $in: ['sent', 'delivered'] }
             });
 
             return {
-                orderId: order._id,
-                orderNumber: order.orderNumber,
+                inquiryId: inquiry._id,
+                inquiryNumber: inquiry.inquiryNumber,
                 manufacturer: {
-                    id: order.seller._id,
-                    name: order.seller.companyName,
-                    email: order.seller.email,
-                    avatar: order.seller.avatar || '/assets/images/default-company.svg'
+                    id: inquiry.supplier._id,
+                    name: inquiry.supplier.companyName,
+                    email: inquiry.supplier.email,
+                    avatar: inquiry.supplier.avatar || '/assets/images/default-company.svg'
                 },
                 messages,
                 unreadCount,
-                orderStatus: order.status
+                inquiryStatus: inquiry.status
             };
 
         } catch (error) {
@@ -899,68 +904,107 @@ class BuyerService {
     }
 
     /**
-     * Get buyer conversations - Professional Implementation
+     * Get buyer conversations - Updated to handle both Order and Inquiry contexts
      */
     async getBuyerConversations(buyerId, filters = {}) {
         try {
             const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
             
-            // Get orders that have messages for this buyer
+            // Get both orders and inquiries that have messages for this buyer
             const orderIdsWithMessages = await Message.distinct('orderId', {
                 $or: [
                     { senderId: buyerObjectId },
                     { recipientId: buyerObjectId }
-                ]
+                ],
+                orderId: { $exists: true, $ne: null }
             });
 
-            if (orderIdsWithMessages.length === 0) {
+            const inquiryIdsWithMessages = await Message.distinct('inquiryId', {
+                $or: [
+                    { senderId: buyerObjectId },
+                    { recipientId: buyerObjectId }
+                ],
+                inquiryId: { $exists: true, $ne: null }
+            });
+
+            if (orderIdsWithMessages.length === 0 && inquiryIdsWithMessages.length === 0) {
                 return [];
             }
 
-            // Build order query
+            // Get orders with their sellers
+            let orders = [];
+            if (orderIdsWithMessages.length > 0) {
             const orderQuery = {
                 _id: { $in: orderIdsWithMessages },
                 buyer: buyerObjectId
             };
 
-            // Apply search filter to orders and company names
             if (filters.search) {
                 orderQuery.$or = [
                     { orderNumber: { $regex: filters.search, $options: 'i' } }
                 ];
             }
 
-            // Get orders with their sellers including companyLogo
-            const orders = await Order.find(orderQuery)
+                orders = await Order.find(orderQuery)
                 .populate('seller', 'companyName email avatar companyLogo phone')
                 .sort({ updatedAt: -1 })
                 .limit(50)
                 .lean();
+            }
+
+            // Get inquiries with their suppliers
+            let inquiries = [];
+            if (inquiryIdsWithMessages.length > 0) {
+                const inquiryQuery = {
+                    _id: { $in: inquiryIdsWithMessages },
+                    inquirer: buyerObjectId
+                };
+
+                if (filters.search) {
+                    inquiryQuery.$or = [
+                        { inquiryNumber: { $regex: filters.search, $options: 'i' } },
+                        { subject: { $regex: filters.search, $options: 'i' } }
+                    ];
+                }
+
+                inquiries = await Inquiry.find(inquiryQuery)
+                    .populate('supplier', 'companyName email avatar companyLogo phone')
+                    .sort({ updatedAt: -1 })
+                    .limit(50)
+                    .lean();
+            }
 
             // Apply search filter to company names if search query exists
             let filteredOrders = orders;
+            let filteredInquiries = inquiries;
+
             if (filters.search) {
                 const searchRegex = new RegExp(filters.search, 'i');
+                
                 filteredOrders = orders.filter(order => 
                     order.seller && 
                     order.seller.companyName && 
                     searchRegex.test(order.seller.companyName)
                 );
+
+                filteredInquiries = inquiries.filter(inquiry => 
+                    inquiry.supplier && 
+                    inquiry.supplier.companyName && 
+                    searchRegex.test(inquiry.supplier.companyName)
+                );
             }
 
-            // Get conversation data for each order with proper error handling
+            // Process order conversations
             const conversations = [];
+            
+            // Process orders
             for (const order of filteredOrders) {
                 try {
-                    // Validate order has seller
                     if (!order.seller || !order.seller._id) {
                         this.logger.warn(`Order ${order._id} has no seller, skipping`);
                         continue;
                     }
 
-
-
-                    // Get latest message for this order
                     const latestMessage = await Message.findOne({ 
                         orderId: order._id 
                     })
@@ -968,7 +1012,6 @@ class BuyerService {
                     .populate('senderId', 'companyName')
                     .lean();
 
-                    // Count unread messages for buyer
                     const unreadCount = await Message.countDocuments({
                         orderId: order._id,
                         recipientId: buyerObjectId,
@@ -977,6 +1020,7 @@ class BuyerService {
 
                     const conversation = {
                         id: order._id.toString(),
+                        type: 'order',
                         orderId: order._id,
                         orderNumber: order.orderNumber || `ORD-${order._id.toString().substr(-6)}`,
                         supplier: {
@@ -995,7 +1039,7 @@ class BuyerService {
                             type: latestMessage ? latestMessage.type : 'system'
                         },
                         unreadCount,
-                        isOnline: false, // Would be determined by real-time status
+                        isOnline: false,
                         orderStatus: order.status || 'pending',
                         orderValue: order.totalAmount || 0,
                         currency: order.currency || 'USD'
@@ -1004,9 +1048,65 @@ class BuyerService {
                     conversations.push(conversation);
                 } catch (conversationError) {
                     this.logger.error(`Error processing conversation for order ${order._id}:`, conversationError);
-                    // Continue processing other conversations
                 }
             }
+
+            // Process inquiries
+            for (const inquiry of filteredInquiries) {
+                try {
+                    if (!inquiry.supplier || !inquiry.supplier._id) {
+                        this.logger.warn(`Inquiry ${inquiry._id} has no supplier, skipping`);
+                        continue;
+                    }
+
+                    const latestMessage = await Message.findOne({ 
+                        inquiryId: inquiry._id 
+                    })
+                    .sort({ createdAt: -1 })
+                    .populate('senderId', 'companyName')
+                    .lean();
+
+                    const unreadCount = await Message.countDocuments({
+                        inquiryId: inquiry._id,
+                        recipientId: buyerObjectId,
+                        status: { $in: ['sent', 'delivered'] }
+                    });
+
+                    const conversation = {
+                        id: inquiry._id.toString(),
+                        type: 'inquiry',
+                        inquiryId: inquiry._id,
+                        inquiryNumber: inquiry.inquiryNumber || `INQ-${inquiry._id.toString().substr(-6)}`,
+                        supplier: {
+                            id: inquiry.supplier._id,
+                            name: inquiry.supplier.companyName || 'Unknown Company',
+                            email: inquiry.supplier.email || '',
+                            avatar: inquiry.supplier.avatar || '/assets/images/default-company.svg',
+                            companyLogo: inquiry.supplier.companyLogo || null,
+                            phone: inquiry.supplier.phone || null
+                        },
+                        lastMessage: {
+                            content: latestMessage ? latestMessage.content : inquiry.message || 'No messages yet',
+                            timestamp: latestMessage ? latestMessage.createdAt : inquiry.createdAt,
+                            sender: latestMessage && latestMessage.senderId ? 
+                                (latestMessage.senderId.companyName || 'Unknown') : 'System',
+                            type: latestMessage ? latestMessage.type : 'system'
+                        },
+                        unreadCount,
+                        isOnline: false,
+                        inquiryStatus: inquiry.status || 'open',
+                        subject: inquiry.subject || 'Inquiry',
+                        priority: inquiry.priority || 'medium'
+                    };
+
+                    conversations.push(conversation);
+                } catch (conversationError) {
+                    this.logger.error(`Error processing conversation for inquiry ${inquiry._id}:`, conversationError);
+                }
+            }
+
+            // Sort all conversations by last message timestamp
+            conversations.sort((a, b) => new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp));
 
             // Apply additional filters
             let filteredConversations = [...conversations];
@@ -1014,16 +1114,20 @@ class BuyerService {
             if (filters.filter === 'unread') {
                 filteredConversations = filteredConversations.filter(conv => conv.unreadCount > 0);
             } else if (filters.filter === 'active') {
-                filteredConversations = filteredConversations.filter(conv => 
-                    ['pending', 'confirmed', 'in_production'].includes(conv.orderStatus)
-                );
+                filteredConversations = filteredConversations.filter(conv => {
+                    if (conv.type === 'order') {
+                        return ['pending', 'confirmed', 'in_production'].includes(conv.orderStatus);
+                    } else {
+                        return ['open', 'responded', 'negotiating'].includes(conv.inquiryStatus);
+                    }
+                });
             }
 
             if (filters.search) {
                 const searchLower = filters.search.toLowerCase();
                 filteredConversations = filteredConversations.filter(conv =>
                     conv.supplier.name.toLowerCase().includes(searchLower) ||
-                    conv.orderNumber.toLowerCase().includes(searchLower) ||
+                    (conv.type === 'order' ? conv.orderNumber : conv.inquiryNumber).toLowerCase().includes(searchLower) ||
                     conv.lastMessage.content.toLowerCase().includes(searchLower)
                 );
             }
@@ -1083,38 +1187,80 @@ class BuyerService {
 
             const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
             
-            // Debug logging
-            this.logger.info(`🔍 getBuyerConversationsWithCurrent called:`, {
-                buyerId: buyerId,
-                currentManufacturerId: currentManufacturerId,
-                filters: filters
+            // Get both orders and inquiries that have messages for this buyer
+            const orderIdsWithMessages = await Message.distinct('orderId', {
+                $or: [
+                    { senderId: buyerObjectId },
+                    { recipientId: buyerObjectId }
+                ],
+                orderId: { $exists: true, $ne: null }
+            });
+
+            const inquiryIdsWithMessages = await Message.distinct('inquiryId', {
+                $or: [
+                    { senderId: buyerObjectId },
+                    { recipientId: buyerObjectId }
+                ],
+                inquiryId: { $exists: true, $ne: null }
             });
             
-            // Build order query
-            const orderQuery = { buyer: buyerObjectId };
-            
             // Get orders with their sellers
-            const orders = await Order.find(orderQuery)
+            let orders = [];
+            if (orderIdsWithMessages.length > 0) {
+                const orderQuery = {
+                    _id: { $in: orderIdsWithMessages },
+                    buyer: buyerObjectId
+                };
+
+                orders = await Order.find(orderQuery)
                 .populate('seller', 'companyName email avatar companyLogo phone')
                 .sort({ updatedAt: -1 })
                 .limit(50)
                 .lean();
+            }
 
-            this.logger.info(`🔍 Found ${orders.length} orders for buyer`);
+            // Get inquiries with their suppliers
+            let inquiries = [];
+            if (inquiryIdsWithMessages.length > 0) {
+                const inquiryQuery = {
+                    _id: { $in: inquiryIdsWithMessages },
+                    inquirer: buyerObjectId
+                };
+
+                inquiries = await Inquiry.find(inquiryQuery)
+                    .populate('supplier', 'companyName email avatar companyLogo phone')
+                    .sort({ updatedAt: -1 })
+                    .limit(50)
+                    .lean();
+            }
+
+
 
             // Apply search filter to company names if search query exists
             let filteredOrders = orders;
+            let filteredInquiries = inquiries;
+            
             if (filters.search) {
                 const searchRegex = new RegExp(filters.search, 'i');
+                
                 filteredOrders = orders.filter(order => 
                     order.seller && 
                     order.seller.companyName && 
                     searchRegex.test(order.seller.companyName)
                 );
+
+                filteredInquiries = inquiries.filter(inquiry => 
+                    inquiry.supplier && 
+                    inquiry.supplier.companyName && 
+                    searchRegex.test(inquiry.supplier.companyName)
+                );
             }
 
-            // Get conversation data for each order - ONLY orders with actual messages
-            const conversations = [];
+            // Separate current manufacturer and all manufacturers
+            const allManufacturerIds = new Set();
+            const conversationsMap = new Map(); // manufacturerId -> best conversation
+            
+            // Process all orders to build conversation map
             for (const order of filteredOrders) {
                 try {
                     // Validate order has seller
@@ -1123,6 +1269,9 @@ class BuyerService {
                         continue;
                     }
 
+                    const manufacturerId = order.seller._id.toString();
+                    allManufacturerIds.add(manufacturerId);
+
                     // Get latest message for this order
                     const latestMessage = await Message.findOne({ 
                         orderId: order._id 
@@ -1130,12 +1279,6 @@ class BuyerService {
                     .sort({ createdAt: -1 })
                     .populate('senderId', 'companyName')
                     .lean();
-
-                    // Skip orders without messages (except current manufacturer)
-                    if (!latestMessage && order.seller._id.toString() !== currentManufacturerId) {
-                        this.logger.info(`Order ${order._id} has no messages, skipping (not current manufacturer)`);
-                        continue;
-                    }
 
                     // Count unread messages for buyer
                     const unreadCount = await Message.countDocuments({
@@ -1157,7 +1300,7 @@ class BuyerService {
                             phone: order.seller.phone || null
                         },
                         lastMessage: {
-                            content: latestMessage ? latestMessage.content : 'No messages yet',
+                            content: latestMessage ? latestMessage.content : 'Yangi order - hali yozishma yo\'q',
                             timestamp: latestMessage ? latestMessage.createdAt : order.createdAt,
                             sender: latestMessage && latestMessage.senderId ? 
                                 (latestMessage.senderId.companyName || 'Unknown') : 'System',
@@ -1171,79 +1314,198 @@ class BuyerService {
                         hasMessages: !!latestMessage
                     };
 
-                    conversations.push(conversation);
+                    // Keep the conversation with most recent activity (with messages first, then latest order)
+                    const existing = conversationsMap.get(manufacturerId);
+                    if (!existing) {
+                        conversationsMap.set(manufacturerId, conversation);
+                    } else {
+                        // Priority: messages first, then by timestamp
+                        const shouldReplace = 
+                            (!existing.hasMessages && conversation.hasMessages) ||
+                            (existing.hasMessages === conversation.hasMessages && 
+                             new Date(conversation.lastMessage.timestamp) > new Date(existing.lastMessage.timestamp));
+                        
+                        if (shouldReplace) {
+                            conversationsMap.set(manufacturerId, conversation);
+                        }
+                    }
                 } catch (conversationError) {
                     this.logger.error(`Error processing conversation for order ${order._id}:`, conversationError);
                     continue;
                 }
             }
 
-            // Remove duplicate conversations by supplier ID (keep the one with latest message)
-            const uniqueConversations = [];
-            const seenSuppliers = new Set();
-            
-            for (const conv of conversations) {
-                if (!seenSuppliers.has(conv.supplier.id)) {
-                    seenSuppliers.add(conv.supplier.id);
-                    uniqueConversations.push(conv);
-                } else {
-                    // If duplicate found, keep the one with latest message
-                    const existingIndex = uniqueConversations.findIndex(c => c.supplier.id === conv.supplier.id);
-                    if (existingIndex !== -1) {
-                        const existing = uniqueConversations[existingIndex];
-                        if (new Date(conv.lastMessage.timestamp) > new Date(existing.lastMessage.timestamp)) {
-                            uniqueConversations[existingIndex] = conv; // Replace with newer one
+            // Process all inquiries to build conversation map
+            for (const inquiry of filteredInquiries) {
+                try {
+                    // Validate inquiry has supplier
+                    if (!inquiry.supplier || !inquiry.supplier._id) {
+                        this.logger.warn(`Inquiry ${inquiry._id} has no supplier, skipping`);
+                        continue;
+                    }
+
+                    const manufacturerId = inquiry.supplier._id.toString();
+                    allManufacturerIds.add(manufacturerId);
+
+                    // Get latest message for this inquiry
+                    const latestMessage = await Message.findOne({ 
+                        inquiryId: inquiry._id 
+                    })
+                    .sort({ createdAt: -1 })
+                    .populate('senderId', 'companyName')
+                    .lean();
+
+                    // Count unread messages for buyer
+                    const unreadCount = await Message.countDocuments({
+                        inquiryId: inquiry._id,
+                        recipientId: buyerObjectId,
+                        status: { $in: ['sent', 'delivered'] }
+                    });
+
+                    const conversation = {
+                        id: inquiry._id.toString(),
+                        type: 'inquiry',
+                        inquiryId: inquiry._id,
+                        inquiryNumber: inquiry.inquiryNumber || `INQ-${inquiry._id.toString().substr(-6)}`,
+                        supplier: {
+                            id: inquiry.supplier._id,
+                            name: inquiry.supplier.companyName || 'Unknown Company',
+                            email: inquiry.supplier.email || '',
+                            avatar: inquiry.supplier.avatar || '/assets/images/default-company.svg',
+                            companyLogo: inquiry.supplier.companyLogo || null,
+                            phone: inquiry.supplier.phone || null
+                        },
+                        lastMessage: {
+                            content: latestMessage ? latestMessage.content : inquiry.message || 'Yangi inquiry - hali yozishma yo\'q',
+                            timestamp: latestMessage ? latestMessage.createdAt : inquiry.createdAt,
+                            sender: latestMessage && latestMessage.senderId ? 
+                                (latestMessage.senderId.companyName || 'Unknown') : 'System',
+                            type: latestMessage ? latestMessage.type : 'system'
+                        },
+                        unreadCount,
+                        isOnline: false,
+                        inquiryStatus: inquiry.status || 'open',
+                        subject: inquiry.subject || 'Inquiry',
+                        priority: inquiry.priority || 'medium',
+                        hasMessages: !!latestMessage
+                    };
+
+                    // Keep the conversation with most recent activity (with messages first, then latest inquiry)
+                    const existing = conversationsMap.get(manufacturerId);
+                    if (!existing) {
+                        conversationsMap.set(manufacturerId, conversation);
+                    } else {
+                        // Priority: messages first, then by timestamp
+                        const shouldReplace = 
+                            (!existing.hasMessages && conversation.hasMessages) ||
+                            (existing.hasMessages === conversation.hasMessages && 
+                             new Date(conversation.lastMessage.timestamp) > new Date(existing.lastMessage.timestamp));
+                        
+                        if (shouldReplace) {
+                            conversationsMap.set(manufacturerId, conversation);
                         }
+                    }
+                } catch (conversationError) {
+                    this.logger.error(`Error processing conversation for inquiry ${inquiry._id}:`, conversationError);
+                    continue;
+                }
+            }
+
+            // Build final conversations array
+            const conversations = [];
+            
+            // Logic for conversations based on manufacturer selection
+            if (currentManufacturerId) {
+                // CASE 1: Manufacturer tanlangan
+                // Tanlangan manufacturer + avval yozishma qilgan manufacturerlar
+                
+                const currentConversation = conversationsMap.get(currentManufacturerId);
+                if (currentConversation) {
+                    conversations.push(currentConversation);
+                }
+                
+                // Add all manufacturers WITH messages (excluding current if already added)
+                for (const [manufacturerId, conversation] of conversationsMap.entries()) {
+                    if (manufacturerId !== currentManufacturerId && conversation.hasMessages) {
+                        conversations.push(conversation);
+                    }
+                }
+                
+                // If current manufacturer doesn't exist in conversations, try to create placeholder
+                if (!currentConversation) {
+                    try {
+                        const manufacturerDetails = await User.findById(currentManufacturerId).lean();
+                        if (manufacturerDetails) {
+                            // Create inquiry-based placeholder conversation
+                            conversations.unshift({
+                                id: `placeholder-${currentManufacturerId}`,
+                                type: 'inquiry',
+                                inquiryId: null,
+                                inquiryNumber: 'Yangi suhbat',
+                                supplier: {
+                                    id: manufacturerDetails._id,
+                                    name: manufacturerDetails.companyName || 'Unknown Company',
+                                    email: manufacturerDetails.email || '',
+                                    avatar: manufacturerDetails.avatar || '/assets/images/default-company.svg',
+                                    companyLogo: manufacturerDetails.companyLogo || null,
+                                    phone: manufacturerDetails.phone || null
+                                },
+                                lastMessage: {
+                                    content: 'Yozishma boshlash uchun xabar yozing',
+                                    timestamp: new Date(),
+                                    sender: 'System',
+                                    type: 'system'
+                                },
+                                unreadCount: 0,
+                                isOnline: false,
+                                inquiryStatus: 'new',
+                                subject: 'New Inquiry',
+                                priority: 'medium',
+                                hasMessages: false
+                            });
+                        }
+                    } catch (error) {
+                        this.logger.warn(`Could not create placeholder for manufacturer ${currentManufacturerId}:`, error);
+                    }
+                }
+            } else {
+                // CASE 2: Manufacturer tanlanmagan
+                // Faqat avval yozishma qilgan manufacturerlar
+                for (const [manufacturerId, conversation] of conversationsMap.entries()) {
+                    if (conversation.hasMessages) {
+                        conversations.push(conversation);
                     }
                 }
             }
 
-            // Sort conversations: current manufacturer first (only if no messages), then by last message time
-            uniqueConversations.sort((a, b) => {
+            // Telegram-style sorting for conversations
+            conversations.sort((a, b) => {
                 // Priority 1: Unread messages first
                 if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
                 if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
                 
-                // Priority 2: Current manufacturer first (only if no messages)
+                // Priority 2: Current manufacturer selection (if any)
                 if (currentManufacturerId) {
-                    const aIsCurrent = a.supplier.id === currentManufacturerId;
-                    const bIsCurrent = b.supplier.id === currentManufacturerId;
+                    const aIsCurrent = a.supplier.id.toString() === currentManufacturerId;
+                    const bIsCurrent = b.supplier.id.toString() === currentManufacturerId;
                     
-                    // If current manufacturer has no messages, put it first
-                    if (aIsCurrent && !a.hasMessages && b.hasMessages) return -1;
-                    if (bIsCurrent && !b.hasMessages && a.hasMessages) return 1;
-                    
-                    // If both have messages or both don't have messages, sort by timestamp
-                    if (a.hasMessages === b.hasMessages) {
-                        // Priority 3: Has messages first
-                        if (a.hasMessages && !b.hasMessages) return -1;
-                        if (!a.hasMessages && b.hasMessages) return 1;
-                        
-                        // Priority 4: Last message timestamp (newest first)
-                        return new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp);
-                    }
+                    // Current manufacturer should be first
+                    if (aIsCurrent && !bIsCurrent) return -1;
+                    if (bIsCurrent && !aIsCurrent) return 1;
                 }
                 
-                // Priority 3: Has messages first
+                // Priority 3: Has messages vs no messages
                 if (a.hasMessages && !b.hasMessages) return -1;
                 if (!a.hasMessages && b.hasMessages) return 1;
                 
-                // Priority 4: Last message timestamp (newest first)
+                // Priority 4: Sort by last message/activity timestamp (newest first)
                 return new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp);
             });
 
-            this.logger.info(`🔍 Conversations processed:`, {
-                totalConversations: conversations.length,
-                uniqueConversations: uniqueConversations.length,
-                currentManufacturerId: currentManufacturerId,
-                firstUniqueSupplier: uniqueConversations[0]?.supplier?.id,
-                firstUniqueName: uniqueConversations[0]?.supplier?.name,
-                firstUniqueHasMessages: uniqueConversations[0]?.hasMessages,
-                firstUniqueTimestamp: uniqueConversations[0]?.lastMessage?.timestamp
-            });
+
 
             // Apply additional filters
-            let filteredConversations = [...uniqueConversations];
+            let filteredConversations = [...conversations];
 
             if (filters.filter === 'unread') {
                 filteredConversations = filteredConversations.filter(conv => conv.unreadCount > 0);
@@ -1505,37 +1767,128 @@ class BuyerService {
      */
     async getProfileStats(buyerId) {
         try {
-            // Get real statistics from database
+            this.logger.log(`🔄 Fetching REAL profile stats for buyer: ${buyerId}`);
+            
+            // Optimized parallel database queries with proper indexing
+            const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
+            const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+            
+            // Enhanced parallel query execution with better error handling
             const [
-                totalOrders,
-                activeOrders,
+                orderStats,
                 totalSpent,
-                favoriteProducts
+                favoriteProducts,
+                cartItemsCount,
+                lastOrderData
             ] = await Promise.all([
-                Order.countDocuments({ buyer: new mongoose.Types.ObjectId(buyerId) }),
-                Order.countDocuments({ 
-                    buyer: new mongoose.Types.ObjectId(buyerId),
-                    status: { $in: ['pending', 'confirmed', 'processing', 'manufacturing', 'shipped'] }
-                }),
+                // Combined order statistics in single aggregation
                 Order.aggregate([
-                    { $match: { buyer: new mongoose.Types.ObjectId(buyerId) } },
+                    { $match: { buyer: buyerObjectId } },
+                    {
+                        $facet: {
+                            totalOrders: [{ $count: "count" }],
+                            activeOrders: [
+                                { $match: { status: { $in: ['pending', 'confirmed', 'processing', 'manufacturing', 'shipped'] } } },
+                                { $count: "count" }
+                            ],
+                            completedOrders: [
+                                { $match: { status: 'delivered' } },
+                                { $count: "count" }
+                            ],
+                            recentOrders: [
+                                { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+                                { $count: "count" }
+                            ]
+                        }
+                    }
+                ]).then(result => {
+                    const stats = result[0] || {};
+                    return {
+                        totalOrders: stats.totalOrders?.[0]?.count || 0,
+                        activeOrders: stats.activeOrders?.[0]?.count || 0,
+                        completedOrders: stats.completedOrders?.[0]?.count || 0,
+                        recentOrdersCount: stats.recentOrders?.[0]?.count || 0
+                    };
+                }),
+                // Total spent calculation
+                Order.aggregate([
+                    { $match: { buyer: buyerObjectId } },
                     { $group: { _id: null, total: { $sum: "$totalAmount" } } }
                 ]),
-                Favorite.findOne({ buyerId: new mongoose.Types.ObjectId(buyerId) })
+                // Favorites with lean query for performance
+                Favorite.findOne({ buyerId: buyerObjectId }).lean().select('products totalProducts'),
+                // Cart with lean query for performance
+                Cart.findOne({ buyerId: buyerObjectId }).lean().select('items totalItems'),
+                // Last order with minimal data
+                Order.findOne({ buyer: buyerObjectId }).sort({ createdAt: -1 }).lean().select('createdAt')
             ]);
 
+            // Safe data extraction with proper fallbacks and validation
+            const totalSpentAmount = Array.isArray(totalSpent) && totalSpent.length > 0 ? totalSpent[0].total || 0 : 0;
+            const favoriteProductsCount = favoriteProducts ? (favoriteProducts.products?.length || favoriteProducts.totalProducts || 0) : 0;
+            const cartItemsCountFinal = cartItemsCount ? (cartItemsCount.items?.length || cartItemsCount.totalItems || 0) : 0;
+            
+            // Extract order statistics safely
+            const { totalOrders, activeOrders, completedOrders, recentOrdersCount } = orderStats || {
+                totalOrders: 0,
+                activeOrders: 0, 
+                completedOrders: 0,
+                recentOrdersCount: 0
+            };
+
             const stats = {
+                // Core metrics
                 totalOrders,
                 activeOrders,
-                totalSpent: totalSpent.length > 0 ? totalSpent[0].total : 0,
-                favoriteProducts: favoriteProducts ? favoriteProducts.totalProducts : 0
+                completedOrders,
+                totalSpent: totalSpentAmount,
+                favoriteProducts: favoriteProductsCount,
+                cartItemsCount: cartItemsCountFinal,
+                recentOrdersCount,
+                lastOrderDate: lastOrderData ? lastOrderData.createdAt : null,
+                
+                // Enhanced computed stats with safe math
+                averageOrderValue: totalOrders > 0 ? Number((totalSpentAmount / totalOrders).toFixed(2)) : 0,
+                orderSuccessRate: totalOrders > 0 ? Number((completedOrders / totalOrders * 100).toFixed(1)) : 0,
+                
+                // Advanced business intelligence metrics
+                pendingOrdersCount: Math.max(0, activeOrders - recentOrdersCount),
+                isActiveCustomer: recentOrdersCount > 0,
+                customerLifetimeValue: totalSpentAmount,
+                customerSegment: this._calculateCustomerSegment(totalSpentAmount, totalOrders, recentOrdersCount),
+                
+                // Time-based metrics
+                daysSinceLastOrder: lastOrderData ? 
+                    Math.floor((Date.now() - new Date(lastOrderData.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : null,
+                    
+                // Engagement metrics
+                engagementScore: this._calculateEngagementScore(favoriteProductsCount, cartItemsCountFinal, recentOrdersCount),
+                
+                // Performance metadata
+                lastCalculated: new Date(),
+                dataIntegrity: {
+                    hasOrders: totalOrders > 0,
+                    hasFavorites: favoriteProductsCount > 0,
+                    hasCartItems: cartItemsCountFinal > 0,
+                    isVerified: true
+                }
             };
 
             return stats;
 
         } catch (error) {
-            this.logger.error('❌ Error getting buyer profile stats:', error);
-            throw error;
+             return {
+                totalOrders: 0,
+                activeOrders: 0,
+                completedOrders: 0,
+                totalSpent: 0,
+                favoriteProducts: 0,
+                cartItemsCount: 0,
+                recentOrdersCount: 0,
+                lastOrderDate: null,
+                averageOrderValue: 0,
+                orderSuccessRate: 0
+            };
         }
     }
 
@@ -1551,8 +1904,23 @@ class BuyerService {
                 return [];
             }
 
+            // Filter out items with null/undefined products (deleted products) - DEFENSIVE PROGRAMMING
+            const validItems = cart.items.filter(item => {
+                if (!item.productId) {
+                    this.logger.warn(`⚠️ Cart item ${item._id} has null productId, removing from display`);
+                    return false;
+                }
+                
+                if (!item.manufacturerId) {
+                    this.logger.warn(`⚠️ Cart item ${item._id} has null manufacturerId, removing from display`);
+                    return false;
+                }
+                
+                return true;
+            });
+
             // Transform cart items to match EJS template expectations
-            const transformedItems = cart.items.map(item => {
+            const transformedItems = validItems.map(item => {
                 return {
                     _id: item._id,
                     id: item._id,
@@ -1591,6 +1959,56 @@ class BuyerService {
         } catch (error) {
             this.logger.error('❌ Error getting favorites:', error);
             return [];
+        }
+    }
+
+    /**
+     * Get favorite items count for sidebar badge
+     */
+    async getFavoriteItems(buyerId) {
+        try {
+            const favorites = await Favorite.findOne({ buyerId }).select('products suppliers');
+            if (!favorites) return [];
+            
+            // Combine products and suppliers for total count
+            const allFavorites = [
+                ...favorites.products,
+                ...favorites.suppliers
+            ];
+            
+            return allFavorites;
+        } catch (error) {
+            this.logger.error('❌ Error getting favorite items:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Get cart items count for buyer
+     */
+    async getCartItemsCount(buyerId) {
+        try {
+            const cart = await Cart.findOne({ buyerId: new mongoose.Types.ObjectId(buyerId) });
+            return cart ? cart.items.length : 0;
+        } catch (error) {
+            this.logger.error('❌ Error getting cart items count:', error);
+            return 0;
+        }
+    }
+
+    /**
+     * Get active orders count for buyer
+     */
+    async getActiveOrdersCount(buyerId) {
+        try {
+            const count = await Order.countDocuments({
+                buyer: new mongoose.Types.ObjectId(buyerId),
+                status: { $in: ['pending', 'confirmed', 'processing', 'manufacturing', 'shipped'] }
+            });
+            return count;
+        } catch (error) {
+            this.logger.error('❌ Error getting active orders count:', error);
+            return 0;
         }
     }
 
@@ -1802,27 +2220,47 @@ class BuyerService {
     }
 
     /**
-     * Send message to supplier - Professional Implementation
+     * Send message to supplier - Updated to support both Order and Inquiry contexts
      */
-    async sendMessage(buyerId, orderId, messageContent, attachments = []) {
+    async sendMessage(buyerId, conversationId, messageContent, attachments = [], context = 'order') {
         try {
                     // Validate input - allow sending if either message OR attachments exist
-        if (!orderId) {
-            throw new Error('Order ID is required');
+            if (!conversationId) {
+                throw new Error('Conversation ID is required');
         }
         
         if (!messageContent?.trim() && (!attachments || attachments.length === 0)) {
             throw new Error('Message content or attachments are required');
         }
 
-            // Validate buyer access to this order
-            const order = await Order.findOne({ 
-                _id: new mongoose.Types.ObjectId(orderId),
+            let recipientId, conversationType, conversation;
+
+            if (context === 'inquiry') {
+                // Handle inquiry-based message
+                conversation = await Inquiry.findOne({ 
+                    _id: new mongoose.Types.ObjectId(conversationId),
+                    inquirer: new mongoose.Types.ObjectId(buyerId)
+                }).populate('supplier', 'companyName email avatar');
+                
+                if (!conversation) {
+                    throw new Error('Inquiry not found or access denied');
+                }
+                
+                recipientId = conversation.supplier._id;
+                conversationType = 'inquiry';
+            } else {
+                // Handle order-based message (default)
+                conversation = await Order.findOne({ 
+                    _id: new mongoose.Types.ObjectId(conversationId),
                 buyer: new mongoose.Types.ObjectId(buyerId)
             }).populate('seller', 'companyName email avatar');
             
-            if (!order) {
+                if (!conversation) {
                 throw new Error('Order not found or access denied');
+                }
+                
+                recipientId = conversation.seller._id;
+                conversationType = 'order';
             }
 
             // Auto-detect message type based on content and attachments
@@ -1839,14 +2277,20 @@ class BuyerService {
 
             // Create the message document
             const messageData = {
-                orderId: order._id,
                 senderId: new mongoose.Types.ObjectId(buyerId),
-                recipientId: order.seller._id,
+                recipientId: recipientId,
                 content: messageContent?.trim() || null, // null if no text content
                 type: messageType,
                 attachments: attachments || [],
                 status: 'sent'
             };
+
+            // Set the appropriate context field
+            if (conversationType === 'inquiry') {
+                messageData.inquiryId = conversation._id;
+            } else {
+                messageData.orderId = conversation._id;
+            }
 
             const newMessage = new Message(messageData);
             await newMessage.save();
@@ -1857,21 +2301,19 @@ class BuyerService {
                 .populate('recipientId', 'companyName email avatar')
                 .lean();
 
-            // Update order's last activity
-            order.updatedAt = new Date();
-            await order.save();
-
-            this.logger.log(`✅ Message sent successfully: ${newMessage._id} for order: ${orderId}`);
-            
+            // Update conversation's last activity
+            conversation.updatedAt = new Date();
+            await conversation.save();
+   
             return {
                 success: true,
                 message: populatedMessage,
-                orderId: order._id,
-                conversationId: `order_${order._id}`,
+                conversationId: conversation._id,
+                conversationType: conversationType,
                 recipient: {
-                    id: order.seller._id,
-                    name: order.seller.companyName,
-                    avatar: order.seller.avatar
+                    id: recipientId,
+                    name: conversationType === 'inquiry' ? conversation.supplier.companyName : conversation.seller.companyName,
+                    avatar: conversationType === 'inquiry' ? conversation.supplier.avatar : conversation.seller.avatar
                 }
             };
 
@@ -1989,7 +2431,13 @@ class BuyerService {
      */
     async updateProfile(buyerId, updateData) {
         try {
-            // Validate email uniqueness
+
+            // Validate input data
+            if (!mongoose.isValidObjectId(buyerId)) {
+                throw new Error('Invalid buyer ID format');
+            }
+
+            // Validate email uniqueness if email is being updated
             if (updateData.email) {
                 const existingUser = await User.findOne({ 
                     email: updateData.email,
@@ -1997,111 +2445,143 @@ class BuyerService {
                 });
                 
                 if (existingUser) {
-                    throw new Error('Email address is already in use');
-                }
-            }
-
-            // Update user profile
-            const updatedUser = await User.findByIdAndUpdate(
-                buyerId,
-                {
-                    $set: {
-                        companyName: updateData.companyName,
-                        contactPerson: updateData.contactPerson,
-                        email: updateData.email,
-                        phone: updateData.phone,
-                        country: updateData.country,
-                        address: updateData.address,
-                        updatedAt: new Date()
-                    }
-                },
-                { new: true, runValidators: true }
-            );
-
-            if (!updatedUser) {
-                throw new Error('User not found');
-            }
-
-            // this.logger.log(`✅ Profile updated for buyer: ${buyerId}`);
-            return updatedUser;
-
-        } catch (error) {
-            this.logger.error('❌ Error updating profile:', error);
-            throw error;
-        }
-    }
-
-
-
-    /**
-     * Update buyer profile information
-     */
-    async updateProfile(buyerId, updateData) {
-        try {
-            // this.logger.log(`👤 Updating profile for buyer: ${buyerId}`);
-
-            // Find buyer
-            const buyer = await User.findById(buyerId);
-            if (!buyer) {
-                throw new Error('Buyer topilmadi');
-            }
-
-            // Validate email if being updated
-            if (updateData.email && updateData.email !== buyer.email) {
-                const existingUser = await User.findOne({ 
-                    email: updateData.email, 
-                    _id: { $ne: buyerId } 
-                });
-                if (existingUser) {
                     throw new Error('Bu email allaqachon ishlatilmoqda');
                 }
             }
 
-            // Update fields
-            if (updateData.companyName) buyer.companyName = updateData.companyName;
-            if (updateData.contactPerson) buyer.contactPerson = updateData.contactPerson;
-            if (updateData.email) buyer.email = updateData.email;
-            if (updateData.phone) buyer.phone = updateData.phone;
-            if (updateData.country) buyer.country = updateData.country;
-            if (updateData.address) buyer.address = updateData.address;
+            // Validate phone uniqueness if phone is being updated
+            if (updateData.phone) {
+                const existingPhone = await User.findOne({ 
+                        phone: updateData.phone,
+                    _id: { $ne: buyerId }
+                });
+                
+                if (existingPhone) {
+                    throw new Error('Bu telefon raqami allaqachon ishlatilmoqda');
+                }
+            }
 
-            buyer.updatedAt = new Date();
-            await buyer.save();
+            // Prepare update data with proper sanitization
+            const sanitizedUpdateData = {};
+            
+            if (updateData.companyName) sanitizedUpdateData.companyName = updateData.companyName.trim();
+            if (updateData.contactPerson) sanitizedUpdateData.contactPerson = updateData.contactPerson.trim();
+            if (updateData.email) sanitizedUpdateData.email = updateData.email.toLowerCase().trim();
+            if (updateData.phone) sanitizedUpdateData.phone = updateData.phone.trim();
+            if (updateData.country) sanitizedUpdateData.country = updateData.country.trim();
+            if (updateData.address) sanitizedUpdateData.address = updateData.address.trim();
+            
+            // Add metadata
+            sanitizedUpdateData.updatedAt = new Date();
+            sanitizedUpdateData.profileCompleted = true; // Mark profile as completed after update
 
-            // this.logger.log(`✅ Profile updated successfully for buyer: ${buyerId}`);
-            return buyer;
+            
+            // Update user profile (NO TRANSACTION for development)
+            const updatedUser = await User.findByIdAndUpdate(
+                buyerId,
+                { $set: sanitizedUpdateData },
+                { 
+                    new: true, 
+                    runValidators: true
+                }
+            );
+
+            if (!updatedUser) {
+                throw new Error('Buyer topilmadi');
+            }
+
+            return updatedUser;
 
         } catch (error) {
-            this.logger.error('❌ Update profile error:', error);
+            this.logger.error('❌ Error updating profile:', {
+                error: error.message,
+                buyerId,
+                updateData,
+                timestamp: new Date().toISOString()
+            });
             throw error;
         }
     }
 
+
+
+    
+
     /**
-     * Update notification preferences
+     * Update notification preferences - Professional Implementation
      */
     async updateNotifications(buyerId, notificationSettings) {
         try {
-            // this.logger.log(`🔔 Updating notifications for buyer: ${buyerId}`);
-
-            // Find buyer
-            const buyer = await User.findById(buyerId);
-            if (!buyer) {
-                throw new Error('Buyer topilmadi');
+            // Validate buyerId
+            if (!buyerId || !require('mongoose').Types.ObjectId.isValid(buyerId)) {
+                throw new Error('Invalid buyer ID');
             }
 
-            // Update notification settings directly on user object
-            buyer.emailNotifications = notificationSettings.emailNotifications || false;
-            buyer.orderUpdates = notificationSettings.orderUpdates || false;
-            buyer.marketingEmails = notificationSettings.marketingEmails || false;
-            buyer.priceAlerts = notificationSettings.priceAlerts || false;
-            buyer.weeklyDigest = notificationSettings.weeklyDigest || false;
-            buyer.updatedAt = new Date();
+            // Find buyer with validation and select only needed fields
+            const buyer = await User.findById(buyerId).select(
+                'companyType emailNotifications orderUpdates marketingEmails priceAlerts weeklyDigest updatedAt'
+            );
+            
+            if (!buyer) {
+                throw new Error('Buyer not found');
+            }
 
-            await buyer.save();
+            // Validate buyer type - allow distributor, buyer, and customer types
+            const allowedTypes = ['distributor', 'buyer', 'customer'];
+            if (!allowedTypes.includes(buyer.companyType)) {
+                throw new Error('Invalid user type for notification updates');
+            }
 
-            // this.logger.log(`✅ Notifications updated successfully for buyer: ${buyerId}`);
-            return buyer;
+            // Professional notification settings update with validation
+            const validSettings = ['emailNotifications', 'orderUpdates', 'marketingEmails', 'priceAlerts', 'weeklyDigest'];
+            let hasChanges = false;
+            const updateFields = {};
+            const changes = []; // Track changes for logging
+
+            validSettings.forEach(setting => {
+                if (notificationSettings.hasOwnProperty(setting)) {
+                    const newValue = Boolean(notificationSettings[setting]);
+                    const oldValue = Boolean(buyer[setting]);
+                    
+                    if (oldValue !== newValue) {
+                        updateFields[setting] = newValue;
+                        hasChanges = true;
+                        
+                        // Track change for logging
+                        changes.push({
+                            field: setting,
+                            oldValue: oldValue,
+                            newValue: newValue
+                        });
+                    }
+                }
+            });
+
+            // Only save if there are actual changes
+            if (hasChanges) {
+                updateFields.updatedAt = new Date();
+                
+                // Use updateOne for better performance
+                const updateResult = await User.updateOne(
+                    { _id: buyerId },
+                    { $set: updateFields }
+                );
+                
+                if (updateResult.modifiedCount === 0) {
+                    throw new Error('Failed to update notification settings');
+                }
+                
+       
+                // Return updated user data
+                const updatedUser = await User.findById(buyerId).select(
+                    'emailNotifications orderUpdates marketingEmails priceAlerts weeklyDigest updatedAt'
+                );
+                
+                return updatedUser;
+            } else {
+                // No changes needed
+                return buyer;
+            }
 
         } catch (error) {
             this.logger.error('❌ Error updating notifications:', error);
@@ -2292,37 +2772,7 @@ class BuyerService {
         }
     }
 
-    /**
-     * Update buyer notifications settings
-     */
-    async updateNotifications(buyerId, notificationSettings) {
-        try {
-            // this.logger.log(`🔔 Updating notifications for buyer: ${buyerId}`);
 
-            // Find buyer
-            const buyer = await User.findById(buyerId);
-            if (!buyer) {
-                throw new Error('Buyer topilmadi');
-            }
-
-            // Update notification settings
-            buyer.notificationSettings = {
-                ...buyer.notificationSettings,
-                ...notificationSettings,
-                updatedAt: new Date()
-            };
-            buyer.updatedAt = new Date();
-            await buyer.save();
-
-            // this.logger.log(`✅ Notifications updated successfully for buyer: ${buyerId}`);
-
-            return buyer;
-
-        } catch (error) {
-            this.logger.error('❌ Update notifications error:', error);
-            throw error;
-        }
-    }
 
     /**
      * Update buyer preferences
@@ -2367,38 +2817,88 @@ class BuyerService {
      */
     async updatePassword(buyerId, currentPassword, newPassword) {
         try {
-            // this.logger.log(`🔒 Updating password for buyer: ${buyerId}`);
+         const bcrypt = require('bcryptjs');
 
-            const bcrypt = require('bcrypt');
+            // Enhanced validation
+            if (!mongoose.isValidObjectId(buyerId)) {
+                throw new Error('Invalid buyer ID format');
+            }
 
-            // Find buyer
-            const buyer = await User.findById(buyerId);
+            if (!currentPassword || !newPassword) {
+                throw new Error('Joriy parol va yangi parol majburiy');
+            }
+
+            // Find buyer with password field (NO TRANSACTION for development)
+            const buyer = await User.findById(buyerId).select('+password');
             if (!buyer) {
                 throw new Error('Buyer topilmadi');
+            }
+
+            // Check account status
+            if (buyer.status !== 'active') {
+                throw new Error('Hisob faol emas');
             }
 
             // Verify current password
             const isCurrentPasswordValid = await bcrypt.compare(currentPassword, buyer.password);
             if (!isCurrentPasswordValid) {
-                throw new Error('Joriy parol noto\'g\'ri');
+                // Log failed password attempt
+               throw new Error('Joriy parol noto\'g\'ri');
             }
 
-            // Hash new password
+            // Check if new password is same as current
+            const isSamePassword = await bcrypt.compare(newPassword, buyer.password);
+            if (isSamePassword) {
+                throw new Error('Yangi parol joriy paroldan farqli bo\'lishi kerak');
+            }
+
+            // Enhanced password strength validation
+            if (newPassword.length < 6) {
+                throw new Error('Parol kamida 6 ta belgidan iborat bo\'lishi kerak');
+            }
+
+            // Hash new password with high security
             const saltRounds = 12;
             const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
 
-            // Update password
-            buyer.password = hashedNewPassword;
-            buyer.passwordChangedAt = new Date();
-            buyer.updatedAt = new Date();
-            await buyer.save();
+            // Update password with comprehensive metadata (NO TRANSACTION for development)
+            const updateResult = await User.findByIdAndUpdate(
+                buyerId,
+                {
+                    $set: {
+                        password: hashedNewPassword,
+                        passwordChangedAt: new Date(),
+                        updatedAt: new Date(),
+                        // Reset login attempts on password change
+                        loginAttempts: 0,
+                        accountLockedUntil: null
+                    }
+                },
+                { 
+                    new: true
+                }
+            );
 
-            // this.logger.log(`✅ Password updated successfully for buyer: ${buyerId}`);
+            if (!updateResult) {
+                throw new Error('Parol yangilashda xatolik');
+            }
 
-            return { success: true, message: 'Parol muvaffaqiyatli yangilandi' };
+
+            return { 
+                success: true, 
+                message: 'Parol muvaffaqiyatli yangilandi',
+                passwordChangedAt: updateResult.passwordChangedAt 
+            };
 
         } catch (error) {
-            this.logger.error('❌ Update password error:', error);
+            this.logger.error('❌ Update password error:', {
+                error: error.message,
+                buyerId,
+                timestamp: new Date().toISOString(),
+                action: 'PASSWORD_UPDATE',
+                success: false
+            });
+            
             throw error;
         }
     }
@@ -2458,8 +2958,16 @@ class BuyerService {
                 throw new Error('Cart not found');
             }
 
+            // Count items before removal
+            const itemsBeforeRemoval = cart.items.length;
+
             // Remove the item from cart
             cart.items = cart.items.filter(item => item._id.toString() !== itemId);
+            
+            // Check if any item was actually removed
+            if (cart.items.length === itemsBeforeRemoval) {
+                throw new Error('Item not found in cart');
+            }
             
             // Save the cart
             await cart.save();
@@ -2591,15 +3099,32 @@ class BuyerService {
      */
     async checkProductStatus(buyerId, productId) {
         try {
+            console.log('🔍 checkProductStatus called with:', { buyerId, productId });
             
             // Check both cart and favorites in parallel
-            const [cartData, favoriteStatus] = await Promise.all([
+            const [cartItems, favoriteStatus] = await Promise.all([
                 this.getCartItems(buyerId),
                 this.checkFavoriteStatus(buyerId, productId)
             ]);
-            // Check if product is in cart
-            const cartItems = cartData ? cartData.items : [];
+            
+            console.log('📊 Cart items count:', cartItems ? cartItems.length : 0);
+            console.log('📊 Favorite status:', favoriteStatus);
+            // cartItems is raw cart items from database (not transformed)
+            // Each item has item.productId._id structure
+            console.log('🔍 Checking cart items for product:', productId);
+            if (cartItems && cartItems.length > 0) {
+                cartItems.forEach((item, index) => {
+                    console.log(`📦 Cart item ${index}:`, {
+                        itemId: item._id,
+                        productId: item.productId?._id,
+                        productIdMatch: item.productId?._id?.toString() === productId.toString(),
+                        quantity: item.quantity
+                    });
+                });
+            }
+            
             const isInCart = cartItems && cartItems.some(item => 
+                item.productId && item.productId._id && 
                 item.productId._id.toString() === productId.toString()
             );
 
@@ -2608,6 +3133,7 @@ class BuyerService {
             let cartQuantity = 0;
             if (isInCart) {
                 const cartItem = cartItems.find(item => 
+                    item.productId && item.productId._id && 
                     item.productId._id.toString() === productId.toString()
                 );
                 cartQuantity = cartItem ? cartItem.quantity : 0;
@@ -2619,6 +3145,8 @@ class BuyerService {
                 cartQuantity,
                 isFavorite: favoriteStatus ? favoriteStatus.isFavorite : false
             };
+            
+            console.log('📊 Final result:', result);
             return result;
 
         } catch (error) {
@@ -2634,7 +3162,7 @@ class BuyerService {
     }
 
     /**
-     * Get buyer cart items with full population
+     * Get buyer cart items with full population and null product filtering
      */
     async getCartItems(buyerId) {
         try {
@@ -2648,8 +3176,33 @@ class BuyerService {
                 return [];
             }
             
-            // Return the items array directly, not the cart object
-            return cart.items;
+            // Filter out items with null/undefined products (deleted products)
+            const validItems = cart.items.filter(item => {
+                if (!item.productId) {
+                    this.logger.warn(`⚠️ Cart item ${item._id} has null productId, removing from display`);
+                    return false;
+                }
+                
+                // Check if manufacturerId is also valid
+                if (!item.manufacturerId) {
+                    this.logger.warn(`⚠️ Cart item ${item._id} has null manufacturerId, removing from display`);
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            // If we found invalid items, clean them up from the cart
+            if (validItems.length !== cart.items.length) {
+                this.logger.info(`🧹 Cleaning ${cart.items.length - validItems.length} invalid items from cart`);
+                cart.items = cart.items.filter(item => 
+                    item.productId && item.manufacturerId
+                );
+                await cart.save();
+            }
+            
+            // Return the valid items array
+            return validItems;
         } catch (error) {
             this.logger.error('❌ Get cart items error:', error);
             throw error;
@@ -2714,6 +3267,38 @@ class BuyerService {
             throw error;
         }
     }
+
+    /**
+     * Clear all favorites (products and suppliers)
+     */
+    async clearAllFavorites(buyerId) {
+        try {
+            const favorites = await Favorite.findOne({ buyerId });
+            
+            if (!favorites) {
+                return { success: true, message: 'No favorites found to clear' };
+            }
+            
+            // Clear all products and suppliers
+            favorites.products = [];
+            favorites.suppliers = [];
+            
+            await favorites.save();
+            
+            return { 
+                success: true, 
+                message: 'All favorites cleared successfully',
+                clearedCount: {
+                    products: favorites.products.length,
+                    suppliers: favorites.suppliers.length
+                }
+            };
+            
+        } catch (error) {
+            this.logger.error('❌ Clear all favorites error:', error);
+            throw error;
+        }
+        }
 
     /**
      * Escape regex special characters to prevent injection attacks
@@ -2781,9 +3366,7 @@ class BuyerService {
 
             await order.save();
 
-            // Log the cancellation
-            this.logger.info(`✅ Order ${orderId} cancelled by buyer ${buyerId}`);
-
+            
             return {
                 success: true,
                 message: 'Order cancelled successfully',
@@ -2891,13 +3474,7 @@ class BuyerService {
 
             // Find order and verify ownership with comprehensive population and error handling
             const Order = require('../models/Order');
-            
-            this.logger.info('🔍 Searching for order:', {
-                orderId,
-                buyerId,
-                orderIdValid: mongoose.Types.ObjectId.isValid(orderId),
-                buyerIdValid: mongoose.Types.ObjectId.isValid(buyerId)
-            });
+ 
 
             const order = await Order.findOne({
                 _id: new mongoose.Types.ObjectId(orderId),
@@ -2921,13 +3498,6 @@ class BuyerService {
                 }
             ]).lean(); // Use lean() for better performance
 
-            this.logger.info('📦 Order query result:', {
-                found: !!order,
-                orderId: order?._id,
-                orderNumber: order?.orderNumber,
-                status: order?.status,
-                itemsCount: order?.items?.length || 0
-            });
 
             if (!order) {
                 return {
@@ -2937,6 +3507,7 @@ class BuyerService {
                     }
                 };
             }
+
 
             // Comprehensive data validation and formatting with error handling
             const formattedOrder = {
@@ -2980,7 +3551,12 @@ class BuyerService {
                     name: order.seller?.companyName || order.seller?.name || 'Unknown Supplier',
                     email: order.seller?.email || '',
                     phone: order.seller?.phone || '',
-                    logo: order.seller?.companyLogo || null
+                    country: order.seller?.country || '',
+                    logo: order.seller?.companyLogo?.url || null, // Extract URL from companyLogo object
+                    avatar: order.seller?.companyLogo ? {
+                        url: order.seller.companyLogo.url,
+                        thumbnailUrl: order.seller.companyLogo.thumbnailUrl
+                    } : null
                 },
                 shipping: {
                     method: order.shipping?.method || 'Standard Shipping',
@@ -2999,14 +3575,6 @@ class BuyerService {
                 actions: this.getAvailableActions(order.status || 'pending')
             };
 
-            // Log successful formatting for debugging
-            this.logger.info('✅ Order data formatted successfully:', {
-                orderId: formattedOrder.id,
-                orderNumber: formattedOrder.orderNumber,
-                status: formattedOrder.status,
-                itemsCount: formattedOrder.items.length,
-                totalAmount: formattedOrder.totalAmount
-            });
 
             return {
                 success: true,
@@ -3136,6 +3704,239 @@ class BuyerService {
 
         } catch (error) {
             this.logger.error('❌ Remove supplier from favorites error:', error);
+            throw error;
+        }
+    }
+
+    // ===============================================
+    // PRIVATE BUSINESS INTELLIGENCE HELPER METHODS
+    // ===============================================
+
+    /**
+     * Calculate customer segment based on spending and activity patterns
+     * @private
+     */
+    _calculateCustomerSegment(totalSpent, totalOrders, recentOrdersCount) {
+        try {
+            if (totalOrders === 0) return 'New';
+            
+            const avgOrderValue = totalSpent / totalOrders;
+            const isActiveCustomer = recentOrdersCount > 0;
+            
+            // High-value customer logic
+            if (totalSpent >= 10000 && avgOrderValue >= 1000) {
+                return isActiveCustomer ? 'VIP' : 'High-Value Dormant';
+            }
+            
+            // Regular customer categories
+            if (totalSpent >= 5000 || totalOrders >= 10) {
+                return isActiveCustomer ? 'Loyal' : 'At-Risk';
+            }
+            
+            if (totalSpent >= 1000 || totalOrders >= 3) {
+                return isActiveCustomer ? 'Regular' : 'Inactive';
+            }
+            
+            return isActiveCustomer ? 'Growing' : 'Churned';
+            
+        } catch (error) {
+            this.logger.error('❌ Error calculating customer segment:', error);
+            return 'Unknown';
+        }
+    }
+
+    /**
+     * Calculate engagement score based on various factors
+     * @private
+     */
+    _calculateEngagementScore(favoriteCount, cartCount, recentOrdersCount) {
+        try {
+            let score = 0;
+            
+            // Favorites contribute to engagement (0-30 points)
+            score += Math.min(favoriteCount * 2, 30);
+            
+            // Cart items show purchase intent (0-20 points)
+            score += Math.min(cartCount * 5, 20);
+            
+            // Recent orders show active engagement (0-50 points)
+            score += Math.min(recentOrdersCount * 10, 50);
+            
+            return Math.min(score, 100); // Cap at 100
+            
+        } catch (error) {
+            this.logger.error('❌ Error calculating engagement score:', error);
+            return 0;
+        }
+    }
+
+    /**
+     * Format time ago helper for consistent display
+     * @private
+     */
+    formatTimeAgo(timeDiff) {
+        try {
+            const seconds = Math.floor(timeDiff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            const weeks = Math.floor(days / 7);
+            const months = Math.floor(days / 30);
+            const years = Math.floor(days / 365);
+
+            if (years > 0) return `${years} yil oldin`;
+            if (months > 0) return `${months} oy oldin`;
+            if (weeks > 0) return `${weeks} hafta oldin`;
+            if (days > 0) return `${days} kun oldin`;
+            if (hours > 0) return `${hours} soat oldin`;
+            if (minutes > 0) return `${minutes} daqiqa oldin`;
+            return 'Hozir';
+            
+        } catch (error) {
+            this.logger.error('❌ Error formatting time ago:', error);
+            return 'Noma\'lum';
+        }
+    }
+
+    // ===============================================
+    // INQUIRY MANAGEMENT METHODS
+    // ===============================================
+
+    /**
+     * Create new inquiry from buyer to supplier
+     */
+    async createInquiry(buyerId, inquiryData) {
+        try {
+            // Validate buyer permissions
+            const User = require('../models/User');
+            const buyer = await User.findById(buyerId).select('role companyType');
+            
+            if (!buyer) {
+                return { success: false, message: 'Buyer not found' };
+            }
+
+            // Check if user is distributor/buyer
+            if (buyer.role !== 'company_admin' || 
+                (buyer.companyType !== 'distributor' && buyer.companyType !== 'buyer')) {
+                return { 
+                    success: false, 
+                    message: 'Only distributor/buyer companies can send inquiries' 
+                };
+            }
+
+            // Validate supplier exists
+            const supplier = await User.findById(inquiryData.supplierId).select('companyType');
+            if (!supplier || supplier.companyType !== 'manufacturer') {
+                return { success: false, message: 'Invalid supplier' };
+            }
+
+            // Generate inquiry number
+            const inquiryNumber = `INQ-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+
+            // Create inquiry object
+            const inquiry = new (require('../models/Inquiry'))({
+                inquiryNumber,
+                type: inquiryData.type || 'product_inquiry',
+                inquirer: buyerId,
+                supplier: inquiryData.supplierId,
+                product: inquiryData.productId || null,
+                subject: inquiryData.subject,
+                message: inquiryData.message,
+                requestedQuantity: inquiryData.quantity || null,
+                unit: inquiryData.unit || null,
+                customSpecifications: inquiryData.specifications || [],
+                budgetRange: inquiryData.budgetRange || null,
+                timeline: {
+                    urgency: inquiryData.urgency || 'flexible',
+                    requiredBy: inquiryData.requiredBy || null,
+                    deliveryDate: inquiryData.deliveryDate || null
+                },
+                shipping: {
+                    method: inquiryData.shippingMethod || 'standard',
+                    destination: inquiryData.destination || null,
+                    incoterms: inquiryData.incoterms || null
+                },
+                priority: inquiryData.priority || 'medium',
+                status: 'open'
+            });
+
+            // Save inquiry
+            await inquiry.save();
+
+            // Create initial message
+            const Message = require('../models/Message');
+            const message = new Message({
+                orderId: null,
+                inquiryId: inquiry._id,
+                senderId: buyerId,
+                recipientId: inquiryData.supplierId,
+                message: inquiryData.message,
+                messageType: 'inquiry',
+                status: 'sent'
+            });
+
+            await message.save();
+
+            this.logger.log('✅ Inquiry created successfully:', {
+                inquiryId: inquiry._id,
+                buyerId,
+                supplierId: inquiryData.supplierId,
+                type: inquiry.type
+            });
+
+            return {
+                success: true,
+                message: 'Inquiry sent successfully',
+                inquiry: inquiry
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Create inquiry error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get buyer inquiries
+     */
+    async getBuyerInquiries(buyerId) {
+        try {
+            const Inquiry = require('../models/Inquiry');
+            
+            const inquiries = await Inquiry.find({ inquirer: buyerId })
+                .populate('supplier', 'companyName country city')
+                .populate('product', 'name images')
+                .sort({ createdAt: -1 })
+                .lean();
+
+            return inquiries;
+
+        } catch (error) {
+            this.logger.error('❌ Get buyer inquiries error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get specific inquiry
+     */
+    async getInquiry(buyerId, inquiryId) {
+        try {
+            const Inquiry = require('../models/Inquiry');
+            
+            const inquiry = await Inquiry.findOne({
+                _id: inquiryId,
+                inquirer: buyerId
+            })
+            .populate('supplier', 'companyName country city companyLogo')
+            .populate('product', 'name images specifications')
+            .populate('messages.sender', 'companyName')
+            .lean();
+
+            return inquiry;
+
+        } catch (error) {
+            this.logger.error('❌ Get inquiry error:', error);
             throw error;
         }
     }

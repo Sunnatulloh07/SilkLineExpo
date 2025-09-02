@@ -131,7 +131,7 @@ class BuyerRealtime {
             message: `${payload.senderName}: ${payload.preview}`,
             icon: 'fas fa-envelope',
             action: () => {
-                window.location.href = `/distributor/communication?conversation=${payload.conversationId}`;
+                window.location.href = `/buyer/messages?conversation=${payload.conversationId}`;
             }
         });
     }
@@ -144,7 +144,7 @@ class BuyerRealtime {
             message: `${payload.supplierName} responded to your RFQ: ${payload.rfqTitle}`,
             icon: 'fas fa-handshake',
             action: () => {
-                window.location.href = `/distributor/communication?rfq=${payload.rfqId}`;
+                window.location.href = `/buyer/messages?rfq=${payload.rfqId}`;
             }
         });
     }

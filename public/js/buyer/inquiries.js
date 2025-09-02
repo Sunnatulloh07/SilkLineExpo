@@ -23,7 +23,7 @@ function initializeInquiriesPage() {
  * Load inquiries
  */
 function loadInquiries() {
-    fetch('/distributor/api/buyer-rfqs')
+    fetch('/buyer/api/buyer-rfqs')
         .then(response => response.json())
         .then(data => {
             if (data.success) {

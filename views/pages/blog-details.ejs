@@ -1,5 +1,10 @@
 <%- include('../partials/header') %>
-<%- include('../partials/navigation') %>
+<%- include('../partials/navigation', { 
+  cartItemsCount: cartItemsCount || 0, 
+  activeOrdersCount: activeOrdersCount || 0, 
+  unreadMessagesCount: unreadMessagesCount || 0,
+  favoritesCount: favoritesCount || 0 
+}) %>
 
     <!-- ======================= Blog Details Section Start ========================= -->
     <section class="blog-details padding-y-120 position-relative overflow-hidden">

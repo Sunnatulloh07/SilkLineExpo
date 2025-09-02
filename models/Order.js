@@ -249,6 +249,17 @@ const orderSchema = new mongoose.Schema({
   requestedDeliveryDate: Date,
   confirmedDeliveryDate: Date,
   
+  // Read Status
+  readBySeller: {
+    type: Boolean,
+    default: false
+  },
+  readByBuyer: {
+    type: Boolean,
+    default: false
+  },
+  readAt: Date,
+  
   // Special Instructions
   specialInstructions: String,
   internalNotes: String,

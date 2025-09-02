@@ -4,7 +4,12 @@
     admin: typeof admin !== 'undefined' ? admin : null, 
     user: typeof user !== 'undefined' ? user : null
 }) %>
-<%- include('../partials/navigation') %>
+<%- include('../partials/navigation', { 
+  cartItemsCount: cartItemsCount || 0, 
+  activeOrdersCount: activeOrdersCount || 0, 
+  unreadMessagesCount: unreadMessagesCount || 0,
+  favoritesCount: favoritesCount || 0 
+}) %>
 
 <main class="main-wrapper">
   <section class="error-section padding-y-120">

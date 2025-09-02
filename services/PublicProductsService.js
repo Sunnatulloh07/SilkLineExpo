@@ -103,13 +103,26 @@ class PublicProductsService {
                 'settings.isVisible': true
             }).sort({ 'settings.sortOrder': 1, name: 1 }).lean();
 
-            // Step 2: Get product counts for each category
+            // Step 2: Get product counts for each category (only from active suppliers)
             const categoryProductCounts = await Product.aggregate([
                 {
                     $match: {
                         status: 'active',
                         visibility: 'public',
                         publishedAt: { $exists: true, $ne: null }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'manufacturer',
+                        foreignField: '_id',
+                        as: 'manufacturerInfo'
+                    }
+                },
+                {
+                    $match: {
+                        'manufacturerInfo.status': 'active'
                     }
                 },
                 {
@@ -831,14 +844,27 @@ class PublicProductsService {
      * @private
      */
     _initializePrecompiledPipelines() {
-        // Base marketplace filter
+        // Base marketplace filter - only products from active suppliers (include products without publishedAt for backward compatibility)
         this.precompiledPipelines.set('baseMarketplaceFilter', {
             status: 'active',
             visibility: 'public',
-            publishedAt: { $exists: true, $ne: null },
             $or: [
-                { unpublishedAt: { $exists: false } },
-                { unpublishedAt: null }
+                // Products with publishedAt and not unpublished (new publishing system)
+                {
+                    publishedAt: { $exists: true, $ne: null },
+                    unpublishedAt: { $exists: false }
+                },
+                {
+                    publishedAt: { $exists: true, $ne: null },
+                    unpublishedAt: null
+                },
+                // Products without publishedAt but active and public (legacy products)
+                {
+                    publishedAt: { $exists: false }
+                },
+                {
+                    publishedAt: null
+                }
             ]
         });
 
@@ -872,7 +898,8 @@ class PublicProductsService {
         // Base match stage - only marketplace products
         const matchStage = {
             $match: {
-                ...this.precompiledPipelines.get('baseMarketplaceFilter')
+                status: 'active',
+                visibility: 'public'
             }
         };
 
@@ -922,9 +949,40 @@ class PublicProductsService {
 
         pipeline.push(matchStage);
 
+        // Add publishedAt filter
+        pipeline.push({
+            $match: {
+                $or: [
+                    // Products with publishedAt and not unpublished (new publishing system)
+                    {
+                        publishedAt: { $exists: true, $ne: null },
+                        unpublishedAt: { $exists: false }
+                    },
+                    {
+                        publishedAt: { $exists: true, $ne: null },
+                        unpublishedAt: null
+                    },
+                    // Products without publishedAt but active and public (legacy products)
+                    {
+                        publishedAt: { $exists: false }
+                    },
+                    {
+                        publishedAt: null
+                    }
+                ]
+            }
+        });
+
         // Add lookups
         pipeline.push(this.precompiledPipelines.get('manufacturerLookup'));
         pipeline.push(this.precompiledPipelines.get('categoryLookup'));
+
+        // Filter by supplier status - only show products from active suppliers
+        pipeline.push({
+            $match: {
+                'manufacturerInfo.status': 'active'
+            }
+        });
 
         // Add category filter after lookup (since we filter by slug, not ObjectId)
         if (filters.category && filters.category !== 'all') {

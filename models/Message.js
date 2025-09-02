@@ -7,11 +7,18 @@
 const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema({
-    // Order context
+    // Context - can be either order or inquiry
     orderId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Order',
-        required: true,
+        required: false, // Made optional to support inquiries
+        index: true
+    },
+    
+    inquiryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Inquiry',
+        required: false, // Made optional to support orders
         index: true
     },
     
@@ -41,7 +48,7 @@ const messageSchema = new mongoose.Schema({
     // Message type - auto-detect based on content and attachments
     type: {
         type: String,
-        enum: ['text', 'image', 'file', 'system', 'order_update'],
+        enum: ['text', 'image', 'file', 'system', 'order_update', 'inquiry_update'],
         default: 'text'
     },
     
@@ -93,11 +100,24 @@ const messageSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Custom validation to ensure either orderId or inquiryId is provided
+messageSchema.pre('save', function(next) {
+    if (!this.orderId && !this.inquiryId) {
+        return next(new Error('Either orderId or inquiryId must be provided'));
+    }
+    if (this.orderId && this.inquiryId) {
+        return next(new Error('Cannot have both orderId and inquiryId'));
+    }
+    next();
+});
+
 // Indexes for performance
 messageSchema.index({ orderId: 1, createdAt: -1 });
+messageSchema.index({ inquiryId: 1, createdAt: -1 });
 messageSchema.index({ senderId: 1, recipientId: 1 });
 messageSchema.index({ recipientId: 1, status: 1 });
 messageSchema.index({ orderId: 1, type: 1 });
+messageSchema.index({ inquiryId: 1, type: 1 });
 
 // Virtual for formatted creation time
 messageSchema.virtual('formattedTime').get(function() {

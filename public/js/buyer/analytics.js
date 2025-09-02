@@ -3,7 +3,7 @@
  */
 class BuyerAnalytics {
     constructor() {
-        this.apiBase = '/distributor/api';
+        this.apiBase = '/buyer/api';
         this.charts = {};
         this.init();
     }

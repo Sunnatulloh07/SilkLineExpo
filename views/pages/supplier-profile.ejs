@@ -1,9 +1,13 @@
 <%- include('../partials/header') %>
-<%- include('../partials/navigation') %>
+<%- include('../partials/navigation', { 
+  cartItemsCount: cartItemsCount || 0, 
+  activeOrdersCount: activeOrdersCount || 0, 
+  unreadMessagesCount: unreadMessagesCount || 0,
+  favoritesCount: favoritesCount || 0 
+}) %>
 
 <!-- Professional Supplier Profile CSS -->
 <link rel="stylesheet" href="/css/supplier-profile.css">
-<link rel="stylesheet" href="/css/manufacturer-cards.css">
 <link rel="stylesheet" href="/css/professional-supplier.css">
 <style>
     [data-theme='light'] .form-select, .form-select option {
@@ -17,7 +21,7 @@
     }
 </style>
 
-<main class="supplier-profile-main position-relative" data-supplier-id="<%= supplier._id %>">
+<main class="supplier-profile-main position-relative" data-supplier-id="<%= supplier ? supplier._id : '' %>">
     <div class="supplier-profile-container">
         
         <% if (!supplier || error) { %>
@@ -52,6 +56,31 @@
             </div>
         </section>
         <% } else { %>
+            
+        <!-- Pending Status Warning Banner -->
+        <% if (typeof isPending !== 'undefined' && isPending) { %>
+        <div class="alert alert-warning alert-dismissible fade show m-0 rounded-0" role="alert" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border: none; border-bottom: 2px solid #f39c12;">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-1 text-center">
+                        <i class="las la-clock text-warning" style="font-size: 2rem;"></i>
+                    </div>
+                    <div class="col-md-10">
+                        <h5 class="alert-heading mb-1 text-warning">
+                            <i class="las la-exclamation-triangle me-2"></i>
+                            <%= typeof t === 'function' ? t('supplier.pendingReview') : 'Supplier Under Review' %>
+                        </h5>
+                        <p class="mb-0 text-dark">
+                            <%= typeof t === 'function' ? t('supplier.pendingMessage') : 'This supplier profile is currently under review and not yet fully active. Some features may be limited.' %>
+                        </p>
+                    </div>
+                    <div class="col-md-1 text-end">
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% } %>
             
         <!-- Supplier Header Section -->
         <section class="supplier-header padding-y-120 section-bg position-relative z-index-1 overflow-hidden">
@@ -242,7 +271,7 @@
                     </div>
                     
                     <div class="section-actions d-flex gap-3">
-                        <a href="/all-product?manufacturer=<%= supplier._id %>" class="btn btn-primary btn-lg pill">
+                        <a href="/all-product?manufacturer=<%= supplier ? supplier._id : '' %>" class="btn btn-primary btn-lg pill">
                             <i class="las la-th-large me-2"></i>
                             <%= typeof t === 'function' ? t('supplier.allProducts') : 'All Products' %>
                             <span class="icon-right icon">
@@ -254,20 +283,51 @@
                 
                 <% if (supplierProducts.length > 0) { %>
                     <% 
-                    // Filter top products (4+ rating) or fallback to all products
-                    const topProducts = supplierProducts.filter(p => (p.averageRating || 0) >= 4).slice(0, 10);
-                    const displayProducts = topProducts.length >= 5 ? topProducts : supplierProducts.slice(0, 10);
+                    // Professional product selection logic
+                    const allProducts = supplierProducts || [];
+                    
+                    // Top products criteria: Featured, High-rated (4+), Popular (100+ views), Well-reviewed (5+ reviews)
+                    const topProducts = allProducts.filter(p => 
+                        p.isFeatured || 
+                        (p.averageRating || 0) >= 4.0 || 
+                        (p.analytics?.views || 0) >= 100 || 
+                        (p.totalReviews || 0) >= 5
+                    );
+                    
+                    // Smart selection: top 10 products or max 20 if less than 5 top products
+                    let displayProducts = [];
+                    let selectionType = '';
+                    
+                    if (topProducts.length >= 5) {
+                        // We have enough top products - show top 10
+                        displayProducts = topProducts.slice(0, 10);
+                        selectionType = 'top';
+                    } else {
+                        // Not enough top products - show max 20 products
+                        displayProducts = allProducts
+                            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                            .slice(0, 20);
+                        selectionType = 'latest';
+                    }
                     %>
                     
-                    <!-- Top Products Carousel -->
-                    <% if (displayProducts.length > 3) { %>
-                    <div class="top-products-section mb-5">
+                    <!-- Products Carousel -->
+                    <% if (displayProducts.length > 0) { %>
+                    <div class="products-section mb-5">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h4 class="text-heading mb-0">
-                                <i class="las la-star text-warning me-2"></i>
-                                <%= typeof t === 'function' ? t('supplier.topProducts') : 'Top Products' %>
-                                <% if (topProducts.length >= 5) { %>
-                                <small class="text-muted ms-2">(<%- typeof t === 'function' ? t('supplier.topProductsRating') : '4+ Rating' %>)</small>
+                                <% if (selectionType === 'top') { %>
+                                    <i class="las la-star text-warning me-2"></i>
+                                    <%= typeof t === 'function' ? t('supplier.topProducts') : 'Top Products' %>
+                                    <small class="text-muted ms-2">
+                                        (<%= displayProducts.length %> <%- typeof t === 'function' ? t('supplier.premiumProducts') : 'premium products' %>)
+                                    </small>
+                                <% } else { %>
+                                    <i class="las la-boxes text-primary me-2"></i>
+                                    <%= typeof t === 'function' ? t('supplier.products') : 'Products' %>
+                                    <small class="text-muted ms-2">
+                                        (<%= displayProducts.length %> <%- typeof t === 'function' ? t('supplier.totalProducts') : 'products' %>)
+                                    </small>
                                 <% } %>
                             </h4>
                             <div class="carousel-controls">
@@ -298,22 +358,22 @@
                                     const productUrl = `/product-details?id=${product._id}`;
                                     %>
                                     
-                                    <div class="carousel-item col-xl-4 col-lg-6 col-md-6">
+                                    <div class="product-carousel-item">
                                         <div class="product-item shadow-sm">
-                                            <div class="product-item__thumb d-flex">
-                                                <a href="<%= productUrl %>" class="link w-100">
-                                                    <img src="<%= imageUrl %>" alt="<%= imageAlt %>" class="cover-img">
+                                            <div class="product-item__thumb d-flex position-relative">
+                                                <a href="<%= productUrl %>" class="link w-100 d-block">
+                                                    <img src="<%= imageUrl %>" alt="<%= imageAlt %>" class="cover-img product-item__image" 
+                                                         onerror="handleImageError(this)"
+                                                         onload="handleImageSuccess(this)"
+                                                         style="transition: transform 0.3s ease; cursor: pointer;">
                                                 </a>
-                                                <% if (rating >= 4) { %>
-                                                <div class="product-badge featured">
-                                                    <i class="las la-star"></i>
-                                                    <%- typeof t === 'function' ? t('supplier.topRated') : 'Top Rated' %>
-                                                </div>
+                                                <% if (product.isFeatured) { %>
+                                                <span class="product-item__badge">Featured</span>
                                                 <% } %>
                                             </div>
                                             <div class="product-item__content">
                                                 <h6 class="product-item__title">
-                                                    <a href="<%= productUrl %>" class="link"><%= product.name %></a>
+                                                    <a href="<%= productUrl %>" class="link text-decoration-none hover-text-primary"><%= product.name %></a>
                                                 </h6>
                                                 <div class="product-item__info flx-between gap-2">
                                                     <span class="product-item__author">
@@ -324,33 +384,35 @@
                                                         <% } %>
                                                     </span>
                                                     <div class="flx-align gap-2">
-                                                        <h6 class="product-item__price mb-0"><%= formattedPrice %></h6>
+                                                        <h6 class="product-item__price mb-0">
+                                                            <%= formattedPrice %>
+                                                            <small class="text-muted">/ <%= product.inventory?.unit || 'pieces' %></small>
+                                                        </h6>
                                                     </div>
                                                 </div>
-                                                <div class="product-item__bottom flx-between gap-2">
+                                                <div class="product-item__bottom">
                                                     <div>
                                                         <span class="product-item__sales font-14 mb-2"><%= salesText %></span>
                                                         <div class="d-flex align-items-center gap-1">
                                                             <ul class="star-rating">
                                                                 <% 
-                                                                const fullStars = Math.floor(rating || 0);
-                                                                const hasHalfStar = (rating || 0) % 1 >= 0.5;
+                                                                const fullStars = Math.floor(rating);
+                                                                const hasHalfStar = (rating % 1) >= 0.5;
                                                                 const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                                                                for (let i = 0; i < fullStars; i++) {
+                                                                    %><li class="star-rating__item font-11"><i class="fas fa-star"></i></li><%
+                                                                }
+                                                                if (hasHalfStar) {
+                                                                    %><li class="star-rating__item font-11"><i class="fas fa-star-half-alt"></i></li><%
+                                                                }
+                                                                for (let i = 0; i < emptyStars; i++) {
+                                                                    %><li class="star-rating__item font-11"><i class="far fa-star"></i></li><%
+                                                                }
                                                                 %>
-                                                                <% for (let i = 0; i < fullStars; i++) { %>
-                                                                    <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
-                                                                <% } %>
-                                                                <% if (hasHalfStar) { %>
-                                                                    <li class="star-rating__item font-11"><i class="fas fa-star-half-alt"></i></li>
-                                                                <% } %>
-                                                                <% for (let i = 0; i < emptyStars; i++) { %>
-                                                                    <li class="star-rating__item font-11"><i class="far fa-star"></i></li>
-                                                                <% } %>
                                                             </ul>
                                                             <span class="star-rating__text text-heading fw-500 font-14">(<%= reviewCount %>)</span>
                                                         </div>
                                                     </div>
-                                                    <a href="<%= productUrl %>" class="btn btn-outline-light btn-sm pill"><%- typeof t === 'function' ? t('supplier.viewDetails') : 'View Details' %></a>
                                                 </div>
                                             </div>
                                         </div>
@@ -358,99 +420,23 @@
                                 <% }); %>
                             </div>
                         </div>
+                        
+                        <!-- View All Products Button -->
+                        <% if (supplierProducts.length > displayProducts.length) { %>
+                        <div class="text-center mt-5">
+                            <a href="/all-product?manufacturer=<%= supplier ? supplier._id : '' %>" class="btn btn-primary btn-lg px-5 py-3 professional-btn">
+                                <i class="las la-th-large me-3 font-20"></i>
+                                <%= typeof t === 'function' ? t('supplier.viewAllProducts') : 'View All Products' %> 
+                                <span class="badge bg-white text-primary ms-3"><%= supplierProducts.length %></span>
+                            </a>
+                            <p class="text-muted mt-3 font-16">
+                                <%- typeof t === 'function' ? t('supplier.exploreComplete') : 'Explore our complete product catalog' %> 
+                                (<%= supplierProducts.length %> <%- typeof t === 'function' ? t('supplier.totalProducts') : 'total products' %>)
+                            </p>
+                        </div>
+                        <% } %>
                     </div>
                     <% } %>
-                    
-                    <!-- All Products Grid using standard product-item layout -->
-                    <div class="all-products-grid">
-                        <% if (displayProducts.length > 3) { %>
-                        <h4 class="text-heading mb-4">
-                            <i class="las la-layer-group text-main me-2"></i>
-                            <%= typeof t === 'function' ? t('supplier.allProductsGrid') : 'All Products' %>
-                        </h4>
-                        <% } %>
-                        
-                        <div class="row gy-4" id="products-container">
-                            <% supplierProducts.slice(0, 12).forEach(product => { %>
-                                <% 
-                                const primaryImage = product.images?.find(img => img.isPrimary) || product.images?.[0];
-                                const imageUrl = primaryImage?.url || (product.images && product.images.length > 0 ? product.images[0].url : '/assets/images/thumbs/default-product.jpg');
-                                const imageAlt = primaryImage?.alt || product.name;
-                                const formattedPrice = new Intl.NumberFormat('en-US', {
-                                    style: 'currency',
-                                    currency: product.pricing?.currency || 'USD'
-                                }).format(product.pricing?.basePrice || 0);
-                                const rating = product.rating?.average || product.averageRating || 0;
-                                const reviewCount = product.rating?.total || product.totalReviews || 0;
-                                const viewsCount = product.analytics?.views || 0;
-                                const salesText = viewsCount > 1000 ? Math.floor(viewsCount / 1000) + 'k Views' : viewsCount + ' Views';
-                                const productUrl = `/product-details?id=${product._id}`;
-                                %>
-                                
-                                <div class="col-xl-4 col-lg-6 col-md-6">
-                                    <div class="product-item shadow-sm">
-                                        <div class="product-item__thumb d-flex">
-                                            <a href="<%= productUrl %>" class="link w-100">
-                                                <img src="<%= imageUrl %>" alt="<%= imageAlt %>" class="cover-img">
-                                            </a>
-                                        </div>
-                                        <div class="product-item__content">
-                                            <h6 class="product-item__title">
-                                                <a href="<%= productUrl %>" class="link"><%= product.name %></a>
-                                            </h6>
-                                            <div class="product-item__info flx-between gap-2">
-                                                <span class="product-item__author">
-                                                    <%- typeof t === 'function' ? t('buttons.by') : 'by' %> 
-                                                    <a href="#" class="link hover-text-decoration-underline"><%= supplier.companyName %></a>
-                                                    <% if (supplier.country) { %>
-                                                      <small class="text-muted">(<%= supplier.country %>)</small>
-                                                    <% } %>
-                                                </span>
-                                                <div class="flx-align gap-2">
-                                                    <h6 class="product-item__price mb-0"><%= formattedPrice %></h6>
-                                                </div>
-                                            </div>
-                                            <div class="product-item__bottom flx-between gap-2">
-                                                <div>
-                                                    <span class="product-item__sales font-14 mb-2"><%= salesText %></span>
-                                                    <div class="d-flex align-items-center gap-1">
-                                                        <ul class="star-rating">
-                                                            <% 
-                                                            const fullStars = Math.floor(rating || 0);
-                                                            const hasHalfStar = (rating || 0) % 1 >= 0.5;
-                                                            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-                                                            %>
-                                                            <% for (let i = 0; i < fullStars; i++) { %>
-                                                                <li class="star-rating__item font-11"><i class="fas fa-star"></i></li>
-                                                            <% } %>
-                                                            <% if (hasHalfStar) { %>
-                                                                <li class="star-rating__item font-11"><i class="fas fa-star-half-alt"></i></li>
-                                                            <% } %>
-                                                            <% for (let i = 0; i < emptyStars; i++) { %>
-                                                                <li class="star-rating__item font-11"><i class="far fa-star"></i></li>
-                                                            <% } %>
-                                                        </ul>
-                                                        <span class="star-rating__text text-heading fw-500 font-14">(<%= reviewCount %>)</span>
-                                                    </div>
-                                                </div>
-                                                <a href="<%= productUrl %>" class="btn btn-outline-light btn-sm pill"><%- typeof t === 'function' ? t('supplier.viewDetails') : 'View Details' %></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <% }); %>
-                        </div>
-                        
-                        <% if (supplierProducts.length > 12) { %>
-                        <div class="text-center mt-5">
-                            <a href="/all-product?manufacturer=<%= supplier._id %>" class="btn btn-outline-primary btn-lg">
-                                <i class="las la-plus-circle me-2"></i>
-                                <%= typeof t === 'function' ? t('supplier.viewAllProducts') : 'View All Products' %> 
-                                (<%= supplierProducts.length %> <%- typeof t === 'function' ? t('supplier.totalText') : 'total' %>)
-                            </a>
-                        </div>
-                        <% } %>
-                    </div>
                 <% } else { %>
                 <div class="text-center py-5">
                     <i class="las la-box-open text-gray" style="font-size: 4rem;"></i>
@@ -739,12 +725,34 @@
                                 
                                 <!-- Quick Contact Actions -->
                                 <div class="contact-actions mb-4">
-                                    <button class="btn btn-primary btn-lg w-100 mb-3 professional-btn" onclick="openContactModal()">
+                                    <% if (typeof isPending !== 'undefined' && isPending) { %>
+                                    <!-- Pending Supplier - Limited Contact Options -->
+                                    <div class="alert alert-info mb-3">
+                                        <i class="las la-info-circle me-2"></i>
+                                        <%= typeof t === 'function' ? t('supplier.pendingContactMessage') : 'Contact options will be available once the supplier profile is approved.' %>
+                                    </div>
+                                    <button class="btn btn-secondary btn-lg w-100 mb-3" disabled>
+                                        <i class="las la-envelope me-2"></i>
+                                        <%= typeof t === 'function' ? t('buttons.sendInquiry') : 'Send Inquiry' %> (Coming Soon)
+                                    </button>
+                                    
+                                    <button class="btn btn-secondary btn-lg w-100 mb-3" disabled>
+                                        <i class="las la-comments me-2"></i>
+                                        <%= typeof t === 'function' ? t('supplier.actions.startChat') : 'Start Chat' %> (Coming Soon)
+                                    </button>
+                                    
+                                    <button class="btn btn-secondary btn-lg w-100" disabled>
+                                        <i class="las la-file-alt me-2"></i>
+                                        <%= typeof t === 'function' ? t('supplier.actions.requestQuote') : 'Request Quote' %> (Coming Soon)
+                                    </button>
+                                    <% } else { %>
+                                    <!-- Active Supplier - Full Contact Options -->
+                                    <button class="btn btn-primary btn-lg w-100 mb-3 professional-btn" onclick="openInquiryModal()">
                                         <i class="las la-envelope me-2 text-white"></i>
                                         <%= typeof t === 'function' ? t('buttons.sendInquiry') : 'Send Inquiry' %>
                                     </button>
                                     
-                                    <button class="btn btn-success btn-lg w-100 mb-3 professional-btn" onclick="startChat('<%= supplier._id %>')">
+                                    <button class="btn btn-success btn-lg w-100 mb-3 professional-btn" data-supplier-id="<%= supplier ? supplier._id : '' %>" onclick="startChat(this.dataset.supplierId)">
                                         <i class="las la-comments me-2 text-white"></i>
                                         <%= typeof t === 'function' ? t('supplier.actions.startChat') : 'Start Chat' %>
                                     </button>
@@ -753,6 +761,7 @@
                                         <i class="las la-file-alt me-2 text-main"></i>
                                         <%= typeof t === 'function' ? t('supplier.actions.requestQuote') : 'Request Quote' %>
                                     </button>
+                                    <% } %>
                                 </div>
                                 
                                 <!-- Contact Information -->
@@ -788,17 +797,17 @@
                                 
                                 <!-- Additional Actions -->
                                 <div class="additional-actions d-flex justify-content-center gap-3 pt-4 mt-4 border-top">
-                                    <button class="btn btn-outline-secondary btn-sm px-3 py-2 professional-action-btn" onclick="saveSupplier('<%= supplier._id %>')" 
+                                    <button class="btn btn-outline-secondary btn-sm px-3 py-2 professional-action-btn" data-supplier-id="<%= supplier ? supplier._id : '' %>" onclick="saveSupplier(this.dataset.supplierId)" 
                                             title="<%= typeof t === 'function' ? t('supplier.actions.saveSupplier') : 'Save Supplier' %>">
                                         <i class="las la-save text-main me-1 font-16"></i>
                                         <span class="d-none d-md-inline"><%= typeof t === 'function' ? t('supplier.actions.saveSupplier') : 'Save' %></span>
                                     </button>
-                                    <button class="btn btn-outline-secondary btn-sm px-3 py-2 professional-action-btn" onclick="shareSupplier('<%= supplier._id %>')" 
+                                    <button class="btn btn-outline-secondary btn-sm px-3 py-2 professional-action-btn" data-supplier-id="<%= supplier ? supplier._id : '' %>" onclick="shareSupplier(this.dataset.supplierId)" 
                                             title="<%= typeof t === 'function' ? t('supplier.actions.shareSupplier') : 'Share Supplier' %>">
                                         <i class="las la-share text-info me-1 font-16"></i>
                                         <span class="d-none d-md-inline"><%= typeof t === 'function' ? t('supplier.actions.shareSupplier') : 'Share' %></span>
                                     </button>
-                                    <button class="btn btn-outline-secondary btn-sm px-3 py-2 professional-action-btn" onclick="reportSupplier('<%= supplier._id %>')" 
+                                    <button class="btn btn-outline-secondary btn-sm px-3 py-2 professional-action-btn" data-supplier-id="<%= supplier ? supplier._id : '' %>" onclick="reportSupplier(this.dataset.supplierId)" 
                                             title="<%= typeof t === 'function' ? t('supplier.actions.reportSupplier') : 'Report Supplier' %>">
                                         <i class="las la-flag text-warning me-1 font-16"></i>
                                         <span class="d-none d-md-inline"><%= typeof t === 'function' ? t('supplier.actions.reportSupplier') : 'Report' %></span>
@@ -864,7 +873,6 @@
             </div>
         </section>
         
-        <% } %>
     </div>
     
     <!-- Contact Modal -->
@@ -1052,16 +1060,17 @@ function startChat(supplierId) {
         return;
     }
 
-    // Check if user is distributor/buyer (correct logic for SLEX system)
-    const isDistributor = window.currentUser.userType === 'user' && 
-                          window.currentUser.role === 'company_admin' && 
-                          window.currentUser.companyType === 'distributor';
+
+    // Check if user is distributor/buyer (correct logic for SLEX system - same as product details page)
+    const isBuyer = window.currentUser && 
+                    window.currentUser.role === 'company_admin' && 
+                    (window.currentUser.companyType === 'distributor' || window.currentUser.companyType === 'buyer');
     
-    if (!isDistributor) {
+    if (!isBuyer) {
         let message = '';
-        if (window.currentUser.userType === 'user' && window.currentUser.companyType === 'manufacturer') {
+        if (window.currentUser.companyType === 'manufacturer') {
             message = 'Ishlab chiqaruvchilar chat qila olmaydi';
-        } else if (window.currentUser.userType === 'admin') {
+        } else if (window.currentUser.role === 'admin') {
             message = 'Adminlar chat qila olmaydi';
         } else {
             message = 'Faqat distribyutor/haridor kompanyalar chat qila oladi';
@@ -1104,7 +1113,7 @@ function submitQuoteRequest() {
     const formData = new FormData();
     
     // Collect all form data
-    formData.append('supplierId', '<%= supplier._id %>');
+    formData.append('supplierId', '<%= supplier ? supplier._id : "" %>');
     formData.append('name', document.getElementById('quoteName').value);
     formData.append('email', document.getElementById('quoteEmail').value);
     formData.append('phone', document.getElementById('quotePhone').value);
@@ -1175,7 +1184,7 @@ function submitInquiry() {
     const formData = new FormData(form);
     
     // Add supplier ID
-    formData.append('supplierId', '<%= supplier._id %>');
+    formData.append('supplierId', '<%= supplier ? supplier._id : "" %>');
     
     // Here you would typically send the data to your backend
     console.log('Submitting inquiry:', Object.fromEntries(formData));
@@ -1232,7 +1241,7 @@ function reportSupplier(supplierId) {
 
 function showAllProducts() {
     console.log('Showing all products');
-    window.location.href = `/supplier/<%= supplier._id %>/products`;
+    window.location.href = `/supplier/<%= supplier ? supplier._id : "" %>/products`;
 }
 
 // Inject user data from server
@@ -1249,4 +1258,703 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<!-- Professional Inquiry Modal -->
+<div class="modal fade" id="inquiryModal" tabindex="-1" aria-labelledby="inquiryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="inquiryModalLabel">
+                    <i class="las la-envelope text-main me-2"></i>
+                    <%- typeof t === 'function' ? t('inquiry.modalTitle') : 'Professional Business Inquiry' %>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<%- typeof t === 'function' ? t('common.close') : 'Close' %>"></button>
+            </div>
+            <div class="modal-body">
+                <form id="inquiryForm" class="professional-inquiry-form">
+                    <!-- Basic Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="inquirySubject" class="form-label">
+                                <i class="las la-heading text-main me-1"></i>
+                                <%- typeof t === 'function' ? t('inquiry.subject') : 'Subject' %> *
+                            </label>
+                            <input type="text" class="form-control" id="inquirySubject" name="subject" 
+                                   placeholder="<%- typeof t === 'function' ? t('inquiry.subjectPlaceholder') : 'Brief description of your inquiry' %>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="inquiryType" class="form-label">
+                                <i class="las la-tag text-main me-1"></i>
+                                <%- typeof t === 'function' ? t('inquiry.type') : 'Inquiry Type' %>
+                            </label>
+                            <select class="form-select" id="inquiryType" name="inquiryType">
+                                <option value="product_inquiry"><%- typeof t === 'function' ? t('inquiry.types.productInquiry') : 'Product Inquiry' %></option>
+                                <option value="quote_request"><%- typeof t === 'function' ? t('inquiry.types.quoteRequest') : 'Quote Request' %></option>
+                                <option value="bulk_order"><%- typeof t === 'function' ? t('inquiry.types.bulkOrder') : 'Bulk Order' %></option>
+                                <option value="custom_request"><%- typeof t === 'function' ? t('inquiry.types.customRequest') : 'Custom Request' %></option>
+                                <option value="partnership"><%- typeof t === 'function' ? t('inquiry.types.partnership') : 'Partnership' %></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Product Information (Conditional) -->
+                    <div id="productSection" class="row mb-4" style="display: none;">
+                        <div class="col-md-6">
+                            <label for="productId" class="form-label">
+                                <i class="las la-box text-main me-1"></i>
+                                <%- typeof t === 'function' ? t('inquiry.product') : 'Product' %>
+                            </label>
+                            <select class="form-select" id="productId" name="productId">
+                                <option value=""><%- typeof t === 'function' ? t('inquiry.selectProduct') : 'Select Product' %></option>
+                                <!-- Products will be loaded dynamically -->
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="quantity" class="form-label">
+                                <i class="las la-sort-numeric-up text-main me-1"></i>
+                                <%- typeof t === 'function' ? t('inquiry.quantity') : 'Quantity' %>
+                            </label>
+                            <input type="number" class="form-control" id="quantity" name="quantity" 
+                                   placeholder="<%- typeof t === 'function' ? t('inquiry.quantityPlaceholder') : 'Qty' %>" min="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="unit" class="form-label">
+                                <i class="las la-ruler text-main me-1"></i>
+                                <%- typeof t === 'function' ? t('inquiry.unit') : 'Unit' %>
+                            </label>
+                            <select class="form-select" id="unit" name="unit">
+                                <option value="pieces"><%- typeof t === 'function' ? t('inquiry.units.pieces') : 'Pieces' %></option>
+                                <option value="kg"><%- typeof t === 'function' ? t('inquiry.units.kg') : 'Kilograms' %></option>
+                                <option value="tons"><%- typeof t === 'function' ? t('inquiry.units.tons') : 'Tons' %></option>
+                                <option value="liters"><%- typeof t === 'function' ? t('inquiry.units.liters') : 'Liters' %></option>
+                                <option value="meters"><%- typeof t === 'function' ? t('inquiry.units.meters') : 'Meters' %></option>
+                                <option value="boxes"><%- typeof t === 'function' ? t('inquiry.units.boxes') : 'Boxes' %></option>
+                                <option value="pallets"><%- typeof t === 'function' ? t('inquiry.units.pallets') : 'Pallets' %></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Message -->
+                    <div class="mb-4">
+                        <label for="inquiryMessage" class="form-label">
+                            <i class="las la-comment text-main me-1"></i>
+                            <%- typeof t === 'function' ? t('inquiry.message') : 'Detailed Message' %> *
+                        </label>
+                        <textarea class="form-control" id="inquiryMessage" name="message" rows="5" 
+                                  placeholder="<%- typeof t === 'function' ? t('inquiry.messagePlaceholder') : 'Please provide detailed information about your inquiry, requirements, and any specific questions...' %>" required></textarea>
+                    </div>
+
+                    <!-- Business Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="urgency" class="form-label">
+                                <i class="las la-clock text-main me-1"></i>
+                                <%- typeof t === 'function' ? t('inquiry.urgency') : 'Urgency Level' %>
+                            </label>
+                            <select class="form-select" id="urgency" name="urgency">
+                                <option value="flexible"><%- typeof t === 'function' ? t('inquiry.urgencyLevels.flexible') : 'Flexible' %></option>
+                                <option value="within_month"><%- typeof t === 'function' ? t('inquiry.urgencyLevels.withinMonth') : 'Within Month' %></option>
+                                <option value="within_week"><%- typeof t === 'function' ? t('inquiry.urgencyLevels.withinWeek') : 'Within Week' %></option>
+                                <option value="immediate"><%- typeof t === 'function' ? t('inquiry.urgencyLevels.immediate') : 'Immediate' %></option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="shippingMethod" class="form-label">
+                                <i class="las la-shipping-fast text-main me-1"></i>
+                                <%- typeof t === 'function' ? t('inquiry.shippingMethod') : 'Preferred Shipping' %>
+                            </label>
+                            <select class="form-select" id="shippingMethod" name="shippingMethod">
+                                <option value="standard"><%- typeof t === 'function' ? t('inquiry.shippingMethods.standard') : 'Standard' %></option>
+                                <option value="express"><%- typeof t === 'function' ? t('inquiry.shippingMethods.express') : 'Express' %></option>
+                                <option value="freight"><%- typeof t === 'function' ? t('inquiry.shippingMethods.freight') : 'Freight' %></option>
+                                <option value="pickup"><%- typeof t === 'function' ? t('inquiry.shippingMethods.pickup') : 'Pickup' %></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Budget Range -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="las la-dollar-sign text-main me-1"></i>
+                            <%- typeof t === 'function' ? t('inquiry.budgetRange') : 'Budget Range' %> (<%- typeof t === 'function' ? t('inquiry.optional') : 'Optional' %>)
+                        </label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="number" class="form-control" name="budgetMin" 
+                                       placeholder="<%- typeof t === 'function' ? t('inquiry.minBudget') : 'Minimum Budget' %>" min="0">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="number" class="form-control" name="budgetMax" 
+                                       placeholder="<%- typeof t === 'function' ? t('inquiry.maxBudget') : 'Maximum Budget' %>" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Destination -->
+                    <div class="mb-4">
+                        <label for="destination" class="form-label">
+                            <i class="las la-map-marker-alt text-main me-1"></i>
+                            <%- typeof t === 'function' ? t('inquiry.deliveryDestination') : 'Delivery Destination' %>
+                        </label>
+                        <input type="text" class="form-control" id="destination" name="destination" 
+                               placeholder="<%- typeof t === 'function' ? t('inquiry.destinationPlaceholder') : 'City, Country' %>">
+                    </div>
+
+                    <!-- Special Requirements -->
+                    <div class="mb-4">
+                        <label for="specialRequirements" class="form-label">
+                            <i class="las la-clipboard-list text-main me-1"></i>
+                            <%- typeof t === 'function' ? t('inquiry.specialRequirements') : 'Special Requirements' %> (<%- typeof t === 'function' ? t('inquiry.optional') : 'Optional' %>)
+                        </label>
+                        <textarea class="form-control" id="specialRequirements" name="specialRequirements" rows="3" 
+                                  placeholder="<%- typeof t === 'function' ? t('inquiry.specialRequirementsPlaceholder') : 'Any special specifications, certifications, or requirements...' %>"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="las la-times me-1"></i>
+                    <%- typeof t === 'function' ? t('common.cancel') : 'Cancel' %>
+                </button>
+                <button type="submit" form="inquiryForm" class="btn btn-primary" id="submitInquiryBtn">
+                    <i class="las la-paper-plane me-1"></i>
+                    <span class="btn-text"><%- typeof t === 'function' ? t('inquiry.sendInquiry') : 'Send Inquiry' %></span>
+                    <span class="btn-loading" style="display: none;">
+                        <i class="las la-spinner la-spin me-1"></i>
+                        <%- typeof t === 'function' ? t('inquiry.sending') : 'Sending...' %>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <%- include('../partials/footer') %>
+
+<!-- Image Error Handling System - Prevents Infinite Retry Loops -->
+<script>
+// Image Error Handling System - Prevents Infinite Retry Loops
+const ImageErrorHandler = {
+    maxRetries: 2,
+    retryDelay: 1000,
+    fallbackImages: [
+        '/assets/images/placeholder-product.svg',
+        '/assets/images/no-image.svg',
+        'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjgwIiByPSIyMCIgc3Ryb2tlPSIjOUNBM0FGIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KPHN0eWxlPi50ZXh0e2ZvbnQ6MTJweCBBcmlhbDtmaWxsOiM5Q0EzQUY7fTwvc3R5bGU+Cjx0ZXh0IHg9IjEwMCIgeT0iMTIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0idGV4dCI+Tm8gSW1hZ2U8L3RleHQ+Cjx0ZXh0IHg9IjEwMCIgeT0iMTQwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0idGV4dCI+QXZhaWxhYmxlPC90ZXh0Pgo8L3N2Zz4K'
+    ],
+    
+    init() {
+        // Store failed images to prevent infinite loops
+        this.failedImages = new Set();
+        this.retryCount = new Map();
+    },
+    
+    handleError(img) {
+        const originalSrc = img.dataset.originalSrc || img.src;
+        const currentRetryCount = this.retryCount.get(originalSrc) || 0;
+        
+        // Store original src for tracking
+        if (!img.dataset.originalSrc) {
+            img.dataset.originalSrc = originalSrc;
+        }
+        
+        // Check if we've already marked this as permanently failed
+        if (this.failedImages.has(originalSrc)) {
+           this.showFinalFallback(img);
+            return;
+        }
+        
+        // Check retry limit
+        if (currentRetryCount >= this.maxRetries) {
+            this.failedImages.add(originalSrc);
+            this.tryFallbackImage(img, 0);
+            return;
+        }
+        
+        // Increment retry count
+        this.retryCount.set(originalSrc, currentRetryCount + 1);
+        
+        setTimeout(() => {
+            img.src = originalSrc + '?retry=' + Date.now();
+        }, this.retryDelay);
+    },
+    
+    tryFallbackImage(img, fallbackIndex = 0) {
+        if (fallbackIndex >= this.fallbackImages.length) {
+            this.showFinalFallback(img);
+            return;
+        }
+        
+        const fallbackSrc = this.fallbackImages[fallbackIndex];
+        
+        // Create a test image to check if fallback works
+        const testImg = new Image();
+        testImg.onload = () => {
+            img.src = fallbackSrc;
+            img.dataset.fallbackUsed = 'true';
+        };
+        testImg.onerror = () => {
+            this.tryFallbackImage(img, fallbackIndex + 1);
+        };
+        testImg.src = fallbackSrc;
+    },
+    
+    showFinalFallback(img) {
+        // Show a CSS-only fallback
+        img.style.display = 'none';
+        
+        // Create a CSS-only placeholder
+        const placeholder = document.createElement('div');
+        placeholder.className = 'image-fallback-placeholder';
+        placeholder.style.cssText = `
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            border: 2px dashed #d1d5db;
+            position: relative;
+        `;
+        placeholder.innerHTML = `
+            <div style="text-align: center;">
+                <div style="font-size: 24px; margin-bottom: 8px;">📷</div>
+                <div>Image not available</div>
+            </div>
+        `;
+        
+        // Insert placeholder after image
+        img.parentNode.insertBefore(placeholder, img.nextSibling);
+    },
+    
+    handleSuccess(img) {
+        const originalSrc = img.dataset.originalSrc || img.src;
+        
+        // Clear any retry tracking for successful images
+        if (this.retryCount.has(originalSrc)) {
+            this.retryCount.delete(originalSrc);
+        }
+        
+        // Remove any existing placeholders
+        const placeholder = img.parentNode.querySelector('.image-fallback-placeholder');
+        if (placeholder) {
+            placeholder.remove();
+        }
+        
+        // Ensure image is visible
+        img.style.display = 'block';
+    }
+};
+
+// Global functions for image handling
+function handleImageError(img) {
+    ImageErrorHandler.handleError(img);
+}
+
+function handleImageSuccess(img) {
+    ImageErrorHandler.handleSuccess(img);
+}
+
+// Inquiry Modal Functions
+function openInquiryModal() {
+       // Check if user is authenticated
+    if (!window.currentUser) {
+        const loginMessage = '<%- typeof t === "function" ? t("inquiry.loginRequired") : "Inquiry yuborish uchun tizimga kiring" %>';
+        alert(loginMessage);
+        window.location.href = '/login';
+        return;
+    }
+    
+    // Check if user is distributor/buyer
+    const isBuyer = window.currentUser && 
+                    window.currentUser.role === 'company_admin' && 
+                    (window.currentUser.companyType === 'distributor' || window.currentUser.companyType === 'buyer');
+    
+    if (!isBuyer) {
+        const permissionMessage = '<%- typeof t === "function" ? t("inquiry.permissionDenied") : "Faqat distribyutor/haridor kompaniyalar so\'rov yubora oladi" %>';
+        alert(permissionMessage);
+        return;
+    }
+    
+    // Show modal
+    const inquiryModal = new bootstrap.Modal(document.getElementById('inquiryModal'));
+    inquiryModal.show();
+    
+    // Load supplier products if available
+    loadSupplierProducts();
+}
+
+function loadSupplierProducts() {
+    // This function can be enhanced to load supplier products
+}
+
+function submitInquiry(event) {
+    // Prevent default form submission
+    event.preventDefault();
+    event.stopPropagation();
+    
+    console.log('🔥 Form submission started');
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const submitBtn = document.getElementById('submitInquiryBtn');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoading = submitBtn.querySelector('.btn-loading');
+    
+    // Show loading state
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'inline-block';
+    submitBtn.disabled = true;
+    
+    // Prepare inquiry data
+    const inquiryData = {
+        supplierId: '<%= supplier ? supplier._id : "" %>',
+        type: formData.get('inquiryType'),
+        subject: formData.get('subject'),
+        message: formData.get('message'),
+        quantity: formData.get('quantity') || null,
+        unit: formData.get('unit') || null,
+        urgency: formData.get('urgency'),
+        shippingMethod: formData.get('shippingMethod'),
+        destination: formData.get('destination') || null,
+        specialRequirements: formData.get('specialRequirements') || null
+    };
+    
+    // Add budget range if provided
+    const budgetMin = formData.get('budgetMin');
+    const budgetMax = formData.get('budgetMax');
+    if (budgetMin || budgetMax) {
+        inquiryData.budgetRange = {
+            min: budgetMin ? parseFloat(budgetMin) : null,
+            max: budgetMax ? parseFloat(budgetMax) : null,
+            currency: 'USD'
+        };
+    }
+    
+    console.log('📤 Sending inquiry data:', inquiryData);
+    
+    // Send inquiry to backend
+    fetch('/buyer/api/inquiries', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(inquiryData)
+    })
+    .then(response => {
+        console.log('📥 Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('📥 Response data:', data);
+        
+        if (data.success) {
+            // Show success message
+            const successMessage = '<%- typeof t === "function" ? t("inquiry.successMessage") : "✅ So\'rov muvaffaqiyatli yuborildi!" %>';
+            alert(successMessage);
+            
+            // Close modal
+            const inquiryModal = bootstrap.Modal.getInstance(document.getElementById('inquiryModal'));
+            if (inquiryModal) {
+                inquiryModal.hide();
+            }
+            
+            // Reset form
+            form.reset();
+            
+            // Redirect to messages page
+            setTimeout(() => {
+                window.location.href = `/buyer/messages?manufacturer=<%= supplier ? supplier._id : "" %>`;
+            }, 1000);
+        } else {
+            throw new Error(data.message || '<%- typeof t === "function" ? t("inquiry.failedToSend") : "Failed to send inquiry" %>');
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error sending inquiry:', error);
+        const errorMessage = '<%- typeof t === "function" ? t("inquiry.errorMessage") : "❌ So\'rov yuborishda xatolik" %>: ' + error.message;
+        alert(errorMessage);
+    })
+    .finally(() => {
+        // Reset button state
+        btnText.style.display = 'inline-block';
+        btnLoading.style.display = 'none';
+        submitBtn.disabled = false;
+    });
+    
+    // Return false to prevent any default behavior
+    return false;
+}
+
+// Add form submit event listener
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔥 DOM loaded, setting up inquiry form...');
+    
+    const inquiryForm = document.getElementById('inquiryForm');
+    if (inquiryForm) {
+        console.log('✅ Inquiry form found, adding submit listener');
+        inquiryForm.addEventListener('submit', submitInquiry);
+        
+        // Also prevent default on form submit button click
+        const submitBtn = document.getElementById('submitInquiryBtn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🔥 Submit button clicked');
+            });
+        }
+    } else {
+        console.log('❌ Inquiry form not found');
+    }
+    
+    // Show/hide product section based on inquiry type
+    const inquiryTypeSelect = document.getElementById('inquiryType');
+    if (inquiryTypeSelect) {
+        console.log('✅ Inquiry type select found, adding change listener');
+        inquiryTypeSelect.addEventListener('change', function() {
+            const productSection = document.getElementById('productSection');
+            // Show product section for product-related inquiries
+            if (this.value === 'product_inquiry' || this.value === 'quote_request') {
+                productSection.style.display = 'block';
+                console.log('📦 Product section shown for:', this.value);
+            } else {
+                productSection.style.display = 'none';
+                console.log('📦 Product section hidden for:', this.value);
+            }
+        });
+    } else {
+        console.log('❌ Inquiry type select not found');
+    }
+    
+    // Add CSS for consistent form styling
+    const style = document.createElement('style');
+    style.textContent = `
+        .professional-inquiry-form .form-control,
+        .professional-inquiry-form .form-select {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background-color: #ffffff;
+        }
+        
+        .professional-inquiry-form .form-control:focus,
+        .professional-inquiry-form .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+        
+        .professional-inquiry-form .form-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .professional-inquiry-form .row {
+            margin-left: -8px;
+            margin-right: -8px;
+        }
+        
+        .professional-inquiry-form .col-md-3,
+        .professional-inquiry-form .col-md-6 {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+        
+        .professional-inquiry-form .mb-4 {
+            margin-bottom: 1.5rem !important;
+        }
+        
+        .professional-inquiry-form textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .professional-inquiry-form .btn {
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 12px 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .professional-inquiry-form .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: none;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .professional-inquiry-form .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .professional-inquiry-form .btn-secondary {
+            background: #6b7280;
+            border: none;
+            box-shadow: 0 2px 8px rgba(107, 114, 128, 0.2);
+        }
+        
+        .professional-inquiry-form .btn-secondary:hover {
+            background: #4b5563;
+            transform: translateY(-1px);
+        }
+        
+        .professional-inquiry-form .modal-content {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+        
+        .professional-inquiry-form .modal-header {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 24px 32px 20px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .professional-inquiry-form .modal-body {
+            padding: 32px;
+        }
+        
+        .professional-inquiry-form .modal-footer {
+            border-top: 1px solid #e5e7eb;
+            padding: 20px 32px 24px;
+            background: #f9fafb;
+            border-radius: 0 0 16px 16px;
+        }
+        
+        .professional-inquiry-form .modal-title {
+            color: #1f2937;
+            font-weight: 700;
+            font-size: 20px;
+        }
+        
+        .professional-inquiry-form .text-main {
+            color: #3b82f6 !important;
+        }
+        
+        .professional-inquiry-form .form-control::placeholder {
+            color: #9ca3af;
+            font-size: 13px;
+        }
+        
+        .professional-inquiry-form .form-control:disabled {
+            background-color: #f3f4f6;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+        
+        .professional-inquiry-form .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .professional-inquiry-form .btn-loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .professional-inquiry-form .btn-loading i {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .professional-inquiry-form .modal-body {
+                padding: 20px;
+            }
+            
+            .professional-inquiry-form .modal-header,
+            .professional-inquiry-form .modal-footer {
+                padding: 16px 20px;
+            }
+            
+            .professional-inquiry-form .col-md-3,
+            .professional-inquiry-form .col-md-6 {
+                margin-bottom: 16px;
+            }
+        }
+        
+        /* Fix for product section grid layout */
+        #productSection {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        #productSection .row {
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        #productSection .col-md-3,
+        #productSection .col-md-6 {
+            padding: 0 8px;
+            margin-bottom: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Ensure consistent spacing */
+        .professional-inquiry-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .professional-inquiry-form .form-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Additional grid fixes */
+        .professional-inquiry-form .row > [class*="col-"] {
+            margin-bottom: 0;
+        }
+        
+        .professional-inquiry-form .form-control,
+        .professional-inquiry-form .form-select {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Smooth transitions for all form elements */
+        .professional-inquiry-form * {
+            transition: all 0.3s ease;
+        }
+    `;
+    document.head.appendChild(style);
+});
+
+// Inject user data from server for chat functionality (same as product details page)
+window.currentUser = JSON.parse('<%-JSON.stringify(user || null)%>');
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    ImageErrorHandler.init();
+    
+    // Also handle existing images that might have already failed
+    const failedImages = document.querySelectorAll('img[src*="placeholder-product.png"]');
+    failedImages.forEach(img => {
+        if (img.complete && img.naturalWidth === 0) {
+            handleImageError(img);
+        }
+    });
+    
+   });
+</script>
+
+<% } %>
+

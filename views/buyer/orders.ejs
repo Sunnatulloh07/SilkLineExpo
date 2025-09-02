@@ -1,5 +1,10 @@
 <%- include('../partials/header', { title: 'My Orders - SLEX' }) %>
-<%- include('../partials/navigation') %>
+<%- include('../partials/navigation', { 
+  cartItemsCount: cartItemsCount, 
+  activeOrdersCount: activeOrdersCount, 
+  unreadMessagesCount: unreadMessagesCount,
+  favoritesCount: favoritesCount 
+}) %>
 
 <!-- Professional Buyer Orders Page - Dark Mode Style -->
 <main class="buyer-orders-wrapper">
@@ -410,11 +415,23 @@
 }
 
 .item-image {
-  width: 80px;
-  height: 80px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   border-radius: 12px;
   border: 2px solid var(--bs-gray-200);
+}
+
+.order-details-link {
+  display: block;
+  width: 80px;
+  height: 80px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.order-details-link:hover {
+  transform: scale(1.05);
 }
 
 .item-discount-badge {
@@ -439,6 +456,16 @@
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--bs-gray-800);
+}
+
+.item-title .order-link {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.3s ease;
+}
+
+.item-title .order-link:hover {
+  color: hsl(var(--main));
 }
 
 .item-attributes {
@@ -1322,7 +1349,8 @@ class OrdersManager {
             const statusLabel = this.escapeHtml(order.statusLabel || order.status);
             const formattedDate = this.formatDate(order.createdAt);
             const formattedAmount = this.formatCurrency(order.totalAmount, order.currency);
-
+            console.log(order);
+            
             return `
                 <div class="professional-order-card" data-order-id="${this.escapeHtml(order.id)}">
                     <div class="order-header">
@@ -1345,14 +1373,22 @@ class OrdersManager {
                         <div class="order-items">
                             <div class="item-row">
                                 <div class="item-image-container">
-                                    <img src="${this.escapeHtml(order.mainProduct.image)}" 
-                                         alt="${this.escapeHtml(order.mainProduct.name)}" 
-                                         class="item-image"
-                                         onerror="this.src='/assets/images/placeholder-product.svg'">
+                                    <a href="/buyer/order-details/${order.id}" class="order-details-link">
+                                        <img src="${this.extractProductImage(order.mainProduct)}" 
+                                             alt="${this.escapeHtml(order.mainProduct.name)}" 
+                                             class="item-image"
+                                             onerror="handleOrderImageError(this)"
+                                             onload="handleOrderImageSuccess(this)"
+                                             data-order-id="${order.id}">
+                                    </a>
                                     ${order.discount.hasDiscount ? `<div class="item-discount-badge">-${order.discount.percentage}%</div>` : ''}
                                 </div>
                                 <div class="item-details">
-                                    <h5 class="item-title">${this.escapeHtml(order.mainProduct.name)}</h5>
+                                    <h5 class="item-title">
+                                        <a href="/buyer/order-details/${order.id}" class="order-link">
+                                            ${this.escapeHtml(order.mainProduct.name)}
+                                        </a>
+                                    </h5>
                                     <div class="item-attributes">
                                         <span class="attribute-item">
                                             <span class="attr-label"><%- t('orders.quantity') || 'Quantity' %>:</span>
@@ -1609,7 +1645,6 @@ class OrdersManager {
 
     updatePagination(pagination) {
         // TODO: Implement pagination UI if needed
-        console.log('Pagination data:', pagination);
     }
 
     // Action Methods with proper error handling
@@ -1776,6 +1811,55 @@ class OrdersManager {
         });
     }
 
+    // Image extraction utility - handles complex product image structures
+    extractProductImage(product) {
+        if (!product) return '/assets/images/placeholder-product.svg';
+        
+        // Handle different image data structures
+        let imageUrl = '/assets/images/placeholder-product.svg';
+        
+        // Case 1: Direct image field (legacy)
+        if (product.image && typeof product.image === 'string') {
+            imageUrl = product.image;
+        }
+        // Case 2: Images array (modern structure)
+        else if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+            // Find primary image first
+            const primaryImage = product.images.find(img => img && (img.isPrimary || img.primary));
+            const firstImage = product.images[0];
+            
+            const selectedImage = primaryImage || firstImage;
+            
+            if (selectedImage) {
+                if (typeof selectedImage === 'string') {
+                    imageUrl = selectedImage;
+                } else if (selectedImage.url) {
+                    imageUrl = selectedImage.url;
+                } else if (selectedImage.src) {
+                    imageUrl = selectedImage.src;
+                }
+            }
+        }
+        // Case 3: Single image object
+        else if (product.image && typeof product.image === 'object') {
+            if (product.image.url) {
+                imageUrl = product.image.url;
+            } else if (product.image.src) {
+                imageUrl = product.image.src;
+            }
+        }
+        
+        // Clean the URL and add protocol if needed
+        if (imageUrl && imageUrl !== '/assets/images/placeholder-product.svg') {
+            imageUrl = imageUrl.replace(/\/undefined|\/null/g, '');
+            if (imageUrl.startsWith('//')) {
+                imageUrl = 'https:' + imageUrl;
+            }
+        }
+        
+        return this.escapeHtml(imageUrl);
+    }
+
     // Security and utility methods
     escapeHtml(text) {
         if (typeof text !== 'string') return '';
@@ -1882,6 +1966,111 @@ document.addEventListener('DOMContentLoaded', function() {
 }
     }
 });
+
+// Advanced Image Error Handler for Orders
+const OrderImageHandler = {
+    failedImages: new Set(),
+    retryCount: new Map(),
+    maxRetries: 2,
+    retryDelay: 1000,
+    
+    fallbackImages: [
+        '/assets/images/placeholder-product.svg',
+        '/assets/images/no-image.svg',
+        '/images/placeholder-product.png',
+        '/assets/images/default-product.png'
+    ],
+    
+    handleError(img) {
+        const originalSrc = img.dataset.originalSrc || img.src;
+        const currentRetryCount = this.retryCount.get(originalSrc) || 0;
+        
+        console.log(`🖼️ Order image load failed: ${originalSrc} (attempt ${currentRetryCount + 1})`);
+        
+        // Store original src for tracking
+        if (!img.dataset.originalSrc) {
+            img.dataset.originalSrc = originalSrc;
+        }
+        
+        // Check if we've already marked this as permanently failed
+        if (this.failedImages.has(originalSrc)) {
+            this.showFinalFallback(img);
+            return;
+        }
+        
+        // Check retry limit
+        if (currentRetryCount >= this.maxRetries) {
+            this.failedImages.add(originalSrc);
+            this.tryFallbackImage(img, 0);
+            return;
+        }
+        
+        // Increment retry count and retry
+        this.retryCount.set(originalSrc, currentRetryCount + 1);
+        
+        setTimeout(() => {
+            console.log(`🔄 Retrying order image: ${originalSrc}`);
+            img.src = originalSrc + '?retry=' + Date.now();
+        }, this.retryDelay);
+    },
+    
+    tryFallbackImage(img, fallbackIndex = 0) {
+        if (fallbackIndex >= this.fallbackImages.length) {
+            this.showFinalFallback(img);
+            return;
+        }
+        
+        const fallbackSrc = this.fallbackImages[fallbackIndex];
+        console.log(`🔄 Trying order fallback image ${fallbackIndex}: ${fallbackSrc}`);
+        
+        // Create a test image to check if fallback works
+        const testImg = new Image();
+        testImg.onload = () => {
+            img.src = fallbackSrc;
+            img.dataset.fallbackUsed = 'true';
+            console.log(`✅ Order fallback image loaded: ${fallbackSrc}`);
+        };
+        testImg.onerror = () => {
+            console.log(`❌ Order fallback image failed: ${fallbackSrc}`);
+            this.tryFallbackImage(img, fallbackIndex + 1);
+        };
+        testImg.src = fallbackSrc;
+    },
+    
+    showFinalFallback(img) {
+        // Show a CSS-only fallback with order info
+        const container = img.closest('.item-image-container') || img.parentElement;
+        if (container) {
+            container.innerHTML = `
+                <div class="no-image-placeholder">
+                    <i class="las la-image"></i>
+                    <span>No Image</span>
+                </div>
+            `;
+        }
+        console.log(`🚫 All order fallbacks failed, showing CSS placeholder`);
+    },
+    
+    handleSuccess(img) {
+        const originalSrc = img.dataset.originalSrc || img.src;
+        
+        // Remove from failed list if it was there
+        this.failedImages.delete(originalSrc);
+        this.retryCount.delete(originalSrc);
+        
+        // Add success class for CSS animations
+        img.classList.add('image-loaded');
+    }
+};
+
+// Global functions for order image handling
+function handleOrderImageError(img) {
+    OrderImageHandler.handleError(img);
+}
+
+function handleOrderImageSuccess(img) {
+    OrderImageHandler.handleSuccess(img);
+}
 </script>
 
 <!-- Buyer Token Manager -->

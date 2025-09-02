@@ -10,7 +10,7 @@ const rateLimit = require('express-rate-limit');
 
 class AdminController {
   constructor() {
-    this.logger = console; // In production, use proper logging service
+    this.logger = console; 
     
     // Rate limiting for sensitive operations
     this.approvalRateLimit = rateLimit({
@@ -32,7 +32,6 @@ class AdminController {
       const adminId = req.user.userId;
       const period = req.query.period || '90';
       
-      this.logger.log(`📊 Dashboard request from admin: ${adminId}`);
       
       // Get language preference
       const lng = this.getLanguagePreference(req);
@@ -54,8 +53,6 @@ class AdminController {
         refreshTime: new Date().toISOString()
       });
 
-      this.logger.log(`✅ Dashboard rendered successfully for admin: ${adminId}`);
-
     } catch (error) {
       this.logger.error('❌ Dashboard render error:', error);
       this.renderError(res, req, error, 'Failed to load dashboard');
@@ -70,8 +67,6 @@ class AdminController {
       const adminId = req.user.userId;
       const filters = this.extractFilters(req.query);
       
-      this.logger.log(`📋 Pending approvals request from admin: ${adminId}`, filters);
-
       const result = await AdminService.getPendingApprovals(adminId, filters);
 
       res.render('admin/users/pending-approvals', {
@@ -86,7 +81,6 @@ class AdminController {
       });
 
     } catch (error) {
-      this.logger.error('❌ Pending approvals render error:', error);
       this.renderError(res, req, error, 'Failed to load pending approvals');
     }
   }
@@ -99,8 +93,7 @@ class AdminController {
       const adminId = req.user.userId;
       const period = req.query.period || '90';
       
-      this.logger.log(`📊 Dashboard stats API request from admin: ${adminId}`);
-      
+    
       // Validate period parameter
       const validPeriods = ['7', '30', '90', '180', '365'];
       if (!validPeriods.includes(period)) {
@@ -124,8 +117,6 @@ class AdminController {
       const adminId = req.user.userId;
       const filters = this.extractFilters(req.query);
       
-      this.logger.log(`📋 Pending approvals API request from admin: ${adminId}`, filters);
-      
       const result = await AdminService.getPendingApprovals(adminId, filters);
       
       this.sendSuccess(res, result.pendingUsers, 'Pending approvals retrieved successfully', {
@@ -147,8 +138,7 @@ class AdminController {
       const adminId = req.user.userId;
       const { userId } = req.params;
       
-      this.logger.log(`👤 User details API request: ${userId} from admin: ${adminId}`);
-      
+
       // Validate request
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -173,7 +163,6 @@ class AdminController {
       const { userId } = req.params;
       const { notes = '' } = req.body;
       
-      this.logger.log(`✅ User approval request: ${userId} from admin: ${adminId}`);
       
       // Validate request
       const errors = validationResult(req);
@@ -199,7 +188,6 @@ class AdminController {
       const { userId } = req.params;
       const { reason } = req.body;
       
-      this.logger.log(`❌ User rejection request: ${userId} from admin: ${adminId}`);
       
       // Validate request
       const errors = validationResult(req);
@@ -228,7 +216,6 @@ class AdminController {
       const adminId = req.user.userId;
       const { userId } = req.params;
       
-      this.logger.log(`🗑️ User deletion request: ${userId} from admin: ${adminId}`);
       
       // Validate request
       const errors = validationResult(req);
@@ -253,7 +240,6 @@ class AdminController {
       const adminId = req.user.userId;
       const { userIds } = req.body;
       
-      this.logger.log(`📦 Bulk approval request from admin: ${adminId}`, { count: userIds?.length });
       
       // Validate request
       const errors = validationResult(req);
@@ -288,7 +274,6 @@ class AdminController {
       const adminId = req.user.userId;
       const { userIds, reason } = req.body;
       
-      this.logger.log(`📦 Bulk rejection request from admin: ${adminId}`, { count: userIds?.length });
       
       // Validate request
       const errors = validationResult(req);
@@ -327,8 +312,6 @@ class AdminController {
       const adminId = req.user.userId;
       const { limit = 10, unreadOnly = false } = req.query;
       
-      this.logger.log(`📧 Messages API request from admin: ${adminId}`);
-      
       const messages = await AdminService.getMessages(adminId, {
         limit: Math.min(parseInt(limit), 100), // Cap at 100
         unreadOnly: unreadOnly === 'true'
@@ -349,9 +332,7 @@ class AdminController {
       const adminId = req.user.userId;
       const { limit = 10, unreadOnly = false } = req.query;
       
-      this.logger.log(`🔔 Notifications API request from admin: ${adminId}`);
-      
-      const notifications = await AdminService.getNotifications(adminId, {
+        const notifications = await AdminService.getNotifications(adminId, {
         limit: Math.min(parseInt(limit), 100), // Cap at 100
         unreadOnly: unreadOnly === 'true'
       });
@@ -371,8 +352,6 @@ class AdminController {
       const adminId = req.user.userId;
       const { messageId } = req.params;
       
-      this.logger.log(`💬 Mark message as read: ${messageId} by admin: ${adminId}`);
-      
       await AdminService.markMessageAsRead(adminId, messageId);
       
       this.sendSuccess(res, null, 'Message marked as read');
@@ -390,8 +369,6 @@ class AdminController {
       const adminId = req.user.userId;
       const { notificationId } = req.params;
       
-      this.logger.log(`🔔 Mark notification as read: ${notificationId} by admin: ${adminId}`);
-      
       await AdminService.markNotificationAsRead(adminId, notificationId);
       
       this.sendSuccess(res, null, 'Notification marked as read');
@@ -409,8 +386,6 @@ class AdminController {
       const adminId = req.user.userId;
       const { notificationId } = req.params;
       
-      this.logger.log(`🔔 Mark notification as read: ${notificationId} by admin: ${adminId}`);
-      
       await AdminService.markNotificationAsRead(adminId, notificationId);
       
       this.sendSuccess(res, null, 'Notification marked as read');
@@ -427,8 +402,6 @@ class AdminController {
     try {
       const adminId = req.user.userId;
       const { language } = req.body;
-      
-      this.logger.log(`🌐 Language change request: ${language} by admin: ${adminId}`);
       
       // Validate language code
       const validLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
@@ -469,7 +442,7 @@ class AdminController {
       });
 
     } catch (error) {
-      console.error('Show user details error:', error);
+     
       res.status(500).render('admin/error', {
         title: 'Error',
         message: error.message
@@ -486,7 +459,6 @@ class AdminController {
   async showProducts(req, res) {
     try {
       const adminId = req.user.userId;
-      this.logger.log(`📦 Products page request from admin: ${adminId}`);
       
       // Get language preference
       const lng = this.getLanguagePreference(req);
@@ -540,8 +512,6 @@ class AdminController {
         visibility: req.query.visibility || ''
       };
 
-      this.logger.log(`📦 Products API request from admin: ${adminId}`, options);
-
       const result = await AdminService.getAllProducts(adminId, options);
 
       this.sendSuccess(res, result, 'Products retrieved successfully');
@@ -558,7 +528,6 @@ class AdminController {
     try {
       const adminId = req.user.userId;
       
-      this.logger.log(`📊 Products statistics request from admin: ${adminId}`);
 
       const statistics = await AdminService.getProductStatistics(adminId);
 
@@ -577,8 +546,6 @@ class AdminController {
       const adminId = req.user.userId;
       const { productId } = req.params;
       const { status, reason = '' } = req.body;
-
-      this.logger.log(`📦 Product status update: ${productId} -> ${status} by admin: ${adminId}`);
 
       // Validate request
       const errors = validationResult(req);
@@ -608,8 +575,6 @@ class AdminController {
       if (!Array.isArray(productIds) || productIds.length === 0) {
         return this.sendError(res, new Error('Product IDs are required'), 'Product IDs are required');
       }
-
-      this.logger.log(`📦 Bulk product action: ${action} on ${productIds.length} products by admin: ${adminId}`);
 
       let result;
       switch (action) {
@@ -1453,7 +1418,6 @@ class AdminController {
       const { userId } = req.params;
       const { notes = '' } = req.body;
       
-      this.logger.log(`✅ User unblock request: ${userId} from admin: ${adminId}`);
       
       // Validate request
       const errors = validationResult(req);
@@ -1509,7 +1473,6 @@ class AdminController {
       const { userId } = req.params;
       const { notes = '' } = req.body;
       
-      this.logger.log(`🟢 User activate request: ${userId} from admin: ${adminId}`);
       
       // Validate request
       const errors = validationResult(req);
@@ -2395,7 +2358,7 @@ class AdminController {
       const adminId = req.user.userId;
       const { userIds, reason } = req.body;
       
-      this.logger.log(`🚫 Bulk block request from admin: ${adminId}`, { count: userIds?.length });
+
       
       // Validate request
       const errors = validationResult(req);
@@ -2434,7 +2397,7 @@ class AdminController {
       const adminId = req.user.userId;
       const { userIds, reason, duration = '30' } = req.body;
       
-      this.logger.log(`⏸️ Bulk suspend request from admin: ${adminId}`, { count: userIds?.length });
+      
       
       // Validate request
       const errors = validationResult(req);
@@ -2479,7 +2442,7 @@ class AdminController {
       const adminId = req.user.userId;
       const { userIds, notes = '' } = req.body;
       
-      this.logger.log(`✅ Bulk activate request from admin: ${adminId}`, { count: userIds?.length });
+      
       
       // Validate request
       const errors = validationResult(req);
@@ -2514,7 +2477,7 @@ class AdminController {
       const adminId = req.user.userId;
       const { userIds, reason, confirmAction = false } = req.body;
       
-      this.logger.log(`🗑️ Bulk delete request from admin: ${adminId}`, { count: userIds?.length });
+      
       
       // Validate request
       const errors = validationResult(req);
@@ -2557,7 +2520,7 @@ class AdminController {
       const adminId = req.user.userId;
       const format = req.query.format || 'csv';
       
-      this.logger.log(`📊 Users export request from admin: ${adminId}, format: ${format}`);
+      
 
       // Get filters from query
       const filters = {
@@ -2641,7 +2604,6 @@ class AdminController {
   async getAdminProfile(req, res) {
     try {
       const adminId = req.user.userId;
-      this.logger.log(`👤 Admin profile API request from: ${adminId}`);
 
       // Get admin profile data
       const profileData = await AdminService.getAdminProfile(adminId);
@@ -2674,7 +2636,6 @@ class AdminController {
       const adminId = req.user.userId;
       const updateData = req.body;
 
-      this.logger.log(`👤 Admin profile update request from: ${adminId}`);
 
       // Update admin profile
       const updatedProfile = await AdminService.updateAdminProfile(adminId, updateData);
@@ -2707,7 +2668,6 @@ class AdminController {
       const adminId = req.user.userId;
       const { currentPassword, newPassword } = req.body;
 
-      this.logger.log(`🔑 Admin password change request from: ${adminId}`);
 
       // Change admin password
       await AdminService.changeAdminPassword(adminId, currentPassword, newPassword);
@@ -2737,7 +2697,6 @@ class AdminController {
         });
       }
 
-      this.logger.log(`📷 Admin picture change request from: ${adminId}`);
 
       // Change admin picture
       const avatarUrl = await AdminService.changeAdminPicture(adminId, file);
@@ -2759,7 +2718,6 @@ class AdminController {
   async getAdminStats(req, res) {
     try {
       const adminId = req.user.userId;
-      this.logger.log(`📊 Admin stats request from: ${adminId}`);
 
       // Get admin statistics
       const stats = await AdminService.getAdminStats(adminId);
@@ -2783,7 +2741,6 @@ class AdminController {
       const adminId = req.user.userId;
       const { limit = 50, offset = 0, type } = req.query;
 
-      this.logger.log(`📝 Admin activity request from: ${adminId}`);
 
       // Get admin activity
       const activities = await AdminService.getAdminActivity(adminId, {
@@ -2809,7 +2766,6 @@ class AdminController {
   async getAdminSessions(req, res) {
     try {
       const adminId = req.user.userId;
-      this.logger.log(`💻 Admin sessions request from: ${adminId}`);
 
       // Get admin active sessions
       const sessions = await AdminService.getAdminSessions(adminId);
@@ -2833,7 +2789,6 @@ class AdminController {
       const adminId = req.user.userId;
       const { sessionId } = req.params;
 
-      this.logger.log(`🔒 Admin session termination request from: ${adminId}, session: ${sessionId}`);
 
       if (sessionId === 'all-others') {
         // Terminate all other sessions
@@ -2859,7 +2814,6 @@ class AdminController {
   async getAdminSecurity(req, res) {
     try {
       const adminId = req.user.userId;
-      this.logger.log(`🛡️ Admin security request from: ${adminId}`);
 
       // Get admin security info
       const securityInfo = await AdminService.getAdminSecurity(adminId);
@@ -2881,7 +2835,6 @@ class AdminController {
   async setupAdmin2FA(req, res) {
     try {
       const adminId = req.user.userId;
-      this.logger.log(`🔐 Admin 2FA setup request from: ${adminId}`);
 
       // Setup 2FA
       const setupData = await AdminService.setupAdmin2FA(adminId);
@@ -2914,7 +2867,6 @@ class AdminController {
       const adminId = req.user.userId;
       const { code } = req.body;
 
-      this.logger.log(`🔐 Admin 2FA verification request from: ${adminId}`);
 
       // Verify 2FA code
       await AdminService.verifyAdmin2FA(adminId, code);
@@ -2937,7 +2889,6 @@ class AdminController {
       const adminId = req.user.userId;
       const { enabled } = req.body;
 
-      this.logger.log(`🔐 Admin 2FA toggle request from: ${adminId}, enabled: ${enabled}`);
 
       // Toggle 2FA
       await AdminService.toggleAdmin2FA(adminId, enabled);
@@ -2958,7 +2909,6 @@ class AdminController {
   async exportAdminProfile(req, res) {
     try {
       const adminId = req.user.userId;
-      this.logger.log(`📤 Admin profile export request from: ${adminId}`);
 
       // Export admin profile data
       const exportData = await AdminService.exportAdminProfile(adminId);
@@ -2982,7 +2932,6 @@ class AdminController {
       const adminId = req.user.userId;
       const preferences = req.body;
 
-      this.logger.log(`⚙️ Admin preferences update request from: ${adminId}`);
 
       // Update preferences
       const updatedPreferences = await AdminService.updateAdminPreferences(adminId, preferences);

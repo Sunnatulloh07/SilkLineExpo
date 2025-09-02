@@ -26,56 +26,128 @@
         </a>
         <i class="fas fa-chevron-right b2b-breadcrumb-separator"></i>
         <span class="b2b-breadcrumb-item" style="background: var(--b2b-primary-bg); color: var(--b2b-primary); border-color: var(--b2b-primary);">
-          <i class="fas fa-handshake"></i>
-          <span>Hamkor xabarlari</span>
+          <% if (typeof inquiry !== 'undefined' && inquiry) { %>
+            <i class="fas fa-question-circle"></i>
+            <span>So'rov xabarlari</span>
+          <% } else { %>
+            <i class="fas fa-shopping-cart"></i>
+            <span>Buyurtma xabarlari</span>
+          <% } %>
         </span>
       </div>
       
       <div class="b2b-header-main">
         <div class="b2b-business-info">
           <div class="b2b-partner-avatar">
-            <img src="/assets/images/avatars/default-company.png" 
-                 alt="<%= partner?.companyName || 'Biznes hamkor' %>"
-                 onerror="this.src='/assets/images/avatars/default.png'">
+            <% if (partner?.companyLogo && partner.companyLogo !== '/assets/images/avatars/default-company.png') { %>
+              <img src="<%= partner.companyLogo %>" 
+                   alt="<%= partner?.companyName || 'Biznes hamkor' %>"
+                   onerror="this.src='/assets/images/avatars/default-company.png'">
+            <% } else { %>
+              <img src="/assets/images/avatars/default-company.png" 
+                   alt="<%= partner?.companyName || 'Biznes hamkor' %>"
+                   onerror="this.src='/assets/images/avatars/default.png'">
+            <% } %>
           </div>
           
           <div class="b2b-business-details">
             <h1><%= partner?.companyName || 'Biznes hamkor' %></h1>
             <p class="b2b-business-subtitle">
-              Biznes xabarlarini boshlash uchun xabarlar yozing. Buni qilish uchun xabarlar yozing.
+              <% if (partner?.country || partner?.city) { %>
+                <%= [partner?.country, partner?.city].filter(Boolean).join(', ') %>
+              <% } else { %>
+                Biznes hamkor
+              <% } %>
             </p>
             
+            <% if (partner?.email || partner?.phone) { %>
+              <div class="b2b-partner-contact">
+                <% if (partner?.email) { %>
+                  <span class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <%= partner.email %>
+                  </span>
+                <% } %>
+                <% if (partner?.phone) { %>
+                  <span class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <%= partner.phone %>
+                  </span>
+                <% } %>
+                <% if (partner?.website) { %>
+                  <span class="contact-item">
+                    <i class="fas fa-globe"></i>
+                    <a href="<%= partner.website.startsWith('http') ? partner.website : 'https://' + partner.website %>" target="_blank">
+                      <%= partner.website.replace(/^https?:\/\//, '') %>
+                    </a>
+                  </span>
+                <% } %>
+              </div>
+            <% } %>
+            
             <div class="b2b-order-context">
-              <div class="b2b-order-badge">
-                <i class="fas fa-shopping-cart"></i>
-                <span>Order #<%= order.orderNumber %></span>
-              </div>
-              
-              <div class="b2b-status-indicator <%= order.status %>">
-                <i class="fas fa-circle"></i>
-                <%= order.status === 'pending' ? 'Pending Review' :
-                    order.status === 'confirmed' ? 'Confirmed' :
-                    order.status === 'in_production' ? 'In Production' :
-                    order.status === 'shipped' ? 'Shipped' :
-                    order.status === 'delivered' ? 'Delivered' :
-                    order.status === 'completed' ? 'Completed' : 
-                    order.status === 'cancelled' ? 'Cancelled' : 'Processing'
-                %>
-              </div>
-              
-              <div style="color: var(--b2b-text-muted); font-size: var(--b2b-font-size-sm);">
-                <i class="fas fa-dollar-sign"></i>
-                $<%= (order.totalAmount || 0).toLocaleString() %>
-              </div>
+              <% if (typeof inquiry !== 'undefined' && inquiry) { %>
+                <!-- Inquiry Context -->
+                <div class="b2b-order-badge">
+                  <i class="fas fa-question-circle"></i>
+                  <span>So'rov #<%= inquiry.inquiryNumber %></span>
+                </div>
+                
+                <div class="b2b-status-indicator <%= inquiry.status %>">
+                  <i class="fas fa-circle"></i>
+                  <%= inquiry.status === 'pending' ? 'Kutilmoqda' :
+                      inquiry.status === 'responded' ? 'Javob berildi' :
+                      inquiry.status === 'quoted' ? 'Narx belgilandi' :
+                      inquiry.status === 'accepted' ? 'Qabul qilindi' :
+                      inquiry.status === 'rejected' ? 'Rad etildi' :
+                      inquiry.status === 'archived' ? 'Arxivlandi' : 'Ko\'rib chiqilmoqda'
+                  %>
+                </div>
+                
+                <div style="color: var(--b2b-text-muted); font-size: var(--b2b-font-size-sm);">
+                  <i class="fas fa-comment"></i>
+                  <%= inquiry.message ? inquiry.message.substring(0, 50) + '...' : 'So\'rov mavjud emas' %>
+                </div>
+              <% } else if (typeof order !== 'undefined' && order) { %>
+                <!-- Order Context -->
+                <div class="b2b-order-badge">
+                  <i class="fas fa-shopping-cart"></i>
+                  <span>Buyurtma #<%= order.orderNumber %></span>
+                </div>
+                
+                <div class="b2b-status-indicator <%= order.status %>">
+                  <i class="fas fa-circle"></i>
+                  <%= order.status === 'pending' ? 'Pending Review' :
+                      order.status === 'confirmed' ? 'Confirmed' :
+                      order.status === 'in_production' ? 'In Production' :
+                      order.status === 'shipped' ? 'Shipped' :
+                      order.status === 'delivered' ? 'Delivered' :
+                      order.status === 'completed' ? 'Completed' : 
+                      order.status === 'cancelled' ? 'Cancelled' : 'Processing'
+                  %>
+                </div>
+                
+                <div style="color: var(--b2b-text-muted); font-size: var(--b2b-font-size-sm);">
+                  <i class="fas fa-dollar-sign"></i>
+                  $<%= (order.totalAmount || 0).toLocaleString() %>
+                </div>
+              <% } %>
             </div>
           </div>
         </div>
         
         <div class="b2b-header-actions">
-          <button class="b2b-action-btn primary" onclick="viewOrderDetails()">
-            <i class="fas fa-external-link-alt"></i>
-            <span>Buyurtma ko'rish</span>
-          </button>
+          <% if (typeof inquiry !== 'undefined' && inquiry) { %>
+            <button class="b2b-action-btn primary" onclick="viewInquiryDetails()">
+              <i class="fas fa-external-link-alt"></i>
+              <span>So'rovni ko'rish</span>
+            </button>
+          <% } else if (typeof order !== 'undefined' && order) { %>
+            <button class="b2b-action-btn primary" onclick="viewOrderDetails()">
+              <i class="fas fa-external-link-alt"></i>
+              <span>Buyurtma ko'rish</span>
+            </button>
+          <% } %>
           <button class="b2b-action-btn secondary" onclick="scheduleVideoCall()">
             <i class="fas fa-video"></i>
             <span>Video chaqirish</span>
@@ -199,14 +271,14 @@
                       <% if (message.attachments && message.attachments.length > 0) { %>
                         <!-- Attachment Message -->
                         <% const attachment = message.attachments[0]; %>
-                        <% const isImage = attachment.mimetype && attachment.mimetype.startsWith('image/'); %>
+                        <% const isImage = (attachment.mimetype && attachment.mimetype.startsWith('image/')) || (attachment.mimeType && attachment.mimeType.startsWith('image/')) || (attachment.originalName && /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(attachment.originalName)); %>
                         
                         <% if (isImage) { %>
                           <div class="b2b-image-attachment">
                             <img src="<%= attachment.url %>" 
                                  alt="<%= attachment.originalName %>" 
                                  onclick="openImageModal('<%= attachment.url %>', '<%= attachment.originalName %>')"
-                                 onerror="this.src='/assets/images/no-image.png'; this.onerror=null;">
+                                 onerror="handleChatImageError(this, '<%= attachment.url %>', '<%= attachment.originalName %>')">
                             <div class="b2b-image-overlay">
                               <i class="fas fa-search-plus"></i>
                             </div>
@@ -355,6 +427,49 @@
         
         <div class="b2b-sidebar-content">
           <!-- Order Overview Section -->
+          <% if (typeof inquiry !== 'undefined' && inquiry) { %>
+          <!-- Inquiry Details Section -->
+          <div class="b2b-info-section">
+            <div class="b2b-section-header">
+              <h4><i class="fas fa-info-circle"></i> So'rov tahlili</h4>
+            </div>
+            <div class="b2b-info-card">
+              <div class="b2b-info-grid">
+                <div class="b2b-info-item">
+                  <label>So'rov raqami</label>
+                  <span class="b2b-info-value">#<%= inquiry.inquiryNumber %></span>
+                </div>
+                <div class="b2b-info-item">
+                  <label>So'rov sanasi</label>
+                  <span class="b2b-info-value">
+                    <%= new Date(inquiry.createdAt).toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: '2-digit', 
+                      year: 'numeric' 
+                    }) %>
+                  </span>
+                </div>
+                <div class="b2b-info-item">
+                  <label>Holat</label>
+                  <span class="b2b-status-indicator <%= inquiry.status %>">
+                    <%= inquiry.status === 'pending' ? 'Kutilmoqda' :
+                        inquiry.status === 'responded' ? 'Javob berildi' :
+                        inquiry.status === 'quoted' ? 'Narx belgilandi' :
+                        inquiry.status === 'accepted' ? 'Qabul qilindi' :
+                        inquiry.status === 'rejected' ? 'Rad etildi' :
+                        inquiry.status === 'archived' ? 'Arxivlandi' : 'Ko\'rib chiqilmoqda'
+                    %>
+                  </span>
+                </div>
+                <div class="b2b-info-item">
+                  <label>Xabar</label>
+                  <span class="b2b-info-value"><%= inquiry.message || 'Xabar mavjud emas' %></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <% } else if (typeof order !== 'undefined' && order) { %>
+          <!-- Order Details Section -->
           <div class="b2b-info-section">
             <div class="b2b-section-header">
               <h4><i class="fas fa-info-circle"></i> Buyurtma tahlili</h4>
@@ -395,6 +510,7 @@
               </div>
             </div>
           </div>
+          <% } %>
 
           <!-- Business Partner Section -->
           <div class="b2b-info-section">
@@ -437,6 +553,34 @@
             </div>
           </div>
 
+          <% if (typeof inquiry !== 'undefined' && inquiry) { %>
+          <!-- Inquiry Message Section -->
+          <div class="b2b-info-section">
+            <div class="b2b-section-header">
+              <h4>
+                <i class="fas fa-comment"></i> 
+                So'rov xabari
+              </h4>
+            </div>
+            <div class="b2b-inquiry-message">
+              <div class="b2b-message-content">
+                <p><%= inquiry.message || 'So\'rov xabari mavjud emas' %></p>
+                <div class="b2b-message-meta">
+                  <span class="b2b-message-time">
+                    <i class="fas fa-clock"></i>
+                    <%= new Date(inquiry.createdAt).toLocaleString('en-US', { 
+                      year: 'numeric',
+                      month: 'short', 
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }) %>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <% } else if (typeof order !== 'undefined' && order) { %>
           <!-- Order Products Section -->
           <div class="b2b-info-section">
             <div class="b2b-section-header">
@@ -491,6 +635,7 @@
               <% } %>
             </div>
           </div>
+          <% } %>
 
           <!-- Quick Actions Section -->
           <div class="b2b-info-section">
@@ -574,6 +719,24 @@
 // 🌐 GLOBAL CHAT CONFIGURATION - EJS TO JS DATA TRANSFER
 /* eslint-disable */
 window.B2BChat = window.B2BChat || {};
+
+// Detect conversation type from URL
+window.B2BChat.conversationType = window.location.pathname.includes('/inquiry/') ? 'inquiry' : 'order';
+
+// Conversation data based on type
+<% if (typeof inquiry !== 'undefined' && inquiry) { %>
+window.B2BChat.inquiryData = {
+    id: '<%= inquiry._id %>',
+    inquiryNumber: '<%= inquiry.inquiryNumber || "N/A" %>',
+    status: '<%= inquiry.status %>',
+    message: '<%= inquiry.message || "" %>',
+    createdAt: '<%= inquiry.createdAt %>'
+};
+<% } else { %>
+window.B2BChat.inquiryData = null;
+<% } %>
+
+<% if (typeof order !== 'undefined' && order) { %>
 window.B2BChat.orderData = {
     id: '<%= order._id %>',
     orderNumber: '<%= order.orderNumber || "N/A" %>',
@@ -582,7 +745,9 @@ window.B2BChat.orderData = {
     createdAt: '<%= order.createdAt %>',
     items: '<%- JSON.stringify(order.items || []) %>'
 };
-
+<% } else { %>
+window.B2BChat.orderData = null;
+<% } %>
 
 window.B2BChat.currentUser = {
     id: '<%= currentUser.id %>',

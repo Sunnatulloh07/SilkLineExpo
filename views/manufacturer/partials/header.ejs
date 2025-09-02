@@ -59,6 +59,9 @@
   
   <!-- JWT Token Manager - Auto refresh tokens -->
   <script src="/js/auth-token-manager.js"></script>
+  
+  <!-- Manufacturer Header JavaScript - Language Toggle -->
+  <script src="/js/manufacturer/manufacturer-header.js"></script>
 </head>
 
 <body class="theme-transition">
@@ -124,7 +127,7 @@
               <i class="fas fa-chevron-down lang-chevron"></i>
             </button>
             
-            <div id="languageMenu" class="language-menu hidden">
+            <div id="languageMenu" class="language-menu dropdown-menu hidden">
               <div class="language-menu-header">
                 <span class="menu-title">
                   <%= typeof t !== 'undefined' ? t('admin.header.select_language') : 'Select Language' %>
@@ -132,16 +135,17 @@
               </div>
               <div class="language-options">
                 <% Object.entries(langConfig).forEach(([code, config]) => { %>
-                  <button class="language-option <%= currentLang === code ? 'active' : '' %>" 
-                          data-lang="<%= code %>"
-                          data-name="<%= config.name %>">
+                  <a href="/language/<%= code %>?redirect=<%= encodeURIComponent(currentUrl || '/manufacturer/dashboard') %>" 
+                     class="language-option <%= currentLang === code ? 'active' : '' %>" 
+                     data-lang="<%= code %>"
+                     data-name="<%= config.name %>">
                     <span class="option-flag"><%= config.flag %></span>
                     <span class="option-name"><%= config.name %></span>
                     <span class="option-code"><%= config.code %></span>
                     <% if (currentLang === code) { %>
                       <i class="fas fa-check option-check"></i>
                     <% } %>
-                  </button>
+                  </a>
                 <% }); %>
               </div>
             </div>
@@ -167,35 +171,10 @@
               <button class="btn-sm btn-ghost" onclick="markAllMessagesRead()">Hammasini o'qilgan</button>
             </div>
             <div class="dropdown-content">
-              <div class="message-item unread">
-                <div class="message-avatar-placeholder">
-                  <i class="fas fa-user"></i>
-                </div>
-                <div class="message-content">
-                  <h4 class="message-sender">Tashkent Textiles Co.</h4>
-                  <p class="message-text">500m paxta mato narxi qancha?</p>
-                  <span class="message-time">5 daqiqa oldin</span>
-                </div>
-              </div>
-              <div class="message-item unread">
-                <div class="message-avatar-placeholder">
-                  <i class="fas fa-user"></i>
-                </div>
-                <div class="message-content">
-                  <h4 class="message-sender">Samarkand Distribution</h4>
-                  <p class="message-text">Buyurtma #1234 qachon tayyor?</p>
-                  <span class="message-time">15 daqiqa oldin</span>
-                </div>
-              </div>
-              <div class="message-item">
-                <div class="message-avatar-placeholder">
-                  <i class="fas fa-user"></i>
-                </div>
-                <div class="message-content">
-                  <h4 class="message-sender">Bukhara Wholesale</h4>
-                  <p class="message-text">Namuna olish mumkinmi?</p>
-                  <span class="message-time">1 soat oldin</span>
-                </div>
+              <!-- Dynamic messages will be loaded here -->
+              <div class="loading-messages">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Xabarlar yuklanmoqda...</p>
               </div>
             </div>
             <div class="dropdown-footer">
@@ -304,3 +283,4 @@
         
       </div>
     </header>
+    

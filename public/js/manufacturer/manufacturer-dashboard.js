@@ -1,19 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("🚀 Initializing Dashboard Charts...");
+  // Initializing Dashboard Charts...
 
   // Check if ApexCharts is available
   if (typeof ApexCharts === "undefined") {
-    console.error("❌ ApexCharts not loaded");
     return;
   }
-
-  console.log("✅ ApexCharts is available");
-
   // B2B Sales Analytics Chart
   const salesChartElement = document.getElementById("salesChart");
 
   if (salesChartElement) {
-    console.log("📊 Sales chart element found");
 
     // Replace canvas with div for ApexCharts
     const chartContainer = salesChartElement.parentElement;
@@ -36,7 +31,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const response = await fetch("/manufacturer/api/dashboard-stats");
         if (response.ok) {
           const data = await response.json();
-          console.log("📊 Real dashboard data received:", data);
 
           // Use real chart data if available
           if (data && data.chartData) {
@@ -47,29 +41,26 @@ document.addEventListener("DOMContentLoaded", function () {
               views: data.chartData.views || chartData.views,
             };
 
-            console.log("📈 Real chart data loaded:", chartData);
 
             // Update chart if already rendered
             if (window.salesChartInstance) {
               window.salesChartInstance.updateSeries([
                 {
-                  name: "B2B Savdo hajmi",
+                  name: window.t ? window.t('manufacturer.dashboard.charts.series.salesVolume') : "B2B Sales Volume",
                   data: chartData.sales,
                 },
                 {
-                  name: "Distributorlar so'rovlari",
+                  name: window.t ? window.t('manufacturer.dashboard.charts.series.distributorInquiries') : "Distributor Inquiries",
                   data: chartData.orders,
                 },
                 {
-                  name: "Marketplace ko'rishlar",
+                  name: window.t ? window.t('manufacturer.dashboard.charts.series.marketplaceViews') : "Marketplace Views",
                   data: chartData.views,
                 },
               ]);
-
-              console.log("✅ Chart updated with real data");
             }
           } else {
-            console.warn("⚠️ No chart data in response, using fallback");
+            // No chart data in response, using fallback
           }
         }
       } catch (error) {
@@ -96,17 +87,17 @@ document.addEventListener("DOMContentLoaded", function () {
       },
       series: [
         {
-          name: "B2B Savdo hajmi",
+          name: window.t ? window.t('manufacturer.dashboard.charts.series.salesVolume') : "B2B Sales Volume",
           data: chartData.sales,
           color: "#3b82f6",
         },
         {
-          name: "Distributorlar so'rovlari",
+          name: window.t ? window.t('manufacturer.dashboard.charts.series.distributorInquiries') : "Distributor Inquiries",
           data: chartData.orders,
           color: "#8b5cf6",
         },
         {
-          name: "Marketplace ko'rishlar",
+          name: window.t ? window.t('manufacturer.dashboard.charts.series.marketplaceViews') : "Marketplace Views",
           data: chartData.views,
           color: "#06b6d4",
         },
@@ -119,41 +110,41 @@ document.addEventListener("DOMContentLoaded", function () {
           },
         },
       },
-      yaxis: [
-        {
-          title: {
-            text: "Savdo hajmi ($)",
-            style: {
-              color: "#6b7280",
+              yaxis: [
+          {
+            title: {
+              text: window.t ? window.t('manufacturer.dashboard.charts.yAxis.salesVolume') : "Sales Volume ($)",
+              style: {
+                color: "#6b7280",
+              },
+            },
+            labels: {
+              formatter: function (value) {
+                return "$" + value / 1000 + "K";
+              },
+              style: {
+                colors: "#6b7280",
+              },
             },
           },
-          labels: {
-            formatter: function (value) {
-              return "$" + value / 1000 + "K";
+          {
+            opposite: true,
+            title: {
+              text: window.t ? window.t('manufacturer.dashboard.charts.yAxis.inquiriesAndViews') : "Inquiries & Views",
+              style: {
+                color: "#6b7280",
+              },
             },
-            style: {
-              colors: "#6b7280",
-            },
-          },
-        },
-        {
-          opposite: true,
-          title: {
-            text: "So'rovlar & Ko'rishlar",
-            style: {
-              color: "#6b7280",
-            },
-          },
-          labels: {
-            formatter: function (value) {
-              return value.toLocaleString();
-            },
-            style: {
-              colors: "#6b7280",
+            labels: {
+              formatter: function (value) {
+                return value.toLocaleString();
+              },
+              style: {
+                colors: "#6b7280",
+              },
             },
           },
-        },
-      ],
+        ],
       grid: {
         show: true,
         borderColor: "#e5e7eb",
@@ -215,7 +206,7 @@ document.addEventListener("DOMContentLoaded", function () {
         },
       },
       noData: {
-        text: "Ma'lumot mavjud emas",
+        text: window.t ? window.t('manufacturer.dashboard.charts.noData') : "No data available",
         align: "center",
         verticalAlign: "middle",
         style: {
@@ -227,7 +218,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Render the chart
     salesChart.render();
-    console.log("✅ Sales chart rendered successfully");
+            // Sales chart rendered successfully
 
     // Store chart instance for potential updates
     window.salesChartInstance = salesChart;
@@ -240,8 +231,6 @@ document.addEventListener("DOMContentLoaded", function () {
   if (chartPeriodFilter) {
     chartPeriodFilter.addEventListener("change", async function () {
       const period = this.value;
-      console.log("📊 Chart period changed to:", period);
-
       try {
         // Fetch new data based on period
         const response = await fetch(
@@ -249,7 +238,6 @@ document.addEventListener("DOMContentLoaded", function () {
         );
         if (response.ok) {
           const data = await response.json();
-          console.log("📊 New period data received:", data);
 
           // Update chart with new data
           if (window.salesChartInstance && data) {
@@ -265,29 +253,25 @@ document.addEventListener("DOMContentLoaded", function () {
               // Update chart series with real data
               window.salesChartInstance.updateSeries([
                 {
-                  name: "B2B Savdo hajmi",
+                  name: window.t ? window.t('manufacturer.dashboard.charts.series.salesVolume') : "B2B Sales Volume",
                   data: newChartData.sales,
                 },
                 {
-                  name: "Distributorlar so'rovlari",
+                  name: window.t ? window.t('manufacturer.dashboard.charts.series.distributorInquiries') : "Distributor Inquiries",
                   data: newChartData.orders,
                 },
                 {
-                  name: "Marketplace ko'rishlar",
+                  name: window.t ? window.t('manufacturer.dashboard.charts.series.marketplaceViews') : "Marketplace Views",
                   data: newChartData.views,
                 },
               ]);
 
               // Update local chart data
               chartData = newChartData;
-
-              console.log(
-                "📈 Chart updated with real period data:",
-                newChartData
-              );
+              // Chart updated with real period data
             }
 
-            console.log("✅ Chart updated with new period data");
+            // Chart updated with new period data
           }
         }
       } catch (error) {
@@ -300,14 +284,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const refreshChart = document.getElementById("refreshChart");
   if (refreshChart) {
     refreshChart.addEventListener("click", function () {
-      console.log("🔄 Refreshing chart...");
       if (window.salesChartInstance) {
         window.salesChartInstance.render();
       }
     });
   }
-
-  console.log("🎉 Dashboard charts initialization completed");
 
   // Load real dashboard data
   loadDashboardData();
@@ -321,13 +302,9 @@ document.addEventListener("DOMContentLoaded", function () {
 // Load real dashboard data
 async function loadDashboardData() {
   try {
-    console.log("📊 Loading real dashboard data...");
-
     const response = await fetch("/manufacturer/api/dashboard-stats");
     if (response.ok) {
       const apiResponse = await response.json();
-      console.log("📊 Dashboard data received:", apiResponse);
-
       const data = apiResponse.data || apiResponse;
 
       // Update all dashboard metrics with real data
@@ -350,7 +327,6 @@ async function loadDashboardData() {
 
 // Update all dashboard metrics with real data
 function updateDashboardMetrics(data) {
-  console.log("📊 Updating dashboard metrics with real data:", data);
 
   // Update marketplace metrics
   updateElement("marketplaceActivity", data.marketplaceActivity || 0, "%");
@@ -393,7 +369,6 @@ function updateDashboardMetrics(data) {
   };
   updateCommunicationStats(communicationStats);
 
-  console.log("✅ Dashboard metrics updated with real data");
 }
 
 // Update KPI card with real data
@@ -406,25 +381,25 @@ function updateKPICard(valueElementId, trendElementId, value, type = "number") {
     let trendText;
     let trendClass = "";
 
-    if (typeof value === "number" && value > 0) {
+    if (typeof value === "number" && value >= 0) {
       switch (type) {
         case "currency":
           displayValue = "$" + value.toLocaleString();
-          trendText = "Real ma'lumot";
-          trendClass = "positive";
+          trendText = value > 0 ? "Real ma'lumot" : "Ma'lumot yo'q";
+          trendClass = value > 0 ? "positive" : "neutral";
           break;
         case "number":
           displayValue = value.toLocaleString();
-          trendText = value === 1 ? "1 ta" : `${value} ta`;
-          trendClass = value > 0 ? "positive" : "";
+          trendText = value === 0 ? "Ma'lumot yo'q" : (value === 1 ? "1 ta" : `${value} ta`);
+          trendClass = value > 0 ? "positive" : "neutral";
           break;
         default:
           displayValue = value.toString();
-          trendText = "Real ma'lumot";
+          trendText = value > 0 ? "Real ma'lumot" : "Ma'lumot yo'q";
           break;
       }
     } else {
-      displayValue = "Ma'lumot topilmadi";
+      displayValue = "0";
       trendText = "Ma'lumot yo'q";
       trendClass = "neutral";
     }
@@ -437,9 +412,7 @@ function updateKPICard(valueElementId, trendElementId, value, type = "number") {
       trendElement.className = `stat-change ${trendClass}`;
     }
 
-    console.log(
-      `📊 Updated KPI ${valueElementId}: ${displayValue} (${trendText})`
-    );
+    
   }
 }
 
@@ -448,16 +421,15 @@ function updateElement(elementId, value, suffix = "") {
   const element = document.getElementById(elementId);
   if (element) {
     const displayValue =
-      typeof value === "number" && value > 0
+      typeof value === "number" && value >= 0
         ? (Number.isInteger(value)
             ? value.toLocaleString()
             : value.toFixed(1)) + suffix
-        : "Ma'lumot topilmadi";
+        : "0" + suffix;
 
     element.innerHTML = displayValue;
     element.classList.add("updated");
 
-    console.log(`📊 Updated ${elementId}: ${displayValue}`);
   }
 }
 
@@ -473,7 +445,7 @@ function handleDataLoadError() {
   metricElements.forEach((elementId) => {
     const element = document.getElementById(elementId);
     if (element) {
-      element.innerHTML = "Ma'lumot topilmadi";
+      element.innerHTML = "0";
     }
   });
 
@@ -490,7 +462,7 @@ function handleDataLoadError() {
     const trendElement = document.getElementById(kpi.trend);
 
     if (valueElement) {
-      valueElement.innerHTML = "Ma'lumot topilmadi";
+      valueElement.innerHTML = "0";
     }
     if (trendElement) {
       trendElement.innerHTML = "<span class=\"kpi-trend\">Ma'lumot yo'q</span>";
@@ -510,8 +482,6 @@ function loadTopProducts(products) {
 
   if (!container) return;
 
-  console.log("📊 Loading top products with real ratings:", products);
-
   // Remove loading state
   if (loader) {
     loader.remove();
@@ -524,11 +494,10 @@ function loadTopProducts(products) {
                 <div class="no-data-icon">
                     <i class="fas fa-star"></i>
                 </div>
-                <h4>Reytingi yuqori mahsulotlar topilmadi</h4>
-                <p>Hozircha reytingi yuqori mahsulotlar mavjud emas. Mijozlar mahsulotlaringizni baholagach, bu yerda ko'rishingiz mumkin.</p>
+                <h4>${window.t ? window.t('manufacturer.dashboard.widgets.topProducts.noData') : 'No top-rated products found'}</h4>
+                <p>${window.t ? window.t('manufacturer.dashboard.widgets.topProducts.noDataDesc') : 'No top-rated products available yet. When customers rate your products, they will appear here.'}</p>
             </div>
         `;
-    console.log("📊 No top products with real ratings found");
     return;
   }
 
@@ -539,9 +508,6 @@ function loadTopProducts(products) {
       const ratingDisplay = realRating.toFixed(1);
       const starClass = "text-yellow-400"; // All products have real ratings
 
-      console.log(
-        `📊 Top Product: "${product.name}" - Rating: ${realRating}, Display: ${ratingDisplay}`
-      );
 
       return `
         <div class="product-item">
@@ -549,7 +515,7 @@ function loadTopProducts(products) {
                 <div class="product-rank">#${product.rank}</div>
                 <div class="product-details">
                     <h4 class="product-name">${product.name}</h4>
-                    <p class="product-sales">${product.formattedQuantity} sotildi</p>
+                    <p class="product-sales">${product.formattedQuantity} ${window.t ? window.t('manufacturer.dashboard.widgets.topProducts.sold') : 'sold'}</p>
                 </div>
             </div>
             <div class="product-stats">
@@ -565,7 +531,6 @@ function loadTopProducts(products) {
     .join("");
 
   container.innerHTML = productsHTML;
-  console.log("✅ Top products with real ratings loaded:", products.length);
 }
 
 // Load recent orders
@@ -586,8 +551,8 @@ function loadRecentOrders(orders) {
                 <div class="no-data-icon">
                     <i class="fas fa-handshake"></i>
                 </div>
-                <h4>So'nggi buyurtmalar mavjud emas</h4>
-                <p>Hozircha yangi buyurtmalar yo'q. Mijozlar buyurtma berishgach, bu yerda ko'rishingiz mumkin.</p>
+                <h4>${window.t ? window.t('manufacturer.dashboard.widgets.recentOrders.noData') : 'No recent orders available'}</h4>
+                <p>${window.t ? window.t('manufacturer.dashboard.widgets.recentOrders.noDataDesc') : 'No new orders yet. New orders will be displayed here when they arrive.'}</p>
             </div>
         `;
     return;
@@ -629,7 +594,6 @@ function loadRecentOrders(orders) {
     .join("");
 
   container.innerHTML = ordersHTML;
-  console.log("✅ Recent orders loaded:", orders.length);
 }
 
 // Get status text in Uzbek
@@ -653,7 +617,7 @@ async function loadDistributorInquiries() {
   if (!container) return;
 
   try {
-    console.log("📋 Loading distributor inquiries...");
+
 
     const response = await fetch("/manufacturer/api/distributor-inquiries");
 
@@ -664,13 +628,6 @@ async function loadDistributorInquiries() {
 
     if (response.ok) {
       const data = await response.json();
-      console.log("📋 Inquiries data received:", data);
-      console.log("🔍 Data structure:", {
-        success: data.success,
-        inquiriesCount: data.data?.inquiries?.length,
-        totalCount: data.data?.totalCount,
-        unreadCount: data.data?.unreadCount
-      });
 
       const inquiries = data.data?.inquiries || data.inquiries || data || [];
 
@@ -680,7 +637,6 @@ async function loadDistributorInquiries() {
         showInquiriesEmptyState();
       }
     } else {
-      console.error("❌ Failed to load distributor inquiries");
       showInquiriesEmptyState();
     }
   } catch (error) {
@@ -726,7 +682,7 @@ function renderInquiries(inquiries) {
                 <p>${
                   inquiry.message ||
                   inquiry.content ||
-                  "So'rov matni mavjud emas"
+                  window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.noMessage') : "No inquiry message"
                 }</p>
                 <div class="order-specs">
                     ${
@@ -741,16 +697,14 @@ function renderInquiries(inquiries) {
                 </div>
             </div>
             <div class="inquiry-buttons">
-                <button class="btn-respond">Javob berish</button>
-                <button class="btn-quote">Narx yuborish</button>
+                <button class="btn-respond">${window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.respond') : 'Javob berish'}</button>
+                <button class="btn-quote">${window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.quote') : 'Taklif'}</button>
             </div>
         </div>
     `
     )
     .join("");
 
-  container.innerHTML = inquiriesHTML;
-  console.log("✅ Inquiries rendered:", inquiries.length);
 }
 
 // Show inquiries empty state
@@ -764,25 +718,22 @@ function showInquiriesEmptyState() {
                 <i class="fas fa-handshake"></i>
             </div>
             <h4>Ma'lumotlar topilmadi</h4>
-            <p>Distributorlar so'rovlari mavjud emas. Hech qanday so'rov ma'lumotlari topilmadi.</p>
+            <p>${window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.noDataDesc') : 'No distributor inquiries available. No inquiry data found.'}</p>
         </div>
     `;
-  console.log(
-    "📋 Distributorlar so'rovlari: Ma'lumotlar topilmadi (bo'sh massiv)"
-  );
 }
 
 // Get priority text
 function getPriorityText(priority) {
   const priorityMap = {
-    urgent: "Shoshilinch",
-    new: "Yangi",
-    followup: "Kuzatuv",
-    high: "Yuqori",
-    medium: "O'rta",
-    low: "Past",
+    urgent: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.urgent') : "Urgent",
+    new: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.new') : "New",
+    followup: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.followup') : "Follow-up",
+    high: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.high') : "High",
+    medium: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.medium') : "Medium",
+    low: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.low') : "Low",
   };
-  return priorityMap[priority] || "Yangi";
+  return priorityMap[priority] || (window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.new') : "New");
 }
 
 // Load communication center
@@ -793,7 +744,6 @@ async function loadCommunicationCenter() {
   if (!container) return;
 
   try {
-    console.log("💬 Loading communication center...");
 
     const response = await fetch("/manufacturer/api/communication-center");
 
@@ -804,7 +754,6 @@ async function loadCommunicationCenter() {
 
     if (response.ok) {
       const data = await response.json();
-      console.log("💬 Communication data received:", data);
 
       const chatPreviews = data.chatPreviews || data.chats || [];
       const stats = data.stats || data;
@@ -817,7 +766,6 @@ async function loadCommunicationCenter() {
 
       updateCommunicationStats(stats);
     } else {
-      console.error("❌ Failed to load communication center");
       showCommunicationEmptyState();
       updateCommunicationStatsError();
     }
@@ -852,14 +800,14 @@ function renderChatPreviews(chats) {
             <div class="chat-content">
                 <div class="chat-header">
                     <h4 class="chat-company">${
-                      chat.companyName || "Noma'lum kompaniya"
+                      chat.companyName || (window.t ? window.t('manufacturer.dashboard.widgets.communicationCenter.unknownCompany') : "Unknown Company")
                     }</h4>
                     <span class="chat-time">${formatTimeAgo(
                       chat.lastMessageTime || chat.createdAt
                     )}</span>
                 </div>
                 <p class="chat-message">${
-                  chat.lastMessage || chat.message || "Xabar mavjud emas"
+                  chat.lastMessage || chat.message || (window.t ? window.t('manufacturer.dashboard.widgets.communicationCenter.noMessage') : "No message")
                 }</p>
                 <div class="chat-meta">
                     ${
@@ -871,8 +819,8 @@ function renderChatPreviews(chats) {
                     }
                     ${
                       chat.isTyping
-                        ? '<span class="typing-indicator">yozmoqda...</span>'
-                        : '<span class="read-indicator">O\'qildi</span>'
+                        ? `<span class="typing-indicator">${window.t ? window.t('manufacturer.dashboard.widgets.communicationCenter.typing') : 'typing...'}</span>`
+                        : `<span class="read-indicator">${window.t ? window.t('manufacturer.dashboard.widgets.communicationCenter.read') : 'Read'}</span>`
                     }
                 </div>
             </div>
@@ -882,7 +830,6 @@ function renderChatPreviews(chats) {
     .join("");
 
   container.innerHTML = chatsHTML;
-  console.log("✅ Chat previews rendered:", chats.length);
 }
 
 // Show communication empty state
@@ -899,8 +846,7 @@ function showCommunicationEmptyState() {
             <p>Muloqot markazi bo'sh massiv qaytardi. Hech qanday suhbat ma'lumotlari topilmadi.</p>
         </div>
     `;
-  console.log("💬 Muloqot markazi: Ma'lumotlar topilmadi (bo'sh massiv)");
-
+  
   const communicationStats = document.querySelector(".communication-stats");
   if (communicationStats) {
     communicationStats.style.display = "none";
@@ -916,8 +862,6 @@ function updateCommunicationStats(stats) {
     stats.averageResponseTime || "Ma'lumot yo'q"
   );
   updateStatElement("todayMessagesStat", stats.todayMessages || 0);
-
-  console.log("✅ Communication stats updated");
 }
 
 // Update communication stats error state
@@ -947,14 +891,11 @@ async function loadInventoryManagement() {
     loader = document.querySelector(
       "#criticalItemsList .loading-placeholder-item"
     );
-    console.log("📦 Loading real inventory management data...");
 
     const response = await fetch("/manufacturer/api/inventory-management");
 
     if (response.ok) {
       const data = await response.json();
-      console.log("📦 Real inventory data received:", data);
-
       if (data.stockSummary) {
         renderInventorySummary(data.stockSummary);
 
@@ -967,7 +908,6 @@ async function loadInventoryManagement() {
         showInventoryEmptyState();
       }
     } else {
-      console.error("❌ Failed to load inventory management");
       showInventoryEmptyState();
       setInventoryStatsError();
     }
@@ -989,16 +929,15 @@ function renderInventorySummary(summary) {
   updateStockElement(
     "normalStockCount",
     summary.normal?.count || 0,
-    "mahsulot"
+    window.t ? window.t('manufacturer.dashboard.kpiCards.item') : "item"
   );
-  updateStockElement("lowStockCount", summary.low?.count || 0, "mahsulot");
+  updateStockElement("lowStockCount", summary.low?.count || 0, window.t ? window.t('manufacturer.dashboard.kpiCards.item') : "item");
   updateStockElement(
     "outOfStockCount",
     summary.outOfStock?.count || 0,
-    "mahsulot"
+    window.t ? window.t('manufacturer.dashboard.kpiCards.item') : "item"
   );
 
-  console.log("✅ Inventory summary updated with real data");
 }
 
 // Render critical items - Senior Level Dynamic Implementation
@@ -1013,13 +952,13 @@ function renderCriticalItems(items) {
 
   const itemsHTML = items
     .map((item) => {
-      const name = item.name || "Noma'lum mahsulot";
+      const name = item.name || (window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.unknownProduct') : "Unknown Product");
       const sku = item.sku || "N/A";
       const stock = item.currentStock || 0;
       const effectiveStock = item.effectiveStock || stock;
-      const unit = item.unit || "dona";
-      const level = item.level || "warning";
-      const action = item.action || "Tekshirish";
+      const unit = item.unit || window.t ? window.t('manufacturer.dashboard.kpiCards.item') : "item";
+      const level = item.level || window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.level') : "warning";
+      const action = item.action || window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.action') : "Tekshirish";
       const daysUntilStockout = item.daysUntilStockout;
 
       // Show additional info for critical items
@@ -1045,7 +984,6 @@ function renderCriticalItems(items) {
     .join("");
 
   container.innerHTML = itemsHTML;
-  console.log(`✅ Critical items rendered: ${items.length} items`);
 }
 
 // Show inventory empty state
@@ -1058,11 +996,10 @@ function showInventoryEmptyState() {
             <div class="no-data-icon">
                 <i class="fas fa-boxes"></i>
             </div>
-            <h4>Diqqat talab qiladigan mahsulotlar topilmadi</h4>
-            <p>Barcha mahsulotlar normal zaxira darajasida. Kritik holatdagi mahsulotlar bo'lsa, bu yerda ko'rishingiz mumkin.</p>
+                    <h4>${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.noData') : 'No critical items found'}</h4>
+        <p>${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.noDataDesc') : 'All products are at normal stock levels. Critical items will appear here if any.'}</p>
         </div>
     `;
-  console.log("📦 Inventory empty state shown");
 }
 
 // Set inventory stats error state
@@ -1093,109 +1030,40 @@ function formatTimeAgo(timestamp) {
   const diffMinutes = Math.floor(diffMs / (1000 * 60));
 
   if (diffMinutes < 60) {
-    return `${diffMinutes} daqiqa oldin`;
+    return `${diffMinutes} ${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.minute') : "daqiqa"} oldin`;
   } else if (diffHours < 24) {
-    return `${diffHours} soat oldin`;
+    return `${diffHours} ${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.hour') : "soat"} oldin`;
   } else {
     const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} kun oldin`;
+    return `${diffDays} ${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.day') : "kun"} oldin`;
   }
 }
 
 function getPriorityText(priority) {
   const priorityMap = {
-    urgent: "Shoshilinch",
-    new: "Yangi",
-    followup: "Kuzatuv",
+    urgent: window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.urgent') : "Shoshilinch",
+    new: window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.new') : "Yangi",
+    followup: window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.followup') : "Kuzatuv",
   };
   return priorityMap[priority] || priority;
 }
 
 // Initialize Manufacturer Dashboard
 document.addEventListener("DOMContentLoaded", function () {
-  // Initialize header functionality
-  if (window.ManufacturerHeader) {
-    window.manufacturerHeader = new ManufacturerHeader();
-  }
+  // Header functionality is handled by dashboard-init.js to prevent conflicts
+  console.log('📊 Dashboard: Header functionality delegated to dashboard-init.js');
 
   function initializeResponsiveHandlers() {
-    const sidebarToggle = document.getElementById("sidebarToggle");
-    const sidebar = document.querySelector(".admin-sidebar");
-    const adminMain = document.querySelector(".admin-main");
-    const adminHeader = document.querySelector(".admin-header");
-
-    if (!sidebarToggle || !sidebar || !adminMain) {
-      console.warn("⚠️ Sidebar elements not found");
-      return;
-    }
-
-    console.log("🔧 Setting up sidebar toggle - DASHBOARD CONSISTENT...");
-
-    // Restore sidebar state from localStorage (EXACT Dashboard approach)
-    const isSidebarCollapsed =
-      localStorage.getItem("sidebarCollapsed") === "true";
-
-    // Apply EXACT Dashboard-style classes
-    if (isSidebarCollapsed) {
-      sidebar.classList.add("collapsed");
-      adminMain.classList.add("sidebar-collapsed");
-      adminHeader?.classList.add("sidebar-collapsed");
-      console.log("📁 Restored collapsed sidebar state (Dashboard Consistent)");
-    } else {
-      sidebar.classList.remove("collapsed");
-      adminMain.classList.remove("sidebar-collapsed");
-      adminHeader?.classList.remove("sidebar-collapsed");
-      console.log("📂 Restored expanded sidebar state (Dashboard Consistent)");
-    }
-
-    // Remove any existing event listeners by cloning
-    const newSidebarToggle = sidebarToggle.cloneNode(true);
-    sidebarToggle.parentNode.replaceChild(newSidebarToggle, sidebarToggle);
-
-    // Add Dashboard-compatible event listener
-    newSidebarToggle.addEventListener("click", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      console.log("📱 Sidebar toggle clicked (Dashboard Compatible)");
-
-      const isCurrentlyCollapsed = sidebar.classList.contains("collapsed");
-      console.log("🔍 Currently collapsed:", isCurrentlyCollapsed);
-
-      if (isCurrentlyCollapsed) {
-        // Expand sidebar - EXACT Dashboard approach
-        sidebar.classList.remove("collapsed");
-        adminMain.classList.remove("sidebar-collapsed");
-        adminHeader?.classList.remove("sidebar-collapsed");
-        localStorage.setItem("sidebarCollapsed", "false");
-        console.log("📂 Sidebar expanded (Dashboard Consistent)");
-      } else {
-        // Collapse sidebar - EXACT Dashboard approach
-        sidebar.classList.add("collapsed");
-        adminMain.classList.add("sidebar-collapsed");
-        adminHeader?.classList.add("sidebar-collapsed");
-        localStorage.setItem("sidebarCollapsed", "true");
-        console.log("📁 Sidebar collapsed (Dashboard Consistent)");
+    // Sidebar functionality is now handled by dashboard-init.js to prevent conflicts
+    console.log('📊 Dashboard: Sidebar functionality delegated to dashboard-init.js');
+    
+    // Just sync the sidebar state if dashboard-init.js hasn't loaded yet
+    setTimeout(() => {
+      if (typeof window.syncSidebarState === 'function') {
+        window.syncSidebarState();
+        console.log('✅ Dashboard: Sidebar state synced with dashboard-init.js');
       }
-
-      // Debug final computed styles
-      setTimeout(() => {
-        const computedStyle = window.getComputedStyle(adminMain);
-        console.log("🔍 Final margin-left:", computedStyle.marginLeft);
-        console.log("🔍 Final width:", computedStyle.width);
-        console.log("🔍 Sidebar classes:", sidebar.className);
-        console.log("🔍 Main classes:", adminMain.className);
-      }, 100);
-    });
-
-    // Handle mobile responsiveness (Dashboard approach)
-    if (window.innerWidth <= 1024) {
-      console.log("📱 Mobile mode detected - Dashboard mobile behavior");
-      // Mobile logic will be handled by existing CSS media queries
-      // No additional mobile event listeners needed - dashboard approach
-    }
-
-    console.log("✅ Dashboard-compatible sidebar functionality initialized");
+    }, 100);
   }
 
   // Initialize responsive handlers (enhanced)
@@ -1215,20 +1083,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize and force data load
   window.manufacturerDashboard.init().then(() => {
-    console.log("✅ Dashboard initialized, forcing data update...");
-
+    
     // Force immediate KPI update with server data if available
     const serverStats = JSON.parse(
       "<%= JSON.stringify(JSON.stringify(stats || {})) %>"
     );
     if (serverStats && Object.keys(serverStats).length > 0) {
-      console.log("🔄 Updating KPIs with server data:", serverStats);
       window.manufacturerDashboard.updateKPICards(serverStats);
     }
 
     // Force API refresh after 2 seconds
     setTimeout(() => {
-      console.log("🔄 Forcing API data refresh...");
       window.manufacturerDashboard.loadDashboardStats();
     }, 2000);
   });
@@ -1276,7 +1141,6 @@ class ManufacturerDashboard {
    */
   async init() {
     try {
-      this.logger.log("🏭 Initializing Manufacturer Dashboard...");
 
       // Initialize core components
       this.initializeElements();
@@ -1292,8 +1156,7 @@ class ManufacturerDashboard {
       }
 
       this.isInitialized = true;
-      this.logger.log("✅ Manufacturer Dashboard initialized successfully");
-
+   
       // Dispatch ready event
       this.dispatchEvent("dashboard-ready", {
         dashboard: this,
@@ -1480,7 +1343,6 @@ class ManufacturerDashboard {
     if (window.UniversalTheme) {
       window.UniversalTheme.setTheme(theme);
       this.options.theme = theme;
-      console.log('🎨 Dashboard: Using Universal Theme Manager to set theme:', theme);
     } else {
       // Fallback implementation - use documentElement instead of body for consistency
       document.documentElement.setAttribute("data-theme", theme);
@@ -1493,7 +1355,6 @@ class ManufacturerDashboard {
       }
 
       this.options.theme = theme;
-      console.log('🎨 Dashboard: Fallback theme set to:', theme);
     }
   }
 
@@ -1760,9 +1621,7 @@ class ManufacturerDashboard {
         await this.loadProductsContent();
         break;
       default:
-        this.logger.log(
-          `Loading content for page: ${this.options.currentPage}`
-        );
+        null;
     }
   }
 
@@ -1785,7 +1644,6 @@ class ManufacturerDashboard {
 
       await Promise.all(promises);
 
-      this.logger.log("✅ Dashboard content loaded");
     } catch (error) {
       this.logger.error("❌ Failed to load dashboard content:", error);
       this.showError("Failed to load dashboard data");
@@ -1797,7 +1655,6 @@ class ManufacturerDashboard {
    */
   async loadDashboardStats() {
     try {
-      this.logger.log("🔄 Loading dashboard stats from API...");
 
       // Call real API endpoint
       const response = await this.apiCall(
@@ -1807,7 +1664,6 @@ class ManufacturerDashboard {
       if (response.success && response.data) {
         this.updateDashboardMetrics(response.data);
         this.updateKPICards(response.data);
-        this.logger.log("✅ Dashboard stats loaded successfully");
       } else {
         throw new Error(response.error || "Failed to load dashboard stats");
       }
@@ -1822,8 +1678,7 @@ class ManufacturerDashboard {
    */
   updateDashboardMetrics(stats) {
     try {
-      this.logger.log("🔄 Updating dashboard metrics with stats:", stats);
-
+    
       // Update production output with safe data access
       if (this.elements.productionOutput) {
         const valueElement =
@@ -1834,10 +1689,6 @@ class ManufacturerDashboard {
             0,
             stats.production.dailyOutput,
             1000
-          );
-          this.logger.log(
-            "✅ Production output updated:",
-            stats.production.dailyOutput
           );
         } else {
           this.logger.warn("⚠️ Production output element not found or no data");
@@ -1850,7 +1701,6 @@ class ManufacturerDashboard {
           this.elements.overallEfficiency.querySelector(".value");
         if (valueElement && stats?.efficiency?.value !== undefined) {
           this.animateValue(valueElement, 0, stats.efficiency.value, 1000, 1);
-          this.logger.log("✅ Efficiency updated:", stats.efficiency.value);
         } else {
           this.logger.warn("⚠️ Efficiency element not found or no data");
         }
@@ -1861,7 +1711,6 @@ class ManufacturerDashboard {
         const valueElement = this.elements.qualityScore.querySelector(".value");
         if (valueElement && stats?.quality?.score !== undefined) {
           this.animateValue(valueElement, 0, stats.quality.score, 1000, 1);
-          this.logger.log("✅ Quality score updated:", stats.quality.score);
         } else {
           this.logger.warn("⚠️ Quality score element not found or no data");
         }
@@ -1879,13 +1728,11 @@ class ManufacturerDashboard {
             maximumFractionDigits: 0,
           }).format(stats.revenue.monthly);
           valueElement.textContent = formattedRevenue;
-          this.logger.log("✅ Revenue updated:", formattedRevenue);
-        } else {
+          } else {
           this.logger.warn("⚠️ Revenue element not found or no data");
         }
       }
 
-      this.logger.log("✅ Dashboard metrics update completed");
     } catch (error) {
       this.logger.error("❌ Failed to update dashboard metrics:", error);
     }
@@ -2095,7 +1942,6 @@ class ManufacturerDashboard {
       await this.loadDashboardContent();
     } catch (error) {
       this.hideProgress();
-      this.logger.error("Failed to create production order:", error);
       this.showError("Failed to create production order");
     }
   }
@@ -2129,7 +1975,6 @@ class ManufacturerDashboard {
   async refreshDashboardData() {
     try {
       await this.loadDashboardStats();
-      this.logger.log("Dashboard data refreshed");
     } catch (error) {
       this.logger.error("Failed to refresh dashboard data:", error);
     }
@@ -2200,9 +2045,6 @@ class ManufacturerDashboard {
 
       if (!response.ok) {
         if (response.status === 401) {
-          this.logger.warn(
-            "⚠️ Authentication required, redirecting to login..."
-          );
           window.location.href = "/login";
           return;
         }
@@ -2222,8 +2064,6 @@ class ManufacturerDashboard {
    */
   updateKPICards(stats) {
     try {
-      this.logger.log("🔄 Updating KPI cards with data:", stats);
-
       // Update Total Sales card - try both selector methods
       const totalSalesElement =
         document.getElementById("totalSalesValue") ||
@@ -2238,7 +2078,6 @@ class ManufacturerDashboard {
 
         totalSalesElement.innerHTML = formattedValue;
         totalSalesElement.classList.add("updated");
-        this.logger.log(`✅ Total Sales updated: ${formattedValue}`);
       } else {
         this.logger.warn("❌ Total Sales element not found or no data");
       }
@@ -2250,8 +2089,7 @@ class ManufacturerDashboard {
       if (activeOrdersElement && stats.activeOrders !== undefined) {
         activeOrdersElement.innerHTML = stats.activeOrders.toLocaleString();
         activeOrdersElement.classList.add("updated");
-        this.logger.log(`✅ Active Orders updated: ${stats.activeOrders}`);
-      } else {
+       } else {
         this.logger.warn("❌ Active Orders element not found or no data");
       }
 
@@ -2262,8 +2100,7 @@ class ManufacturerDashboard {
       if (totalProductsElement && stats.totalProducts !== undefined) {
         totalProductsElement.innerHTML = stats.totalProducts.toLocaleString();
         totalProductsElement.classList.add("updated");
-        this.logger.log(`✅ Total Products updated: ${stats.totalProducts}`);
-      } else {
+     } else {
         this.logger.warn("❌ Total Products element not found or no data");
       }
 
@@ -2274,11 +2111,7 @@ class ManufacturerDashboard {
       if (inquiriesElement && stats.inquiries !== undefined) {
         inquiriesElement.innerHTML = stats.inquiries.toLocaleString();
         inquiriesElement.classList.add("updated");
-        this.logger.log(`✅ Inquiries updated: ${stats.inquiries}`);
-        this.logger.log(`🔍 Dashboard inquiry data:`, { 
-          totalInquiries: stats.inquiries, 
-          newInquiries: stats.overview?.newInquiries 
-        });
+      
       } else {
         this.logger.warn("❌ Inquiries element not found or no data");
         this.logger.log("🔍 Available stats:", stats);
@@ -2300,7 +2133,6 @@ class ManufacturerDashboard {
         this.updateRecentOrdersWidget(stats.recentOrders);
       }
 
-      this.logger.log("✅ All KPI cards updated successfully");
     } catch (error) {
       this.logger.error("❌ Failed to update KPI cards:", error);
     }
@@ -2339,8 +2171,6 @@ class ManufacturerDashboard {
           stats.activeDistributors.toLocaleString();
         activeDistributorsElement.classList.add("updated");
       }
-
-      this.logger.log("✅ Platform status metrics updated");
     } catch (error) {
       this.logger.error("❌ Failed to update platform status metrics:", error);
     }
@@ -2417,7 +2247,6 @@ class ManufacturerDashboard {
    */
   async loadSalesChart() {
     try {
-      this.logger.log("🔄 Loading sales chart data...");
 
       const response = await this.apiCall(
         this.options.apiEndpoints.productionMetrics
@@ -2425,7 +2254,6 @@ class ManufacturerDashboard {
 
       if (response.success && response.data) {
         this.updateSalesChart(response.data);
-        this.logger.log("✅ Sales chart loaded successfully");
       }
     } catch (error) {
       this.logger.error("❌ Failed to load sales chart:", error);
@@ -2520,7 +2348,6 @@ class ManufacturerDashboard {
    */
   async loadProductionMetrics() {
     try {
-      this.logger.log("🔄 Loading production metrics...");
 
       const response = await this.apiCall(
         this.options.apiEndpoints.productionMetrics
@@ -2528,8 +2355,7 @@ class ManufacturerDashboard {
 
       if (response.success && response.data) {
         this.updateProductionMetrics(response.data);
-        this.logger.log("✅ Production metrics loaded successfully");
-      }
+         }
     } catch (error) {
       this.logger.error("❌ Failed to load production metrics:", error);
     }
@@ -2540,7 +2366,6 @@ class ManufacturerDashboard {
    */
   async loadSalesAnalytics() {
     try {
-      this.logger.log("🔄 Loading sales analytics...");
 
       const response = await this.apiCall(
         this.options.apiEndpoints.salesAnalytics
@@ -2548,7 +2373,6 @@ class ManufacturerDashboard {
 
       if (response.success && response.data) {
         this.updateSalesAnalytics(response.data);
-        this.logger.log("✅ Sales analytics loaded successfully");
       }
     } catch (error) {
       this.logger.error("❌ Failed to load sales analytics:", error);
@@ -2590,7 +2414,6 @@ class ManufacturerDashboard {
         this.updateGeographicalChart(data.geographical);
       }
 
-      this.logger.log("✅ Sales analytics updated successfully");
     } catch (error) {
       this.logger.error("❌ Failed to update sales analytics:", error);
     }
@@ -2697,7 +2520,6 @@ class ManufacturerDashboard {
         )
         .join("");
 
-      this.logger.log("✅ Top products widget updated with real data");
     } catch (error) {
       this.logger.error("❌ Failed to update top products widget:", error);
     }
@@ -2753,7 +2575,6 @@ class ManufacturerDashboard {
         })
         .join("");
 
-      this.logger.log("✅ Recent orders widget updated with real data");
     } catch (error) {
       this.logger.error("❌ Failed to update recent orders widget:", error);
     }
@@ -2796,9 +2617,9 @@ class ManufacturerDashboard {
     const now = new Date();
     const diffHours = Math.floor((now - date) / (1000 * 60 * 60));
 
-    if (diffHours < 1) return "Hozirgina";
-    if (diffHours < 24) return `${diffHours} soat oldin`;
-    return `${Math.floor(diffHours / 24)} kun oldin`;
+    if (diffHours < 1) return window.t ? window.t('manufacturer.dashboard.time.justNow') : "Just now";
+    if (diffHours < 24) return `${diffHours} ${window.t ? window.t('manufacturer.dashboard.time.hoursAgo') : 'hours ago'}`;
+    return `${Math.floor(diffHours / 24)} ${window.t ? window.t('manufacturer.dashboard.time.daysAgo') : 'days ago'}`;
   }
 
   /**
@@ -2806,15 +2627,14 @@ class ManufacturerDashboard {
    */
   async loadNotifications() {
     try {
-      this.logger.log("🔄 Loading notifications...");
-
+   
       const response = await this.apiCall(
         this.options.apiEndpoints.notifications
       );
 
       if (response.success && response.data) {
         this.updateNotificationsBadge(response.data.unreadCount);
-        this.logger.log("✅ Notifications loaded successfully");
+       
       }
     } catch (error) {
       this.logger.error("❌ Failed to load notifications:", error);
@@ -2835,15 +2655,15 @@ class ManufacturerDashboard {
   }
 
   /**
-   * Get status text in Uzbek
+   * Get status text
    */
   getStatusText(status) {
     const statusMap = {
-      processing: "Jarayonda",
-      shipped: "Yuborildi",
-      pending: "Kutilmoqda",
-      completed: "Tugallandi",
-      cancelled: "Bekor qilindi",
+      processing: window.t ? window.t('manufacturer.dashboard.status.processing') : "Processing",
+      shipped: window.t ? window.t('manufacturer.dashboard.status.shipped') : "Shipped",
+      pending: window.t ? window.t('manufacturer.dashboard.status.pending') : "Pending",
+      completed: window.t ? window.t('manufacturer.dashboard.status.completed') : "Completed",
+      cancelled: window.t ? window.t('manufacturer.dashboard.status.cancelled') : "Cancelled",
     };
     return statusMap[status] || status;
   }
@@ -2853,7 +2673,7 @@ class ManufacturerDashboard {
    */
   async loadDistributorInquiries() {
     try {
-      this.logger.log("🔍 Loading distributor inquiries...");
+    
 
       const response = await this.apiCall(
         this.options.apiEndpoints.distributorInquiries
@@ -2861,11 +2681,9 @@ class ManufacturerDashboard {
 
       if (response.success && response.data) {
         this.updateDistributorInquiries(response.data);
-        this.logger.log("✅ Distributor inquiries loaded successfully");
       } else {
         // Show empty state when API call fails or returns no data
         this.showInquiriesEmptyState();
-        this.logger.log("📋 No distributor inquiries data - showing empty state");
       }
     } catch (error) {
       this.logger.error("❌ Failed to load distributor inquiries:", error);
@@ -2895,11 +2713,9 @@ class ManufacturerDashboard {
           const inquiryElement = this.createInquiryElement(inquiry);
           inquiriesContainer.appendChild(inquiryElement);
         });
-        this.logger.log(`✅ ${data.inquiries.length} distributor inquiries rendered`);
       } else {
         // Show empty state
         this.showInquiriesEmptyState();
-        this.logger.log("📋 No distributor inquiries found - showing empty state");
       }
 
     } catch (error) {
@@ -2951,7 +2767,7 @@ class ManufacturerDashboard {
                 }">${this.getPriorityLabel(inquiry.priority || "new")}</div>
             </div>
             <div class="inquiry-message">
-                <p>${inquiry.message || inquiry.content || "So'rov matni mavjud emas"}</p>
+                <p>${inquiry.message || inquiry.content || (window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.noMessage') : "No inquiry message")}</p>
                 <div class="order-specs">
                     ${inquiry.specs && Array.isArray(inquiry.specs)
                       ? inquiry.specs.map((spec) => `<span class="spec-tag">${spec}</span>`).join("")
@@ -2973,7 +2789,6 @@ class ManufacturerDashboard {
    */
   async loadCommunicationCenter() {
     try {
-      this.logger.log("💬 Loading communication center...");
 
       const response = await this.apiCall(
         this.options.apiEndpoints.communicationCenter
@@ -2981,12 +2796,10 @@ class ManufacturerDashboard {
 
       if (response.success && response.data) {
         this.updateCommunicationCenter(response.data);
-        this.logger.log("✅ Communication center loaded successfully");
       } else {
         // Show empty state when API call fails or returns no data
         this.showCommunicationEmptyState();
         this.updateCommunicationStatsError();
-        this.logger.log("💬 No communication center data - showing empty state");
       }
     } catch (error) {
       this.logger.error("❌ Failed to load communication center:", error);
@@ -3003,7 +2816,6 @@ class ManufacturerDashboard {
       // Fix: Use specific container ID instead of generic class
       const chatList = document.getElementById("chatPreviewsList");
       if (!chatList) {
-        this.logger.error("❌ chatPreviewsList container not found");
         return;
       }
 
@@ -3017,11 +2829,9 @@ class ManufacturerDashboard {
           const chatElement = this.createChatElement(chat);
           chatList.appendChild(chatElement);
         });
-        this.logger.log(`✅ ${data.chatPreviews.length} chat previews rendered`);
       } else {
         // Show empty state
         this.showCommunicationEmptyState();
-        this.logger.log("💬 No chat previews found - showing empty state");
       }
 
       // Update communication stats
@@ -3140,7 +2950,7 @@ class ManufacturerDashboard {
    */
   async loadInventoryManagement() {
     try {
-      this.logger.log("📦 Loading inventory management...");
+        // Loading inventory management...
 
       const response = await this.apiCall(
         this.options.apiEndpoints.inventoryManagement
@@ -3148,7 +2958,7 @@ class ManufacturerDashboard {
 
       if (response.success && response.data) {
         this.updateInventoryManagement(response.data);
-        this.logger.log("✅ Inventory management loaded successfully");
+        // Inventory management loaded successfully
       }
     } catch (error) {
       this.logger.error("❌ Failed to load inventory management:", error);
@@ -3206,7 +3016,7 @@ class ManufacturerDashboard {
                             <p class="item-sku">${item.sku}</p>
                         </div>
                         <div class="item-stock">
-                            <span class="stock-level ${item.level}">${item.currentStock} rulon</span>
+                            <span class="stock-level ${item.level}">${item.currentStock} ${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.unit') : 'unit'}</span>
                             <span class="stock-action">${item.action}</span>
                         </div>
                     </div>
@@ -3215,12 +3025,12 @@ class ManufacturerDashboard {
           .join("");
 
         criticalStock.innerHTML = `
-                    <h4 class="section-title">Diqqat talab qiladi</h4>
+                    <h4 class="section-title">${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.title') : 'Requires Attention'}</h4>
                     ${itemsHtml}
                 `;
       }
 
-      this.logger.log("✅ Inventory management updated");
+        // Inventory management updated
     } catch (error) {
       this.logger.error("❌ Failed to update inventory management:", error);
     }
@@ -3235,10 +3045,10 @@ class ManufacturerDashboard {
     const diffMs = now - time;
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
 
-    if (diffHours < 1) return "Hozirgina";
-    if (diffHours === 1) return "1 soat oldin";
-    if (diffHours < 24) return `${diffHours} soat oldin`;
-    return "1 kun oldin";
+    if (diffHours < 1) return window.t ? window.t('manufacturer.dashboard.time.justNow') : "Just now";
+    if (diffHours === 1) return `1 ${window.t ? window.t('manufacturer.dashboard.time.hourAgo') : 'hour ago'}`;
+    if (diffHours < 24) return `${diffHours} ${window.t ? window.t('manufacturer.dashboard.time.hoursAgo') : 'hours ago'}`;
+    return `1 ${window.t ? window.t('manufacturer.dashboard.time.dayAgo') : 'day ago'}`;
   }
 
   /**
@@ -3246,11 +3056,11 @@ class ManufacturerDashboard {
    */
   getPriorityLabel(priority) {
     const labels = {
-      urgent: "Shoshilinch",
-      new: "Yangi",
-      followup: "Kuzatuv",
+      urgent: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.urgent') : "Urgent",
+      new: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.new') : "New",
+      followup: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.followup') : "Follow-up",
     };
-    return labels[priority] || "Yangi";
+    return labels[priority] || (window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.new') : "New");
   }
 
   /**
@@ -3275,7 +3085,7 @@ class ManufacturerDashboard {
     });
 
     this.isInitialized = false;
-    this.logger.log("Manufacturer Dashboard destroyed");
+      // Manufacturer Dashboard destroyed
   }
 }
 
@@ -3287,6 +3097,5 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fix: sidebar uses 'admin-sidebar' class, not 'manufacturerSidebar' ID
   if (document.querySelector(".admin-sidebar")) {
     window.manufacturerDashboard = new ManufacturerDashboard();
-    console.log("✅ ManufacturerDashboard class initialized");
   }
 });

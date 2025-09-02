@@ -11,7 +11,7 @@ const { ObjectId } = mongoose.Types;
 const User = require('../models/User');
 const Admin = require('../models/Admin');
 const Message = require('../models/Message');
-// const Notification = require('../models/Notification'); // Temporarily disabled - using new notification system
+const Notification = require('../models/Notification'); // Re-enabled for admin notifications
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Settings = require('../models/Settings');
@@ -35,8 +35,7 @@ class AdminService {
    */
   async getDashboardStats(adminId, period = '90') {
     try {
-      this.logger.log(`📊 Getting REAL dashboard stats for admin: ${adminId}, period: ${period} days`);
-      
+     
       // Validate admin permissions and database connection
       const admin = await this.validateAdminAccess(adminId, 'canViewReports');
       
@@ -124,11 +123,9 @@ class AdminService {
         pendingApprovalsList
       };
 
-      this.logger.log(`✅ REAL dashboard stats generated successfully for admin: ${adminId}`);
-      return stats;
+     return stats;
 
     } catch (error) {
-      this.logger.error('❌ Dashboard stats error:', error);
       
       // Handle database authentication/connection/timeout issues with comprehensive fallback data
       if (error.message.includes('authentication') || 
@@ -136,7 +133,6 @@ class AdminService {
           error.message.includes('buffering timed out') ||
           error.message.includes('timeout') ||
           error.codeName === 'Unauthorized') {
-        this.logger.warn('🔒 Database connection/timeout issue - returning comprehensive fallback dashboard data');
         
         const fallbackStats = {
           overview: {
@@ -339,37 +335,30 @@ class AdminService {
    */
   async getTotalRevenue() {
     try {
-      this.logger.log('💰 Starting total revenue calculation...');
-      
-      // First check if we have any orders at all
       const totalOrdersCount = await Order.countDocuments();
-      this.logger.log(`📊 Total orders in database: ${totalOrdersCount}`);
-      
       if (totalOrdersCount === 0) {
-        this.logger.warn('⚠️ No orders found in database');
         // For development: return mock revenue when no orders exist
         const mockRevenue = 125000; // Mock revenue for demo
-        this.logger.log(`🎭 No orders - returning mock revenue for development: $${mockRevenue.toLocaleString()}`);
         return mockRevenue;
       }
       
       // Check completed orders count
       const completedOrdersCount = await Order.countDocuments({ status: 'completed' });
-      this.logger.log(`✅ Completed orders count: ${completedOrdersCount}`);
+     
       
       if (completedOrdersCount === 0) {
-        this.logger.warn('⚠️ No completed orders found');
+
         
         // Get sample order statuses for debugging
         const statusSample = await Order.aggregate([
           { $group: { _id: '$status', count: { $sum: 1 } } },
           { $sort: { count: -1 } }
         ]);
-        this.logger.log('📋 Order status distribution:', statusSample);
+      
         
         // For development: return mock revenue data if no completed orders
         const mockRevenue = 247500; // Mock revenue for demo
-        this.logger.log(`🎭 Returning mock revenue for development: $${mockRevenue.toLocaleString()}`);
+      
         return mockRevenue;
       }
       
@@ -380,12 +369,12 @@ class AdminService {
       ]);
       
       const totalRevenue = result[0] ? Math.round(result[0].total) : 0;
-      this.logger.log(`💰 Total revenue calculated: $${totalRevenue.toLocaleString()}`);
+    
       
       return totalRevenue;
       
     } catch (error) {
-      this.logger.error('❌ Error calculating total revenue:', error);
+     
       
       // Handle database authentication/connection/timeout issues with fallback
       if (error.message.includes('authentication') || 
@@ -393,7 +382,6 @@ class AdminService {
           error.message.includes('buffering timed out') ||
           error.message.includes('timeout') ||
           error.codeName === 'Unauthorized') {
-        this.logger.warn('🔒 Database connection/timeout issue - returning development fallback data');
         const fallbackRevenue = 156750; // Fallback revenue for demo
         return fallbackRevenue;
       }
@@ -504,8 +492,6 @@ class AdminService {
     try {
       const { format = 'csv', dateRange = 'last-30-days' } = options;
       
-      this.logger.log(`📊 Exporting dashboard data for admin: ${adminId}, format: ${format}`);
-
       // Get comprehensive dashboard data
       const stats = await this.getDashboardStats(adminId, '30');
       
@@ -598,7 +584,7 @@ class AdminService {
    */
   async getPendingApprovals(adminId, filters = {}) {
     try {
-      this.logger.log(`📋 Getting REAL pending approvals for admin: ${adminId}`, filters);
+
       
       await this.validateAdminAccess(adminId, 'canApproveUsers');
 
@@ -636,7 +622,7 @@ class AdminService {
         profileComplete: this.calculateProfileCompleteness(user)
       }));
 
-      this.logger.log(`✅ Found ${total} REAL pending approvals`);
+      
 
       return {
         pendingUsers: usersWithDays,
@@ -671,7 +657,7 @@ class AdminService {
    */
   async getUserDetails(userId, adminId) {
     try {
-      this.logger.log(`👤 Getting REAL user details: ${userId} by admin: ${adminId}`);
+     
       
       await this.validateAdminAccess(adminId, 'canViewUsers');
       this.validateObjectId(userId, 'User ID');
@@ -707,7 +693,7 @@ class AdminService {
         accountAge: Math.floor((Date.now() - user.createdAt) / (1000 * 60 * 60 * 24))
       };
 
-      this.logger.log(`✅ REAL user details retrieved for: ${userId}`);
+     
       
       return { user, statistics };
 
@@ -722,8 +708,7 @@ class AdminService {
    */
   async approveUser(userId, adminId, notes = '') {
     try {
-      this.logger.log(`✅ REAL approving user: ${userId} by admin: ${adminId}`);
-      
+       
       const admin = await this.validateAdminAccess(adminId, 'canApproveUsers');
       this.validateObjectId(userId, 'User ID');
 
@@ -762,7 +747,7 @@ class AdminService {
         // Don't fail the approval if email fails
       }
 
-      this.logger.log(`✅ User REALLY approved: ${userId}`);
+      
 
       return {
         userId: user._id,
@@ -785,8 +770,7 @@ class AdminService {
    */
   async rejectUser(userId, adminId, reason) {
     try {
-      this.logger.log(`❌ REAL rejecting user: ${userId} by admin: ${adminId}`);
-      
+       
       const admin = await this.validateAdminAccess(adminId, 'canApproveUsers');
       this.validateObjectId(userId, 'User ID');
 
@@ -828,7 +812,7 @@ class AdminService {
         this.logger.error('📧 Rejection email failed:', emailError.message);
       }
 
-      this.logger.log(`❌ User REALLY rejected: ${userId}`);
+     
 
       return {
         userId: user._id,
@@ -850,9 +834,7 @@ class AdminService {
    */
   async deleteUserRequest(userId, adminId) {
     try {
-      this.logger.log(`🗑️ REAL deleting user: ${userId} by admin: ${adminId}`);
-      
-      await this.validateAdminAccess(adminId, 'canApproveUsers');
+    await this.validateAdminAccess(adminId, 'canApproveUsers');
       this.validateObjectId(userId, 'User ID');
 
       const user = await User.findById(userId);
@@ -868,7 +850,7 @@ class AdminService {
       // REAL database deletion
       await User.findByIdAndDelete(userId);
 
-      this.logger.log(`🗑️ User REALLY deleted: ${userId}`);
+      
 
       return {
         userId: user._id,
@@ -888,7 +870,7 @@ class AdminService {
    */
   async bulkApproveUsers(userIds, adminId, progressCallback = null) {
     try {
-      this.logger.log(`📦 REAL bulk approving ${userIds.length} users by admin: ${adminId}`);
+       
       
       await this.validateAdminAccess(adminId, 'canApproveUsers');
       
@@ -952,7 +934,7 @@ class AdminService {
         });
       }
 
-      this.logger.log(`📦 REAL bulk approve completed: ${successCount}/${userIds.length} successful`);
+
 
       return {
         total: userIds.length,
@@ -986,7 +968,7 @@ class AdminService {
    */
   async bulkRejectUsers(userIds, adminId, reason, progressCallback = null) {
     try {
-      this.logger.log(`📦 REAL bulk rejecting ${userIds.length} users by admin: ${adminId}`);
+       
       
       await this.validateAdminAccess(adminId, 'canApproveUsers');
       
@@ -1054,7 +1036,7 @@ class AdminService {
         });
       }
 
-      this.logger.log(`📦 REAL bulk reject completed: ${successCount}/${userIds.length} successful`);
+      
 
       return {
         total: userIds.length,
@@ -1088,7 +1070,7 @@ class AdminService {
    */
   async bulkBlockUsers(userIds, adminId, reason, progressCallback = null) {
     try {
-      this.logger.log(`🚫 REAL bulk blocking ${userIds.length} users by admin: ${adminId}`);
+       
       
       await this.validateAdminAccess(adminId, 'canManageUsers');
       
@@ -1156,7 +1138,7 @@ class AdminService {
         });
       }
 
-      this.logger.log(`🚫 REAL bulk block completed: ${successCount}/${userIds.length} successful`);
+      
 
       return {
         total: userIds.length,
@@ -1190,7 +1172,7 @@ class AdminService {
    */
   async bulkSuspendUsers(userIds, adminId, reason, duration = '30', progressCallback = null) {
     try {
-      this.logger.log(`⏸️ REAL bulk suspending ${userIds.length} users by admin: ${adminId}`);
+       
       
       await this.validateAdminAccess(adminId, 'canManageUsers');
       
@@ -1264,7 +1246,7 @@ class AdminService {
         });
       }
 
-      this.logger.log(`⏸️ REAL bulk suspend completed: ${successCount}/${userIds.length} successful`);
+      
 
       return {
         total: userIds.length,
@@ -1298,7 +1280,7 @@ class AdminService {
    */
   async bulkActivateUsers(userIds, adminId, notes = '', progressCallback = null) {
     try {
-      this.logger.log(`✅ REAL bulk activating ${userIds.length} users by admin: ${adminId}`);
+      
       
       await this.validateAdminAccess(adminId, 'canManageUsers');
       
@@ -1362,8 +1344,6 @@ class AdminService {
         });
       }
 
-      this.logger.log(`✅ REAL bulk activate completed: ${successCount}/${userIds.length} successful`);
-
       return {
         total: userIds.length,
         successful: successCount,
@@ -1396,7 +1376,7 @@ class AdminService {
    */
   async bulkDeleteUsers(userIds, adminId, reason, progressCallback = null) {
     try {
-      this.logger.log(`🗑️ REAL bulk deleting ${userIds.length} users by admin: ${adminId}`);
+      
       
       await this.validateAdminAccess(adminId, 'canManageUsers');
       
@@ -1463,10 +1443,7 @@ class AdminService {
           status: 'completed'
         });
       }
-
-      this.logger.log(`🗑️ REAL bulk delete completed: ${successCount}/${userIds.length} successful`);
-
-      return {
+    return {
         total: userIds.length,
         successful: successCount,
         failed: userIds.length - successCount,
@@ -1506,7 +1483,7 @@ class AdminService {
    */
   async getAllUsers(adminId, options = {}) {
     try {
-      this.logger.log(`👥 Getting ALL users for admin: ${adminId}`, options);
+      
       
       // Validate admin permissions
       await this.validateAdminAccess(adminId, 'canManageUsers');
@@ -1673,8 +1650,7 @@ class AdminService {
         generatedAt: new Date().toISOString()
       };
 
-      this.logger.log(`✅ Retrieved ${users.length}/${totalCount} REAL users for admin: ${adminId}`);
-      return result;
+       return result;
 
     } catch (error) {
       this.logger.error('❌ Get all users error:', error);
@@ -1836,8 +1812,7 @@ class AdminService {
    */
   async getAllCompanies(adminId, options = {}) {
     try {
-      this.logger.log(`🏢 Getting ALL companies for admin: ${adminId}`, options);
-      
+     
       // Validate admin permissions
       await this.validateAdminAccess(adminId, 'canManageUsers');
       
@@ -2034,7 +2009,6 @@ class AdminService {
         generatedAt: new Date().toISOString()
       };
 
-      this.logger.log(`✅ Retrieved ${companies.length}/${totalCount} REAL companies for admin: ${adminId}`);
       return result;
 
     } catch (error) {
@@ -2362,7 +2336,6 @@ class AdminService {
    */
   async bulkDeleteProducts(productIds, adminId, reason = '') {
     try {
-      this.logger.log(`📦 Bulk deleting ${productIds.length} products by admin: ${adminId}`);
       
       // Validate inputs
       if (!Array.isArray(productIds) || productIds.length === 0) {
@@ -2442,8 +2415,7 @@ class AdminService {
         .populate('senderId', 'name email companyName')
         .lean();
 
-      this.logger.log(`✅ Retrieved ${messages.length} REAL messages for admin: ${adminId}`);
-      return messages;
+       return messages;
 
     } catch (error) {
       this.logger.error('❌ Get messages error:', error);
@@ -2471,12 +2443,9 @@ class AdminService {
         .limit(limit)
         .lean();
 
-      this.logger.log(`✅ Retrieved ${notifications.length} REAL notifications for admin: ${adminId}`);
-      
-      // If no real notifications found, return mock data for development
+       // If no real notifications found, return mock data for development
       if (notifications.length === 0) {
-        this.logger.log('📝 No real notifications found, returning mock data for development');
-        const mockNotifications = [
+       const mockNotifications = [
           {
             _id: '507f1f77bcf86cd799439011',
             recipientId: adminId,
@@ -2557,8 +2526,7 @@ class AdminService {
           error.message.includes('buffering timed out') ||
           error.message.includes('timeout') ||
           error.codeName === 'Unauthorized') {
-        this.logger.warn('🔒 Database connection/timeout issue - returning fallback notifications');
-        const fallbackNotifications = [
+         const fallbackNotifications = [
           {
             _id: '507f1f77bcf86cd799439011',
             recipientId: adminId,
@@ -2656,8 +2624,6 @@ class AdminService {
       if (!result) {
         throw new Error('Message not found or access denied');
       }
-
-      this.logger.log(`✅ Message marked as read: ${messageId} for admin: ${adminId}`);
       return result;
 
     } catch (error) {
@@ -2690,9 +2656,7 @@ class AdminService {
       if (!result) {
         throw new Error('Notification not found or access denied');
       }
-
-      this.logger.log(`✅ Notification marked as read: ${notificationId} for admin: ${adminId}`);
-      return result;
+  return result;
 
     } catch (error) {
       this.logger.error('❌ Mark notification as read error:', error);
@@ -2730,7 +2694,6 @@ class AdminService {
 
       await Notification.insertMany(notifications);
 
-      this.logger.log(`✅ Support message notifications created for ${admins.length} admins`);
       return notifications;
 
     } catch (error) {
@@ -2767,8 +2730,7 @@ class AdminService {
 
       await Notification.insertMany(notifications);
 
-      this.logger.log(`✅ User registration notifications created for ${admins.length} admins`);
-      return notifications;
+  return notifications;
 
     } catch (error) {
       this.logger.error('❌ Create user registration notification error:', error);
@@ -2948,7 +2910,6 @@ class AdminService {
    */
   async blockUser(userId, adminId, reason = '') {
     try {
-      this.logger.log(`🚫 Blocking user: ${userId} by admin: ${adminId}`);
       
       // Validate inputs
       this.validateObjectId(userId, 'User ID');
@@ -3016,8 +2977,7 @@ class AdminService {
    */
   async unblockUser(userId, adminId, notes = '') {
     try {
-      this.logger.log(`✅ Unblocking user: ${userId} by admin: ${adminId}`);
-      
+     
       // Validate inputs
       this.validateObjectId(userId, 'User ID');
       this.validateObjectId(adminId, 'Admin ID');
@@ -3088,8 +3048,7 @@ class AdminService {
    */
   async suspendUser(userId, adminId, reason, duration = null) {
     try {
-      this.logger.log(`⏸️ Suspending user: ${userId} by admin: ${adminId}`);
-      
+    
       // Validate inputs
       this.validateObjectId(userId, 'User ID');
       this.validateObjectId(adminId, 'Admin ID');
@@ -3172,8 +3131,7 @@ class AdminService {
    */
   async activateUser(userId, adminId, notes = '') {
     try {
-      this.logger.log(`🟢 Activating user: ${userId} by admin: ${adminId}`);
-      
+   
       // Validate inputs
       this.validateObjectId(userId, 'User ID');
       this.validateObjectId(adminId, 'Admin ID');
@@ -3249,8 +3207,7 @@ class AdminService {
    */
   async restoreUser(userId, adminId, notes = '') {
     try {
-      this.logger.log(`🔄 Restoring user: ${userId} by admin: ${adminId}`);
-      
+    
       // Validate inputs
       this.validateObjectId(userId, 'User ID');
       this.validateObjectId(adminId, 'Admin ID');
@@ -3320,7 +3277,6 @@ class AdminService {
    */
   async permanentDeleteUser(userId, adminId, confirmPassword) {
     try {
-      this.logger.log(`⚠️ PERMANENT deletion request for user: ${userId} by admin: ${adminId}`);
       
       // Validate inputs
       this.validateObjectId(userId, 'User ID');
@@ -3383,8 +3339,7 @@ class AdminService {
         adminConfirmed: true
       });
       
-      this.logger.log(`✅ User ${userId} permanently deleted by admin ${adminId}`);
-
+   
       return {
         success: true,
         message: 'User permanently deleted',
@@ -3403,8 +3358,7 @@ class AdminService {
    */
   async updateUser(userId, adminId, updateData) {
     try {
-      this.logger.log(`📝 Updating user: ${userId} by admin: ${adminId}`);
-      
+    
       // Validate inputs
       this.validateObjectId(userId, 'User ID');
       this.validateObjectId(adminId, 'Admin ID');
@@ -3468,7 +3422,6 @@ class AdminService {
    */
   async exportUsers(adminId, options = {}) {
     try {
-      this.logger.log(`📊 Exporting users data by admin: ${adminId}`);
       
       // Validate admin permissions
       await this.validateAdminAccess(adminId, 'canViewReports');
@@ -3571,7 +3524,6 @@ class AdminService {
    */
   async getAllProducts(adminId, options = {}) {
     try {
-      this.logger.log(`📦 Getting ALL PRODUCTS for admin: ${adminId}`);
       
       // Validate admin permissions
       await this.validateAdminAccess(adminId, 'canManageProducts');
@@ -3935,7 +3887,6 @@ class AdminService {
         generatedAt: new Date().toISOString()
       };
       
-      this.logger.log(`✅ Retrieved ${products.length}/${totalCount} REAL products for admin: ${adminId}`);
       return result;
       
     } catch (error) {
@@ -4184,9 +4135,7 @@ class AdminService {
    */
   async updateProductStatus(productId, adminId, newStatus, notes = '') {
     try {
-      this.logger.log(`📝 Updating product status: ${productId} to ${newStatus} by admin: ${adminId}`);
-      
-      // Validate inputs
+  // Validate inputs
       this.validateObjectId(productId, 'Product ID');
       this.validateObjectId(adminId, 'Admin ID');
       
@@ -4245,7 +4194,6 @@ class AdminService {
    */
   async bulkUpdateProducts(productIds, adminId, updateData) {
     try {
-      this.logger.log(`📦 Bulk updating ${productIds.length} products by admin: ${adminId}`);
       
       // Validate inputs
       if (!Array.isArray(productIds) || productIds.length === 0) {
@@ -4336,7 +4284,6 @@ class AdminService {
    */
   async exportProducts(adminId, options = {}) {
     try {
-      this.logger.log(`📊 Exporting products data by admin: ${adminId}`);
       
       // Validate admin permissions
       await this.validateAdminAccess(adminId, 'canViewReports');
@@ -4421,9 +4368,7 @@ class AdminService {
    */
   async getProductStatistics(adminId) {
     try {
-      this.logger.log(`📊 Getting product statistics for admin: ${adminId}`);
-      
-      await this.validateAdminAccess(adminId, 'canViewReports');
+   await this.validateAdminAccess(adminId, 'canViewReports');
       
       const [
         statusCounts,
@@ -4548,9 +4493,7 @@ class AdminService {
    */
   async getOrdersWithFilters(filters = {}, pagination = {}, adminId) {
     try {
-      this.logger.log(`📋 Getting REAL orders with filters:`, { filters, pagination, adminId });
-      
-      // Validate admin access (temporary bypass for orders permissions)
+     // Validate admin access (temporary bypass for orders permissions)
       await this.validateAdminAccess(adminId);
       
       const {
@@ -4719,10 +4662,7 @@ class AdminService {
       const totalPages = Math.ceil(total / limit);
       const hasNextPage = page < totalPages;
       const hasPrevPage = page > 1;
-
-      this.logger.log(`✅ Orders loaded: ${orders.length}/${total} total`);
-
-      return {
+   return {
         success: true,
         orders,
         pagination: {
@@ -4755,8 +4695,7 @@ class AdminService {
    */
   async getOrdersStatistics(adminId) {
     try {
-      this.logger.log(`📊 Getting REAL orders statistics for admin: ${adminId}`);
-      
+    
       await this.validateAdminAccess(adminId);
 
       // Parallel aggregation for performance
@@ -4830,8 +4769,7 @@ class AdminService {
         lastUpdated: new Date()
       };
 
-      this.logger.log('✅ Orders statistics loaded:', stats);
-      return stats;
+     return stats;
 
     } catch (error) {
       this.logger.error('❌ Error getting orders statistics:', error);
@@ -4847,9 +4785,7 @@ class AdminService {
    */
   async getOrderDetails(orderId, adminId) {
     try {
-      this.logger.log(`📋 Getting order details: ${orderId} by admin: ${adminId}`);
-      
-      await this.validateAdminAccess(adminId);
+    await this.validateAdminAccess(adminId);
       
       if (!mongoose.isValidObjectId(orderId)) {
         throw new Error('Invalid order ID format');
@@ -4867,8 +4803,7 @@ class AdminService {
         throw new Error('Order not found');
       }
 
-      this.logger.log(`✅ Order details loaded: ${orderDetails.orderNumber}`);
-      return orderDetails;
+        return orderDetails;
 
     } catch (error) {
       this.logger.error('❌ Error getting order details:', error);
@@ -4886,8 +4821,7 @@ class AdminService {
    */
   async updateOrderStatus(orderId, newStatus, notes, adminId) {
     try {
-      this.logger.log(`🔄 Updating order status: ${orderId} -> ${newStatus} by admin: ${adminId}`);
-      
+     
       await this.validateAdminAccess(adminId);
       
       if (!mongoose.isValidObjectId(orderId)) {
@@ -4934,7 +4868,6 @@ class AdminService {
         notes
       });
 
-      this.logger.log(`✅ Order status updated: ${order.orderNumber} -> ${newStatus}`);
       return order;
 
     } catch (error) {
@@ -4952,8 +4885,6 @@ class AdminService {
    */
   async bulkOrderAction(orderIds, action, adminId) {
     try {
-      this.logger.log(`🔄 Bulk order action: ${action} on ${orderIds.length} orders by admin: ${adminId}`);
-      
       await this.validateAdminAccess(adminId);
       
       // Validate order IDs
@@ -5009,8 +4940,7 @@ class AdminService {
         failedCount: results.failed.length
       });
 
-      this.logger.log(`✅ Bulk action completed: ${results.success.length}/${results.total} successful`);
-      return results;
+       return results;
 
     } catch (error) {
       this.logger.error('❌ Error in bulk order action:', error);
@@ -5028,7 +4958,7 @@ class AdminService {
     try {
       // For now, just log to console
       // In production, this should save to AdminActivity collection
-      this.logger.log(`🔍 Admin Activity: ${adminId} performed ${action}`, metadata);
+      
       
       // TODO: Implement proper admin activity logging to database
       // const activity = new AdminActivity({
@@ -5089,8 +5019,7 @@ class AdminService {
    */
   async getSettings(adminId, category = null) {
     try {
-      this.logger.log(`⚙️ Getting settings${category ? ` for category: ${category}` : ''} by admin: ${adminId}`);
-      
+  
       await this.validateAdminAccess(adminId);
 
       const query = { isActive: true };
@@ -5139,9 +5068,7 @@ class AdminService {
           timestamp: new Date()
         }
       };
-
-      this.logger.log(`✅ Settings loaded: ${totalSettings} total, ${categoryCounts.length} categories`);
-      return result;
+   return result;
 
     } catch (error) {
       this.logger.error('❌ Error getting settings:', error);
@@ -5157,7 +5084,7 @@ class AdminService {
    */
   async getSettingsByCategory(category, adminId) {
     try {
-      this.logger.log(`⚙️ Getting settings for category: ${category} by admin: ${adminId}`);
+    await this.validateAdminAccess(adminId);
       
       await this.validateAdminAccess(adminId);
 
@@ -5179,8 +5106,7 @@ class AdminService {
         return acc;
       }, {});
 
-      this.logger.log(`✅ Category settings loaded: ${settings.length} settings in ${Object.keys(settingsByGroup).length} groups`);
-
+ 
       return {
         category,
         groups: settingsByGroup,
@@ -5205,8 +5131,7 @@ class AdminService {
    */
   async updateSetting(category, key, value, adminId, reason = 'Value updated') {
     try {
-      this.logger.log(`⚙️ Updating setting: ${category}.${key} by admin: ${adminId}`);
-      
+    
       await this.validateAdminAccess(adminId);
 
       const setting = await Settings.findOne({ category, key, isActive: true });
@@ -5236,7 +5161,7 @@ class AdminService {
         reason
       });
 
-      this.logger.log(`✅ Setting updated: ${category}.${key} = ${JSON.stringify(value)}`);
+  
       
       return {
         success: true,
@@ -5260,7 +5185,7 @@ class AdminService {
    */
   async bulkUpdateSettings(updates, adminId, reason = 'Bulk settings update') {
     try {
-      this.logger.log(`⚙️ Bulk updating ${updates.length} settings by admin: ${adminId}`);
+  
       
       await this.validateAdminAccess(adminId);
 
@@ -5308,7 +5233,7 @@ class AdminService {
         reason
       });
 
-      this.logger.log(`✅ Bulk update completed: ${results.success.length}/${results.total} successful`);
+     
       
       return {
         success: true,
@@ -5332,7 +5257,7 @@ class AdminService {
    */
   async resetSetting(category, key, adminId) {
     try {
-      this.logger.log(`🔄 Resetting setting to default: ${category}.${key} by admin: ${adminId}`);
+
       
       await this.validateAdminAccess(adminId);
 
@@ -5358,7 +5283,7 @@ class AdminService {
         'Reset to default value'
       );
 
-      this.logger.log(`✅ Setting reset to default: ${category}.${key}`);
+
       return result;
 
     } catch (error) {
@@ -5376,7 +5301,7 @@ class AdminService {
    */
   async getSettingHistory(category, key, adminId) {
     try {
-      this.logger.log(`📜 Getting setting history: ${category}.${key} by admin: ${adminId}`);
+
       
       await this.validateAdminAccess(adminId);
 
@@ -5411,7 +5336,7 @@ class AdminService {
         }
       };
 
-      this.logger.log(`✅ Setting history loaded: ${setting.changeHistory.length} changes`);
+
       return history;
 
     } catch (error) {
@@ -5428,7 +5353,7 @@ class AdminService {
    */
   async exportSettings(adminId, options = {}) {
     try {
-      this.logger.log(`📤 Exporting settings by admin: ${adminId}`);
+
       
       await this.validateAdminAccess(adminId);
 
@@ -5476,7 +5401,7 @@ class AdminService {
         format
       });
 
-      this.logger.log(`✅ Settings exported: ${settings.length} settings`);
+      
       return exportData;
 
     } catch (error) {
@@ -5492,7 +5417,7 @@ class AdminService {
    */
   async initializeDefaultSettings(adminId) {
     try {
-      this.logger.log(`🚀 Initializing default settings by admin: ${adminId}`);
+
       
       await this.validateAdminAccess(adminId);
 
@@ -5507,7 +5432,7 @@ class AdminService {
         totalSettings
       });
 
-      this.logger.log(`✅ Default settings initialized: ${totalSettings} total settings`);
+      
       
       return {
         success: true,
@@ -5621,7 +5546,6 @@ class AdminService {
    */
   async getSettingsStatistics(adminId) {
     try {
-      this.logger.log(`📊 Getting settings statistics by admin: ${adminId}`);
       
       await this.validateAdminAccess(adminId);
 
@@ -5667,7 +5591,7 @@ class AdminService {
         lastUpdated: new Date()
       };
 
-      this.logger.log(`✅ Settings statistics loaded`);
+      
       return statistics;
 
     } catch (error) {
@@ -5712,8 +5636,8 @@ class AdminService {
    */
   async getAdminProfile(adminId) {
     try {
-      this.logger.log(`👤 Getting admin profile: ${adminId}`);
-      
+    
+          
       const admin = await this.validateAdminAccess(adminId);
       
       // Get admin with populated data - FIXED populate errors
@@ -5747,7 +5671,7 @@ class AdminService {
         timestamp: new Date().toISOString()
       };
 
-      this.logger.log(`✅ Admin profile loaded: ${adminProfile.firstName} ${adminProfile.lastName}`);
+   
       return result;
 
     } catch (error) {
@@ -5764,7 +5688,7 @@ class AdminService {
    */
   async updateAdminProfile(adminId, updateData) {
     try {
-      this.logger.log(`📝 Updating admin profile: ${adminId}`);
+  
       
       await this.validateAdminAccess(adminId);
 
@@ -5799,7 +5723,6 @@ class AdminService {
         module: 'profile'
       });
 
-      this.logger.log(`✅ Admin profile updated: ${updatedAdmin.firstName} ${updatedAdmin.lastName}`);
       
       return {
         success: true,
@@ -5824,7 +5747,6 @@ class AdminService {
    */
   async changeAdminPassword(adminId, currentPassword, newPassword) {
     try {
-      this.logger.log(`🔒 Changing password for admin: ${adminId}`);
       
       await this.validateAdminAccess(adminId);
 
@@ -5860,7 +5782,6 @@ class AdminService {
         module: 'security'
       });
 
-      this.logger.log(`✅ Password changed for admin: ${adminId}`);
       
       return {
         success: true,
@@ -5882,7 +5803,6 @@ class AdminService {
    */
   async changeAdminPicture(adminId, pictureData) {
     try {
-      this.logger.log(`🖼️ Changing profile picture for admin: ${adminId}`);
       
       await this.validateAdminAccess(adminId);
 
@@ -5914,9 +5834,7 @@ class AdminService {
         fileSize,
         module: 'profile'
       });
-
-      this.logger.log(`✅ Profile picture changed for admin: ${adminId}`);
-      
+ 
       return {
         success: true,
         profilePicture: pictureUrl,
@@ -5936,8 +5854,7 @@ class AdminService {
    * @returns {Object} Admin profile statistics
    */
   async getAdminStats(adminId) {
-    try {
-      this.logger.log(`📊 Getting admin stats: ${adminId}`);
+    try { 
       
       await this.validateAdminAccess(adminId);
 
@@ -5982,7 +5899,6 @@ class AdminService {
         timestamp: new Date().toISOString()
       };
 
-      this.logger.log(`✅ Admin stats loaded for: ${adminId}`);
       return stats;
 
     } catch (error) {
@@ -5999,7 +5915,7 @@ class AdminService {
    */
   async getAdminActivity(adminId, options = {}) {
     try {
-      this.logger.log(`📋 Getting admin activity: ${adminId}`);
+  
       
       await this.validateAdminAccess(adminId);
 
@@ -6057,7 +5973,7 @@ class AdminService {
         timestamp: new Date().toISOString()
       };
 
-      this.logger.log(`✅ Admin activity loaded: ${result.activities.length} activities`);
+
       return result;
 
     } catch (error) {
@@ -6073,7 +5989,7 @@ class AdminService {
    */
   async getAdminSessions(adminId) {
     try {
-      this.logger.log(`🔐 Getting admin sessions: ${adminId}`);
+
       
       await this.validateAdminAccess(adminId);
 
@@ -6101,7 +6017,7 @@ class AdminService {
         timestamp: new Date().toISOString()
       };
 
-      this.logger.log(`✅ Admin sessions loaded: ${sessions.length} active sessions`);
+
       return result;
 
     } catch (error) {
@@ -6118,8 +6034,6 @@ class AdminService {
    */
   async terminateAdminSession(adminId, sessionId) {
     try {
-      this.logger.log(`🔒 Terminating admin session: ${sessionId} for admin: ${adminId}`);
-      
       await this.validateAdminAccess(adminId);
 
       // For now, return success (in production, this would remove the session token)
@@ -6133,7 +6047,6 @@ class AdminService {
         module: 'security'
       });
 
-      this.logger.log(`✅ Session terminated: ${sessionId}`);
       
       return {
         success: true,
@@ -6155,7 +6068,6 @@ class AdminService {
    */
   async getAdminSecurity(adminId) {
     try {
-      this.logger.log(`🔐 Getting admin security settings: ${adminId}`);
       
       await this.validateAdminAccess(adminId);
 
@@ -6188,7 +6100,6 @@ class AdminService {
         timestamp: new Date().toISOString()
       };
 
-      this.logger.log(`✅ Admin security settings loaded for: ${adminId}`);
       return securityData;
 
     } catch (error) {
@@ -6204,7 +6115,6 @@ class AdminService {
    */
   async setupAdmin2FA(adminId) {
     try {
-      this.logger.log(`🔐 Setting up 2FA for admin: ${adminId}`);
       
       await this.validateAdminAccess(adminId);
 
@@ -6228,7 +6138,6 @@ class AdminService {
         timestamp: new Date().toISOString()
       };
 
-      this.logger.log(`✅ 2FA setup initiated for admin: ${adminId}`);
       return result;
 
     } catch (error) {
@@ -6245,7 +6154,6 @@ class AdminService {
    */
   async verifyAdmin2FA(adminId, code) {
     try {
-      this.logger.log(`🔐 Verifying 2FA setup for admin: ${adminId}`);
       
       await this.validateAdminAccess(adminId);
 
@@ -6284,7 +6192,6 @@ class AdminService {
         module: 'security'
       });
 
-      this.logger.log(`✅ 2FA enabled for admin: ${adminId}`);
       
       return {
         success: true,
@@ -6308,7 +6215,6 @@ class AdminService {
    */
   async toggleAdmin2FA(adminId, enabled) {
     try {
-      this.logger.log(`🔐 Toggling 2FA for admin: ${adminId} - enabled: ${enabled}`);
       
       await this.validateAdminAccess(adminId);
 
@@ -6338,7 +6244,6 @@ class AdminService {
         module: 'security'
       });
 
-      this.logger.log(`✅ 2FA ${enabled ? 'enabled' : 'disabled'} for admin: ${adminId}`);
       
       return {
         success: true,
@@ -6360,7 +6265,6 @@ class AdminService {
    */
   async exportAdminProfile(adminId) {
     try {
-      this.logger.log(`📤 Exporting admin profile: ${adminId}`);
       
       await this.validateAdminAccess(adminId);
 
@@ -6394,7 +6298,6 @@ class AdminService {
         module: 'profile'
       });
 
-      this.logger.log(`✅ Admin profile exported: ${adminId}`);
       return exportData;
 
     } catch (error) {
@@ -6411,7 +6314,6 @@ class AdminService {
    */
   async updateAdminPreferences(adminId, preferences) {
     try {
-      this.logger.log(`⚙️ Updating admin preferences: ${adminId}`);
       
       await this.validateAdminAccess(adminId);
 
@@ -6438,7 +6340,7 @@ class AdminService {
         module: 'profile'
       });
 
-      this.logger.log(`✅ Admin preferences updated: ${adminId}`);
+
       
       return {
         success: true,

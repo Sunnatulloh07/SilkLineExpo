@@ -192,9 +192,7 @@ class MultiDashboardAuthService {
                 } else {
                     message = `Admin hisobingiz holati: ${admin.status}. Super admin bilan bog'laning.`;
                 }
-                
-                this.logger.warn(`🚫 Admin login blocked: ${email} - Status: ${admin.status}`);
-                
+                 
                 return {
                     success: false,
                     message,
@@ -270,9 +268,6 @@ class MultiDashboardAuthService {
                 } else {
                     message = `Hisobingiz holati: ${user.status}. Admin bilan bog'laning.`;
                 }
-                
-                this.logger.warn(`🚫 User login blocked: ${email} - Status: ${user.status}`);
-                
                 return {
                     success: false,
                     message,
@@ -337,11 +332,7 @@ class MultiDashboardAuthService {
             return this.dashboardRoutes[userData.companyType];
         }
 
-        // Fallback to general user dashboard
-        this.logger.warn(`⚠️ Unknown user type/role for routing: ${JSON.stringify({
-            role: userData.role,
-            companyType: userData.companyType
-        })}`);
+
         
         return '/dashboard'; // Generic fallback
     }

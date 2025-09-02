@@ -5,12 +5,12 @@
 
 const express = require('express');
 const AuthControllerClass = require('../controllers/AuthController');
-const optionalJWTAuth = require('../middleware/optionalJWTAuth');
+// Removed optionalJWTAuth middleware - using BadgeMiddleware instead
 
 const router = express.Router();
 
-// Apply optional JWT authentication to all public routes
-router.use(optionalJWTAuth.optionalAuth);
+// Public routes - no authentication required
+console.log('🔧 Public routes loaded - no authentication middleware');
 
 // Database models
 const Product = require('../models/Product');
@@ -50,32 +50,119 @@ async function getTopProductsForHomepage() {
       publishedAt: { $exists: true, $ne: null } 
     });
     
-    // Base filter for marketplace-published products only
+    // Base filter for marketplace products (include products without publishedAt for backward compatibility)
     const marketplaceFilter = {
       status: 'active',
       visibility: 'public',
-      publishedAt: { $exists: true, $ne: null },      // Published to marketplace
       $or: [
-        { unpublishedAt: { $exists: false } },        // Never unpublished
-        { unpublishedAt: null }                       // Or explicitly null
+        // Products with publishedAt and not unpublished (new publishing system)
+        {
+          publishedAt: { $exists: true, $ne: null },
+          unpublishedAt: { $exists: false }
+        },
+        {
+          publishedAt: { $exists: true, $ne: null },
+          unpublishedAt: null
+        },
+        // Products without publishedAt but active and public (legacy products)
+        {
+          publishedAt: { $exists: false }
+        },
+        {
+          publishedAt: null
+        }
       ]
     };
     
-    // Step 1: Try to get products with high rating AND high views
-    const topRatedViewedProducts = await Product.find({
-      ...marketplaceFilter,
-      averageRating: { $gte: 4.0 },      // Rating 4.0+
-      'analytics.views': { $gte: 100 }    // At least 100 views
-    })
-    .populate('manufacturer', 'companyName country')
-    .populate('category', 'name slug')
-    .sort({ 
-      averageRating: -1,     // High rating first
-      'analytics.views': -1,  // High views second
-      'analytics.orders': -1  // High orders third
-    })
-    .limit(20)
-    .lean();
+    // Step 1: Try to get products with high rating AND high views (only from active suppliers)
+    const topRatedViewedProducts = await Product.aggregate([
+      {
+        $match: {
+          status: 'active',
+          visibility: 'public',
+          averageRating: { $gte: 4.0 },      // Rating 4.0+
+          'analytics.views': { $gte: 100 }    // At least 100 views
+        }
+      },
+      {
+        $match: {
+          $or: [
+            // Products with publishedAt and not unpublished (new publishing system)
+            {
+              publishedAt: { $exists: true, $ne: null },
+              unpublishedAt: { $exists: false }
+            },
+            {
+              publishedAt: { $exists: true, $ne: null },
+              unpublishedAt: null
+            },
+            // Products without publishedAt but active and public (legacy products)
+            {
+              publishedAt: { $exists: false }
+            },
+            {
+              publishedAt: null
+            }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'manufacturer',
+          foreignField: '_id',
+          as: 'manufacturerInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      // Filter by supplier status - only show products from active suppliers
+      {
+        $match: {
+          'manufacturerInfo.status': 'active'  // Only active suppliers
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          shortDescription: 1,
+          images: 1,
+          pricing: 1,
+          averageRating: 1,
+          totalReviews: 1,
+          analytics: 1,
+          isFeatured: 1,
+          createdAt: 1,
+          manufacturer: {
+            _id: { $arrayElemAt: ['$manufacturerInfo._id', 0] },
+            companyName: { $arrayElemAt: ['$manufacturerInfo.companyName', 0] },
+            country: { $arrayElemAt: ['$manufacturerInfo.country', 0] }
+          },
+          category: {
+            _id: { $arrayElemAt: ['$categoryInfo._id', 0] },
+            name: { $arrayElemAt: ['$categoryInfo.name', 0] },
+            slug: { $arrayElemAt: ['$categoryInfo.slug', 0] }
+          }
+        }
+      },
+      {
+        $sort: { 
+          averageRating: -1,     // High rating first
+          'analytics.views': -1,  // High views second
+          'analytics.orders': -1  // High orders third
+        }
+      },
+      {
+        $limit: 20
+      }
+    ]);
     
     
     // If we have 6+ products, return them
@@ -83,21 +170,95 @@ async function getTopProductsForHomepage() {
       return topRatedViewedProducts;
     }
     
-    // Step 2: If not enough, try high rating only (3.5+)
-    const topRatedProducts = await Product.find({
-      ...marketplaceFilter,
-      averageRating: { $gte: 3.5 }  // Rating 3.5+
-    })
-    .populate('manufacturer', 'companyName country')
-    .populate('category', 'name slug')
-    .sort({ 
-      averageRating: -1,     // High rating first
-      'analytics.views': -1,  // High views second
-      totalReviews: -1,      // More reviews
-      publishedAt: -1        // Most recently published
-    })
-    .limit(20)
-    .lean();
+    // Step 2: If not enough, try high rating only (3.5+) - only from active suppliers
+    const topRatedProducts = await Product.aggregate([
+      {
+        $match: {
+          status: 'active',
+          visibility: 'public',
+          averageRating: { $gte: 3.5 }  // Rating 3.5+
+        }
+      },
+      {
+        $match: {
+          $or: [
+            // Products with publishedAt and not unpublished (new publishing system)
+            {
+              publishedAt: { $exists: true, $ne: null },
+              unpublishedAt: { $exists: false }
+            },
+            {
+              publishedAt: { $exists: true, $ne: null },
+              unpublishedAt: null
+            },
+            // Products without publishedAt but active and public (legacy products)
+            {
+              publishedAt: { $exists: false }
+            },
+            {
+              publishedAt: null
+            }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'manufacturer',
+          foreignField: '_id',
+          as: 'manufacturerInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      // Filter by supplier status - only show products from active suppliers
+      {
+        $match: {
+          'manufacturerInfo.status': 'active'  // Only active suppliers
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          shortDescription: 1,
+          images: 1,
+          pricing: 1,
+          averageRating: 1,
+          totalReviews: 1,
+          analytics: 1,
+          isFeatured: 1,
+          createdAt: 1,
+          manufacturer: {
+            _id: { $arrayElemAt: ['$manufacturerInfo._id', 0] },
+            companyName: { $arrayElemAt: ['$manufacturerInfo.companyName', 0] },
+            country: { $arrayElemAt: ['$manufacturerInfo.country', 0] }
+          },
+          category: {
+            _id: { $arrayElemAt: ['$categoryInfo._id', 0] },
+            name: { $arrayElemAt: ['$categoryInfo.name', 0] },
+            slug: { $arrayElemAt: ['$categoryInfo.slug', 0] }
+          }
+        }
+      },
+      {
+        $sort: { 
+          averageRating: -1,     // High rating first
+          'analytics.views': -1,  // High views second
+          totalReviews: -1,      // More reviews
+          publishedAt: -1        // Most recently published
+        }
+      },
+      {
+        $limit: 20
+      }
+    ]);
     
     
     // If we have 6+ products, return them
@@ -105,38 +266,184 @@ async function getTopProductsForHomepage() {
       return topRatedProducts;
     }
     
-    // Step 3: If still not enough, get any active marketplace products
-    const allMarketplaceProducts = await Product.find({
-      ...marketplaceFilter,
-      'inventory.availableStock': { $gt: 0 }  // In stock
-    })
-    .populate('manufacturer', 'companyName country')
-    .populate('category', 'name slug')
-    .sort({ 
-      isFeatured: -1,        // Featured first
-      'analytics.views': -1,  // Most viewed
-      averageRating: -1,     // Higher rating
-      publishedAt: -1        // Most recently published
-    })
-    .limit(20)
-    .lean();
+    // Step 3: If still not enough, get any active marketplace products (only from active suppliers)
+    const allMarketplaceProducts = await Product.aggregate([
+      {
+        $match: {
+          status: 'active',
+          visibility: 'public',
+          'inventory.availableStock': { $gt: 0 }  // In stock
+        }
+      },
+      {
+        $match: {
+          $or: [
+            // Products with publishedAt and not unpublished (new publishing system)
+            {
+              publishedAt: { $exists: true, $ne: null },
+              unpublishedAt: { $exists: false }
+            },
+            {
+              publishedAt: { $exists: true, $ne: null },
+              unpublishedAt: null
+            },
+            // Products without publishedAt but active and public (legacy products)
+            {
+              publishedAt: { $exists: false }
+            },
+            {
+              publishedAt: null
+            }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'manufacturer',
+          foreignField: '_id',
+          as: 'manufacturerInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      // Filter by supplier status - only show products from active suppliers
+      {
+        $match: {
+          'manufacturerInfo.status': 'active'  // Only active suppliers
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          shortDescription: 1,
+          images: 1,
+          pricing: 1,
+          averageRating: 1,
+          totalReviews: 1,
+          analytics: 1,
+          isFeatured: 1,
+          createdAt: 1,
+          manufacturer: {
+            _id: { $arrayElemAt: ['$manufacturerInfo._id', 0] },
+            companyName: { $arrayElemAt: ['$manufacturerInfo.companyName', 0] },
+            country: { $arrayElemAt: ['$manufacturerInfo.country', 0] }
+          },
+          category: {
+            _id: { $arrayElemAt: ['$categoryInfo._id', 0] },
+            name: { $arrayElemAt: ['$categoryInfo.name', 0] },
+            slug: { $arrayElemAt: ['$categoryInfo.slug', 0] }
+          }
+        }
+      },
+      {
+        $sort: { 
+          isFeatured: -1,        // Featured first
+          'analytics.views': -1,  // Most viewed
+          averageRating: -1,     // Higher rating
+          publishedAt: -1        // Most recently published
+        }
+      },
+      {
+        $limit: 20
+      }
+    ]);
     
-    // If still no marketplace products, try with relaxed filter (just active + public)
+    // If still no marketplace products, try with relaxed filter (just active + public, only from active suppliers)
     if (allMarketplaceProducts.length === 0) {
-      const anyActiveProducts = await Product.find({
-        status: 'active',
-        visibility: 'public'
-      })
-      .populate('manufacturer', 'companyName country')
-      .populate('category', 'name slug')
-      .sort({ 
-        createdAt: -1,           // Most recently created
-        isFeatured: -1,          // Featured first
-        'analytics.views': -1    // Most viewed
-    })
-    .limit(20)
-    .lean();
-    
+      const anyActiveProducts = await Product.aggregate([
+        {
+          $match: {
+            status: 'active',
+            visibility: 'public'
+          }
+        },
+        {
+          $match: {
+            $or: [
+              // Products with publishedAt and not unpublished (new publishing system)
+              {
+                publishedAt: { $exists: true, $ne: null },
+                unpublishedAt: { $exists: false }
+              },
+              {
+                publishedAt: { $exists: true, $ne: null },
+                unpublishedAt: null
+              },
+              // Products without publishedAt but active and public (legacy products)
+              {
+                publishedAt: { $exists: false }
+              },
+              {
+                publishedAt: null
+              }
+            ]
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'manufacturer',
+            foreignField: '_id',
+            as: 'manufacturerInfo'
+          }
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'category',
+            foreignField: '_id',
+            as: 'categoryInfo'
+          }
+        },
+        {
+          $match: {
+            'manufacturerInfo.status': 'active'  // Only active suppliers
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            shortDescription: 1,
+            images: 1,
+            pricing: 1,
+            averageRating: 1,
+            totalReviews: 1,
+            analytics: 1,
+            isFeatured: 1,
+            createdAt: 1,
+            manufacturer: {
+              _id: { $arrayElemAt: ['$manufacturerInfo._id', 0] },
+              companyName: { $arrayElemAt: ['$manufacturerInfo.companyName', 0] },
+              country: { $arrayElemAt: ['$manufacturerInfo.country', 0] }
+            },
+            category: {
+              _id: { $arrayElemAt: ['$categoryInfo._id', 0] },
+              name: { $arrayElemAt: ['$categoryInfo.name', 0] },
+              slug: { $arrayElemAt: ['$categoryInfo.slug', 0] }
+            }
+          }
+        },
+        {
+          $sort: { 
+            createdAt: -1,           // Most recently created
+            isFeatured: -1,          // Featured first
+            'analytics.views': -1    // Most viewed
+          }
+        },
+        {
+          $limit: 20
+        }
+      ]);
+      
       return anyActiveProducts.slice(0, 20);
     }
     
@@ -149,6 +456,7 @@ async function getTopProductsForHomepage() {
 
 // Homepage
 router.get('/', async (req, res) => {
+  console.log('🔧 Homepage route called');
   try {
     // Get top products for homepage
     let topProducts = await getTopProductsForHomepage();
@@ -252,14 +560,27 @@ router.get('/all-product', async (req, res) => {
     const rating = req.query.rating ? Number(req.query.rating) : undefined;
     const sort = (req.query.sort || 'publishedAt-desc').trim();
 
-    // Base filter
+    // Base filter for marketplace products (include products without publishedAt for backward compatibility)
     const marketplaceFilter = {
       status: 'active',
       visibility: 'public',
-      publishedAt: { $exists: true, $ne: null },
       $or: [
-        { unpublishedAt: { $exists: false } },
-        { unpublishedAt: null }
+        // Products with publishedAt and not unpublished (new publishing system)
+        {
+          publishedAt: { $exists: true, $ne: null },
+          unpublishedAt: { $exists: false }
+        },
+        {
+          publishedAt: { $exists: true, $ne: null },
+          unpublishedAt: null
+        },
+        // Products without publishedAt but active and public (legacy products)
+        {
+          publishedAt: { $exists: false }
+        },
+        {
+          publishedAt: null
+        }
       ]
     };
 
@@ -307,18 +628,100 @@ router.get('/all-product', async (req, res) => {
     };
     const sortOption = sortMap[sort] || sortMap['publishedAt-desc'];
 
-    // Counts for pagination
-    const total = await Product.countDocuments(marketplaceFilter);
-    const skip = (page - 1) * limit;
+    // Build aggregation pipeline for products (only from active suppliers)
+    const pipeline = [
+      {
+        $match: {
+          status: 'active',
+          visibility: 'public'
+        }
+      },
+      {
+        $match: {
+          $or: [
+            // Products with publishedAt and not unpublished (new publishing system)
+            {
+              publishedAt: { $exists: true, $ne: null },
+              unpublishedAt: { $exists: false }
+            },
+            {
+              publishedAt: { $exists: true, $ne: null },
+              unpublishedAt: null
+            },
+            // Products without publishedAt but active and public (legacy products)
+            {
+              publishedAt: { $exists: false }
+            },
+            {
+              publishedAt: null
+            }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'manufacturer',
+          foreignField: '_id',
+          as: 'manufacturerInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      // Filter by supplier status - only show products from active suppliers
+      {
+        $match: {
+          'manufacturerInfo.status': 'active'  // Only active suppliers
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          shortDescription: 1,
+          images: 1,
+          pricing: 1,
+          averageRating: 1,
+          totalReviews: 1,
+          analytics: 1,
+          isFeatured: 1,
+          createdAt: 1,
+          publishedAt: 1,
+          manufacturer: {
+            _id: { $arrayElemAt: ['$manufacturerInfo._id', 0] },
+            companyName: { $arrayElemAt: ['$manufacturerInfo.companyName', 0] },
+            country: { $arrayElemAt: ['$manufacturerInfo.country', 0] },
+            companyLogo: { $arrayElemAt: ['$manufacturerInfo.companyLogo', 0] }
+          },
+          category: {
+            _id: { $arrayElemAt: ['$categoryInfo._id', 0] },
+            name: { $arrayElemAt: ['$categoryInfo.name', 0] },
+            slug: { $arrayElemAt: ['$categoryInfo.slug', 0] }
+          }
+        }
+      }
+    ];
+
+    // Add sorting
+    pipeline.push({ $sort: sortOption });
+
+    // Get total count (for pagination)
+    const countPipeline = [...pipeline, { $count: 'total' }];
+    const countResult = await Product.aggregate(countPipeline);
+    const total = countResult[0]?.total || 0;
+
+    // Add pagination
+    pipeline.push({ $skip: (page - 1) * limit });
+    pipeline.push({ $limit: limit });
 
     // Fetch products
-    const products = await Product.find(marketplaceFilter)
-      .populate('manufacturer', 'companyName country companyLogo')
-    .populate('category', 'name slug')
-      .sort(sortOption)
-      .skip(skip)
-      .limit(limit)
-    .lean();
+    const products = await Product.aggregate(pipeline);
     
     // Render template
     res.render('pages/all-product', { 
@@ -922,12 +1325,26 @@ router.get('/supplier/:supplierId', async (req, res) => {
     console.log('✅ Valid ObjectId, searching for supplier...');
     
     // Get supplier information with enhanced data
-    const supplier = await User.findById(supplierId)
-      .select('companyName businessName email phone website address city country '
-        + 'description activityType industry accountType employees '
-        + 'businessStartDate verificationBadge averageRating totalReviews '
-        + 'companyLogo status businessLicense taxNumber establishedYear')
-      .lean();
+    let supplier;
+    try {
+      supplier = await User.findById(supplierId)
+        .select('companyName businessName email phone website address city country '
+          + 'description activityType industry accountType employees '
+          + 'businessStartDate verificationBadge averageRating totalReviews '
+          + 'companyLogo status businessLicense taxNumber establishedYear')
+        .lean();
+    } catch (dbError) {
+      console.error('❌ Database error while fetching supplier:', dbError);
+      return res.status(500).render('pages/supplier-profile', {
+        title: 'Database Error - Supplier Profile | Silk Line Expo',
+        error: 'Database error occurred while loading supplier information',
+        supplier: null,
+        supplierProducts: [],
+        businessMetrics: {},
+        baseUrl: req.protocol + '://' + req.get('host'),
+        user: req.user || null
+      });
+    }
     
     console.log('📊 Supplier query result:', supplier ? 'Found' : 'Not found');
     
@@ -945,28 +1362,108 @@ router.get('/supplier/:supplierId', async (req, res) => {
     
     if (supplier.status !== 'active') {
       console.log('❌ Supplier not active, status:', supplier.status);
-      return res.status(404).render('pages/supplier-profile', {
-        title: 'Supplier Not Found - Silk Line Expo',
-        error: 'Supplier not active',
-        supplier: null,
-        supplierProducts: [],
-        businessMetrics: {},
-        baseUrl: req.protocol + '://' + req.get('host')
-      });
+      
+      // Determine appropriate error message based on status
+      let errorMessage, pageTitle, statusCode;
+      
+      switch (supplier.status) {
+        case 'pending':
+          errorMessage = 'This supplier profile is currently under review and not yet active.';
+          pageTitle = 'Supplier Under Review - Silk Line Expo';
+          statusCode = 200; // Allow viewing but with warning
+          break;
+        case 'inactive':
+          errorMessage = 'This supplier profile is currently inactive.';
+          pageTitle = 'Supplier Inactive - Silk Line Expo';
+          statusCode = 404;
+          break;
+        case 'suspended':
+          errorMessage = 'This supplier profile has been suspended.';
+          pageTitle = 'Supplier Suspended - Silk Line Expo';
+          statusCode = 404;
+          break;
+        default:
+          errorMessage = 'This supplier profile is not available.';
+          pageTitle = 'Supplier Not Available - Silk Line Expo';
+          statusCode = 404;
+      }
+      
+      // For pending suppliers, allow viewing with limited functionality
+      if (supplier.status === 'pending') {
+        console.log('📋 Allowing pending supplier to be viewed with warning');
+        
+        // Get limited products for pending suppliers
+        let supplierProducts = [];
+        try {
+          supplierProducts = await Product.find({
+            manufacturer: supplierId,
+            status: 'active',
+            visibility: 'public'
+          })
+            .select('name images pricing averageRating totalReviews analytics isFeatured createdAt')
+            .sort({ isFeatured: -1, averageRating: -1, 'analytics.views': -1 })
+            .limit(10) // Limited products for pending suppliers
+            .lean();
+        } catch (productError) {
+          console.error('❌ Error fetching products for pending supplier:', productError);
+          supplierProducts = [];
+        }
+        
+        // Basic business metrics for pending suppliers
+        const businessMetrics = {
+          profileViews: 0,
+          experienceYears: supplier.businessStartDate ? 
+            new Date().getFullYear() - new Date(supplier.businessStartDate).getFullYear() : 
+            (supplier.establishedYear ? new Date().getFullYear() - supplier.establishedYear : 0),
+          responseRate: 0,
+          responseTime: 'Not available',
+          dealSuccess: 0,
+          onTimeDelivery: 0
+        };
+        
+        return res.status(statusCode).render('pages/supplier-profile', {
+          title: pageTitle,
+          error: errorMessage,
+          supplier, // Pass the actual supplier data
+          supplierProducts,
+          businessMetrics,
+          baseUrl: req.protocol + '://' + req.get('host'),
+          user: req.user || null,
+          isPending: true // Flag to show pending status in template
+        });
+      } else {
+        // For inactive/suspended suppliers, show error page
+        return res.status(statusCode).render('pages/supplier-profile', {
+          title: pageTitle,
+          error: errorMessage,
+          supplier: null,
+          supplierProducts: [],
+          businessMetrics: {},
+          baseUrl: req.protocol + '://' + req.get('host'),
+          user: req.user || null
+        });
+      }
     }
     
     console.log('✅ Active supplier found, fetching products...');
     
     // Get supplier's products with enhanced filtering
-    const supplierProducts = await Product.find({
-      manufacturer: supplierId,
-      status: 'active',
-      visibility: 'public'
-    })
-      .select('name images pricing averageRating totalReviews analytics isFeatured createdAt')
-      .sort({ isFeatured: -1, averageRating: -1, 'analytics.views': -1 })
-      .limit(20)
-      .lean();
+    let supplierProducts = [];
+    try {
+      supplierProducts = await Product.find({
+        manufacturer: supplierId,
+        status: 'active',
+        visibility: 'public'
+      })
+        .select('name images pricing averageRating totalReviews analytics isFeatured createdAt')
+        .sort({ isFeatured: -1, averageRating: -1, 'analytics.views': -1 })
+        .limit(20)
+        .lean();
+    } catch (productError) {
+      console.error('❌ Error fetching supplier products:', productError);
+      // Continue with empty products array rather than failing completely
+      supplierProducts = [];
+    }
     
     console.log('📦 Found', supplierProducts.length, 'products for supplier');
     
@@ -1000,6 +1497,20 @@ router.get('/supplier/:supplierId', async (req, res) => {
     });
     
     console.log('🚀 Rendering supplier profile page...');
+    
+    // Additional validation to ensure supplier object is properly structured
+    if (!supplier || typeof supplier !== 'object') {
+      console.error('❌ Invalid supplier object structure');
+      return res.status(500).render('pages/supplier-profile', {
+        title: 'Error - Supplier Profile | Silk Line Expo',
+        error: 'Invalid supplier data structure',
+        supplier: null,
+        supplierProducts: [],
+        businessMetrics: {},
+        baseUrl: req.protocol + '://' + req.get('host'),
+        user: req.user || null
+      });
+    }
     
     // Render supplier profile page
     res.render('pages/supplier-profile', {

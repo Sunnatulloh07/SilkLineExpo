@@ -3,7 +3,7 @@
  */
 class BuyerDashboard {
     constructor() {
-        this.apiBase = '/distributor/api';
+        this.apiBase = '/buyer/api';
         this.init();
     }
 
@@ -102,10 +102,10 @@ class BuyerDashboard {
 
     handleQuickAction(action) {
         const routes = {
-            'create-order': '/distributor/orders',
-            'view-suppliers': '/distributor/suppliers', 
-            'send-message': '/distributor/communication',
-            'view-analytics': '/distributor/analytics'
+            'create-order': '/buyer/orders',
+            'view-suppliers': '/buyer/suppliers', 
+            'send-message': '/buyer/messages',
+            'view-analytics': '/buyer/analytics'
         };
         
         if (routes[action]) {
@@ -138,8 +138,8 @@ class BuyerDashboard {
 }
 
 // Global functions
-window.viewOrderDetails = (orderId) => window.location.href = `/distributor/orders?view=${orderId}`;
-window.contactSupplier = (supplierId) => window.location.href = `/distributor/communication?supplier=${supplierId}`;
+window.viewOrderDetails = (orderId) => window.location.href = `/buyer/orders?view=${orderId}`;
+window.contactSupplier = (supplierId) => window.location.href = `/buyer/messages?supplier=${supplierId}`;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {

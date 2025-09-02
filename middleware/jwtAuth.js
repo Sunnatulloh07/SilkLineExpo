@@ -68,6 +68,8 @@ class JWTAuthMiddleware {
             // Extract tokens from request
             const tokens = TokenService.extractTokensFromRequest(req);
             
+            // Debug: Log extracted tokens (removed in production)
+            
             // No tokens available - redirect to login
             if (!tokens.accessToken && !tokens.refreshToken) {
                 console.log(`🔒 No tokens found for ${req.method} ${req.path}`);
@@ -89,6 +91,8 @@ class JWTAuthMiddleware {
                 // Access token is valid, set user data and continue
                 req.user = accessTokenResult.payload;
                 req.sessionId = tokens.sessionId;
+                
+                // Debug: Log decoded user data (removed in production)
                 
                 // Ensure compatibility: map userId to _id for MongoDB consistency
                 if (req.user.userId && !req.user._id) {
@@ -113,6 +117,8 @@ class JWTAuthMiddleware {
                     if (refreshResult.success) {
                         req.user = refreshResult.user;
                         req.sessionId = refreshResult.sessionId;
+                        
+                        // Debug: Log refreshed user data (removed in production)
                         
                         // Ensure compatibility: map userId to _id for MongoDB consistency
                         if (req.user.userId && !req.user._id) {
@@ -316,7 +322,7 @@ class JWTAuthMiddleware {
     };
 
     /**
-     * Distributor only middleware
+     * Buyer access middleware (for distributors, buyers, and customers)
      */
     distributorOnly = (req, res, next) => {
         this.authenticate(req, res, (err) => {
@@ -327,10 +333,11 @@ class JWTAuthMiddleware {
                 return this.handleUnauthorized(req, res);
             }
             
-            // Check if user is distributor company admin
+            // Allow distributors, buyers, and customers
+            const allowedCompanyTypes = ['distributor', 'buyer', 'customer'];
             if (req.user.userType === 'user' && 
                 req.user.role === 'company_admin' && 
-                req.user.companyType === 'distributor') {
+                allowedCompanyTypes.includes(req.user.companyType)) {
                 return next();
             }
             
@@ -339,7 +346,7 @@ class JWTAuthMiddleware {
                 return next();
             }
             
-            return this.handleForbidden(req, res, 'Distributor access required');
+            return this.handleForbidden(req, res, `Buyer access required. User type: ${req.user.companyType}`);
         });
     };
 
@@ -554,7 +561,7 @@ class JWTAuthMiddleware {
                         if (companyType === 'manufacturer') {
                             redirectPath = '/manufacturer/dashboard';
                         } else if (companyType === 'distributor') {
-                            redirectPath = '/distributor/dashboard';
+                            redirectPath = '/buyer/profile';
                         } else if (companyType === 'both') {
                             // Default to manufacturer for "both" type companies
                             redirectPath = '/manufacturer/dashboard';
@@ -568,7 +575,7 @@ class JWTAuthMiddleware {
                                     if (user.companyType === 'manufacturer' || user.companyType === 'both') {
                                         redirectPath = '/manufacturer/dashboard';
                                     } else if (user.companyType === 'distributor') {
-                                        redirectPath = '/distributor/dashboard';
+                                        redirectPath = '/buyer/profile';
                                     }
                                 } else {
                                     redirectPath = '/manufacturer/dashboard';

@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeRealTimeFeatures();
         initializeNotificationSystem();
         loadSavedPreferences();
-        loadOrderMessages(); // Load existing messages
+        loadConversationMessages(); // Load existing messages
     }, 200); // Wait for dashboard-init.js to complete
 });
 
@@ -50,10 +50,19 @@ function initializeProfessionalChat() {
     setInterval(() => { window.B2BChat.lastActivity = Date.now(); }, 30000);
 }
 
-// 📨 LOAD ORDER MESSAGES FROM API
-async function loadOrderMessages(page = 1, limit = 50) {
+// 📨 LOAD CONVERSATION MESSAGES FROM API (Order or Inquiry)
+async function loadConversationMessages(page = 1, limit = 50) {
     try {
-        const response = await fetch(`/manufacturer/messages/api/order/${window.B2BChat.orderData.id}/messages?page=${page}&limit=${limit}`, {
+        const conversationType = window.B2BChat.conversationType;
+        const conversationId = conversationType === 'inquiry' ? 
+            window.B2BChat.inquiryData?.id : 
+            window.B2BChat.orderData?.id;
+        
+        if (!conversationId) {
+            throw new Error('Conversation ID not found');
+        }
+        
+        const response = await fetch(`/manufacturer/messages/api/${conversationType}/${conversationId}/messages?page=${page}&limit=${limit}`, {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -76,11 +85,19 @@ async function loadOrderMessages(page = 1, limit = 50) {
                     const senderId = message.senderId;
                     let senderName = 'Unknown User';
                     
-                    // Get sender name from order data
-                    if (senderId === result.data.order.seller._id) {
-                        senderName = result.data.order.seller.companyName;
-                    } else if (senderId === result.data.order.buyer._id) {
-                        senderName = result.data.order.buyer.companyName;
+                    // Get sender name from conversation data
+                    if (conversationType === 'order' && result.data.order) {
+                        if (senderId === result.data.order.seller._id) {
+                            senderName = result.data.order.seller.companyName;
+                        } else if (senderId === result.data.order.buyer._id) {
+                            senderName = result.data.order.buyer.companyName;
+                        }
+                    } else if (conversationType === 'inquiry' && result.data.inquiry) {
+                        if (senderId === result.data.inquiry.supplier._id) {
+                            senderName = result.data.inquiry.supplier.companyName;
+                        } else if (senderId === result.data.inquiry.inquirer._id) {
+                            senderName = result.data.inquiry.inquirer.companyName;
+                        }
                     }
                     
                     // Replace string with object
@@ -95,10 +112,18 @@ async function loadOrderMessages(page = 1, limit = 50) {
                     const recipientId = message.recipientId;
                     let recipientName = 'Unknown User';
                     
-                    if (recipientId === result.data.order.seller._id) {
-                        recipientName = result.data.order.seller.companyName;
-                    } else if (recipientId === result.data.order.buyer._id) {
-                        recipientName = result.data.order.buyer.companyName;
+                    if (conversationType === 'order' && result.data.order) {
+                        if (recipientId === result.data.order.seller._id) {
+                            recipientName = result.data.order.seller.companyName;
+                        } else if (recipientId === result.data.order.buyer._id) {
+                            recipientName = result.data.order.buyer.companyName;
+                        }
+                    } else if (conversationType === 'inquiry' && result.data.inquiry) {
+                        if (recipientId === result.data.inquiry.supplier._id) {
+                            recipientName = result.data.inquiry.supplier.companyName;
+                        } else if (recipientId === result.data.inquiry.inquirer._id) {
+                            recipientName = result.data.inquiry.inquirer.companyName;
+                        }
                     }
                     
                     message.recipientId = {
@@ -131,7 +156,7 @@ async function loadOrderMessages(page = 1, limit = 50) {
                     </div>
                     <h3>Xabarlar yuklanmadi</h3>
                     <p>${error.message}</p>
-                    <button class="b2b-retry-btn" onclick="loadOrderMessages()">
+                    <button class="b2b-retry-btn" onclick="loadConversationMessages()">
                         <i class="fas fa-redo"></i> Qayta urinish
                     </button>
                 </div>
@@ -177,16 +202,7 @@ function displayMessages(messages) {
     messages.forEach(message => {
         const isOwn = message.senderId._id === window.B2BChat.currentUser.id;
         
-        // 🔍 DEBUG: Log message with attachments
-        if (message.attachments && message.attachments.length > 0) {
-            console.log('📎 Message with attachments:', {
-                messageId: message._id,
-                content: message.content,
-                type: message.type,
-                attachments: message.attachments,
-                isOwn: isOwn
-            });
-        }
+
 
         addProfessionalMessageToUI(message, isOwn);
     });
@@ -280,15 +296,33 @@ async function sendProfessionalMessage(event) {
         sendButton.disabled = true;
         sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         
+        // Determine the conversation context for sending message
+        const conversationType = window.B2BChat.conversationType;
+        const conversationId = conversationType === 'inquiry' ? 
+            window.B2BChat.inquiryData?.id : 
+            window.B2BChat.orderData?.id;
+        
+        if (!conversationId) {
+            throw new Error('Conversation ID not found');
+        }
+        
+        const messageData = {
+            content: content,
+            type: 'text'
+        };
+        
+        // Add the appropriate ID field based on conversation type
+        if (conversationType === 'inquiry') {
+            messageData.inquiryId = conversationId;
+        } else {
+            messageData.orderId = conversationId;
+        }
+        
         const response = await fetch('/manufacturer/messages/api/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({
-                orderId: window.B2BChat.orderData.id,
-                content: content,
-                type: 'text'
-            })
+            body: JSON.stringify(messageData)
         });
         
         const result = await response.json();
@@ -347,7 +381,10 @@ function addProfessionalMessageToUI(message, isOwn) {
     if (message.attachments && message.attachments.length > 0) {
         // Render as attachment message
         const attachment = message.attachments[0]; // Use first attachment
-        const isImage = attachment.mimetype && attachment.mimetype.startsWith('image/');
+        // Enhanced image detection - check mimetype, mimeType, and file extension
+        const isImage = (attachment.mimetype && attachment.mimetype.startsWith('image/')) || 
+                       (attachment.mimeType && attachment.mimeType.startsWith('image/')) ||
+                       (attachment.originalName && /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(attachment.originalName));
         
         const attachmentHTML = `
             <div class="b2b-message-group ${isOwn ? 'own' : 'partner'}">
@@ -355,7 +392,7 @@ function addProfessionalMessageToUI(message, isOwn) {
                     <div class="b2b-message-bubble b2b-attachment-message">
                         ${isImage ? 
                             `<div class="b2b-image-attachment">
-                                <img src="${attachment.url}" alt="${attachment.originalName}" onclick="openImageModal('${attachment.url}', '${attachment.originalName}')" onerror="this.src='/assets/images/no-image.png'; this.onerror=null;">
+                                <img src="${attachment.url}" alt="${attachment.originalName}" onclick="openImageModal('${attachment.url}', '${attachment.originalName}')" onerror="handleChatImageError(this, '${attachment.url}', '${attachment.originalName}')">
                                 <div class="b2b-image-overlay">
                                     <i class="fas fa-search-plus"></i>
                                 </div>
@@ -1150,10 +1187,12 @@ function addAttachmentMessageToUI(message, isOwn) {
     
     const messageTime = new Date(message.createdAt);
     
-    // Determine if this is an image based on message type or attachment info
+    // Enhanced image detection for dynamic messages
     const isImage = message.type === 'image' || 
                    (message.attachments && message.attachments.length > 0 && 
-                    message.attachments[0].mimetype && message.attachments[0].mimetype.startsWith('image/'));
+                    ((message.attachments[0].mimetype && message.attachments[0].mimetype.startsWith('image/')) ||
+                     (message.attachments[0].mimeType && message.attachments[0].mimeType.startsWith('image/')) ||
+                     (message.attachments[0].originalName && /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(message.attachments[0].originalName))));
     
     // Get attachment info
     let attachmentInfo = {};
@@ -1180,7 +1219,7 @@ function addAttachmentMessageToUI(message, isOwn) {
                 <div class="b2b-message-bubble b2b-attachment-message">
                     ${isImage ? 
                         `<div class="b2b-image-attachment">
-                            <img src="${attachmentInfo.url}" alt="${attachmentInfo.name}" onclick="openImageModal('${attachmentInfo.url}', '${attachmentInfo.name}')" onerror="this.src='/assets/images/no-image.png'; this.onerror=null;">
+                            <img src="${attachmentInfo.url}" alt="${attachmentInfo.name}" onclick="openImageModal('${attachmentInfo.url}', '${attachmentInfo.name}')" onerror="handleChatImageError(this, '${attachmentInfo.url}', '${attachmentInfo.name}')">
                             <div class="b2b-image-overlay">
                                 <i class="fas fa-search-plus"></i>
                             </div>
@@ -1235,10 +1274,10 @@ function openImageModal(src, fileName) {
                     </button>
                 </div>
                 <div class="b2b-image-modal-body">
-                    <img src="${src}" alt="${fileName}">
+                    <img src="${src}" alt="${fileName}" onerror="handleImageModalError(this, '${src}', '${fileName}')">
                 </div>
                 <div class="b2b-image-modal-footer">
-                    <a href="${src}" download="${fileName}" class="b2b-action-btn primary">
+                    <a href="${src}" download="${fileName}" class="b2b-action-btn primary" id="downloadLink">
                         <i class="fas fa-download"></i> Download
                     </a>
                 </div>
@@ -1249,10 +1288,183 @@ function openImageModal(src, fileName) {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 
+// Enhanced image error handler for modals - handles buyer vs manufacturer paths
+function handleImageModalError(img, originalSrc, fileName) {
+    console.warn('🚨 Image modal error for:', { originalSrc, fileName });
+    
+    // Prevent infinite loops
+    if (img.dataset.errorHandled) {
+        console.warn('❌ Image modal: All fallback attempts failed');
+        img.src = '/assets/images/no-image.png';
+        img.alt = 'Image unavailable';
+        return;
+    }
+    
+    img.dataset.errorHandled = 'true';
+    
+    // Try alternative paths for buyer/manufacturer images
+    let fallbackSrc = null;
+    
+    if (originalSrc.includes('/uploads/attachments/')) {
+        // Manufacturer image failed, try buyer path
+        fallbackSrc = originalSrc.replace('/uploads/attachments/', '/uploads/messages/');
+    } else if (originalSrc.includes('/uploads/messages/')) {
+        // Buyer image failed, try manufacturer path  
+        fallbackSrc = originalSrc.replace('/uploads/messages/', '/uploads/attachments/');
+
+    } else {
+        console.warn('⚠️ Unknown image path format:', originalSrc);
+    }
+    
+    if (fallbackSrc) {
+        // Update modal image and download link
+        img.src = fallbackSrc;
+        
+        const downloadLink = document.getElementById('downloadLink');
+        if (downloadLink) {
+            downloadLink.href = fallbackSrc;
+        }
+        
+        // Set onerror for final fallback
+        img.onerror = function() {
+            console.warn('❌ Fallback image also failed:', fallbackSrc);
+            this.src = '/assets/images/no-image.png';
+            this.alt = 'Image unavailable';
+            this.onerror = null;
+        };
+    } else {
+        // No fallback available, use default image
+        img.src = '/assets/images/no-image.png';
+        img.alt = 'Image unavailable';
+    }
+}
+
 function closeImageModal() {
     const modal = document.getElementById('imageModal');
     if (modal) modal.remove();
 }
+
+// Enhanced image error handler for chat images - handles buyer vs manufacturer paths
+function handleChatImageError(img, originalSrc, fileName) {
+    // Prevent infinite loops
+    if (img.dataset.errorHandled) {
+        img.src = '/assets/images/no-image.png';
+        img.alt = 'Image unavailable';
+        img.onclick = function() {
+            showProfessionalToast('Bu rasm mavjud emas', 'error');
+        };
+        return;
+    }
+    
+    img.dataset.errorHandled = 'true';
+    
+    // Try alternative paths for buyer/manufacturer images
+    let fallbackSrc = null;
+    
+    if (originalSrc.includes('/uploads/attachments/')) {
+        // Manufacturer image failed, try buyer path
+        fallbackSrc = originalSrc.replace('/uploads/attachments/', '/uploads/messages/');
+    } else if (originalSrc.includes('/uploads/messages/')) {
+        // Buyer image failed, try manufacturer path  
+        fallbackSrc = originalSrc.replace('/uploads/messages/', '/uploads/attachments/');
+    }
+    
+    if (fallbackSrc) {
+        // Test if fallback path exists first
+        const testImg = new Image();
+        testImg.onload = function() {
+            img.src = fallbackSrc;
+            img.onclick = function() {
+                openImageModal(fallbackSrc, fileName);
+            };
+        };
+        
+        testImg.onerror = function() {
+            img.src = '/assets/images/no-image.png';
+            img.alt = 'Image unavailable';
+            img.onclick = function() {
+                showProfessionalToast('Bu rasm mavjud emas', 'error');
+            };
+        };
+        
+        testImg.src = fallbackSrc;
+        
+    } else {
+        // No fallback available, use default image
+        img.src = '/assets/images/no-image.png';
+        img.alt = 'Image unavailable';
+        img.onclick = function() {
+            showProfessionalToast('Bu rasm mavjud emas', 'error');
+        };
+    }
+}
+
+// Force check all images after they load
+function forceCheckAllImages() {
+    const images = document.querySelectorAll('.b2b-image-attachment img');
+    
+    images.forEach((img) => {
+        // Force trigger onerror if image is broken
+        if (img.complete && img.naturalWidth === 0) {
+            if (img.onerror) {
+                img.onerror();
+            }
+        }
+    });
+}
+
+// Convert existing file attachments to images if they are image files
+function convertFilesToImages() {
+    const fileAttachments = document.querySelectorAll('.b2b-file-attachment');
+    
+    fileAttachments.forEach((fileEl) => {
+        const nameElement = fileEl.querySelector('.b2b-file-details h6');
+        const downloadLink = fileEl.querySelector('.b2b-file-actions a');
+        
+        if (nameElement && downloadLink) {
+            const fileName = nameElement.textContent;
+            const fileUrl = downloadLink.href;
+            
+            // Check if it's an image by extension
+            if (/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(fileName)) {
+                // Create image HTML
+                const imageHTML = `
+                    <div class="b2b-image-attachment">
+                        <img src="${fileUrl}" 
+                             alt="${fileName}" 
+                             onclick="openImageModal('${fileUrl}', '${fileName}')"
+                             onerror="handleChatImageError(this, '${fileUrl}', '${fileName}')">
+                        <div class="b2b-image-overlay">
+                            <i class="fas fa-search-plus"></i>
+                        </div>
+                    </div>
+                `;
+                
+                // Replace file attachment with image
+                fileEl.outerHTML = imageHTML;
+            }
+        }
+    });
+}
+
+// Auto-check images periodically
+setTimeout(forceCheckAllImages, 2000);
+setTimeout(forceCheckAllImages, 5000);
+
+// Convert files to images after page load
+setTimeout(convertFilesToImages, 1000);
+setTimeout(convertFilesToImages, 3000);
+
+// Add manual trigger function for console
+window.fixImageDisplay = function() {
+    console.log('🔧 Manual image display fix triggered...');
+    convertFilesToImages();
+    forceCheckAllImages();
+    return 'Image display fix completed!';
+};
+
+console.log('💡 Available commands:');
+console.log('• window.fixImageDisplay() - Convert files to images and fix broken images');
 
 function formatText(format) {
     const input = document.getElementById('messageInput');
@@ -1279,8 +1491,30 @@ function insertEmoji() { showProfessionalToast('Emoji tanlash keladi', 'info'); 
 function showTemplates() { showProfessionalToast('Advanced template tanlash keladi', 'info'); }
 
 // 🚀 BUSINESS ACTIONS
-function viewOrderDetails() { window.open(`/manufacturer/orders/${window.B2BChat.orderData.id}`, '_blank'); }
-function updateOrderStatus() { window.open(`/manufacturer/orders/${window.B2BChat.orderData.id}`, '_blank'); }
+function viewOrderDetails() { 
+    if (window.B2BChat.orderData?.id) {
+        window.open(`/manufacturer/orders/${window.B2BChat.orderData.id}`, '_blank'); 
+    } else {
+        showProfessionalToast('Buyurtma ma\'lumotlari topilmadi', 'warning');
+    }
+}
+
+function viewInquiryDetails() { 
+    if (window.B2BChat.inquiryData?.id) {
+        window.open(`/manufacturer/inquiries/${window.B2BChat.inquiryData.id}`, '_blank'); 
+    } else {
+        showProfessionalToast('So\'rov ma\'lumotlari topilmadi', 'warning');
+    }
+}
+
+function updateOrderStatus() { 
+    if (window.B2BChat.orderData?.id) {
+        window.open(`/manufacturer/orders/${window.B2BChat.orderData.id}`, '_blank'); 
+    } else {
+        showProfessionalToast('Buyurtma ma\'lumotlari topilmadi', 'warning');
+    }
+}
+
 function generateQuote() { showProfessionalToast('Professional quote generation coming soon', 'info'); }
 function scheduleVideoCall() { showProfessionalToast('Video conferencing integration coming soon', 'info'); }
 function sendSample() { showProfessionalToast('Sample request system coming soon', 'info'); }
@@ -1289,7 +1523,10 @@ function exportChatHistory() { showProfessionalToast('Professional chat export c
 function initiateCall() { showProfessionalToast('Voice calling integration coming soon', 'info'); }
 function sendEmail() {
     if (window.B2BChat.partner.email) {
-        window.open(`mailto:${window.B2BChat.partner.email}?subject=Regarding Order #${window.B2BChat.orderData.orderNumber}`);
+        const subject = window.B2BChat.conversationType === 'inquiry' ? 
+            `Regarding Inquiry #${window.B2BChat.inquiryData?.inquiryNumber || 'N/A'}` :
+            `Regarding Order #${window.B2BChat.orderData?.orderNumber || 'N/A'}`;
+        window.open(`mailto:${window.B2BChat.partner.email}?subject=${subject}`);
     } else {
         showProfessionalToast('Hamkor elektron pochta mavjud emas', 'warning');
     }
@@ -1330,4 +1567,3 @@ function loadSavedPreferences() {
         if (localStorage.getItem(`b2b-section-${section}-collapsed`) === 'true') toggleSection(section);
     });
 }
-

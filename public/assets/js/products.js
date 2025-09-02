@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  let ITEMS_PER_PAGE = 8;
+  let ITEMS_PER_PAGE = 12;
 
   const tabsContainer = document.getElementById('pills-tab');
   const tabContent = document.getElementById('pills-tabContent');
@@ -48,6 +48,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function fetchAllProducts() {
+    // First try to get data from server-rendered script tag
+    const serverDataScript = document.getElementById('initial-products-data');
+    if (serverDataScript) {
+      try {
+        const serverProducts = JSON.parse(serverDataScript.textContent);
+        if (serverProducts && serverProducts.length > 0) {
+          console.log('Using server-rendered products:', serverProducts.length);
+          return serverProducts.map(product => ({
+            ...product,
+            company: product.manufacturer?.companyName || 'Unknown',
+            country: product.manufacturer?.country || 'Unknown',
+            type: product.category?.name || 'Other'
+          }));
+        }
+      } catch (error) {
+        console.warn('Failed to parse server data, falling back to data.json:', error);
+      }
+    }
+
+    // Fallback to data.json
     const response = await fetch('data.json');
     if (!response.ok) throw new Error('Failed to fetch data');
     const data = await response.json();

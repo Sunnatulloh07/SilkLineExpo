@@ -94,7 +94,18 @@ const userSchema = new mongoose.Schema({
   country: {
     type: String,
     required: true,
-    enum: ['Uzbekistan', 'Kazakhstan', 'China', 'Tajikistan', 'Turkmenistan', 'Afghanistan', 'Kyrgyzstan']
+    enum: [
+      'Uzbekistan', 'Kazakhstan', 'China', 'Tajikistan', 'Turkmenistan', 'Afghanistan', 'Kyrgyzstan',
+      'Turkey', 'Russia', 'Iran', 'Pakistan', 'India', 'Mongolia', 'Azerbaijan', 'Georgia', 'Armenia',
+      'United States', 'United Kingdom', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Belgium',
+      'Switzerland', 'Austria', 'Sweden', 'Norway', 'Denmark', 'Finland', 'Poland', 'Czech Republic',
+      'Hungary', 'Romania', 'Bulgaria', 'Greece', 'Portugal', 'Ireland', 'Canada', 'Australia', 'Japan',
+      'South Korea', 'Singapore', 'Malaysia', 'Thailand', 'Vietnam', 'Philippines', 'Indonesia', 'Brazil',
+      'Argentina', 'Chile', 'Mexico', 'Colombia', 'Peru', 'Venezuela', 'South Africa', 'Egypt', 'Morocco',
+      'Nigeria', 'Kenya', 'Ghana', 'Ethiopia', 'Uganda', 'Tanzania', 'Algeria', 'Tunisia', 'Libya',
+      'Sudan', 'Somalia', 'Djibouti', 'Eritrea', 'Yemen', 'Oman', 'UAE', 'Qatar', 'Kuwait', 'Bahrain',
+      'Saudi Arabia', 'Jordan', 'Lebanon', 'Syria', 'Iraq', 'Israel', 'Palestine', 'Cyprus', 'Malta'
+    ]
   },
   
   city: {
@@ -304,6 +315,12 @@ const userSchema = new mongoose.Schema({
   // Password Reset
   resetPasswordToken: String,
   resetPasswordExpires: Date,
+  
+  // Password Security Tracking
+  passwordChangedAt: {
+    type: Date,
+    default: Date.now
+  },
   
   // Email Verification
   emailVerified: {

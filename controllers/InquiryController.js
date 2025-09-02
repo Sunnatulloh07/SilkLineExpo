@@ -18,10 +18,18 @@ class InquiryController {
     async showInquiriesPage(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            this.logger.log(`🏭 Loading inquiries page for manufacturer: ${manufacturerId}`);
-
             // Get initial inquiries data
             const inquiriesData = await this.getInquiriesData(manufacturerId, req.query);
+
+            // Get unread messages count
+            let unreadMessages = 0;
+            try {
+                const ManufacturerService = require('../services/ManufacturerService');
+                const manufacturerService = new ManufacturerService();
+                unreadMessages = await manufacturerService.getUnreadMessagesCount(manufacturerId);
+            } catch (error) {
+                unreadMessages = 0;
+            }
 
             res.render('manufacturer/inquiries/index', {
                 title: 'Biznes So\'rovlari',
@@ -29,7 +37,8 @@ class InquiryController {
                 user: req.user,
                 inquiries: inquiriesData.inquiries,
                 pagination: inquiriesData.pagination,
-                filters: inquiriesData.filters
+                filters: inquiriesData.filters,
+                unreadMessages: unreadMessages || 0
             });
 
         } catch (error) {
@@ -47,8 +56,6 @@ class InquiryController {
     async getInquiriesList(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            this.logger.log(`📡 API: Getting inquiries list for manufacturer: ${manufacturerId}`);
-
             const inquiriesData = await this.getInquiriesData(manufacturerId, req.query);
 
             res.json({
@@ -75,9 +82,7 @@ class InquiryController {
     async getInquiriesStats(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            this.logger.log(`📊 API: Getting inquiries stats for manufacturer: ${manufacturerId}`);
-
-            const stats = await this.getInquiriesStatistics(manufacturerId);
+             const stats = await this.getInquiriesStatistics(manufacturerId);
 
             res.json({
                 success: true,
@@ -114,8 +119,6 @@ class InquiryController {
                 }
             }
 
-            this.logger.log(`💬 API: Responding to inquiry ${inquiryId} by manufacturer: ${manufacturerId}`);
-            this.logger.log(`📊 Request data:`, { responseType, message, quoteDetails, followUp, attachments });
 
             // Validate required fields
             if (!message || message.trim() === '') {
@@ -145,9 +148,7 @@ class InquiryController {
             // Process file attachments
             const processedAttachments = [];
             if (req.files && req.files.length > 0) {
-                this.logger.log(`📎 Processing ${req.files.length} attachments...`);
-                
-                for (const file of req.files) {
+   for (const file of req.files) {
                     // For now, just store file metadata
                     // In production, you would save files to storage and get URLs
                     const attachment = {
@@ -159,8 +160,7 @@ class InquiryController {
                     };
                     
                     processedAttachments.push(attachment);
-                    this.logger.log(`📎 Processed attachment: ${file.originalname} (${file.mimetype})`);
-                }
+                    }
             } else if (attachments && attachments.length > 0) {
                 // Handle attachments from JSON (if any)
                 processedAttachments.push(...attachments);
@@ -201,10 +201,7 @@ class InquiryController {
             if (followUp && followUp.enabled) {
                 await inquiry.scheduleFollowUp(followUp.days);
             }
-
-            this.logger.log(`✅ Response added successfully to inquiry ${inquiryId}`);
-
-            res.json({
+  res.json({
                 success: true,
                 message: 'Response sent successfully',
                 inquiry: await this.formatInquiryResponse(inquiry)
@@ -228,10 +225,7 @@ class InquiryController {
             const { inquiryId } = req.params;
             const { unitPrice, totalPrice, note } = req.body;
             const manufacturerId = req.user.userId;
-
-            this.logger.log(`⚡ API: Sending quick quote for inquiry ${inquiryId} by manufacturer: ${manufacturerId}`);
-
-            const inquiry = await Inquiry.findById(inquiryId);
+   const inquiry = await Inquiry.findById(inquiryId);
             if (!inquiry) {
                 return res.status(404).json({
                     success: false,
@@ -285,8 +279,6 @@ class InquiryController {
             const { inquiryId } = req.params;
             const manufacturerId = req.user.userId;
 
-            this.logger.log(`📋 API: Getting inquiry ${inquiryId} for manufacturer: ${manufacturerId}`);
-
             const inquiry = await Inquiry.findById(inquiryId)
                 .populate('inquirer', 'companyName name email phone country')
                 .populate('product', 'title name category images')
@@ -331,8 +323,6 @@ class InquiryController {
             const { inquiryId } = req.params;
             const { status, priority } = req.body;
             const manufacturerId = req.user.userId;
-
-            this.logger.log(`🔄 API: Updating inquiry ${inquiryId} status by manufacturer: ${manufacturerId}`);
 
             const inquiry = await Inquiry.findById(inquiryId);
             if (!inquiry) {
@@ -574,10 +564,7 @@ class InquiryController {
         try {
             const { inquiryId } = req.params;
             const manufacturerId = req.user.userId;
-
-            this.logger.log(`📦 API: Archiving inquiry ${inquiryId} by manufacturer: ${manufacturerId}`);
-
-            const inquiry = await Inquiry.findById(inquiryId);
+const inquiry = await Inquiry.findById(inquiryId);
             if (!inquiry) {
                 return res.status(404).json({
                     success: false,
@@ -623,10 +610,7 @@ class InquiryController {
         try {
             const { inquiryId } = req.params;
             const manufacturerId = req.user.userId;
-
-            this.logger.log(`🗑️ API: Deleting inquiry ${inquiryId} by manufacturer: ${manufacturerId}`);
-
-            const inquiry = await Inquiry.findById(inquiryId);
+         const inquiry = await Inquiry.findById(inquiryId);
             if (!inquiry) {
                 return res.status(404).json({
                     success: false,
@@ -675,8 +659,6 @@ class InquiryController {
         try {
             const { inquiryId } = req.params;
             const manufacturerId = req.user.userId;
-
-            this.logger.log(`📋 API: Duplicating inquiry ${inquiryId} by manufacturer: ${manufacturerId}`);
 
             const originalInquiry = await Inquiry.findById(inquiryId);
             if (!originalInquiry) {
@@ -740,10 +722,7 @@ class InquiryController {
             const { inquiryId } = req.params;
             const { priority } = req.body;
             const manufacturerId = req.user.userId;
-
-            this.logger.log(`🚩 API: Setting priority for inquiry ${inquiryId} to ${priority} by manufacturer: ${manufacturerId}`);
-
-            const inquiry = await Inquiry.findById(inquiryId);
+           const inquiry = await Inquiry.findById(inquiryId);
             if (!inquiry) {
                 return res.status(404).json({
                     success: false,
@@ -796,8 +775,6 @@ class InquiryController {
             const { note } = req.body;
             const manufacturerId = req.user.userId;
 
-            this.logger.log(`📝 API: Adding note to inquiry ${inquiryId} by manufacturer: ${manufacturerId}`);
-
             const inquiry = await Inquiry.findById(inquiryId);
             if (!inquiry) {
                 return res.status(404).json({
@@ -844,8 +821,6 @@ class InquiryController {
         try {
             const { inquiryId } = req.params;
             const manufacturerId = req.user.userId;
-
-            this.logger.log(`📤 API: Exporting inquiry ${inquiryId} by manufacturer: ${manufacturerId}`);
 
             const inquiry = await Inquiry.findById(inquiryId)
                 .populate('inquirer', 'companyName name email phone country')

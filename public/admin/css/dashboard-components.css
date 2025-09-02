@@ -4715,10 +4715,6 @@
   background: var(--dark-bg-elevated);
 }
 
-[data-theme="dark"] .language-option.active {
-  background: rgba(96, 165, 250, 0.1);
-  color: var(--analytics-primary);
-}
 
 [data-theme="dark"] .language-menu-header {
   border-color: var(--dark-border-light);

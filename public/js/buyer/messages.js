@@ -23,7 +23,7 @@ function initializeMessagesPage() {
  * Load conversations
  */
 function loadConversations() {
-    fetch('/distributor/api/buyer-conversations')
+    fetch('/buyer/api/conversations')
         .then(response => response.json())
         .then(data => {
             if (data.success) {

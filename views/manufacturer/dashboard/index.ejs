@@ -1,5 +1,7 @@
-<%- include('../partials/header', { title: title, lng: lng, user: user }) %>
-<%- include('../partials/sidebar', { user: user, currentPage: 'dashboard' }) %>
+<%- include('../partials/header', { title: title, lng: lng, user: user, t: t }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'dashboard', t: t }) %>
+
+<!-- Translation function is provided by app.js middleware -->
 
 <!-- Main Content -->
 <main class="admin-main">
@@ -10,7 +12,7 @@
       <div class="alert alert-warning animate-fade-in" style="margin-bottom: 1.5rem; padding: 1rem; background: #fff3cd; border: 1px solid #ffecb5; border-radius: 8px; color: #856404;">
         <div style="display: flex; align-items: center; gap: 0.5rem;">
           <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i>
-          <strong>Diqqat!</strong> <%= errorMessage %>
+          <strong><%= t('manufacturer.dashboard.alerts.attention') %></strong> <%= errorMessage %>
         </div>
       </div>
     <% } %>
@@ -23,10 +25,10 @@
         </div>
         <div>
           <div class="status-text">
-            B2B Marketplace faol
+            <%= t('manufacturer.dashboard.platformStatus.title') %>
           </div>
           <div class="status-subtext">
-            Sizning mahsulotlaringiz distributorlar uchun ochiq va faol sotilmoqda
+            <%= t('manufacturer.dashboard.platformStatus.subtitle') %>
           </div>
         </div>
       </div>
@@ -42,14 +44,14 @@
       <div class="col-span-2">
         <div class="chart-container animate-fade-in">
           <div class="chart-header">
-            <h3 class="chart-title">B2B Savdo tahlili</h3>
+            <h3 class="chart-title"><%= t('manufacturer.dashboard.charts.salesAnalytics') %></h3>
             <div class="chart-actions">
               <select id="chartPeriodFilter" class="chart-period-select">
-                <option value="7">7 kun</option>
-                <option value="30" selected>30 kun</option>
-                <option value="90">90 kun</option>
+                <option value="7"><%= t('manufacturer.dashboard.charts.periodFilter.7days') %></option>
+                <option value="30" selected><%= t('manufacturer.dashboard.charts.periodFilter.30days') %></option>
+                <option value="90"><%= t('manufacturer.dashboard.charts.periodFilter.90days') %></option>
               </select>
-              <button id="refreshChart" class="chart-refresh-btn" title="Refresh Chart">
+              <button id="refreshChart" class="chart-refresh-btn" title="<%= t('manufacturer.dashboard.charts.refreshChart') %>">
                 <i class="fas fa-sync-alt"></i>
               </button>
             </div>
@@ -66,7 +68,7 @@
       <div class="col-span-1">
         <div class="quick-actions animate-fade-in">
           <div class="quick-actions-header">
-            <h3 class="quick-actions-title">Tezkor amallar</h3>
+            <h3 class="quick-actions-title"><%= t('manufacturer.dashboard.quickActions.title') %></h3>
           </div>
           <div class="quick-actions-grid">
             
@@ -74,42 +76,42 @@
               <div class="quick-action-icon">
                 <i class="fas fa-plus-circle"></i>
               </div>
-              <div class="quick-action-text">Mahsulot qo'shish</div>
+              <div class="quick-action-text"><%= t('manufacturer.dashboard.quickActions.addProduct') %></div>
             </a>
             
             <a href="/manufacturer/inquiries" class="quick-action" data-action="view-inquiries">
               <div class="quick-action-icon">
                 <i class="fas fa-envelope-open"></i>
               </div>
-              <div class="quick-action-text">So'rovlar</div>
+              <div class="quick-action-text"><%= t('manufacturer.dashboard.quickActions.viewInquiries') %></div>
             </a>
             
             <a href="/manufacturer/messages" class="quick-action" data-action="messages">
               <div class="quick-action-icon">
                 <i class="fas fa-comments"></i>
               </div>
-              <div class="quick-action-text">Xabarlar</div>
+              <div class="quick-action-text"><%= t('manufacturer.dashboard.quickActions.messages') %></div>
             </a>
             
             <a href="/manufacturer/inventory" class="quick-action" data-action="inventory">
               <div class="quick-action-icon">
                 <i class="fas fa-warehouse"></i>
               </div>
-              <div class="quick-action-text">Ombor</div>
+              <div class="quick-action-text"><%= t('manufacturer.dashboard.quickActions.inventory') %></div>
             </a>
             
             <a href="/manufacturer/shipping" class="quick-action" data-action="shipping">
               <div class="quick-action-icon">
                 <i class="fas fa-truck"></i>
               </div>
-              <div class="quick-action-text">Yuborish</div>
+              <div class="quick-action-text"><%= t('manufacturer.dashboard.quickActions.shipping') %></div>
             </a>
             
             <a href="/manufacturer/analytics" class="quick-action" data-action="analytics">
               <div class="quick-action-icon">
                 <i class="fas fa-chart-bar"></i>
               </div>
-              <div class="quick-action-text">Tahlillar</div>
+              <div class="quick-action-text"><%= t('manufacturer.dashboard.quickActions.analytics') %></div>
             </a>
             
           </div>
@@ -125,10 +127,10 @@
       <div class="widget-card animate-fade-in">
         <div class="widget-header">
           <h3 class="widget-title">
-            <i class="fas fa-star"></i> Top mahsulotlar
+            <i class="fas fa-star"></i> <%= t('manufacturer.dashboard.widgets.topProducts.title') %>
           </h3>
           <div class="widget-actions">
-            <a href="/manufacturer/products" class="widget-action-link">Hammasini ko'rish</a>
+            <a href="/manufacturer/products" class="widget-action-link"><%= t('manufacturer.dashboard.widgets.topProducts.viewAll') %></a>
           </div>
         </div>
         <div class="widget-body">
@@ -136,7 +138,7 @@
             <!-- Top Products will be loaded here dynamically -->
             <div class="loading-placeholder" id="topProductsLoader">
               <div class="loading-spinner"></div>
-              <p>Top mahsulotlar yuklanmoqda...</p>
+              <p><%= t('manufacturer.dashboard.widgets.topProducts.loading') %></p>
             </div>
           </div>
         </div>
@@ -146,10 +148,10 @@
       <div class="widget-card animate-fade-in">
         <div class="widget-header">
           <h3 class="widget-title">
-            <i class="fas fa-handshake"></i> So'nggi B2B buyurtmalari
+            <i class="fas fa-handshake"></i> <%= t('manufacturer.dashboard.widgets.recentOrders.title') %>
           </h3>
           <div class="widget-actions">
-            <a href="/manufacturer/orders" class="widget-action-link">Hammasini ko'rish</a>
+            <a href="/manufacturer/orders" class="widget-action-link"><%= t('manufacturer.dashboard.widgets.recentOrders.viewAll') %></a>
           </div>
         </div>
         <div class="widget-body">
@@ -157,7 +159,7 @@
             <!-- Recent Orders will be loaded here dynamically -->
             <div class="loading-placeholder" id="recentOrdersLoader">
               <div class="loading-spinner"></div>
-              <p>So'nggi buyurtmalar yuklanmoqda...</p>
+              <p><%= t('manufacturer.dashboard.widgets.recentOrders.loading') %></p>
             </div>
           </div>
         </div>
@@ -173,16 +175,16 @@
         <div class="widget-header">
           <h3 class="widget-title">
             <i class="fas fa-handshake"></i>
-            Distributorlar so'rovlari
+            <%= t('manufacturer.dashboard.widgets.distributorInquiries.title') %>
           </h3>
-          <a href="/manufacturer/inquiries" class="view-all-link">Barchasini ko'rish</a>
+          <a href="/manufacturer/inquiries" class="view-all-link"><%= t('manufacturer.dashboard.widgets.distributorInquiries.viewAll') %></a>
         </div>
         <div class="widget-content">
           <div class="inquiry-list" id="distributorInquiriesList">
             <!-- Distributor Inquiries will be loaded here dynamically -->
             <div class="loading-placeholder" id="inquiriesLoader">
               <div class="loading-spinner"></div>
-              <p>Distributorlar so'rovlari yuklanmoqda...</p>
+              <p><%= t('manufacturer.dashboard.widgets.distributorInquiries.loading') %></p>
             </div>
           </div>
         </div>
@@ -198,10 +200,10 @@
       <div class="widget-card animate-fade-in">
         <div class="widget-header">
           <h3 class="widget-title">
-            <i class="fas fa-satellite-dish"></i> Muloqot markazi
+            <i class="fas fa-satellite-dish"></i> <%= t('manufacturer.dashboard.widgets.communicationCenter.title') %>
           </h3>
           <div class="widget-actions">
-            <a href="/manufacturer/messages" class="widget-action-link">Barchasi</a>
+            <a href="/manufacturer/messages" class="widget-action-link"><%= t('manufacturer.dashboard.widgets.communicationCenter.viewAll') %></a>
           </div>
         </div>
         <div class="widget-body">
@@ -209,21 +211,21 @@
             <!-- Chat previews will be loaded here dynamically -->
             <div class="loading-placeholder" id="chatLoader">
               <div class="loading-spinner"></div>
-              <p>Muloqot ma'lumotlari yuklanmoqda...</p>
+              <p><%= t('manufacturer.dashboard.widgets.communicationCenter.loading') %></p>
             </div>
           </div>
           
           <div class="communication-stats">
             <div class="stat-item">
-              <span class="stat-label">Faol suhbatlar</span>
+              <span class="stat-label"><%= t('manufacturer.dashboard.widgets.communicationCenter.activeChats') %></span>
               <span class="stat-value" id="activeChatsStat">...</span>
             </div>
             <div class="stat-item">
-              <span class="stat-label">O'rtacha javob vaqti</span>
+              <span class="stat-label"><%= t('manufacturer.dashboard.widgets.communicationCenter.averageResponseTime') %></span>
               <span class="stat-value" id="responseTimeStat">...</span>
             </div>
             <div class="stat-item">
-              <span class="stat-label">Bugungi xabarlar</span>
+              <span class="stat-label"><%= t('manufacturer.dashboard.widgets.communicationCenter.todayMessages') %></span>
               <span class="stat-value" id="todayMessagesStat">...</span>
             </div>
           </div>
@@ -234,10 +236,10 @@
       <div class="widget-card animate-fade-in">
         <div class="widget-header">
           <h3 class="widget-title">
-            <i class="fas fa-warehouse"></i> Ombor boshqaruvi
+            <i class="fas fa-warehouse"></i> <%= t('manufacturer.dashboard.widgets.inventoryManagement.title') %>
           </h3>
           <div class="widget-actions">
-            <a href="/manufacturer/inventory" class="widget-action-link">Batafsil</a>
+            <a href="/manufacturer/inventory" class="widget-action-link"><%= t('manufacturer.dashboard.widgets.inventoryManagement.viewAll') %></a>
           </div>
         </div>
         <div class="widget-body">
@@ -250,7 +252,7 @@
                   <i class="fas fa-check-circle"></i>
                 </div>
                 <div class="summary-info">
-                  <h4 class="summary-title">Normal zaxira</h4>
+                  <h4 class="summary-title"><%= t('manufacturer.dashboard.widgets.inventoryManagement.stockSummary.normalStock') %></h4>
                   <span class="summary-count" id="normalStockCount">
                     <span class="loading-placeholder">...</span>
                   </span>
@@ -262,7 +264,7 @@
                   <i class="fas fa-exclamation-triangle"></i>
                 </div>
                 <div class="summary-info">
-                  <h4 class="summary-title">Kam qoldiq</h4>
+                  <h4 class="summary-title"><%= t('manufacturer.dashboard.widgets.inventoryManagement.stockSummary.lowStock') %></h4>
                   <span class="summary-count" id="lowStockCount">
                     <span class="loading-placeholder">...</span>
                   </span>
@@ -274,7 +276,7 @@
                   <i class="fas fa-times-circle"></i>
                 </div>
                 <div class="summary-info">
-                  <h4 class="summary-title">Tugagan</h4>
+                  <h4 class="summary-title"><%= t('manufacturer.dashboard.widgets.inventoryManagement.stockSummary.outOfStock') %></h4>
                   <span class="summary-count" id="outOfStockCount">
                     <span class="loading-placeholder">...</span>
                   </span>
@@ -284,10 +286,10 @@
             
             <!-- Critical Stock Items -->
             <div class="critical-stock">
-              <h4 class="section-title">Diqqat talab qiladi</h4>
+              <h4 class="section-title"><%= t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.title') %></h4>
               <div class="critical-items-container" id="criticalItemsList">
                 <div class="loading-placeholder-item">
-                  <div class="loading-placeholder">Kritik mahsulotlar yuklanmoqda...</div>
+                  <div class="loading-placeholder"><%= t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.loading') %></div>
                 </div>
               </div>
             </div>
@@ -304,19 +306,15 @@
 <!-- ApexCharts (Local - CSP Safe) -->
 <script src="/assets/js/apexchart.js"></script>
 
-
-
-<!-- <script src="/admin/js/dashboard.js"></script> -->
-
 <!-- Core JavaScript Dependencies -->
 <script src="/assets/js/jquery-3.7.1.min.js"></script>
 <script src="/assets/js/boostrap.bundle.min.js"></script>
 
-<!-- Dashboard Common Scripts (removed due to 404 error) -->
-<!-- <script src="/admin/js/dashboard-common.js"></script> -->
-
 <!-- Manufacturer Dashboard Core -->
 <script src="/js/manufacturer/dashboard-init.js"></script>
+
+<!-- Professional Unified Header Management (loaded after dashboard-init.js) -->
+<script src="/js/manufacturer/manufacturer-header.js"></script>
 
 <!-- Manufacturer Specific Scripts -->
 <script src="/js/manufacturer/manufacturer-dashboard.js"></script>
