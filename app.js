@@ -16,7 +16,7 @@ const app = express();
 const PORT = process.env.PORT || 3005;
 
 // Database connection (optional - can work without MongoDB for now)
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:password123@localhost:27017/slex-db?authSource=admin';
+const MONGODB_URI = process.env.MONGODB_URI
 
 mongoose.connect(MONGODB_URI)
 .then(() => {
@@ -30,7 +30,6 @@ mongoose.connect(MONGODB_URI)
 // Initialize services
 const FileService = require('./services/FileService');
 const EmailService = require('./services/EmailService');
-const NotificationService = require('./services/NotificationService');
 
 // Initialize file service directories
 FileService.initializeDirectories().catch(console.error);
@@ -131,11 +130,6 @@ app.use(badgeMiddleware);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Image request rate limiting middleware
-// const ImageRequestLimiter = require('./middleware/imageRequestLimiter');
-// const imageRequestLimiter = new ImageRequestLimiter();
-// app.use(imageRequestLimiter.middleware());
-
 // Static files middleware
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -192,7 +186,6 @@ app.use((req, res, next) => {
         
         // If translation returns the key itself, it means translation was not found
         if (translation === key) {
-          console.warn(`Missing translation for key: ${key} in language: ${lng}`);
           return key; // Return the key as fallback
         }
         

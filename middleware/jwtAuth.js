@@ -322,7 +322,8 @@ class JWTAuthMiddleware {
     };
 
     /**
-     * Buyer access middleware (for distributors, buyers, and customers)
+     * Distributor access middleware (distributor = buyer in our system)
+     * Only distributors can add to cart and favorites
      */
     distributorOnly = (req, res, next) => {
         this.authenticate(req, res, (err) => {
@@ -333,20 +334,19 @@ class JWTAuthMiddleware {
                 return this.handleUnauthorized(req, res);
             }
             
-            // Allow distributors, buyers, and customers
-            const allowedCompanyTypes = ['distributor', 'buyer', 'customer'];
+            // Allow only distributors (distributors are buyers in our system)
             if (req.user.userType === 'user' && 
                 req.user.role === 'company_admin' && 
-                allowedCompanyTypes.includes(req.user.companyType)) {
+                req.user.companyType === 'distributor') {
                 return next();
             }
             
-            // Check if user is admin or super admin (they have access too)
+            // Check if user is admin or super admin (they have access too for testing)
             if (req.user.userType === 'admin' && ['admin', 'super_admin'].includes(req.user.role)) {
                 return next();
             }
             
-            return this.handleForbidden(req, res, `Buyer access required. User type: ${req.user.companyType}`);
+            return this.handleForbidden(req, res, `Distributor access required. Current user type: ${req.user.companyType || req.user.userType}`);
         });
     };
 

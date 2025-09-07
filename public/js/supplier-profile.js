@@ -1015,14 +1015,11 @@ let supplierProfile;
 
 document.addEventListener('DOMContentLoaded', function() {
     supplierProfile = new SupplierProfileManager();
-    
     // Global functions for backward compatibility
     window.openContactModal = () => supplierProfile.openContactModal();
-    // window.startChat = (id) => supplierProfile.startChat(id); // Disabled to prevent conflicts
     window.requestQuote = () => supplierProfile.requestQuote();
     window.contactSupplier = (id) => supplierProfile.contactSupplier(id);
     
-    console.log('ℹ️ Supplier profile startChat disabled to prevent conflicts');
     window.addToInquiry = (id) => supplierProfile.addToInquiry(id);
     window.saveSupplier = (id) => supplierProfile.saveSupplier(id);
     window.shareSupplier = (id) => supplierProfile.shareSupplier(id);
@@ -1076,9 +1073,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const items = carousel?.querySelectorAll('.product-carousel-item');
     
     if (carousel && items) {
-        console.log('🎠 Carousel found:', carousel);
-        console.log('📦 Products found:', items.length);
-        console.log('🔧 First product item:', items[0]);
         
         // Add additional click handlers for accessibility
         items.forEach((item, index) => {

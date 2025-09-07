@@ -64,14 +64,6 @@ class MultiDashboardLogin {
         
         // Create error/success containers if they don't exist
         this.createMessageContainers();
-        
-        // Log setup for debugging
-        console.log('🔧 Login elements setup:', {
-            form: !!this.loginForm,
-            email: !!this.emailInput,
-            password: !!this.passwordInput,
-            submitBtn: !!this.submitButton
-        });
     }
 
     /**

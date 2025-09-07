@@ -1364,7 +1364,6 @@ class BuyerController {
                 };
                 
                 processedFiles.push(attachment);
-                console.log('✅ Created attachment:', attachment);
                 }
             
             return processedFiles;
@@ -1993,8 +1992,7 @@ class BuyerController {
     async checkProductStatus(req, res) {
         try {
             const { productId } = req.params;
-            console.log('🔍 CheckProductStatus API called with:', { productId, user: req.user });
-
+            
             if (!productId) {
                 return res.status(400).json({
                     success: false,
@@ -2004,7 +2002,6 @@ class BuyerController {
 
             // Check if user is authenticated
             if (!req.user) {
-                console.log('❌ No user in request');
                 return res.json({
                     success: true,
                     data: {
@@ -2025,10 +2022,7 @@ class BuyerController {
                 buyerId = req.user._id;
             }
 
-            console.log('🆔 Extracted buyerId:', buyerId);
-
-            if (!buyerId) {
-                console.log('❌ No buyerId found in user object');
+           if (!buyerId) {
                 return res.json({
                     success: true,
                     data: {
@@ -2039,10 +2033,8 @@ class BuyerController {
                 });
             }
 
-            console.log('📞 Calling buyerService.checkProductStatus with:', { buyerId, productId });
             const result = await this.buyerService.checkProductStatus(buyerId, productId);
-            console.log('📊 Service result:', result);
-
+           
             res.json({
                 success: true,
                 data: result

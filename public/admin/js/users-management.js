@@ -765,6 +765,7 @@ class UsersManagement {
      * Render mobile card for responsive view
      */
     renderMobileCard(user) {
+        console.log(user)
         const isSelected = this.selectedUsers.has(user._id);
         const profileScore = this.calculateProfileScore(user);
         
@@ -774,8 +775,8 @@ class UsersManagement {
                     <div class="professional-user-info">
                         ${this.renderProfessionalAvatar(user)}
                         <div class="professional-user-details">
-                            <div class="professional-company-name">${this.escapeHtml(user.companyInfo?.name || 'N/A')}</div>
-                            <div class="professional-company-email">${this.escapeHtml(user.contactInfo?.email || 'N/A')}</div>
+                            <div class="professional-company-name">${this.escapeHtml(user.companyName || 'N/A')}</div>
+                            <div class="professional-company-email">${this.escapeHtml(user.email || 'N/A')}</div>
                         </div>
                     </div>
                     <div class="mobile-card-select">
@@ -883,16 +884,16 @@ class UsersManagement {
                     <div class="professional-user-info">
                         ${this.renderProfessionalAvatar(user)}
                         <div class="professional-user-details">
-                            <div class="professional-company-name">${this.escapeHtml(user.companyInfo?.name || 'N/A')}</div>
-                            <div class="professional-company-email">${this.escapeHtml(user.contactInfo?.email || 'N/A')}</div>
+                            <div class="professional-company-name">${this.escapeHtml(user?.companyName || 'N/A')}</div>
+                            <div class="professional-company-email">${this.escapeHtml(user?.email || 'N/A')}</div>
                             <div class="professional-user-id">#${user._id.slice(-8)}</div>
                         </div>
                     </div>
                 </td>
                 <td>
                     <div class="professional-contact">
-                        <div class="professional-contact-email">${this.escapeHtml(user.email || user.contactInfo?.email || 'N/A')}</div>
-                        <div class="professional-contact-phone">${this.escapeHtml(user.phone || user.contactInfo?.phone || 'N/A')}</div>
+                        <div class="professional-contact-email">${this.escapeHtml(user.email || user?.email || 'N/A')}</div>
+                        <div class="professional-contact-phone">${this.escapeHtml(user.phone || user?.phone || 'N/A')}</div>
                     </div>
                 </td>
                 <td>
@@ -900,8 +901,8 @@ class UsersManagement {
                 </td>
                 <td>
                     <div class="professional-location">
-                        ${this.renderProfessionalCountryFlag(user.country || user.locationInfo?.country)}
-                        <span class="professional-country-name">${this.escapeHtml(user.locationInfo?.country || 'N/A')}</span>
+                        ${this.renderProfessionalCountryFlag(user.country || user?.address || 'N/A')}
+                        <span class="professional-country-name">${this.escapeHtml(user?.country || 'N/A')}</span>
                     </div>
                 </td>
                 <td>

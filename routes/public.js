@@ -5,14 +5,9 @@
 
 const express = require('express');
 const AuthControllerClass = require('../controllers/AuthController');
-// Removed optionalJWTAuth middleware - using BadgeMiddleware instead
 
 const router = express.Router();
 
-// Public routes - no authentication required
-console.log('🔧 Public routes loaded - no authentication middleware');
-
-// Database models
 const Product = require('../models/Product');
 const User = require('../models/User');
 const mongoose = require('mongoose');
@@ -20,7 +15,6 @@ const mongoose = require('mongoose');
 // Services
 const PublicProductsService = require('../services/PublicProductsService');
 
-// Create AuthController instance and bind methods
 const AuthController = new AuthControllerClass();
 const boundAuthMethods = {
   showLoginPage: AuthController.showLoginPage.bind(AuthController),
@@ -80,8 +74,8 @@ async function getTopProductsForHomepage() {
         $match: {
           status: 'active',
           visibility: 'public',
-          averageRating: { $gte: 4.0 },      // Rating 4.0+
-          'analytics.views': { $gte: 100 }    // At least 100 views
+      averageRating: { $gte: 4.0 },      // Rating 4.0+
+      'analytics.views': { $gte: 100 }    // At least 100 views
         }
       },
       {
@@ -154,9 +148,9 @@ async function getTopProductsForHomepage() {
       },
       {
         $sort: { 
-          averageRating: -1,     // High rating first
-          'analytics.views': -1,  // High views second
-          'analytics.orders': -1  // High orders third
+      averageRating: -1,     // High rating first
+      'analytics.views': -1,  // High views second
+      'analytics.orders': -1  // High orders third
         }
       },
       {
@@ -176,7 +170,7 @@ async function getTopProductsForHomepage() {
         $match: {
           status: 'active',
           visibility: 'public',
-          averageRating: { $gte: 3.5 }  // Rating 3.5+
+      averageRating: { $gte: 3.5 }  // Rating 3.5+
         }
       },
       {
@@ -249,10 +243,10 @@ async function getTopProductsForHomepage() {
       },
       {
         $sort: { 
-          averageRating: -1,     // High rating first
-          'analytics.views': -1,  // High views second
-          totalReviews: -1,      // More reviews
-          publishedAt: -1        // Most recently published
+      averageRating: -1,     // High rating first
+      'analytics.views': -1,  // High views second
+      totalReviews: -1,      // More reviews
+      publishedAt: -1        // Most recently published
         }
       },
       {
@@ -272,7 +266,7 @@ async function getTopProductsForHomepage() {
         $match: {
           status: 'active',
           visibility: 'public',
-          'inventory.availableStock': { $gt: 0 }  // In stock
+      'inventory.availableStock': { $gt: 0 }  // In stock
         }
       },
       {
@@ -345,10 +339,10 @@ async function getTopProductsForHomepage() {
       },
       {
         $sort: { 
-          isFeatured: -1,        // Featured first
-          'analytics.views': -1,  // Most viewed
-          averageRating: -1,     // Higher rating
-          publishedAt: -1        // Most recently published
+      isFeatured: -1,        // Featured first
+      'analytics.views': -1,  // Most viewed
+      averageRating: -1,     // Higher rating
+      publishedAt: -1        // Most recently published
         }
       },
       {
@@ -361,8 +355,8 @@ async function getTopProductsForHomepage() {
       const anyActiveProducts = await Product.aggregate([
         {
           $match: {
-            status: 'active',
-            visibility: 'public'
+        status: 'active',
+        visibility: 'public'
           }
         },
         {
@@ -434,16 +428,16 @@ async function getTopProductsForHomepage() {
         },
         {
           $sort: { 
-            createdAt: -1,           // Most recently created
-            isFeatured: -1,          // Featured first
-            'analytics.views': -1    // Most viewed
+        createdAt: -1,           // Most recently created
+        isFeatured: -1,          // Featured first
+        'analytics.views': -1    // Most viewed
           }
         },
         {
           $limit: 20
         }
       ]);
-      
+    
       return anyActiveProducts.slice(0, 20);
     }
     
@@ -456,7 +450,6 @@ async function getTopProductsForHomepage() {
 
 // Homepage
 router.get('/', async (req, res) => {
-  console.log('🔧 Homepage route called');
   try {
     // Get top products for homepage
     let topProducts = await getTopProductsForHomepage();
@@ -560,6 +553,8 @@ router.get('/all-product', async (req, res) => {
     const rating = req.query.rating ? Number(req.query.rating) : undefined;
     const sort = (req.query.sort || 'publishedAt-desc').trim();
 
+
+
     // Base filter for marketplace products (include products without publishedAt for backward compatibility)
     const marketplaceFilter = {
       status: 'active',
@@ -591,21 +586,10 @@ router.get('/all-product', async (req, res) => {
         { description: { $regex: search, $options: 'i' } }
       ];
     }
-    // Category filter uses slug; resolve to ObjectId for SSR list
-    if (category && category !== 'all') {
-      try {
-        const Category = require('../models/Category');
-        const catDoc = await Category.findOne({ slug: category }).select('_id').lean();
-        if (catDoc && catDoc._id) {
-          marketplaceFilter.category = catDoc._id;
-        }
-      } catch (e) {
-        // ignore resolution errors for SSR; client-side API can still handle filters
-      }
-    }
-    if (manufacturer) {
-      marketplaceFilter['manufacturer'] = manufacturer.match(/^[0-9a-fA-F]{24}$/) ? manufacturer : undefined;
-    }
+    // Category filter will be handled in aggregation pipeline after lookup
+    // No need to resolve slug to ObjectId here since we use slug in pipeline
+    // Manufacturer filter will be handled in aggregation pipeline after lookup
+    // No need to add to marketplaceFilter since we use manufacturerInfo in pipeline
     if (typeof priceMin === 'number' || typeof priceMax === 'number') {
       marketplaceFilter['pricing.basePrice'] = {};
       if (typeof priceMin === 'number') marketplaceFilter['pricing.basePrice'].$gte = priceMin;
@@ -633,7 +617,23 @@ router.get('/all-product', async (req, res) => {
       {
         $match: {
           status: 'active',
-          visibility: 'public'
+          visibility: 'public',
+          // Add search filter
+          ...(search && {
+            $or: [
+              { name: { $regex: search, $options: 'i' } },
+              { description: { $regex: search, $options: 'i' } }
+            ]
+          }),
+          // Add price filter
+          ...(typeof priceMin === 'number' || typeof priceMax === 'number' ? {
+            'pricing.basePrice': {
+              ...(typeof priceMin === 'number' && { $gte: priceMin }),
+              ...(typeof priceMax === 'number' && { $lte: priceMax })
+            }
+          } : {}),
+          // Add rating filter
+          ...(typeof rating === 'number' && { averageRating: { $gte: rating } })
         }
       },
       {
@@ -679,34 +679,54 @@ router.get('/all-product', async (req, res) => {
         $match: {
           'manufacturerInfo.status': 'active'  // Only active suppliers
         }
-      },
-      {
-        $project: {
-          _id: 1,
-          name: 1,
-          shortDescription: 1,
-          images: 1,
-          pricing: 1,
-          averageRating: 1,
-          totalReviews: 1,
-          analytics: 1,
-          isFeatured: 1,
-          createdAt: 1,
-          publishedAt: 1,
-          manufacturer: {
-            _id: { $arrayElemAt: ['$manufacturerInfo._id', 0] },
-            companyName: { $arrayElemAt: ['$manufacturerInfo.companyName', 0] },
-            country: { $arrayElemAt: ['$manufacturerInfo.country', 0] },
-            companyLogo: { $arrayElemAt: ['$manufacturerInfo.companyLogo', 0] }
-          },
-          category: {
-            _id: { $arrayElemAt: ['$categoryInfo._id', 0] },
-            name: { $arrayElemAt: ['$categoryInfo.name', 0] },
-            slug: { $arrayElemAt: ['$categoryInfo.slug', 0] }
-          }
-        }
       }
     ];
+
+    // Add category filter after lookup (since we filter by slug, not ObjectId)
+    if (category && category !== 'all') {
+      pipeline.push({
+        $match: {
+          'categoryInfo.slug': category
+        }
+      });
+    }
+
+    // Add manufacturer filter after lookup
+    if (manufacturer && manufacturer.match(/^[0-9a-fA-F]{24}$/)) {
+      pipeline.push({
+        $match: {
+          'manufacturerInfo._id': new mongoose.Types.ObjectId(manufacturer)
+        }
+      });
+    }
+
+    // Add project stage after filters
+    pipeline.push({
+      $project: {
+        _id: 1,
+        name: 1,
+        shortDescription: 1,
+        images: 1,
+        pricing: 1,
+        averageRating: 1,
+        totalReviews: 1,
+        analytics: 1,
+        isFeatured: 1,
+        createdAt: 1,
+        publishedAt: 1,
+        manufacturer: {
+          _id: { $arrayElemAt: ['$manufacturerInfo._id', 0] },
+          companyName: { $arrayElemAt: ['$manufacturerInfo.companyName', 0] },
+          country: { $arrayElemAt: ['$manufacturerInfo.country', 0] },
+          companyLogo: { $arrayElemAt: ['$manufacturerInfo.companyLogo', 0] }
+        },
+        category: {
+          _id: { $arrayElemAt: ['$categoryInfo._id', 0] },
+          name: { $arrayElemAt: ['$categoryInfo.name', 0] },
+          slug: { $arrayElemAt: ['$categoryInfo.slug', 0] }
+        }
+      }
+    });
 
     // Add sorting
     pipeline.push({ $sort: sortOption });
@@ -722,6 +742,8 @@ router.get('/all-product', async (req, res) => {
 
     // Fetch products
     const products = await Product.aggregate(pipeline);
+    
+
     
     // Render template
     res.render('pages/all-product', { 
@@ -969,13 +991,10 @@ router.get('/product-details', async (req, res) => {
             const BuyerService = require('../services/BuyerService');
             const buyerService = new BuyerService();
             productStatus = await buyerService.checkProductStatus(user._id, productId);
-            console.log('🔍 Product status for distributor:', productStatus);
-          }
+           }
         }
       }
     } catch (error) {
-      console.log('⚠️ Product status check failed (not logged in or error):', error.message);
-      // Ignore errors - user might not be logged in
     }
 
     // Render the professional Alibaba-style B2B design
@@ -1305,13 +1324,11 @@ function generateProductStructuredData(product, manufacturer, req) {
 // Professional Supplier Profile Page
 router.get('/supplier/:supplierId', async (req, res) => {
   try {
-    console.log('🔍 Supplier profile route accessed for ID:', req.params.supplierId);
     
     const { supplierId } = req.params;
     
     // Validate supplier ID format
     if (!supplierId || !mongoose.Types.ObjectId.isValid(supplierId)) {
-      console.log('❌ Invalid supplier ID format');
       return res.status(404).render('pages/supplier-profile', {
         title: 'Supplier Not Found - Silk Line Expo',
         error: 'Invalid supplier ID',
@@ -1322,17 +1339,15 @@ router.get('/supplier/:supplierId', async (req, res) => {
       });
     }
     
-    console.log('✅ Valid ObjectId, searching for supplier...');
-    
     // Get supplier information with enhanced data
     let supplier;
     try {
       supplier = await User.findById(supplierId)
-        .select('companyName businessName email phone website address city country '
-          + 'description activityType industry accountType employees '
-          + 'businessStartDate verificationBadge averageRating totalReviews '
-          + 'companyLogo status businessLicense taxNumber establishedYear')
-        .lean();
+      .select('companyName businessName email phone website address city country '
+        + 'description activityType industry accountType employees '
+        + 'businessStartDate verificationBadge averageRating totalReviews '
+        + 'companyLogo status businessLicense taxNumber establishedYear')
+      .lean();
     } catch (dbError) {
       console.error('❌ Database error while fetching supplier:', dbError);
       return res.status(500).render('pages/supplier-profile', {
@@ -1345,12 +1360,9 @@ router.get('/supplier/:supplierId', async (req, res) => {
         user: req.user || null
       });
     }
-    
-    console.log('📊 Supplier query result:', supplier ? 'Found' : 'Not found');
-    
+     
     if (!supplier) {
-      console.log('❌ Supplier not found in database');
-      return res.status(404).render('pages/supplier-profile', {
+        return res.status(404).render('pages/supplier-profile', {
         title: 'Supplier Not Found - Silk Line Expo',
         error: 'Supplier not found',
         supplier: null,
@@ -1361,8 +1373,6 @@ router.get('/supplier/:supplierId', async (req, res) => {
     }
     
     if (supplier.status !== 'active') {
-      console.log('❌ Supplier not active, status:', supplier.status);
-      
       // Determine appropriate error message based on status
       let errorMessage, pageTitle, statusCode;
       
@@ -1390,9 +1400,7 @@ router.get('/supplier/:supplierId', async (req, res) => {
       
       // For pending suppliers, allow viewing with limited functionality
       if (supplier.status === 'pending') {
-        console.log('📋 Allowing pending supplier to be viewed with warning');
-        
-        // Get limited products for pending suppliers
+   // Get limited products for pending suppliers
         let supplierProducts = [];
         try {
           supplierProducts = await Product.find({
@@ -1436,37 +1444,33 @@ router.get('/supplier/:supplierId', async (req, res) => {
         return res.status(statusCode).render('pages/supplier-profile', {
           title: pageTitle,
           error: errorMessage,
-          supplier: null,
-          supplierProducts: [],
-          businessMetrics: {},
+        supplier: null,
+        supplierProducts: [],
+        businessMetrics: {},
           baseUrl: req.protocol + '://' + req.get('host'),
           user: req.user || null
-        });
+      });
       }
     }
-    
-    console.log('✅ Active supplier found, fetching products...');
-    
+   
     // Get supplier's products with enhanced filtering
     let supplierProducts = [];
     try {
       supplierProducts = await Product.find({
-        manufacturer: supplierId,
-        status: 'active',
-        visibility: 'public'
-      })
-        .select('name images pricing averageRating totalReviews analytics isFeatured createdAt')
-        .sort({ isFeatured: -1, averageRating: -1, 'analytics.views': -1 })
-        .limit(20)
-        .lean();
+      manufacturer: supplierId,
+      status: 'active',
+      visibility: 'public'
+    })
+      .select('name images pricing averageRating totalReviews analytics isFeatured createdAt')
+      .sort({ isFeatured: -1, averageRating: -1, 'analytics.views': -1 })
+      .limit(20)
+      .lean();
     } catch (productError) {
       console.error('❌ Error fetching supplier products:', productError);
       // Continue with empty products array rather than failing completely
       supplierProducts = [];
     }
-    
-    console.log('📦 Found', supplierProducts.length, 'products for supplier');
-    
+ 
     // Calculate business performance metrics
     const businessMetrics = {
       profileViews: Math.floor(Math.random() * 5000) + 1000, // Demo data
@@ -1478,26 +1482,19 @@ router.get('/supplier/:supplierId', async (req, res) => {
       dealSuccess: Math.floor(Math.random() * 10) + 90, // 90-100%
       onTimeDelivery: Math.floor(Math.random() * 5) + 95 // 95-100%
     };
-    
-    console.log('📈 Business metrics calculated');
-    
+
     // Enhanced SEO data
     const pageTitle = `${supplier.companyName || supplier.businessName} - ${res.locals.t ? res.locals.t('nav.supplierProfile') : 'Supplier Profile'} | Silk Line Expo`;
     const pageDescription = supplier.description || 
       `Professional B2B supplier ${supplier.companyName || supplier.businessName} from ${supplier.country}. ${supplierProducts.length} products available. Contact for wholesale inquiries.`;
-    
-    console.log('🎯 SEO data prepared');
-    
-    // Set response headers
+     // Set response headers
     res.set({
       'Cache-Control': 'private, max-age=300',
       'X-Supplier-ID': supplierId,
       'X-Content-Type-Options': 'nosniff',
       'Vary': 'Accept-Language, Cookie'
     });
-    
-    console.log('🚀 Rendering supplier profile page...');
-    
+  
     // Additional validation to ensure supplier object is properly structured
     if (!supplier || typeof supplier !== 'object') {
       console.error('❌ Invalid supplier object structure');
@@ -1532,9 +1529,7 @@ router.get('/supplier/:supplierId', async (req, res) => {
       ].filter(Boolean).join(', '),
       user: req.user || null
     });
-    
-    console.log('✅ Supplier profile page rendered successfully');
-    
+      
   } catch (error) {
     console.error('❌ Error in supplier profile route:', error);
     console.error('Stack trace:', error.stack);
@@ -1615,8 +1610,6 @@ router.post('/api/inquiries', async (req, res) => {
     
     // Send notification email to supplier (implement your email service)
     // await sendInquiryNotification(inquiryData);
-    
-    console.log('📧 New B2B Inquiry:', inquiryData);
     
     res.json({
       success: true,
@@ -2351,15 +2344,7 @@ router.post('/api/supplier/contact', async (req, res) => {
         source: 'supplier-profile'
       }
     };
-    
-    // Here you would typically:
-    // 1. Save to database: const inquiry = new Inquiry(inquiryData); await inquiry.save();
-    // 2. Send email to supplier
-    // 3. Send confirmation email to inquirer
-    // 4. Track analytics
-    
-    console.log('📧 New Supplier Inquiry:', inquiryData);
-    
+     
     res.json({
       success: true,
       message: 'Inquiry sent successfully. The supplier will contact you within 24-48 hours.',
@@ -2455,9 +2440,7 @@ router.post('/api/supplier/product-inquiry', async (req, res) => {
         source: 'supplier-profile-product'
       }
     };
-    
-    console.log('📦 New Product Inquiry:', inquiryData);
-    
+  
     res.json({
       success: true,
       message: 'Product inquiry sent successfully!',

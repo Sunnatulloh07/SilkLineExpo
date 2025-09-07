@@ -214,12 +214,12 @@
                 
                 <div class="mb-3">
                   <label class="form-label">Min Price</label>
-                  <input type="number" class="form-control" id="priceMin" 
+                  <input type="number" class="form-control" id="sidebarPriceMin" 
                          placeholder="<%= minPrice %>" min="<%= minPrice %>" max="<%= maxPrice %>">
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Max Price</label>
-                  <input type="number" class="form-control" id="priceMax" 
+                  <input type="number" class="form-control" id="sidebarPriceMax" 
                          placeholder="<%= maxPrice %>" min="<%= minPrice %>" max="<%= maxPrice %>">
                 </div>
                 <button type="button" class="btn btn-sm btn-primary w-100" id="applyPriceFilter">
@@ -475,44 +475,239 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(resp => renderList(manufacturersEl, resp?.data?.manufacturers || [], 'manufacturer'))
       .catch(() => renderList(manufacturersEl, [], 'manufacturer'));
 
-    // Applied filters renderer
+    // Professional Filter System
+    class AllProductsFilterManager {
+      constructor() {
+        this.currentFilters = new URLSearchParams(window.location.search);
+        this.init();
+      }
+
+      init() {
+        this.setupEventListeners();
+        this.renderAppliedFilters();
+        this.populateCurrentFilters();
+      }
+
+      setupEventListeners() {
+        // Sidebar price filter button
+        const applyPriceBtn = document.getElementById('applyPriceFilter');
+        if (applyPriceBtn) {
+          applyPriceBtn.addEventListener('click', () => this.applySidebarPriceFilter());
+        }
+
+        // Search form
+        const searchForm = document.querySelector('.filter-form');
+        if (searchForm) {
+          searchForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
+        }
+
+        // Sort dropdown
+        const sortSelect = document.querySelector('select[name="sort"]');
+        if (sortSelect) {
+          sortSelect.addEventListener('change', () => this.applySortFilter());
+        }
+
+        // Main form price inputs (automatic apply)
+        const mainPriceMin = document.getElementById('priceMin');
+        const mainPriceMax = document.getElementById('priceMax');
+        if (mainPriceMin) mainPriceMin.addEventListener('input', () => this.updateMainPriceFilter());
+        if (mainPriceMax) mainPriceMax.addEventListener('input', () => this.updateMainPriceFilter());
+
+        // Sidebar price inputs
+        const sidebarPriceMin = document.getElementById('sidebarPriceMin');
+        const sidebarPriceMax = document.getElementById('sidebarPriceMax');
+        if (sidebarPriceMin) sidebarPriceMin.addEventListener('input', () => this.updateSidebarPriceInputs());
+        if (sidebarPriceMax) sidebarPriceMax.addEventListener('input', () => this.updateSidebarPriceInputs());
+      }
+
+      // Main form price filter (auto-apply)
+      updateMainPriceFilter() {
+        clearTimeout(this.priceFilterTimeout);
+        this.priceFilterTimeout = setTimeout(() => {
+          const priceMin = document.getElementById('priceMin')?.value;
+          const priceMax = document.getElementById('priceMax')?.value;
+          
+          if (priceMin && priceMin.trim() !== '') this.currentFilters.set('priceMin', priceMin);
+          else this.currentFilters.delete('priceMin');
+          
+          if (priceMax && priceMax.trim() !== '') this.currentFilters.set('priceMax', priceMax);
+          else this.currentFilters.delete('priceMax');
+          
+          this.reloadWithFilters();
+        }, 1000); // 1 second delay for auto-apply
+      }
+
+      // Sidebar price filter (button apply)
+      applySidebarPriceFilter() {
+        const priceMin = document.getElementById('sidebarPriceMin')?.value;
+        const priceMax = document.getElementById('sidebarPriceMax')?.value;
+        
+        if (priceMin && priceMin.trim() !== '') this.currentFilters.set('priceMin', priceMin);
+        else this.currentFilters.delete('priceMin');
+        
+        if (priceMax && priceMax.trim() !== '') this.currentFilters.set('priceMax', priceMax);
+        else this.currentFilters.delete('priceMax');
+        
+        this.reloadWithFilters();
+      }
+
+      // Update sidebar inputs (just visual sync, no auto-apply)
+      updateSidebarPriceInputs() {
+        // Just visual feedback, no auto-apply for sidebar
+        const sidebarPriceMin = document.getElementById('sidebarPriceMin');
+        const sidebarPriceMax = document.getElementById('sidebarPriceMax');
+        
+        // Optional: sync with main form
+        const mainPriceMin = document.getElementById('priceMin');
+        const mainPriceMax = document.getElementById('priceMax');
+        
+        if (sidebarPriceMin && mainPriceMin && sidebarPriceMin.value) {
+          mainPriceMin.value = sidebarPriceMin.value;
+        }
+        if (sidebarPriceMax && mainPriceMax && sidebarPriceMax.value) {
+          mainPriceMax.value = sidebarPriceMax.value;
+        }
+      }
+
+      applySortFilter() {
+        const sortSelect = document.querySelector('select[name="sort"]');
+        if (sortSelect && sortSelect.value) {
+          this.currentFilters.set('sort', sortSelect.value);
+          this.reloadWithFilters();
+        }
+      }
+
+      handleFormSubmit(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        
+        // Clear existing filters
+        this.currentFilters.delete('search');
+        this.currentFilters.delete('sort');
+        
+        // Add new filters
+        const search = formData.get('search')?.trim();
+        if (search) this.currentFilters.set('search', search);
+        
+        const sort = formData.get('sort');
+        if (sort) this.currentFilters.set('sort', sort);
+        
+        this.reloadWithFilters();
+      }
+
+      populateCurrentFilters() {
+        // Populate search input
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput && this.currentFilters.get('search')) {
+          searchInput.value = this.currentFilters.get('search');
+        }
+
+        // Populate sort select
+        const sortSelect = document.querySelector('select[name="sort"]');
+        if (sortSelect && this.currentFilters.get('sort')) {
+          sortSelect.value = this.currentFilters.get('sort');
+        }
+
+        // Populate main form price inputs
+        const priceMin = document.getElementById('priceMin');
+        const priceMax = document.getElementById('priceMax');
+        if (priceMin && this.currentFilters.get('priceMin')) {
+          priceMin.value = this.currentFilters.get('priceMin');
+        }
+        if (priceMax && this.currentFilters.get('priceMax')) {
+          priceMax.value = this.currentFilters.get('priceMax');
+        }
+
+        // Populate sidebar price inputs
+        const sidebarPriceMin = document.getElementById('sidebarPriceMin');
+        const sidebarPriceMax = document.getElementById('sidebarPriceMax');
+        if (sidebarPriceMin && this.currentFilters.get('priceMin')) {
+          sidebarPriceMin.value = this.currentFilters.get('priceMin');
+        }
+        if (sidebarPriceMax && this.currentFilters.get('priceMax')) {
+          sidebarPriceMax.value = this.currentFilters.get('priceMax');
+        }
+      }
+
+      renderAppliedFilters() {
     const appliedFiltersBox = document.querySelector('.applied-filters');
-    if (appliedFiltersBox) {
-      const params = new URLSearchParams(window.location.search);
+        if (!appliedFiltersBox) return;
+
       const tags = [];
-      if (params.get('search')) tags.push({ label: `Search: "${params.get('search')}"`, key: 'search' });
-      if (params.get('category')) tags.push({ label: `Category: ${params.get('category')}`, key: 'category' });
-      if (params.get('manufacturer')) tags.push({ label: 'Manufacturer', key: 'manufacturer' });
-      if (params.get('priceMin') || params.get('priceMax')) tags.push({ label: `Price: $${params.get('priceMin')||0} - $${params.get('priceMax')||'∞'}`, key: 'price' });
-      if (params.get('rating')) tags.push({ label: `${params.get('rating')}+ Stars`, key: 'rating' });
+        
+        if (this.currentFilters.get('search')) {
+          tags.push({ label: `Search: "${this.currentFilters.get('search')}"`, key: 'search' });
+        }
+        
+        if (this.currentFilters.get('category')) {
+          tags.push({ label: `Category: ${this.currentFilters.get('category')}`, key: 'category' });
+        }
+        
+        if (this.currentFilters.get('manufacturer')) {
+          tags.push({ label: 'Manufacturer', key: 'manufacturer' });
+        }
+        
+        if (this.currentFilters.get('priceMin') || this.currentFilters.get('priceMax')) {
+          const min = this.currentFilters.get('priceMin') || '0';
+          const max = this.currentFilters.get('priceMax') || '∞';
+          tags.push({ label: `Price: $${min} - $${max}`, key: 'price' });
+        }
+        
+        if (this.currentFilters.get('rating')) {
+          tags.push({ label: `${this.currentFilters.get('rating')}+ Stars`, key: 'rating' });
+        }
+
       if (tags.length > 0) {
         appliedFiltersBox.classList.add('has-filters');
         const header = document.createElement('div');
         header.className = 'applied-filters-header';
         header.innerHTML = '<h6 class="applied-filters-title">Applied Filters</h6><button class="clear-all-filters" type="button">Clear all</button>';
+          
         const tagsWrap = document.createElement('div');
         tagsWrap.className = 'filter-tags';
+          
         tags.forEach(t => {
           const tag = document.createElement('span');
           tag.className = 'filter-tag';
           tag.innerHTML = `${t.label} <button class="filter-remove" title="Remove">×</button>`;
           tag.querySelector('.filter-remove').addEventListener('click', () => {
-            const newParams = new URLSearchParams(window.location.search);
-            if (t.key === 'price') { newParams.delete('priceMin'); newParams.delete('priceMax'); }
-            else { newParams.delete(t.key); }
-            window.location.search = newParams.toString();
+              if (t.key === 'price') {
+                this.currentFilters.delete('priceMin');
+                this.currentFilters.delete('priceMax');
+              } else {
+                this.currentFilters.delete(t.key);
+              }
+              this.reloadWithFilters();
           });
           tagsWrap.appendChild(tag);
         });
+          
         appliedFiltersBox.innerHTML = '';
         appliedFiltersBox.appendChild(header);
         appliedFiltersBox.appendChild(tagsWrap);
+          
         appliedFiltersBox.querySelector('.clear-all-filters').addEventListener('click', () => {
-          const baseUrl = window.location.pathname;
-          window.location.href = baseUrl;
-        });
+            this.clearAllFilters();
+          });
+        } else {
+          appliedFiltersBox.classList.remove('has-filters');
+          appliedFiltersBox.innerHTML = '';
+        }
+      }
+
+      clearAllFilters() {
+        this.currentFilters = new URLSearchParams();
+        this.reloadWithFilters();
+      }
+
+      reloadWithFilters() {
+        const newUrl = window.location.pathname + (this.currentFilters.toString() ? '?' + this.currentFilters.toString() : '');
+        window.location.href = newUrl;
       }
     }
+
+    // Initialize filter manager
+    window.filterManager = new AllProductsFilterManager();
   }
 });
 </script>

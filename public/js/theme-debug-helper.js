@@ -26,15 +26,8 @@ Senior Software Engineer Clean Code Implementation
                 themes[key] = localStorage.getItem(key);
             });
 
-            console.log('🎨 Theme Debug - Current localStorage:', themes);
-
             // Check for conflicts
             if (themes.theme && themes.slex_theme && themes.theme !== themes.slex_theme) {
-                console.warn('⚠️ Theme Conflict Detected!', {
-                    theme: themes.theme,
-                    slex_theme: themes.slex_theme
-                });
-
                 // Fix: Use the most recent or preferred theme
                 this.resolveThemeConflict(themes);
             }
@@ -43,8 +36,6 @@ Senior Software Engineer Clean Code Implementation
         resolveThemeConflict(themes) {
             // Priority: slex_theme > theme
             const preferredTheme = themes.slex_theme || themes.theme || 'light';
-            
-            console.log(`🔧 Fixing theme conflict, using: ${preferredTheme}`);
             
             // Sync both keys
             localStorage.setItem('dashboard-theme', preferredTheme);
@@ -60,7 +51,6 @@ Senior Software Engineer Clean Code Implementation
             const htmlTheme = document.documentElement.getAttribute('data-theme');
             
             if (htmlTheme !== currentTheme) {
-                console.log(`🔄 Syncing theme: ${currentTheme} -> ${htmlTheme}`);
                 document.documentElement.setAttribute('data-theme', currentTheme);
             }
 
@@ -77,7 +67,6 @@ Senior Software Engineer Clean Code Implementation
                     // Apply to DOM
                     document.documentElement.setAttribute('data-theme', value);
                     
-                    console.log(`🎨 Theme changed to: ${value}`);
                 }
             };
         }
@@ -96,7 +85,6 @@ Senior Software Engineer Clean Code Implementation
                     localStorage.removeItem('dashboard-theme');
                     localStorage.removeItem('dashboard-theme');
                     document.documentElement.removeAttribute('data-theme');
-                    console.log('🧹 All theme data cleared');
                     window.location.reload();
                 },
 
@@ -110,7 +98,6 @@ Senior Software Engineer Clean Code Implementation
                     localStorage.setItem('dashboard-theme', theme);
                     localStorage.setItem('dashboard-theme', theme);
                     document.documentElement.setAttribute('data-theme', theme);
-                    console.log(`✅ Theme set to: ${theme}`);
                 },
 
                 // Get current theme info
@@ -122,43 +109,26 @@ Senior Software Engineer Clean Code Implementation
                         body_classes: document.body.className,
                         current_theme: this.getCurrentTheme()
                     };
-                    console.table(info);
                     return info;
                 },
 
                 // Fix theme conflicts
                 fixConflicts: () => {
                     this.detectThemeConflicts();
-                    console.log('🔧 Theme conflicts fixed');
                 },
 
                 // Test theme switching
                 testThemes: () => {
-                    console.log('🧪 Testing theme switching...');
                     
                     setTimeout(() => {
                         window.ThemeDebug.setTheme('dark');
-                        console.log('🌙 Set to dark');
                     }, 1000);
                     
                     setTimeout(() => {
                         window.ThemeDebug.setTheme('light');
-                        console.log('☀️ Set to light');
                     }, 3000);
                 }
             };
-
-            // Show help message
-            console.log(`
-🎨 Theme Debug Helper Loaded!
-
-Available commands:
-- ThemeDebug.clearThemes()     // Clear all theme data
-- ThemeDebug.setTheme('dark')  // Set theme safely
-- ThemeDebug.getThemeInfo()    // Get current theme info
-- ThemeDebug.fixConflicts()    // Fix theme conflicts
-- ThemeDebug.testThemes()      // Test theme switching
-            `);
         }
     }
 

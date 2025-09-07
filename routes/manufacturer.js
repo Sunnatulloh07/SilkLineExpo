@@ -702,8 +702,7 @@ router.get('/messages',
   MessagingController.showMessagingPage
 );
 
-// API Routes for B2B Messaging System - MUST COME BEFORE DYNAMIC ROUTES
-console.log('🔍 Registering messaging API routes...');
+
 
 router.get('/messages/api/conversations',
   authenticate,
@@ -711,15 +710,11 @@ router.get('/messages/api/conversations',
   MessagingController.getConversations
 );
 
-console.log('🔍 Route registered: /messages/api/conversations');
-
 router.get('/messages/api/order/:orderId/messages',
   authenticate,
   manufacturerOnly,
   MessagingController.getOrderMessages
 );
-
-console.log('🔍 Route registered: /messages/api/order/:orderId/messages');
 
 router.post('/messages/api/order/:orderId/mark-read',
   authenticate,

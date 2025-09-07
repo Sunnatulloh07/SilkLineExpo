@@ -3099,7 +3099,6 @@ class BuyerService {
      */
     async checkProductStatus(buyerId, productId) {
         try {
-            console.log('🔍 checkProductStatus called with:', { buyerId, productId });
             
             // Check both cart and favorites in parallel
             const [cartItems, favoriteStatus] = await Promise.all([
@@ -3107,21 +3106,6 @@ class BuyerService {
                 this.checkFavoriteStatus(buyerId, productId)
             ]);
             
-            console.log('📊 Cart items count:', cartItems ? cartItems.length : 0);
-            console.log('📊 Favorite status:', favoriteStatus);
-            // cartItems is raw cart items from database (not transformed)
-            // Each item has item.productId._id structure
-            console.log('🔍 Checking cart items for product:', productId);
-            if (cartItems && cartItems.length > 0) {
-                cartItems.forEach((item, index) => {
-                    console.log(`📦 Cart item ${index}:`, {
-                        itemId: item._id,
-                        productId: item.productId?._id,
-                        productIdMatch: item.productId?._id?.toString() === productId.toString(),
-                        quantity: item.quantity
-                    });
-                });
-            }
             
             const isInCart = cartItems && cartItems.some(item => 
                 item.productId && item.productId._id && 
@@ -3145,12 +3129,9 @@ class BuyerService {
                 cartQuantity,
                 isFavorite: favoriteStatus ? favoriteStatus.isFavorite : false
             };
-            
-            console.log('📊 Final result:', result);
             return result;
 
         } catch (error) {
-            console.log('❌ Check product status error:', error);
             // Return default result on error instead of throwing
             return {
                 success: true,
@@ -3233,8 +3214,6 @@ class BuyerService {
             return result;
 
         } catch (error) {
-            console.log('❌ Check favorite status error:', error);
-            // Return default result on error instead of throwing
             return { success: true, isFavorite: false };
         }
     }

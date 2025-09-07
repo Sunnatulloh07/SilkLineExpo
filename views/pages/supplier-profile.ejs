@@ -8,7 +8,11 @@
 
 <!-- Professional Supplier Profile CSS -->
 <link rel="stylesheet" href="/css/supplier-profile.css">
-<link rel="stylesheet" href="/css/professional-supplier.css">
+<script>
+    // Define early no-op stubs to avoid reference errors before scripts load
+    window.handleImageError = window.handleImageError || function(){/* no-op */};
+    window.handleImageSuccess = window.handleImageSuccess || function(){/* no-op */};
+</script>
 <style>
     [data-theme='light'] .form-select, .form-select option {
     border: 2px solid hsl(var(--border-color)) !important;
@@ -202,9 +206,11 @@
                                 </div>
                             </div>
                             
+                            <% if (supplier && supplier.description && String(supplier.description).trim()) { %>
                             <p class="supplier-description text-gray font-18 mb-4">
-                                <%= supplier.description || supplier.activityType || 'Professional B2B supplier providing quality products and services.' %>
+                                <%= supplier.description %>
                             </p>
+                            <% } %>
                             
                             <div class="supplier-quick-stats d-flex flex-wrap gap-4">
                                 <div class="stat-item text-center">
@@ -227,18 +233,6 @@
                                     %>
                                     <div class="stat-number h3 text-heading mb-1"><%= yearsExp %></div>
                                     <div class="stat-label text-gray font-14"><%= typeof t === 'function' ? t('supplier.yearsExperience') : 'Years Experience' %></div>
-                                </div>
-                                <div class="stat-item text-center">
-                                    <% 
-                                    let empCount = supplier.employeeCount || supplier.employees || supplier.numberOfEmployees || supplier.totalEmployees;
-                                    if (!empCount || empCount === 'N/A' || empCount === 'n/a') {
-                                        empCount = 'N/A';
-                                    } else if (typeof empCount === 'number') {
-                                        empCount = empCount.toLocaleString();
-                                    }
-                                    %>
-                                    <div class="stat-number h3 text-heading mb-1"><%= empCount %></div>
-                                    <div class="stat-label text-gray font-14"><%= typeof t === 'function' ? t('supplier.employees') : 'Employees' %></div>
                                 </div>
                                 <div class="stat-item text-center">
                                     <% 
@@ -547,6 +541,87 @@
                                             </div>
                                         </div>
                                     </div>
+                                    
+                                    <% 
+                                    // Normalize website URL for link
+                                    let __siteText = supplier && supplier.website ? String(supplier.website).trim() : '';
+                                    let __safeSiteUrl = '';
+                                    if (__siteText) {
+                                        __safeSiteUrl = /^(https?:)?\/\//i.test(__siteText) ? __siteText : ('https://' + __siteText);
+                                    }
+                                    %>
+                                    
+                                    <% if (__siteText) { %>
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong><%= typeof t === 'function' ? t('supplier.website') : 'Website' %>:</strong>
+                                            <div class="d-flex align-items-center mt-2">
+                                                <i class="las la-globe text-info me-2"></i>
+                                                <a href="<%= __safeSiteUrl %>" target="_blank" rel="noopener noreferrer" class="text-decoration-none"><%= __siteText %></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% } %>
+                                    
+                                    <% if (supplier && supplier.email) { %>
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong><%= typeof t === 'function' ? t('supplier.email') : 'Email' %>:</strong>
+                                            <div class="d-flex align-items-center mt-2">
+                                                <i class="las la-envelope text-main me-2"></i>
+                                                <a href="mailto:<%= supplier.email %>" class="text-decoration-none"><%= supplier.email %></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% } %>
+                                    
+                                    <% if (supplier && supplier.phone) { %>
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong><%= typeof t === 'function' ? t('supplier.phone') : 'Phone' %>:</strong>
+                                            <div class="d-flex align-items-center mt-2">
+                                                <i class="las la-phone text-success me-2"></i>
+                                                <a href="tel:<%= supplier.phone %>" class="text-decoration-none"><%= supplier.phone %></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% } %>
+                                    
+                                    <% if (supplier && supplier.taxNumber) { %>
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong><%= typeof t === 'function' ? t('supplier.taxNumber') : 'Tax Number' %>:</strong>
+                                            <div class="d-flex align-items-center mt-2">
+                                                <i class="las la-file-invoice-dollar text-warning me-2"></i>
+                                                <span><%= supplier.taxNumber %></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% } %>
+                                    
+                                    <% if (supplier && supplier.businessLicense) { %>
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong><%= typeof t === 'function' ? t('supplier.businessLicense') : 'Business License' %>:</strong>
+                                            <div class="d-flex align-items-center mt-2">
+                                                <i class="las la-id-card text-primary me-2"></i>
+                                                <span><%= supplier.businessLicense %></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% } %>
+                                    
+                                    <% if (supplier && supplier.status) { %>
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <strong><%= typeof t === 'function' ? t('supplier.status') : 'Status' %>:</strong>
+                                            <div class="d-flex align-items-center mt-2">
+                                                <i class="las la-info-circle text-secondary me-2"></i>
+                                                <span class="text-capitalize"><%= supplier.status %></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% } %>
                                     
                                     <div class="col-12">
                                         <div class="info-item">
@@ -1036,7 +1111,19 @@
 
 <!-- Professional Supplier Profile JavaScript -->
 <script src="/js/supplier-profile.js"></script>
+<script type="application/json" id="supplier-json"><%- JSON.stringify(supplier || {}) %></script>
 <script>
+    (function() {
+        try {
+            var el = document.getElementById('supplier-json');
+            window.supplierData = el ? JSON.parse(el.textContent) : {};
+            console.log('supplier profile', window.supplierData);
+        } catch (e) {
+            console.error('Failed to parse supplier data', e);
+            window.supplierData = {};
+        }
+    })();
+
 // Legacy compatibility and inline functionality
 function openContactModal() {
     if (typeof supplierProfile !== 'undefined') {
@@ -1048,9 +1135,6 @@ function openContactModal() {
 }
 
 function startChat(supplierId) {
-    console.log('🔥 Supplier Profile startChat called!');
-    console.log('Starting chat with supplier:', supplierId);
-    console.log('Current user:', window.currentUser);
     
     // Check if user is authenticated
     if (!window.currentUser) {
