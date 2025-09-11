@@ -474,8 +474,8 @@ class ManufacturerController {
             ] = await Promise.all([
                 this.manufacturerService.getDashboardStats(manufacturerId),
                 this.manufacturerService.getMarketplaceMetrics(manufacturerId),  
-                this.manufacturerService.getFeaturedProducts(manufacturerId, 8),
-                this.manufacturerService.getRecentInquiries(manufacturerId, 10),
+                this.manufacturerService.getFeaturedProducts(manufacturerId, 1, 8, 'performance_desc'),
+                this.manufacturerService.getRecentInquiries(manufacturerId, 3),
                 this.manufacturerService.getCompetitorAnalysis(manufacturerId),
                 this.manufacturerService.getUnreadMessagesCount(manufacturerId)
             ]);
@@ -491,7 +491,7 @@ class ManufacturerController {
                 currentUrl: req.originalUrl,
                 stats: dashboardStats || {},
                 marketplaceMetrics: marketplaceMetrics || {},
-                featuredProducts: featuredProducts || [],
+                featuredProducts: featuredProducts?.products || [],
                 recentInquiries: recentInquiries || [],
                 competitorAnalysis: competitorAnalysis || {},
                 unreadMessages: unreadMessages || 0
@@ -1625,12 +1625,23 @@ class ManufacturerController {
     async getFeaturedProducts(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            const { limit = 8 } = req.query;
-             const products = await this.manufacturerService.getFeaturedProducts(manufacturerId, parseInt(limit));
+            const { 
+                page = 1, 
+                limit = 8,
+                sort = 'performance_desc'
+            } = req.query;
+            
+            const result = await this.manufacturerService.getFeaturedProducts(
+                manufacturerId, 
+                parseInt(page), 
+                parseInt(limit),
+                sort
+            );
 
             res.json({
                 success: true,
-                data: products,
+                data: result.products,
+                pagination: result.pagination,
                 timestamp: new Date().toISOString()
             });
 
@@ -1646,7 +1657,7 @@ class ManufacturerController {
     async getRecentInquiries(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            const { limit = 10 } = req.query;
+            const { limit = 3 } = req.query;
 
             const inquiries = await this.manufacturerService.getRecentInquiries(manufacturerId, parseInt(limit));
 
@@ -1659,6 +1670,29 @@ class ManufacturerController {
         } catch (error) {
             this.logger.error('❌ Get recent inquiries error:', error);
             this.handleAPIError(res, error, 'Failed to get recent inquiries');
+        }
+    }
+
+    /**
+     * API: Get marketplace chart data
+     */
+    async getMarketplaceChartData(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const { period = '30d' } = req.query;
+
+            const chartData = await this.manufacturerService.getMarketplaceChartData(manufacturerId, period);
+
+            res.json({
+                success: true,
+                data: chartData.data,
+                period: chartData.period,
+                generatedAt: chartData.generatedAt
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Get marketplace chart data error:', error);
+            this.handleAPIError(res, error, 'Failed to get marketplace chart data');
         }
     }
 

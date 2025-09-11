@@ -6074,12 +6074,7 @@ class ProductDetailManager {
         // Re-check authentication on click
         await this.checkAuthStatus();
         
-        console.log('❤️ Favorite clicked:', {
-            isAuthenticated: this.isAuthenticated,
-            userType: this.userType,
-            companyType: this.companyType,
-            currentUser: this.currentUser
-        });
+    
         
         if (!this.isAuthenticated) {
             this.showToast(`⚠️ ${window.translations.productDetails.loginRequired}`, 'warning');
@@ -6147,16 +6142,10 @@ class ProductDetailManager {
     }
 
     async checkProductStatus() {
-        console.log('🔍 CheckProductStatus called:', {
-            isAuthenticated: this.isAuthenticated,
-            userType: this.userType,
-            companyType: this.companyType,
-            currentUser: this.currentUser
-        });
+
         
         // Allow both distributor and buyers (since distributor routes moved to buyer)
         if (!this.isAuthenticated || (this.companyType !== 'distributor' && this.userType !== 'user')) {
-            console.log('❌ CheckProductStatus skipped - not authenticated or wrong user type');
             return;
         }
 
@@ -6367,7 +6356,6 @@ class ProductDetailManager {
     openChat() {
         // Check if user is authenticated using server data
         if (!window.currentUser) {
-            console.log('User not authenticated');
             this.showToast('⚠️ Chat uchun tizimga kiring', 'warning');
             setTimeout(() => {
                 window.location.href = '/login';
@@ -6376,19 +6364,12 @@ class ProductDetailManager {
         }
 
         // Check if user is distributor/buyer (correct logic for SLEX system)
-        console.log('🔍 Chat authentication check:', {
-            windowCurrentUser: window.currentUser,
-            productDetailManagerUser: this.currentUser,
-            userType: window.currentUser?.userType,
-            role: window.currentUser?.role,
-            companyType: window.currentUser?.companyType
-        });
+        
         
         const isBuyer = window.currentUser && 
                         window.currentUser.role === 'company_admin' && 
                         (window.currentUser.companyType === 'distributor' || window.currentUser.companyType === 'buyer');
         
-        console.log('🔍 isBuyer result:', isBuyer);
         
         if (!isBuyer) {
             let message = '';
@@ -6399,7 +6380,6 @@ class ProductDetailManager {
             } else {
                 message = 'Faqat distribyutor/haridor kompanyalar chat qila oladi';
             }
-            console.log('❌ User not allowed for chat:', window.currentUser);
             this.showToast(`⚠️ ${message}`, 'warning');
             return;
         }
@@ -6407,16 +6387,13 @@ class ProductDetailManager {
         // Get manufacturer ID from chat button or product data
         const chatBtn = document.querySelector('.chat-btn');
         const manufacturerId = chatBtn?.dataset.manufacturerId || this.productData.manufacturerId;
-        console.log('🔍 Found manufacturer ID:', manufacturerId);
         
         if (!manufacturerId) {
-            console.log('❌ Manufacturer ID not found');
             this.showToast('⚠️ Ishlab chiqaruvchi ma\'lumotlari topilmadi', 'error');
             return;
         }
 
         const redirectUrl = `/buyer/messages?manufacturer=${manufacturerId}`;
-        console.log('🚀 Redirecting to:', redirectUrl);
         
         // Redirect to messages page with manufacturer parameter
         window.location.href = redirectUrl;

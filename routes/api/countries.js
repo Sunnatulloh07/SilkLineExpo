@@ -137,7 +137,6 @@ router.get('/', async (req, res) => {
             }
         ];
 
-        console.log(`📍 Countries data requested - returning ${countries.length} countries`);
 
         res.json({
             success: true,

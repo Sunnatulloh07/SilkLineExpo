@@ -4221,13 +4221,7 @@ function generateProductDetailsHTML(product) {
                                     ` : ''}
                                 </div>
                                 
-                                <!-- Description -->
-                                ${product.description ? `
-                                    <div class="product-description">
-                                        <h6 class="section-title">Mahsulot haqida</h6>
-                                        <p class="description-text">${product.description}</p>
-                                    </div>
-                                ` : ''}
+                                
                                 
                                 <!-- Quick Stats -->
                                 <div class="quick-stats">
@@ -4273,8 +4267,19 @@ function generateProductDetailsHTML(product) {
                                         </div>
                                     </div>
                                 </div>
+
+                               
                             </div>
                         </div>
+                        
+                         <!-- Description -->
+                                ${product.description ? `
+                                    <div class="product-description">
+                                        <h6 class="section-title">Mahsulot haqida</h6>
+                                        <p class="description-text">${product.description}</p>
+                                    </div>
+                                ` : ''}
+                        
                     </div>
                 </div>
             </div>
@@ -4398,27 +4403,50 @@ function generateProductDetailsHTML(product) {
                     <!-- Specifications Tab -->
                     <div class="tab-pane fade" id="specifications" role="tabpanel">
                         ${product.specifications && product.specifications.length > 0 ? `
-                            <div class="table-responsive">
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Xususiyat</th>
-                                            <th>Qiymat</th>
-                                            <th>O'lchov birlik</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${product.specifications.map(spec => `
-                                            <tr>
-                                                <td><strong>${spec.name || spec.key}</strong></td>
-                                                <td>${spec.value}</td>
-                                                <td>${spec.unit || '-'}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
+                            <div class="specifications-container">
+                                <div class="specifications-header">
+                                    <h6 class="specifications-title">
+                                        <i class="fas fa-list-alt"></i>
+                                        Mahsulot xususiyatlari
+                                    </h6>
+                                    <span class="specifications-count">${product.specifications.length} ta xususiyat</span>
+                                </div>
+                                
+                                <div class="specifications-list">
+                                    ${product.specifications.map(spec => `
+                                        <div class="specification-item">
+                                            <div class="spec-label">
+                                                <span class="spec-name">${spec.name || spec.key}</span>
+                                                ${spec.unit ? `<span class="spec-unit">(${spec.unit})</span>` : ''}
+                                            </div>
+                                            <div class="spec-separator"></div>
+                                            <div class="spec-value">
+                                                <span class="value-text">${spec.value}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                
+                                <div class="specifications-footer">
+                                    <div class="spec-note">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span>Barcha xususiyatlar standart o'lchovlar bo'yicha</span>
+                                    </div>
+                                </div>
                             </div>
-                        ` : '<p class="text-muted">Xususiyatlar belgilanmagan.</p>'}
+                        ` : `
+                            <div class="no-specifications">
+                                <div class="no-specs-icon">
+                                    <i class="fas fa-list-alt"></i>
+                                </div>
+                                <h6>Xususiyatlar belgilanmagan</h6>
+                                <p class="text-muted">Bu mahsulot uchun xususiyatlar hali qo'shilmagan.</p>
+                                <button class="btn btn-outline-primary btn-sm" onclick="editProduct('${product._id}')">
+                                    <i class="fas fa-plus"></i>
+                                    Xususiyatlar qo'shish
+                                </button>
+                            </div>
+                        `}
                     </div>
                     
                     <!-- Inventory Tab -->

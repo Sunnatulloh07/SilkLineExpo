@@ -9,13 +9,6 @@
     <div class="product-header animate-fade-in">
       <div class="header-content">
         <div class="header-title-section">
-          <div class="breadcrumb">
-            <a href="/manufacturer/dashboard" class="breadcrumb-link"><%= t('manufacturer.products.edit.breadcrumb.dashboard') %></a>
-            <i class="fas fa-chevron-right breadcrumb-separator"></i>
-            <a href="/manufacturer/marketplace" class="breadcrumb-link"><%= t('manufacturer.products.edit.breadcrumb.marketplace') %></a>
-            <i class="fas fa-chevron-right breadcrumb-separator"></i>
-            <span class="breadcrumb-current"><%= t('manufacturer.products.edit.breadcrumb.editProduct') %></span>
-          </div>
           <h1 class="page-title">
             <i class="fas fa-edit"></i>
             <%= t('manufacturer.products.edit.pageTitle') %>
@@ -466,10 +459,20 @@
             <div class="image-upload-section">
               <!-- Image Counter -->
               <div class="image-counter-section">
-                <div class="image-counter"><%= t('manufacturer.products.edit.images.counter') %></div>
+                <div class="image-counter" id="imageCounter">
+                  <% 
+                    const totalImages = product.images ? product.images.length : 0;
+                    const imageCounterText = `${totalImages}/10 ${t('manufacturer.products.edit.images.counter')}`;
+                  %>
+                  <%= imageCounterText %>
+                </div>
                 <div class="image-status-info">
-                  <span class="temp-images-count"><%= t('manufacturer.products.edit.images.new') %>: 0</span>
-                  <span class="existing-images-count"><%= t('manufacturer.products.edit.images.existing') %>: 0</span>
+                  <span class="temp-images-count" id="tempImagesCount">
+                    <%= t('manufacturer.products.edit.images.new') %>: 0
+                  </span>
+                  <span class="existing-images-count" id="existingImagesCount">
+                    <%= t('manufacturer.products.edit.images.existing') %>: <%= totalImages %>
+                  </span>
                 </div>
               </div>
               
@@ -756,7 +759,7 @@
                   <i class="fas fa-shopping-cart"></i>
                 </div>
                 <div class="analytics-info">
-                  <div class="analytics-value"><%= productAnalytics.orders?.totalOrders || 0 %></div>
+                  <div class="analytics-value"><%= productAnalytics.orders?.total || 0 %></div>
                   <div class="analytics-label"><%= t('manufacturer.products.edit.analytics.orders') %></div>
                 </div>
               </div>
@@ -765,7 +768,7 @@
                   <i class="fas fa-dollar-sign"></i>
                 </div>
                 <div class="analytics-info">
-                  <div class="analytics-value">$<%= (productAnalytics.orders?.totalRevenue || 0).toLocaleString() %></div>
+                  <div class="analytics-value">$<%= (productAnalytics.revenue?.total || 0).toLocaleString() %></div>
                   <div class="analytics-label"><%= t('manufacturer.products.edit.analytics.revenue') %></div>
                 </div>
               </div>
@@ -774,7 +777,7 @@
                   <i class="fas fa-percent"></i>
                 </div>
                 <div class="analytics-info">
-                  <div class="analytics-value"><%= productAnalytics.performance?.conversionRate || '0.00' %>%</div>
+                  <div class="analytics-value"><%= (productAnalytics.conversion?.rate || 0).toFixed(2) %>%</div>
                   <div class="analytics-label"><%= t('manufacturer.products.edit.analytics.conversion') %></div>
                 </div>
               </div>
@@ -885,7 +888,7 @@
     align-items: center;
     margin-bottom: 1rem;
     padding: 0.75rem 1rem;
-    background: #f8fafc;
+    background: #334155;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
 }
@@ -893,7 +896,7 @@
 .image-counter {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-secondary);
 }
 
 .image-status-info {
@@ -921,7 +924,7 @@
     color: #6b7280;
     margin-top: 0.5rem;
     padding: 0.5rem;
-    background: #f0f9ff;
+    background: #334155;
     border-radius: 6px;
     border-left: 3px solid #0ea5e9;
 }
@@ -1087,6 +1090,43 @@
 .progress-text {
     color: #0369a1;
     font-weight: 500;
+}
+
+/* Empty Images State */
+.empty-images-state {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    text-align: center;
+    background: #f8fafc;
+    border: 2px dashed #e2e8f0;
+    border-radius: 12px;
+    margin: 1rem 0;
+}
+
+.empty-state-content {
+    max-width: 300px;
+}
+
+.empty-state-content i {
+    font-size: 3rem;
+    color: #94a3b8;
+    margin-bottom: 1rem;
+}
+
+.empty-state-content h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 0.5rem 0;
+}
+
+.empty-state-content p {
+    color: #6b7280;
+    margin: 0;
+    font-size: 0.875rem;
 }
 
 /* Enhanced Toast Notifications */
@@ -1385,7 +1425,6 @@ class ProductEditManager {
                 // Show success message
                 this.showSuccessToast(window.t ? window.t('manufacturer.products.edit.messages.savedAsDraft') : 'Mahsulot qoralama sifatida saqlandi');
                 
-                console.log('✅ Product saved as draft successfully');
             } else {
                 this.showErrorToast(result.message || (window.t ? window.t('manufacturer.products.edit.errors.saveDraftError') : 'Qoralama saqlashda xatolik yuz berdi'));
                 console.error('❌ Save as draft failed:', result.message);
@@ -1499,12 +1538,13 @@ class ProductEditManager {
             errors.push(window.t ? window.t('manufacturer.products.edit.validation.unitRequired') : 'O\'lchov birligi tanlanishi shart');
         }
         
-        // Check for uploaded images
-        const hasImages = (formData.images && formData.images.length > 0) || 
-                         (document.querySelectorAll('.image-preview-item').length > 0);
+        // Check for uploaded images with proper validation
+        const totalImages = (this.temporaryImages?.length || 0) + (this.existingImages?.length || 0);
         
-        if (!hasImages) {
+        if (totalImages === 0) {
             errors.push(window.t ? window.t('manufacturer.products.edit.validation.imagesRequired') : 'Kamida bitta mahsulot rasmi yuklash shart');
+        } else if (totalImages > 10) {
+            errors.push(window.t ? window.t('manufacturer.products.edit.validation.tooManyImages') : 'Maksimal 10 ta rasm yuklash mumkin');
         }
         
         return {
@@ -1667,13 +1707,16 @@ class ProductEditManager {
     }
 
     setupImageUpload() {
-        // Initialize temporary image storage
+        // Initialize temporary image storage with proper validation
         this.temporaryImages = [];
         this.existingImages = [];
         this.deletedImages = []; // Track deleted existing images
         
         // Load existing images to temporary storage
         this.loadExistingImages();
+        
+        // Initial image counter update
+        this.updateImageCounter();
         
         const uploadArea = document.getElementById('imageUploadArea');
         const uploadInput = document.getElementById('imageUploadInput');
@@ -1956,7 +1999,6 @@ class ProductEditManager {
      * No immediate upload - files converted to base64 and stored temporarily
      */
     async handleImageFilesAdvanced(files) {
-        console.log('🎯 Processing image files with advanced handler...');
         
         const maxFiles = 10;
         const maxSize = 5 * 1024 * 1024; // 5MB
@@ -1977,10 +2019,20 @@ class ProductEditManager {
 
         if (validFiles.length === 0) return;
 
-        // Check total image count
-        const currentTotalImages = this.temporaryImages.length + this.existingImages.length;
-        if (currentTotalImages + validFiles.length > maxFiles) {
-            this.showErrorToast(window.t ? window.t('manufacturer.products.edit.images.maxImagesReached', { maxFiles: maxFiles, currentTotal: currentTotalImages }) : `Maksimal ${maxFiles} ta rasm yuklash mumkin. Hozir ${currentTotalImages} ta mavjud.`);
+        // Check total image count with proper validation
+        const currentTotalImages = (this.temporaryImages?.length || 0) + (this.existingImages?.length || 0);
+        const newTotalImages = currentTotalImages + validFiles.length;
+        
+        if (newTotalImages > maxFiles) {
+            const errorMessage = window.t ? 
+                window.t('manufacturer.products.edit.images.maxImagesReached', { 
+                    maxFiles: maxFiles, 
+                    currentTotal: currentTotalImages,
+                    tryingToAdd: validFiles.length
+                }) : 
+                `Maksimal ${maxFiles} ta rasm yuklash mumkin. Hozir ${currentTotalImages} ta mavjud, ${validFiles.length} ta qo'shishga harakat qilmoqdasiz.`;
+            
+            this.showErrorToast(errorMessage);
             return;
         }
 
@@ -2007,34 +2059,52 @@ class ProductEditManager {
     }
 
     /**
-     * Load existing product images to temporary storage
+     * Load existing product images to temporary storage - ENHANCED & FIXED
      */
     loadExistingImages() {
         try {
-            console.log('📋 Loading existing product images...');
+            // Initialize existing images array
+            this.existingImages = [];
             
-            if (this.product?.images && Array.isArray(this.product.images)) {
+            if (this.product?.images && Array.isArray(this.product.images) && this.product.images.length > 0) {
                 this.existingImages = this.product.images.map((img, index) => {
-                    const imageUrl = (typeof img === 'string') ? img : img.url;
+                    // Handle both string and object image formats
+                    const imageUrl = (typeof img === 'string') ? img : (img.url || img.src || '');
                     const isPrimary = (typeof img === 'object' && img.isPrimary) || index === 0;
                     const alt = (typeof img === 'object' && img.alt) ? img.alt : `Product Image ${index + 1}`;
                     
+                    // Validate image URL
+                    if (!imageUrl) {
+                        console.warn(`⚠️ Invalid image URL at index ${index}:`, img);
+                        return null;
+                    }
+                    
                     return {
-                        id: `existing_${index}`,
+                        id: `existing_${Date.now()}_${index}`,
                         type: 'existing',
                         url: imageUrl,
                         alt: alt,
                         isPrimary: isPrimary,
-                        originalData: img
+                        originalData: img,
+                        index: index
                     };
-                });
+                }).filter(img => img !== null); // Remove null entries
                 
                 console.log(`✅ Loaded ${this.existingImages.length} existing images`);
+            } else {
+                console.log('ℹ️ No existing images found for this product');
             }
+            
+            // Update image counter after loading
+            this.updateImageCounter();
             
         } catch (error) {
             console.error('❌ Error loading existing images:', error);
             this.existingImages = [];
+            this.showErrorToast(window.t ? 
+                window.t('manufacturer.products.edit.images.loadError') :
+                'Mavjud rasmlarni yuklashda xatolik'
+            );
         }
     }
 
@@ -2060,7 +2130,6 @@ class ProductEditManager {
                     };
                     
                     this.temporaryImages.push(tempImage);
-                    console.log(`✅ Added ${file.name} to temporary storage`);
                     resolve(tempImage);
                     
                 } catch (error) {
@@ -2097,44 +2166,93 @@ class ProductEditManager {
     }
 
     /**
-     * PROFESSIONAL UI Image Grid Refresh
-     * Displays both existing and temporary images
+     * PROFESSIONAL UI Image Grid Refresh - ENHANCED & FIXED
+     * Displays both existing and temporary images with proper validation
      */
     refreshImageGrid() {
-        
-        const currentImages = document.getElementById('currentImages');
-        let imagesGrid = currentImages.querySelector('.images-grid');
-        
-        if (!imagesGrid) {
-            imagesGrid = document.createElement('div');
-            imagesGrid.className = 'images-grid';
-            currentImages.appendChild(imagesGrid);
+        try {
+            const currentImages = document.getElementById('currentImages');
+            if (!currentImages) {
+                console.error('❌ currentImages container not found');
+                return;
+            }
+            
+            let imagesGrid = currentImages.querySelector('.images-grid');
+            
+            if (!imagesGrid) {
+                imagesGrid = document.createElement('div');
+                imagesGrid.className = 'images-grid';
+                currentImages.appendChild(imagesGrid);
+            }
+
+            // Clear existing grid
+            imagesGrid.innerHTML = '';
+            
+            // Combine all images with validation
+            const allImages = [...this.existingImages, ...this.temporaryImages].filter(img => {
+                // Validate image data
+                if (!img || !img.id) {
+                    console.warn('⚠️ Invalid image data found:', img);
+                    return false;
+                }
+                return true;
+            });
+            
+            console.log(`🔄 Refreshing image grid with ${allImages.length} images (${this.existingImages.length} existing, ${this.temporaryImages.length} temporary)`);
+            
+            // Sort by primary status and then by creation order
+            allImages.sort((a, b) => {
+                if (a.isPrimary && !b.isPrimary) return -1;
+                if (!a.isPrimary && b.isPrimary) return 1;
+                return 0;
+            });
+            
+            // Create image previews
+            allImages.forEach((image, index) => {
+                try {
+                    const imageItem = this.createAdvancedImagePreview(image);
+                    if (imageItem) {
+                        imagesGrid.appendChild(imageItem);
+                    }
+                } catch (error) {
+                    console.error(`❌ Error creating image preview for image ${index}:`, error);
+                }
+            });
+
+            // Setup event handlers
+            this.setupAdvancedImageHandlers();
+            
+            // Update image counter
+            this.updateImageCounter();
+            
+            // Show empty state if no images
+            if (allImages.length === 0) {
+                this.showEmptyImageState(imagesGrid);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error refreshing image grid:', error);
+            this.showErrorToast(window.t ? 
+                window.t('manufacturer.products.edit.images.refreshError') :
+                'Rasm ro\'yxatini yangilashda xatolik'
+            );
         }
-
-        // Clear existing grid
-        imagesGrid.innerHTML = '';
-        
-        // Combine all images
-        const allImages = [...this.existingImages, ...this.temporaryImages];
-        
-        // Sort by primary status and then by creation order
-        allImages.sort((a, b) => {
-            if (a.isPrimary && !b.isPrimary) return -1;
-            if (!a.isPrimary && b.isPrimary) return 1;
-            return 0;
-        });
-        
-        // Create image previews
-        allImages.forEach(image => {
-            const imageItem = this.createAdvancedImagePreview(image);
-            imagesGrid.appendChild(imageItem);
-        });
-
-        // Setup event handlers
-        this.setupAdvancedImageHandlers();
-        
-        // Update image counter
-        this.updateImageCounter();
+    }
+    
+    /**
+     * Show empty state when no images are present
+     */
+    showEmptyImageState(imagesGrid) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-images-state';
+        emptyState.innerHTML = `
+            <div class="empty-state-content">
+                <i class="fas fa-images"></i>
+                <h4>${window.t ? window.t('manufacturer.products.edit.images.noImages') : 'Hech qanday rasm yo\'q'}</h4>
+                <p>${window.t ? window.t('manufacturer.products.edit.images.uploadFirst') : 'Mahsulot uchun rasm yuklang'}</p>
+            </div>
+        `;
+        imagesGrid.appendChild(emptyState);
     }
 
     /**
@@ -2222,13 +2340,11 @@ class ProductEditManager {
     removeImageAdvanced(imageId) {
         if (!confirm('Rasmni o\'chirishni xohlaysizmi?')) return;
         
-        console.log(`🗑️ Removing image: ${imageId}`);
         
         // Remove from temporary images
         const tempIndex = this.temporaryImages.findIndex(img => img.id === imageId);
         if (tempIndex !== -1) {
             this.temporaryImages.splice(tempIndex, 1);
-            console.log('✅ Removed from temporary storage');
         }
         
         // Remove from existing images and track for deletion
@@ -2236,7 +2352,6 @@ class ProductEditManager {
         if (existingIndex !== -1) {
             const removedImage = this.existingImages.splice(existingIndex, 1)[0];
             this.deletedImages.push(removedImage);
-            console.log('✅ Marked existing image for deletion');
         }
         
         // If primary image was removed, set new primary
@@ -2245,7 +2360,6 @@ class ProductEditManager {
         
         if (!hasPrimary && allImages.length > 0) {
             allImages[0].isPrimary = true;
-            console.log('✅ Set new primary image');
         }
         
         this.refreshImageGrid();
@@ -2257,7 +2371,6 @@ class ProductEditManager {
      * Set primary image
      */
     setPrimaryImageAdvanced(imageId) {
-        console.log(`⭐ Setting primary image: ${imageId}`);
         
         // Clear all primary flags
         this.temporaryImages.forEach(img => img.isPrimary = false);
@@ -2282,7 +2395,6 @@ class ProductEditManager {
      * Replace image
      */
     replaceImageAdvanced(imageId) {
-        console.log(`🔄 Replacing image: ${imageId}`);
         
         // Store the image ID for replacement
         this.replacingImageId = imageId;
@@ -2328,7 +2440,6 @@ class ProductEditManager {
         try {
             this.showProcessingState(true, window.t ? window.t('manufacturer.products.edit.images.replacing') : 'Rasm almashtirilmoqda...');
             
-            console.log(`🔄 Replacing image: ${this.replacingImageId}`);
             
             // Find the image being replaced
             const tempIndex = this.temporaryImages.findIndex(img => img.id === this.replacingImageId);
@@ -2345,7 +2456,6 @@ class ProductEditManager {
                 // Replace at exact same position
                 this.temporaryImages[tempIndex] = newImageData;
                 
-                console.log(`✅ Replaced temporary image at index ${tempIndex}`);
                 
             } else if (existingIndex !== -1) {
                 // Replace existing image - FIXED: Don't use addImageToTemporaryStorage
@@ -2362,7 +2472,6 @@ class ProductEditManager {
                 // Add new image to temporaryImages (this is correct behavior)
                 this.temporaryImages.push(newImageData);
                 
-                console.log(`✅ Replaced existing image - moved to temporary storage`);
                 
             } else {
                 console.error(`❌ Image not found for replacement: ${this.replacingImageId}`);
@@ -2423,44 +2532,67 @@ class ProductEditManager {
     }
 
     /**
-     * Update image counter display - ENHANCED
+     * Update image counter display - ENHANCED & FIXED
      */
     updateImageCounter() {
         const totalImages = this.temporaryImages.length + this.existingImages.length;
         const tempCount = this.temporaryImages.length;
         const existingCount = this.existingImages.length;
         
-        // Update main counter
-        const counterElement = document.querySelector('.image-counter');
+        // Update main counter with proper ID selector
+        const counterElement = document.getElementById('imageCounter');
         if (counterElement) {
-            counterElement.textContent = `${totalImages}/10 rasm`;
+            const counterText = window.t ? 
+                window.t('manufacturer.products.edit.images.counter', { count: totalImages, max: 10 }) :
+                `${totalImages}/10 rasm`;
+            counterElement.textContent = counterText;
             
             // Add visual indication if limit is approaching
             if (totalImages >= 8) {
                 counterElement.style.color = '#dc2626';
-                counterElement.style.fontWeight = '700';
             } else if (totalImages >= 6) {
                 counterElement.style.color = '#d97706';
-                counterElement.style.fontWeight = '600';
-            } else {
-                counterElement.style.color = '#1e293b';
-                counterElement.style.fontWeight = '600';
-            }
+            } 
         }
         
-        // Update detailed counters
-        const tempCountElement = document.querySelector('.temp-images-count');
-        const existingCountElement = document.querySelector('.existing-images-count');
+        // Update detailed counters with proper ID selectors
+        const tempCountElement = document.getElementById('tempImagesCount');
+        const existingCountElement = document.getElementById('existingImagesCount');
         
         if (tempCountElement) {
-            tempCountElement.textContent = `Yangi: ${tempCount}`;
+            const tempText = window.t ? 
+                window.t('manufacturer.products.edit.images.new') + `: ${tempCount}` :
+                `Yangi: ${tempCount}`;
+            tempCountElement.textContent = tempText;
         }
         
         if (existingCountElement) {
-            existingCountElement.textContent = `Mavjud: ${existingCount}`;
+            const existingText = window.t ? 
+                window.t('manufacturer.products.edit.images.existing') + `: ${existingCount}` :
+                `Mavjud: ${existingCount}`;
+            existingCountElement.textContent = existingText;
         }
         
-        console.log(`📊 Image counter updated: ${totalImages}/10 (${tempCount} yangi + ${existingCount} mavjud)`);
+        // Update upload area visibility based on image count
+        this.updateUploadAreaVisibility(totalImages);
+    }
+    
+    /**
+     * Update upload area visibility based on image count
+     */
+    updateUploadAreaVisibility(totalImages) {
+        const uploadArea = document.getElementById('imageUploadArea');
+        if (!uploadArea) return;
+        
+        if (totalImages >= 10) {
+            uploadArea.style.display = 'none';
+            this.showInfoToast(window.t ? 
+                window.t('manufacturer.products.edit.images.maxImagesReached', { max: 10 }) :
+                'Maksimal 10 ta rasm yuklash mumkin'
+            );
+        } else {
+            uploadArea.style.display = 'block';
+        }
     }
 
     createImagePreview(imageUrl, isPrimary = false) {
@@ -2742,7 +2874,6 @@ class ProductEditManager {
             data.shipping.methods = shippingMethods;
         }
 
-        console.log('📋 Enhanced form data collected:', data);
         return data;
     }
 
@@ -2767,17 +2898,13 @@ class ProductEditManager {
     }
 
     async updateProduct(data) {
-        console.log('🚀 OPTIMIZED: Sending product update request');
-        console.log('📦 Payload size:', JSON.stringify(data).length + ' bytes');
         
         try {
             // Step 1: Upload temporary images first if any exist
             let uploadedImageUrls = [];
             if (this.temporaryImages && this.temporaryImages.length > 0) {
-                console.log(`📤 Uploading ${this.temporaryImages.length} temporary images first...`);
                 try {
                     uploadedImageUrls = await this.uploadTemporaryImages();
-                    console.log(`✅ Uploaded ${uploadedImageUrls.length} images`);
                 } catch (uploadError) {
                     console.error('❌ Image upload failed:', uploadError);
                     throw new Error('Rasmlarni yuklashda xatolik. Iltimos, qayta urinib ko\'ring.');
@@ -2818,7 +2945,6 @@ class ProductEditManager {
             });
 
             const result = await response.json();
-            console.log('📥 Server response:', result);
             
             if (!result.success) {
                 // Enhanced error handling for different error types
@@ -2856,10 +2982,8 @@ class ProductEditManager {
                 // Refresh UI
                 this.refreshImageGrid();
                 
-                console.log(`🔄 Moved ${uploadedImageUrls.length} temporary images to existing images`);
             }
 
-            console.log('✅ Product updated successfully with optimized process');
             return result.data;
             
         } catch (error) {
@@ -2973,12 +3097,7 @@ class ProductEditManager {
             existingImages: this.existingImages || [],
             deletedImages: this.deletedImages || []
         };
-        
-        console.log('📋 Prepared image data for submission:', {
-            temporary: imageData.temporaryImages.length,
-            existing: imageData.existingImages.length,
-            deleted: imageData.deletedImages.length
-        });
+       
         
         return imageData;
     }
@@ -3017,12 +3136,7 @@ class ProductEditManager {
             }))
         };
         
-        console.log('📦 Optimized image data prepared:', {
-            temporary: optimizedData.temporaryImages.length,
-            existing: optimizedData.existingImages.length,
-            deleted: optimizedData.deletedImages.length,
-            totalSize: JSON.stringify(optimizedData).length + ' bytes'
-        });
+        
         
         return optimizedData;
     }
@@ -3078,11 +3192,9 @@ class ProductEditManager {
      */
     async uploadTemporaryImages() {
         if (!this.temporaryImages || this.temporaryImages.length === 0) {
-            console.log('📷 No temporary images to upload');
             return [];
         }
 
-        console.log(`📤 Uploading ${this.temporaryImages.length} temporary images...`);
         
         try {
             const formData = new FormData();
@@ -3106,7 +3218,6 @@ class ProductEditManager {
                 throw new Error(result.message || 'Upload failed');
             }
 
-            console.log(`✅ Successfully uploaded ${result.data.urls.length} images`);
             return result.data.urls;
 
         } catch (error) {
@@ -3120,11 +3231,9 @@ class ProductEditManager {
      */
     async deleteUnusedImages() {
         if (!this.deletedImages || this.deletedImages.length === 0) {
-            console.log('🗑️ No images to delete');
             return;
         }
 
-        console.log(`🗑️ Deleting ${this.deletedImages.length} unused images...`);
         
         try {
             const imageUrls = this.deletedImages.map(img => img.url);
@@ -3141,7 +3250,6 @@ class ProductEditManager {
             const result = await response.json();
             
             if (result.success) {
-                console.log(`✅ Successfully deleted ${result.data.deletedCount} images`);
             } else {
                 console.warn('⚠️ Some images could not be deleted:', result.message);
             }
@@ -3262,7 +3370,6 @@ function handleImageError(img) {
     
     // CASE 1: Real image failed - convert to mock image (including modal real images)
     if (img.classList.contains('product-real-image') || img.classList.contains('modal-real-image')) {
-        console.log('🔄 Converting failed real image to mock image...');
         
         const category = img.dataset.category || 'general';
         const productId = img.dataset.productId || '';
@@ -3276,13 +3383,11 @@ function handleImageError(img) {
         const mockSrc = generateMockImage(category, productId, productName);
         img.src = mockSrc;
         
-        console.log(`✅ Real image converted to mock: ${productName} (${category})`);
         return;
     }
     
     // CASE 2: Mock image failed - use backup mock image (including modal mock images)
     if (img.classList.contains('mock-product-image') || img.classList.contains('modal-mock-image')) {
-        console.log('🔄 Mock image failed, using backup...');
         
         const category = img.dataset.category || 'general';
         const productId = img.dataset.productId || '';
@@ -3296,12 +3401,10 @@ function handleImageError(img) {
         img.src = backupSrc;
         img.classList.add('backup-mock-image');
         
-        console.log(`✅ Backup mock image loaded: ${productName}`);
         return;
     }
     
     // CASE 3: Everything failed - use professional SVG placeholder
-    console.log('🔄 Using professional SVG placeholder as final fallback...');
     img.src = PROFESSIONAL_PLACEHOLDER_SVG;
     img.classList.add('final-placeholder');
     
@@ -3647,7 +3750,6 @@ class ProductModalManager {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎯 Product Edit Page - Professional Initialization Starting...');
     
     try {
         // Validate required data
@@ -3656,12 +3758,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        console.log('📋 Product data loaded:', productEditData.product.name);
         
         // Initialize header functionality
         if (window.ManufacturerHeader) {
             window.manufacturerHeader = new ManufacturerHeader();
-            console.log('✅ Manufacturer Header initialized');
         }
         
         // Initialize dashboard functionality
@@ -3675,19 +3775,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
             window.manufacturerDashboard = new ManufacturerDashboard(dashboardOptions);
             window.manufacturerDashboard.init().catch(console.warn);
-            console.log('✅ Manufacturer Dashboard initialized');
         }
         
         // Initialize product edit manager
         window.productEditManager = new ProductEditManager();
-        console.log('✅ Product Edit Manager initialized');
         
         // Initialize modal functionality
         window.productModalManager = new ProductModalManager();
         window.productModalManager.init();
-        console.log('✅ Product Modal Manager initialized');
         
-        console.log('🎊 Product Edit Page - All systems ready!');
         
     } catch (error) {
         console.error('❌ Product Edit Page initialization failed:', error);
@@ -3731,41 +3827,6 @@ window.addEventListener('beforeunload', () => {
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 2rem;
-}
-
-.breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
-    opacity: 0.9;
-}
-
-.breadcrumb-link {
-    color: rgba(255,255,255,0.8);
-    text-decoration: none;
-    transition: color 0.3s;
-}
-
-.breadcrumb-link:hover {
-    color: white;
-}
-
-.breadcrumb-separator {
-    font-size: 0.75rem;
-    opacity: 0.6;
-}
-
-.breadcrumb-current {
-    color: white;
-    font-weight: 500;
-}
 
 .page-title {
     font-size: 2rem;
@@ -3843,7 +3904,7 @@ window.addEventListener('beforeunload', () => {
 
 /* Form Container */
 .form-container {
-    background: var(--card-bg);
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     overflow: hidden;
@@ -3986,7 +4047,7 @@ window.addEventListener('beforeunload', () => {
 /* Form Grid */
 .form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -4390,6 +4451,15 @@ window.addEventListener('beforeunload', () => {
     font-weight: bold;
 }
 
+.checkbox-label.selected {
+    background: var(--primary-color-light);
+    border-color: var(--primary-color);
+}
+
+.checkbox-label:hover {
+    background: var(--bg-hover);
+}
+
 /* Form Navigation */
 .form-navigation {
     display: flex;
@@ -4437,7 +4507,7 @@ window.addEventListener('beforeunload', () => {
 .analytics-card,
 .quick-actions-card,
 .status-card {
-    background: var(--card-bg);
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     overflow: hidden;
@@ -4863,11 +4933,6 @@ window.addEventListener('beforeunload', () => {
 }
 
 @media (max-width: 768px) {
-    .header-content {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
     
     .header-actions {
         width: 100%;
@@ -5335,6 +5400,36 @@ window.addEventListener('beforeunload', () => {
     </div>
   </div>
 </div>
+
+<!-- Product Data Script -->
+<script id="product-data" type="application/json">
+<%- JSON.stringify({
+  _id: product._id,
+  name: product.name,
+  description: product.description,
+  shortDescription: product.shortDescription,
+  category: product.category,
+  subcategory: product.subcategory,
+  pricing: product.pricing,
+  inventory: product.inventory,
+  shipping: product.shipping,
+  images: product.images,
+  tags: product.tags,
+  status: product.status,
+  visibility: product.visibility,
+  isFeatured: product.isFeatured,
+  isPromoted: product.isPromoted
+}) %>
+</script>
+
+<!-- Analytics Data Script -->
+<script id="analytics-data" type="application/json">
+<%- JSON.stringify(productAnalytics || {}) %>
+</script>
+
+<!-- Product Edit Manager JavaScript -->
+<script src="/js/manufacturer/product-edit-manager.js"></script>
+
 
 </body>
 </html>

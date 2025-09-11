@@ -832,6 +832,67 @@ class BuyerService {
     }
 
     /**
+     * Get order conversation with manufacturer
+     */
+    async getOrderConversation(buyerId, manufacturerId, orderId) {
+        try {
+            const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
+            const manufacturerObjectId = new mongoose.Types.ObjectId(manufacturerId);
+            const orderObjectId = new mongoose.Types.ObjectId(orderId);
+
+            // Find the order and verify ownership and manufacturer
+            const order = await Order.findOne({
+                _id: orderObjectId,
+                buyer: buyerObjectId,
+                seller: manufacturerObjectId
+            }).populate('seller', 'companyName email companyLogo phone')
+            .lean();
+
+            if (!order) {
+                throw new Error('Order not found or access denied');
+            }
+
+            // Get messages for this order
+            const messages = await Message.find({ orderId: orderObjectId })
+                .populate('senderId', 'companyName email companyLogo phone')
+                .populate('recipientId', 'companyName email companyLogo phone')
+                .sort({ createdAt: 1 })
+                .limit(50)
+                .lean();
+
+            // Get unread count
+            const unreadCount = await Message.countDocuments({
+                orderId: orderObjectId,
+                recipientId: buyerObjectId,
+                status: { $in: ['sent', 'delivered'] }
+            });
+
+            const result = {
+                success: true,
+                data: {
+                    type: 'order',
+                    orderId: order._id.toString(),
+                    orderNumber: order.orderNumber,
+                    orderStatus: order.status,
+                    orderValue: order.totalAmount,
+                    currency: order.currency || 'USD',
+                    manufacturer: order.seller,
+                    messages: messages,
+                    unreadCount: unreadCount,
+                    isOnline: false,
+                    lastMessage: messages.length > 0 ? messages[messages.length - 1] : null
+                }
+            };
+
+            return result;
+
+        } catch (error) {
+            this.logger.error('❌ Get order conversation error:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Get or create manufacturer conversation - Fixed to use Inquiry model
      */
     async getOrCreateManufacturerConversation(buyerId, manufacturerId) {
@@ -855,7 +916,7 @@ class BuyerService {
                     inquiryNumber: `INQ-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
                     type: 'product_inquiry',
                     subject: 'Initial Inquiry',
-                    message: 'Initial contact and inquiry',
+                    message: 'Dastlabki aloqa va so\'rov',
                     status: 'open',
                     priority: 'medium',
                     timeline: {
@@ -1170,6 +1231,140 @@ class BuyerService {
     }
 
     /**
+     * Get buyer conversations grouped by manufacturer
+     * Returns manufacturers with their product chat and order chats
+     */
+    async getBuyerConversations(buyerId, currentManufacturerId = null, filters = {}) {
+        try {
+            const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
+            
+            // Get all orders for this buyer
+            const orders = await Order.find({ buyer: buyerObjectId })
+                .populate('seller', 'companyName email avatar companyLogo phone')
+                .sort({ updatedAt: -1 })
+                .lean();
+
+            // Get all inquiries for this buyer
+            const inquiries = await Inquiry.find({ inquirer: buyerObjectId })
+                .populate('supplier', 'companyName email avatar companyLogo phone')
+                .sort({ updatedAt: -1 })
+                .lean();
+
+            // Create conversation list - each manufacturer appears once
+            const conversations = [];
+            const processedManufacturers = new Set();
+
+            // Process inquiries first (product chats)
+            for (const inquiry of inquiries) {
+                const manufacturerId = inquiry.supplier._id.toString();
+                if (!processedManufacturers.has(manufacturerId)) {
+                    processedManufacturers.add(manufacturerId);
+                    
+                    // Get messages for this inquiry
+                    const messages = await Message.find({ inquiryId: inquiry._id })
+                        .populate('senderId', 'companyName email')
+                        .populate('recipientId', 'companyName email')
+                        .sort({ createdAt: -1 })
+                        .lean();
+                    
+                    // Only add if there are messages
+                    if (messages.length > 0) {
+                        // Get unread count
+                        const unreadCount = await Message.countDocuments({
+                            inquiryId: inquiry._id,
+                            recipientId: buyerObjectId,
+                            status: { $in: ['sent', 'delivered'] }
+                        });
+                        
+                        conversations.push({
+                            _id: inquiry._id,
+                            type: 'product',
+                            manufacturer: inquiry.supplier,
+                            lastMessage: messages[0],
+                            unreadCount: unreadCount,
+                            isOnline: false,
+                            updatedAt: inquiry.updatedAt,
+                            orderNumber: null,
+                            orderStatus: null,
+                            orderAmount: null
+                        });
+                    }
+                }
+            }
+
+            // Process orders (order chats)
+            for (const order of orders) {
+                const manufacturerId = order.seller._id.toString();
+                if (!processedManufacturers.has(manufacturerId)) {
+                    processedManufacturers.add(manufacturerId);
+                }
+                
+                // Get messages for this order
+                const messages = await Message.find({ orderId: order._id })
+                    .populate('senderId', 'companyName email')
+                    .populate('recipientId', 'companyName email')
+                    .sort({ createdAt: -1 })
+                    .lean();
+                
+                // Only add if there are messages
+                if (messages.length > 0) {
+                    // Get unread count
+                    const unreadCount = await Message.countDocuments({
+                        orderId: order._id,
+                        recipientId: buyerObjectId,
+                        status: { $in: ['sent', 'delivered'] }
+                    });
+                    
+                    conversations.push({
+                        _id: order._id,
+                        type: 'order',
+                        manufacturer: order.seller,
+                        lastMessage: messages[0],
+                        unreadCount: unreadCount,
+                        isOnline: false,
+                        updatedAt: order.updatedAt,
+                        orderNumber: order.orderNumber,
+                        orderStatus: order.status,
+                        orderAmount: order.totalAmount
+                    });
+                }
+            }
+
+            // Sort conversations by last activity
+            conversations.sort((a, b) => {
+                if (currentManufacturerId) {
+                    const aId = a.manufacturer._id.toString();
+                    const bId = b.manufacturer._id.toString();
+                    if (aId === currentManufacturerId) return -1;
+                    if (bId === currentManufacturerId) return 1;
+                }
+                
+                return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+            });
+            
+            // If no conversations, check if we have any orders or inquiries at all
+            if (conversations.length === 0) {
+                
+                // Check if orders have messages
+                for (const order of orders) {
+                    const orderMessages = await Message.find({ orderId: order._id }).lean();
+                   }
+                
+                // Check if inquiries have messages
+                for (const inquiry of inquiries) {
+                    const inquiryMessages = await Message.find({ inquiryId: inquiry._id }).lean();
+                 }
+            }
+
+            return conversations;
+
+        } catch (error) {
+            this.logger.error('❌ Error getting conversations:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Get buyer conversations with current manufacturer at top
      * Returns conversations sorted by: current manufacturer first, then by last message time
      */
@@ -1289,7 +1484,7 @@ class BuyerService {
 
                     const conversation = {
                         id: order._id.toString(),
-                        orderId: order._id,
+                        orderId: order._id.toString(),
                         orderNumber: order.orderNumber || `ORD-${order._id.toString().substr(-6)}`,
                         supplier: {
                             id: order.seller._id,
@@ -2470,6 +2665,9 @@ class BuyerService {
             if (updateData.phone) sanitizedUpdateData.phone = updateData.phone.trim();
             if (updateData.country) sanitizedUpdateData.country = updateData.country.trim();
             if (updateData.address) sanitizedUpdateData.address = updateData.address.trim();
+            if (updateData.city) sanitizedUpdateData.city = updateData.city.trim();
+            if (updateData.district) sanitizedUpdateData.district = updateData.district.trim();
+            if (updateData.postalCode) sanitizedUpdateData.postalCode = updateData.postalCode.trim();
             
             // Add metadata
             sanitizedUpdateData.updatedAt = new Date();

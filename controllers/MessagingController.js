@@ -496,13 +496,7 @@ class MessagingController {
                     .populate('supplier', 'email companyName phone companyLogo website country city')
                     .lean();
                 
-                console.log('🔍 Inquiry populated data:', {
-                    inquiryId: inquiryId,
-                    inquirer: inquiry?.inquirer,
-                    supplier: inquiry?.supplier,
-                    inquiryNumber: inquiry?.inquiryNumber
-                });
-                
+        
             } catch (dbError) {
                 console.error('❌ Database query error:', dbError);
                 throw dbError;
@@ -547,7 +541,6 @@ class MessagingController {
             
             // TEMPORARY: Allow access for testing - remove in production
             if (!hasAccess) {
-                console.log('⚠️ Access temporarily allowed for testing');
             }
             
             // Get conversation partner info
@@ -555,11 +548,9 @@ class MessagingController {
             if (userType === 'manufacturer') {
                 // Manufacturer is viewing - show inquirer (distributor) info
                 partner = inquiry.inquirer;
-                console.log('🔍 Manufacturer viewing inquiry, inquirer info:', partner);
             } else {
                 // Inquirer/distributor is viewing - show supplier (manufacturer) info
                 partner = inquiry.supplier;
-                console.log('🔍 Inquirer viewing inquiry, supplier info:', partner);
             }
             
             // Validate partner data
@@ -664,12 +655,7 @@ class MessagingController {
                     .populate('items.product', 'name images')
                     .lean();
                 
-                console.log('🔍 Order populated data:', {
-                    orderId: orderId,
-                    buyer: order?.buyer,
-                    seller: order?.seller,
-                    orderNumber: order?.orderNumber
-                });
+           
                 
                 } catch (dbError) {
                 console.error('❌ Database query error:', dbError);
@@ -749,11 +735,9 @@ class MessagingController {
             if (userType === 'manufacturer') {
                 // Manufacturer is viewing - show buyer (distributor) info
                 partner = order.buyer;
-                console.log('🔍 Manufacturer viewing order, buyer info:', partner);
             } else {
                 // Buyer/distributor is viewing - show seller (manufacturer) info
                 partner = order.seller;
-                console.log('🔍 Buyer viewing order, seller info:', partner);
             }
             
             // Validate partner data
@@ -1144,16 +1128,11 @@ class MessagingController {
      * API Endpoint: GET /manufacturer/messages/api/inquiry/:inquiryId/messages
      */
     static async getInquiryMessages(req, res) {
-        console.log('🔍 getInquiryMessages called with params:', req.params);
-        console.log('🔍 getInquiryMessages called with query:', req.query);
-        console.log('🔍 getInquiryMessages called with user:', req.user);
         
         try {
             const { inquiryId } = req.params;
             const { page = 1, limit = 50 } = req.query;
             const userId = req.user.userId || req.user._id;
-            console.log('🔍 Looking for inquiry with ID:', inquiryId);
-            console.log('🔍 User ID:', userId);
             
             // Verify user has access to this inquiry
             const inquiry = await Inquiry.findOne({
@@ -1164,10 +1143,8 @@ class MessagingController {
                 ]
             }).populate('supplier inquirer', 'companyName email');
             
-            console.log('🔍 Inquiry found:', inquiry ? 'YES' : 'NO');
             
             if (!inquiry) {
-                console.log('❌ Inquiry not found or access denied');
                 // Return test messages for demonstration
                 const testMessages = [
                     {
@@ -1239,7 +1216,6 @@ class MessagingController {
                 });
             }
             
-            console.log('✅ Inquiry found, proceeding with message loading...');
             
             // Get messages for this inquiry with proper population
             const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -1313,16 +1289,11 @@ class MessagingController {
      * API Endpoint: GET /manufacturer/messages/api/order/:orderId/messages
      */
     static async getOrderMessages(req, res) {
-        console.log('🔍 getOrderMessages called with params:', req.params);
-        console.log('🔍 getOrderMessages called with query:', req.query);
-        console.log('🔍 getOrderMessages called with user:', req.user);
         
         try {
             const { orderId } = req.params;
             const { page = 1, limit = 50 } = req.query;
             const userId = req.user.userId || req.user._id;
-            console.log('🔍 Looking for order with ID:', orderId);
-            console.log('🔍 User ID:', userId);
             
             // Verify user has access to this order
             const order = await Order.findOne({
@@ -1333,10 +1304,8 @@ class MessagingController {
                 ]
             }).populate('seller buyer', 'companyName email');
             
-            console.log('🔍 Order found:', order ? 'YES' : 'NO');
             
             if (!order) {
-                console.log('❌ Order not found or access denied');
                 // Return test messages for demonstration
                 const testMessages = [
                     {
@@ -1408,7 +1377,6 @@ class MessagingController {
                 });
             }
             
-            console.log('✅ Order found, proceeding with message loading...');
             
             // Get messages for this order with proper population
             const skip = (parseInt(page) - 1) * parseInt(limit);

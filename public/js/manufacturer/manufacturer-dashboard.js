@@ -87,17 +87,17 @@ document.addEventListener("DOMContentLoaded", function () {
       },
       series: [
         {
-          name: window.t ? window.t('manufacturer.dashboard.charts.series.salesVolume') : "B2B Sales Volume",
+          name: window.t ? window.t('manufacturer.dashboard.charts.series.salesVolume') : "B2B Savdo hajmi",
           data: chartData.sales,
           color: "#3b82f6",
         },
         {
-          name: window.t ? window.t('manufacturer.dashboard.charts.series.distributorInquiries') : "Distributor Inquiries",
+          name: window.t ? window.t('manufacturer.dashboard.charts.series.distributorInquiries') : "Distributorlar so'rovlari",
           data: chartData.orders,
           color: "#8b5cf6",
         },
         {
-          name: window.t ? window.t('manufacturer.dashboard.charts.series.marketplaceViews') : "Marketplace Views",
+          name: window.t ? window.t('manufacturer.dashboard.charts.series.marketplaceViews') : "Marketplace ko'rinishlari",
           data: chartData.views,
           color: "#06b6d4",
         },
@@ -232,50 +232,75 @@ document.addEventListener("DOMContentLoaded", function () {
     chartPeriodFilter.addEventListener("change", async function () {
       const period = this.value;
       try {
+        // Show loading state
+        const chartContainer = document.getElementById("salesChart");
+        if (chartContainer) {
+          chartContainer.style.opacity = "0.5";
+        }
+
         // Fetch new data based on period
         const response = await fetch(
           `/manufacturer/api/dashboard-stats?period=${period}`
         );
+        
         if (response.ok) {
-          const data = await response.json();
+          const result = await response.json();
+          const data = result.data || result;
 
           // Update chart with new data
-          if (window.salesChartInstance && data) {
-            // Update chart with real period data
-            if (data && data.chartData) {
+          if (window.salesChartInstance && data && data.chartData) {
               const newChartData = {
-                labels: data.chartData.labels || chartData.labels,
-                sales: data.chartData.sales || chartData.sales,
-                orders: data.chartData.orders || chartData.orders,
-                views: data.chartData.views || chartData.views,
+              labels: data.chartData.labels || [],
+              sales: data.chartData.sales || [],
+              orders: data.chartData.orders || [],
+              views: data.chartData.views || [],
               };
 
               // Update chart series with real data
               window.salesChartInstance.updateSeries([
                 {
-                  name: window.t ? window.t('manufacturer.dashboard.charts.series.salesVolume') : "B2B Sales Volume",
+                name: window.t ? window.t('manufacturer.dashboard.charts.series.salesVolume') : "B2B Savdo hajmi",
                   data: newChartData.sales,
                 },
                 {
-                  name: window.t ? window.t('manufacturer.dashboard.charts.series.distributorInquiries') : "Distributor Inquiries",
+                name: window.t ? window.t('manufacturer.dashboard.charts.series.distributorInquiries') : "Distributorlar so'rovlari",
                   data: newChartData.orders,
                 },
                 {
-                  name: window.t ? window.t('manufacturer.dashboard.charts.series.marketplaceViews') : "Marketplace Views",
+                name: window.t ? window.t('manufacturer.dashboard.charts.series.marketplaceViews') : "Marketplace ko'rinishlari",
                   data: newChartData.views,
                 },
               ]);
 
+            // Update chart categories (x-axis labels)
+            window.salesChartInstance.updateOptions({
+              xaxis: {
+                categories: newChartData.labels
+              }
+            });
+
               // Update local chart data
               chartData = newChartData;
-              // Chart updated with real period data
+            
+            // Show success message
+            console.log(`✅ Chart updated for ${period} days period`);
             }
 
-            // Chart updated with new period data
+          // Also update Chart.js chart if it exists
+          if (window.manufacturerDashboard && window.manufacturerDashboard.charts && window.manufacturerDashboard.charts.salesChart) {
+            window.manufacturerDashboard.updateSalesChart(data);
           }
+        } else {
+          console.error("❌ Failed to fetch period data:", response.status);
         }
       } catch (error) {
         console.error("❌ Error fetching period data:", error);
+      } finally {
+        // Hide loading state
+        const chartContainer = document.getElementById("salesChart");
+        if (chartContainer) {
+          chartContainer.style.opacity = "1";
+        }
       }
     });
   }
@@ -494,8 +519,8 @@ function loadTopProducts(products) {
                 <div class="no-data-icon">
                     <i class="fas fa-star"></i>
                 </div>
-                <h4>${window.t ? window.t('manufacturer.dashboard.widgets.topProducts.noData') : 'No top-rated products found'}</h4>
-                <p>${window.t ? window.t('manufacturer.dashboard.widgets.topProducts.noDataDesc') : 'No top-rated products available yet. When customers rate your products, they will appear here.'}</p>
+                <h4>${window.t ? window.t('manufacturer.dashboard.widgets.topProducts.noData') : 'Reytingi yuqori mahsulotlar topilmadi'}</h4>
+                <p>${window.t ? window.t('manufacturer.dashboard.widgets.topProducts.noDataDesc') : 'Hozircha reytingi yuqori mahsulotlar mavjud emas. Mijozlar mahsulotlaringizni baholagach, bu yerda ko\'rishingiz mumkin.'}</p>
             </div>
         `;
     return;
@@ -515,7 +540,7 @@ function loadTopProducts(products) {
                 <div class="product-rank">#${product.rank}</div>
                 <div class="product-details">
                     <h4 class="product-name">${product.name}</h4>
-                    <p class="product-sales">${product.formattedQuantity} ${window.t ? window.t('manufacturer.dashboard.widgets.topProducts.sold') : 'sold'}</p>
+                    <p class="product-sales">${product.formattedQuantity} ${window.t ? window.t('manufacturer.dashboard.widgets.topProducts.sold') : 'sotildi'}</p>
                 </div>
             </div>
             <div class="product-stats">
@@ -682,7 +707,7 @@ function renderInquiries(inquiries) {
                 <p>${
                   inquiry.message ||
                   inquiry.content ||
-                  window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.noMessage') : "No inquiry message"
+                  "No inquiry message"
                 }</p>
                 <div class="order-specs">
                     ${
@@ -697,8 +722,8 @@ function renderInquiries(inquiries) {
                 </div>
             </div>
             <div class="inquiry-buttons">
-                <button class="btn-respond">${window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.respond') : 'Javob berish'}</button>
-                <button class="btn-quote">${window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.quote') : 'Taklif'}</button>
+                <button class="btn-respond">Javob berish</button>
+                <button class="btn-quote">Taklif</button>
             </div>
         </div>
     `
@@ -718,7 +743,7 @@ function showInquiriesEmptyState() {
                 <i class="fas fa-handshake"></i>
             </div>
             <h4>Ma'lumotlar topilmadi</h4>
-            <p>${window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.noDataDesc') : 'No distributor inquiries available. No inquiry data found.'}</p>
+            <p>No distributor inquiries available. No inquiry data found.</p>
         </div>
     `;
 }
@@ -726,14 +751,14 @@ function showInquiriesEmptyState() {
 // Get priority text
 function getPriorityText(priority) {
   const priorityMap = {
-    urgent: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.urgent') : "Urgent",
-    new: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.new') : "New",
-    followup: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.followup') : "Follow-up",
-    high: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.high') : "High",
-    medium: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.medium') : "Medium",
-    low: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.low') : "Low",
+    urgent: "Urgent",
+    new: "New",
+    followup: "Follow-up",
+    high: "High",
+    medium: "Medium",
+    low: "Low",
   };
-  return priorityMap[priority] || (window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.new') : "New");
+  return priorityMap[priority] || "New";
 }
 
 // Load communication center
@@ -952,26 +977,26 @@ function renderCriticalItems(items) {
 
   const itemsHTML = items
     .map((item) => {
-      const name = item.name || (window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.unknownProduct') : "Unknown Product");
-      const sku = item.sku || "N/A";
+      const name = item.name || (window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.unknownProduct') : "Noma'lum mahsulot");
+      const sku = item.sku || (window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.noSku') : "SKU yo'q");
       const stock = item.currentStock || 0;
       const effectiveStock = item.effectiveStock || stock;
-      const unit = item.unit || window.t ? window.t('manufacturer.dashboard.kpiCards.item') : "item";
-      const level = item.level || window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.level') : "warning";
-      const action = item.action || window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.action') : "Tekshirish";
+      const unit = item.unit || (window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.unit') : "dona");
+      const level = item.level || "warning";
+      const action = item.action || (window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.action') : "Tekshirish");
       const daysUntilStockout = item.daysUntilStockout;
 
       // Show additional info for critical items
       const additionalInfo =
         daysUntilStockout !== undefined && daysUntilStockout > 0
-          ? `<small class="stock-days">${daysUntilStockout} kun qoldi</small>`
+          ? `<small class="stock-days">${daysUntilStockout} ${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.daysLeft') : 'kun qoldi'}</small>`
           : "";
 
       return `
             <div class="stock-item ${level}">
                 <div class="item-info">
                     <h5 class="item-name">${name}</h5>
-                    <p class="item-sku">SKU: ${sku}</p>
+                    <p class="item-sku">${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.skuLabel') : 'SKU'}: ${sku}</p>
                     ${additionalInfo}
                 </div>
                 <div class="item-stock">
@@ -996,17 +1021,18 @@ function showInventoryEmptyState() {
             <div class="no-data-icon">
                 <i class="fas fa-boxes"></i>
             </div>
-                    <h4>${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.noData') : 'No critical items found'}</h4>
-        <p>${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.noDataDesc') : 'All products are at normal stock levels. Critical items will appear here if any.'}</p>
+            <h4>${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.noData') : 'Kritik mahsulotlar topilmadi'}</h4>
+            <p>${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.noDataDesc') : 'Barcha mahsulotlar normal zaxira darajasida. Kritik mahsulotlar bo\'lsa, bu yerda ko\'rinadi.'}</p>
         </div>
     `;
 }
 
 // Set inventory stats error state
 function setInventoryStatsError() {
-  updateStockElement("normalStockCount", "Ma'lumot yo'q", "");
-  updateStockElement("lowStockCount", "Ma'lumot yo'q", "");
-  updateStockElement("outOfStockCount", "Ma'lumot yo'q", "");
+  const noDataText = window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.noData') : "Ma'lumot yo'q";
+  updateStockElement("normalStockCount", noDataText, "");
+  updateStockElement("lowStockCount", noDataText, "");
+  updateStockElement("outOfStockCount", noDataText, "");
 }
 
 // Update stock element helper
@@ -1030,12 +1056,12 @@ function formatTimeAgo(timestamp) {
   const diffMinutes = Math.floor(diffMs / (1000 * 60));
 
   if (diffMinutes < 60) {
-    return `${diffMinutes} ${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.minute') : "daqiqa"} oldin`;
+    return `${diffMinutes} ${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.minuteAgo') : "daqiqa oldin"}`;
   } else if (diffHours < 24) {
-    return `${diffHours} ${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.hour') : "soat"} oldin`;
+    return `${diffHours} ${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.hourAgo') : "soat oldin"}`;
   } else {
     const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} ${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.day') : "kun"} oldin`;
+    return `${diffDays} ${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.dayAgo') : "kun oldin"}`;
   }
 }
 
@@ -1045,23 +1071,20 @@ function getPriorityText(priority) {
     new: window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.new') : "Yangi",
     followup: window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.followup') : "Kuzatuv",
   };
-  return priorityMap[priority] || priority;
+  return priorityMap[priority] || (window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.new') : "Yangi");
 }
 
 // Initialize Manufacturer Dashboard
 document.addEventListener("DOMContentLoaded", function () {
   // Header functionality is handled by dashboard-init.js to prevent conflicts
-  console.log('📊 Dashboard: Header functionality delegated to dashboard-init.js');
 
   function initializeResponsiveHandlers() {
     // Sidebar functionality is now handled by dashboard-init.js to prevent conflicts
-    console.log('📊 Dashboard: Sidebar functionality delegated to dashboard-init.js');
     
     // Just sync the sidebar state if dashboard-init.js hasn't loaded yet
     setTimeout(() => {
       if (typeof window.syncSidebarState === 'function') {
         window.syncSidebarState();
-        console.log('✅ Dashboard: Sidebar state synced with dashboard-init.js');
       }
     }, 100);
   }
@@ -1083,15 +1106,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize and force data load
   window.manufacturerDashboard.init().then(() => {
-    
-    // Force immediate KPI update with server data if available
-    const serverStats = JSON.parse(
-      "<%= JSON.stringify(JSON.stringify(stats || {})) %>"
-    );
-    if (serverStats && Object.keys(serverStats).length > 0) {
-      window.manufacturerDashboard.updateKPICards(serverStats);
-    }
-
     // Force API refresh after 2 seconds
     setTimeout(() => {
       window.manufacturerDashboard.loadDashboardStats();
@@ -1626,6 +1640,1575 @@ class ManufacturerDashboard {
   }
 
   /**
+   * Get translation helper method
+   */
+  getTranslation(key, fallback) {
+    try {
+      if (window.t && typeof window.t === 'function') {
+        return window.t(key, fallback);
+      }
+      return fallback || key;
+    } catch (error) {
+      console.warn('Translation error:', error);
+      return fallback || key;
+    }
+  }
+
+  /**
+   * Format date helper method
+   */
+  formatDate(date) {
+    try {
+      if (!date) return 'N/A';
+      
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) return 'Invalid Date';
+      
+      return dateObj.toLocaleDateString('uz-UZ', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.warn('Date formatting error:', error);
+      return 'N/A';
+    }
+  }
+
+  /**
+   * Load production content - Production page specific initialization
+   */
+  async loadProductionContent() {
+    try {
+      console.log('🏭 Loading production content...');
+      
+      // Initialize production management if available
+      if (window.ProductionManagement) {
+        console.log('✅ Production management initialized');
+      }
+      
+      // Initialize production page specific features
+      await this.initializeProductionPage();
+      
+      // Load production data if needed
+      await this.loadProductionData();
+      
+      // Setup production page event listeners
+      this.setupProductionPageListeners();
+      
+      // Initialize production page components
+      this.initializeProductionPageComponents();
+      
+      console.log('✅ Production content loaded successfully');
+      
+    } catch (error) {
+      console.error('❌ Failed to load production content:', error);
+    }
+  }
+
+  /**
+   * Initialize production page specific features
+   */
+  async initializeProductionPage() {
+    try {
+      // Initialize production dashboard
+      this.initializeProductionDashboard();
+      
+      // Initialize production statistics
+      this.initializeProductionStatistics();
+      
+      // Initialize production charts
+      this.initializeProductionCharts();
+      
+      // Initialize production orders
+      this.initializeProductionOrders();
+      
+      // Initialize production inventory
+      this.initializeProductionInventory();
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize production page:', error);
+    }
+  }
+
+  /**
+   * Load production data from server
+   */
+  async loadProductionData() {
+    try {
+      // Check if we're on production page
+      const productionContainer = document.getElementById('productionDashboard');
+      if (!productionContainer) {
+        console.log('🏭 Not on production page, skipping data load');
+        return;
+      }
+      
+      // Load production statistics
+      await this.loadProductionStatistics();
+      
+      // Load production orders
+      await this.loadProductionOrders();
+      
+      // Load production inventory
+      await this.loadProductionInventory();
+      
+      // Load production analytics
+      await this.loadProductionAnalytics();
+      
+    } catch (error) {
+      console.error('❌ Failed to load production data:', error);
+    }
+  }
+
+  /**
+   * Load production statistics
+   */
+  async loadProductionStatistics() {
+    try {
+      const response = await this.apiCall('/api/production-metrics');
+      
+      if (response.success && response.data) {
+        this.updateProductionStatistics(response.data);
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to load production statistics:', error);
+    }
+  }
+
+  /**
+   * Load production orders
+   */
+  async loadProductionOrders() {
+    try {
+      const response = await this.apiCall('/api/production-orders');
+      
+      if (response.success && response.data) {
+        this.updateProductionOrders(response.data);
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to load production orders:', error);
+    }
+  }
+
+  /**
+   * Load production inventory
+   */
+  async loadProductionInventory() {
+    try {
+      // Use dashboard stats API which includes inventory data
+      const response = await this.apiCall('/api/dashboard-stats');
+      
+      if (response.success && response.data && response.data.inventory) {
+        this.updateProductionInventory(response.data.inventory);
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to load production inventory:', error);
+    }
+  }
+
+  /**
+   * Load production analytics
+   */
+  async loadProductionAnalytics() {
+    try {
+      // Use dashboard stats API which includes analytics data
+      const response = await this.apiCall('/api/dashboard-stats');
+      
+      if (response.success && response.data && response.data.analytics) {
+        this.updateProductionAnalytics(response.data.analytics);
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to load production analytics:', error);
+    }
+  }
+
+  /**
+   * Update production statistics display
+   */
+  updateProductionStatistics(stats) {
+    try {
+      // Update total orders
+      const totalOrdersElement = document.querySelector('[data-metric="totalOrders"] .metric-value');
+      if (totalOrdersElement && stats.totalOrders !== undefined) {
+        totalOrdersElement.textContent = stats.totalOrders;
+      }
+      
+      // Update active orders
+      const activeOrdersElement = document.querySelector('[data-metric="activeOrders"] .metric-value');
+      if (activeOrdersElement && stats.activeOrders !== undefined) {
+        activeOrdersElement.textContent = stats.activeOrders;
+      }
+      
+      // Update completed orders
+      const completedOrdersElement = document.querySelector('[data-metric="completedOrders"] .metric-value');
+      if (completedOrdersElement && stats.completedOrders !== undefined) {
+        completedOrdersElement.textContent = stats.completedOrders;
+      }
+      
+      // Update production efficiency
+      const efficiencyElement = document.querySelector('[data-metric="efficiency"] .metric-value');
+      if (efficiencyElement && stats.efficiency !== undefined) {
+        efficiencyElement.textContent = `${stats.efficiency}%`;
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to update production statistics:', error);
+    }
+  }
+
+  /**
+   * Update production orders display
+   */
+  updateProductionOrders(orders) {
+    try {
+      const ordersContainer = document.getElementById('productionOrdersList');
+      if (!ordersContainer) return;
+      
+      if (!orders || orders.length === 0) {
+        ordersContainer.innerHTML = `
+          <div class="no-data">
+            <i class="fas fa-clipboard-list"></i>
+            <p>${this.getTranslation('manufacturer.production.noOrders', 'Hech qanday buyurtma yo\'q')}</p>
+          </div>
+        `;
+        return;
+      }
+      
+      ordersContainer.innerHTML = orders
+        .map(order => this.createProductionOrderCard(order))
+        .join('');
+      
+    } catch (error) {
+      console.error('❌ Failed to update production orders:', error);
+    }
+  }
+
+  /**
+   * Create production order card
+   */
+  createProductionOrderCard(order) {
+    try {
+      return `
+        <div class="production-order-card" data-order-id="${order._id}">
+          <div class="order-header">
+            <h4 class="order-title">${order.productName || 'Unnamed Product'}</h4>
+            <span class="order-status ${order.status}">
+              ${this.getTranslation(`manufacturer.production.status.${order.status}`, order.status)}
+            </span>
+          </div>
+          
+          <div class="order-details">
+            <div class="order-info">
+              <span class="order-quantity">
+                <i class="fas fa-boxes"></i>
+                ${order.quantity || 0} ${order.unit || 'pieces'}
+              </span>
+              <span class="order-deadline">
+                <i class="fas fa-calendar-alt"></i>
+                ${this.formatDate(order.deadline)}
+              </span>
+            </div>
+            
+            <div class="order-progress">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${order.progress || 0}%"></div>
+              </div>
+              <span class="progress-text">${order.progress || 0}%</span>
+            </div>
+          </div>
+          
+          <div class="order-actions">
+            <button class="btn-action btn-primary" data-action="viewOrder" data-order-id="${order._id}">
+              <i class="fas fa-eye"></i>
+              ${this.getTranslation('manufacturer.production.actions.view', 'View')}
+            </button>
+            
+            <button class="btn-action btn-secondary" data-action="updateProgress" data-order-id="${order._id}">
+              <i class="fas fa-edit"></i>
+              ${this.getTranslation('manufacturer.production.actions.update', 'Update')}
+            </button>
+          </div>
+        </div>
+      `;
+      
+    } catch (error) {
+      console.error('❌ Failed to create production order card:', error);
+      return '';
+    }
+  }
+
+  /**
+   * Update production inventory display
+   */
+  updateProductionInventory(inventory) {
+    try {
+      const inventoryContainer = document.getElementById('productionInventoryList');
+      if (!inventoryContainer) return;
+      
+      if (!inventory || inventory.length === 0) {
+        inventoryContainer.innerHTML = `
+          <div class="no-data">
+            <i class="fas fa-warehouse"></i>
+            <p>${this.getTranslation('manufacturer.production.noInventory', 'Hech qanday inventar yo\'q')}</p>
+          </div>
+        `;
+        return;
+      }
+      
+      inventoryContainer.innerHTML = inventory
+        .map(item => this.createInventoryItemCard(item))
+        .join('');
+      
+    } catch (error) {
+      console.error('❌ Failed to update production inventory:', error);
+    }
+  }
+
+  /**
+   * Create inventory item card
+   */
+  createInventoryItemCard(item) {
+    try {
+      const stockStatus = item.quantity < item.minStock ? 'low-stock' : 'normal';
+      
+      return `
+        <div class="inventory-item-card" data-item-id="${item._id}">
+          <div class="item-header">
+            <h4 class="item-name">${item.name || 'Unnamed Item'}</h4>
+            <span class="item-status ${stockStatus}">
+              ${this.getTranslation(`manufacturer.production.stock.${stockStatus}`, stockStatus)}
+            </span>
+          </div>
+          
+          <div class="item-details">
+            <div class="item-quantity">
+              <span class="quantity-label">${this.getTranslation('manufacturer.production.quantity', 'Quantity')}:</span>
+              <span class="quantity-value">${item.quantity || 0}</span>
+            </div>
+            
+            <div class="item-min-stock">
+              <span class="min-stock-label">${this.getTranslation('manufacturer.production.minStock', 'Min Stock')}:</span>
+              <span class="min-stock-value">${item.minStock || 0}</span>
+            </div>
+            
+            <div class="item-unit">
+              <span class="unit-label">${this.getTranslation('manufacturer.production.unit', 'Unit')}:</span>
+              <span class="unit-value">${item.unit || 'pieces'}</span>
+            </div>
+          </div>
+          
+          <div class="item-actions">
+            <button class="btn-action btn-primary" data-action="viewItem" data-item-id="${item._id}">
+              <i class="fas fa-eye"></i>
+              ${this.getTranslation('manufacturer.production.actions.view', 'View')}
+            </button>
+            
+            <button class="btn-action btn-secondary" data-action="updateStock" data-item-id="${item._id}">
+              <i class="fas fa-edit"></i>
+              ${this.getTranslation('manufacturer.production.actions.update', 'Update')}
+            </button>
+          </div>
+        </div>
+      `;
+      
+    } catch (error) {
+      console.error('❌ Failed to create inventory item card:', error);
+      return '';
+    }
+  }
+
+  /**
+   * Update production analytics
+   */
+  updateProductionAnalytics(analytics) {
+    try {
+      // Update production charts
+      if (analytics.charts) {
+        this.updateProductionCharts(analytics.charts);
+      }
+      
+      // Update production metrics
+      if (analytics.metrics) {
+        this.updateProductionMetrics(analytics.metrics);
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to update production analytics:', error);
+    }
+  }
+
+  /**
+   * Update production charts
+   */
+  updateProductionCharts(charts) {
+    try {
+      // Update production efficiency chart
+      if (charts.efficiency) {
+        this.updateEfficiencyChart(charts.efficiency);
+      }
+      
+      // Update production volume chart
+      if (charts.volume) {
+        this.updateVolumeChart(charts.volume);
+      }
+      
+      // Update order status chart
+      if (charts.orderStatus) {
+        this.updateOrderStatusChart(charts.orderStatus);
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to update production charts:', error);
+    }
+  }
+
+  /**
+   * Update production metrics
+   */
+  updateProductionMetrics(metrics) {
+    try {
+      // Update average production time
+      const avgTimeElement = document.querySelector('[data-metric="avgProductionTime"] .metric-value');
+      if (avgTimeElement && metrics.averageProductionTime !== undefined) {
+        avgTimeElement.textContent = `${metrics.averageProductionTime} days`;
+      }
+      
+      // Update quality score
+      const qualityElement = document.querySelector('[data-metric="qualityScore"] .metric-value');
+      if (qualityElement && metrics.qualityScore !== undefined) {
+        qualityElement.textContent = `${metrics.qualityScore}%`;
+      }
+      
+      // Update on-time delivery
+      const onTimeElement = document.querySelector('[data-metric="onTimeDelivery"] .metric-value');
+      if (onTimeElement && metrics.onTimeDelivery !== undefined) {
+        onTimeElement.textContent = `${metrics.onTimeDelivery}%`;
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to update production metrics:', error);
+    }
+  }
+
+  /**
+   * Initialize production dashboard
+   */
+  initializeProductionDashboard() {
+    try {
+      // Setup production dashboard layout
+      const dashboard = document.getElementById('productionDashboard');
+      if (!dashboard) return;
+      
+      // Initialize dashboard components
+      this.initializeProductionKPIs();
+      this.initializeProductionCharts();
+      this.initializeProductionTables();
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize production dashboard:', error);
+    }
+  }
+
+  /**
+   * Initialize production KPIs
+   */
+  initializeProductionKPIs() {
+    try {
+      // Animate KPI cards
+      const kpiCards = document.querySelectorAll('.production-kpi-card');
+      kpiCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate-fade-in');
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize production KPIs:', error);
+    }
+  }
+
+  /**
+   * Initialize production charts
+   */
+  initializeProductionCharts() {
+    try {
+      // Initialize Chart.js charts for production
+      this.initializeEfficiencyChart();
+      this.initializeVolumeChart();
+      this.initializeOrderStatusChart();
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize production charts:', error);
+    }
+  }
+
+  /**
+   * Initialize production tables
+   */
+  initializeProductionTables() {
+    try {
+      // Initialize data tables for production
+      this.initializeProductionOrdersTable();
+      this.initializeProductionInventoryTable();
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize production tables:', error);
+    }
+  }
+
+  /**
+   * Setup production page event listeners
+   */
+  setupProductionPageListeners() {
+    try {
+      // Production order actions
+      document.addEventListener('click', this.handleProductionOrderAction.bind(this));
+      
+      // Production inventory actions
+      document.addEventListener('click', this.handleProductionInventoryAction.bind(this));
+      
+      // Production chart interactions
+      this.setupProductionChartListeners();
+      
+    } catch (error) {
+      console.error('❌ Failed to setup production page listeners:', error);
+    }
+  }
+
+  /**
+   * Initialize production page components
+   */
+  initializeProductionPageComponents() {
+    try {
+      // Initialize tooltips
+      if (typeof initializeTooltips === 'function') {
+        initializeTooltips();
+      }
+      
+      // Initialize animations
+      this.initializeProductionPageAnimations();
+      
+      // Initialize keyboard shortcuts
+      this.initializeProductionPageKeyboardShortcuts();
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize production page components:', error);
+    }
+  }
+
+  /**
+   * Initialize production page animations
+   */
+  initializeProductionPageAnimations() {
+    try {
+      // Stagger production card animations
+      const productionCards = document.querySelectorAll('.production-order-card, .inventory-item-card');
+      productionCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.05}s`;
+        card.classList.add('animate-slide-up');
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize production page animations:', error);
+    }
+  }
+
+  /**
+   * Initialize production page keyboard shortcuts
+   */
+  initializeProductionPageKeyboardShortcuts() {
+    try {
+      document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + N for new production order
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+          e.preventDefault();
+          this.handleNewProductionOrder();
+        }
+        
+        // Ctrl/Cmd + I for inventory management
+        if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+          e.preventDefault();
+          this.handleInventoryManagement();
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize production page keyboard shortcuts:', error);
+    }
+  }
+
+  /**
+   * Handle production order action
+   */
+  handleProductionOrderAction(event) {
+    try {
+      const target = event.target.closest('[data-action]');
+      if (!target) return;
+      
+      const action = target.dataset.action;
+      const orderId = target.dataset.orderId;
+      
+      console.log(`🎯 Production order action: ${action} for order ${orderId}`);
+      
+      switch (action) {
+        case 'viewOrder':
+          this.handleViewProductionOrder(orderId);
+          break;
+        case 'updateProgress':
+          this.handleUpdateProductionProgress(orderId);
+          break;
+        default:
+          console.warn(`Unknown production order action: ${action}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to handle production order action:', error);
+    }
+  }
+
+  /**
+   * Handle production inventory action
+   */
+  handleProductionInventoryAction(event) {
+    try {
+      const target = event.target.closest('[data-action]');
+      if (!target) return;
+      
+      const action = target.dataset.action;
+      const itemId = target.dataset.itemId;
+      
+      console.log(`🎯 Production inventory action: ${action} for item ${itemId}`);
+      
+      switch (action) {
+        case 'viewItem':
+          this.handleViewInventoryItem(itemId);
+          break;
+        case 'updateStock':
+          this.handleUpdateInventoryStock(itemId);
+          break;
+        default:
+          console.warn(`Unknown production inventory action: ${action}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to handle production inventory action:', error);
+    }
+  }
+
+  /**
+   * Handle view production order
+   */
+  handleViewProductionOrder(orderId) {
+    try {
+      console.log(`👁️ Viewing production order: ${orderId}`);
+      
+      // Navigate to production order details
+      window.location.href = `/manufacturer/production/orders/${orderId}`;
+      
+    } catch (error) {
+      console.error('❌ Failed to handle view production order:', error);
+    }
+  }
+
+  /**
+   * Handle update production progress
+   */
+  handleUpdateProductionProgress(orderId) {
+    try {
+      console.log(`📊 Updating production progress: ${orderId}`);
+      
+      // Show progress update modal
+      this.showProductionProgressModal(orderId);
+      
+    } catch (error) {
+      console.error('❌ Failed to handle update production progress:', error);
+    }
+  }
+
+  /**
+   * Handle view inventory item
+   */
+  handleViewInventoryItem(itemId) {
+    try {
+      console.log(`👁️ Viewing inventory item: ${itemId}`);
+      
+      // Navigate to inventory item details
+      window.location.href = `/manufacturer/production/inventory/${itemId}`;
+      
+    } catch (error) {
+      console.error('❌ Failed to handle view inventory item:', error);
+    }
+  }
+
+  /**
+   * Handle update inventory stock
+   */
+  handleUpdateInventoryStock(itemId) {
+    try {
+      console.log(`📦 Updating inventory stock: ${itemId}`);
+      
+      // Show stock update modal
+      this.showInventoryStockModal(itemId);
+      
+    } catch (error) {
+      console.error('❌ Failed to handle update inventory stock:', error);
+    }
+  }
+
+  /**
+   * Handle new production order
+   */
+  handleNewProductionOrder() {
+    try {
+      console.log('➕ New production order requested');
+      
+      // Navigate to new production order page
+      window.location.href = '/manufacturer/production/orders/new';
+      
+    } catch (error) {
+      console.error('❌ Failed to handle new production order:', error);
+    }
+  }
+
+  /**
+   * Handle inventory management
+   */
+  handleInventoryManagement() {
+    try {
+      console.log('📦 Inventory management requested');
+      
+      // Navigate to inventory management page
+      window.location.href = '/manufacturer/production/inventory';
+      
+    } catch (error) {
+      console.error('❌ Failed to handle inventory management:', error);
+    }
+  }
+
+  /**
+   * Show production progress modal
+   */
+  showProductionProgressModal(orderId) {
+    try {
+      console.log(`📊 Showing production progress modal for order: ${orderId}`);
+      
+      // Implementation for production progress modal
+      
+    } catch (error) {
+      console.error('❌ Failed to show production progress modal:', error);
+    }
+  }
+
+  /**
+   * Show inventory stock modal
+   */
+  showInventoryStockModal(itemId) {
+    try {
+      console.log(`📦 Showing inventory stock modal for item: ${itemId}`);
+      
+      // Implementation for inventory stock modal
+      
+    } catch (error) {
+      console.error('❌ Failed to show inventory stock modal:', error);
+    }
+  }
+
+  /**
+   * Setup production chart listeners
+   */
+  setupProductionChartListeners() {
+    try {
+      // Setup chart interaction listeners
+      const efficiencyChart = document.getElementById('efficiencyChart');
+      const volumeChart = document.getElementById('volumeChart');
+      const orderStatusChart = document.getElementById('orderStatusChart');
+      
+      if (efficiencyChart) {
+        efficiencyChart.addEventListener('click', this.handleEfficiencyChartClick.bind(this));
+      }
+      
+      if (volumeChart) {
+        volumeChart.addEventListener('click', this.handleVolumeChartClick.bind(this));
+      }
+      
+      if (orderStatusChart) {
+        orderStatusChart.addEventListener('click', this.handleOrderStatusChartClick.bind(this));
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to setup production chart listeners:', error);
+    }
+  }
+
+  /**
+   * Handle efficiency chart click
+   */
+  handleEfficiencyChartClick(event) {
+    try {
+      console.log('📊 Efficiency chart clicked');
+      // Handle chart interaction
+      
+    } catch (error) {
+      console.error('❌ Failed to handle efficiency chart click:', error);
+    }
+  }
+
+  /**
+   * Handle volume chart click
+   */
+  handleVolumeChartClick(event) {
+    try {
+      console.log('📊 Volume chart clicked');
+      // Handle chart interaction
+      
+    } catch (error) {
+      console.error('❌ Failed to handle volume chart click:', error);
+    }
+  }
+
+  /**
+   * Handle order status chart click
+   */
+  handleOrderStatusChartClick(event) {
+    try {
+      console.log('📊 Order status chart clicked');
+      // Handle chart interaction
+      
+    } catch (error) {
+      console.error('❌ Failed to handle order status chart click:', error);
+    }
+  }
+
+  /**
+   * Initialize efficiency chart
+   */
+  initializeEfficiencyChart() {
+    try {
+      const ctx = document.getElementById('efficiencyChart');
+      if (!ctx) return;
+      
+      // Initialize Chart.js efficiency chart
+      console.log('📊 Initializing efficiency chart');
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize efficiency chart:', error);
+    }
+  }
+
+  /**
+   * Initialize volume chart
+   */
+  initializeVolumeChart() {
+    try {
+      const ctx = document.getElementById('volumeChart');
+      if (!ctx) return;
+      
+      // Initialize Chart.js volume chart
+      console.log('📊 Initializing volume chart');
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize volume chart:', error);
+    }
+  }
+
+  /**
+   * Initialize order status chart
+   */
+  initializeOrderStatusChart() {
+    try {
+      const ctx = document.getElementById('orderStatusChart');
+      if (!ctx) return;
+      
+      // Initialize Chart.js order status chart
+      console.log('📊 Initializing order status chart');
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize order status chart:', error);
+    }
+  }
+
+  /**
+   * Update efficiency chart
+   */
+  updateEfficiencyChart(data) {
+    try {
+      console.log('📊 Updating efficiency chart with data:', data);
+      // Update chart with new data
+      
+    } catch (error) {
+      console.error('❌ Failed to update efficiency chart:', error);
+    }
+  }
+
+  /**
+   * Update volume chart
+   */
+  updateVolumeChart(data) {
+    try {
+      console.log('📊 Updating volume chart with data:', data);
+      // Update chart with new data
+      
+    } catch (error) {
+      console.error('❌ Failed to update volume chart:', error);
+    }
+  }
+
+  /**
+   * Update order status chart
+   */
+  updateOrderStatusChart(data) {
+    try {
+      console.log('📊 Updating order status chart with data:', data);
+      // Update chart with new data
+      
+    } catch (error) {
+      console.error('❌ Failed to update order status chart:', error);
+    }
+  }
+
+  /**
+   * Initialize production orders table
+   */
+  initializeProductionOrdersTable() {
+    try {
+      const table = document.getElementById('productionOrdersTable');
+      if (!table) return;
+      
+      // Initialize data table for production orders
+      console.log('📋 Initializing production orders table');
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize production orders table:', error);
+    }
+  }
+
+  /**
+   * Initialize production inventory table
+   */
+  initializeProductionInventoryTable() {
+    try {
+      const table = document.getElementById('productionInventoryTable');
+      if (!table) return;
+      
+      // Initialize data table for production inventory
+      console.log('📋 Initializing production inventory table');
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize production inventory table:', error);
+    }
+  }
+
+  /**
+   * Load products content - Products page specific initialization
+   */
+  async loadProductsContent() {
+    try {
+      
+      // Initialize products management if available
+      if (window.ProductsManagement) {
+        console.log('✅ Products management initialized');
+      }
+      
+      // Initialize products page specific features
+      await this.initializeProductsPage();
+      
+      // Load products data if needed
+      await this.loadProductsData();
+      
+      // Setup products page event listeners
+      this.setupProductsPageListeners();
+      
+      // Initialize products page components
+      this.initializeProductsPageComponents();
+      
+    } catch (error) {
+      console.error('❌ Failed to load products content:', error);
+    }
+  }
+
+  /**
+   * Initialize products page specific features
+   */
+  async initializeProductsPage() {
+    try {
+      // Initialize product filters
+      this.initializeProductFilters();
+      
+      // Initialize product search
+      this.initializeProductSearch();
+      
+      // Initialize product view toggle
+      this.initializeProductViewToggle();
+      
+      // Initialize product statistics
+      this.initializeProductStatistics();
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize products page:', error);
+    }
+  }
+
+  /**
+   * Load products data from server
+   */
+  async loadProductsData() {
+    try {
+      // Check if we're on products page
+      const productsContainer = document.getElementById('productsGrid');
+      if (!productsContainer) {
+        console.log('📦 Not on products page, skipping data load');
+        return;
+      }
+      
+      // Load products statistics
+      await this.loadProductsStatistics();
+      
+      // Load products list if needed
+      await this.loadProductsList();
+      
+    } catch (error) {
+      console.error('❌ Failed to load products data:', error);
+    }
+  }
+
+  /**
+   * Load products statistics
+   */
+  async loadProductsStatistics() {
+    try {
+      const response = await this.apiCall('/api/manufacturer/products/stats');
+      
+      if (response.success && response.data) {
+        this.updateProductsStatistics(response.data);
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to load products statistics:', error);
+    }
+  }
+
+  /**
+   * Load products list
+   */
+  async loadProductsList() {
+    try {
+      // Only load if products grid is empty
+      const productsGrid = document.getElementById('productsGrid');
+      if (!productsGrid || productsGrid.children.length > 0) {
+        return;
+      }
+      
+      // Use dashboard stats API which includes products data
+      const response = await this.apiCall('/api/dashboard-stats');
+      
+      if (response.success && response.data && response.data.products) {
+        this.renderProductsList(response.data.products);
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to load products list:', error);
+    }
+  }
+
+  /**
+   * Update products statistics display
+   */
+  updateProductsStatistics(stats) {
+    try {
+      // Update total products
+      const totalElement = document.querySelector('[data-metric="total"] .metric-value');
+      if (totalElement && stats.totalProducts !== undefined) {
+        totalElement.textContent = stats.totalProducts;
+      }
+      
+      // Update active products
+      const activeElement = document.querySelector('[data-metric="active"] .metric-value');
+      if (activeElement && stats.activeProducts !== undefined) {
+        activeElement.textContent = stats.activeProducts;
+      }
+      
+      // Update marketplace products
+      const marketplaceElement = document.querySelector('[data-metric="marketplace"] .metric-value');
+      if (marketplaceElement && stats.marketplaceProducts !== undefined) {
+        marketplaceElement.textContent = stats.marketplaceProducts;
+      }
+      
+      // Update low stock products
+      const lowStockElement = document.querySelector('[data-metric="lowstock"] .metric-value');
+      if (lowStockElement && stats.lowStockProducts !== undefined) {
+        lowStockElement.textContent = stats.lowStockProducts;
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to update products statistics:', error);
+    }
+  }
+
+  /**
+   * Render products list
+   */
+  renderProductsList(products) {
+    try {
+      const productsGrid = document.getElementById('productsGrid');
+      if (!productsGrid || !products || products.length === 0) {
+        return;
+      }
+      
+      // Clear existing products
+      productsGrid.innerHTML = '';
+      
+      // Render each product
+      products.forEach((product, index) => {
+        const productCard = this.createProductCard(product);
+        if (productCard) {
+          productsGrid.appendChild(productCard);
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to render products list:', error);
+    }
+  }
+
+  /**
+   * Create product card element
+   */
+  createProductCard(product) {
+    try {
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      card.dataset.productId = product._id;
+      
+      card.innerHTML = `
+        <div class="product-image">
+          <img src="${product.images?.[0] || '/images/placeholder-product.jpg'}" 
+               alt="${product.name || 'Product'}" 
+               onerror="this.src='/images/placeholder-product.jpg'">
+          <div class="product-status ${product.status || 'draft'}">
+            ${this.getTranslation(`manufacturer.products.status.${product.status}`, product.status || 'Draft')}
+          </div>
+        </div>
+        
+        <div class="product-info">
+          <h3 class="product-name">${product.name || 'Unnamed Product'}</h3>
+          <p class="product-category">${product.category?.name || product.category || 'No Category'}</p>
+          
+          <div class="product-pricing">
+            <span class="product-price">
+              ${product.pricing?.basePrice || 0} ${product.pricing?.currency || 'UZS'}
+            </span>
+            <span class="product-unit">/${product.inventory?.unit || 'pieces'}</span>
+          </div>
+          
+          <div class="product-stock">
+            <span class="stock-label">${this.getTranslation('manufacturer.products.stock', 'Stock')}:</span>
+            <span class="stock-value ${product.inventory?.quantity < 10 ? 'low-stock' : ''}">
+              ${product.inventory?.quantity || 0}
+            </span>
+          </div>
+        </div>
+        
+        <div class="product-actions">
+          <button class="btn-action btn-primary" data-action="view" data-product-id="${product._id}">
+            <i class="fas fa-eye"></i>
+            ${this.getTranslation('manufacturer.products.actions.view', 'View')}
+          </button>
+          
+          <button class="btn-action btn-secondary" data-action="edit" data-product-id="${product._id}">
+            <i class="fas fa-edit"></i>
+            ${this.getTranslation('manufacturer.products.actions.edit', 'Edit')}
+          </button>
+          
+          <div class="more-actions">
+            <button class="more-toggle" data-product-id="${product._id}">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="more-menu hidden">
+              <button data-action="analytics" data-product-id="${product._id}">
+                <i class="fas fa-chart-line"></i>
+                ${this.getTranslation('manufacturer.products.actions.analytics', 'Analytics')}
+              </button>
+              <button data-action="duplicate" data-product-id="${product._id}">
+                <i class="fas fa-copy"></i>
+                ${this.getTranslation('manufacturer.products.actions.duplicate', 'Duplicate')}
+              </button>
+              <button data-action="delete" data-product-id="${product._id}" class="danger">
+                <i class="fas fa-trash"></i>
+                ${this.getTranslation('manufacturer.products.actions.delete', 'Delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      return card;
+      
+    } catch (error) {
+      console.error('❌ Failed to create product card:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Initialize product filters
+   */
+  initializeProductFilters() {
+    try {
+      const filterForm = document.getElementById('filtersForm');
+      if (!filterForm) return;
+      
+      // Setup filter event listeners
+      const filterInputs = filterForm.querySelectorAll('select, input');
+      filterInputs.forEach(input => {
+        input.addEventListener('change', this.handleProductFilterChange.bind(this));
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize product filters:', error);
+    }
+  }
+
+  /**
+   * Initialize product search
+   */
+  initializeProductSearch() {
+    try {
+      const searchInput = document.getElementById('searchInput');
+      if (!searchInput) return;
+      
+      // Setup search with debouncing
+      let searchTimeout;
+      searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          this.handleProductSearch(e.target.value);
+        }, 500);
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize product search:', error);
+    }
+  }
+
+  /**
+   * Initialize product view toggle
+   */
+  initializeProductViewToggle() {
+    try {
+      const viewButtons = document.querySelectorAll('.view-btn');
+      viewButtons.forEach(button => {
+        button.addEventListener('click', this.handleProductViewToggle.bind(this));
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize product view toggle:', error);
+    }
+  }
+
+  /**
+   * Initialize product statistics
+   */
+  initializeProductStatistics() {
+    try {
+      // Animate statistics on load
+      const statCards = document.querySelectorAll('.stat-card');
+      statCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate-fade-in');
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize product statistics:', error);
+    }
+  }
+
+  /**
+   * Setup products page event listeners
+   */
+  setupProductsPageListeners() {
+    try {
+      // Product card actions
+      document.addEventListener('click', this.handleProductCardAction.bind(this));
+      
+      // Bulk actions
+      const bulkActionsBtn = document.getElementById('bulkActionsBtn');
+      if (bulkActionsBtn) {
+        bulkActionsBtn.addEventListener('click', this.handleBulkActions.bind(this));
+      }
+      
+      // Add product button
+      const addProductBtn = document.getElementById('addProductBtn');
+      if (addProductBtn) {
+        addProductBtn.addEventListener('click', this.handleAddProduct.bind(this));
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to setup products page listeners:', error);
+    }
+  }
+
+  /**
+   * Initialize products page components
+   */
+  initializeProductsPageComponents() {
+    try {
+      // Initialize tooltips
+      if (typeof initializeTooltips === 'function') {
+        initializeTooltips();
+      }
+      
+      // Initialize animations
+      this.initializeProductsPageAnimations();
+      
+      // Initialize keyboard shortcuts
+      this.initializeProductsPageKeyboardShortcuts();
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize products page components:', error);
+    }
+  }
+
+  /**
+   * Initialize products page animations
+   */
+  initializeProductsPageAnimations() {
+    try {
+      // Stagger product card animations
+      const productCards = document.querySelectorAll('.product-card');
+      productCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.05}s`;
+        card.classList.add('animate-slide-up');
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize products page animations:', error);
+    }
+  }
+
+  /**
+   * Initialize products page keyboard shortcuts
+   */
+  initializeProductsPageKeyboardShortcuts() {
+    try {
+      document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + N for new product
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+          e.preventDefault();
+          this.handleAddProduct();
+        }
+        
+        // Ctrl/Cmd + K for search focus
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          const searchInput = document.getElementById('searchInput');
+          if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+          }
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize products page keyboard shortcuts:', error);
+    }
+  }
+
+  /**
+   * Handle product filter change
+   */
+  handleProductFilterChange(event) {
+    try {
+      const { name, value } = event.target;
+      console.log(`🔄 Product filter changed: ${name} = ${value}`);
+      
+      // Apply filter logic here
+      this.applyProductFilter(name, value);
+      
+    } catch (error) {
+      console.error('❌ Failed to handle product filter change:', error);
+    }
+  }
+
+  /**
+   * Handle product search
+   */
+  handleProductSearch(searchTerm) {
+    try {
+      console.log(`🔍 Product search: ${searchTerm}`);
+      
+      // Apply search logic here
+      this.applyProductSearch(searchTerm);
+      
+    } catch (error) {
+      console.error('❌ Failed to handle product search:', error);
+    }
+  }
+
+  /**
+   * Handle product view toggle
+   */
+  handleProductViewToggle(event) {
+    try {
+      const view = event.currentTarget.dataset.view;
+      console.log(`👁️ Product view changed to: ${view}`);
+      
+      // Apply view change
+      this.applyProductView(view);
+      
+    } catch (error) {
+      console.error('❌ Failed to handle product view toggle:', error);
+    }
+  }
+
+  /**
+   * Handle product card action
+   */
+  handleProductCardAction(event) {
+    try {
+      const target = event.target.closest('[data-action]');
+      if (!target) return;
+      
+      const action = target.dataset.action;
+      const productId = target.dataset.productId;
+      
+      console.log(`🎯 Product action: ${action} for product ${productId}`);
+      
+      // Handle different actions
+      switch (action) {
+        case 'view':
+          this.handleViewProduct(productId);
+          break;
+        case 'edit':
+          this.handleEditProduct(productId);
+          break;
+        case 'analytics':
+          this.handleProductAnalytics(productId);
+          break;
+        case 'duplicate':
+          this.handleDuplicateProduct(productId);
+          break;
+        case 'delete':
+          this.handleDeleteProduct(productId);
+          break;
+        default:
+          console.warn(`Unknown product action: ${action}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to handle product card action:', error);
+    }
+  }
+
+  /**
+   * Handle bulk actions
+   */
+  handleBulkActions() {
+    try {
+      console.log('📦 Bulk actions requested');
+      
+      // Show bulk actions modal
+      this.showBulkActionsModal();
+      
+    } catch (error) {
+      console.error('❌ Failed to handle bulk actions:', error);
+    }
+  }
+
+  /**
+   * Handle add product
+   */
+  handleAddProduct() {
+    try {
+      console.log('➕ Add product requested');
+      
+      // Navigate to add product page
+      window.location.href = '/manufacturer/products/add';
+      
+    } catch (error) {
+      console.error('❌ Failed to handle add product:', error);
+    }
+  }
+
+  /**
+   * Apply product filter
+   */
+  applyProductFilter(filterName, filterValue) {
+    try {
+      // Update URL with filter parameters
+      const url = new URL(window.location);
+      url.searchParams.set(filterName, filterValue);
+      
+      // Navigate to filtered results
+      window.location.href = url.toString();
+      
+    } catch (error) {
+      console.error('❌ Failed to apply product filter:', error);
+    }
+  }
+
+  /**
+   * Apply product search
+   */
+  applyProductSearch(searchTerm) {
+    try {
+      // Update URL with search parameter
+      const url = new URL(window.location);
+      if (searchTerm) {
+        url.searchParams.set('search', searchTerm);
+      } else {
+        url.searchParams.delete('search');
+      }
+      
+      // Navigate to search results
+      window.location.href = url.toString();
+      
+    } catch (error) {
+      console.error('❌ Failed to apply product search:', error);
+    }
+  }
+
+  /**
+   * Apply product view
+   */
+  applyProductView(view) {
+    try {
+      // Update view preference
+      localStorage.setItem('products-view-preference', view);
+      
+      // Apply view to products grid
+      const productsGrid = document.getElementById('productsGrid');
+      if (productsGrid) {
+        productsGrid.className = `products-${view}`;
+      }
+      
+      // Update active button
+      document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelector(`[data-view="${view}"]`).classList.add('active');
+      
+    } catch (error) {
+      console.error('❌ Failed to apply product view:', error);
+    }
+  }
+
+  /**
+   * Show bulk actions modal
+   */
+  showBulkActionsModal() {
+    try {
+      // Implementation for bulk actions modal
+      console.log('📦 Showing bulk actions modal');
+      
+    } catch (error) {
+      console.error('❌ Failed to show bulk actions modal:', error);
+    }
+  }
+
+  /**
    * Load dashboard content
    */
   async loadDashboardContent() {
@@ -1655,12 +3238,10 @@ class ManufacturerDashboard {
    */
   async loadDashboardStats() {
     try {
-
       // Call real API endpoint
       const response = await this.apiCall(
         this.options.apiEndpoints.dashboardStats
       );
-
       if (response.success && response.data) {
         this.updateDashboardMetrics(response.data);
         this.updateKPICards(response.data);
@@ -1678,9 +3259,8 @@ class ManufacturerDashboard {
    */
   updateDashboardMetrics(stats) {
     try {
-    
       // Update production output with safe data access
-      if (this.elements.productionOutput) {
+      if (this.elements && this.elements.productionOutput) {
         const valueElement =
           this.elements.productionOutput.querySelector(".value");
         if (valueElement && stats?.production?.dailyOutput !== undefined) {
@@ -1690,34 +3270,28 @@ class ManufacturerDashboard {
             stats.production.dailyOutput,
             1000
           );
-        } else {
-          this.logger.warn("⚠️ Production output element not found or no data");
         }
       }
 
       // Update efficiency with safe data access
-      if (this.elements.overallEfficiency) {
+      if (this.elements && this.elements.overallEfficiency) {
         const valueElement =
           this.elements.overallEfficiency.querySelector(".value");
         if (valueElement && stats?.efficiency?.value !== undefined) {
           this.animateValue(valueElement, 0, stats.efficiency.value, 1000, 1);
-        } else {
-          this.logger.warn("⚠️ Efficiency element not found or no data");
         }
       }
 
       // Update quality score with safe data access
-      if (this.elements.qualityScore) {
+      if (this.elements && this.elements.qualityScore) {
         const valueElement = this.elements.qualityScore.querySelector(".value");
         if (valueElement && stats?.quality?.score !== undefined) {
           this.animateValue(valueElement, 0, stats.quality.score, 1000, 1);
-        } else {
-          this.logger.warn("⚠️ Quality score element not found or no data");
         }
       }
 
       // Update revenue with safe data access
-      if (this.elements.monthlyRevenue) {
+      if (this.elements && this.elements.monthlyRevenue) {
         const valueElement =
           this.elements.monthlyRevenue.querySelector(".value");
         if (valueElement && stats?.revenue?.monthly !== undefined) {
@@ -1728,8 +3302,6 @@ class ManufacturerDashboard {
             maximumFractionDigits: 0,
           }).format(stats.revenue.monthly);
           valueElement.textContent = formattedRevenue;
-          } else {
-          this.logger.warn("⚠️ Revenue element not found or no data");
         }
       }
 
@@ -2064,58 +3636,21 @@ class ManufacturerDashboard {
    */
   updateKPICards(stats) {
     try {
-      // Update Total Sales card - try both selector methods
-      const totalSalesElement =
-        document.getElementById("totalSalesValue") ||
-        document.querySelector('[data-kpi="totalSales"] .kpi-value');
-      if (totalSalesElement && stats.totalSales) {
-        const formattedValue = new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "USD",
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
-        }).format(stats.totalSales);
-
-        totalSalesElement.innerHTML = formattedValue;
-        totalSalesElement.classList.add("updated");
-      } else {
-        this.logger.warn("❌ Total Sales element not found or no data");
-      }
+      // Update Total Sales card
+      const totalSalesValue = stats.totalSales || stats.totalRevenue || stats.overview?.totalRevenue || 0;
+      this.updateKPICard('totalSales', totalSalesValue, 'currency');
 
       // Update Active Orders card
-      const activeOrdersElement =
-        document.getElementById("activeOrdersValue") ||
-        document.querySelector('[data-kpi="activeOrders"] .kpi-value');
-      if (activeOrdersElement && stats.activeOrders !== undefined) {
-        activeOrdersElement.innerHTML = stats.activeOrders.toLocaleString();
-        activeOrdersElement.classList.add("updated");
-       } else {
-        this.logger.warn("❌ Active Orders element not found or no data");
-      }
+      const activeOrdersValue = stats.activeOrders || stats.overview?.pendingOrders || 0;
+      this.updateKPICard('activeOrders', activeOrdersValue, 'number');
 
       // Update Total Products card
-      const totalProductsElement =
-        document.getElementById("totalProductsValue") ||
-        document.querySelector('[data-kpi="totalProducts"] .kpi-value');
-      if (totalProductsElement && stats.totalProducts !== undefined) {
-        totalProductsElement.innerHTML = stats.totalProducts.toLocaleString();
-        totalProductsElement.classList.add("updated");
-     } else {
-        this.logger.warn("❌ Total Products element not found or no data");
-      }
+      const totalProductsValue = stats.totalProducts || stats.overview?.totalProducts || 0;
+      this.updateKPICard('totalProducts', totalProductsValue, 'number');
 
       // Update Inquiries card
-      const inquiriesElement =
-        document.getElementById("inquiriesValue") ||
-        document.querySelector('[data-kpi="inquiries"] .kpi-value');
-      if (inquiriesElement && stats.inquiries !== undefined) {
-        inquiriesElement.innerHTML = stats.inquiries.toLocaleString();
-        inquiriesElement.classList.add("updated");
-      
-      } else {
-        this.logger.warn("❌ Inquiries element not found or no data");
-        this.logger.log("🔍 Available stats:", stats);
-      }
+      const inquiriesValue = stats.inquiries || stats.overview?.totalInquiries || 0;
+      this.updateKPICard('inquiries', inquiriesValue, 'number');
 
       // Update platform status metrics
       this.updatePlatformStatusMetrics(stats);
@@ -2135,6 +3670,41 @@ class ManufacturerDashboard {
 
     } catch (error) {
       this.logger.error("❌ Failed to update KPI cards:", error);
+    }
+  }
+
+  /**
+   * Update individual KPI card with proper formatting
+   */
+  updateKPICard(kpiType, value, dataType = 'number') {
+    try {
+      const valueElement = document.querySelector(`[data-kpi="${kpiType}"] .kpi-value`);
+      
+      if (!valueElement) {
+        return;
+      }
+
+      let formattedValue = '0';
+
+      if (dataType === 'currency') {
+        // Format as currency
+        formattedValue = new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(value || 0);
+      } else {
+        // Format as number
+        formattedValue = (value || 0).toLocaleString();
+      }
+
+      // Update the value
+      valueElement.innerHTML = formattedValue;
+      valueElement.classList.add("updated");
+      
+    } catch (error) {
+      this.logger.error(`❌ Failed to update ${kpiType} card:`, error);
     }
   }
 
@@ -2180,27 +3750,163 @@ class ManufacturerDashboard {
    * Update trend indicators for KPI cards
    */
   updateTrendIndicators(stats) {
-    if (stats.trends) {
-      // Update sales trend
-      const salesTrendElement = document.querySelector(
-        '[data-kpi="totalSales"] .kpi-trend'
-      );
-      if (salesTrendElement && stats.revenueGrowth) {
-        salesTrendElement.textContent = `+${stats.revenueGrowth}%`;
-        salesTrendElement.className = "kpi-trend trend-up";
+    try {
+      // Update Total Sales trend - use revenueGrowth or calculate from trends
+      const salesTrend = stats.revenueGrowth || this.calculateTrendFromArray(stats.trends?.salesTrend);
+      this.updateKPITrend('totalSales', salesTrend, 'currency');
+      
+      // Update Active Orders trend
+      const ordersTrend = this.calculateTrendFromArray(stats.trends?.ordersTrend);
+      this.updateKPITrend('activeOrders', ordersTrend, 'number');
+      
+      // Update Total Products trend - for products, we might not have trend data, so show neutral
+      const productsTrend = this.calculateProductsTrend(stats);
+      this.updateKPITrend('totalProducts', productsTrend, 'number');
+      
+      // Update Inquiries trend
+      const inquiriesTrend = this.calculateTrendFromArray(stats.trends?.inquiriesTrend);
+      this.updateKPITrend('inquiries', inquiriesTrend, 'number');
+      
+    } catch (error) {
+      this.logger.error('❌ Failed to update trend indicators:', error);
+    }
+  }
+
+  /**
+   * Calculate trend from array data
+   */
+  calculateTrendFromArray(trendArray) {
+    if (!Array.isArray(trendArray) || trendArray.length < 2) {
+      return null; // No trend data available
+    }
+    
+    // Calculate growth from last two values
+    const current = trendArray[trendArray.length - 1];
+    const previous = trendArray[trendArray.length - 2];
+    
+    if (previous === 0) {
+      return current > 0 ? 100 : 0; // If previous was 0, show 100% if current > 0
+    }
+    
+    return Math.round(((current - previous) / previous) * 100);
+  }
+
+  /**
+   * Calculate products trend - since products don't have trend array, 
+   * we'll show a neutral trend or calculate based on available data
+   */
+  calculateProductsTrend(stats) {
+    try {
+      // If we have chart data with products, use that
+      if (stats.chartData && stats.chartData.products && Array.isArray(stats.chartData.products)) {
+        return this.calculateTrendFromArray(stats.chartData.products);
+      }
+      
+      // If we have trends.productsTrend array, use that
+      if (stats.trends && Array.isArray(stats.trends.productsTrend) && stats.trends.productsTrend.length >= 2) {
+        return this.calculateTrendFromArray(stats.trends.productsTrend);
+      }
+      
+      // For products, we typically don't have trend data since they're relatively stable
+      // Show neutral trend (0%) instead of N/A
+      if (stats.totalProducts !== undefined) {
+        return 0; // Neutral trend - no change
+      }
+      
+      // No data available
+      return null;
+    } catch (error) {
+      this.logger.error('❌ Error calculating products trend:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Update individual KPI trend with proper formatting, icons and text
+   */
+  updateKPITrend(kpiType, trendData, dataType = 'number') {
+    try {
+      const trendElement = document.querySelector(`[data-kpi="${kpiType}"] .kpi-trend`);
+      const statChangeElement = document.querySelector(`[data-kpi="${kpiType}"] .stat-change`);
+      
+      if (!trendElement || !statChangeElement) {
+        return;
       }
 
-      // Update orders trend
-      const ordersTrendElement = document.querySelector(
-        '[data-kpi="activeOrders"] .kpi-trend'
-      );
-      if (ordersTrendElement && stats.trends.ordersTrend) {
-        const growth = this.calculateGrowth(stats.trends.ordersTrend);
-        ordersTrendElement.textContent = `${growth > 0 ? "+" : ""}${growth}%`;
-        ordersTrendElement.className = `kpi-trend ${
-          growth > 0 ? "trend-up" : "trend-down"
-        }`;
+      let trendValue = 0;
+      let trendText = 'N/A';
+      let trendClass = 'neutral';
+      let trendIcon = 'fas fa-minus';
+      let trendDescription = this.getTranslation('manufacturer.dashboard.kpiCards.trends.noChange', 'O\'zgarish yo\'q');
+
+      // Handle different data types
+      if (trendData === null || trendData === undefined) {
+        // No trend data available
+        trendText = 'N/A';
+        trendClass = 'neutral';
+        trendIcon = 'fas fa-minus';
+        trendDescription = this.getTranslation('manufacturer.dashboard.kpiCards.trends.noData', 'Ma\'lumot yo\'q');
+      } else if (typeof trendData === 'number') {
+        // Direct number trend
+        trendValue = trendData;
+        if (trendValue > 0) {
+          trendText = `+${trendValue}%`;
+          trendClass = 'positive';
+          trendIcon = 'fas fa-arrow-up';
+          trendDescription = this.getTranslation('manufacturer.dashboard.kpiCards.trends.increasing', 'O\'sish');
+        } else if (trendValue < 0) {
+          trendText = `${trendValue}%`;
+          trendClass = 'negative';
+          trendIcon = 'fas fa-arrow-down';
+          trendDescription = this.getTranslation('manufacturer.dashboard.kpiCards.trends.decreasing', 'Pasayish');
+        } else {
+          trendText = '0%';
+          trendClass = 'neutral';
+          trendIcon = 'fas fa-minus';
+          trendDescription = this.getTranslation('manufacturer.dashboard.kpiCards.trends.noChange', 'O\'zgarish yo\'q');
+        }
+      } else if (Array.isArray(trendData) && trendData.length >= 2) {
+        // Array-based trend
+        trendValue = this.calculateGrowth(trendData);
+        if (trendValue > 0) {
+          trendText = `+${trendValue}%`;
+          trendClass = 'positive';
+          trendIcon = 'fas fa-arrow-up';
+          trendDescription = this.getTranslation('manufacturer.dashboard.kpiCards.trends.increasing', 'O\'sish');
+        } else if (trendValue < 0) {
+          trendText = `${trendValue}%`;
+          trendClass = 'negative';
+          trendIcon = 'fas fa-arrow-down';
+          trendDescription = this.getTranslation('manufacturer.dashboard.kpiCards.trends.decreasing', 'Pasayish');
+        } else {
+          trendText = '0%';
+          trendClass = 'neutral';
+          trendIcon = 'fas fa-minus';
+          trendDescription = this.getTranslation('manufacturer.dashboard.kpiCards.trends.noChange', 'O\'zgarish yo\'q');
+        }
+      } else {
+        // Invalid data
+        trendText = 'N/A';
+        trendClass = 'neutral';
+        trendIcon = 'fas fa-minus';
+        trendDescription = this.getTranslation('manufacturer.dashboard.kpiCards.trends.noData', 'Ma\'lumot yo\'q');
       }
+
+      // Create rich trend content with icon and text
+      const trendContent = `
+        <i class="${trendIcon}"></i>
+        <span class="trend-value">${trendText}</span>
+        <span class="trend-description">${trendDescription}</span>
+      `;
+
+      // Update trend content
+      trendElement.innerHTML = trendContent;
+      
+      // Update stat-change class
+      statChangeElement.className = `stat-change ${trendClass}`;
+      
+    } catch (error) {
+      this.logger.error(`❌ Failed to update ${kpiType} trend:`, error);
     }
   }
 
@@ -2247,7 +3953,6 @@ class ManufacturerDashboard {
    */
   async loadSalesChart() {
     try {
-
       const response = await this.apiCall(
         this.options.apiEndpoints.productionMetrics
       );
@@ -2265,7 +3970,7 @@ class ManufacturerDashboard {
    */
   updateSalesChart(data) {
     const chartCanvas = document.getElementById("salesChart");
-    if (!chartCanvas) return;
+    if (!chartCanvas || typeof chartCanvas.getContext !== 'function') return;
 
     const ctx = chartCanvas.getContext("2d");
 
@@ -2274,15 +3979,25 @@ class ManufacturerDashboard {
       this.charts.salesChart.destroy();
     }
 
+    // Get chart data with proper labels based on period
+    const chartData = data.chartData || {};
+    const labels = chartData.labels || [
+      this.getTranslation('manufacturer.dashboard.charts.months.january', 'Yanvar'),
+      this.getTranslation('manufacturer.dashboard.charts.months.february', 'Fevral'),
+      this.getTranslation('manufacturer.dashboard.charts.months.march', 'Mart'),
+      this.getTranslation('manufacturer.dashboard.charts.months.april', 'Aprel'),
+      this.getTranslation('manufacturer.dashboard.charts.months.may', 'May')
+    ];
+
     // Create new chart with real data
     this.charts.salesChart = new Chart(ctx, {
       type: "line",
       data: {
-        labels: ["Yanvar", "Fevral", "Mart", "Aprel", "May"],
+        labels: labels,
         datasets: [
           {
-            label: "B2B Savdo hajmi",
-            data: data.trends?.salesTrend || [
+            label: this.getTranslation('manufacturer.dashboard.charts.series.salesVolume', 'B2B Savdo hajmi'),
+            data: chartData.sales || data.trends?.salesTrend || [
               98000, 105000, 112000, 118000, 125450,
             ],
             borderColor: "rgb(124, 58, 237)",
@@ -2291,8 +4006,8 @@ class ManufacturerDashboard {
             tension: 0.4,
           },
           {
-            label: "Distributorlar so'rovlari",
-            data: data.trends?.inquiriesTrend || [38, 42, 45, 43, 45],
+            label: this.getTranslation('manufacturer.dashboard.charts.series.distributorInquiries', 'Distributorlar so\'rovlari'),
+            data: chartData.orders || data.trends?.inquiriesTrend || [38, 42, 45, 43, 45],
             borderColor: "rgb(34, 197, 94)",
             backgroundColor: "rgba(34, 197, 94, 0.1)",
             fill: true,
@@ -2314,7 +4029,7 @@ class ManufacturerDashboard {
             position: "left",
             title: {
               display: true,
-              text: "Savdo hajmi ($)",
+              text: this.getTranslation('manufacturer.dashboard.charts.axes.salesVolume', 'Savdo hajmi ($)'),
             },
           },
           y1: {
@@ -2323,7 +4038,7 @@ class ManufacturerDashboard {
             position: "right",
             title: {
               display: true,
-              text: "So'rovlar soni",
+              text: this.getTranslation('manufacturer.dashboard.charts.axes.inquiriesCount', 'So\'rovlar soni'),
             },
             grid: {
               drawOnChartArea: false,
@@ -2333,7 +4048,7 @@ class ManufacturerDashboard {
         plugins: {
           title: {
             display: true,
-            text: "B2B Marketplace Performance",
+            text: this.getTranslation('manufacturer.dashboard.charts.title', 'B2B Marketplace Performance'),
           },
           legend: {
             display: true,
@@ -2348,7 +4063,6 @@ class ManufacturerDashboard {
    */
   async loadProductionMetrics() {
     try {
-
       const response = await this.apiCall(
         this.options.apiEndpoints.productionMetrics
       );
@@ -2366,7 +4080,6 @@ class ManufacturerDashboard {
    */
   async loadSalesAnalytics() {
     try {
-
       const response = await this.apiCall(
         this.options.apiEndpoints.salesAnalytics
       );
@@ -2491,7 +4204,23 @@ class ManufacturerDashboard {
   updateTopProductsWidget(products) {
     try {
       const container = document.querySelector(".top-products-list");
-      if (!container || !products || products.length === 0) return;
+      if (!container) {
+        return;
+      }
+      
+      if (!products || products.length === 0) {
+        // Show no data state with proper translation
+        container.innerHTML = `
+          <div class="no-data">
+            <div class="no-data-icon">
+              <i class="fas fa-star"></i>
+            </div>
+            <h4>${this.getTranslation('manufacturer.dashboard.widgets.topProducts.noData', 'Reytingi yuqori mahsulotlar topilmadi')}</h4>
+            <p>${this.getTranslation('manufacturer.dashboard.widgets.topProducts.noDataDesc', 'Hozircha reytingi yuqori mahsulotlar mavjud emas. Mijozlar mahsulotlaringizni baholagach, bu yerda ko\'rishingiz mumkin.')}</p>
+          </div>
+        `;
+        return;
+      }
 
       container.innerHTML = products
         .map(
@@ -2500,18 +4229,17 @@ class ManufacturerDashboard {
                     <div class="product-info">
                         <div class="product-rank">#${index + 1}</div>
                         <div class="product-details">
-                            <h4 class="product-name">${product.name}</h4>
+                            <h4 class="product-name">${product.name || this.getTranslation('manufacturer.dashboard.widgets.topProducts.unknownProduct', 'Noma\'lum mahsulot')}</h4>
                             <p class="product-sales">${
-                              product.units
-                            } sotildi</p>
+                              product.units || 0
+                            } ${this.getTranslation('manufacturer.dashboard.widgets.topProducts.sold', 'sotildi')}</p>
                         </div>
                     </div>
                     <div class="product-stats">
-                        <span class="revenue">$${product.sales.toLocaleString()}</span>
+                        <span class="revenue">${this.formatCurrency(product.sales || product.revenue || 0)}</span>
                         <div class="rating">
-                            <i class="fas fa-star"></i> ${(
-                              4.5 +
-                              Math.random() * 0.4
+                            <i class="fas fa-star"></i> ${this.getTranslation('manufacturer.dashboard.widgets.topProducts.rating', 'Reyting')}: ${(
+                              product.rating || 4.5 + Math.random() * 0.4
                             ).toFixed(1)}
                         </div>
                     </div>
@@ -2543,19 +4271,19 @@ class ManufacturerDashboard {
                         <div class="order-header">
                             <span class="order-id">${order.id}</span>
                             <span class="order-date">${this.getRelativeTime(
-                              new Date()
+                              new Date(order.createdAt || order.timestamp)
                             )}</span>
                         </div>
                         <div class="order-body">
-                            <h4 class="order-product">Buyurtma - ${
+                            <h4 class="order-product">${this.getTranslation('manufacturer.dashboard.widgets.recentOrders.orderPrefix', 'Buyurtma')} - ${
                               order.id
                             }</h4>
                             <div class="order-client">
                                 <i class="fas fa-store"></i> ${
-                                  order.distributor
+                                  order.distributor || order.companyName || this.getTranslation('manufacturer.dashboard.widgets.recentOrders.unknownDistributor', 'Noma\'lum distribyutor')
                                 }
                             </div>
-                            <div class="order-amount">$${order.amount.toLocaleString()}</div>
+                            <div class="order-amount">${this.formatCurrency(order.amount || order.totalAmount)}</div>
                         </div>
                         <div class="order-footer">
                             <span class="status-badge status-${statusClass}">${this.getStatusText(
@@ -2616,10 +4344,13 @@ class ManufacturerDashboard {
   getRelativeTime(date) {
     const now = new Date();
     const diffHours = Math.floor((now - date) / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
 
-    if (diffHours < 1) return window.t ? window.t('manufacturer.dashboard.time.justNow') : "Just now";
-    if (diffHours < 24) return `${diffHours} ${window.t ? window.t('manufacturer.dashboard.time.hoursAgo') : 'hours ago'}`;
-    return `${Math.floor(diffHours / 24)} ${window.t ? window.t('manufacturer.dashboard.time.daysAgo') : 'days ago'}`;
+    if (diffHours < 1) return this.getTranslation('manufacturer.dashboard.time.justNow', "Hozirgina");
+    if (diffHours === 1) return `1 ${this.getTranslation('manufacturer.dashboard.time.hourAgo', 'soat oldin')}`;
+    if (diffHours < 24) return `${diffHours} ${this.getTranslation('manufacturer.dashboard.time.hoursAgo', 'soat oldin')}`;
+    if (diffDays === 1) return `1 ${this.getTranslation('manufacturer.dashboard.time.dayAgo', 'kun oldin')}`;
+    return `${diffDays} ${this.getTranslation('manufacturer.dashboard.time.daysAgo', 'kun oldin')}`;
   }
 
   /**
@@ -2627,7 +4358,6 @@ class ManufacturerDashboard {
    */
   async loadNotifications() {
     try {
-   
       const response = await this.apiCall(
         this.options.apiEndpoints.notifications
       );
@@ -2659,13 +4389,21 @@ class ManufacturerDashboard {
    */
   getStatusText(status) {
     const statusMap = {
-      processing: window.t ? window.t('manufacturer.dashboard.status.processing') : "Processing",
-      shipped: window.t ? window.t('manufacturer.dashboard.status.shipped') : "Shipped",
-      pending: window.t ? window.t('manufacturer.dashboard.status.pending') : "Pending",
-      completed: window.t ? window.t('manufacturer.dashboard.status.completed') : "Completed",
-      cancelled: window.t ? window.t('manufacturer.dashboard.status.cancelled') : "Cancelled",
+      processing: this.getTranslation('manufacturer.dashboard.status.processing', "Jarayonda"),
+      shipped: this.getTranslation('manufacturer.dashboard.status.shipped', "Yuborilgan"),
+      pending: this.getTranslation('manufacturer.dashboard.status.pending', "Kutilmoqda"),
+      completed: this.getTranslation('manufacturer.dashboard.status.completed', "Tugallangan"),
+      cancelled: this.getTranslation('manufacturer.dashboard.status.cancelled', "Bekor qilingan"),
     };
     return statusMap[status] || status;
+  }
+
+  /**
+   * Format currency amount
+   */
+  formatCurrency(amount) {
+    if (!amount) return this.getTranslation('manufacturer.dashboard.currency.noAmount', 'Narx yo\'q');
+    return `$${amount.toLocaleString()}`;
   }
 
   /**
@@ -2673,8 +4411,6 @@ class ManufacturerDashboard {
    */
   async loadDistributorInquiries() {
     try {
-    
-
       const response = await this.apiCall(
         this.options.apiEndpoints.distributorInquiries
       );
@@ -2699,7 +4435,6 @@ class ManufacturerDashboard {
       // Fix: Use specific container ID instead of generic class
       const inquiriesContainer = document.getElementById("distributorInquiriesList");
       if (!inquiriesContainer) {
-        this.logger.error("❌ distributorInquiriesList container not found");
         return;
       }
 
@@ -2748,6 +4483,7 @@ class ManufacturerDashboard {
   createInquiryElement(inquiry) {
     const div = document.createElement("div");
     div.className = `inquiry-card ${inquiry.priority || "new"}-priority`;
+    div.style.cursor = 'pointer';
 
     const timeAgo = this.getTimeAgo(inquiry.timestamp || inquiry.createdAt);
 
@@ -2758,7 +4494,7 @@ class ManufacturerDashboard {
                         <i class="fas fa-building"></i>
                     </div>
                     <div class="company-details">
-                        <h4 class="company-title">${inquiry.companyName || "Noma'lum kompaniya"}</h4>
+                        <h4 class="company-title">${inquiry.companyName || this.getTranslation('manufacturer.dashboard.widgets.distributorInquiries.unknownCompany', "Noma'lum kompaniya")}</h4>
                         <span class="inquiry-timestamp">${timeAgo}</span>
                     </div>
                 </div>
@@ -2767,7 +4503,7 @@ class ManufacturerDashboard {
                 }">${this.getPriorityLabel(inquiry.priority || "new")}</div>
             </div>
             <div class="inquiry-message">
-                <p>${inquiry.message || inquiry.content || (window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.noMessage') : "No inquiry message")}</p>
+                <p>${inquiry.message || inquiry.content || this.getTranslation('manufacturer.dashboard.widgets.distributorInquiries.noMessage', "So'rov matni mavjud emas")}</p>
                 <div class="order-specs">
                     ${inquiry.specs && Array.isArray(inquiry.specs)
                       ? inquiry.specs.map((spec) => `<span class="spec-tag">${spec}</span>`).join("")
@@ -2776,10 +4512,25 @@ class ManufacturerDashboard {
                 </div>
             </div>
             <div class="inquiry-buttons">
-                <button class="btn-respond">Javob berish</button>
-                <button class="btn-quote">Narx yuborish</button>
+                <button class="btn-view" data-inquiry-id="${inquiry.id || inquiry._id}" onclick="event.stopPropagation();">
+                    <i class="fas fa-eye"></i> ${this.getTranslation('manufacturer.dashboard.widgets.distributorInquiries.view', 'Ko\'rish')}
+                </button>
             </div>
         `;
+
+    // Add click event to navigate to inquiry page
+    div.addEventListener('click', () => {
+      window.location.href = '/manufacturer/inquiries';
+    });
+
+    // Add button event listener
+    const viewBtn = div.querySelector('.btn-view');
+    if (viewBtn) {
+      viewBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = '/manufacturer/inquiries';
+      });
+    }
 
     return div;
   }
@@ -2789,7 +4540,6 @@ class ManufacturerDashboard {
    */
   async loadCommunicationCenter() {
     try {
-
       const response = await this.apiCall(
         this.options.apiEndpoints.communicationCenter
       );
@@ -2950,15 +4700,12 @@ class ManufacturerDashboard {
    */
   async loadInventoryManagement() {
     try {
-        // Loading inventory management...
-
       const response = await this.apiCall(
         this.options.apiEndpoints.inventoryManagement
       );
 
       if (response.success && response.data) {
         this.updateInventoryManagement(response.data);
-        // Inventory management loaded successfully
       }
     } catch (error) {
       this.logger.error("❌ Failed to load inventory management:", error);
@@ -2980,7 +4727,7 @@ class ManufacturerDashboard {
                         </div>
                         <div class="summary-info">
                             <h4 class="summary-title">${data.stockSummary.normal.label}</h4>
-                            <span class="summary-count">${data.stockSummary.normal.count} mahsulot</span>
+                            <span class="summary-count">${data.stockSummary.normal.count} ${this.getTranslation('manufacturer.dashboard.widgets.inventoryManagement.productUnit', 'mahsulot')}</span>
                         </div>
                     </div>
                     <div class="summary-item warning">
@@ -2989,7 +4736,7 @@ class ManufacturerDashboard {
                         </div>
                         <div class="summary-info">
                             <h4 class="summary-title">${data.stockSummary.low.label}</h4>
-                            <span class="summary-count">${data.stockSummary.low.count} mahsulot</span>
+                            <span class="summary-count">${data.stockSummary.low.count} ${this.getTranslation('manufacturer.dashboard.widgets.inventoryManagement.productUnit', 'mahsulot')}</span>
                         </div>
                     </div>
                     <div class="summary-item danger">
@@ -2998,7 +4745,7 @@ class ManufacturerDashboard {
                         </div>
                         <div class="summary-info">
                             <h4 class="summary-title">${data.stockSummary.outOfStock.label}</h4>
-                            <span class="summary-count">${data.stockSummary.outOfStock.count} mahsulot</span>
+                            <span class="summary-count">${data.stockSummary.outOfStock.count} ${this.getTranslation('manufacturer.dashboard.widgets.inventoryManagement.productUnit', 'mahsulot')}</span>
                         </div>
                     </div>
                 `;
@@ -3016,7 +4763,7 @@ class ManufacturerDashboard {
                             <p class="item-sku">${item.sku}</p>
                         </div>
                         <div class="item-stock">
-                            <span class="stock-level ${item.level}">${item.currentStock} ${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.unit') : 'unit'}</span>
+                            <span class="stock-level ${item.level}">${item.currentStock} ${this.getTranslation('manufacturer.dashboard.widgets.inventoryManagement.unit', 'dona')}</span>
                             <span class="stock-action">${item.action}</span>
                         </div>
                     </div>
@@ -3025,12 +4772,11 @@ class ManufacturerDashboard {
           .join("");
 
         criticalStock.innerHTML = `
-                    <h4 class="section-title">${window.t ? window.t('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.title') : 'Requires Attention'}</h4>
+                    <h4 class="section-title">${this.getTranslation('manufacturer.dashboard.widgets.inventoryManagement.criticalItems.title', 'Diqqat talab qiladi')}</h4>
                     ${itemsHtml}
                 `;
       }
 
-        // Inventory management updated
     } catch (error) {
       this.logger.error("❌ Failed to update inventory management:", error);
     }
@@ -3044,11 +4790,13 @@ class ManufacturerDashboard {
     const time = new Date(timestamp);
     const diffMs = now - time;
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
 
-    if (diffHours < 1) return window.t ? window.t('manufacturer.dashboard.time.justNow') : "Just now";
-    if (diffHours === 1) return `1 ${window.t ? window.t('manufacturer.dashboard.time.hourAgo') : 'hour ago'}`;
-    if (diffHours < 24) return `${diffHours} ${window.t ? window.t('manufacturer.dashboard.time.hoursAgo') : 'hours ago'}`;
-    return `1 ${window.t ? window.t('manufacturer.dashboard.time.dayAgo') : 'day ago'}`;
+    if (diffHours < 1) return this.getTranslation('manufacturer.dashboard.time.justNow', "Hozir");
+    if (diffHours === 1) return `1 ${this.getTranslation('manufacturer.dashboard.time.hourAgo', 'soat oldin')}`;
+    if (diffHours < 24) return `${diffHours} ${this.getTranslation('manufacturer.dashboard.time.hoursAgo', 'soat oldin')}`;
+    if (diffDays === 1) return `1 ${this.getTranslation('manufacturer.dashboard.time.dayAgo', 'kun oldin')}`;
+    return `${diffDays} ${this.getTranslation('manufacturer.dashboard.time.daysAgo', 'kun oldin')}`;
   }
 
   /**
@@ -3056,11 +4804,25 @@ class ManufacturerDashboard {
    */
   getPriorityLabel(priority) {
     const labels = {
-      urgent: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.urgent') : "Urgent",
-      new: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.new') : "New",
-      followup: window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.followup') : "Follow-up",
+      urgent: this.getTranslation('manufacturer.dashboard.widgets.distributorInquiries.priority.urgent', "Shoshilinch"),
+      new: this.getTranslation('manufacturer.dashboard.widgets.distributorInquiries.priority.new', "Yangi"),
+      followup: this.getTranslation('manufacturer.dashboard.widgets.distributorInquiries.priority.followup', "Kuzatuv"),
     };
-    return labels[priority] || (window.t ? window.t('manufacturer.dashboard.widgets.distributorInquiries.priority.new') : "New");
+    return labels[priority] || this.getTranslation('manufacturer.dashboard.widgets.distributorInquiries.priority.new', "Yangi");
+  }
+
+  /**
+   * Get translation with fallback
+   */
+  getTranslation(key, fallback) {
+    try {
+      if (window.t && typeof window.t === 'function') {
+        return window.t(key) || fallback;
+      }
+      return fallback;
+    } catch (error) {
+      return fallback;
+    }
   }
 
   /**
@@ -3085,7 +4847,6 @@ class ManufacturerDashboard {
     });
 
     this.isInitialized = false;
-      // Manufacturer Dashboard destroyed
   }
 }
 

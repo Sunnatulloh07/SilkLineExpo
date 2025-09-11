@@ -50,7 +50,6 @@ class CategoriesManagement {
         // Initialize DOM elements
         this.initializeElements();
         
-        console.log('✅ CategoriesManagement initialized successfully');
     }
 
     /**
@@ -104,7 +103,6 @@ class CategoriesManagement {
      */
     async init() {
         try {
-            console.log('🚀 Initializing Categories Management...');
             
             await this.setupEventListeners();
             await this.loadParentCategories();
@@ -112,7 +110,6 @@ class CategoriesManagement {
             this.setupThemeListener(); // Add theme listener setup
             this.setupDropdownManager(); // Professional dropdown management
             
-            console.log('✅ Categories Management initialized successfully');
         } catch (error) {
             console.error('❌ Error initializing Categories Management:', error);
             this.showError('Failed to initialize categories management system');
@@ -918,13 +915,11 @@ class CategoriesManagement {
      * Category action methods
      */
     async viewCategory(categoryId) {
-        console.log('Viewing category:', categoryId);
         // Implementation for viewing category details
         this.showNotification('Category details view - To be implemented', 'info');
     }
 
     async editCategory(categoryId) {
-        console.log('Editing category:', categoryId);
         // Implementation for editing category
         this.showNotification('Category edit modal - To be implemented', 'info');
     }
@@ -933,7 +928,6 @@ class CategoriesManagement {
         try {
             const response = await this.makeRequest(this.endpoints.analytics.replace('{id}', categoryId));
             if (response.success) {
-                console.log('Category analytics:', response.data);
                 this.showNotification('Category analytics loaded successfully', 'success');
                 // Implementation for showing analytics modal/page
             }
@@ -998,7 +992,6 @@ class CategoriesManagement {
     }
 
     async duplicateCategory(categoryId) {
-        console.log('Duplicating category:', categoryId);
         this.showNotification('Category duplication - To be implemented', 'info');
     }
 
@@ -1090,7 +1083,6 @@ class CategoriesManagement {
      * Modal operations
      */
     async showCreateModal() {
-        console.log('🎨 Opening create category modal...');
         
         try {
             // Load parent categories for dropdown
@@ -1111,7 +1103,6 @@ class CategoriesManagement {
                 modal.classList.add('show');
             }, 10);
             
-            console.log('✅ Create category modal opened successfully');
         } catch (error) {
             console.error('❌ Error opening create modal:', error);
             this.showError('Failed to open create category modal');
@@ -1128,7 +1119,6 @@ class CategoriesManagement {
             
             const result = await response.json();
             this.parentCategories = result.data?.categories || [];
-            console.log(`📦 Loaded ${this.parentCategories.length} parent categories for modal`);
         } catch (error) {
             console.error('Error loading parent categories:', error);
             this.parentCategories = [];
@@ -1704,7 +1694,6 @@ class CategoriesManagement {
      * Initialize modal features and event listeners
      */
     initializeModalFeatures(modal) {
-        console.log('🎯 Initializing modal features...');
         
         // Auto-generate slug from name
         this.setupSlugGeneration(modal);
@@ -1724,7 +1713,6 @@ class CategoriesManagement {
         // Setup form submission
         this.setupFormSubmission(modal);
         
-        console.log('✅ Modal features initialized successfully');
     }
 
     /**
@@ -1917,7 +1905,6 @@ class CategoriesManagement {
      * Handle category creation
      */
     async handleCategoryCreation(form, modal) {
-        console.log('🚀 Starting category creation process...');
         
         try {
             // Validate form
@@ -1931,7 +1918,6 @@ class CategoriesManagement {
             
             // Collect form data
             const formData = this.collectFormData(form);
-            console.log('📋 Collected form data:', formData);
             
             // Submit to backend
             const response = await fetch(this.endpoints.categories, {
@@ -1944,7 +1930,6 @@ class CategoriesManagement {
             });
             
             const result = await response.json();
-            console.log('📡 Server response:', result);
             
             if (result.success) {
                 // Success - close modal and refresh table
@@ -1955,7 +1940,6 @@ class CategoriesManagement {
                 // Update theme for any remaining modals
                 this.updateModalTheme();
                 
-                console.log('✅ Category created successfully:', result.data.category);
             } else {
                 // Handle validation errors
                 this.handleServerErrors(result, form);
@@ -2350,14 +2334,12 @@ class CategoriesManagement {
         // Listen for theme changes from the main dashboard
         window.addEventListener('themeChanged', (event) => {
             const newTheme = event.detail.theme;
-            console.log('Categories page received theme change:', newTheme);
             this.updateModalTheme();
         });
 
         // Listen for storage events (theme changes from other tabs)
         window.addEventListener('storage', (event) => {
             if (event.key === 'dashboard-theme') {
-                console.log('Categories page received theme change from storage:', event.newValue);
                 this.updateModalTheme();
             }
         });
@@ -2374,7 +2356,6 @@ class CategoriesManagement {
      * Setup professional dropdown management with proper event delegation
      */
     setupDropdownManager() {
-        console.log('🎯 Setting up professional dropdown manager...');
         
         this.activeDropdown = null;
         this.dropdownState = new Map();
@@ -2388,7 +2369,6 @@ class CategoriesManagement {
         // Setup outside click handler
         this.setupOutsideClickHandler();
         
-        console.log('✅ Professional dropdown manager initialized');
     }
 
     /**
@@ -2452,7 +2432,6 @@ class CategoriesManagement {
                 this.openDropdown(categoryId, dropdownMenu, trigger);
             }
             
-            console.log(`🎯 Dropdown toggle: ${categoryId}, isOpen: ${!isCurrentlyOpen}`);
             
         } catch (error) {
             console.error('❌ Dropdown toggle error:', error);
@@ -2483,7 +2462,6 @@ class CategoriesManagement {
             // Setup keyboard navigation
             this.setupKeyboardNavigation(dropdownMenu);
             
-            console.log(`✅ Dropdown opened: ${categoryId}`);
             
         } catch (error) {
             console.error('❌ Open dropdown error:', error);
@@ -2573,7 +2551,6 @@ class CategoriesManagement {
                 dropdownMenu.classList.add('dropdown-right');
             }
             
-            console.log(`🎯 Dropdown positioned: ${fitsBelow ? 'below' : 'above'}, ${fitsRight ? 'right' : 'left'}`);
             
         } catch (error) {
             console.error('❌ Dropdown positioning error:', error);
@@ -2639,7 +2616,6 @@ class CategoriesManagement {
      */
     executeDropdownAction(action, categoryId) {
         try {
-            console.log(`🎯 Executing action: ${action} for category: ${categoryId}`);
             
             switch (action) {
                 case 'toggle-status':

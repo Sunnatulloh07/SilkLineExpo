@@ -110,7 +110,7 @@ const userSchema = new mongoose.Schema({
   
   city: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
     maxlength: 100
   },
@@ -120,6 +120,19 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true,
     maxlength: 500
+  },
+  
+  // Additional address fields
+  district: {
+    type: String,
+    trim: true,
+    maxlength: 100
+  },
+  
+  postalCode: {
+    type: String,
+    trim: true,
+    maxlength: 20
   },
   
   // Company Logo

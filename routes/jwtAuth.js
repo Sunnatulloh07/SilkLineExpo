@@ -272,24 +272,35 @@ router.get('/language/:lang', (req, res) => {
         const supportedLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
         
         if (supportedLanguages.includes(lang)) {
-            res.cookie('language', lang, {
+            // Set consistent language cookies
+            const cookieOptions = {
                 maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
                 httpOnly: false,
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict'
-            });
+                sameSite: 'lax'
+            };
             
+            res.cookie('i18next', lang, cookieOptions);
+            res.cookie('selectedLanguage', lang, cookieOptions);
+            res.cookie('language', lang, cookieOptions);
+            
+            // Update session language if user is logged in
             if (req.session) {
                 req.session.language = lang;
             }
+            
+            // Update i18next language for current request
+            if (req.i18n && req.i18n.changeLanguage) {
+                req.i18n.changeLanguage(lang);
+            }
         }
         
-        // Redirect back to referring page or home
-        const returnTo = req.get('Referer') || '/';
-        res.redirect(returnTo);
+        // Get redirect URL from query parameter or referer
+        const redirectUrl = req.query.redirect || req.get('Referer') || '/';
+        res.redirect(redirectUrl);
         
     } catch (error) {
-        console.error('Language redirect error:', error);
+        console.error('❌ Language redirect error:', error);
         res.redirect('/');
     }
 });

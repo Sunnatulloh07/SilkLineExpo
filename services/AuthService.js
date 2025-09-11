@@ -33,12 +33,7 @@ class AuthService {
       if (logoFile) {
         try {
           logoData = await FileService.processCompanyLogo(logoFile);
-          console.log('✅ Logo processed successfully:', {
-            filename: logoData.filename,
-            size: logoData.size,
-            url: logoData.url
-          });
-        } catch (logoError) {
+                } catch (logoError) {
           console.error('❌ Logo processing failed:', logoError);
           // Clean up uploaded file on error
           if (logoFile && logoFile.path) {

@@ -184,7 +184,6 @@ class BuyerSuppliers {
 
 // Global functions
 window.viewSupplierDetails = (supplierId) => {
-    console.log('Viewing supplier details:', supplierId);
     // Implementation for supplier details modal
 };
 
@@ -193,17 +192,14 @@ window.contactSupplier = (supplierId) => {
 };
 
 window.openSupplierDiscovery = () => {
-    console.log('Opening supplier discovery');
     // Implementation for supplier discovery
 };
 
 window.exportSuppliers = () => {
-    console.log('Exporting suppliers');
     // Implementation for export functionality
 };
 
 window.loadMoreSuppliers = () => {
-    console.log('Loading more suppliers');
     // Implementation for pagination
 };
 

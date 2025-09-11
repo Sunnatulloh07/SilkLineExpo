@@ -248,7 +248,6 @@ class UsersManagement {
             // Remove any lingering event listeners
             this.cleanupDropdownEvents();
             
-            console.log('🎯 All professional dropdowns closed');
             
         } catch (error) {
             console.error('❌ Close all dropdowns error:', error);
@@ -538,7 +537,6 @@ class UsersManagement {
             tab: this.currentTab 
         });
         
-        console.log('🔍 Search performed with filters:', this.activeFilters);
     }
 
     /**
@@ -697,7 +695,6 @@ class UsersManagement {
         // Track event
         this.trackEvent('filters_cleared', { tab: this.currentTab });
         
-        console.log('🧹 All filters cleared');
     }
 
     /**
@@ -732,7 +729,6 @@ class UsersManagement {
         }
         
         if (!users || users.length === 0) {
-            console.log('📭 No users to render, showing empty state');
             this.renderEmptyState('empty');
             return;
         }
@@ -765,7 +761,6 @@ class UsersManagement {
      * Render mobile card for responsive view
      */
     renderMobileCard(user) {
-        console.log(user)
         const isSelected = this.selectedUsers.has(user._id);
         const profileScore = this.calculateProfileScore(user);
         
@@ -1237,7 +1232,6 @@ class UsersManagement {
                 this.openDropdown(dropdown, trigger, userId);
             }
             
-            console.log(`🎯 Dropdown toggle: ${userId}, isOpen: ${!isCurrentlyOpen}`);
             
         } catch (error) {
             console.error('❌ Toggle dropdown error:', error);
@@ -1281,7 +1275,6 @@ class UsersManagement {
             // Track analytics
             this.trackEvent('dropdown_opened', { userId, timestamp: Date.now() });
             
-            console.log(`🎯 Professional dropdown opened successfully: ${userId}`);
             
         } catch (error) {
             console.error('❌ Open dropdown error:', error, { dropdown, trigger, userId });
@@ -1957,7 +1950,6 @@ class UsersManagement {
      */
     async viewUser(userId) {
         try {
-            console.log('👁️ View user:', userId);
             
             // Get user data
             const user = await this.getUserData(userId);
@@ -1975,7 +1967,6 @@ class UsersManagement {
      */
     async editUser(userId) {
         try {
-            console.log('✏️ Edit user:', userId);
             
             // Get user data
             const user = await this.getUserData(userId);
@@ -2841,7 +2832,6 @@ class UsersManagement {
      */
     trackEvent(event, data = {}) {
         // Implementation depends on analytics service
-        console.log('📊 Analytics:', event, data);
         
         // Example: Google Analytics 4
         if (typeof gtag !== 'undefined') {
@@ -3323,12 +3313,10 @@ class UsersManagement {
      * Modal placeholder methods (TODO: Implement)
      */
     showUserDetailsModal(userId) {
-        console.log('TODO: Implement user details modal for user:', userId);
         this.showToast('User details modal - Coming soon!', 'info');
     }
 
     showUserEditModal(userId) {
-        console.log('TODO: Implement user edit modal for user:', userId);
         this.showToast('User edit modal - Coming soon!', 'info');
     }
 
@@ -3349,7 +3337,6 @@ class UsersManagement {
         window.removeEventListener('popstate', this.restoreState);
         document.removeEventListener('visibilitychange', this.loadUsers);
         
-        console.log('🧹 Users Management System destroyed');
     }
 
     // ========================================================================================
@@ -3361,7 +3348,6 @@ class UsersManagement {
      */
     async viewCompanyProfile(userId) {
         try {
-            console.log('👁️ Opening company profile:', userId);
             
             this.showTableLoading();
             const userData = await this.getUserData(userId);
@@ -3386,7 +3372,6 @@ class UsersManagement {
      */
     async editCompanyInfo(userId) {
         try {
-            console.log('✏️ Opening company edit:', userId);
             
             this.showTableLoading();
             const userData = await this.getUserData(userId);
@@ -3411,7 +3396,6 @@ class UsersManagement {
      */
     async viewCompanyProducts(userId) {
         try {
-            console.log('📦 Opening company products:', userId);
             
             // Navigate to products page with company filter
             window.location.href = `/admin/products?company=${userId}`;
@@ -3427,7 +3411,6 @@ class UsersManagement {
      */
     async viewCompanyOrders(userId) {
         try {
-            console.log('📋 Opening company orders:', userId);
             
             // Navigate to orders page with company filter
             window.location.href = `/admin/orders?company=${userId}`;
@@ -3838,7 +3821,6 @@ class UsersManagement {
      */
     async exportFilteredCompanies() {
         try {
-            console.log('📊 Exporting filtered companies...');
             
             // Show loading
             this.showTableLoading();
@@ -3896,7 +3878,6 @@ class UsersManagement {
      */
     async showApproveUserModal(userId) {
         try {
-            console.log('📋 Opening approve user modal for:', userId);
             
             // Get user details
             const user = await this.getUserDetails(userId);
@@ -3929,7 +3910,6 @@ class UsersManagement {
      */
     async showBlockUserModal(userId) {
         try {
-            console.log('🚫 Opening block user modal for:', userId);
             
             const user = await this.getUserDetails(userId);
             if (!user) return;
@@ -3957,7 +3937,6 @@ class UsersManagement {
      */
     async showSuspendUserModal(userId) {
         try {
-            console.log('⏸️ Opening suspend user modal for:', userId);
             
             const user = await this.getUserDetails(userId);
             if (!user) return;
@@ -4013,7 +3992,6 @@ class UsersManagement {
      */
     async showDeleteUserModal(userId) {
         try {
-            console.log('🗑️ Opening delete user modal for:', userId);
             
             const user = await this.getUserDetails(userId);
             if (!user) return;
@@ -4041,7 +4019,6 @@ class UsersManagement {
      */
     async showRejectUserModal(userId) {
         try {
-            console.log('❌ Opening reject user modal for:', userId);
             
             const user = await this.getUserDetails(userId);
             if (!user) return;
@@ -4407,7 +4384,6 @@ class UsersManagement {
                 return;
             }
 
-            console.log('📋 Opening bulk approve modal for', selectedUsers.length, 'users');
             
             // Populate modal with selected users
             this.populateBulkModal('approve', selectedUsers);
@@ -4441,7 +4417,6 @@ class UsersManagement {
                 return;
             }
 
-            console.log('🚫 Opening bulk block modal for', selectedUsers.length, 'users');
             
             this.populateBulkModal('block', selectedUsers);
             
@@ -4472,7 +4447,6 @@ class UsersManagement {
                 return;
             }
 
-            console.log('⏸️ Opening bulk suspend modal for', selectedUsers.length, 'users');
             
             this.populateBulkModal('suspend', selectedUsers);
             
@@ -4503,7 +4477,6 @@ class UsersManagement {
                 return;
             }
 
-            console.log('🗑️ Opening bulk delete modal for', selectedUsers.length, 'users');
             
             this.populateBulkModal('delete', selectedUsers);
             
@@ -4666,7 +4639,6 @@ class UsersManagement {
      */
     async executeBulkOperation(action, userIds, data, modal) {
         try {
-            console.log(`🚀 Executing bulk ${action} for ${userIds.length} users`);
             
             // Show progress section
             const progressSection = document.getElementById(`bulk${action.charAt(0).toUpperCase() + action.slice(1)}Progress`);
@@ -4732,7 +4704,6 @@ class UsersManagement {
      */
     showBulkResultsModal(action, results) {
         try {
-            console.log('📊 Showing bulk results modal:', results);
             
             // Populate results summary
             document.getElementById('bulkSuccessCount').textContent = results.successful || 0;
@@ -4808,7 +4779,6 @@ class UsersManagement {
      */
     async retryFailedOperations(action, failedOperations) {
         try {
-            console.log('🔄 Retrying failed operations:', failedOperations);
             
             const userIds = failedOperations.map(op => op.userId);
             // This would need to re-open the appropriate modal with the failed user IDs
@@ -4850,7 +4820,6 @@ window.bulkExportUsers = () => usersManagement?.bulkExportUsers();
 // PROFESSIONAL SMART DROPDOWN WITH DARK MODE & POSITIONING
 window.toggleSmartDropdown = (userId, event) => {
     try {
-        console.log('🎯 Toggle smart dropdown:', userId);
         
         // Close all other dropdowns first
         document.querySelectorAll('.smart-dropdown.show').forEach(menu => {
@@ -4898,11 +4867,9 @@ window.positionSmartDropdown = (dropdown, button) => {
         if (spaceBelow >= dropdownHeight || spaceBelow >= spaceAbove) {
             // Position below (default)
             dropdown.classList.add('position-bottom');
-            console.log('🎯 Positioning dropdown below button');
         } else {
             // Position above
             dropdown.classList.add('position-top');
-            console.log('🎯 Positioning dropdown above button');
         }
         
     } catch (error) {
@@ -4914,61 +4881,52 @@ window.positionSmartDropdown = (dropdown, button) => {
 
 // PROFESSIONAL FULLY FUNCTIONAL ACTIONS
 window.viewCompanyProfile = (userId) => {
-    console.log('🎯 View company profile:', userId);
     usersManagement?.closeAllSmartDropdowns();
     
     if (usersManagement?.viewCompanyProfile) {
         usersManagement.viewCompanyProfile(userId);
     } else {
         // Fallback implementation
-        console.log('📋 Opening company profile modal for:', userId);
         usersManagement?.showNotification('Company profile modal opening...', 'info');
     }
 };
 
 window.editCompanyInfo = (userId) => {
-    console.log('🎯 Edit company info:', userId);
     usersManagement?.closeAllSmartDropdowns();
     
     if (usersManagement?.editCompanyInfo) {
         usersManagement.editCompanyInfo(userId);
     } else {
         // Fallback implementation
-        console.log('✏️ Opening company edit modal for:', userId);
         usersManagement?.showNotification('Company edit modal opening...', 'info');
     }
 };
 
 window.viewCompanyProducts = (userId) => {
-    console.log('🎯 View company products:', userId);
     usersManagement?.closeAllSmartDropdowns();
     
     if (usersManagement?.viewCompanyProducts) {
         usersManagement.viewCompanyProducts(userId);
     } else {
         // Fallback implementation
-        console.log('📦 Opening products page for company:', userId);
         usersManagement?.showNotification('Navigating to company products...', 'info');
         // Could redirect to products page: window.location.href = `/admin/products?company=${userId}`;
     }
 };
 
 window.viewCompanyOrders = (userId) => {
-    console.log('🎯 View company orders:', userId);
     usersManagement?.closeAllSmartDropdowns();
     
     if (usersManagement?.viewCompanyOrders) {
         usersManagement.viewCompanyOrders(userId);
     } else {
         // Fallback implementation
-        console.log('📋 Opening orders page for company:', userId);
         usersManagement?.showNotification('Navigating to company orders...', 'info');
         // Could redirect to orders page: window.location.href = `/admin/orders?company=${userId}`;
     }
 };
 
 window.approveCompany = async (userId) => {
-    console.log('🎯 Approve company:', userId);
     usersManagement?.closeAllSmartDropdowns();
     
     if (usersManagement?.showApproveUserModal) {
@@ -4977,7 +4935,6 @@ window.approveCompany = async (userId) => {
 };
 
 window.suspendCompany = async (userId) => {
-    console.log('🎯 Suspend company:', userId);
     usersManagement?.closeAllSmartDropdowns();
     
     if (usersManagement?.showSuspendUserModal) {
@@ -4986,7 +4943,6 @@ window.suspendCompany = async (userId) => {
 };
 
 window.activateCompany = async (userId) => {
-    console.log('🎯 Activate company:', userId);
     usersManagement?.closeAllSmartDropdowns();
     
     if (usersManagement?.showActivateUserModal) {
@@ -4995,7 +4951,6 @@ window.activateCompany = async (userId) => {
 };
 
 window.blockCompany = async (userId) => {
-    console.log('🎯 Block company:', userId);
     usersManagement?.closeAllSmartDropdowns();
     
     if (usersManagement?.showBlockUserModal) {
@@ -5004,7 +4959,6 @@ window.blockCompany = async (userId) => {
 };
 
 window.deleteCompany = async (userId) => {
-    console.log('🎯 Delete company:', userId);
     usersManagement?.closeAllSmartDropdowns();
     
     if (usersManagement?.showDeleteUserModal) {
@@ -5013,7 +4967,6 @@ window.deleteCompany = async (userId) => {
 };
 
 window.unblockCompany = async (userId) => {
-    console.log('🎯 Unblock company:', userId);
     usersManagement?.closeAllSmartDropdowns();
     
     if (usersManagement?.unblockUser) {
@@ -5022,7 +4975,6 @@ window.unblockCompany = async (userId) => {
 };
 
 window.restoreCompany = async (userId) => {
-    console.log('🎯 Restore company:', userId);
     usersManagement?.closeAllSmartDropdowns();
     
     if (usersManagement?.restoreUser) {
@@ -5031,7 +4983,6 @@ window.restoreCompany = async (userId) => {
 };
 
 window.rejectCompany = async (userId) => {
-    console.log('🎯 Reject company:', userId);
     usersManagement?.closeAllSmartDropdowns();
     
     if (usersManagement?.rejectUser) {
@@ -5041,7 +4992,6 @@ window.rejectCompany = async (userId) => {
 
 window.exportFilteredCompanies = () => usersManagement?.exportFilteredCompanies();
 window.openCreateUserModal = () => {
-    console.log('TODO: Implement create user modal');
     usersManagement?.showToast('Create user modal - Coming soon!', 'info');
 };
 

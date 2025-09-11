@@ -1158,7 +1158,6 @@ function editProfile() {
       if (window.buyerTokenManager) {
         // Setup token event listeners
         buyerTokenManager.on('token-refreshed', (data) => {
-          console.log('✅ Buyer tokens refreshed successfully');
         });
 
         buyerTokenManager.on('auth-error', (data) => {
@@ -1192,7 +1191,6 @@ function editProfile() {
              } catch (error) {
            }
         } else {
-          console.log('⚠️ Profile page: User is not distributor, not saving to localStorage. companyType:', currentUserData.companyType);
         }
       }
     });

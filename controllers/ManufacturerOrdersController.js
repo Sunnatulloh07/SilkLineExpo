@@ -154,7 +154,6 @@ class ManufacturerOrdersController {
                     if (typeof order.items === 'string') {
                         try {
                             order.items = JSON.parse(order.items);
-                            console.log(`📦 Parsed items array: ${order.items.length} items`);
                         } catch (parseError) {
                             console.error('❌ Error parsing items JSON:', parseError);
                             order.items = [];
@@ -391,10 +390,8 @@ class ManufacturerOrdersController {
                 const calculatedTotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
                 order.totalAmount = calculatedTotal;
                 
-                console.log(`🔧 Using mock data for order: ${orderId}`);
             } else {
                 // Process real database order
-                console.log(`🏗️ Processing real database order: ${orderId}`);
                 
                 // Ensure proper structure for EJS template
                 if (order.items) {
@@ -427,8 +424,6 @@ class ManufacturerOrdersController {
                 }
             }
             
-            console.log(`👁️ Loading order details: ${orderId} for manufacturer: ${manufacturerId}`);
-            console.log(`📊 Order contains ${order.items?.length || 0} items, total: $${order.totalAmount?.toFixed(2) || '0.00'}`);
 
             // Get unread messages count for sidebar badge
             let unreadMessages = 0;
@@ -613,7 +608,6 @@ class ManufacturerOrdersController {
                 status: 'active'
             }).select('title name images pricing category').lean();
 
-            console.log(`✏️ Loading order edit: ${orderId} for manufacturer: ${manufacturerId}`);
 
             // Get unread messages count for sidebar badge
             let unreadMessages = 0;

@@ -43,13 +43,7 @@ router.post('/:orderId/communication',
             }
 
             // For now, just simulate sending a message
-            console.log(`📧 Communication sent for order ${orderId}:`, {
-                type: type || 'information',
-                subject,
-                content,
-                from: manufacturerId
-            });
-
+          
             res.json({
                 success: true,
                 message: 'Xabar muvaffaqiyatli yuborildi',
@@ -111,7 +105,6 @@ router.post('/:orderId/notes',
                 createdAt: new Date()
             };
 
-            console.log(`📝 Note added to order ${orderId}:`, note);
 
             res.json({
                 success: true,
@@ -172,7 +165,6 @@ router.patch('/:orderId/items/:itemIndex/status',
             }
 
             // For now, just simulate updating item status
-            console.log(`✅ Order item status updated: ${orderId} item ${itemIdx} -> ${status}`);
 
             res.json({
                 success: true,
@@ -220,7 +212,6 @@ router.post('/:orderId/duplicate',
             // For now, just simulate duplicating an order
             const newOrderId = new mongoose.Types.ObjectId();
             
-            console.log(`📋 Order duplicated: ${orderId} -> ${newOrderId}`);
 
             res.json({
                 success: true,

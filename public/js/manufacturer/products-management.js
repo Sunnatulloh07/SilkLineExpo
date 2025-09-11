@@ -55,8 +55,6 @@
      */
     function initializeProductsManagement() {
         try {
-            logger.log('🚀 Initializing Professional Products Management System');
-            
             // Load server data
             loadServerData();
             
@@ -71,8 +69,6 @@
             
             // Setup keyboard shortcuts
             setupKeyboardShortcuts();
-            
-            logger.log('✅ Products Management System initialized successfully');
             
         } catch (error) {
             logger.error('❌ Failed to initialize Products Management:', error);
@@ -89,11 +85,6 @@
             if (dataScript) {
                 productsData = JSON.parse(dataScript.textContent);
                 currentFilters = productsData.filters || {};
-                logger.log('📊 Server data loaded:', {
-                    products: productsData.products?.length || 0,
-                    filters: Object.keys(currentFilters),
-                    stats: productsData.stats
-                });
             }
         } catch (error) {
             logger.error('❌ Failed to load server data:', error);
@@ -134,7 +125,6 @@
         // Statistics cards
         DOM.statCards = document.querySelectorAll('.stat-card');
         
-        logger.log('🎯 DOM elements cached successfully');
     }
 
     /**
@@ -201,7 +191,6 @@
         // More actions dropdown handlers
         document.addEventListener('click', handleMoreActionsToggle);
 
-        logger.log('🔗 Event listeners setup completed');
     }
 
     /**
@@ -231,7 +220,6 @@
         
         if (isLoading) return;
         
-        logger.log('🔍 Processing filter submission');
         
         const formData = new FormData(DOM.filtersForm);
         const filters = Object.fromEntries(formData.entries());
@@ -303,7 +291,6 @@
         // Navigate to filtered results
         const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
         
-        logger.log('🚀 Applying filters, navigating to:', newUrl);
         showToast('Filtrlar qo\'llanmoqda...', 'info');
         
         window.location.href = newUrl;
@@ -313,7 +300,6 @@
      * Handle add new product
      */
     function handleAddProduct() {
-        logger.log('➕ Adding new product');
         window.location.href = '/manufacturer/products/add';
     }
 
@@ -326,7 +312,6 @@
             return;
         }
 
-        logger.log(`📦 Opening bulk actions for ${selectedProducts.size} products`);
         showModal('bulkActionsModal');
     }
 
@@ -334,7 +319,6 @@
      * Handle filter reset
      */
     function handleResetFilters() {
-        logger.log('🔄 Resetting all filters');
         
         // Reset form
         if (DOM.filtersForm) {
@@ -361,7 +345,6 @@
     function handleRefreshProducts() {
         if (isLoading) return;
         
-        logger.log('🔄 Refreshing products');
                     showToast(window.t ? window.t('manufacturer.products.messages.updatingProducts') : 'Updating products...', 'info');
         
         // Reload current page
@@ -387,7 +370,6 @@
         // Store preference
         localStorage.setItem('products-view-preference', view);
         
-        logger.log(`👁️ View changed to: ${view}`);
     }
 
     /**
@@ -400,7 +382,6 @@
         const action = target.dataset.action;
         const productId = target.dataset.productId;
         
-        logger.log(`🎯 Product action: ${action} for product: ${productId}`);
 
         switch (action) {
             case 'view':
@@ -629,7 +610,6 @@
      * Handle product edit
      */
     function handleEditProduct(productId) {
-        logger.log(`✏️ Editing product: ${productId}`);
         window.location.href = `/manufacturer/products/${productId}/edit`;
     }
 
@@ -637,7 +617,6 @@
      * Handle product analytics
      */
     function handleProductAnalytics(productId) {
-        logger.log(`📊 Viewing analytics for product: ${productId}`);
         window.location.href = `/manufacturer/products/${productId}/analytics`;
     }
 
@@ -786,7 +765,6 @@
 
         const action = target.dataset.action;
         
-        logger.log(`📦 Bulk action: ${action} for ${selectedProducts.size} products`);
 
         switch (action) {
             case 'publish-selected':
@@ -1007,7 +985,6 @@
             }
         }, duration);
         
-        logger.log(`📱 Toast: ${type} - ${message}`);
     }
 
     /**
@@ -1189,7 +1166,6 @@
         setInterval(() => {
             const inactiveTime = Date.now() - lastActivity;
             if (inactiveTime > 10 * 60 * 1000) { // 10 minutes
-                logger.log('🔄 Auto-refreshing due to inactivity');
                 window.location.reload();
             }
         }, 5 * 60 * 1000); // 5 minutes

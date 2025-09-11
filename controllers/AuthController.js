@@ -214,7 +214,6 @@ class AuthController {
       // Use email as identifier if identifier is not provided
       const loginIdentifier = (identifier || email || "").toLowerCase().trim();
       
-      console.log(`🔐 Login attempt for: ${loginIdentifier} from IP: ${clientIP}`);
 
       // Input validation
       if (!loginIdentifier || !password) {
@@ -409,7 +408,6 @@ class AuthController {
       res.clearCookie('rememberMe');
       res.clearCookie('connect.sid');
 
-      console.log("🔓 User logged out successfully");
 
       // Check if it's an AJAX/API request
       const isApiRequest = req.xhr || req.headers.accept?.includes('application/json') || req.path.startsWith('/api/');

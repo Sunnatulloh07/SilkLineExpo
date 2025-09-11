@@ -2532,7 +2532,6 @@ router.post('/api/supplier/report', async (req, res) => {
     };
     
     // Here you would save the report to database
-    console.log('🚨 Supplier Report:', reportData);
     
     res.json({
       success: true,

@@ -9,13 +9,6 @@
     <div class="product-header animate-fade-in">
       <div class="header-content">
         <div class="header-title-section">
-          <div class="breadcrumb">
-            <a href="/manufacturer/dashboard" class="breadcrumb-link"><%= t('manufacturer.products.add.breadcrumb.dashboard') %></a>
-            <i class="fas fa-chevron-right breadcrumb-separator"></i>
-            <a href="/manufacturer/marketplace" class="breadcrumb-link"><%= t('manufacturer.products.add.breadcrumb.marketplace') %></a>
-            <i class="fas fa-chevron-right breadcrumb-separator"></i>
-            <span class="breadcrumb-current"><%= t('manufacturer.products.add.breadcrumb.addProduct') %></span>
-          </div>
           <h1 class="page-title">
             <i class="fas fa-plus-circle"></i>
             <%= t('manufacturer.products.add.pageTitle') %>
@@ -808,38 +801,27 @@
         }
     
         init() {
-            console.log('🏭 Initializing Product Add Manager...');
             
             try {
                 this.setupFormNavigation();
-                console.log('✅ Form navigation setup complete');
                 
                 this.setupFormValidation();
-                console.log('✅ Form validation setup complete');
                 
                 this.setupImageUpload();
-                console.log('✅ Image upload setup complete');
                 
                 this.setupDynamicSections();
-                console.log('✅ Dynamic sections setup complete');
                 
                 this.setupAutoSave();
-                console.log('✅ Auto-save setup complete');
                 
                 this.setupKeyboardShortcuts();
-                console.log('✅ Keyboard shortcuts setup complete');
                 
                 this.setupFormChangeTracking();
-                console.log('✅ Form change tracking setup complete');
                 
                 this.setupProgressTracking();
-                console.log('✅ Progress tracking setup complete');
                 
                 // Setup quick action buttons
                 this.setupQuickActions();
-                console.log('✅ Quick actions setup complete');
                 
-                console.log('✅ Product Add Manager fully initialized');
             } catch (error) {
                 console.error('❌ Product Add Manager initialization failed:', error);
                 throw error;
@@ -847,41 +829,31 @@
         }
     
         setupFormNavigation() {
-            console.log('🔄 Setting up form navigation...');
             
             const nextBtn = document.getElementById('nextStep');
             const prevBtn = document.getElementById('prevStep');
             const submitBtn = document.getElementById('submitForm');
     
-            console.log('Navigation buttons found:', { 
-                nextBtn: !!nextBtn, 
-                prevBtn: !!prevBtn, 
-                submitBtn: !!submitBtn 
-            });
+             
     
             nextBtn?.addEventListener('click', () => {
-                console.log('Next button clicked');
                 this.nextStep();
             });
             
             prevBtn?.addEventListener('click', () => {
-                console.log('Previous button clicked');
                 this.prevStep();
             });
             
             submitBtn?.addEventListener('click', (e) => {
-                console.log('Submit button clicked');
                 this.submitForm(e);
             });
     
             // Step indicators
             const stepElements = document.querySelectorAll('.step[data-step]');
-            console.log('Step indicators found:', stepElements.length);
             
             stepElements.forEach(step => {
                 step.addEventListener('click', (e) => {
                     const stepNum = parseInt(e.currentTarget.dataset.step);
-                    console.log('Step indicator clicked:', stepNum);
                     this.goToStep(stepNum);
                 });
             });
@@ -909,7 +881,6 @@
         
         async saveAsDraft() {
             try {
-                console.log('💾 Saving product as draft...');
                 
                 const saveAsDraftBtn = document.getElementById('saveAsDraftBtn');
                 this.setButtonLoading(saveAsDraftBtn, window.t('manufacturer.products.add.loading.savingAsDraft'));
@@ -931,7 +902,6 @@
                 if (result.success) {
                     this.isDirty = false;
                     this.showSuccessToast(window.t('manufacturer.products.add.success.savedAsDraft'));
-                    console.log('✅ Product saved as draft successfully');
                     
                     // Optionally redirect to edit page
                     setTimeout(() => {
@@ -953,7 +923,6 @@
         
         async publishProduct() {
             try {
-                console.log('🚀 Publishing product...');
                 
                 const publishBtn = document.getElementById('publishBtn');
                 this.setButtonLoading(publishBtn, 'Chop etilmoqda...');
@@ -984,7 +953,6 @@
                 if (result.success) {
                     this.isDirty = false;
                     this.showPublishSuccessMessage(result.data);
-                    console.log('✅ Product published successfully');
                 } else {
                     if (result.errors && result.errors.length > 0) {
                         this.showValidationErrors(result.errors);
@@ -1145,7 +1113,6 @@
         }
     
         setupProgressTracking() {
-            console.log('📊 Setting up real-time progress tracking...');
             
             // Initial progress calculation
             this.updateStepProgress();
@@ -1252,7 +1219,6 @@
             const completion = Math.round((completedWeight / totalWeight) * 100);
             
             // Log progress for debugging
-            console.log(`📋 Step ${stepNum} progress: ${completion}% (${completedFields}/${requiredFields.length} fields)`);
             
             return completion;
         }
@@ -1278,41 +1244,31 @@
         }
     
         setupQuickActions() {
-            console.log('🎯 Setting up quick actions...');
             
             const templateBtn = document.getElementById('templateBtn');
             const categoryGuideBtn = document.getElementById('categoryGuideBtn');
             const marketResearchBtn = document.getElementById('marketResearchBtn');
             const bulkUploadBtn = document.getElementById('bulkUploadBtn');
     
-            console.log('Quick action buttons found:', {
-                templateBtn: !!templateBtn,
-                categoryGuideBtn: !!categoryGuideBtn,
-                marketResearchBtn: !!marketResearchBtn,
-                bulkUploadBtn: !!bulkUploadBtn
-            });
+               
     
             // Template loading
             templateBtn?.addEventListener('click', () => {
-                console.log('Template button clicked');
                 this.loadTemplate();
             });
     
             // Category guide
             categoryGuideBtn?.addEventListener('click', () => {
-                console.log('Category guide button clicked');
                 this.showCategoryGuide();
             });
     
             // Market research
             marketResearchBtn?.addEventListener('click', () => {
-                console.log('Market research button clicked');
                 this.showMarketResearch();
             });
     
             // Bulk upload
             bulkUploadBtn?.addEventListener('click', () => {
-                console.log('Bulk upload button clicked');
                 window.location.href = '/manufacturer/products/bulk-upload';
             });
         }
@@ -1465,7 +1421,6 @@
          * PROFESSIONAL Image Upload Setup - Advanced Base64 Management
          */
         setupImageUpload() {
-            console.log('🖼️ Setting up professional image upload system...');
             
             const uploadArea = document.getElementById('imageUploadArea');
             const uploadInput = document.getElementById('imageUploadInput');
@@ -1526,7 +1481,6 @@
          * Processes selected files with Base64 conversion for temporary storage
          */
         async handleImageFilesAdvanced(files) {
-            console.log('📸 Processing image files:', files.length);
             
             const maxFiles = 10;
             const maxSize = 5 * 1024 * 1024; // 5MB
@@ -1571,7 +1525,6 @@
                 this.showSuccessToast(window.t('manufacturer.products.add.success.imagesAdded', {count: validFiles.length}));
                 this.isDirty = true;
                 
-                console.log('✅ Files processed successfully:', validFiles.length);
             } catch (error) {
                 this.showUploadProgress(false);
                 console.error('❌ Image processing failed:', error);
@@ -1601,7 +1554,6 @@
                     };
                     
                     this.temporaryImages.push(imageData);
-                    console.log(`📦 Added to temporary storage: ${file.name}`);
                     resolve(imageData);
                 };
                 
@@ -1637,7 +1589,6 @@
          * Renders all images (temporary & existing) with advanced controls
          */
         refreshImageGrid() {
-            console.log('🔄 Refreshing image grid...');
             
             const currentImages = document.getElementById('currentImages');
             currentImages.innerHTML = ''; // Clear existing content
@@ -1653,7 +1604,6 @@
             });
             
             if (allImages.length === 0) {
-                console.log('📭 No images to display');
                 return;
             }
             
@@ -2295,12 +2245,10 @@
         validateCurrentStep() {
            const currentStepElement = document.querySelector(`.form-step[data-step="${this.currentStep}"]`);
             if (!currentStepElement) {
-                console.log('❌ Step element not found');
                 return false;
             }
             
             const requiredFields = currentStepElement.querySelectorAll('[required]');
-            console.log(`Found ${requiredFields.length} required fields in step ${this.currentStep}`);
             
             let isValid = true;
             let invalidFields = [];
@@ -2323,7 +2271,6 @@
                     firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             } else {
-                console.log(`✅ Step ${this.currentStep} validation passed`);
             }
     
             return isValid;
@@ -2997,7 +2944,6 @@
     document.addEventListener('DOMContentLoaded', () => {
         try {
             window.productAddManager = new ProductAddManager();
-            console.log('✅ Product Add Manager initialized successfully');
         } catch (error) {
             console.error('❌ Failed to initialize Product Add Manager:', error);
         }
@@ -4623,13 +4569,6 @@
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
-}
-
 .header-title-section h1 {
   margin: 0;
   color: white;
@@ -4649,36 +4588,6 @@
   margin: 0.5rem 0 0 0;
   color: rgba(255, 255, 255, 0.8);
   font-size: 1rem;
-}
-
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-  opacity: 0.9;
-}
-
-.breadcrumb-link {
-  color: rgba(255,255,255,0.8);
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.breadcrumb-link:hover {
-  color: white;
-}
-
-.breadcrumb-separator {
-  font-size: 0.75rem;
-  opacity: 0.6;
-  color: rgba(255,255,255,0.6);
-}
-
-.breadcrumb-current {
-  color: white;
-  font-weight: 500;
 }
 
 .header-actions {

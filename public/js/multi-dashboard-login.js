@@ -481,7 +481,6 @@ class MultiDashboardLogin {
                         console.warn('❌ Multi-dashboard login: Failed to save user data to localStorage:', error);
                     }
                 } else {
-                    console.log('⚠️ Multi-dashboard login: User is not distributor, not saving to localStorage. companyType:', result.companyType);
                 }
                 
                 // Redirect to dashboard

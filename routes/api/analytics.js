@@ -333,7 +333,6 @@ router.get('/products', async (req, res) => {
                 }
             ]);
         } catch (productError) {
-            console.log('Products collection not available, generating based on users');
         }
         
         // If no real products, generate realistic data based on user companies

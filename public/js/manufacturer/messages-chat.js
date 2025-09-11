@@ -814,7 +814,6 @@ function playNotificationSound() {
         audio.volume = 0.3;
         audio.play().catch(() => {}); // Ignore autoplay restrictions
     } catch (error) {
-        console.log('E\'lon qo\'shilmasa');
     }
 }
 
@@ -831,7 +830,6 @@ async function refreshMessages() {
             }
         }
     } catch (error) {
-        console.log('Avtomatik yangilashda xatolik:', error);
     }
 }
 
@@ -853,7 +851,6 @@ function simulatePartnerActivity() {
     const partnerAvatar = document.querySelector('.b2b-partner-avatar::after');
     if (partnerAvatar && Math.random() > 0.7) {
         // Randomly show partner as active
-        console.log('Hamkor faoliyati simulyatsiyasi');
     }
 }
 
@@ -914,18 +911,12 @@ function showFilePreview(file, type) {
     // Store file globally for later upload
     selectedFileForUpload = { file, type };
     
-    console.log('🖼️ Creating file preview:', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        type: type
-    });
+
     
     // Create blob URL
     let blobUrl = '';
     try {
         blobUrl = URL.createObjectURL(file);
-        console.log('✅ Blob URL created:', blobUrl);
     } catch (error) {
         console.error('❌ Failed to create blob URL:', error);
         showProfessionalToast('Fayl ko\'rishini yaratishda xatolik', 'error');
@@ -1010,19 +1001,9 @@ function showFilePreview(file, type) {
     setTimeout(() => {
         const img = document.getElementById('previewImage');
         if (img) {
-            console.log('🔄 Image element created:', {
-                src: img.src,
-                complete: img.complete,
-                naturalWidth: img.naturalWidth,
-                naturalHeight: img.naturalHeight,
-                offsetWidth: img.offsetWidth,
-                offsetHeight: img.offsetHeight,
-                style: img.style.cssText
-            });
-            
+
             // Force reload if not loaded
             if (!img.complete || img.naturalWidth === 0) {
-                console.log('🔄 Force reloading image...');
                 const currentSrc = img.src;
                 img.src = '';
                 img.src = currentSrc;
@@ -1030,7 +1011,6 @@ function showFilePreview(file, type) {
                 // If still fails after 2 seconds, try FileReader
                 setTimeout(() => {
                     if (!img.complete || img.naturalWidth === 0) {
-                        console.log('🔄 Switching to FileReader method...');
                         showImagePreviewWithFileReader(selectedFileForUpload.file);
                     }
                 }, 2000);
@@ -1040,7 +1020,6 @@ function showFilePreview(file, type) {
 }
 
 function showImageError(imgElement) {
-    console.log('🚨 Showing image error fallback');
     imgElement.style.display = 'none';
     const errorDiv = document.getElementById('imageError');
     if (errorDiv) {
@@ -1050,13 +1029,11 @@ function showImageError(imgElement) {
 
 // Alternative method using FileReader (backup)
 function showImagePreviewWithFileReader(file) {
-    console.log('📖 Using FileReader as backup method');
     
     const reader = new FileReader();
     reader.onload = function(e) {
         const img = document.getElementById('previewImage');
         if (img) {
-            console.log('✅ FileReader loaded successfully');
             img.src = e.target.result;
             img.style.opacity = '1';
         }
@@ -1080,7 +1057,6 @@ function closeFilePreview() {
     // Clean up blob URL to prevent memory leaks
     const img = document.getElementById('previewImage');
     if (img && img.src && img.src.startsWith('blob:')) {
-        console.log('🧹 Cleaning up blob URL:', img.src);
         URL.revokeObjectURL(img.src);
     }
     
@@ -1457,14 +1433,11 @@ setTimeout(convertFilesToImages, 3000);
 
 // Add manual trigger function for console
 window.fixImageDisplay = function() {
-    console.log('🔧 Manual image display fix triggered...');
     convertFilesToImages();
     forceCheckAllImages();
     return 'Image display fix completed!';
 };
 
-console.log('💡 Available commands:');
-console.log('• window.fixImageDisplay() - Convert files to images and fix broken images');
 
 function formatText(format) {
     const input = document.getElementById('messageInput');

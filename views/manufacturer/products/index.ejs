@@ -353,14 +353,44 @@
                   <div class="card-product-pricing">
                     <div class="card-price-main">
                       <span class="card-price-amount">
-                        <%= (product.pricing?.basePrice || 0).toFixed(2) %> UZS
+                        <%= (product.pricing?.basePrice || 0).toFixed(2) %> 
+                        <% 
+                          const currency = product.pricing?.currency || 'UZS';
+                          const currencyText = currency === 'UZS' ? 'UZS' : 
+                                              currency === 'USD' ? 'USD' : 
+                                              currency === 'EUR' ? 'EUR' : 
+                                              currency === 'CNY' ? 'CNY' : 
+                                              currency === 'KZT' ? 'KZT' : currency;
+                        %>
+                        <%= currencyText %>
                       </span>
                       <span class="card-price-unit">
-                        /<%= product.inventory?.unit || t('manufacturer.products.unit') %>
+                        <% 
+                          const unit = product.inventory?.unit || 'pieces';
+                          const unitText = unit === 'pieces' ? 'dona' : 
+                                         unit === 'kg' ? 'kg' : 
+                                         unit === 'tons' ? 'tonna' : 
+                                         unit === 'liters' ? 'litr' : 
+                                         unit === 'meters' ? 'metr' : 
+                                         unit === 'boxes' ? 'quti' : 
+                                         unit === 'pallets' ? 'pallet' : unit;
+                        %>
+                        /<%= unitText %>
                       </span>
                     </div>
                     <div class="card-price-moq">
-                      <%= t('manufacturer.products.minOrder') %>: <%= product.pricing?.minimumOrderQuantity || 1 %> <%= product.inventory?.unit || t('manufacturer.products.unit') %>
+                      <%= t('manufacturer.products.minOrder') %>: <%= product.pricing?.minimumOrderQuantity || 1 %> 
+                      <% 
+                        const moqUnit = product.inventory?.unit || 'pieces';
+                        const moqUnitText = moqUnit === 'pieces' ? 'dona' : 
+                                           moqUnit === 'kg' ? 'kg' : 
+                                           moqUnit === 'tons' ? 'tonna' : 
+                                           moqUnit === 'liters' ? 'litr' : 
+                                           moqUnit === 'meters' ? 'metr' : 
+                                           moqUnit === 'boxes' ? 'quti' : 
+                                           moqUnit === 'pallets' ? 'pallet' : moqUnit;
+                      %>
+                      <%= moqUnitText %>
                     </div>
                   </div>
                 </div>
@@ -495,8 +525,31 @@
                       </td>
                       <td>
                         <div class="table-price">
-                          <span class="table-price-main"><%= (product.pricing?.basePrice || 0).toFixed(2) %> UZS</span>
-                          <span class="table-price-unit">/<%= product.inventory?.unit || t('manufacturer.products.unit') %></span>
+                          <span class="table-price-main">
+                            <%= (product.pricing?.basePrice || 0).toFixed(2) %> 
+                            <% 
+                              const currency = product.pricing?.currency || 'UZS';
+                              const currencyText = currency === 'UZS' ? 'UZS' : 
+                                                  currency === 'USD' ? 'USD' : 
+                                                  currency === 'EUR' ? 'EUR' : 
+                                                  currency === 'CNY' ? 'CNY' : 
+                                                  currency === 'KZT' ? 'KZT' : currency;
+                            %>
+                            <%= currencyText %>
+                          </span>
+                          <span class="table-price-unit">
+                            <% 
+                              const unit = product.inventory?.unit || 'pieces';
+                              const unitText = unit === 'pieces' ? 'dona' : 
+                                             unit === 'kg' ? 'kg' : 
+                                             unit === 'tons' ? 'tonna' : 
+                                             unit === 'liters' ? 'litr' : 
+                                             unit === 'meters' ? 'metr' : 
+                                             unit === 'boxes' ? 'quti' : 
+                                             unit === 'pallets' ? 'pallet' : unit;
+                            %>
+                            /<%= unitText %>
+                          </span>
                         </div>
                       </td>
                       <td>
@@ -599,27 +652,94 @@
             </div>
             <div class="table-pagination">
               <div class="table-pagination-info">
-                <span><%= ((pagination.currentPage - 1) * pagination.limit) + 1 %>-<%= Math.min(pagination.currentPage * pagination.limit, pagination.totalItems) %></span>
-                dan <span><%= pagination.totalItems %></span> ta <%= t('manufacturer.products.pagination.items') %>
+                <% 
+                  const itemsPerPage = pagination.itemsPerPage || pagination.limit || 12;
+                  const startItem = ((pagination.currentPage || 1) - 1) * itemsPerPage + 1;
+                  const endItem = Math.min((pagination.currentPage || 1) * itemsPerPage, pagination.totalItems || 0);
+                  const totalItems = pagination.totalItems || 0;
+                  
+                  // Smart display logic
+                  let displayText;
+                  if (totalItems === 0) {
+                    displayText = t('manufacturer.products.pagination.noItems');
+                  } else if (startItem === endItem) {
+                    // Single item case: "1 dan 1 ta element"
+                    displayText = `${startItem} dan ${totalItems} ta ${t('manufacturer.products.pagination.items')}`;
+                  } else {
+                    // Multiple items case: "1-12 dan 25 ta element"
+                    displayText = `${startItem}-${endItem} dan ${totalItems} ta ${t('manufacturer.products.pagination.items')}`;
+                  }
+                %>
+                <span><%= displayText %></span>
               </div>
               <div class="table-pagination-controls">
-                <% if (pagination.hasPrev) { %>
-                  <a href="?page=<%= pagination.currentPage - 1 %><% const queryString = Object.keys(filters || {}).map(key => filters[key] && filters[key] !== 'all' ? `${key}=${encodeURIComponent(filters[key])}` : '').filter(Boolean).join('&'); %><%= queryString ? '&' + queryString : '' %>" class="table-pagination-btn">
+                <% 
+                  const currentPage = pagination.currentPage || 1;
+                  const totalPages = pagination.totalPages || 1;
+                  const hasPrev = pagination.hasPrev || currentPage > 1;
+                  const hasNext = pagination.hasNext || currentPage < totalPages;
+                  
+                  // Build query string helper
+                  function buildQueryString(filters) {
+                    const queryParams = [];
+                    Object.keys(filters || {}).forEach(key => {
+                      if (filters[key] && filters[key] !== 'all' && filters[key] !== '') {
+                        queryParams.push(`${key}=${encodeURIComponent(filters[key])}`);
+                      }
+                    });
+                    return queryParams.length > 0 ? '&' + queryParams.join('&') : '';
+                  }
+                  
+                  const queryString = buildQueryString(filters);
+                %>
+                
+                <% if (hasPrev) { %>
+                  <a href="?page=<%= currentPage - 1 %><%= queryString %>" class="table-pagination-btn" title="<%= t('manufacturer.products.pagination.previous') %>">
                     <i class="fas fa-chevron-left"></i>
                   </a>
+                <% } else { %>
+                  <span class="table-pagination-btn disabled">
+                    <i class="fas fa-chevron-left"></i>
+                  </span>
                 <% } %>
                 
-                <% for (let i = Math.max(1, pagination.currentPage - 2); i <= Math.min(pagination.totalPages, pagination.currentPage + 2); i++) { %>
-                  <a href="?page=<%= i %><% const queryString = Object.keys(filters || {}).map(key => filters[key] && filters[key] !== 'all' ? `${key}=${encodeURIComponent(filters[key])}` : '').filter(Boolean).join('&'); %><%= queryString ? '&' + queryString : '' %>" 
-                     class="table-pagination-btn <%= i === pagination.currentPage ? 'active' : '' %>">
-                    <%= i %>
-                  </a>
-                <% } %>
+                <% 
+                  // Smart pagination: show first page, last page, current page and 2 pages around it
+                  const startPage = Math.max(1, currentPage - 2);
+                  const endPage = Math.min(totalPages, currentPage + 2);
+                  
+                  // Always show first page if not in range
+                  if (startPage > 1) { %>
+                    <a href="?page=1<%= queryString %>" class="table-pagination-btn">1</a>
+                    <% if (startPage > 2) { %>
+                      <span class="table-pagination-ellipsis">...</span>
+                    <% } %>
+                  <% }
+                  
+                  // Show pages in range
+                  for (let i = startPage; i <= endPage; i++) { %>
+                    <a href="?page=<%= i %><%= queryString %>" 
+                       class="table-pagination-btn <%= i === currentPage ? 'active' : '' %>">
+                      <%= i %>
+                    </a>
+                  <% }
+                  
+                  // Always show last page if not in range
+                  if (endPage < totalPages) { %>
+                    <% if (endPage < totalPages - 1) { %>
+                      <span class="table-pagination-ellipsis">...</span>
+                    <% } %>
+                    <a href="?page=<%= totalPages %><%= queryString %>" class="table-pagination-btn"><%= totalPages %></a>
+                  <% } %>
 
-                <% if (pagination.hasNext) { %>
-                  <a href="?page=<%= pagination.currentPage + 1 %><% const queryString = Object.keys(filters || {}).map(key => filters[key] && filters[key] !== 'all' ? `${key}=${encodeURIComponent(filters[key])}` : '').filter(Boolean).join('&'); %><%= queryString ? '&' + queryString : '' %>" class="table-pagination-btn">
+                <% if (hasNext) { %>
+                  <a href="?page=<%= currentPage + 1 %><%= queryString %>" class="table-pagination-btn" title="<%= t('manufacturer.products.pagination.next') %>">
                     <i class="fas fa-chevron-right"></i>
                   </a>
+                <% } else { %>
+                  <span class="table-pagination-btn disabled">
+                    <i class="fas fa-chevron-right"></i>
+                  </span>
                 <% } %>
               </div>
             </div>
@@ -960,7 +1080,6 @@
         
         if (response.ok) {
           const data = await response.json();
-          console.log('📊 Products data received:', data);
           
           // Update KPI values
           updateProductsKPIs(data);

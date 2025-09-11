@@ -190,7 +190,6 @@ router.post('/:productId/marketplace/:action',
             if (action === 'publish') {
                 // Auto-activate product if it's in draft status for better UX
                 if (product.status === 'draft') {
-                    console.log(`📝 Auto-activating draft product ${product._id} for marketplace publication`);
                     product.status = 'active';
                 } else if (!['active', 'draft'].includes(product.status)) {
                     return res.status(400).json({
@@ -269,7 +268,6 @@ router.patch('/:productId/marketplace',
             if (action === 'publish') {
                 // Auto-activate product if it's in draft status for better UX
                 if (product.status === 'draft') {
-                    console.log(`📝 Auto-activating draft product ${product._id} for marketplace publication`);
                     product.status = 'active';
                 } else if (!['active', 'draft'].includes(product.status)) {
                     return res.status(400).json({
@@ -683,6 +681,122 @@ router.get('/:productId/details',
 );
 
 /**
+ * Auto-save product draft
+ * POST /api/manufacturer/products/:productId/autosave
+ */
+router.post('/:productId/autosave',
+    authenticate,
+    manufacturerOnly,
+    validateProductOwnership,
+    async (req, res) => {
+        try {
+            const productId = req.params.productId;
+            const manufacturerId = req.user?._id || req.user?.userId;
+            const updateData = req.body;
+            
+            if (!productId || !manufacturerId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Product ID and manufacturer ID are required'
+                });
+            }
+            
+            const product = await Product.findOne({
+                _id: productId,
+                manufacturer: manufacturerId
+            });
+            
+            if (!product) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Product not found'
+                });
+            }
+            
+            // Update only specific fields for auto-save
+            const allowedFields = ['name', 'description', 'shortDescription', 'pricing', 'inventory', 'shipping'];
+            const updateFields = {};
+            
+            allowedFields.forEach(field => {
+                if (updateData[field] !== undefined) {
+                    updateFields[field] = updateData[field];
+                }
+            });
+            
+            // Add timestamp
+            updateFields.lastAutoSaved = new Date();
+            
+            // Update the product
+            await Product.findByIdAndUpdate(productId, { $set: updateFields });
+            
+            res.json({
+                success: true,
+                message: 'Product auto-saved successfully',
+                timestamp: new Date().toISOString()
+            });
+            
+        } catch (error) {
+            console.error('Auto-save error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to auto-save product'
+            });
+        }
+    }
+);
+
+/**
+ * Get product analytics
+ * GET /api/manufacturer/products/:productId/analytics
+ */
+router.get('/:productId/analytics',
+    authenticate,
+    manufacturerOnly,
+    validateProductOwnership,
+    async (req, res) => {
+        try {
+            const productId = req.params.productId;
+            const manufacturerId = req.user?._id || req.user?.userId;
+            
+            if (!manufacturerId) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Authentication required',
+                    code: 'AUTH_REQUIRED'
+                });
+            }
+
+            // Validate product ID format
+            if (!mongoose.Types.ObjectId.isValid(productId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid product ID format',
+                    code: 'INVALID_PRODUCT_ID'
+                });
+            }
+
+            // Get product analytics from service
+            const ManufacturerService = require('../../services/ManufacturerService');
+            const manufacturerService = new ManufacturerService();
+            const analytics = await manufacturerService.getProductAnalytics(productId, manufacturerId);
+            
+            res.json({
+                success: true,
+                data: analytics,
+                message: 'Product analytics retrieved successfully'
+            });
+            
+        } catch (error) {
+            console.error('❌ Get product analytics error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve product analytics'
+            });
+        }
+    }
+);
+
+/**
  * Get basic product information
  * GET /api/manufacturer/products/:productId
  */
@@ -705,6 +819,91 @@ router.get('/:productId',
             res.status(500).json({
                 success: false,
                 message: 'Failed to retrieve product'
+            });
+        }
+    }
+);
+
+/**
+ * Add shipping methods to existing product (migration helper)
+ * POST /api/manufacturer/products/:productId/migrate-shipping-methods
+ */
+router.post('/:productId/migrate-shipping-methods',
+    authenticate,
+    manufacturerOnly,
+    validateProductOwnership,
+    async (req, res) => {
+        try {
+            const productId = req.params.productId;
+            const manufacturerId = req.user?._id || req.user?.userId;
+            
+            if (!productId || !manufacturerId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Product ID and manufacturer ID are required'
+                });
+            }
+            
+            const product = await Product.findOne({
+                _id: productId,
+                manufacturer: manufacturerId
+            });
+            
+            if (!product) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Product not found'
+                });
+            }
+            
+            // Set default shipping methods based on shipping class
+            let defaultMethods = ['standard']; // Default method
+            
+            if (product.shipping && product.shipping.shippingClass) {
+                switch (product.shipping.shippingClass) {
+                    case 'fragile':
+                        defaultMethods = ['standard', 'express'];
+                        break;
+                    case 'hazardous':
+                        defaultMethods = ['standard'];
+                        break;
+                    case 'perishable':
+                        defaultMethods = ['express', 'overnight'];
+                        break;
+                    case 'oversized':
+                        defaultMethods = ['standard', 'pickup'];
+                        break;
+                    default:
+                        defaultMethods = ['standard', 'express'];
+                }
+            }
+            
+            // Update the product with shipping methods
+            const updatedProduct = await Product.findByIdAndUpdate(
+                productId,
+                { 
+                    $set: { 
+                        'shipping.methods': defaultMethods 
+                    } 
+                },
+                { new: true }
+            );
+            
+            res.json({
+                success: true,
+                data: {
+                    productId: productId,
+                    shippingMethods: defaultMethods,
+                    product: updatedProduct
+                },
+                message: 'Shipping methods added successfully'
+            });
+            
+        } catch (error) {
+            console.error('❌ Add shipping methods error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to add shipping methods'
             });
         }
     }

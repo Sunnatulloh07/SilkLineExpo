@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Exit early if required elements don't exist on this page
   if (!tabsContainer || !tabContent) {
-    console.log('Products script: Required elements not found on this page');
     return;
   }
 
@@ -16,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const hasServerRenderedProducts = document.querySelector('.product-item'); // Check if products are already rendered server-side
   
   if (isHomePage && hasServerRenderedProducts) {
-    console.log('Products script: Home page detected with server-rendered products. Skipping dynamic loading.');
     return;
   }
 
@@ -26,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
                            document.querySelector('.all-product');
 
   if (!isAllProductPage) {
-    console.log('Products script: Not an all-products page. Skipping dynamic loading.');
     return;
   }
 
@@ -54,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const serverProducts = JSON.parse(serverDataScript.textContent);
         if (serverProducts && serverProducts.length > 0) {
-          console.log('Using server-rendered products:', serverProducts.length);
           return serverProducts.map(product => ({
             ...product,
             company: product.manufacturer?.companyName || 'Unknown',

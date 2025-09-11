@@ -18,7 +18,7 @@ class CategoryController {
   constructor() {
     this.logger = {
       log: (message, data = {}) => {
-        console.log(`🏷️ CategoryController: ${message}`, data);
+        // Logging disabled for production
       },
       error: (message, error = {}) => {
         console.error(`❌ CategoryController Error: ${message}`, error);

@@ -18,6 +18,7 @@ class MarketplaceManager {
                 marketplaceMetrics: '/manufacturer/api/marketplace-metrics',
                 featuredProducts: '/manufacturer/api/featured-products',
                 recentInquiries: '/manufacturer/api/recent-inquiries',
+                marketplaceChart: '/manufacturer/api/marketplace-chart',
                 competitorAnalysis: '/manufacturer/api/competitor-analysis'
             },
             ...options
@@ -28,6 +29,7 @@ class MarketplaceManager {
         this.isInitialized = false;
         this.logger = console;
         this.data = marketplaceData;
+        this.currentPagination = null;
     }
 
     /**
@@ -35,7 +37,6 @@ class MarketplaceManager {
      */
     async init() {
         try {
-            this.logger.log('🛍️ Initializing B2B Marketplace Manager...');
 
             // Initialize core components
             this.initializeElements();
@@ -51,10 +52,8 @@ class MarketplaceManager {
             }
 
             this.isInitialized = true;
-            this.logger.log('✅ B2B Marketplace Manager initialized successfully');
 
         } catch (error) {
-            this.logger.error('❌ Marketplace initialization failed:', error);
             this.showError(window.t ? window.t('manufacturer.marketplace.errors.initializationFailed') : 'Marketplace initialization failed');
         }
     }
@@ -96,7 +95,7 @@ class MarketplaceManager {
         // Refresh buttons
         if (this.elements.refreshProductsBtn) {
             this.elements.refreshProductsBtn.addEventListener('click', () => {
-                this.loadFeaturedProducts();
+                this.refreshFeaturedProducts();
             });
         }
 
@@ -160,31 +159,30 @@ class MarketplaceManager {
         if (this.elements.performanceChartCanvas) {
             const ctx = this.elements.performanceChartCanvas.getContext('2d');
             
-            // Extract chart data from server data
-            const viewsGrowth = (this.data.marketplaceMetrics && this.data.marketplaceMetrics.growth && this.data.marketplaceMetrics.growth.views) || 15;
-            const inquiriesGrowth = (this.data.marketplaceMetrics && this.data.marketplaceMetrics.growth && this.data.marketplaceMetrics.growth.inquiries) || 12;
-            
+            // Initialize chart with loading state
             this.charts.performance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: [
-                    window.t ? window.t('manufacturer.marketplace.charts.week1') : 'Week 1',
-                    window.t ? window.t('manufacturer.marketplace.charts.week2') : 'Week 2',
-                    window.t ? window.t('manufacturer.marketplace.charts.week3') : 'Week 3',
-                    window.t ? window.t('manufacturer.marketplace.charts.week4') : 'Week 4'
-                ],
+                    labels: ['Yuklanmoqda...'],
                     datasets: [{
-                        label: window.t ? window.t('manufacturer.marketplace.charts.views') : 'Views',
-                        data: [viewsGrowth, viewsGrowth + 5, viewsGrowth + 8, viewsGrowth + 12],
+                        label: window.t ? window.t('manufacturer.marketplace.charts.views') : 'Ko\'rishlar',
+                        data: [0],
                         borderColor: '#3b82f6',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         tension: 0.4,
                         fill: true
                     }, {
-                        label: window.t ? window.t('manufacturer.marketplace.charts.inquiries') : 'Inquiries',
-                        data: [inquiriesGrowth, inquiriesGrowth + 3, inquiriesGrowth + 5, inquiriesGrowth + 8],
+                        label: window.t ? window.t('manufacturer.marketplace.charts.inquiries') : 'So\'rovlar',
+                        data: [0],
                         borderColor: '#10b981',
                         backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Buyurtmalar',
+                        data: [0],
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
                         tension: 0.4,
                         fill: true
                     }]
@@ -195,6 +193,46 @@ class MarketplaceManager {
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        tooltip: {
+                            enabled: true,
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            displayColors: true,
+                            callbacks: {
+                                title: function(context) {
+                                    const label = context[0].label;
+                                    return window.t ? window.t('manufacturer.marketplace.charts.week') + ' ' + label : 'Hafta ' + label;
+                                },
+                                label: function(context) {
+                                    const datasetLabel = context.dataset.label;
+                                    const value = context.parsed.y;
+                                    
+                                    // Multi-language labels
+                                    let label = datasetLabel;
+                                    if (datasetLabel === 'Ko\'rishlar') {
+                                        label = window.t ? window.t('manufacturer.marketplace.charts.views') : 'Ko\'rishlar';
+                                    } else if (datasetLabel === 'So\'rovlar') {
+                                        label = window.t ? window.t('manufacturer.marketplace.charts.inquiries') : 'So\'rovlar';
+                                    } else if (datasetLabel === 'Buyurtmalar') {
+                                        label = window.t ? window.t('manufacturer.marketplace.charts.orders') : 'Buyurtmalar';
+                                    }
+                                    
+                                    return label + ': ' + value.toLocaleString();
+                                },
+                                afterBody: function(context) {
+                                    const total = context.reduce((sum, item) => sum + item.parsed.y, 0);
+                                    return window.t ? 
+                                        window.t('manufacturer.marketplace.charts.total') + ': ' + total.toLocaleString() : 
+                                        'Jami: ' + total.toLocaleString();
+                                }
+                            }
                         }
                     },
                     scales: {
@@ -211,6 +249,10 @@ class MarketplaceManager {
                             radius: 3,
                             hoverRadius: 5
                         }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
                     }
                 }
             });
@@ -222,18 +264,16 @@ class MarketplaceManager {
      */
     async loadMarketplaceData() {
         try {
-            this.logger.log('🔄 Loading marketplace data...');
             
             await Promise.all([
                 this.loadMarketplaceMetrics(),
                 this.loadFeaturedProducts(),
                 this.loadRecentInquiries(),
+                this.loadMarketplaceChartData('30d'),
                 this.loadCompetitorAnalysis()
             ]);
             
-            this.logger.log('✅ All marketplace data loaded successfully');
         } catch (error) {
-            this.logger.error('❌ Failed to load marketplace data:', error);
         }
     }
 
@@ -242,7 +282,6 @@ class MarketplaceManager {
      */
     async loadMarketplaceMetrics() {
         try {
-            this.logger.log('📊 Loading marketplace metrics from API...');
             
             const response = await fetch(this.options.apiEndpoints.marketplaceMetrics, {
                 method: 'GET',
@@ -260,21 +299,89 @@ class MarketplaceManager {
             const result = await response.json();
             if (result.success && result.data) {
                 this.updateMarketplaceMetrics(result.data);
-                this.logger.log('✅ Marketplace metrics updated from API');
             }
         } catch (error) {
-            this.logger.error('❌ Failed to load marketplace metrics:', error);
         }
     }
 
     /**
-     * Load featured products via API
+     * Refresh featured products with real-time data
+     */
+    async refreshFeaturedProducts() {
+        try {
+            // Show loading feedback
+            if (this.elements.refreshProductsBtn) {
+                const originalContent = this.elements.refreshProductsBtn.innerHTML;
+                this.elements.refreshProductsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                this.elements.refreshProductsBtn.disabled = true;
+                
+                // Restore button after operation
+                setTimeout(() => {
+                    this.elements.refreshProductsBtn.innerHTML = originalContent;
+                    this.elements.refreshProductsBtn.disabled = false;
+                }, 1000);
+            }
+            
+            // Load fresh data
+            await this.loadFeaturedProducts();
+            
+        } catch (error) {
+            // Fallback to page reload
+            this.refreshPage();
+        }
+    }
+
+    /**
+     * Refresh page - Simple and reliable solution
+     */
+    refreshPage() {
+        try {
+            // Show brief loading feedback
+            if (this.elements.refreshProductsBtn) {
+                const originalContent = this.elements.refreshProductsBtn.innerHTML;
+                this.elements.refreshProductsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                this.elements.refreshProductsBtn.disabled = true;
+                
+                // Restore button after 500ms
+                setTimeout(() => {
+                    this.elements.refreshProductsBtn.innerHTML = originalContent;
+                    this.elements.refreshProductsBtn.disabled = false;
+                }, 500);
+            }
+            
+            // Reload the page
+            window.location.reload();
+            
+        } catch (error) {
+            // Fallback: still reload the page
+            window.location.reload();
+        }
+    }
+
+    /**
+     * Load featured products via API - Professional Hybrid Implementation
+     * Combines server-side rendering with client-side enhancement
      */
     async loadFeaturedProducts() {
         try {
-            this.logger.log('⭐ Loading featured products from API...');
+            // Check if we already have server-side rendered products
+            const existingProducts = this.elements.featuredProductsGrid?.querySelectorAll('.b2b-product-card');
             
-            const response = await fetch(this.options.apiEndpoints.featuredProducts, {
+            if (existingProducts && existingProducts.length > 0) {
+                // Server-side rendering already provided products
+                // Enhance with real-time data if needed
+                await this.enhanceExistingProducts();
+                return;
+            }
+            
+            // No server-side products, load via API with pagination
+            const params = new URLSearchParams({
+                page: 1,
+                limit: 8,
+                sort: 'performance_desc'
+            });
+            
+            const response = await fetch(`${this.options.apiEndpoints.featuredProducts}?${params}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -284,16 +391,262 @@ class MarketplaceManager {
             });
 
             if (!response.ok) {
-                throw new Error(`API Error: ${response.status}`);
+                throw new Error(`API Error: ${response.status} ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            
+            // Validate API response with pagination
+            if (result.success && result.data && Array.isArray(result.data)) {
+                // Validate each product data
+                const validatedProducts = this.validateProductData(result.data);
+                this.updateFeaturedProducts(validatedProducts);
+                
+                // Store pagination info for future use
+                if (result.pagination) {
+                    this.currentPagination = result.pagination;
+                }
+            } else {
+                throw new Error('Invalid API response format');
+            }
+            
+        } catch (error) {
+            this.handleFeaturedProductsError(error);
+        }
+    }
+
+    /**
+     * Enhance existing server-side rendered products with real-time data
+     */
+    async enhanceExistingProducts() {
+        try {
+            // Get real-time metrics for existing products with pagination
+            const params = new URLSearchParams({
+                page: 1,
+                limit: 8,
+                sort: 'performance_desc'
+            });
+            
+            const response = await fetch(`${this.options.apiEndpoints.featuredProducts}?${params}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data && Array.isArray(result.data)) {
+                    // Update metrics for existing products without recreating cards
+                    this.updateProductMetrics(result.data);
+                }
+            }
+        } catch (error) {
+            // Silent fail - server-side data is already good
+        }
+    }
+
+    /**
+     * Update metrics for existing products without recreating cards
+     */
+    updateProductMetrics(products) {
+        const existingCards = this.elements.featuredProductsGrid?.querySelectorAll('.b2b-product-card');
+        
+        if (!existingCards || !products) return;
+
+        existingCards.forEach((card, index) => {
+            const product = products[index];
+            if (!product) return;
+
+            // Update views
+            const viewsElement = card.querySelector('.product-stat .fa-eye')?.parentElement;
+            if (viewsElement) {
+                viewsElement.innerHTML = `<i class="fas fa-eye"></i> ${product.views || 0}`;
+            }
+
+            // Update rating
+            const ratingElement = card.querySelector('.product-stat .fa-star')?.parentElement;
+            if (ratingElement) {
+                ratingElement.innerHTML = `<i class="fas fa-star"></i> ${(product.rating || 0).toFixed(1)}`;
+            }
+
+            // Update inquiries
+            const inquiriesElement = card.querySelector('.product-stat .fa-envelope')?.parentElement;
+            if (inquiriesElement) {
+                inquiriesElement.innerHTML = `<i class="fas fa-envelope"></i> ${product.inquiries || 0}`;
+            }
+        });
+    }
+
+    /**
+     * Validate product data to prevent invalid cards
+     */
+    validateProductData(products) {
+        if (!Array.isArray(products)) {
+            return [];
+        }
+
+        return products.filter(product => {
+            // Essential validation
+            if (!product || typeof product !== 'object') {
+                return false;
+            }
+
+            // Must have ID
+            if (!product._id && !product.id) {
+                return false;
+            }
+
+            // Must have name or title
+            if (!product.name && !product.title) {
+                return false;
+            }
+
+            // Validate required fields
+            const validProduct = {
+                _id: product._id || product.id,
+                name: product.name || product.title || 'Noma\'lum mahsulot',
+                title: product.title || product.name || 'Noma\'lum mahsulot',
+                category: product.category || 'Kategoriyasiz',
+                price: product.price || { min: 0, max: 0 },
+                moq: product.moq || 100,
+                views: product.views || 0,
+                rating: product.rating || 0,
+                images: Array.isArray(product.images) ? product.images : [],
+                status: product.status || 'active',
+                visibility: product.visibility || 'public'
+            };
+
+            // Add validated product to result
+            Object.assign(product, validProduct);
+            return true;
+        });
+    }
+
+    /**
+     * Handle featured products loading error
+     */
+    handleFeaturedProductsError(error) {
+        const gridElement = this.elements.featuredProductsGrid;
+        if (!gridElement) return;
+
+        // Show error state
+        gridElement.innerHTML = `
+            <div class="error-state">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <p class="error-message">
+                    ${window.t ? window.t('manufacturer.marketplace.featuredProducts.loadError') : 'Mahsulotlar yuklanmadi'}
+                </p>
+                <button class="retry-btn" onclick="marketplaceManager.loadFeaturedProducts()">
+                    <i class="fas fa-redo"></i>
+                    ${window.t ? window.t('common.retry') : 'Qayta urinish'}
+                </button>
+            </div>
+        `;
+
+        // Show toast notification
+        this.showError(window.t ? window.t('manufacturer.marketplace.featuredProducts.loadError') : 'Mahsulotlar yuklanmadi');
+    }
+
+
+    /**
+     * Load marketplace chart data via API
+     */
+    async loadMarketplaceChartData(period = '30d') {
+        try {
+            const params = new URLSearchParams({
+                period: period
+            });
+            
+            const response = await fetch(`${this.options.apiEndpoints.marketplaceChart}?${params}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                throw new Error(`API Error: ${response.status} ${response.statusText}`);
             }
 
             const result = await response.json();
             if (result.success && result.data) {
-                this.updateFeaturedProducts(result.data);
-                this.logger.log('✅ Featured products updated from API');
+                this.updatePerformanceChart(result.data);
+            } else {
+                throw new Error('Invalid API response format');
             }
         } catch (error) {
-            this.logger.error('❌ Failed to load featured products:', error);
+            this.handleChartError(error);
+        }
+    }
+
+    /**
+     * Update performance chart with real data
+     */
+    updatePerformanceChart(chartData) {
+        if (this.charts.performance && chartData) {
+            // Update chart data
+            this.charts.performance.data = chartData;
+            
+            // Update tooltip callbacks with current language
+            if (this.charts.performance.options && this.charts.performance.options.plugins && this.charts.performance.options.plugins.tooltip) {
+                this.charts.performance.options.plugins.tooltip.callbacks = {
+                    title: function(context) {
+                        const label = context[0].label;
+                        return window.t ? window.t('manufacturer.marketplace.charts.week') + ' ' + label : 'Hafta ' + label;
+                    },
+                    label: function(context) {
+                        const datasetLabel = context.dataset.label;
+                        const value = context.parsed.y;
+                        
+                        // Multi-language labels
+                        let label = datasetLabel;
+                        if (datasetLabel === 'Ko\'rishlar') {
+                            label = window.t ? window.t('manufacturer.marketplace.charts.views') : 'Ko\'rishlar';
+                        } else if (datasetLabel === 'So\'rovlar') {
+                            label = window.t ? window.t('manufacturer.marketplace.charts.inquiries') : 'So\'rovlar';
+                        } else if (datasetLabel === 'Buyurtmalar') {
+                            label = window.t ? window.t('manufacturer.marketplace.charts.orders') : 'Buyurtmalar';
+                        }
+                        
+                        return label + ': ' + value.toLocaleString();
+                    },
+                    afterBody: function(context) {
+                        const total = context.reduce((sum, item) => sum + item.parsed.y, 0);
+                        return window.t ? 
+                            window.t('manufacturer.marketplace.charts.total') + ': ' + total.toLocaleString() : 
+                            'Jami: ' + total.toLocaleString();
+                    }
+                };
+            }
+            
+            this.charts.performance.update();
+        }
+    }
+
+    /**
+     * Handle chart loading error
+     */
+    handleChartError(error) {
+        if (this.charts.performance) {
+            this.charts.performance.data = {
+                labels: ['Xatolik'],
+                datasets: [{
+                    label: 'Ma\'lumot yuklanmadi',
+                    data: [0],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            };
+            this.charts.performance.update();
         }
     }
 
@@ -302,9 +655,12 @@ class MarketplaceManager {
      */
     async loadRecentInquiries() {
         try {
-            this.logger.log('💬 Loading recent inquiries from API...');
+            // Add pagination parameters for consistency
+            const params = new URLSearchParams({
+                limit: 3
+            });
             
-            const response = await fetch(this.options.apiEndpoints.recentInquiries, {
+            const response = await fetch(`${this.options.apiEndpoints.recentInquiries}?${params}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -314,17 +670,44 @@ class MarketplaceManager {
             });
 
             if (!response.ok) {
-                throw new Error(`API Error: ${response.status}`);
+                throw new Error(`API Error: ${response.status} ${response.statusText}`);
             }
 
             const result = await response.json();
-            if (result.success && result.data) {
+            if (result.success && result.data && Array.isArray(result.data)) {
                 this.updateRecentInquiries(result.data);
-                this.logger.log('✅ Recent inquiries updated from API');
+            } else {
+                throw new Error('Invalid API response format');
             }
         } catch (error) {
-            this.logger.error('❌ Failed to load recent inquiries:', error);
+            this.handleRecentInquiriesError(error);
         }
+    }
+
+    /**
+     * Handle recent inquiries loading error
+     */
+    handleRecentInquiriesError(error) {
+        const listElement = this.elements.recentInquiriesList;
+        if (!listElement) return;
+
+        // Show error state
+        listElement.innerHTML = `
+            <div class="error-inquiries">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h4 class="error-title">${window.t ? window.t('manufacturer.marketplace.recentInquiries.loadError') : 'So\'rovlar yuklanmadi'}</h4>
+                <p class="error-description">${window.t ? window.t('manufacturer.marketplace.recentInquiries.emptyState.description') : 'Ma\'lumotlarni yuklashda xatolik yuz berdi'}</p>
+                <button class="retry-btn" onclick="marketplaceManager.loadRecentInquiries()">
+                    <i class="fas fa-redo"></i>
+                    ${window.t ? window.t('common.retry') : 'Qayta urinish'}
+                </button>
+            </div>
+        `;
+
+        // Show toast notification
+        this.showError(window.t ? window.t('manufacturer.marketplace.recentInquiries.loadError') : 'So\'rovlar yuklanmadi');
     }
 
     /**
@@ -332,7 +715,6 @@ class MarketplaceManager {
      */
     async loadCompetitorAnalysis() {
         try {
-            this.logger.log('📊 Loading competitor analysis from API...');
             
             const response = await fetch(this.options.apiEndpoints.competitorAnalysis, {
                 method: 'GET',
@@ -350,10 +732,9 @@ class MarketplaceManager {
             const result = await response.json();
             if (result.success && result.data) {
                 this.updateCompetitorAnalysis(result.data);
-                this.logger.log('✅ Competitor analysis updated from API');
             }
         } catch (error) {
-            this.logger.error('❌ Failed to load competitor analysis:', error);
+            // Error handling without console.log
         }
     }
 
@@ -394,32 +775,92 @@ class MarketplaceManager {
                 this.charts.performance.update();
             }
 
-            this.logger.log('✅ Marketplace metrics UI updated');
         } catch (error) {
-            this.logger.error('❌ Failed to update marketplace metrics UI:', error);
         }
     }
 
     /**
-     * Update featured products in UI
+     * Update featured products in UI - Professional Implementation
      */
     updateFeaturedProducts(products) {
         try {
             const gridElement = this.elements.featuredProductsGrid;
-            if (!gridElement || !Array.isArray(products)) return;
+            if (!gridElement) {
+                return;
+            }
 
-            const existingProducts = gridElement.querySelectorAll('.product-card');
+            if (!Array.isArray(products)) {
+                this.showEmptyState(gridElement);
+                return;
+            }
+
+            if (products.length === 0) {
+                this.showEmptyState(gridElement);
+                return;
+            }
+
+            // Clear existing products
+            const existingProducts = gridElement.querySelectorAll('.b2b-product-card');
             existingProducts.forEach(card => card.remove());
 
+            // Create and append new product cards
+            let validProductsCount = 0;
             products.forEach((product, index) => {
                 const productCard = this.createProductCard(product, index);
+                if (productCard) {
                 gridElement.appendChild(productCard);
+                    validProductsCount++;
+                }
             });
 
-            this.logger.log('✅ Featured products UI updated');
+            if (validProductsCount === 0) {
+                this.showEmptyState(gridElement);
+            } else {
+            }
+
         } catch (error) {
-            this.logger.error('❌ Failed to update featured products UI:', error);
+            this.showErrorState(gridElement);
         }
+    }
+
+    /**
+     * Show empty state when no products available
+     */
+    showEmptyState(gridElement) {
+        gridElement.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-box-open"></i>
+                </div>
+                <p class="empty-message">
+                    ${window.t ? window.t('manufacturer.marketplace.featuredProducts.noProducts') : 'Hech qanday mahsulot topilmadi'}
+                </p>
+                <button class="add-product-btn" onclick="window.location.href='/manufacturer/products/add'">
+                    <i class="fas fa-plus"></i>
+                    ${window.t ? window.t('manufacturer.marketplace.featuredProducts.addProduct') : 'Mahsulot qo\'shish'}
+                </button>
+            </div>
+        `;
+    }
+
+    /**
+     * Show error state when loading fails
+     */
+    showErrorState(gridElement) {
+        gridElement.innerHTML = `
+            <div class="error-state">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <p class="error-message">
+                    ${window.t ? window.t('manufacturer.marketplace.featuredProducts.loadError') : 'Mahsulotlar yuklanmadi'}
+                </p>
+                <button class="retry-btn" onclick="marketplaceManager.loadFeaturedProducts()">
+                    <i class="fas fa-redo"></i>
+                    ${window.t ? window.t('common.retry') : 'Qayta urinish'}
+                </button>
+            </div>
+        `;
     }
 
     /**
@@ -430,28 +871,69 @@ class MarketplaceManager {
             const listElement = this.elements.recentInquiriesList;
             if (!listElement || !Array.isArray(inquiries)) return;
 
+            // Validate and sanitize data - Senior Software Engineer approach
+            const validatedInquiries = this.validateInquiryData(inquiries);
+
             listElement.innerHTML = '';
 
-            if (inquiries.length === 0) {
+            if (validatedInquiries.length === 0) {
                 listElement.innerHTML = `
                     <div class="empty-inquiries">
                         <div class="empty-icon">
                             <i class="fas fa-inbox"></i>
                         </div>
-                        <p class="empty-text">${window.t ? window.t('manufacturer.marketplace.recentInquiries.noInquiries') : 'No new inquiries'}</p>
+                        <h4 class="empty-title">${window.t ? window.t('manufacturer.marketplace.recentInquiries.emptyState.title') : 'No Inquiries'}</h4>
+                        <p class="empty-description">${window.t ? window.t('manufacturer.marketplace.recentInquiries.emptyState.description') : 'No new inquiries at the moment'}</p>
+                        <p class="empty-action">${window.t ? window.t('manufacturer.marketplace.recentInquiries.emptyState.action') : 'Inquiries will appear here when they arrive'}</p>
                     </div>
                 `;
             } else {
-                inquiries.forEach(inquiry => {
+                validatedInquiries.forEach(inquiry => {
                     const inquiryElement = this.createInquiryElement(inquiry);
                     listElement.appendChild(inquiryElement);
                 });
             }
 
-            this.logger.log('✅ Recent inquiries UI updated');
         } catch (error) {
-            this.logger.error('❌ Failed to update recent inquiries UI:', error);
+            this.handleRecentInquiriesError(error);
         }
+    }
+
+    /**
+     * Validate inquiry data to prevent XSS and ensure data integrity
+     */
+    validateInquiryData(inquiries) {
+        if (!Array.isArray(inquiries)) return [];
+        
+        return inquiries.filter(inquiry => {
+            // Basic validation
+            if (!inquiry || typeof inquiry !== 'object') return false;
+            
+            // Sanitize text fields
+            if (inquiry.company) inquiry.company = this.sanitizeText(inquiry.company);
+            if (inquiry.product) inquiry.product = this.sanitizeText(inquiry.product);
+            if (inquiry.message) inquiry.message = this.sanitizeText(inquiry.message);
+            
+            // Validate priority
+            if (!['high', 'medium', 'low'].includes(inquiry.priority)) {
+                inquiry.priority = 'medium';
+            }
+            
+            // Validate required fields
+            return inquiry.id && inquiry.company;
+        }).slice(0, 3); // Ensure max 3 items
+    }
+
+    /**
+     * Sanitize text to prevent XSS
+     */
+    sanitizeText(text) {
+        if (typeof text !== 'string') return '';
+        return text
+            .replace(/[<>]/g, '')
+            .replace(/['"]/g, '')
+            .trim()
+            .substring(0, 200);
     }
 
     /**
@@ -459,58 +941,103 @@ class MarketplaceManager {
      */
     updateCompetitorAnalysis(analysis) {
         try {
+            // Update market position badges
             const positionBadges = document.querySelectorAll('.position-badge');
             positionBadges.forEach(badge => {
                 if (analysis.marketPosition) {
-                    badge.textContent = analysis.marketPosition;
+                    const positionText = window.t ? 
+                        window.t(`manufacturer.marketplace.competitorAnalysis.${analysis.marketPosition}`) || analysis.marketPosition : 
+                        analysis.marketPosition;
+                    badge.textContent = positionText;
                     badge.className = `position-badge position-${analysis.marketPosition.toLowerCase()}`;
                 }
             });
 
+            // Update competitor count
+            const competitorCountElements = document.querySelectorAll('.competitor-count');
+            competitorCountElements.forEach(element => {
+                if (analysis.competitorCount) {
+                    element.textContent = analysis.competitorCount;
+                }
+            });
+
+            // Update price competitiveness
+            const priceCompetitivenessElements = document.querySelectorAll('.price-competitiveness');
+            priceCompetitivenessElements.forEach(element => {
+                if (analysis.priceCompetitiveness) {
+                    const priceText = window.t ? 
+                        window.t(`manufacturer.marketplace.competitorAnalysis.${analysis.priceCompetitiveness}`) || analysis.priceCompetitiveness : 
+                        analysis.priceCompetitiveness;
+                    element.textContent = priceText;
+                }
+            });
+
+            // Update strengths list
             const strengthsList = document.querySelector('.strengths-list');
             if (strengthsList && analysis.strengths) {
                 strengthsList.innerHTML = '';
                 analysis.strengths.forEach(strength => {
                     const li = document.createElement('li');
                     li.className = 'strength-item';
-                    li.innerHTML = `<i class="fas fa-check-circle"></i>${strength}`;
+                    const strengthText = window.t ? 
+                        window.t(`manufacturer.marketplace.competitorAnalysis.defaultStrengths.${strength}`) || strength : 
+                        strength;
+                    li.innerHTML = `<i class="fas fa-check-circle"></i>${strengthText}`;
                     strengthsList.appendChild(li);
                 });
             }
 
+            // Update opportunities list
             const opportunitiesList = document.querySelector('.opportunities-list');
             if (opportunitiesList && analysis.opportunities) {
                 opportunitiesList.innerHTML = '';
                 analysis.opportunities.forEach(opportunity => {
                     const li = document.createElement('li');
                     li.className = 'opportunity-item';
-                    li.innerHTML = `<i class="fas fa-lightbulb"></i>${opportunity}`;
+                    const opportunityText = window.t ? 
+                        window.t(`manufacturer.marketplace.competitorAnalysis.defaultOpportunities.${opportunity}`) || opportunity : 
+                        opportunity;
+                    li.innerHTML = `<i class="fas fa-lightbulb"></i>${opportunityText}`;
                     opportunitiesList.appendChild(li);
                 });
             }
 
-            this.logger.log('✅ Competitor analysis UI updated');
         } catch (error) {
-            this.logger.error('❌ Failed to update competitor analysis UI:', error);
+            // Error handling without console.log
         }
     }
 
     /**
-     * Create product card element
+     * Create product card element - Professional Implementation
      */
     createProductCard(product, index) {
+        // Validate product data before creating card
+        if (!this.isValidProduct(product)) {
+            return null;
+        }
+
         const card = document.createElement('div');
-        card.className = 'product-card animate-slide-up';
-        card.setAttribute('data-product', product._id || '');
+        card.className = 'b2b-product-card animate-slide-up';
+        card.setAttribute('data-product', product._id || product.id || '');
         card.setAttribute('data-animation-delay', index * 0.1);
         
         // Apply animation delay immediately
         card.style.animationDelay = `${index * 0.1}s`;
 
+        // Safe data extraction with fallbacks
+        const productName = this.sanitizeText(product.name || product.title || 'Noma\'lum mahsulot');
+        const productTitle = this.sanitizeText(product.title || product.name || 'Noma\'lum mahsulot');
+        const categoryName = this.getCategoryName(product.category);
+        const priceText = this.formatPrice(product.price);
+        const moq = product.moq || 100;
+        const views = product.views || 0;
+        const rating = product.rating || 0;
+        const imageUrl = this.getProductImage(product.images);
+
         card.innerHTML = `
             <div class="product-image">
-                ${product.images && product.images[0] ? 
-                    `<img src="${product.images[0]}" alt="${product.title}" onerror="handleImageError(this)" loading="lazy">
+                ${imageUrl ? 
+                    `<img src="${imageUrl}" alt="${productTitle}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" loading="lazy">
                      <div class="product-image-placeholder" style="display: none;"><i class="fas fa-tshirt"></i></div>` :
                     `<div class="product-image-placeholder"><i class="fas fa-tshirt"></i></div>`
                 }
@@ -520,33 +1047,25 @@ class MarketplaceManager {
                 </div>
             </div>
             <div class="product-info">
-                <h4 class="product-title" title="${product.title || (window.t ? window.t('manufacturer.marketplace.featuredProducts.unnamedProduct') : 'Unnamed Product')}">
-                    ${product.title && product.title.length > 40 ? 
-                        product.title.substring(0, 40) + '...' : 
-                        product.title || (window.t ? window.t('manufacturer.marketplace.featuredProducts.unnamedProduct') : 'Unnamed Product')
-                    }
+                <h4 class="product-title" title="${productTitle}">
+                    ${productTitle.length > 40 ? productTitle.substring(0, 40) + '...' : productTitle}
                 </h4>
                 <p class="product-category">
                     <i class="fas fa-tag"></i>
-                    ${typeof product.category === 'string' ? product.category : (product.category?.name || product.category?._id || 'Kategoriyasiz')}
+                    ${categoryName}
                 </p>
                 <div class="product-pricing">
-                    <span class="price-range">
-                        ${product.price && product.price.min ? 
-                            `$${product.price.min}-${product.price.max || product.price.min}` :
-                            window.t ? window.t('manufacturer.marketplace.featuredProducts.priceOnRequest') : 'Price on Request'
-                        }
-                    </span>
-                    <span class="moq">${window.t ? window.t('manufacturer.marketplace.featuredProducts.minimum') : 'Minimum'} : ${product.moq || 100} ${window.t ? window.t('manufacturer.marketplace.featuredProducts.unit') : 'unit'}</span>
+                    <span class="price-range">${priceText}</span>
+                    <span class="moq">${window.t ? window.t('manufacturer.marketplace.featuredProducts.minimum') : 'Minimum'} : ${moq} ${window.t ? window.t('manufacturer.marketplace.featuredProducts.unit') : 'unit'}</span>
                 </div>
                 <div class="product-stats">
                     <div class="product-stat">
                         <i class="fas fa-eye"></i>
-                        ${product.views || 0}
+                        ${views.toLocaleString()}
                     </div>
                     <div class="product-stat">
                         <i class="fas fa-star"></i>
-                        ${product.rating || 4.5}
+                        ${rating.toFixed(1)}
                     </div>
                     <div class="product-stat">
                         <i class="fas fa-envelope"></i>
@@ -557,16 +1076,85 @@ class MarketplaceManager {
             <div class="product-actions">
                 <button class="btn-sm btn-primary" data-action="edit" data-product-id="${product._id || ''}">
                     <i class="fas fa-edit"></i>
-                    ${window.t ? window.t('manufacturer.marketplace.featuredProducts.edit') : 'Edit'}
+                    ${window.t ? window.t('manufacturer.marketplace.featuredProducts.edit') : 'Tahrirlash'}
                 </button>
                 <button class="btn-sm btn-outline" data-action="stats" data-product-id="${product._id || ''}">
                     <i class="fas fa-chart-bar"></i>
-                    ${window.t ? window.t('manufacturer.marketplace.featuredProducts.statistics') : 'Statistics'}
+                    ${window.t ? window.t('manufacturer.marketplace.featuredProducts.statistics') : 'Statistika'}
                 </button>
             </div>
         `;
 
         return card;
+    }
+
+    /**
+     * Validate if product data is valid
+     */
+    isValidProduct(product) {
+        if (!product || typeof product !== 'object') return false;
+        if (!product._id && !product.id) return false;
+        if (!product.name && !product.title) return false;
+        return true;
+    }
+
+    /**
+     * Sanitize text to prevent XSS
+     */
+    sanitizeText(text) {
+        if (typeof text !== 'string') return '';
+        return text.replace(/[<>]/g, '').trim();
+    }
+
+    /**
+     * Get category name safely
+     */
+    getCategoryName(category) {
+        if (typeof category === 'string') {
+            return this.sanitizeText(category);
+        }
+        if (category && typeof category === 'object') {
+            return this.sanitizeText(category.name || category.title || 'Kategoriyasiz');
+        }
+        return 'Kategoriyasiz';
+    }
+
+    /**
+     * Format price safely
+     */
+    formatPrice(price) {
+        if (!price || typeof price !== 'object') {
+            return window.t ? window.t('manufacturer.marketplace.featuredProducts.priceOnRequest') : 'Price on Request';
+        }
+        
+        if (price.min && price.min > 0) {
+            const minPrice = parseFloat(price.min).toFixed(2);
+            const maxPrice = price.max ? parseFloat(price.max).toFixed(2) : minPrice;
+            return `$${minPrice}${maxPrice !== minPrice ? `-${maxPrice}` : ''}`;
+        }
+        
+        return window.t ? window.t('manufacturer.marketplace.featuredProducts.priceOnRequest') : 'Price on Request';
+    }
+
+    /**
+     * Get product image URL safely
+     */
+    getProductImage(images) {
+        if (!Array.isArray(images) || images.length === 0) return null;
+        
+        // Find primary image first
+        const primaryImage = images.find(img => img.isPrimary);
+        if (primaryImage && primaryImage.url) {
+            return primaryImage.url;
+        }
+        
+        // Fallback to first image
+        const firstImage = images[0];
+        if (firstImage && firstImage.url) {
+            return firstImage.url;
+        }
+        
+        return null;
     }
 
     /**
@@ -576,6 +1164,10 @@ class MarketplaceManager {
         const element = document.createElement('div');
         element.className = `inquiry-item priority-${inquiry.priority || 'medium'}`;
         element.setAttribute('data-inquiry', inquiry.id || '');
+        element.style.cursor = 'pointer';
+        element.addEventListener('click', () => {
+            window.location.href = '/manufacturer/inquiries';
+        });
 
         const createdDate = inquiry.createdAt ? 
             new Date(inquiry.createdAt).toLocaleDateString('uz-UZ') : 
@@ -585,53 +1177,43 @@ class MarketplaceManager {
             <div class="inquiry-header">
                 <div class="company-info">
                     <div class="company-avatar">
-                        ${(inquiry.company || 'U').charAt(0)}
+                        ${(inquiry.company || (window.t ? window.t('manufacturer.marketplace.recentInquiries.unknownCompany') : 'Noma\'lum kompaniya')).charAt(0)}
                     </div>
                     <div class="company-details">
-                        <h4 class="company-name">${inquiry.company || (window.t ? window.t('manufacturer.marketplace.recentInquiries.unknownCompany') : 'Unknown Company')}</h4>
+                        <h4 class="company-name">${inquiry.company || (window.t ? window.t('manufacturer.marketplace.recentInquiries.unknownCompany') : 'Noma\'lum kompaniya')}</h4>
                         <span class="inquiry-time">${createdDate}</span>
                     </div>
                 </div>
                 <div class="inquiry-priority priority-${inquiry.priority || 'medium'}">
                     ${inquiry.priority === 'high' ? 
-                        `<i class="fas fa-exclamation-circle"></i>${window.t ? window.t('manufacturer.marketplace.recentInquiries.priority.high') : 'Urgent'}` :
+                        `<i class="fas fa-exclamation-circle"></i>${window.t ? window.t('manufacturer.marketplace.recentInquiries.priority.high') : 'Shoshilinch'}` :
                         inquiry.priority === 'medium' ? 
-                        `<i class="fas fa-circle"></i>${window.t ? window.t('manufacturer.marketplace.recentInquiries.priority.medium') : 'Medium'}` :
-                        `<i class="fas fa-circle"></i>${window.t ? window.t('manufacturer.marketplace.recentInquiries.priority.low') : 'Normal'}`
+                        `<i class="fas fa-circle"></i>${window.t ? window.t('manufacturer.marketplace.recentInquiries.priority.medium') : 'O\'rta'}` :
+                        `<i class="fas fa-circle"></i>${window.t ? window.t('manufacturer.marketplace.recentInquiries.priority.low') : 'Oddiy'}`
                     }
                 </div>
             </div>
             <div class="inquiry-content">
                 <p class="inquiry-product">
                     <i class="fas fa-cube"></i>
-                    ${inquiry.product || (window.t ? window.t('manufacturer.marketplace.recentInquiries.generalInquiry') : 'General Inquiry')}
+                    ${inquiry.product || (window.t ? window.t('manufacturer.marketplace.recentInquiries.generalInquiry') : 'Umumiy so\'rov')}
                 </p>
                 <div class="inquiry-details">
                     <span class="quantity">
                         <i class="fas fa-sort-numeric-up"></i>
-                        ${inquiry.quantity || (window.t ? window.t('manufacturer.marketplace.recentInquiries.toBeDiscussed') : 'To be discussed')}
+                        ${inquiry.quantity || (window.t ? window.t('manufacturer.marketplace.recentInquiries.toBeDiscussed') : 'Muhokama qilinadi')}
                     </span>
                     <span class="budget">
                         <i class="fas fa-dollar-sign"></i>
-                        ${inquiry.budget || (window.t ? window.t('manufacturer.marketplace.recentInquiries.toBeDiscussed') : 'To be discussed')}
+                        ${inquiry.budget || (window.t ? window.t('manufacturer.marketplace.recentInquiries.toBeDiscussed') : 'Muhokama qilinadi')}
                     </span>
                 </div>
                 <p class="inquiry-message">
                     ${inquiry.message && inquiry.message.length > 80 ? 
                         inquiry.message.substring(0, 80) + '...' : 
-                        inquiry.message || (window.t ? window.t('manufacturer.marketplace.recentInquiries.inquiryMessage') : 'Inquiry message')
+                        inquiry.message || (window.t ? window.t('manufacturer.marketplace.recentInquiries.initialContact') : 'Dastlabki aloqa va so\'rov')
                     }
                 </p>
-            </div>
-            <div class="inquiry-actions">
-                <button class="btn-sm btn-primary" data-action="respond" data-inquiry-id="${inquiry.id || ''}">
-                    <i class="fas fa-reply"></i>
-                    ${window.t ? window.t('manufacturer.marketplace.recentInquiries.respond') : 'Respond'}
-                </button>
-                <button class="btn-sm btn-outline" data-action="quote" data-inquiry-id="${inquiry.id || ''}">
-                    <i class="fas fa-file-invoice-dollar"></i>
-                    ${window.t ? window.t('manufacturer.marketplace.recentInquiries.quote') : 'Quote'}
-                </button>
             </div>
         `;
 
@@ -646,7 +1228,6 @@ class MarketplaceManager {
             this.loadMarketplaceData();
         }, this.options.refreshInterval);
         
-        this.logger.log(`🔄 Auto-refresh started (${this.options.refreshInterval / 1000}s interval)`);
     }
 
     /**
@@ -657,7 +1238,6 @@ class MarketplaceManager {
             clearInterval(timer);
         });
         this.refreshTimers = {};
-        this.logger.log('⏹️ Auto-refresh stopped');
     }
 
     /**
@@ -679,7 +1259,6 @@ class MarketplaceManager {
      * Show detailed analysis modal
      */
     showDetailedAnalysis() {
-        this.logger.log('📊 Opening detailed analysis...');
         this.showInfoMessage('Batafsil tahlil tez orada...');
     }
 
@@ -699,7 +1278,6 @@ class MarketplaceManager {
             return;
         }
 
-        this.logger.log(`🎯 Product action: ${action} for product: ${productId}`);
 
         switch (action) {
             case 'edit':
@@ -729,7 +1307,6 @@ class MarketplaceManager {
                 break;
                 
             default:
-                this.logger.warn(`Unknown action: ${action}`);
                 this.showError('Noma\'lum amal');
         }
     }
@@ -765,7 +1342,6 @@ class MarketplaceManager {
             }
 
         } catch (error) {
-            this.logger.error('❌ Duplicate product error:', error);
             this.showError(window.t ? window.t('manufacturer.marketplace.errors.copyFailed') : 'Copy operation failed');
         }
     }
@@ -801,7 +1377,6 @@ class MarketplaceManager {
             }
 
         } catch (error) {
-            this.logger.error('❌ Delete product error:', error);
             this.showError(window.t ? window.t('manufacturer.marketplace.errors.deleteFailed') : 'Delete operation failed');
         }
     }
@@ -811,7 +1386,6 @@ class MarketplaceManager {
      */
     async showProductDetails(productId) {
         try {
-            this.logger.log(`👁️ Showing product details for: ${productId}`);
             
             const modal = document.getElementById('productDetailsModal');
             const modalBody = document.getElementById('modalBody');
@@ -826,7 +1400,7 @@ class MarketplaceManager {
             modalBody.innerHTML = `
                 <div class="loading-content">
                     <div class="loading-spinner"></div>
-                    <p>${window.t ? window.t('manufacturer.marketplace.modal.loading') : 'Loading data...'}</p>
+                    <p>${window.t ? window.t('manufacturer.marketplace.modal.loading') : 'Ma\'lumot yuklanmoqda...'}</p>
                 </div>
             `;
 
@@ -849,7 +1423,6 @@ class MarketplaceManager {
                     const htmlContent = this.generateProductDetailsHTML(product);
                     modalBody.innerHTML = htmlContent;
                 } catch (htmlError) {
-                    console.error('🚨 HTML creation error:', htmlError);
                     modalBody.innerHTML = `
                         <div class="error-content">
                             <i class="fas fa-exclamation-triangle"></i>
@@ -1043,7 +1616,7 @@ class MarketplaceManager {
                 <div class="modal-actions">
                     <button class="btn-modal btn-primary" onclick="window.location.href='/manufacturer/products/edit/${product._id}'">
                         <i class="fas fa-edit"></i>
-                        ${window.t ? window.t('manufacturer.marketplace.featuredProducts.edit') : 'Edit'}
+                        ${window.t ? window.t('manufacturer.marketplace.featuredProducts.edit') : 'Tahrirlash'}
                     </button>
                     <button class="btn-modal btn-secondary" onclick="window.location.href='/manufacturer/products/${product._id}/analytics'">
                         <i class="fas fa-chart-line"></i>
@@ -1213,18 +1786,12 @@ function generateMockImage(category, productId, productName) {
 function handleImageError(img) {
     if (img.dataset.errorHandled) return; // Prevent infinite loop
     
-    console.warn('🚨 Image error handler triggered for:', {
-        src: img.src,
-        className: img.className,
-        productName: img.dataset.productName || 'Unknown'
-    });
     
     img.dataset.errorHandled = 'true';
     img.onerror = null;
     
     // CASE 1: Real image failed - convert to mock image (including modal real images)
     if (img.classList.contains('product-real-image') || img.classList.contains('modal-real-image')) {
-        console.log('🔄 Converting failed real image to mock image...');
         
         const category = img.dataset.category || 'general';
         const productId = img.dataset.productId || '';
@@ -1238,13 +1805,11 @@ function handleImageError(img) {
         const mockSrc = generateMockImage(category, productId, productName);
         img.src = mockSrc;
         
-        console.log(`✅ Real image converted to mock: ${productName} (${category})`);
         return;
     }
     
     // CASE 2: Mock image failed - use backup mock image (including modal mock images)
     if (img.classList.contains('mock-product-image') || img.classList.contains('modal-mock-image')) {
-        console.log('🔄 Mock image failed, using backup...');
         
         const category = img.dataset.category || 'general';
         const productId = img.dataset.productId || '';
@@ -1258,18 +1823,15 @@ function handleImageError(img) {
         img.src = backupSrc;
         img.classList.add('backup-mock-image');
         
-        console.log(`✅ Backup mock image loaded: ${productName}`);
         return;
     }
     
     // CASE 3: Everything failed - use professional SVG placeholder
-    console.log('🔄 Using professional SVG placeholder as final fallback...');
     img.src = PROFESSIONAL_PLACEHOLDER_SVG;
     img.classList.add('final-placeholder');
     
     // CASE 4: Even SVG failed - show CSS placeholder
     img.onerror = function() {
-        console.error('💥 All image fallbacks failed, using CSS placeholder');
         this.style.display = 'none';
         
         // Create CSS placeholder if it doesn't exist
@@ -1361,38 +1923,26 @@ function initializeImageErrorHandling() {
 // NOTE: Sidebar toggle functionality is now handled by dashboard-init.js 
 // This prevents conflicts and ensures consistent behavior across all pages
 function initializeResponsiveHandlers() {
-    console.log('🔧 MARKETPLACE: Sidebar toggle delegated to dashboard-init.js for consistency');
     
     // Only handle marketplace-specific responsive behavior here
     if (window.innerWidth <= 1024) {
-        console.log('📱 MARKETPLACE Mobile mode detected');
     }
     
-    console.log('✅ MARKETPLACE responsive handlers initialized (sidebar delegated)');
 }
 
 // ENHANCED Mock Images System - Professional B2B Implementation
 function initializeMockImages() {
-    console.log('🖼️ Initializing ENHANCED Professional Mock Images System...');
     
     // Find all images that need mock treatment
     const mockImages = document.querySelectorAll('.mock-product-image[data-needs-mock="true"], .loading-placeholder');
     const realImages = document.querySelectorAll('.product-real-image');
     
-    console.log(`📦 Found ${mockImages.length} products needing mock images`);
-    console.log(`🖼️ Found ${realImages.length} products with real images`);
     
     // Process mock images
     mockImages.forEach((img, index) => {
         const category = img.dataset.category || 'general';
         const productId = img.dataset.productId || '';
         const productName = img.dataset.productName || '';
-        
-        console.log(`🔄 Processing mock image ${index + 1}:`, {
-            category,
-            productId: productId.slice(-8) || 'none',
-            productName: productName || 'none'
-        });
         
         // Generate appropriate mock image
         const mockSrc = generateMockImage(category, productId, productName);
@@ -1404,7 +1954,6 @@ function initializeMockImages() {
             img.classList.add('mock-image-loaded');
             img.removeAttribute('data-needs-mock');
             
-            console.log(`✅ Mock image loaded for: ${productName || 'Unknown'} (${category})`);
             
             // Add responsive behavior
             img.style.opacity = '0';
@@ -1423,41 +1972,30 @@ function initializeMockImages() {
     realImages.forEach((img, index) => {
         const productName = img.dataset.productName || 'Unknown';
         
-        console.log(`🔍 Checking real image ${index + 1}:`, {
-            src: img.src,
-            productName: productName.slice(0, 20) + '...'
-        });
-        
         // Add loading indicator
         img.style.transition = 'opacity 0.3s ease';
         
         img.addEventListener('load', function() {
-            console.log(`✅ Real image loaded successfully: ${productName}`);
             this.style.opacity = '1';
         });
         
         img.addEventListener('error', function() {
-            console.warn(`❌ Real image failed to load: ${productName}`);
             handleImageError(this);
         });
         
         // Check if image is already loaded (cached)
         if (img.complete && img.naturalWidth > 0) {
-            console.log(`📋 Real image already cached: ${productName}`);
             img.style.opacity = '1';
         }
     });
     
-    console.log('✅ ENHANCED Mock Images System Fully Initialized');
 }
 
 // PROFESSIONAL Image System Debugging - Senior Software Engineer
 function debugImageSystem() {
-    console.log('🔍 ===== PROFESSIONAL IMAGE SYSTEM DEBUG =====');
     
     // Check all product cards
     const productCards = document.querySelectorAll('.b2b-product-card');
-    console.log(`📦 Found ${productCards.length} product cards on page`);
     
     // Analyze each card's image system
     productCards.forEach((card, index) => {
@@ -1466,36 +2004,14 @@ function debugImageSystem() {
         const mockImage = card.querySelector('.mock-product-image');
         const loadingPlaceholder = card.querySelector('.loading-placeholder');
         
-        console.log(`\n🔎 Product Card ${index + 1} (ID: ${productId.slice(-8) || 'none'}):`);
-        
-        if (realImage) {
-            console.log('   ✅ Has REAL image:', {
-                src: realImage.src.substring(0, 50) + (realImage.src.length > 50 ? '...' : ''),
-                imageType: realImage.dataset.imageType,
-                hasImages: realImage.dataset.hasImages,
-                category: realImage.dataset.category,
-                loaded: realImage.complete && realImage.naturalWidth > 0,
-                naturalWidth: realImage.naturalWidth,
-                naturalHeight: realImage.naturalHeight
-            });
-        }
-        
-        if (mockImage) {
-            console.log('   🎨 Has MOCK image:', {
-                needsMock: mockImage.dataset.needsMock,
-                category: mockImage.dataset.category,
-                hasImages: mockImage.dataset.hasImages,
-                loaded: mockImage.complete && mockImage.naturalWidth > 0,
-                isLoadingPlaceholder: mockImage.classList.contains('loading-placeholder')
-            });
+        if (realImage || mockImage) {
+            // Image found, no action needed
         }
         
         if (loadingPlaceholder) {
-            console.log('   ⏳ Has loading placeholder');
         }
         
         if (!realImage && !mockImage && !loadingPlaceholder) {
-            console.warn('   ❌ NO IMAGE ELEMENTS FOUND - This is a problem!');
         }
     });
     
@@ -1566,7 +2082,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // ENHANCED LANGUAGE FUNCTION WITH DEBUGGING
     function initLanguage() {
-        console.log('🔧 Initializing language functionality...');
         
         // Get current language from cookie
         const cookies = document.cookie.split(';');
@@ -1580,16 +2095,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
         
-        console.log('🌐 Current language from cookie:', currentLang);
         
         // Language toggle handler
         const languageToggle = document.getElementById('languageToggle');
         const languageMenu = document.getElementById('languageMenu');
         
-        console.log('🔍 Language elements found:', {
-            languageToggle: !!languageToggle,
-            languageMenu: !!languageMenu
-        });
         
         if (languageToggle && languageMenu) {
             // Remove any existing listeners
@@ -1599,10 +2109,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             newLanguageToggle.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('🌐 Language toggle clicked');
                 
                 const isHidden = languageMenu.classList.contains('hidden');
-                console.log('📋 Language menu hidden:', isHidden);
                 
                 if (isHidden) {
                     languageMenu.classList.remove('hidden');
@@ -1615,7 +2123,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             // Language option handlers
             const languageOptions = document.querySelectorAll('.language-option');
-            console.log('🌐 Language options found:', languageOptions.length);
             
             languageOptions.forEach(option => {
                 option.addEventListener('click', function(e) {
@@ -1623,19 +2130,31 @@ document.addEventListener('DOMContentLoaded', async function() {
                     e.stopPropagation();
                     
                     const lang = this.dataset.lang;
-                    console.log('🌐 Language selected:', lang);
+                    const supportedLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
                     
-                    // Set cookie
-                    document.cookie = `i18next=${lang};path=/;max-age=31536000;SameSite=Lax`;
+                    if (!supportedLanguages.includes(lang)) {
+                        return;
+                    }
+                    
+                    
+                    // Set consistent language cookies
+                    const cookieOptions = `path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax`;
+                    document.cookie = `i18next=${lang}; ${cookieOptions}`;
+                    document.cookie = `selectedLanguage=${lang}; ${cookieOptions}`;
+                    document.cookie = `language=${lang}; ${cookieOptions}`;
+                    
+                    // Show loading state
+                    if (languageToggle) {
+                        languageToggle.style.opacity = '0.5';
+                        languageToggle.disabled = true;
+                    }
                     
                     // Reload page to apply language
                     window.location.reload();
                 });
             });
             
-            console.log('✅ Language functionality initialized');
         } else {
-            console.error('❌ Language elements not found');
         }
     }
     
@@ -1663,10 +2182,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         const userProfileToggle = document.getElementById('userProfileToggle');
         const profileDropdown = document.getElementById('profileDropdown');
         
-        console.log('👤 Profile elements found:', {
-            userProfileToggle: !!userProfileToggle,
-            profileDropdown: !!profileDropdown
-        });
         
         if (userProfileToggle && profileDropdown) {
             // Remove any existing listeners
@@ -1676,10 +2191,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             newUserProfileToggle.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('👤 Profile button clicked');
                 
                 const isHidden = profileDropdown.classList.contains('hidden');
-                console.log('📋 Profile dropdown hidden:', isHidden);
                 
                 if (isHidden) {
                     profileDropdown.classList.remove('hidden');
@@ -1696,19 +2209,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 });
             });
             
-            console.log('✅ Profile dropdown initialized');
         } else {
-            console.error('❌ Profile elements not found');
         }
         
         // Messages Dropdown (ENHANCED WITH DEBUGGING)
         const messagesBtn = document.getElementById('messagesBtn');
         const messagesDropdown = document.getElementById('messagesDropdown');
         
-        console.log('📧 Messages elements found:', {
-            messagesBtn: !!messagesBtn,
-            messagesDropdown: !!messagesDropdown
-        });
         
         if (messagesBtn && messagesDropdown) {
             // Remove any existing listeners
@@ -1718,10 +2225,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             newMessagesBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('📧 Messages button clicked');
                 
                 const isHidden = messagesDropdown.classList.contains('hidden');
-                console.log('📋 Messages dropdown hidden:', isHidden);
                 
                 if (isHidden) {
                     messagesDropdown.classList.remove('hidden');
@@ -1738,19 +2243,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 });
             });
             
-            console.log('✅ Messages dropdown initialized');
         } else {
-            console.error('❌ Messages elements not found');
         }
         
         // Notifications Dropdown (ENHANCED WITH DEBUGGING)
         const notificationsBtn = document.getElementById('notificationsBtn');
         const notificationsDropdown = document.getElementById('notificationsDropdown');
         
-        console.log('🔔 Notifications elements found:', {
-            notificationsBtn: !!notificationsBtn,
-            notificationsDropdown: !!notificationsDropdown
-        });
         
         if (notificationsBtn && notificationsDropdown) {
             // Remove any existing listeners
@@ -1760,10 +2259,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             newNotificationsBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('🔔 Notifications button clicked');
                 
                 const isHidden = notificationsDropdown.classList.contains('hidden');
-                console.log('📋 Notifications dropdown hidden:', isHidden);
                 
                 if (isHidden) {
                     notificationsDropdown.classList.remove('hidden');
@@ -1780,9 +2277,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 });
             });
             
-            console.log('✅ Notifications dropdown initialized');
         } else {
-            console.error('❌ Notifications elements not found');
         }
         
         // Alerts Dropdown (IF EXISTS - Dashboard-init.js pattern)
@@ -1803,23 +2298,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // SIDEBAR FUNCTIONALITY DELEGATED TO DASHBOARD-INIT.JS
     function initSidebar() {
-        console.log('🔧 MARKETPLACE: Sidebar functionality is handled by dashboard-init.js');
-        console.log('🔧 MARKETPLACE: Checking if dashboard-init.js sidebar is initialized...');
         
         // Verify that dashboard-init.js has set up the sidebar
         if (!window.sidebarInitialized) {
-            console.warn('⚠️ MARKETPLACE: dashboard-init.js sidebar not initialized yet');
             
             // Wait for dashboard-init.js to initialize, then report status
             setTimeout(() => {
                 if (window.sidebarInitialized) {
-                    console.log('✅ MARKETPLACE: dashboard-init.js sidebar now initialized');
                 } else {
-                    console.error('❌ MARKETPLACE: dashboard-init.js sidebar failed to initialize');
                 }
             }, 1000);
         } else {
-            console.log('✅ MARKETPLACE: dashboard-init.js sidebar already initialized');
         }
     }
     
@@ -1843,9 +2332,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         try {
             await window.manufacturerDashboard.init();
-            console.log('✅ Manufacturer Dashboard initialized for Marketplace');
         } catch (error) {
-            console.warn('⚠️ Manufacturer Dashboard initialization failed:', error);
         }
     }
     

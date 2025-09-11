@@ -360,6 +360,17 @@
     max-width: 1590px;
   }
 }
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
 /* Section Background */
 .section-bg {
   background-color: hsl(var(--section-bg)) !important;

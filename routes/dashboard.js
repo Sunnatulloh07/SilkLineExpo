@@ -21,16 +21,9 @@ router.get('/', async (req, res) => {
 
         const correctDashboard = determineUserDashboard(req.user);
         
-        console.log(`🧭 Universal Dashboard Route: ${req.user.email} -> ${correctDashboard}`);
         
         // Log routing for security monitoring
-        console.log(`🔍 Dashboard Routing Debug:`, {
-            userId: req.user.userId,
-            userType: req.user.userType,
-            role: req.user.role,
-            companyType: req.user.companyType,
-            targetDashboard: correctDashboard
-        });
+       
 
         return res.redirect(correctDashboard);
 
@@ -44,7 +37,6 @@ router.get('/', async (req, res) => {
  * Fallback route for unmatched dashboard paths
  */
 router.get('*', (req, res) => {
-    console.log(`⚠️ Dashboard 404: ${req.path} requested by ${req.user?.email || 'anonymous'}`);
     
     if (req.user) {
         const correctDashboard = determineUserDashboard(req.user);

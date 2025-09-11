@@ -183,7 +183,11 @@ const productSchema = new mongoose.Schema({
     leadTime: {
       min: Number, // days
       max: Number  // days
-    }
+    },
+    methods: [{
+      type: String,
+      enum: ['standard', 'express', 'pickup', 'overnight', 'international']
+    }]
   },
   
   // Business Information

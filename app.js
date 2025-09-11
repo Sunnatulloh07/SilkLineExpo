@@ -24,7 +24,6 @@ mongoose.connect(MONGODB_URI)
 })
 .catch((error) => {
   console.warn('⚠️ MongoDB connection failed:', error.message);
-  console.log('🔧 Running without database (some features may be limited)');
 });
 
 // Initialize services
@@ -43,7 +42,7 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com", "https://cdn.jsdelivr.net"],
       scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
@@ -229,48 +228,8 @@ app.get('/debug', (req, res) => {
   });
 });
 
-// Language switching route (PUBLIC PAGES & DASHBOARD COMPATIBLE)
-app.get('/language/:lng', (req, res) => {
-  const lng = req.params.lng;
-  const supportedLanguages = ['uz', 'en', 'ru', 'fa', 'tr', 'zh'];
-  
-  if (supportedLanguages.includes(lng)) {
-    // Set multiple cookies for compatibility
-    res.cookie('i18next', lng, {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      httpOnly: false,
-      path: '/'
-    });
-    
-    res.cookie('selectedLanguage', lng, {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      httpOnly: false,
-      path: '/'
-    });
-    
-    // Set session language
-    req.session.language = lng;
-    
-    // Change i18next language
-    i18next.changeLanguage(lng);
-    
-    console.log(`🌐 Language changed to ${lng} via route`);
-  }
-  
-  // Check for explicit redirect parameter (for admin dashboard)
-  const redirectTo = req.query.redirect;
-  if (redirectTo) {
-    const safeRedirect = decodeURIComponent(redirectTo);
-    // Add language parameter to redirect URL
-    const redirectUrl = new URL(safeRedirect, `${req.protocol}://${req.get('host')}`);
-    redirectUrl.searchParams.set('lng', lng);
-    return res.redirect(redirectUrl.toString());
-  }
-  
-  // Redirect back to previous page or home
-  const referer = req.get('Referer') || '/';
-  res.redirect(referer);
-});
+// Language switching route - Now handled by unified API route in /api/language/:lang
+// This route is removed to prevent duplication
 
 // ===== ROUTES CONFIGURATION =====
 // Order is important - more specific routes first
@@ -424,6 +383,4 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 SLEX Server running on http://localhost:${PORT}`);
-  console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
 });

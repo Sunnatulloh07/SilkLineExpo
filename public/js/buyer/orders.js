@@ -52,7 +52,6 @@ function loadOrders() {
  */
 function renderOrders(orders) {
     // In a real implementation, this would render the orders
-    console.log('Orders loaded:', orders);
 }
 
 /**
@@ -60,7 +59,6 @@ function renderOrders(orders) {
  */
 function updatePagination(pagination) {
     // In a real implementation, this would update the pagination controls
-    console.log('Pagination:', pagination);
 }
 
 /**
@@ -112,7 +110,6 @@ function debounce(func, wait) {
 
 // Global functions
 window.viewOrderDetails = (orderId) => {
-    console.log('Viewing order:', orderId);
     // Implementation for order details modal
 };
 
@@ -121,12 +118,10 @@ window.contactSupplier = (supplierId) => {
 };
 
 window.createNewOrder = () => {
-    console.log('Creating new order');
     // Implementation for new order modal
 };
 
 window.exportOrders = () => {
-    console.log('Exporting orders');
     // Implementation for export functionality
 };
 

@@ -62,7 +62,6 @@ class SupplierProfileManager {
             this.openContactModal();
         } else if (action.includes('startChat')) {
             // Disabled to prevent conflicts with main page chat handler
-            console.log('ℹ️ startChat action intercepted but ignored to prevent conflicts');
             return; // Don't handle startChat here
         } else if (action.includes('requestQuote')) {
             this.requestQuote();
@@ -339,7 +338,6 @@ class SupplierProfileManager {
                 text: `Check out this verified supplier profile on our B2B marketplace`,
                 url: url
             }).catch(error => {
-                console.log('Native sharing failed:', error);
                 this.fallbackShare(url);
             });
         } else {
@@ -644,7 +642,6 @@ class SupplierProfileManager {
         }
         
         // Custom analytics implementation
-        console.log('Event tracked:', eventName, data);
     }
     
     // Keyboard Shortcuts
@@ -1091,12 +1088,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
                 
-                console.log(`✅ Enhanced product card ${index + 1} with accessibility features`);
             }
         });
     } else {
-        console.log('❌ Carousel or products not found');
-        console.log('🔍 Available carousel:', document.getElementById('productsCarousel'));
-        console.log('🔍 Available items:', document.querySelectorAll('.product-carousel-item'));
     }
 });

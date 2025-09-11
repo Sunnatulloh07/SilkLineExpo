@@ -299,7 +299,6 @@ class PublicProductsController {
                     code: 'PRODUCT_NOT_FOUND'
                 });
             }
-            console.log("product details :", product);
             res.status(200).json({
                 success: true,
                 data: { product },

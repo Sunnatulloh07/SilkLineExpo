@@ -169,7 +169,6 @@ function sendMessage() {
     
     if (message) {
         // In a real implementation, this would send the message to the server
-        console.log('Sending message:', message);
         
         // Clear input
         messageInput.value = '';

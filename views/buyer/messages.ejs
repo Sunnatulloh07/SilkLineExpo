@@ -98,7 +98,7 @@
 }
 
 .conversation-item:hover {
-  background: hsl(var(--main-l-50)) !important;
+  background: #111827 !important;
 }
 
 .conversation-item.active {
@@ -4336,14 +4336,38 @@ class ProfessionalBuyerMessages {
     this.checkUrlParameters();
   }
 
-  // Check URL parameters for manufacturer ID
+  // Check URL parameters for manufacturer ID and order ID
   checkUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
     const manufacturerId = urlParams.get('manufacturer');
+    const orderId = urlParams.get('order');
     
     if (manufacturerId) {
+      // Validate manufacturer ID format
+      if (!manufacturerId.match(/^[0-9a-fA-F]{24}$/)) {
+        this.showErrorMessage('Invalid manufacturer ID format');
+        this.loadConversations();
+        return;
+      }
+      
       this.currentManufacturerId = manufacturerId;
-      this.loadManufacturerConversation(manufacturerId);
+      if (orderId) {
+        // Validate order ID format
+        if (!orderId.match(/^[0-9a-fA-F]{24}$/)) {
+          this.showErrorMessage('Invalid order ID format');
+          this.loadConversations();
+          return;
+        }
+        
+        // Order chat with specific manufacturer
+        this.currentOrderId = orderId;
+        this.conversationType = 'order';
+        this.loadOrderConversation(manufacturerId, orderId);
+      } else {
+        // Product chat with manufacturer
+        this.conversationType = 'inquiry';
+        this.loadManufacturerConversation(manufacturerId);
+      }
     } else {
       this.loadConversations();
     }
@@ -4423,7 +4447,6 @@ class ProfessionalBuyerMessages {
       }
       
     } catch (error) {
-      console.error('❌ Search error:', error);
       
       // Show appropriate error message
       if (error.message.includes('API error')) {
@@ -4446,10 +4469,10 @@ class ProfessionalBuyerMessages {
     try {
       this.showLoadingState('conversations');
       
-      // Use new API endpoint that includes current manufacturer at top
+      // Use conversations API endpoint
       const currentManufacturerId = this.getCurrentManufacturerId();
       const url = currentManufacturerId ? 
-        `/buyer/api/conversations-with-current?manufacturer=${currentManufacturerId}` : 
+        `/buyer/api/conversations?manufacturer=${currentManufacturerId}` : 
         '/buyer/api/conversations';
       
 
@@ -4643,6 +4666,108 @@ class ProfessionalBuyerMessages {
     return lastMessage.content;
   }
 
+  // Load order conversation with manufacturer
+  async loadOrderConversation(manufacturerId, orderId) {
+    try {
+      this.showLoadingState('conversations');
+      this.showLoadingState('messages');
+      
+      // Get manufacturer details and order conversation
+      const [detailsResponse, conversationResponse] = await Promise.all([
+        fetch(`/buyer/api/manufacturer/${manufacturerId}/details`),
+        fetch(`/buyer/api/manufacturer/${manufacturerId}/conversation?order=${orderId}`)
+      ]);
+      
+      if (!detailsResponse.ok) {
+        let errorMessage = 'Failed to load manufacturer details';
+        try {
+          const errorData = await detailsResponse.json();
+          errorMessage = errorData?.error?.message || errorData?.message || errorMessage;
+        } catch (e) {
+          // If JSON parsing fails, use default message
+        }
+        throw new Error(errorMessage);
+      }
+      
+      if (!conversationResponse.ok) {
+        let errorMessage = 'Failed to load order conversation';
+        try {
+          const errorData = await conversationResponse.json();
+          if (errorData?.error?.code === 'ORDER_NOT_FOUND') {
+            errorMessage = 'Order not found or you do not have access to this order';
+          } else if (errorData?.error?.code === 'INVALID_ORDER_ID') {
+            errorMessage = 'Invalid order ID format';
+          } else {
+            errorMessage = errorData?.error?.message || errorData?.message || errorMessage;
+          }
+        } catch (e) {
+          // If JSON parsing fails, use default message
+        }
+        throw new Error(errorMessage);
+      }
+      
+      const detailsData = await detailsResponse.json();
+      const conversationData = await conversationResponse.json();
+      
+      if (detailsData.success && conversationData.success) {
+        this.manufacturerDetails = detailsData.data.manufacturer;
+        
+        // Order-based conversation - handle nested data structure
+        const orderData = conversationData.data.data || conversationData.data;
+        this.currentOrderId = orderData.orderId;
+        this.currentInquiryId = null;
+        this.conversationType = 'order';
+        
+        this.messages = orderData.messages;
+        
+        // Set current conversation ID for active state
+        this.currentConversationId = this.currentOrderId ? this.currentOrderId.toString() : null;
+        
+        // Ensure conversation ID is properly set
+        if (!this.currentConversationId) {
+          throw new Error('Conversation data failed to load');
+        }
+        
+        // Convert ObjectId to string if needed
+        if (typeof this.currentOrderId === 'object' && this.currentOrderId._id) {
+          this.currentConversationId = this.currentOrderId._id.toString();
+        }
+        
+        // Update UI with conversation data
+        this.updateConversationUI(orderData);
+        
+        // Mark messages as read when conversation is opened
+        if (this.currentOrderId) {
+          this.markMessagesAsRead(this.currentOrderId, this.conversationType);
+        }
+        
+        // Show appropriate welcome message based on conversation type
+        if (this.messages.length === 0) {
+          if (this.conversationType === 'order') {
+            this.showOrderWelcome(orderData);
+          } else {
+            this.showManufacturerWelcome(this.manufacturerDetails);
+          }
+        } else {
+          // If messages exist, render them
+          this.renderMessages();
+        }
+        
+        this.hideLoadingState('conversations');
+        this.hideLoadingState('messages');
+        
+      } else {
+        throw new Error(conversationData.message || detailsData.message || 'Conversation data failed to load');
+      }
+      
+    } catch (error) {
+      this.logger.error('❌ Load order conversation error:', error);
+      this.hideLoadingState('conversations');
+      this.hideLoadingState('messages');
+      this.showErrorMessage(error.message || 'Failed to load conversation');
+    }
+  }
+
   // Load manufacturer conversation with professional error handling
   async loadManufacturerConversation(manufacturerId) {
     try {
@@ -4655,8 +4780,26 @@ class ProfessionalBuyerMessages {
         fetch(`/buyer/api/manufacturer/${manufacturerId}/conversation`)
       ]);
       
-      if (!detailsResponse.ok || !conversationResponse.ok) {
-        throw new Error(window.messageTranslations.errors.manufacturerDataFailed);
+      if (!detailsResponse.ok) {
+        let errorMessage = 'Failed to load manufacturer details';
+        try {
+          const errorData = await detailsResponse.json();
+          errorMessage = errorData?.error?.message || errorData?.message || errorMessage;
+        } catch (e) {
+          // If JSON parsing fails, use default message
+        }
+        throw new Error(errorMessage);
+      }
+      
+      if (!conversationResponse.ok) {
+        let errorMessage = 'Failed to load conversation';
+        try {
+          const errorData = await conversationResponse.json();
+          errorMessage = errorData?.error?.message || errorData?.message || errorMessage;
+        } catch (e) {
+          // If JSON parsing fails, use default message
+        }
+        throw new Error(errorMessage);
       }
       
       const detailsData = await detailsResponse.json();
@@ -4665,20 +4808,23 @@ class ProfessionalBuyerMessages {
       if (detailsData.success && conversationData.success) {
         this.manufacturerDetails = detailsData.data.manufacturer;
         
+        // Handle nested data structure
+        const conversationInfo = conversationData.data.data || conversationData.data;
+        
         // Handle both order and inquiry based conversations
-        if (conversationData.data.orderId) {
+        if (conversationInfo.orderId) {
           // Order-based conversation
-          this.currentOrderId = conversationData.data.orderId;
+          this.currentOrderId = conversationInfo.orderId;
           this.currentInquiryId = null;
           this.conversationType = 'order';
-        } else if (conversationData.data.inquiryId) {
+        } else if (conversationInfo.inquiryId) {
           // Inquiry-based conversation  
-          this.currentInquiryId = conversationData.data.inquiryId;
+          this.currentInquiryId = conversationInfo.inquiryId;
           this.currentOrderId = null;
           this.conversationType = 'inquiry';
         }
         
-        this.messages = conversationData.data.messages;
+        this.messages = conversationInfo.messages;
         
         // Set current conversation ID for active state
         const currentConversationId = this.currentOrderId || this.currentInquiryId;
@@ -4688,7 +4834,7 @@ class ProfessionalBuyerMessages {
         
         // Ensure conversation ID is properly set
         if (!currentConversationId) {
-          throw new Error(window.messageTranslations.errors.conversationDataFailed);
+          throw new Error('Conversation data failed to load');
         }
         
         // Convert ObjectId to string if needed
@@ -4717,30 +4863,30 @@ class ProfessionalBuyerMessages {
             lastMessage: {
               content: this.messages.length > 0 ? 
                 this.messages[this.messages.length - 1].content : 
-                window.messageTranslations.conversation.startConversation,
+                'Start conversation',
               timestamp: this.messages.length > 0 ? 
                 this.messages[this.messages.length - 1].createdAt : 
                 new Date(),
-              sender: window.messageTranslations.system.name,
+              sender: 'System',
               type: 'system'
             },
-            unreadCount: conversationData.data.unreadCount,
+            unreadCount: conversationInfo.unreadCount || 0,
             isOnline: this.manufacturerDetails.isOnline
           };
           
           // Add conversation-specific fields based on type
           if (this.conversationType === 'order') {
             conversation.type = 'order';
-            conversation.orderId = conversationData.data.orderId;
-            conversation.orderNumber = conversationData.data.orderNumber;
-            conversation.orderStatus = conversationData.data.orderStatus;
-            conversation.orderValue = 0;
-            conversation.currency = window.messageTranslations.currency.usd;
+            conversation.orderId = conversationInfo.orderId;
+            conversation.orderNumber = conversationInfo.orderNumber;
+            conversation.orderStatus = conversationInfo.orderStatus;
+            conversation.orderValue = conversationInfo.orderValue || 0;
+            conversation.currency = conversationInfo.currency || 'USD';
           } else if (this.conversationType === 'inquiry') {
             conversation.type = 'inquiry';
-            conversation.inquiryId = conversationData.data.inquiryId;
-            conversation.inquiryNumber = conversationData.data.inquiryNumber;
-            conversation.inquiryStatus = conversationData.data.inquiryStatus;
+            conversation.inquiryId = conversationInfo.inquiryId;
+            conversation.inquiryNumber = conversationInfo.inquiryNumber;
+            conversation.inquiryStatus = conversationInfo.inquiryStatus;
             conversation.subject = 'Inquiry';
             conversation.priority = 'medium';
           }
@@ -4762,7 +4908,8 @@ class ProfessionalBuyerMessages {
         if (this.messages.length === 0) {
           this.showManufacturerWelcome(this.manufacturerDetails);
         } else {
-          // Scroll to bottom after loading messages
+          // Render messages and scroll to bottom
+          this.renderMessages();
           setTimeout(() => {
             this.scrollToBottom();
           }, 100);
@@ -4781,7 +4928,6 @@ class ProfessionalBuyerMessages {
         this.showErrorState('messages', window.messageTranslations.errors.conversationDataFailed);
       }
     } catch (error) {
-      console.error('Error loading manufacturer conversation:', error);
               this.showErrorState('conversations', window.messageTranslations.errors.manufacturerConnectionFailed);
         this.showErrorState('messages', window.messageTranslations.errors.messagesLoadFailed);
     }
@@ -4888,6 +5034,267 @@ class ProfessionalBuyerMessages {
     if (actions) actions.style.display = 'none';
   }
 
+  // Render conversations grouped by manufacturer
+  renderConversationsGrouped() {
+    const conversationsList = document.querySelector('.conversations-list');
+    if (!conversationsList) return;
+
+    if (this.conversations.length === 0) {
+      conversationsList.innerHTML = `
+        <div class="no-conversations">
+          <div class="no-conversations-icon">
+            <i class="fas fa-comments"></i>
+          </div>
+          <h4>${window.messageTranslations.sidebar.noConversations}</h4>
+          <p>${window.messageTranslations.sidebar.noConversationsDesc}</p>
+        </div>
+      `;
+      return;
+    }
+
+    let conversationsHTML = '';
+
+    this.conversations.forEach((group, groupIndex) => {
+      const manufacturer = group.manufacturer;
+      const productChat = group.productChat;
+      const orderChats = group.orderChats || [];
+      
+      // Manufacturer header
+      conversationsHTML += `
+        <div class="manufacturer-group">
+          <div class="manufacturer-header">
+            <div class="manufacturer-avatar">
+              ${manufacturer.companyLogo && manufacturer.companyLogo.url ? 
+                `<img src="${manufacturer.companyLogo.url}" alt="${manufacturer.companyName}" class="avatar-img" onerror="handleLogoError(this)">` :
+                manufacturer.avatar && manufacturer.avatar !== '/assets/images/default-company.svg' ?
+                  `<img src="${manufacturer.avatar}" alt="${manufacturer.companyName}" class="avatar-img" onerror="handleLogoError(this)">` :
+                  `<div class="logo-placeholder"><i class="fas fa-building"></i></div>`
+              }
+              <div class="conversation-status ${group.isOnline ? 'online' : 'offline'}"></div>
+            </div>
+            <div class="manufacturer-info">
+              <h4 class="manufacturer-name">${manufacturer.companyName}</h4>
+              <div class="manufacturer-meta">
+                <span class="manufacturer-orders-count">${orderChats.length} order${orderChats.length !== 1 ? 's' : ''}</span>
+                ${group.unreadCount > 0 ? `<span class="unread-badge">${group.unreadCount}</span>` : ''}
+              </div>
+            </div>
+          </div>
+          
+          <div class="manufacturer-chats">
+      `;
+
+      // Product chat (if exists)
+      if (productChat) {
+        const isActive = this.currentConversationId === productChat._id.toString() && this.conversationType === 'inquiry';
+        conversationsHTML += `
+          <div class="chat-item product-chat ${isActive ? 'active' : ''}" 
+               data-conversation-id="${productChat._id}"
+               data-conversation-type="inquiry"
+               data-manufacturer-id="${manufacturer._id}"
+               data-url="/buyer/messages?manufacturer=${manufacturer._id}">
+            <div class="chat-content">
+              <div class="chat-icon">
+                <i class="fas fa-comment-dots"></i>
+              </div>
+              <div class="chat-details">
+                <h5 class="chat-title">Product Chat</h5>
+                <p class="chat-subtitle">General inquiry and product discussion</p>
+              </div>
+              <div class="chat-actions">
+                ${productChat.unreadCount > 0 ? `<span class="unread-badge">${productChat.unreadCount}</span>` : ''}
+                <div class="chat-arrow">
+                  <i class="fas fa-chevron-right"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        // Create product chat link
+        conversationsHTML += `
+          <div class="chat-item product-chat" 
+               data-manufacturer-id="${manufacturer._id}"
+               data-url="/buyer/messages?manufacturer=${manufacturer._id}">
+            <div class="chat-content">
+              <div class="chat-icon">
+                <i class="fas fa-comment-dots"></i>
+              </div>
+              <div class="chat-details">
+                <h5 class="chat-title">Product Chat</h5>
+                <p class="chat-subtitle">Start new product discussion</p>
+              </div>
+              <div class="chat-arrow">
+                <i class="fas fa-chevron-right"></i>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Order chats
+      orderChats.forEach((order, orderIndex) => {
+        const isActive = this.currentConversationId === order._id.toString() && this.conversationType === 'order';
+        conversationsHTML += `
+          <div class="chat-item order-chat ${isActive ? 'active' : ''}" 
+               data-conversation-id="${order._id}"
+               data-conversation-type="order"
+               data-manufacturer-id="${manufacturer._id}"
+               data-order-id="${order._id}"
+               data-url="/buyer/messages?manufacturer=${manufacturer._id}&order=${order._id}">
+            <div class="chat-content">
+              <div class="chat-icon">
+                <i class="fas fa-shopping-cart"></i>
+              </div>
+              <div class="chat-details">
+                <h5 class="chat-title">Order ${order.orderNumber}</h5>
+                <p class="chat-subtitle">Status: ${order.status} | $${order.totalAmount} ${order.currency || 'USD'}</p>
+              </div>
+              <div class="chat-actions">
+                ${order.unreadCount > 0 ? `<span class="unread-badge">${order.unreadCount}</span>` : ''}
+                <div class="chat-arrow">
+                  <i class="fas fa-chevron-right"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      conversationsHTML += `
+          </div>
+        </div>
+      `;
+    });
+
+    conversationsList.innerHTML = conversationsHTML;
+
+    // Add click handlers
+    this.setupConversationClickHandlers();
+  }
+
+  // Render conversations in simple list format
+  renderConversations() {
+    const conversationsList = document.querySelector('.conversations-list');
+    if (!conversationsList) {
+      return;
+    }
+
+    if (this.conversations.length === 0) {
+      conversationsList.innerHTML = `
+        <div class="no-conversations">
+          <div class="no-conversations-icon">
+            <i class="fas fa-comments"></i>
+          </div>
+          <h4>${window.messageTranslations.sidebar.noConversations}</h4>
+          <p>${window.messageTranslations.sidebar.noConversationsDesc}</p>
+        </div>
+      `;
+      return;
+    }
+
+    let conversationsHTML = '';
+
+    this.conversations.forEach((conversation, index) => {
+      const manufacturer = conversation.manufacturer;
+      const isActive = this.currentConversationId === conversation._id.toString();
+      const lastMessage = conversation.lastMessage;
+      const lastMessageText = lastMessage ? 
+        (lastMessage.content.length > 50 ? lastMessage.content.substring(0, 50) + '...' : lastMessage.content) : 
+        'No messages yet';
+      
+      // Determine chat type and icon
+      const chatType = conversation.type === 'product' ? 'Product Chat' : `Order ${conversation.orderNumber}`;
+      const chatIcon = conversation.type === 'product' ? 'fa-comment-dots' : 'fa-shopping-cart';
+      const chatSubtitle = conversation.type === 'product' ? 
+        'General inquiry and product discussion' : 
+        `Status: ${conversation.orderStatus} | $${conversation.orderAmount}`;
+      
+      // Generate URL
+      const url = conversation.type === 'product' ? 
+        `/buyer/messages?manufacturer=${manufacturer._id}` : 
+        `/buyer/messages?manufacturer=${manufacturer._id}&order=${conversation._id}`;
+
+      conversationsHTML += `
+        <div class="conversation-item ${isActive ? 'active' : ''}" 
+             data-conversation-id="${conversation._id}"
+             data-manufacturer-id="${manufacturer._id}"
+             data-type="${conversation.type}"
+             data-url="${url}">
+          <div class="conversation-avatar">
+            ${manufacturer.companyLogo && manufacturer.companyLogo.url ? 
+              `<img src="${manufacturer.companyLogo.url}" alt="${manufacturer.companyName}" class="avatar-img" onerror="handleLogoError(this)">` :
+              manufacturer.avatar && manufacturer.avatar !== '/assets/images/default-company.svg' ?
+                `<img src="${manufacturer.avatar}" alt="${manufacturer.companyName}" class="avatar-img" onerror="handleLogoError(this)">` :
+                `<div class="logo-placeholder"><i class="fas fa-building"></i></div>`
+            }
+            <div class="conversation-status ${conversation.isOnline ? 'online' : 'offline'}"></div>
+          </div>
+          <div class="conversation-content">
+            <div class="conversation-header">
+              <h4 class="conversation-name">${manufacturer.companyName}</h4>
+              <div class="conversation-meta">
+                <span class="conversation-type">${chatType}</span>
+                ${conversation.unreadCount > 0 ? `<span class="unread-badge">${conversation.unreadCount}</span>` : ''}
+              </div>
+            </div>
+            <div class="conversation-preview">
+              <p class="last-message">${lastMessageText}</p>
+              <span class="message-time">${this.formatMessageTime(conversation.updatedAt)}</span>
+            </div>
+          </div>
+          <div class="conversation-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+      `;
+    });
+
+      conversationsList.innerHTML = conversationsHTML;
+    this.setupConversationClickHandlers();
+  }
+
+  // Setup click handlers for conversation items
+  setupConversationClickHandlers() {
+    // Use event delegation for better performance and reliability
+    const conversationsList = document.querySelector('.conversations-list');
+    if (!conversationsList) return;
+    
+    // Remove existing event listeners
+    conversationsList.removeEventListener('click', this.handleConversationClick);
+    
+    // Add new event listener with bound context
+    this.handleConversationClick = this.handleConversationClick.bind(this);
+    conversationsList.addEventListener('click', this.handleConversationClick);
+  }
+  
+  handleConversationClick(e) {
+    const conversationItem = e.target.closest('.conversation-item');
+    if (!conversationItem) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const url = conversationItem.dataset.url;
+    const conversationType = conversationItem.dataset.type;
+    const manufacturerId = conversationItem.dataset.manufacturerId;
+    const orderId = conversationItem.dataset.orderId;
+    
+    // Update active state
+    const allItems = document.querySelectorAll('.conversation-item');
+    allItems.forEach(ci => ci.classList.remove('active'));
+    conversationItem.classList.add('active');
+    
+    // Navigate to the chat
+    if (url) {
+      window.location.href = url;
+    } else if (conversationType === 'inquiry' && manufacturerId) {
+      window.location.href = `/buyer/messages?manufacturer=${manufacturerId}`;
+    } else if (conversationType === 'order' && manufacturerId && orderId) {
+      window.location.href = `/buyer/messages?manufacturer=${manufacturerId}&order=${orderId}`;
+    }
+  }
+
   // Render conversations in sidebar
   renderConversations() {
     const conversationsList = document.querySelector('.conversations-list');
@@ -4912,50 +5319,64 @@ class ProfessionalBuyerMessages {
 
     // Separate current manufacturer and other conversations
     const currentManufacturerId = this.getCurrentManufacturerId();
-    const currentConversation = this.conversations.find(conv => conv.supplier.id === currentManufacturerId);
-    const otherConversations = this.conversations.filter(conv => conv.supplier.id !== currentManufacturerId);
+    const currentConversations = this.conversations.filter(conv => conv.manufacturer._id === currentManufacturerId);
+    const otherConversations = this.conversations.filter(conv => conv.manufacturer._id !== currentManufacturerId);
 
     // Show current manufacturer at top if manufacturer is selected (regardless of message history)
-    const shouldShowCurrentAtTop = currentConversation && currentManufacturerId;
+    const shouldShowCurrentAtTop = currentConversations.length > 0 && currentManufacturerId;
 
 
 
     let conversationsHTML = '';
 
-    // Show current manufacturer at top if manufacturer is selected
+    // Show current manufacturer conversations at top if manufacturer is selected
     if (shouldShowCurrentAtTop) {
-      conversationsHTML += `
-        <div class="conversation-item current-manufacturer ${currentConversation.id === this.currentConversationId ? 'active' : ''}" 
-             data-conversation-id="${currentConversation.id}"
-             data-conversation-index="0"
-             data-supplier-id="${currentConversation.supplier.id}">
+      currentConversations.forEach((currentConversation, index) => {
+        conversationsHTML += `
+          <div class="conversation-item current-manufacturer ${currentConversation._id === this.currentConversationId ? 'active' : ''}" 
+               data-conversation-id="${currentConversation._id}"
+               data-conversation-index="${index}"
+               data-supplier-id="${currentConversation.manufacturer._id}"
+               data-type="${currentConversation.type || 'product'}"
+               data-manufacturer-id="${currentConversation.manufacturer._id}"
+               data-order-id="${currentConversation.type === 'order' ? currentConversation._id : ''}"
+               data-url="${currentConversation.type === 'order' ? `/buyer/messages?manufacturer=${currentConversation.manufacturer._id}&order=${currentConversation._id}` : `/buyer/messages?manufacturer=${currentConversation.manufacturer._id}`}">
           <div class="conversation-content">
             <div class="conversation-avatar">
-              ${currentConversation.supplier.companyLogo && currentConversation.supplier.companyLogo.url ? 
-                `<img src="${currentConversation.supplier.companyLogo.url}" alt="${currentConversation.supplier.name}" class="avatar-img" onerror="handleLogoError(this)">` :
-                currentConversation.supplier.avatar && currentConversation.supplier.avatar !== '/assets/images/default-company.svg' ?
-                  `<img src="${currentConversation.supplier.avatar}" alt="${currentConversation.supplier.name}" class="avatar-img" onerror="handleLogoError(this)">` :
+              ${currentConversation.manufacturer.companyLogo && currentConversation.manufacturer.companyLogo.url ? 
+                `<img src="${currentConversation.manufacturer.companyLogo.url}" alt="${currentConversation.manufacturer.companyName}" class="avatar-img" onerror="handleLogoError(this)">` :
+                currentConversation.manufacturer.avatar && currentConversation.manufacturer.avatar !== '/assets/images/default-company.svg' ?
+                  `<img src="${currentConversation.manufacturer.avatar}" alt="${currentConversation.manufacturer.companyName}" class="avatar-img" onerror="handleLogoError(this)">` :
                   `<div class="logo-placeholder"><i class="fas fa-building"></i></div>`
               }
               <div class="conversation-status ${currentConversation.isOnline ? 'online' : 'offline'}"></div>
             </div>
             <div class="conversation-details">
               <div class="conversation-header">
-                <h4 class="conversation-name">${currentConversation.supplier.name} <span class="current-badge">${window.messageTranslations.conversation.selected}</span></h4>
-                <span class="conversation-time">${this.formatTime(currentConversation.lastMessage.timestamp)}</span>
+                <div class="conversation-title">
+                  <h4 class="conversation-name">${currentConversation.manufacturer.companyName}</h4>
+                  <div class="conversation-badges">
+                    <span class="chat-type-badge ${currentConversation.type === 'product' ? 'product-chat' : 'order-chat'}">
+                      ${currentConversation.type === 'product' ? 'Product Chat' : `Order Chat`}
+                    </span>
+                    ${currentConversation.unreadCount > 0 ? `<span class="unread-badge">${currentConversation.unreadCount}</span>` : ''}
+                  </div>
+                </div>
+                <span class="conversation-time">${currentConversation.lastMessage ? this.formatTime(currentConversation.lastMessage.createdAt) : ''}</span>
               </div>
               <div class="conversation-preview">
-                <p class="last-message">${this.formatLastMessageContent(currentConversation.lastMessage)}</p>
+                <p class="last-message">${currentConversation.lastMessage ? this.formatLastMessageContent(currentConversation.lastMessage) : 'No messages yet'}</p>
                 ${currentConversation.unreadCount > 0 ? `<span class="unread-badge">${currentConversation.unreadCount}</span>` : ''}
               </div>
               <div class="conversation-meta">
-                <span class="order-info">${currentConversation.orderNumber}</span>
-                <span class="status-badge ${currentConversation.orderStatus}">${this.formatStatus(currentConversation.orderStatus)}</span>
+                <span class="order-info">${currentConversation.orderNumber || ''}</span>
+                <span class="status-badge ${currentConversation.orderStatus || ''}">${currentConversation.orderStatus ? this.formatStatus(currentConversation.orderStatus) : ''}</span>
               </div>
             </div>
           </div>
         </div>
       `;
+      });
     }
 
     // Show other conversations (already filtered to exclude current manufacturer)
@@ -4963,32 +5384,44 @@ class ProfessionalBuyerMessages {
     conversationsToShow.forEach((conv, index) => {
       const isCurrent = false; // Current manufacturer is already shown at top if needed
       conversationsHTML += `
-        <div class="conversation-item ${isCurrent ? 'current-manufacturer' : ''} ${conv.id === this.currentConversationId ? 'active' : ''}" 
-             data-conversation-id="${conv.id}"
+        <div class="conversation-item ${isCurrent ? 'current-manufacturer' : ''} ${conv._id === this.currentConversationId ? 'active' : ''}" 
+             data-conversation-id="${conv._id}"
              data-conversation-index="${index}"
-             data-supplier-id="${conv.supplier.id}">
+             data-supplier-id="${conv.manufacturer._id}"
+             data-type="${conv.type || 'product'}"
+             data-manufacturer-id="${conv.manufacturer._id}"
+             data-order-id="${conv.type === 'order' ? conv._id : ''}"
+             data-url="${conv.type === 'order' ? `/buyer/messages?manufacturer=${conv.manufacturer._id}&order=${conv._id}` : `/buyer/messages?manufacturer=${conv.manufacturer._id}`}">
           <div class="conversation-content">
             <div class="conversation-avatar">
-              ${conv.supplier.companyLogo && conv.supplier.companyLogo.url ? 
-                `<img src="${conv.supplier.companyLogo.url}" alt="${conv.supplier.name}" class="avatar-img" onerror="handleLogoError(this)">` :
-                conv.supplier.avatar && conv.supplier.avatar !== '/assets/images/default-company.svg' ?
-                  `<img src="${conv.supplier.avatar}" alt="${conv.supplier.name}" class="avatar-img" onerror="handleLogoError(this)">` :
+              ${conv.manufacturer.companyLogo && conv.manufacturer.companyLogo.url ? 
+                `<img src="${conv.manufacturer.companyLogo.url}" alt="${conv.manufacturer.companyName}" class="avatar-img" onerror="handleLogoError(this)">` :
+                conv.manufacturer.avatar && conv.manufacturer.avatar !== '/assets/images/default-company.svg' ?
+                  `<img src="${conv.manufacturer.avatar}" alt="${conv.manufacturer.companyName}" class="avatar-img" onerror="handleLogoError(this)">` :
                   `<div class="logo-placeholder"><i class="fas fa-building"></i></div>`
               }
               <div class="conversation-status ${conv.isOnline ? 'online' : 'offline'}"></div>
             </div>
             <div class="conversation-details">
               <div class="conversation-header">
-                <h4 class="conversation-name">${conv.supplier.name}${isCurrent ? ` <span class="current-badge">${window.messageTranslations.conversation.selected}</span>` : ''}</h4>
-                <span class="conversation-time">${this.formatTime(conv.lastMessage.timestamp)}</span>
+                <div class="conversation-title">
+                  <h4 class="conversation-name">${conv.manufacturer.companyName}</h4>
+                  <div class="conversation-badges">
+                    <span class="chat-type-badge ${conv.type === 'product' ? 'product-chat' : 'order-chat'}">
+                      ${conv.type === 'product' ? 'Product Chat' : `Order Chat`}
+                    </span>
+                    ${conv.unreadCount > 0 ? `<span class="unread-badge">${conv.unreadCount}</span>` : ''}
+                  </div>
+                </div>
+                <span class="conversation-time">${conv.lastMessage ? this.formatTime(conv.lastMessage.createdAt) : ''}</span>
               </div>
               <div class="conversation-preview">
-                <p class="last-message">${this.formatLastMessageContent(conv.lastMessage)}</p>
+                <p class="last-message">${conv.lastMessage ? this.formatLastMessageContent(conv.lastMessage) : 'No messages yet'}</p>
                 ${conv.unreadCount > 0 ? `<span class="last-message-unread-badge">${conv.unreadCount}</span>` : ''}
               </div>
               <div class="conversation-meta">
-                <span class="order-info">${conv.orderNumber}</span>
-                <span class="status-badge ${conv.orderStatus}">${this.formatStatus(conv.orderStatus)}</span>
+                <span class="order-info">${conv.orderNumber || ''}</span>
+                <span class="status-badge ${conv.orderStatus || ''}">${conv.orderStatus ? this.formatStatus(conv.orderStatus) : ''}</span>
               </div>
             </div>
           </div>
@@ -4997,25 +5430,9 @@ class ProfessionalBuyerMessages {
     });
 
     conversationsList.innerHTML = conversationsHTML;
-    
-    // Add click event listeners to conversation items
-    this.addConversationEventListeners();
+    this.setupConversationClickHandlers();
   }
 
-  // Add click event listeners to conversation items
-  addConversationEventListeners() {
-    const conversationItems = document.querySelectorAll('.conversation-item');
-    conversationItems.forEach(item => {
-      item.addEventListener('click', (event) => {
-        const conversationId = item.getAttribute('data-conversation-id');
-        const supplierId = item.getAttribute('data-supplier-id');
-        
-        if (conversationId && supplierId) {
-          this.selectConversation(conversationId, supplierId);
-        }
-      });
-    });
-  }
 
   // Render empty conversations list (when there's an error or no data)
   renderEmptyConversations() {
@@ -5093,7 +5510,6 @@ class ProfessionalBuyerMessages {
         this.showErrorState('messages', data.message || window.messageTranslations.errors.loadMessagesFailedEn);
       }
     } catch (error) {
-      console.error('Error loading messages:', error);
       this.showErrorState('messages', window.messageTranslations.errors.loadMessagesFailed);
     }
   }
@@ -5147,14 +5563,12 @@ class ProfessionalBuyerMessages {
 
   // Open image modal (class method)
   openImageModal(imageUrl, imageTitle) {
-    console.log('🖼️ Opening image modal:', imageUrl, imageTitle);
     
     const modal = document.getElementById('imageModal');
     const modalImage = document.getElementById('modalImage');
     const modalTitle = document.getElementById('modalImageTitle');
     
     if (!modal) {
-      console.error('❌ Image modal not found');
       return;
     }
     
@@ -5169,7 +5583,6 @@ class ProfessionalBuyerMessages {
     // Initialize image zoom and drag functionality
     this.initImageZoomAndDrag(modalImage);
     
-    console.log('✅ Modal opened successfully');
   }
 
   // Initialize image zoom and drag functionality
@@ -5599,7 +6012,7 @@ class ProfessionalBuyerMessages {
     
     if (isImage) {
       return `
-        <div class="telegram-attachment-image" onclick="if(window.professionalBuyerMessages) { window.professionalBuyerMessages.openImageModal('${attachment.url}', '${attachment.originalName || 'Image'}'); } else { console.error('❌ professionalBuyerMessages not found'); }">
+        <div class="telegram-attachment-image" onclick="if(window.professionalBuyerMessages) { window.professionalBuyerMessages.openImageModal('${attachment.url}', '${attachment.originalName || 'Image'}'); } else { alert('Messages system not available'); }">
           <img src="${attachment.url}" 
                                alt="${attachment.originalName || window.messageTranslations.fileTypes.unknown}" 
                data-image-url="${attachment.url}"
@@ -5639,7 +6052,6 @@ class ProfessionalBuyerMessages {
     
     // Check if already sending
     if (this.isSending) {
-      console.log('🔄 Message already being sent, ignoring duplicate request');
       return;
     }
     
@@ -5665,15 +6077,9 @@ class ProfessionalBuyerMessages {
       // Show typing indicator
       this.showTypingIndicator();
       
-      console.log('📤 Sending message:', messageContent);
-      console.log('📎 Attachments:', this.attachments.length);
-      console.log('🆔 Current Conversation ID:', conversationId);
-      console.log('🏭 Current Manufacturer ID:', this.currentManufacturerId);
-      console.log('📋 Conversation Type:', this.conversationType);
       
       // Validate conversation ID
       if (!conversationId) {
-        console.error('❌ No current conversation ID found');
         this.showErrorMessage('Suhbat ma\'lumotlari topilmadi. Iltimos, sahifani yangilang');
         return;
       }
@@ -5700,11 +6106,6 @@ class ProfessionalBuyerMessages {
         formData.append('attachments', attachment.file);
       });
       
-      // Debug FormData contents
-      console.log('📋 FormData contents:');
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
       
       const response = await fetch('/buyer/api/send-message', {
       method: 'POST',
@@ -5718,7 +6119,6 @@ class ProfessionalBuyerMessages {
       const data = await response.json();
       
       if (data.success) {
-        console.log('✅ Message sent successfully');
         
         // Hide typing indicator
         this.hideTypingIndicator();
@@ -5754,12 +6154,10 @@ class ProfessionalBuyerMessages {
         this.showSuccessMessage(window.messageTranslations.errors.sendSuccess);
         }
       } else {
-        console.log('❌ Message send failed:', data.message);
         this.hideTypingIndicator();
         this.showErrorMessage(data.message || window.messageTranslations.errors.sendFailed);
       }
     } catch (error) {
-      console.error('❌ Error sending message:', error);
       this.hideTypingIndicator();
       this.showErrorMessage(window.messageTranslations.errors.sendFailedGeneral);
     } finally {
@@ -5960,7 +6358,6 @@ class ProfessionalBuyerMessages {
     this.renderAttachments();
     this.updateSendButton();
     
-    console.log('📎 Attachment added:', attachment.name);
   }
 
   // Create file preview
@@ -6097,7 +6494,6 @@ class ProfessionalBuyerMessages {
       this.attachments.splice(index, 1);
       this.renderAttachments();
       this.updateSendButton();
-      console.log('🗑️ Attachment removed:', attachmentId);
     }
   }
 
@@ -6131,7 +6527,6 @@ class ProfessionalBuyerMessages {
         }
       }
     } catch (error) {
-      console.error('Error marking messages as read:', error);
       // Don't show error to user, this is a background operation
     }
   }
@@ -6162,7 +6557,6 @@ class ProfessionalBuyerMessages {
         }
       }
     } catch (error) {
-      console.error('Error updating navigation badge:', error);
     }
   }
 
@@ -6174,7 +6568,6 @@ class ProfessionalBuyerMessages {
     if (input) {
       input.click();
     } else {
-      console.error(`❌ File input not found: ${inputId}`);
     }
     
     this.hideAttachmentMenu();
@@ -6207,6 +6600,68 @@ class ProfessionalBuyerMessages {
       `;
     }
   }
+
+  // Update conversation UI with conversation data
+  updateConversationUI(conversationData) {
+    // Update conversation header with order or inquiry information
+    const conversationHeader = document.querySelector('.conversation-header');
+    if (conversationHeader && conversationData) {
+      if (conversationData.type === 'order') {
+        conversationHeader.innerHTML = `
+          <div class="conversation-info">
+            <h3 class="conversation-title">Order ${conversationData.orderNumber}</h3>
+            <p class="conversation-subtitle">Status: ${conversationData.orderStatus} | Value: $${conversationData.orderValue} ${conversationData.currency}</p>
+          </div>
+        `;
+      } else if (conversationData.type === 'inquiry') {
+        conversationHeader.innerHTML = `
+          <div class="conversation-info">
+            <h3 class="conversation-title">${conversationData.subject || 'Product Inquiry'}</h3>
+            <p class="conversation-subtitle">Inquiry #${conversationData.inquiryNumber}</p>
+          </div>
+        `;
+      }
+    }
+  }
+
+  // Show order-specific welcome state
+  showOrderWelcome(orderData) {
+    const messagesContainer = document.querySelector('.messages-container');
+    const quickActions = document.querySelector('.quick-actions-grid');
+    const inputArea = document.querySelector('.b2b-message-input-area');
+    
+    // Show input for order chat
+    if (inputArea) inputArea.style.display = 'block';
+    
+    if (messagesContainer) {
+      messagesContainer.innerHTML = `
+        <div class="welcome-state">
+          <div class="welcome-icon">
+            <i class="fas fa-shopping-cart text-main"></i>
+          </div>
+          <h3 class="welcome-title text-heading">Order ${orderData.orderNumber} - ${orderData.manufacturer.companyName}</h3>
+          <p class="welcome-description">Order holati: <strong>${orderData.orderStatus}</strong> | Qiymat: <strong>$${orderData.orderValue} ${orderData.currency}</strong></p>
+          <p class="welcome-subtitle">Bu order haqida ishlab chiqaruvchi bilan suhbat qiling</p>
+          
+          <div class="order-info-card">
+            <div class="order-info-item">
+              <i class="fas fa-hashtag"></i>
+              <span>Order raqami: ${orderData.orderNumber}</span>
+            </div>
+            <div class="order-info-item">
+              <i class="fas fa-info-circle"></i>
+              <span>Holat: ${orderData.orderStatus}</span>
+            </div>
+            <div class="order-info-item">
+              <i class="fas fa-dollar-sign"></i>
+              <span>Qiymat: $${orderData.orderValue} ${orderData.currency}</span>
+            </div>
+          </div>
+        </div>
+      `;
+  }
+}
+
 
   // Show manufacturer-specific welcome state with quick actions
   showManufacturerWelcome(manufacturer) {
@@ -6427,17 +6882,14 @@ class ProfessionalBuyerMessages {
     try {
       const conversation = this.conversations[index];
       if (!conversation) {
-        console.error('Conversation not found at index:', index);
         return;
       }
       
       // Redirect to manufacturer chat page
-      const redirectUrl = `/buyer/messages?manufacturer=${conversation.supplier.id}`;
-      console.log('🔄 Redirecting to:', redirectUrl);
+      const redirectUrl = `/buyer/messages?manufacturer=${conversation.manufacturer._id}`;
       window.location.href = redirectUrl;
       
     } catch (error) {
-      console.error('Error selecting conversation:', error);
     }
   }
 
@@ -6463,7 +6915,6 @@ class ProfessionalBuyerMessages {
       window.location.href = redirectUrl;
       
     } catch (error) {
-      console.error('Error selecting conversation:', error);
     }
   }
 
@@ -6597,7 +7048,6 @@ function selectConversation(manufacturerId) {
     selectedConv.classList.add('active');
   }
   
-  console.log('Selected conversation:', manufacturerId);
   // Here you would load the conversation messages
 }
 
@@ -6677,7 +7127,6 @@ function insertEmoji() {
 function handleFileSelect(event) {
     const file = event.target.files[0];
     if (file) {
-    console.log('Selected file:', file.name, file.size, file.type);
     // This function is deprecated, use class methods instead
   }
 }
@@ -6685,7 +7134,6 @@ function handleFileSelect(event) {
 function handleImageSelect(event) {
   const file = event.target.files[0];
   if (file) {
-    console.log('Selected image:', file.name, file.size, file.type);
     // This function is deprecated, use class methods instead
   }
 }
@@ -6712,11 +7160,9 @@ function handleProfessionalInputChange() {
 
 // Action functions
 function requestQuoteFromManufacturer() {
-  // console.log('Requesting quote from manufacturer'); // Debug mode only
 }
 
 function viewManufacturerProfile() {
-  // console.log('Viewing manufacturer profile'); // Debug mode only
 }
 
 function sendMessage() {
@@ -6727,31 +7173,24 @@ function sendMessage() {
 }
 
 function requestNewQuote() {
-  // console.log('Requesting new quote'); // Debug mode only
 }
 
 function requestSample() {
-  // console.log('Requesting sample'); // Debug mode only
 }
 
 function downloadCatalog() {
-  // console.log('Downloading catalog'); // Debug mode only
 }
 
 function callManufacturer() {
-  // console.log('Calling manufacturer'); // Debug mode only
 }
 
 function emailManufacturer() {
-  // console.log('Emailing manufacturer'); // Debug mode only
 }
 
 function viewQuoteDetails() {
-  // console.log('Viewing quote details'); // Debug mode only
 }
 
 function viewProfile() {
-  // console.log('Viewing manufacturer profile'); // Debug mode only
 }
 
 // Image Modal Functions - Global functions for modal controls
@@ -6833,6 +7272,408 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<style>
+
+  /* Order Info Card Styles */
+  .order-info-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .order-info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+  }
+  
+  .order-info-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .order-info-item i {
+    width: 20px;
+    color: hsl(var(--main));
+    font-size: 1rem;
+  }
+  
+  /* Manufacturer Group Styles */
+  .manufacturer-group {
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--bs-gray-200);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bs-white);
+  }
+  
+  .manufacturer-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bs-gray-50);
+    border-bottom: 1px solid var(--bs-gray-200);
+  }
+  
+  .manufacturer-avatar {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  
+  .manufacturer-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .manufacturer-info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .manufacturer-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--bs-dark);
+    margin: 0 0 0.25rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .manufacturer-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .manufacturer-orders-count {
+    font-size: 0.8rem;
+    color: var(--bs-gray-600);
+    background: var(--bs-gray-100);
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+  }
+  
+  .unread-badge {
+    background: hsl(var(--main));
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+  }
+  
+  .manufacturer-chats {
+    padding: 0.5rem;
+  }
+  
+  .chat-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+  }
+  
+  .chat-item:hover {
+    background: var(--bs-gray-50);
+    border-color: var(--bs-gray-300);
+  }
+  
+  .chat-item.active {
+    background: hsl(var(--main) / 0.1);
+    border-color: hsl(var(--main));
+  }
+  
+  .chat-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .chat-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  
+  .chat-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+  
+  .chat-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  
+  .product-chat .chat-icon {
+    background: hsl(var(--main) / 0.1);
+    color: hsl(var(--main));
+  }
+  
+  .order-chat .chat-icon {
+    background: hsl(var(--success) / 0.1);
+    color: hsl(var(--success));
+  }
+  
+  .chat-details {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .chat-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--bs-dark);
+    margin: 0 0 0.25rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .chat-subtitle {
+    font-size: 0.8rem;
+    color: var(--bs-gray-600);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .chat-arrow {
+    color: var(--bs-gray-400);
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+  
+  .chat-item:hover .chat-arrow {
+    color: var(--bs-gray-600);
+  }
+  
+  .chat-item.active .chat-arrow {
+    color: hsl(var(--main));
+  }
+
+  /* Simple Conversation List Styles */
+  .conversation-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    background: var(--bs-white);
+  }
+
+  .conversation-item:hover {
+    background: var(--bs-gray-50);
+    border-color: var(--bs-gray-300);
+  }
+
+  .conversation-item.active {
+    background: hsl(var(--main) / 0.1);
+    border-color: hsl(var(--main));
+    border-left: 6px solid hsl(var(--main));
+    position: relative;
+  }
+
+  .conversation-avatar {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    margin-right: 1rem;
+  }
+
+  .conversation-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .conversation-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .conversation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+  }
+
+
+
+  .conversation-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .conversation-type {
+    font-size: 0.8rem;
+    color: var(--bs-gray-600);
+    background: var(--bs-gray-100);
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+  }
+
+  .conversation-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .last-message {
+    font-size: 0.9rem;
+    color: var(--bs-gray-600);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+
+  .message-time {
+    font-size: 0.8rem;
+    color: var(--bs-gray-500);
+    margin-left: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .conversation-arrow {
+    color: var(--bs-gray-400);
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+  }
+
+  .conversation-item:hover .conversation-arrow {
+    color: var(--bs-gray-600);
+  }
+
+  .conversation-item.active .conversation-arrow {
+    color: hsl(var(--main));
+  }
+
+  /* Conversation Title and Badges */
+  .conversation-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .conversation-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .chat-type-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .chat-type-badge.product-chat {
+    background: hsl(var(--main) / 0.1);
+    color: hsl(var(--main));
+    border: 1px solid hsl(var(--main) / 0.2);
+  }
+
+  .chat-type-badge.order-chat {
+    background: hsl(var(--success) / 0.1);
+    color: hsl(var(--success));
+    border: 1px solid hsl(var(--success) / 0.2);
+  }
+
+
+  /* Dark Mode Styles */
+  [data-theme="light"] .conversation-item{
+    background: transparent;
+    border-color: var(--bs-gray-700);
+    color: var(--bs-light) !important;
+  } 
+
+  /* Dark mode class-based styling */
+  .dark-mode .conversation-item {
+    background: var(--bs-dark);
+    border-color: var(--bs-gray-700);
+  }
+
+  .dark-mode .conversation-item:hover {
+    background: var(--bs-gray-800);
+    border-color: var(--bs-gray-600);
+  }
+
+  .dark-mode .conversation-item.active {
+    background: hsl(var(--main) / 0.2);
+    border-color: hsl(var(--main));
+    border-left: 6px solid hsl(var(--main));
+  }
+
+  .dark-mode .conversation-name {
+    color: var(--bs-light);
+  }
+
+  .dark-mode .last-message {
+    color: var(--bs-gray-400);
+  }
+
+  .dark-mode .conversation-time {
+    color: var(--bs-gray-500);
+  }
+
+  .dark-mode .chat-type-badge.product-chat {
+    background: hsl(var(--main) / 0.2);
+    color: hsl(var(--main));
+    border-color: hsl(var(--main) / 0.3);
+  }
+
+  .dark-mode .chat-type-badge.order-chat {
+    background: hsl(var(--success) / 0.2);
+    color: hsl(var(--success));
+    border-color: hsl(var(--success) / 0.3);
+  }
+
+
+  .dark-mode .unread-badge {
+    background: hsl(var(--danger));
+    color: white;
+  }
+  </style>
 <!-- Image Modal -->
 <div id="imageModal" class="telegram-image-modal">
   <div class="telegram-modal-content">

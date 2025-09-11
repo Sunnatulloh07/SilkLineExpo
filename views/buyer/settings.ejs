@@ -141,7 +141,7 @@
                     </label>
                     <input type="tel" name="phone" class="form-control" 
                            value="<%= currentUser.phone || '' %>" 
-                           placeholder="<%= t('buyer.settings.profile.phonePlaceholder') || '+998 90 123 45 67' %>">
+                           placeholder="+998901234567">
                   </div>
 
                   <div class="form-group">
@@ -245,6 +245,60 @@
                     </label>
                     <textarea name="address" class="form-control" rows="3" 
                               placeholder="<%= t('buyer.settings.profile.addressPlaceholder') || 'Enter your full business address' %>"><%= currentUser.address || '' %></textarea>
+                  </div>
+
+                  <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="form-label text-heading">
+                          <%= t('buyer.settings.profile.city') || 'City' %>
+                        </label>
+                        <input type="text" name="city" class="form-control" 
+                               placeholder="<%= t('buyer.settings.profile.cityPlaceholder') || 'Enter your city' %>"
+                               value="<%= currentUser.city || '' %>"
+                               data-debug="city-value: <%= currentUser.city || 'empty' %>">
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="form-label text-heading">
+                          <%= t('buyer.settings.profile.district') || 'District' %>
+                        </label>
+                        <input type="text" name="district" class="form-control" 
+                               placeholder="<%= t('buyer.settings.profile.districtPlaceholder') || 'Enter your district' %>"
+                               value="<%= currentUser.district || '' %>"
+                               data-debug="district-value: <%= currentUser.district || 'empty' %>">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="form-label text-heading">
+                          <%= t('buyer.settings.profile.country') || 'Country' %>
+                        </label>
+                        <select name="country" class="form-control">
+                          <option value="Uzbekistan" <%= currentUser.country === 'Uzbekistan' ? 'selected' : '' %>>Uzbekistan</option>
+                          <option value="Kazakhstan" <%= currentUser.country === 'Kazakhstan' ? 'selected' : '' %>>Kazakhstan</option>
+                          <option value="Kyrgyzstan" <%= currentUser.country === 'Kyrgyzstan' ? 'selected' : '' %>>Kyrgyzstan</option>
+                          <option value="Tajikistan" <%= currentUser.country === 'Tajikistan' ? 'selected' : '' %>>Tajikistan</option>
+                          <option value="Turkmenistan" <%= currentUser.country === 'Turkmenistan' ? 'selected' : '' %>>Turkmenistan</option>
+                          <option value="Other" <%= currentUser.country === 'Other' ? 'selected' : '' %>>Other</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label class="form-label text-heading">
+                          <%= t('buyer.settings.profile.postalCode') || 'Postal Code' %>
+                        </label>
+                        <input type="text" name="postalCode" class="form-control" 
+                               placeholder="<%= t('buyer.settings.profile.postalCodePlaceholder') || 'Enter postal code' %>"
+                               value="<%= currentUser.postalCode || '' %>"
+                               data-debug="postalCode-value: <%= currentUser.postalCode || 'empty' %>">
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1488,8 +1542,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     toggleSwitch.classList.add('toggle-active');
                     toggleSwitch.classList.add('active');
                 }
-            } else {
-                console.log(`⚠️ Toggle without data-setting: ${toggle.name || 'unnamed'}`);
             }
         });
     }
@@ -1808,6 +1860,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+
     // ===== PROFESSIONAL FORM SUBMISSION HANDLERS =====
     
     // Profile form submission
@@ -1858,7 +1911,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="las la-spinner la-spin"></i> Saving...';
 
-            // Submit form via fetch with debugging - USING JSON INSTEAD OF FORMDATA
+            // Submit form via fetch - USING JSON INSTEAD OF FORMDATA
             const formData = new FormData(form);
             const jsonData = {};
             
@@ -1959,7 +2012,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     jsonData[key] = value;
                 }
             }
-            
             
             
             const response = await fetch(form.action, {

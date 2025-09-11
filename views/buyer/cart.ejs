@@ -293,27 +293,10 @@
                       <div class="address-section">
                         <div class="section-header">
                           <h4 class="section-title"><%- t('cart.deliveryAddress') %></h4>
-                          <button type="button" class="btn-add-address" id="addAddressBtn">
-                            <i class="las la-plus"></i>
-                            <%- t('cart.addNewAddress') %>
-                          </button>
                         </div>
                         
                         <div class="address-list" id="savedAddresses">
-                          <div class="address-card selected" data-address-id="default">
-                            <label class="address-radio-wrapper">
-                              <input type="radio" name="deliveryAddress" value="default" checked>
-                              <span class="radio-indicator"></span>
-                            </label>
-                            <div class="address-info">
-                              <div class="address-name"><%- t('cart.homeAddress') %></div>
-                              <div class="address-text">Tashkent, Chilonzor district, Bunyodkor street 12</div>
-                              <div class="address-badge"><%- t('cart.defaultAddress') %></div>
-                            </div>
-                            <button type="button" class="btn-edit-address" data-address-id="default">
-                              <i class="las la-edit"></i>
-                            </button>
-                          </div>
+                          <!-- Addresses will be loaded dynamically here -->
                         </div>
                       </div>
 
@@ -488,7 +471,7 @@
 <div class="address-modal-overlay" id="addressModalOverlay">
   <div class="address-modal">
     <div class="modal-header">
-      <h3 class="modal-title" id="modalTitle"><%- t('cart.addNewAddress') %></h3>
+      <h3 class="modal-title" id="modalTitle">Edit Address</h3>
       <button type="button" class="modal-close" id="closeAddressModal">
         <i class="las la-times"></i>
       </button>
@@ -496,62 +479,630 @@
     
     <div class="modal-body">
       <form class="address-form" id="addressForm">
+        <input type="hidden" id="addressId" value="default">
         <div class="form-row">
           <div class="form-group">
             <label class="form-label"><%- t('cart.addressName') %></label>
-            <input type="text" class="form-input" id="addressName" placeholder="<%- t('cart.addressNamePlaceholder') %>" required>
+            <input type="text" class="form-input" id="addressName" name="addressName" placeholder="<%- t('cart.addressNamePlaceholder') %>" required>
           </div>
         </div>
         
         <div class="form-row">
           <div class="form-group">
             <label class="form-label"><%- t('cart.fullAddress') %></label>
-            <textarea class="form-textarea" id="fullAddress" rows="3" placeholder="<%- t('cart.fullAddressPlaceholder') %>" required></textarea>
+            <textarea class="form-textarea" id="fullAddress" name="fullAddress" rows="3" placeholder="<%- t('cart.fullAddressPlaceholder') %>" required></textarea>
           </div>
         </div>
         
         <div class="form-row">
           <div class="form-group form-half">
             <label class="form-label"><%- t('cart.city') %></label>
-            <input type="text" class="form-input" id="city" placeholder="<%- t('cart.cityPlaceholder') %>" required>
+            <input type="text" class="form-input" id="city" name="city" placeholder="<%- t('cart.cityPlaceholder') %>" required>
           </div>
           <div class="form-group form-half">
             <label class="form-label"><%- t('cart.district') %></label>
-            <input type="text" class="form-input" id="district" placeholder="<%- t('cart.districtPlaceholder') %>" required>
+            <input type="text" class="form-input" id="district" name="district" placeholder="<%- t('cart.districtPlaceholder') %>">
           </div>
         </div>
         
         <div class="form-row">
           <div class="form-group form-half">
             <label class="form-label"><%- t('cart.postalCode') %></label>
-            <input type="text" class="form-input" id="postalCode" placeholder="<%- t('cart.postalCodePlaceholder') %>">
+            <input type="text" class="form-input" id="postalCode" name="postalCode" placeholder="<%- t('cart.postalCodePlaceholder') %>">
           </div>
           <div class="form-group form-half">
             <label class="form-label"><%- t('cart.phoneNumber') %></label>
-            <input type="tel" class="form-input" id="phoneNumber" placeholder="<%- t('cart.phoneNumberPlaceholder') %>" required>
+            <input type="tel" class="form-input" id="phoneNumber" name="phoneNumber" placeholder="+998901234567" required>
           </div>
         </div>
         
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-checkbox">
-              <input type="checkbox" id="setAsDefault">
-              <span class="checkbox-mark"></span>
-              <%- t('cart.setAsDefaultAddress') %>
-            </label>
-          </div>
-        </div>
       </form>
     </div>
     
     <div class="modal-footer">
       <button type="button" class="btn-outline" id="cancelAddressBtn"><%- t('cart.cancel') %></button>
-      <button type="button" class="btn-main" id="saveAddressBtn"><%- t('cart.saveAddress') %></button>
+      <button type="button" class="btn-main" id="saveAddressBtn">Save Changes</button>
     </div>
   </div>
 </div>
 
 <!-- Professional Checkout Modal -->
+
+<script>
+// Address Management Functions
+let currentAddresses = [];
+let selectedAddressId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Load addresses from API
+    loadAddresses();
+    
+    // Address form handlers
+    setupAddressFormHandlers();
+});
+
+
+
+async function loadAddresses() {
+    try {
+        const response = await fetch('/buyer/api/addresses', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            currentAddresses = result.addresses || [];
+            // Set first address as selected if none selected
+            if (currentAddresses.length > 0 && !selectedAddressId) {
+                selectedAddressId = currentAddresses[0].id;
+            }
+            renderAddressList();
+            updateAddressDisplay();
+        } else {
+            currentAddresses = [];
+            renderAddressList(); // Show empty state
+        }
+    } catch (error) {
+        currentAddresses = [];
+        renderAddressList(); // Show empty state
+    }
+}
+
+function renderAddressList() {
+    const addressList = document.getElementById('savedAddresses');
+    
+    if (currentAddresses.length === 0) {
+        addressList.innerHTML = `
+            <div class="no-addresses">
+                <div class="no-addresses-icon">
+                    <i class="las la-map-marker-alt"></i>
+                </div>
+                <p class="no-addresses-text">No addresses saved yet</p>
+                <p class="no-addresses-subtext">Add your first address to get started</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    currentAddresses.forEach((address, index) => {
+        const isSelected = selectedAddressId === address.id || (index === 0 && !selectedAddressId);
+        html += `
+            <div class="address-card ${isSelected ? 'selected' : ''}" 
+                 data-address-id="${address.id}"
+                 data-address="${address.fullAddress || ''}"
+                 data-city="${address.city || ''}"
+                 data-district="${address.district || ''}"
+                 data-name="${address.name || ''}"
+                 data-phone="${address.phoneNumber || ''}"
+                 data-country="${address.country || ''}"
+                 data-postal-code="${address.postalCode || ''}">
+                <label class="address-radio-wrapper">
+                    <input type="radio" name="deliveryAddress" value="${address.id}" ${isSelected ? 'checked' : ''}>
+                    <span class="radio-indicator"></span>
+                </label>
+                <div class="address-info">
+                    <div class="address-name">${address.name}</div>
+                    <div class="address-text">${address.fullAddress}, ${address.city}, ${address.country}</div>
+                </div>
+                <div class="address-actions">
+                    <button type="button" class="btn-edit-address" data-address-id="${address.id}" title="Edit Address">
+                        <i class="las la-edit"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    addressList.innerHTML = html;
+    
+    // Add event listeners for address selection
+    setupAddressSelectionHandlers();
+}
+
+function setupAddressSelectionHandlers() {
+    // Address selection
+    const addressCards = document.querySelectorAll('.address-card');
+    addressCards.forEach(card => {
+        const radio = card.querySelector('input[type="radio"]');
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                selectedAddressId = this.value;
+                updateAddressSelection();
+                updateAddressDisplay();
+            }
+        });
+    });
+    
+    // Edit address buttons
+    const editButtons = document.querySelectorAll('.btn-edit-address');
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const addressId = this.dataset.addressId;
+            editAddress(addressId);
+        });
+    });
+    
+}
+
+function updateAddressSelection() {
+    const addressCards = document.querySelectorAll('.address-card');
+    addressCards.forEach(card => {
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio.value === selectedAddressId) {
+            card.classList.add('selected');
+            radio.checked = true;
+        } else {
+            card.classList.remove('selected');
+            radio.checked = false;
+        }
+    });
+}
+
+function updateAddressDisplay() {
+    const selectedAddress = currentAddresses.find(addr => addr.id === selectedAddressId) || currentAddresses[0];
+    
+    if (selectedAddress && selectedAddress.fullAddress) {
+        const addressText = `${selectedAddress.fullAddress}, ${selectedAddress.city}, ${selectedAddress.country}`;
+        
+        // Update all address displays
+        const addressElements = document.querySelectorAll('.address-text');
+        addressElements.forEach(el => {
+            el.textContent = addressText;
+        });
+        
+        // Update pickup address displays
+        const pickupAddressElements = document.querySelectorAll('.delivery-details strong');
+        pickupAddressElements.forEach(el => {
+            if (el.textContent.includes('Address:')) {
+                el.nextSibling.textContent = ` ${addressText}`;
+            }
+        });
+    } else {
+        // Show "No address set" message
+        const addressElements = document.querySelectorAll('.address-text');
+        addressElements.forEach(el => {
+            el.textContent = 'No address set';
+        });
+        
+        // Update pickup address displays
+        const pickupAddressElements = document.querySelectorAll('.delivery-details strong');
+        pickupAddressElements.forEach(el => {
+            if (el.textContent.includes('Address:')) {
+                el.nextSibling.textContent = ' No address set';
+            }
+        });
+    }
+}
+
+function setupAddressFormHandlers() {
+    const addressModal = document.getElementById('addressModalOverlay');
+    const closeModal = document.getElementById('closeAddressModal');
+    const saveAddressBtn = document.getElementById('saveAddressBtn');
+    const cancelAddressBtn = document.getElementById('cancelAddressBtn');
+    
+    if (closeModal) {
+        closeModal.addEventListener('click', closeAddressModal);
+    }
+    
+    if (cancelAddressBtn) {
+        cancelAddressBtn.addEventListener('click', closeAddressModal);
+    }
+    
+    if (saveAddressBtn) {
+        saveAddressBtn.addEventListener('click', saveAddress);
+    }
+    
+    // Close modal when clicking outside
+    if (addressModal) {
+        addressModal.addEventListener('click', function(e) {
+            if (e.target === addressModal) {
+                closeAddressModal();
+            }
+        });
+    }
+}
+
+function openAddressModal(addressId = 'default') {
+    const addressModal = document.getElementById('addressModalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const form = document.getElementById('addressForm');
+    const addressIdInput = document.getElementById('addressId');
+    
+    // Clear any previous validation errors
+    clearValidationErrors();
+    
+    const address = currentAddresses.find(addr => addr.id === addressId);
+    
+    if (address) {
+        // Pre-fill form with existing address data
+        setTimeout(() => {
+            document.getElementById('addressName').value = address.name || '';
+            document.getElementById('fullAddress').value = address.fullAddress || '';
+            document.getElementById('city').value = address.city || '';
+            document.getElementById('district').value = address.district || '';
+            document.getElementById('postalCode').value = address.postalCode || '';
+            document.getElementById('phoneNumber').value = address.phoneNumber || '';
+            addressIdInput.value = address.id;
+            
+        }, 100);
+    }
+    
+    if (addressModal) {
+        addressModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // Focus on first input
+        setTimeout(() => {
+            const firstInput = form.querySelector('input[type="text"]');
+            if (firstInput) firstInput.focus();
+        }, 100);
+    }
+}
+
+function clearValidationErrors() {
+    const invalidFields = document.querySelectorAll('.form-input.is-invalid, .form-textarea.is-invalid');
+    invalidFields.forEach(field => {
+        field.classList.remove('is-invalid');
+    });
+}
+
+function editAddress(addressId) {
+    openAddressModal(addressId);
+}
+
+
+function closeAddressModal() {
+    const addressModal = document.getElementById('addressModalOverlay');
+    if (addressModal) {
+        addressModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        
+        // Reset form
+        const form = document.getElementById('addressForm');
+        if (form) {
+            form.reset();
+        }
+        
+        // Clear validation errors
+        clearValidationErrors();
+    }
+}
+
+// Add keyboard navigation
+document.addEventListener('keydown', function(e) {
+    const addressModal = document.getElementById('addressModalOverlay');
+    if (addressModal && addressModal.style.display === 'flex') {
+        // Escape key to close modal
+        if (e.key === 'Escape') {
+            closeAddressModal();
+        }
+        
+        // Enter key on form inputs (except textarea)
+        if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'submit') {
+            e.preventDefault();
+            const form = e.target.closest('form');
+            if (form) {
+                const inputs = Array.from(form.querySelectorAll('input, textarea'));
+                const currentIndex = inputs.indexOf(e.target);
+                const nextInput = inputs[currentIndex + 1];
+                if (nextInput) {
+                    nextInput.focus();
+                } else {
+                    // Focus save button if on last input
+                    const saveBtn = form.querySelector('button[type="button"]:last-of-type');
+                    if (saveBtn) saveBtn.focus();
+                }
+            }
+        }
+    }
+});
+
+async function saveAddress() {
+    const form = document.getElementById('addressForm');
+    const formData = new FormData(form);
+    const addressId = document.getElementById('addressId').value;
+    
+    // Clear previous validation errors
+    clearValidationErrors();
+    
+    // Validate required fields
+    const requiredFields = ['addressName', 'fullAddress', 'city', 'phoneNumber'];
+    let isValid = true;
+    let firstInvalidField = null;
+    
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        
+        if (!field) {
+            isValid = false;
+            return;
+        }
+        
+        const value = field.value.trim();
+        
+        if (!value) {
+            field.classList.add('is-invalid');
+            if (!firstInvalidField) firstInvalidField = field;
+            isValid = false;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    // Validate optional fields (district and postalCode)
+    const optionalFields = ['district', 'postalCode'];
+    optionalFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    // Additional validation - more flexible phone number validation
+    const phoneNumberValue = formData.get('phoneNumber');
+    if (phoneNumberValue) {
+        // Remove any spaces, dashes, or parentheses for validation
+        const cleanPhone = phoneNumberValue.replace(/[\s\-\(\)]/g, '');
+        // Check if it's a valid phone number (starts with + or country code, 8-15 digits total)
+        const phoneRegex = /^(\+?[1-9]\d{7,14})$/;
+        
+        if (!phoneRegex.test(cleanPhone)) {
+            const phoneField = document.getElementById('phoneNumber');
+            phoneField.classList.add('is-invalid');
+            if (!firstInvalidField) firstInvalidField = phoneField;
+            isValid = false;
+        }
+    }
+    
+    
+    if (!isValid) {
+        alert('Please fill in all required fields correctly.');
+        if (firstInvalidField) {
+            firstInvalidField.focus();
+            firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+    }
+    
+    // Process phone number to ensure proper format
+    let phoneNumber = (formData.get('phoneNumber') || '').trim();
+    if (phoneNumber && !phoneNumber.startsWith('+')) {
+        // If phone number doesn't start with +, add it
+        phoneNumber = '+' + phoneNumber;
+    }
+    
+    const addressData = {
+        name: (formData.get('addressName') || '').trim(),
+        fullAddress: (formData.get('fullAddress') || '').trim(),
+        city: (formData.get('city') || '').trim(),
+        district: (formData.get('district') || '').trim(),
+        postalCode: (formData.get('postalCode') || '').trim(),
+        phoneNumber: phoneNumber,
+        isDefault: formData.get('setAsDefault') === 'on'
+    };
+    
+    
+    // Show loading state
+    const saveBtn = document.getElementById('saveAddressBtn');
+    const originalText = saveBtn.textContent;
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+    
+    let isEdit = addressId && addressId !== '';
+    
+    try {
+        let response;
+        
+        
+        if (isEdit) {
+            // Update existing address
+            let url;
+            if (addressId === 'default') {
+                // For default address, use the main address update endpoint
+                url = '/buyer/api/addresses/default';
+            } else {
+                // For other addresses, use the specific ID
+                url = `/buyer/api/addresses/${addressId}`;
+            }
+            response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(addressData)
+            });
+        } else {
+            // Create new address
+            const url = '/buyer/api/addresses';
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(addressData)
+            });
+        }
+        
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`Address ${isEdit ? 'updated' : 'saved'} successfully!`);
+            closeAddressModal();
+            
+            // Reload addresses to get updated data
+            await loadAddresses();
+        } else {
+            throw new Error(result.message || 'Unknown error occurred');
+        }
+    } catch (error) {
+        alert(`Failed to ${isEdit ? 'update' : 'save'} address: ${error.message}`);
+    } finally {
+        // Reset button state
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+    }
+}
+
+// Add CSS styles for address management
+const addressStyles = document.createElement('style');
+addressStyles.textContent = `
+    /* Address Management Styles */
+    .no-addresses {
+        text-align: center;
+        padding: 2rem;
+        color: #6b7280;
+    }
+    
+    .no-addresses-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .no-addresses-text {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .no-addresses-subtext {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+    
+    .address-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .btn-edit-address,
+    .btn-delete-address {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #6b7280;
+    }
+    
+    .btn-edit-address:hover {
+        background: #e5e7eb;
+        color: #3b82f6;
+    }
+    
+    .btn-delete-address:hover {
+        background: #fef2f2;
+        color: #ef4444;
+    }
+    
+    .address-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 0.75rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .address-card:hover {
+        border-color: #d1d5db;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .address-card.selected {
+        border-color: #3b82f6;
+        background: #f8fafc;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    }
+    
+    .address-radio-wrapper {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+    
+    .address-radio-wrapper input[type="radio"] {
+        margin: 0;
+        width: 18px;
+        height: 18px;
+    }
+    
+    .address-info {
+        flex: 1;
+    }
+    
+    .address-name {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    
+    .address-text {
+        color: #6b7280;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+    
+    .address-badge {
+        display: inline-block;
+        background: #10b981;
+        color: white;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+    }
+    
+    .form-input.is-invalid {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+`;
+document.head.appendChild(addressStyles);
+</script>
   <div class="checkout-modal-overlay" id="checkoutModalOverlay" role="dialog" aria-labelledby="checkoutModalTitle" aria-hidden="true" style="display: none;">
   <div class="checkout-modal">
     <div class="modal-header">
@@ -2340,7 +2891,7 @@
    border-radius: 12px;
    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
    width: 100%;
-   max-width: 500px;
+   max-width: 530px;
    max-height: 90vh;
    overflow: hidden;
    display: flex;
@@ -5067,7 +5618,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             this.updateFavoriteButton(productId, data.data.isFavorite);
                         }
                     } catch (error) {
-                        console.error('Error checking favorite status:', error);
+                        // Error checking favorite status
                     }
                 }
             }
@@ -5215,7 +5766,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     this.showToast(data.message || 'Failed to update quantity', 'error');
                 }
             } catch (error) {
-                console.error('Update quantity error:', error);
                 this.showToast('Failed to update quantity', 'error');
             } finally {
                 this.showLoading(false);
@@ -5300,7 +5850,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     this.showToast(data.message || 'Failed to remove item', 'error');
                 }
             } catch (error) {
-                console.error('Remove item error:', error);
                 this.showToast('Failed to remove item', 'error');
             } finally {
                 this.showLoading(false);
@@ -5360,7 +5909,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     this.showToast(data.message || 'Failed to remove selected items', 'error');
                 }
             } catch (error) {
-                console.error('Delete selected error:', error);
                 this.showToast('Failed to remove selected items', 'error');
             } finally {
                 this.showLoading(false);
@@ -5391,7 +5939,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     this.showToast(data.message || 'Failed to add to favorites', 'error');
                 }
             } catch (error) {
-                console.error('Add to favorites error:', error);
                 this.showToast('Failed to add to favorites', 'error');
             } finally {
                 this.showLoading(false);
@@ -5422,7 +5969,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     this.showToast(data.message || 'Failed to remove from favorites', 'error');
                 }
             } catch (error) {
-                console.error('Remove from favorites error:', error);
                 this.showToast('Failed to remove from favorites', 'error');
             } finally {
                 this.showLoading(false);
@@ -5565,7 +6111,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="delivery-details">
                         <strong>Location:</strong> Main Warehouse<br>
-                        <strong>Address:</strong> Tashkent, Chilonzor district, Bunyodkor street 12<br>
+                        <strong>Address:</strong> 
+                        <% if (user && user.address && user.city && user.country) { %>
+                          <%= user.address %>, <%= user.city %>, <%= user.country %>
+                        <% } else { %>
+                          <%- t('cart.noAddressSet') || 'No address set' %>
+                        <% } %><br>
                         <strong>Hours:</strong> 9:00 - 18:00 (Free)
                     </div>
                 `;
@@ -5672,7 +6223,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-        // Note: updateCartSummary() method is implemented below with full DOM-based calculation
 
 
 
@@ -6009,7 +6559,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.updateCheckoutSummary();
                 
             } catch (error) {
-                console.error('Error populating checkout modal:', error);
                 this.showToast('Failed to load checkout details', 'error');
             }
         }
@@ -6061,7 +6610,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div class="delivery-details">
                             <strong>Location:</strong> Main Warehouse<br>
-                            <strong>Address:</strong> Tashkent, Chilonzor district, Bunyodkor street 12<br>
+                            <strong>Address:</strong> 
+                            <% if (user && user.address && user.city && user.country) { %>
+                              <%= user.address %>, <%= user.city %>, <%= user.country %>
+                            <% } else { %>
+                              <%- t('cart.noAddressSet') || 'No address set' %>
+                            <% } %><br>
                             <strong>Hours:</strong> 9:00 - 18:00 (Free)
                         </div>
                     `;
@@ -6070,7 +6624,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 deliveryInfoDisplay.innerHTML = content;
                 
             } catch (error) {
-                console.error('Error populating delivery info:', error);
                 deliveryInfoDisplay.innerHTML = '<p class="error-message">Failed to load delivery information</p>';
             }
         }
@@ -6109,7 +6662,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (checkoutTotal) checkoutTotal.textContent = total.toFixed(2);
                 
             } catch (error) {
-                console.error('Error updating checkout summary:', error);
                 this.showToast('Failed to calculate order total', 'error');
             }
         }
@@ -6271,10 +6823,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             fullAddress: selectedAddress.dataset.address || '',
                             city: selectedAddress.dataset.city || '',
                             district: selectedAddress.dataset.district || '',
+                            postalCode: selectedAddress.dataset.postalCode || '',
                             name: selectedAddress.dataset.name || '',
                             phoneNumber: selectedAddress.dataset.phone || '',
-                            country: 'Uzbekistan'
+                            country: selectedAddress.dataset.country || 'Uzbekistan'
                         };
+                    } else {
+                        this.showToast('Please select a delivery address', 'warning');
+                        return;
                     }
                     
                     checkoutData.deliveryService = selectedService ? selectedService.dataset.service || 'standard' : 'standard';
@@ -6331,7 +6887,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
             } catch (error) {
-                console.error('Checkout error:', error);
                 
                 let errorMessage = 'An error occurred while processing your order. Please try again.';
                 
@@ -6489,7 +7044,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const allTotalElements = document.querySelectorAll('#totalAmount');
                 allTotalElements.forEach(el => el.innerHTML = total.toFixed(2));
                 
-                console.log(`✅ UPDATED: $${total.toFixed(2)} total`);
                 
                 // Animate summary card
                 const summaryCard = document.querySelector('.summary-card');
@@ -6512,7 +7066,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.validateCheckout();
                 
             } catch (error) {
-                console.error('Error updating cart summary:', error);
                 this.showToast('Failed to calculate cart summary', 'error');
             }
         }
@@ -6629,7 +7182,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 return response;
             } catch (error) {
-                console.error('Fetch with auth error:', error);
                 throw error;
             }
         }
@@ -6710,7 +7262,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.updateCheckoutTotals();
                 
             } catch (error) {
-                console.error('Error populating checkout modal:', error);
+                // Error populating checkout modal
             }
         }
 
@@ -6881,7 +7433,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 saveBtn.disabled = true;
                 saveBtn.innerHTML = '<i class="las la-spinner la-spin"></i> Saving...';
 
-                // TODO: Send to backend API
                 // const response = await this.fetchWithAuth('/buyer/api/addresses/save', {
                 //     method: 'POST',
                 //     headers: { 'Content-Type': 'application/json' },
@@ -6891,7 +7442,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Simulate API call for now
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 
-                console.log('Saving address:', formData);
                 
                 this.showToast('Address saved successfully!', 'success');
                 
@@ -6905,7 +7455,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 saveBtn.textContent = originalText;
                 
             } catch (error) {
-                console.error('Error saving address:', error);
                 this.showToast('Failed to save address. Please try again.', 'error');
                 
                 // Restore button state
@@ -6919,7 +7468,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         editAddress(addressId) {
             // Here you would load address data and populate form
-            console.log('Editing address:', addressId);
             
             // For demo, just open modal
             document.getElementById('addressModalOverlay').classList.add('active');

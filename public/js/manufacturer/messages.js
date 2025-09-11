@@ -26,7 +26,6 @@ window.MessagesPage = {
 
 // Initialize messages page functionality
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Messages page initializing...');
   
   try {
     // Initialize components first
@@ -767,14 +766,7 @@ function positionDropdownMenu(toggle, menu) {
   menu.classList.remove('position-above', 'position-below');
   menu.classList.add(shouldPositionAbove ? 'position-above' : 'position-below');
   
-  console.log('🎯 Dropdown positioned:', {
-    togglePosition: { top: toggleRect.top, left: toggleRect.left, right: toggleRect.right, bottom: toggleRect.bottom },
-    menuPosition: { left, top },
-    direction: shouldPositionAbove ? 'above' : 'below',
-    spaceAbove,
-    spaceBelow,
-    viewportHeight
-  });
+  
 }
 
 // 🎛️ TABLE INTERACTIONS - ORDERS PAGE EXACT STYLE

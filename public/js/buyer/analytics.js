@@ -176,23 +176,18 @@ class BuyerAnalytics {
 
 // Global functions
 window.exportReport = () => {
-    console.log('Exporting analytics report');
 };
 
 window.scheduleReport = () => {
-    console.log('Scheduling report');
 };
 
 window.runPriceAnalysis = () => {
-    console.log('Running price analysis');
 };
 
 window.refreshMarketData = () => {
-    console.log('Refreshing market data');
 };
 
 window.generateRecommendations = () => {
-    console.log('Generating AI recommendations');
 };
 
 // Initialize

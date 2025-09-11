@@ -171,11 +171,11 @@
                           <!-- Real Product Image -->
                           <img 
                             src="<%= imageUrl %>" 
-                            alt="<%= product.title || product.name || 'Product Image' %>" 
+                            alt="<%= product.title || product.name || t('manufacturer.marketplace.featuredProducts.productImage') %>" 
                             class="product-real-image"
                             data-product-id="<%= product._id || '' %>"
-                            data-product-name="<%= (product.title || product.name || 'Product').replace(/'/g, '').substring(0, 30) %>"
-                            data-category="<%= typeof product.category === 'string' ? product.category : (product.category && product.category.name ? product.category.name : (product.category && product.category._id ? product.category._id : 'general')) %>"
+                            data-product-name="<%= (product.title || product.name || t('manufacturer.marketplace.featuredProducts.unnamedProduct')).replace(/'/g, '').substring(0, 30) %>"
+                            data-category="<%= typeof product.category === 'string' ? product.category : (product.category && product.category.name ? product.category.name : (product.category && product.category._id ? product.category._id : t('manufacturer.marketplace.featuredProducts.noCategory'))) %>"
                             data-image-type="real"
                             data-image-source="<%= imageUrl.substring(0, 30) %>..."
                             data-has-images="<%= product.images ? product.images.length : 0 %>"
@@ -186,11 +186,11 @@
                           <!-- Mock Image for Products without Valid Images -->
                           <img 
                             src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PGcgZmlsbD0iIzljYTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+PHRleHQgeD0iNTAlIiB5PSI0NSUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgZm9udC13ZWlnaHQ9IjUwMCI+TG9hZGluZy4uLjwvdGV4dD48L2c+PC9zdmc+" 
-                            alt="<%= product.title || product.name || 'Product Image' %>" 
+                            alt="<%= product.title || product.name || t('manufacturer.marketplace.featuredProducts.productImage') %>" 
                             class="mock-product-image loading-placeholder" 
-                            data-category="<%= typeof product.category === 'string' ? product.category : (product.category && product.category.name ? product.category.name : (product.category && product.category._id ? product.category._id : 'general')) %>"
+                            data-category="<%= typeof product.category === 'string' ? product.category : (product.category && product.category.name ? product.category.name : (product.category && product.category._id ? product.category._id : t('manufacturer.marketplace.featuredProducts.noCategory'))) %>"
                             data-product-id="<%= product._id || '' %>"
-                            data-product-name="<%= (product.title || product.name || 'Product').replace(/'/g, '').substring(0, 30) %>"
+                            data-product-name="<%= (product.title || product.name || t('manufacturer.marketplace.featuredProducts.unnamedProduct')).replace(/'/g, '').substring(0, 30) %>"
                             data-image-type="mock"
                             data-has-images="<%= product.images ? product.images.length : 0 %>"
                             data-needs-mock="true"
@@ -336,7 +336,7 @@
               
               <% if (typeof recentInquiries !== 'undefined' && recentInquiries.length > 0) { %>
                 <% recentInquiries.forEach(function(inquiry) { %>
-                  <div class="inquiry-item priority-<%= inquiry.priority || 'medium' %>" data-inquiry="<%= inquiry.id || '' %>">
+                  <div class="inquiry-item priority-<%= inquiry.priority || 'medium' %>" data-inquiry="<%= inquiry.id || '' %>" onclick="window.location.href='/manufacturer/inquiries'" style="cursor: pointer;">
                     <div class="inquiry-header">
                       <div class="company-info">
                         <div class="company-avatar">
@@ -378,18 +378,8 @@
                         </span>
                       </div>
                       <p class="inquiry-message">
-                        <%= inquiry.message ? (inquiry.message.length > 80 ? inquiry.message.substring(0, 80) + '...' : inquiry.message) : t('manufacturer.marketplace.recentInquiries.inquiryMessage') %>
+                        <%= inquiry.message ? (inquiry.message.length > 80 ? inquiry.message.substring(0, 80) + '...' : inquiry.message) : t('manufacturer.marketplace.recentInquiries.initialContact') %>
                       </p>
-                    </div>
-                    <div class="inquiry-actions">
-                      <button class="btn-sm btn-primary" data-action="respond" data-inquiry-id="<%= inquiry.id || '' %>">
-                        <i class="fas fa-reply"></i>
-                        <%= t('manufacturer.marketplace.recentInquiries.respond') %>
-                      </button>
-                      <button class="btn-sm btn-outline" data-action="quote" data-inquiry-id="<%= inquiry.id || '' %>">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                        <%= t('manufacturer.marketplace.recentInquiries.quote') %>
-                      </button>
                     </div>
                   </div>
                 <% }) %>
@@ -398,7 +388,9 @@
                   <div class="empty-icon">
                     <i class="fas fa-inbox"></i>
                   </div>
-                  <p class="empty-text"><%= t('manufacturer.marketplace.recentInquiries.noInquiries') %></p>
+                  <h4 class="empty-title"><%= t('manufacturer.marketplace.recentInquiries.emptyState.title') %></h4>
+                  <p class="empty-description"><%= t('manufacturer.marketplace.recentInquiries.emptyState.description') %></p>
+                  <p class="empty-action"><%= t('manufacturer.marketplace.recentInquiries.emptyState.action') %></p>
                 </div>
               <% } %>
               
@@ -443,7 +435,7 @@
 
               <div class="performance-item">
                 <div class="performance-icon growth">
-                  <i class="fas fa-trending-up"></i>
+                  <i class="fas fa-chart-line"></i>
                 </div>
                 <div class="performance-info">
                   <span class="performance-label"><%= t('manufacturer.marketplace.performance.growthRate') %></span>
@@ -474,9 +466,7 @@
           <%= t('manufacturer.marketplace.competitorAnalysis.title') %>
         </h3>
         <div class="widget-actions">
-          <button class="btn-sm btn-ghost" id="refreshCompetitorBtn">
-            <i class="fas fa-sync-alt"></i>
-          </button>
+       
           <button class="btn-sm btn-outline" id="detailedAnalysisBtn">
             <i class="fas fa-chart-area"></i>
             <%= t('manufacturer.marketplace.competitorAnalysis.detailedAnalysis') %>
@@ -491,7 +481,7 @@
             <div class="competitor-header">
               <h4 class="competitor-title"><%= t('manufacturer.marketplace.competitorAnalysis.marketPosition') %></h4>
               <div class="position-badge position-<%= (competitorAnalysis?.marketPosition || 'good').toLowerCase() %>">
-                <%= competitorAnalysis?.marketPosition || t('manufacturer.marketplace.competitorAnalysis.good') %>
+                <%= t(`manufacturer.marketplace.competitorAnalysis.${competitorAnalysis?.marketPosition || 'good'}`) %>
               </div>
             </div>
             <div class="competitor-content">
@@ -502,7 +492,7 @@
                 </div>
                 <div class="stat-item">
                   <span class="stat-label"><%= t('manufacturer.marketplace.competitorAnalysis.priceCompetitiveness') %></span>
-                  <span class="stat-value"><%= competitorAnalysis?.priceCompetitiveness || t('manufacturer.marketplace.competitorAnalysis.average') %></span>
+                  <span class="stat-value"><%= t(`manufacturer.marketplace.competitorAnalysis.${competitorAnalysis?.priceCompetitiveness || 'average'}`) %></span>
                 </div>
               </div>
             </div>
@@ -522,7 +512,7 @@
                   <% competitorAnalysis.strengths.forEach(function(strength) { %>
                     <li class="strength-item">
                       <i class="fas fa-check-circle"></i>
-                      <%= strength %>
+                      <%= t(`manufacturer.marketplace.competitorAnalysis.defaultStrengths.${strength}`) %>
                     </li>
                   <% }) %>
                 <% } else { %>
@@ -553,7 +543,7 @@
                   <% competitorAnalysis.opportunities.forEach(function(opportunity) { %>
                     <li class="opportunity-item">
                       <i class="fas fa-lightbulb"></i>
-                      <%= opportunity %>
+                      <%= t(`manufacturer.marketplace.competitorAnalysis.defaultOpportunities.${opportunity}`) %>
                     </li>
                   <% }) %>
                 <% } else { %>
@@ -569,6 +559,7 @@
               </ul>
             </div>
           </div>
+
 
         </div>
       </div>
@@ -605,14 +596,18 @@
   competitorAnalysis: competitorAnalysis || {},
   user: {
     id: user._id || '',
-    name: user.name || 'Ishlab chiqaruvchi',
-    companyName: user.companyName || 'Ishlab chiqarish kompaniyasi'
+    name: user.name || t('manufacturer.marketplace.defaultUser.name'),
+    companyName: user.companyName || t('manufacturer.marketplace.defaultUser.companyName')
   }
 }) %>
 </script>
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- i18next Translation System -->
+<script src="https://cdn.jsdelivr.net/npm/i18next@23.7.6/i18next.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/i18next-browser-languagedetector@7.2.0/i18nextBrowserLanguageDetector.min.js"></script>
 
 <!-- Core JavaScript Dependencies -->
 <script src="/assets/js/jquery-3.7.1.min.js"></script>
@@ -627,119 +622,94 @@
 <!-- Professional Marketplace Functionality (Sidebar handling delegated) -->
 <script src="/js/manufacturer/manufacture-marketplace.js"></script>
 
-<!-- Comprehensive Sidebar & Header Debug Script -->
+<!-- i18n Initialization Script -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔍 MARKETPLACE: Starting comprehensive debug...');
-    
-    setTimeout(() => {
-        // Check all elements
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebar = document.querySelector('.admin-sidebar');
-        const adminMain = document.querySelector('.admin-main');
-        const adminHeader = document.querySelector('.admin-header');
-        
-        console.log('🔍 MARKETPLACE Elements:');
-        console.log('  - sidebarToggle:', !!sidebarToggle);
-        console.log('  - sidebar:', !!sidebar);
-        console.log('  - adminMain:', !!adminMain);
-        console.log('  - adminHeader:', !!adminHeader);
-        
-        if (adminHeader) {
-            console.log('  - adminHeader current left:', adminHeader.style.left);
-            console.log('  - adminHeader computed left:', window.getComputedStyle(adminHeader).left);
-            console.log('  - adminHeader classes:', adminHeader.classList.toString());
-        }
-        
-        if (sidebar) {
-            console.log('  - sidebar classes:', sidebar.classList.toString());
-        }
-        
-        console.log('  - sidebarInitialized:', !!window.sidebarInitialized);
-        
-        // Test event listener existence
-        if (sidebarToggle) {
-            console.log('🧪 Testing sidebar toggle click...');
-            
-            // Add our own test listener to see what happens
-            sidebarToggle.addEventListener('click', function() {
-                console.log('🖱️ MARKETPLACE: Sidebar toggle clicked - our listener');
-                setTimeout(() => {
-                    if (adminHeader) {
-                        console.log('📐 MARKETPLACE: Header left after click:', adminHeader.style.left);
-                        console.log('📐 MARKETPLACE: Header classes after click:', adminHeader.classList.toString());
-                    }
-                }, 100);
-            });
-        }
-        
-        // Listen for the sidebarToggled event
-        window.addEventListener('sidebarToggled', function(e) {
-            console.log('📡 MARKETPLACE: Received sidebarToggled event:', e.detail);
-            const adminHeader = document.querySelector('.admin-header');
-            if (adminHeader) {
-                console.log('📐 MARKETPLACE: Header position before event handling:', adminHeader.style.left);
+  // Initialize i18next translation system
+  async function initializeTranslation() {
+    try {
+      // Load translations from server
+      const response = await fetch('/api/language/uz', {
+        headers: { 'Accept': 'application/json' }
+      });
+      const result = response.ok ? await response.json() : {};
+      const translations = result.data || {};
+      
+      await i18next
+        .use(i18nextBrowserLanguageDetector)
+        .init({
+          fallbackLng: 'uz',
+          debug: false,
+          detection: {
+            order: ['cookie', 'localStorage', 'navigator', 'htmlTag'],
+            caches: ['cookie', 'localStorage']
+          },
+          resources: {
+            uz: {
+              translation: translations
             }
+          }
         });
-        
-    }, 1500);
-});
+      
+      // Set global translation function
+      window.t = i18next.t.bind(i18next);
+      
+    } catch (error) {
+      // Fallback translation function with basic translations
+      window.t = function(key) {
+        const fallbackTranslations = {
+          'manufacturer.marketplace.competitorAnalysis.average': 'O\'rtacha',
+          'manufacturer.marketplace.competitorAnalysis.good': 'Yaxshi',
+          'manufacturer.marketplace.competitorAnalysis.strong': 'Kuchli',
+          'manufacturer.marketplace.competitorAnalysis.competitive': 'Raqobatbardosh',
+          'manufacturer.marketplace.competitorAnalysis.defaultStrengths.establishedMarketPresence': 'O\'rnatilgan bozor mavjudligi',
+          'manufacturer.marketplace.competitorAnalysis.defaultStrengths.productQualityFocus': 'Mahsulot sifatiga e\'tibor',
+          'manufacturer.marketplace.competitorAnalysis.defaultOpportunities.expandProductRange': 'Mahsulot assortimentini kengaytirish',
+          'manufacturer.marketplace.competitorAnalysis.defaultOpportunities.improveMarketingVisibility': 'Marketing ko\'rinishini yaxshilash',
+          'manufacturer.marketplace.competitorAnalysis.defaultOpportunities.featureMoreProducts': 'Ko\'proq mahsulotlarni taqdim etish',
+          'manufacturer.marketplace.competitorAnalysis.defaultOpportunities.marketExpansionOpportunity': 'Bozor kengaytirish imkoniyati',
+          'manufacturer.marketplace.competitorAnalysis.defaultOpportunities.improveResponseTime': 'Javob berish vaqtini yaxshilash'
+        };
+        return fallbackTranslations[key] || key;
+      };
+    }
+  }
+  
+  // Initialize translation before other scripts
+  initializeTranslation();
 </script>
 
-<!-- Real Data Loading Script -->
 <script>
-  // Load real marketplace data
   async function loadMarketplaceData() {
     try {
-      console.log('📊 Loading real marketplace data...');
-      
       const response = await fetch('/manufacturer/api/marketplace-metrics');
       if (response.ok) {
         const data = await response.json();
-        console.log('📊 Marketplace data received:', data);
-        
-        // Update KPI values
         updateMarketplaceKPIs(data);
-        
-      } else {
-        console.error('❌ Failed to load marketplace data');
       }
     } catch (error) {
-      console.error('❌ Error loading marketplace data:', error);
+      // Error handling
     }
   }
 
-  // Update marketplace KPIs
   function updateMarketplaceKPIs(data) {
-    // Update Total Views
     const totalViewsElement = document.getElementById('totalViewsValue');
     if (totalViewsElement) {
       totalViewsElement.innerHTML = data.totalViews !== undefined ? data.totalViews.toLocaleString() : '0';
     }
     
-    // Update Conversion Rate
     const conversionRateElement = document.getElementById('conversionRateValue');
     if (conversionRateElement) {
       conversionRateElement.innerHTML = data.conversionRate || '0%';
     }
     
-    // Update Response Rate
     const responseRateElement = document.getElementById('responseRateValue');
     if (responseRateElement) {
       responseRateElement.innerHTML = data.inquiryResponseRate || '0%';
     }
-    
-    console.log('✅ Marketplace KPIs updated with real data');
   }
 
-  // Initialize marketplace functionality
   document.addEventListener('DOMContentLoaded', function() {
-    console.log('🛍️ Initializing B2B Marketplace...');
-    
-    // Load real marketplace data
     loadMarketplaceData();
-    
-    console.log('✅ B2B Marketplace initialized successfully');
   });
 </script>
 

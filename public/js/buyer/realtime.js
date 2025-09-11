@@ -34,7 +34,6 @@ class BuyerRealtime {
     }
 
     onOpen() {
-        console.log('✅ Buyer WebSocket connected');
         this.reconnectAttempts = 0;
         this.startHeartbeat();
         
@@ -56,7 +55,6 @@ class BuyerRealtime {
     }
 
     onClose() {
-        console.log('❌ Buyer WebSocket disconnected');
         this.stopHeartbeat();
         this.reconnect();
     }
@@ -86,7 +84,6 @@ class BuyerRealtime {
                 this.handleStatsUpdate(data.payload);
                 break;
             default:
-                console.log('Unknown message type:', data.type);
         }
     }
 
@@ -202,7 +199,6 @@ class BuyerRealtime {
     reconnect() {
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
-            console.log(`Reconnecting... Attempt ${this.reconnectAttempts}`);
             setTimeout(() => this.connect(), this.reconnectDelay);
         }
     }
@@ -296,12 +292,10 @@ class BuyerRealtime {
 
         // Listen for network status changes
         window.addEventListener('online', () => {
-            console.log('Network back online');
             this.connect();
         });
 
         window.addEventListener('offline', () => {
-            console.log('Network offline');
         });
     }
 

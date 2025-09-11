@@ -403,6 +403,9 @@ const boundMethods = {
   getRecentInquiries: ManufacturerController.getRecentInquiries.bind(
     ManufacturerController
   ),
+  getMarketplaceChartData: ManufacturerController.getMarketplaceChartData.bind(
+    ManufacturerController
+  ),
   getCompetitorAnalysis: ManufacturerController.getCompetitorAnalysis.bind(
     ManufacturerController
   ),
@@ -602,6 +605,7 @@ router.get("/api/inventory-management", boundMethods.getInventoryManagement);
 router.get("/api/marketplace-metrics", boundMethods.getMarketplaceMetrics);
 router.get("/api/featured-products", boundMethods.getFeaturedProducts);
 router.get("/api/recent-inquiries", boundMethods.getRecentInquiries);
+router.get("/api/marketplace-chart", boundMethods.getMarketplaceChartData);
 router.get("/api/competitor-analysis", boundMethods.getCompetitorAnalysis);
 
 // ===== PRODUCT MANAGEMENT ROUTES =====

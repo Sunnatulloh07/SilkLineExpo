@@ -49,7 +49,13 @@ i18next
       caches: ['cookie'],
       lookupQuerystring: 'lng',
       lookupCookie: 'i18next',
-      cookieMinutes: 60 * 24 * 30, // 30 days
+      cookieMinutes: 60 * 24 * 365, // 1 year
+      cookieOptions: {
+        path: '/',
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      }
     },
     
     // Backend configuration

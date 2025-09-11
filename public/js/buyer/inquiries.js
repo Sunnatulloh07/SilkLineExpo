@@ -40,7 +40,6 @@ function loadInquiries() {
  */
 function renderInquiries(inquiries) {
     // In a real implementation, this would render the inquiries
-    console.log('Inquiries loaded:', inquiries);
 }
 
 /**
@@ -108,7 +107,6 @@ function submitInquiry() {
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
         
-        console.log('Submitting inquiry:', data);
         
         // Close modal
         closeNewInquiryModal();
@@ -131,5 +129,4 @@ function switchTab(tabName) {
     document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
     
     // In a real implementation, this would filter the inquiries
-    console.log('Switching to tab:', tabName);
 }

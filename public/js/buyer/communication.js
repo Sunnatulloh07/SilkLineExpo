@@ -321,11 +321,9 @@ window.closeRFQModal = () => {
 };
 
 window.viewRFQDetails = (rfqId) => {
-    console.log('Viewing RFQ:', rfqId);
 };
 
 window.startNewConversation = () => {
-    console.log('Starting new conversation');
 };
 
 window.createNewRFQ = () => {

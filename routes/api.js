@@ -30,6 +30,73 @@ router.get('/countries', (req, res) => {
   }
 });
 
+// Unified Language & Translation API
+router.get('/language/:lang', (req, res) => {
+  try {
+    const { lang } = req.params;
+    const supportedLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
+    
+    if (!supportedLanguages.includes(lang)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Unsupported language'
+      });
+    }
+    
+    // Set language cookies
+    res.cookie('i18next', lang, {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      httpOnly: false,
+      path: '/'
+    });
+    
+    res.cookie('selectedLanguage', lang, {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      httpOnly: false,
+      path: '/'
+    });
+    
+    // Set session language
+    if (req.session) {
+      req.session.language = lang;
+    }
+    
+    // Load translations
+    let translations = {};
+    try {
+      translations = require(`../locales/${lang}.json`);
+    } catch (error) {
+      // Load fallback translations
+      translations = require(`../locales/uz.json`);
+    }
+    
+    // Check if client wants JSON response (API call)
+    if (req.headers.accept && req.headers.accept.includes('application/json')) {
+      return res.json({
+        success: true,
+        data: translations,
+        language: lang,
+        message: 'Language changed successfully'
+      });
+    }
+    
+    // Otherwise redirect (browser navigation)
+    const referer = req.get('Referer') || '/';
+    res.redirect(referer);
+    
+  } catch (error) {
+    if (req.headers.accept && req.headers.accept.includes('application/json')) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to change language'
+      });
+    }
+    
+    // Redirect to error page for browser requests
+    res.redirect('/?error=language_change_failed');
+  }
+});
+
 // Products API with advanced filtering
 router.get('/products', (req, res) => {
   try {

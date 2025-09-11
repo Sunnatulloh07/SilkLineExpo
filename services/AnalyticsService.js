@@ -106,7 +106,6 @@ class AnalyticsService {
         ]);
         orderMetrics = { totalOrders, completedOrders };
       } catch (orderError) {
-        console.log('Orders collection not available, using defaults');
       }
       
       // Revenue metrics (simulated based on user activity)
@@ -317,7 +316,6 @@ class AnalyticsService {
           }
         ]);
       } catch (productError) {
-        console.log('Products collection not available, generating mock data');
       }
       
       // If no products found, return realistic mock data based on user data

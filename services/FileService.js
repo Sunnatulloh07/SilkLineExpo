@@ -68,12 +68,6 @@ class FileService {
         thumbnailPath: thumbnailPath ? `/uploads/logos/thumbnails/${path.basename(thumbnailPath)}` : null // Legacy support
       };
 
-      console.log('✅ Logo processed successfully:', {
-        filename: logoData.filename,
-        size: logoData.size,
-        url: logoData.url
-      });
-
       return logoData;
 
     } catch (error) {

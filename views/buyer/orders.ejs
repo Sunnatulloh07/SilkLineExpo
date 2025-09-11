@@ -1349,7 +1349,6 @@ class OrdersManager {
             const statusLabel = this.escapeHtml(order.statusLabel || order.status);
             const formattedDate = this.formatDate(order.createdAt);
             const formattedAmount = this.formatCurrency(order.totalAmount, order.currency);
-            console.log(order);
             
             return `
                 <div class="professional-order-card" data-order-id="${this.escapeHtml(order.id)}">
@@ -1373,7 +1372,7 @@ class OrdersManager {
                         <div class="order-items">
                             <div class="item-row">
                                 <div class="item-image-container">
-                                    <a href="/buyer/order-details/${order.id}" class="order-details-link">
+                                    <a href="/buyer/orders/${order.id}" class="order-details-link">
                                         <img src="${this.extractProductImage(order.mainProduct)}" 
                                              alt="${this.escapeHtml(order.mainProduct.name)}" 
                                              class="item-image"
@@ -1385,7 +1384,7 @@ class OrdersManager {
                                 </div>
                                 <div class="item-details">
                                     <h5 class="item-title">
-                                        <a href="/buyer/order-details/${order.id}" class="order-link">
+                                        <a href="/buyer/orders/${order.id}" class="order-link">
                                             ${this.escapeHtml(order.mainProduct.name)}
                                         </a>
                                     </h5>
@@ -1469,7 +1468,7 @@ class OrdersManager {
             if (order.actions.includes('contact_supplier')) {
                 buttons.push(`
                     <button class="btn-action btn-contact" 
-                            onclick="ordersManager.contactSupplier('${this.escapeHtml(order.supplier.id)}')"
+                            onclick="ordersManager.contactSupplier('${this.escapeHtml(order.supplier.id)}','${this.escapeHtml(order.id)}')"
                             title="<%- t('orders.contactSupplier') || 'Contact Supplier' %>">
                         <i class="las la-comments"></i>
                         <%- t('orders.contactSupplier') || 'Contact Supplier' %>
@@ -1661,13 +1660,13 @@ class OrdersManager {
         }
     }
 
-    async contactSupplier(supplierId) {
+    async contactSupplier(supplierId,orderId) {
         try {
             if (!supplierId || supplierId === 'unknown') {
                 this.showError('Invalid supplier ID');
                 return;
             }
-            window.location.href = `/buyer/messages?supplier=${encodeURIComponent(supplierId)}`;
+            window.location.href = `/buyer/messages?manufacturer=${encodeURIComponent(supplierId)}&order=${encodeURIComponent(orderId)}`;
         } catch (error) {
             console.error('❌ Error contacting supplier:', error);
             this.showError('Failed to open messages');
@@ -1985,7 +1984,6 @@ const OrderImageHandler = {
         const originalSrc = img.dataset.originalSrc || img.src;
         const currentRetryCount = this.retryCount.get(originalSrc) || 0;
         
-        console.log(`🖼️ Order image load failed: ${originalSrc} (attempt ${currentRetryCount + 1})`);
         
         // Store original src for tracking
         if (!img.dataset.originalSrc) {
@@ -2009,7 +2007,6 @@ const OrderImageHandler = {
         this.retryCount.set(originalSrc, currentRetryCount + 1);
         
         setTimeout(() => {
-            console.log(`🔄 Retrying order image: ${originalSrc}`);
             img.src = originalSrc + '?retry=' + Date.now();
         }, this.retryDelay);
     },
@@ -2021,17 +2018,14 @@ const OrderImageHandler = {
         }
         
         const fallbackSrc = this.fallbackImages[fallbackIndex];
-        console.log(`🔄 Trying order fallback image ${fallbackIndex}: ${fallbackSrc}`);
         
         // Create a test image to check if fallback works
         const testImg = new Image();
         testImg.onload = () => {
             img.src = fallbackSrc;
             img.dataset.fallbackUsed = 'true';
-            console.log(`✅ Order fallback image loaded: ${fallbackSrc}`);
         };
         testImg.onerror = () => {
-            console.log(`❌ Order fallback image failed: ${fallbackSrc}`);
             this.tryFallbackImage(img, fallbackIndex + 1);
         };
         testImg.src = fallbackSrc;
@@ -2048,7 +2042,6 @@ const OrderImageHandler = {
                 </div>
             `;
         }
-        console.log(`🚫 All order fallbacks failed, showing CSS placeholder`);
     },
     
     handleSuccess(img) {

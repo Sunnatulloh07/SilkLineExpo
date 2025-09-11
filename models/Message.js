@@ -181,12 +181,7 @@ messageSchema.pre('save', function(next) {
 messageSchema.post('save', async function(doc) {
     try {
         // TODO: Implement real-time notification
-        console.log('📬 New message saved:', {
-            orderId: doc.orderId,
-            from: doc.senderId,
-            to: doc.recipientId,
-            type: doc.type
-        });
+
         
         // TODO: Send WebSocket notification
         // TODO: Send email notification for offline users

@@ -1117,7 +1117,6 @@
         try {
             var el = document.getElementById('supplier-json');
             window.supplierData = el ? JSON.parse(el.textContent) : {};
-            console.log('supplier profile', window.supplierData);
         } catch (e) {
             console.error('Failed to parse supplier data', e);
             window.supplierData = {};
@@ -1138,7 +1137,6 @@ function startChat(supplierId) {
     
     // Check if user is authenticated
     if (!window.currentUser) {
-        console.log('User not authenticated, redirecting to login');
         alert('Chat uchun tizimga kiring');
         window.location.href = '/login';
         return;
@@ -1159,20 +1157,17 @@ function startChat(supplierId) {
         } else {
             message = 'Faqat distribyutor/haridor kompanyalar chat qila oladi';
         }
-        console.log('User not allowed for chat:', window.currentUser);
         alert(message);
         return;
     }
 
     // Validate supplier ID
     if (!supplierId) {
-        console.log('❌ Supplier ID not found');
         alert('Ishlab chiqaruvchi ma\'lumotlari topilmadi');
         return;
     }
 
     const redirectUrl = `/buyer/messages?manufacturer=${supplierId}`;
-    console.log('🚀 Redirecting to:', redirectUrl);
     
     // Redirect to messages page with manufacturer parameter
     window.location.href = redirectUrl;
@@ -1232,7 +1227,6 @@ function submitQuoteRequest() {
     }
     
     // Here you would typically send the data to your backend
-    console.log('Submitting quote request:', Object.fromEntries(formData));
     
     // Show success message
     alert('Your quote request has been sent successfully! The supplier will contact you soon.');
@@ -1258,7 +1252,6 @@ function addToInquiry(productId) {
     if (typeof supplierProfile !== 'undefined') {
         supplierProfile.addToInquiry(productId);
     } else {
-        console.log('Adding product to inquiry:', productId);
         alert('Product added to inquiry list.');
     }
 }
@@ -1271,7 +1264,6 @@ function submitInquiry() {
     formData.append('supplierId', '<%= supplier ? supplier._id : "" %>');
     
     // Here you would typically send the data to your backend
-    console.log('Submitting inquiry:', Object.fromEntries(formData));
     
     // Show success message
     alert('Your inquiry has been sent successfully!');
@@ -1288,7 +1280,6 @@ function saveSupplier(supplierId) {
     if (typeof supplierProfile !== 'undefined') {
         supplierProfile.saveSupplier(supplierId);
     } else {
-        console.log('Saving supplier:', supplierId);
         alert('Supplier saved to favorites.');
     }
 }
@@ -1317,14 +1308,12 @@ function reportSupplier(supplierId) {
     } else {
         const reason = prompt('Please provide a reason for reporting this supplier:');
         if (reason) {
-            console.log('Reporting supplier:', supplierId, 'Reason:', reason);
             alert('Report submitted. Thank you for helping us maintain quality.');
         }
     }
 }
 
 function showAllProducts() {
-    console.log('Showing all products');
     window.location.href = `/supplier/<%= supplier ? supplier._id : "" %>/products`;
 }
 
@@ -1680,7 +1669,6 @@ function submitInquiry(event) {
     event.preventDefault();
     event.stopPropagation();
     
-    console.log('🔥 Form submission started');
     
     const form = event.target;
     const formData = new FormData(form);
@@ -1718,7 +1706,6 @@ function submitInquiry(event) {
         };
     }
     
-    console.log('📤 Sending inquiry data:', inquiryData);
     
     // Send inquiry to backend
     fetch('/buyer/api/inquiries', {
@@ -1730,11 +1717,9 @@ function submitInquiry(event) {
         body: JSON.stringify(inquiryData)
     })
     .then(response => {
-        console.log('📥 Response status:', response.status);
         return response.json();
     })
     .then(data => {
-        console.log('📥 Response data:', data);
         
         if (data.success) {
             // Show success message
@@ -1776,11 +1761,9 @@ function submitInquiry(event) {
 
 // Add form submit event listener
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔥 DOM loaded, setting up inquiry form...');
     
     const inquiryForm = document.getElementById('inquiryForm');
     if (inquiryForm) {
-        console.log('✅ Inquiry form found, adding submit listener');
         inquiryForm.addEventListener('submit', submitInquiry);
         
         // Also prevent default on form submit button click
@@ -1789,30 +1772,24 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('🔥 Submit button clicked');
             });
         }
     } else {
-        console.log('❌ Inquiry form not found');
     }
     
     // Show/hide product section based on inquiry type
     const inquiryTypeSelect = document.getElementById('inquiryType');
     if (inquiryTypeSelect) {
-        console.log('✅ Inquiry type select found, adding change listener');
         inquiryTypeSelect.addEventListener('change', function() {
             const productSection = document.getElementById('productSection');
             // Show product section for product-related inquiries
             if (this.value === 'product_inquiry' || this.value === 'quote_request') {
                 productSection.style.display = 'block';
-                console.log('📦 Product section shown for:', this.value);
             } else {
                 productSection.style.display = 'none';
-                console.log('📦 Product section hidden for:', this.value);
             }
         });
     } else {
-        console.log('❌ Inquiry type select not found');
     }
     
     // Add CSS for consistent form styling

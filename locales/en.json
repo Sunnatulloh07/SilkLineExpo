@@ -79,7 +79,7 @@
     "emailAddress": "Email Address",
     "emailAddressPlaceholder": "Enter email address",
     "phoneNumber": "Phone Number",
-    "phoneNumberPlaceholder": "+998 XX XXX XX XX",
+    "phoneNumberPlaceholder": "+998901234567",
     "phoneFormat": "Format: +998XXXXXXXXX",
     "country": "Country",
     "selectCountry": "Select Country",
@@ -380,7 +380,14 @@
         "email": "Email Address",
         "phone": "Phone Number",
         "country": "Country",
-        "address": "Address"
+        "address": "Address",
+        "addressPlaceholder": "Enter your full business address",
+        "city": "City",
+        "cityPlaceholder": "Enter your city",
+        "district": "District",
+        "districtPlaceholder": "Enter your district",
+        "postalCode": "Postal Code",
+        "postalCodePlaceholder": "Enter postal code"
       },
       "account": {
         "title": "Account Settings",
@@ -851,7 +858,7 @@
     "company": "Company Name",
     "namePlaceholder": "Enter your full name",
     "emailPlaceholder": "Enter your email address",
-    "phonePlaceholder": "Enter your phone number",
+    "phonePlaceholder": "+998901234567",
     "companyPlaceholder": "Enter your company name",
     "subjectPlaceholder": "Enter subject",
     "messagePlaceholder": "Please describe your requirements, quantity needed, timeline, etc."
@@ -1343,7 +1350,7 @@
     "postalCode": "Postal Code",
     "postalCodePlaceholder": "Enter postal code",
     "phoneNumber": "Phone Number",
-    "phoneNumberPlaceholder": "Enter phone number",
+    "phoneNumberPlaceholder": "+998901234567",
     "setAsDefaultAddress": "Set as default address",
     "cancel": "Cancel",
     "saveAddress": "Save Address",

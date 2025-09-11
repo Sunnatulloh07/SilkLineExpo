@@ -141,42 +141,35 @@ class GlobalThemeManager {
 
     async changeLanguage(languageCode) {
         if (!this.supportedLanguages.find(lang => lang.code === languageCode)) {
-            console.warn(`Unsupported language: ${languageCode}`);
+            console.warn(`❌ Unsupported language: ${languageCode}`);
             return false;
         }
 
         try {
-            // Send language change request to server
-            const response = await fetch('/api/language/change', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ language: languageCode }),
-                credentials: 'same-origin'
-            });
-
-            if (response.ok) {
-                this.currentLanguage = languageCode;
-                this.applyLanguage();
-                localStorage.setItem('slex_language', languageCode);
-                
-                // Show success message
-                const langName = this.supportedLanguages.find(lang => lang.code === languageCode)?.name;
-                this.showToast(`Language changed to ${langName}`, 'success', 2000);
-                
-                // Reload page to apply server-side translations
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-                
-                return true;
-            } else {
-                throw new Error('Language change failed');
-            }
+            // Set consistent language cookies immediately
+            const cookieOptions = `path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax`;
+            document.cookie = `i18next=${languageCode}; ${cookieOptions}`;
+            document.cookie = `selectedLanguage=${languageCode}; ${cookieOptions}`;
+            document.cookie = `language=${languageCode}; ${cookieOptions}`;
+            
+            // Update current language
+            this.currentLanguage = languageCode;
+            this.applyLanguage();
+            localStorage.setItem('slex_language', languageCode);
+            
+            // Show success message
+            const langName = this.supportedLanguages.find(lang => lang.code === languageCode)?.name;
+            this.showToast(`Language changed to ${langName}`, 'success', 2000);
+            
+            // Reload page to apply server-side translations
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+            
+            return true;
+            
         } catch (error) {
-            console.error('Language change error:', error);
+            console.error('❌ Language change error:', error);
             this.showToast('Failed to change language. Please try again.', 'error');
             return false;
         }

@@ -7,6 +7,7 @@
 const BuyerService = require('../services/BuyerService');
 const Cart = require('../models/Cart');
 const Favorite = require('../models/Favorite');
+const User = require('../models/User');
 const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const path = require('path');
@@ -177,7 +178,7 @@ class BuyerController {
     renderErrorPage(res, req, { statusCode = 500, title = 'Server Error', message = 'An unexpected error occurred', user = null, error = null } = {}) {
         const lng = this.getLanguagePreference(req);
 
-        // Log error details for debugging
+        // Log error details
        
         const templateData = {
             title: title,
@@ -189,7 +190,7 @@ class BuyerController {
             admin: null, // This is required by error.ejs header
                 lng: lng,
             error: error, // Pass error object for development mode
-            req: req // Pass request object for debugging info
+            req: req
         };
 
         res.status(statusCode).render('pages/error', templateData);
@@ -362,6 +363,7 @@ class BuyerController {
         try {
             const buyerId = req.user.userId;
             const manufacturerId = req.query.manufacturer; // Get manufacturer ID from URL parameter
+            const orderId = req.query.order; // Get order ID from URL parameter
             
             // Get fresh user data from database (includes latest companyLogo)
             const User = require('../models/User');
@@ -390,10 +392,29 @@ class BuyerController {
                 }
             }
 
+            // Validate order ID if provided
+            let orderDetails = null;
+            if (orderId) {
+                try {
+                    orderDetails = await this.buyerService.getOrderDetails(buyerId, orderId);
+                } catch (orderError) {
+                    this.logger.warn(`Invalid order ID: ${orderId}`, orderError);
+                    // Continue rendering page but without order details
+                }
+            }
+
+            // Determine page title based on context
+            let pageTitle = 'Messages - SLEX';
+            if (orderDetails && manufacturerDetails) {
+                pageTitle = `Order ${orderDetails.orderNumber} - ${manufacturerDetails.companyName} - Messages - SLEX`;
+            } else if (manufacturerDetails) {
+                pageTitle = `${manufacturerDetails.companyName} - Messages - SLEX`;
+            } else if (orderDetails) {
+                pageTitle = `Order ${orderDetails.orderNumber} - Messages - SLEX`;
+            }
+
             const renderData = {
-                title: manufacturerDetails ? 
-                    `${manufacturerDetails.companyName} - Messages - SLEX` : 
-                    'Messages - SLEX',
+                title: pageTitle,
                 currentPage: 'messages',
                 user: freshUser,  // Fresh data with latest companyLogo
                 currentUser: freshUser,  // Fresh data for navigation
@@ -404,7 +425,9 @@ class BuyerController {
                 unreadMessagesCount: unreadMessagesCount || 0,
                 favoritesCount: favoritesItems.length || 0,
                 manufacturerId: manufacturerId || null,
-                manufacturerDetails: manufacturerDetails || null
+                manufacturerDetails: manufacturerDetails || null,
+                orderId: orderId || null,
+                orderDetails: orderDetails || null
             };
 
             res.render('buyer/messages', renderData);
@@ -496,6 +519,7 @@ class BuyerController {
             const User = require('../models/User');
             const freshUser = await User.findById(buyerId).select('-password');
             
+            
             // Validate user data
             if (!freshUser) {
                 throw new Error('User not found');
@@ -576,7 +600,10 @@ class BuyerController {
                 email: req.body.email?.trim()?.toLowerCase(),
                 phone: req.body.phone?.trim(),
                 country: req.body.country?.trim(),
-                address: req.body.address?.trim()
+                address: req.body.address?.trim(),
+                city: req.body.city?.trim(),
+                district: req.body.district?.trim(),
+                postalCode: req.body.postalCode?.trim()
             };
 
             // Remove empty fields
@@ -585,6 +612,7 @@ class BuyerController {
                     delete updateData[key];
                 }
             });
+            
 
             // Business validation rules
             if (updateData.companyName && updateData.companyName.length < 2) {
@@ -625,6 +653,9 @@ class BuyerController {
                     phone: updatedUser.phone,
                     country: updatedUser.country,
                     address: updatedUser.address,
+                    city: updatedUser.city,
+                    district: updatedUser.district,
+                    postalCode: updatedUser.postalCode,
                     updatedAt: updatedUser.updatedAt
                 }
             };
@@ -1067,6 +1098,193 @@ class BuyerController {
     }
 
     /**
+     * Get buyer addresses
+     * GET /buyer/api/addresses
+     */
+    async getAddresses(req, res) {
+        try {
+            // For testing without auth, use a dummy buyerId or get from query
+            const buyerId = req.user?.userId || req.query.userId || '68b6fb3051f6147d99d6bad8';
+            const User = require('../models/User');
+            
+            const user = await User.findById(buyerId).select('address city country contactPerson phone district postalCode');
+            
+            if (!user) {
+                return res.status(404).json({ success: false, message: 'User not found' });
+            }
+            
+            
+            // Return the main address as the default address
+            const addresses = [];
+            
+            // Create address even if some fields are missing
+            const hasAddress = user.address || user.city;
+            if (hasAddress) {
+                addresses.push({
+                    id: 'default',
+                    name: 'Home Address',
+                    fullAddress: user.address || 'Address not set',
+                    city: user.city || 'City not set',
+                    country: user.country || 'Uzbekistan', // Default country if missing
+                    district: user.district || 'District not set',
+                    postalCode: user.postalCode || 'Postal code not set',
+                    phoneNumber: user.phone || '',
+                    isDefault: true
+                });
+            } else {
+                // If no address data at all, create a placeholder
+                addresses.push({
+                    id: 'default',
+                    name: 'Home Address',
+                    fullAddress: 'No address set',
+                    city: 'No city set',
+                    country: 'Uzbekistan',
+                    district: 'No district set',
+                    postalCode: 'No postal code set',
+                    phoneNumber: user.phone || '',
+                    isDefault: true
+                });
+            }
+            
+            res.json({ success: true, addresses });
+            
+        } catch (error) {
+            this.logger.error('❌ Get addresses error:', error);
+            res.status(500).json({ success: false, message: 'Failed to get addresses' });
+        }
+    }
+
+
+    /**
+     * Update default address (main user address)
+     * PUT /buyer/api/addresses/default
+     */
+    async updateDefaultAddress(req, res) {
+        try {
+            
+            // For testing without auth, use a dummy buyerId
+            const buyerId = req.user?.userId || 'test-buyer-id';
+            const { name, fullAddress, city, district, postalCode, phoneNumber, isDefault } = req.body;
+            
+            // Validate required fields
+            const missingFields = [];
+            if (!name) missingFields.push('Name');
+            if (!fullAddress) missingFields.push('Full Address');
+            if (!city) missingFields.push('City');
+            if (!district) missingFields.push('District');
+            if (!phoneNumber) missingFields.push('Phone Number');
+            
+            if (missingFields.length > 0) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `Missing required fields: ${missingFields.join(', ')}` 
+                });
+            }
+            
+            // Update the user's main address fields
+            const updateData = {
+                address: fullAddress,
+                city: city,
+                country: 'Uzbekistan', // Default country
+                phone: phoneNumber,
+                contactPerson: name,
+                district: district,
+                postalCode: postalCode
+            };
+            
+            const user = await User.findByIdAndUpdate(
+                buyerId,
+                updateData,
+                { new: true, runValidators: true }
+            );
+            
+            if (!user) {
+                return res.status(404).json({ 
+                    success: false, 
+                    message: 'User not found' 
+                });
+            }
+            
+            res.json({ 
+                success: true, 
+                message: 'Default address updated successfully',
+                address: {
+                    id: 'default',
+                    name: name,
+                    fullAddress: fullAddress,
+                    city: city,
+                    country: 'Uzbekistan',
+                    district: district,
+                    postalCode: postalCode,
+                    phoneNumber: phoneNumber,
+                    isDefault: true
+                }
+            });
+            
+        } catch (error) {
+            res.status(500).json({ 
+                success: false, 
+                message: 'Failed to update default address' 
+            });
+        }
+    }
+
+    /**
+     * Update address
+     * PUT /buyer/api/addresses/:id
+     */
+    async updateAddress(req, res) {
+        try {
+            const buyerId = req.user.userId;
+            const addressId = req.params.id;
+            const { name, fullAddress, city, district, postalCode, phoneNumber, isDefault } = req.body;
+            
+            // For now, only support updating the default address
+            if (addressId !== 'default') {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'Only default address can be updated' 
+                });
+            }
+            
+            const User = require('../models/User');
+            
+            const updateData = {
+                address: fullAddress,
+                city: city,
+            };
+            
+            const updatedUser = await User.findByIdAndUpdate(
+                buyerId, 
+                updateData, 
+                { new: true }
+            ).select('address city country');
+            
+            if (!updatedUser) {
+                return res.status(404).json({ success: false, message: 'User not found' });
+            }
+            
+            res.json({ 
+                success: true, 
+                message: 'Address updated successfully',
+                address: {
+                    id: 'default',
+                    name: name,
+                    fullAddress: updatedUser.address,
+                    city: updatedUser.city,
+                    country: updatedUser.country,
+                    isDefault: true
+                }
+            });
+            
+        } catch (error) {
+            this.logger.error('❌ Update address error:', error);
+            res.status(500).json({ success: false, message: 'Failed to update address' });
+        }
+    }
+
+
+    /**
      * Render favorites page  
      */
     async showFavorites(req, res) {
@@ -1283,7 +1501,6 @@ class BuyerController {
                 try {
                     processedAttachments = await this.processUploadedFiles(uploadedFiles);
                 } catch (fileError) {
-                    console.error('❌ File processing error:', fileError);
                     return res.status(400).json({
                         success: false,
                         error: {
@@ -1415,6 +1632,59 @@ class BuyerController {
                 conversations,
                 count: conversations.length,
                 filters
+            }, 'Conversations retrieved successfully');
+
+        } catch (error) {
+            this.logger.error('❌ Get conversations error:', error);
+            this.handleAPIError(res, error, 'Failed to get conversations');
+        }
+    }
+
+    /**
+     * API: Get buyer conversations grouped by manufacturer
+     */
+    async getBuyerConversations(req, res) {
+        try {
+            const buyerId = req.user.userId;
+            const currentManufacturerId = req.query.manufacturer || null;
+            
+            if (!buyerId) {
+                return res.status(401).json({
+                    success: false,
+                    error: {
+                        message: 'Authentication required',
+                        code: 'AUTH_REQUIRED'
+                    }
+                });
+            }
+
+            // Validate buyerId format
+            if (!buyerId.match(/^[0-9a-fA-F]{24}$/)) {
+                return res.status(400).json({
+                    success: false,
+                    error: {
+                        message: 'Invalid buyer ID format',
+                        code: 'INVALID_BUYER_ID'
+                    }
+                });
+            }
+
+            // Validate manufacturer ID if provided
+            if (currentManufacturerId && !currentManufacturerId.match(/^[0-9a-fA-F]{24}$/)) {
+                return res.status(400).json({
+                    success: false,
+                    error: {
+                        message: 'Invalid manufacturer ID format',
+                        code: 'INVALID_MANUFACTURER_ID'
+                    }
+                });
+            }
+            
+            const conversations = await this.buyerService.getBuyerConversations(buyerId, currentManufacturerId);
+            this.sendSuccess(res, { 
+                conversations,
+                count: conversations.length,
+                currentManufacturerId
             }, 'Conversations retrieved successfully');
 
         } catch (error) {
@@ -1561,6 +1831,7 @@ class BuyerController {
         try {
             const buyerId = req.user.userId;
             const { manufacturerId } = req.params;
+            const orderId = req.query.order; // Get order ID from query parameter
             
             if (!buyerId) {
                 return res.status(401).json({
@@ -1582,9 +1853,25 @@ class BuyerController {
                 });
             }
             
-            const conversation = await this.buyerService.getOrCreateManufacturerConversation(buyerId, manufacturerId);
+            // If orderId is provided, get order conversation, otherwise get manufacturer conversation
+            let conversation;
+            if (orderId) {
+                // Validate order ID format
+                if (!orderId.match(/^[0-9a-fA-F]{24}$/)) {
+                    return res.status(400).json({
+                        success: false,
+                        error: {
+                            message: 'Invalid order ID format',
+                            code: 'INVALID_ORDER_ID'
+                        }
+                    });
+                }
+                conversation = await this.buyerService.getOrderConversation(buyerId, manufacturerId, orderId);
+            } else {
+                conversation = await this.buyerService.getOrCreateManufacturerConversation(buyerId, manufacturerId);
+            }
             
-            this.sendSuccess(res, conversation, 'Manufacturer conversation retrieved successfully');
+            this.sendSuccess(res, conversation, orderId ? 'Order conversation retrieved successfully' : 'Manufacturer conversation retrieved successfully');
 
         } catch (error) {
             this.logger.error('❌ Get manufacturer conversation error:', error);
@@ -1595,6 +1882,16 @@ class BuyerController {
                     error: {
                         message: 'Manufacturer not found',
                         code: 'MANUFACTURER_NOT_FOUND'
+                    }
+                });
+            }
+
+            if (error.message.includes('Order not found or access denied')) {
+                return res.status(404).json({
+                    success: false,
+                    error: {
+                        message: 'Order not found or you do not have access to this order',
+                        code: 'ORDER_NOT_FOUND'
                     }
                 });
             }
@@ -2353,7 +2650,6 @@ class BuyerController {
             };
 
             // Rate limiting check (could be implemented with redis)
-            // TODO: Implement rate limiting for checkout attempts
 
             // Get fresh user data following project specifications
             const User = require('../models/User');
@@ -2607,6 +2903,23 @@ class BuyerController {
                 });
             }
 
+            // Validate delivery address for delivery method
+            if (deliveryMethod === 'delivery') {
+                if (!deliveryAddress) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Delivery address is required for delivery method'
+                    });
+                }
+
+                if (!deliveryAddress.fullAddress || !deliveryAddress.city || !deliveryAddress.name || !deliveryAddress.phoneNumber) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Complete delivery address information is required (address, city, name, phone)'
+                    });
+                }
+            }
+
             // Get cart items
             const cartItems = await this.buyerService.getCartItems(buyerId);
             if (!cartItems || cartItems.length === 0) {
@@ -2687,6 +3000,7 @@ class BuyerController {
                             street: deliveryAddress.fullAddress,
                             city: deliveryAddress.city,
                             state: deliveryAddress.district,
+                            postalCode: deliveryAddress.postalCode,
                             country: deliveryAddress.country || 'Uzbekistan',
                             contactPerson: deliveryAddress.name,
                             contactPhone: deliveryAddress.phoneNumber
@@ -2799,7 +3113,6 @@ class BuyerController {
             });
             
         } catch (error) {
-            console.error('❌ Error marking messages as read:', error);
             res.status(500).json({
                 success: false,
                 message: 'Xabarlarni belgilashda xatolik yuz berdi',

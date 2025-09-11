@@ -5,7 +5,6 @@
 
 // Check if ManufacturerHeader already exists
 if (typeof window.ManufacturerHeader !== 'undefined') {
-    console.log('⚠️ ManufacturerHeader already exists, skipping redefinition');
 } else {
 
 class ManufacturerHeader {
@@ -16,14 +15,12 @@ class ManufacturerHeader {
     init() {
         // Check if dashboard-init.js has already initialized to prevent conflicts
         if (window.sidebarInitialized) {
-            console.log('📰 Header: dashboard-init.js already initialized, skipping conflicting functions');
             
             // Only initialize non-conflicting functions
             this.initSearchBar();
             this.initNotifications();
             this.initMessages();
         } else {
-            console.log('📰 Header: dashboard-init.js not detected, initializing all functions');
             
             // Theme Toggle
             this.initThemeToggle();
@@ -57,7 +54,6 @@ class ManufacturerHeader {
     initThemeToggle() {
         // Check if Universal Theme Manager is available
         if (window.UniversalTheme) {
-            console.log('🎨 Header: Using Universal Theme Manager');
             // Universal Theme Manager will handle theme toggle
             return;
         }
@@ -103,15 +99,12 @@ class ManufacturerHeader {
             const collapsed = e.detail.collapsed;
             const adminHeader = document.querySelector('.admin-header');
             
-            console.log('🔄 HEADER: Sidebar state changed:', collapsed ? 'collapsed' : 'expanded');
             
             if (adminHeader) {
                 if (collapsed) {
                     adminHeader.classList.add('sidebar-collapsed');
-                    console.log('📐 HEADER: Added sidebar-collapsed class');
                 } else {
                     adminHeader.classList.remove('sidebar-collapsed');
-                    console.log('📐 HEADER: Removed sidebar-collapsed class');
                 }
             } else {
                 console.warn('⚠️ HEADER: Admin header element not found');
@@ -186,7 +179,6 @@ class ManufacturerHeader {
 
     async performSearch(query) {
         // Implement quick search functionality
-        console.log('Searching for:', query);
         // This would typically make an API call for search suggestions
     }
 
@@ -267,16 +259,37 @@ class ManufacturerHeader {
     }
 
     changeLanguage(lang) {
-        // Set language cookies first (like buyer navigation)
-        document.cookie = `i18next=${lang}; path=/; max-age=${30 * 24 * 60 * 60}`;
-        document.cookie = `selectedLanguage=${lang}; path=/; max-age=${30 * 24 * 60 * 60}`;
-        
-        // Get current URL and add language parameter
-        const currentUrl = window.location.pathname + window.location.search;
-        const redirectUrl = `/language/${lang}?redirect=${encodeURIComponent(currentUrl)}`;
-        
-        // Navigate to language change route
-        window.location.href = redirectUrl;
+        try {
+            // Validate language code
+            const supportedLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
+            if (!supportedLanguages.includes(lang)) {
+                console.error('❌ Unsupported language:', lang);
+                return;
+            }
+
+            // Set consistent language cookies
+            const cookieOptions = `path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax`;
+            document.cookie = `i18next=${lang}; ${cookieOptions}`;
+            document.cookie = `selectedLanguage=${lang}; ${cookieOptions}`;
+            document.cookie = `language=${lang}; ${cookieOptions}`;
+            
+            // Get current URL and add language parameter
+            const currentUrl = window.location.pathname + window.location.search;
+            const redirectUrl = `/language/${lang}?redirect=${encodeURIComponent(currentUrl)}`;
+            
+            // Show loading state
+            const languageToggle = document.getElementById('languageToggle');
+            if (languageToggle) {
+                languageToggle.style.opacity = '0.5';
+                languageToggle.disabled = true;
+            }
+            
+            // Navigate to language change route
+            window.location.href = redirectUrl;
+            
+        } catch (error) {
+            console.error('❌ Language change error:', error);
+        }
     }
 
     /**

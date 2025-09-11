@@ -1003,7 +1003,6 @@ let currentTab = 'products';
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('Favorites page loaded');
   
   // Load initial data
   loadFavorites();
@@ -1707,7 +1706,6 @@ function showLoading() {
   if (loadingElement) {
     loadingElement.style.display = 'flex';
   } else {
-  console.log('Loading...');
   }
 }
 
@@ -1717,7 +1715,6 @@ function hideLoading() {
   if (loadingElement) {
     loadingElement.style.display = 'none';
   } else {
-  console.log('Loading complete');
   }
 }
 
@@ -1789,7 +1786,6 @@ function updateCartCount() {
       })
       .catch(error => {
         // Silently fail - this is just an enhancement
-        console.log('Cart count update unavailable:', error);
       });
   }
 }
@@ -1812,7 +1808,6 @@ const FavoriteImageHandler = {
     const originalSrc = img.dataset.originalSrc || img.src;
     const currentRetryCount = this.retryCount.get(originalSrc) || 0;
     
-    console.log(`🖼️ Image load failed: ${originalSrc} (attempt ${currentRetryCount + 1})`);
     
     // Store original src for tracking
     if (!img.dataset.originalSrc) {
@@ -1836,7 +1831,6 @@ const FavoriteImageHandler = {
     this.retryCount.set(originalSrc, currentRetryCount + 1);
     
     setTimeout(() => {
-      console.log(`🔄 Retrying image: ${originalSrc}`);
       img.src = originalSrc + '?retry=' + Date.now();
     }, this.retryDelay);
   },
@@ -1848,17 +1842,14 @@ const FavoriteImageHandler = {
     }
     
     const fallbackSrc = this.fallbackImages[fallbackIndex];
-    console.log(`🔄 Trying fallback image ${fallbackIndex}: ${fallbackSrc}`);
     
     // Create a test image to check if fallback works
     const testImg = new Image();
     testImg.onload = () => {
       img.src = fallbackSrc;
       img.dataset.fallbackUsed = 'true';
-      console.log(`✅ Fallback image loaded: ${fallbackSrc}`);
     };
     testImg.onerror = () => {
-      console.log(`❌ Fallback image failed: ${fallbackSrc}`);
       this.tryFallbackImage(img, fallbackIndex + 1);
     };
     testImg.src = fallbackSrc;
@@ -1875,7 +1866,6 @@ const FavoriteImageHandler = {
         </div>
       `;
     }
-    console.log(`🚫 All fallbacks failed, showing CSS placeholder`);
   },
   
   handleSuccess(img) {
@@ -1887,7 +1877,6 @@ const FavoriteImageHandler = {
     
     // Add success class for CSS animations
     img.classList.add('image-loaded');
-    console.log(`✅ Image loaded successfully: ${originalSrc}`);
   }
 };
 

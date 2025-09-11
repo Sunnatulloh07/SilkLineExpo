@@ -57,30 +57,103 @@ class ManufacturerDashboard {
     }
 
     /**
-     * Language Management
+     * Language Management - Professional Implementation
      */
     initLanguage() {
-        // Read i18next cookie
+        try {
+            // Read current language from multiple cookie sources
+            const currentLang = this.getCurrentLanguage();
+            
+            // Update language selector UI
+            this.updateLanguageSelector(currentLang);
+            
+            // Add language option event listeners
+            const langOptions = document.querySelectorAll('.language-option');
+            langOptions.forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const lang = e.currentTarget.dataset.lang;
+                    if (lang && lang !== currentLang) {
+                        this.changeLanguage(lang);
+                    }
+                });
+            });
+            
+        } catch (error) {
+            console.error('❌ Language initialization error:', error);
+        }
+    }
+
+    /**
+     * Get current language from cookies
+     */
+    getCurrentLanguage() {
         const cookies = document.cookie.split(';');
-        let currentLang = 'uz';
+        const supportedLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
         
-        for (let cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === 'i18next') {
-                currentLang = value;
-                break;
+        // Check multiple cookie names for language
+        const cookieNames = ['i18next', 'selectedLanguage', 'language'];
+        
+        for (let cookieName of cookieNames) {
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === cookieName && supportedLanguages.includes(value)) {
+                    return value;
+                }
             }
         }
         
-        // Update language selector if exists
+        return 'uz'; // Default fallback
+    }
+
+    /**
+     * Update language selector UI
+     */
+    updateLanguageSelector(currentLang) {
+        // Update active state
         const langOptions = document.querySelectorAll('.language-option');
         langOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
-                const lang = e.currentTarget.dataset.lang;
-                document.cookie = `i18next=${lang};path=/;max-age=31536000`;
-                window.location.reload();
-            });
+            const lang = option.dataset.lang;
+            if (lang === currentLang) {
+                option.classList.add('active');
+            } else {
+                option.classList.remove('active');
+            }
         });
+    }
+
+    /**
+     * Change language with proper error handling
+     */
+    changeLanguage(lang) {
+        try {
+            const supportedLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
+            if (!supportedLanguages.includes(lang)) {
+                console.error('❌ Unsupported language:', lang);
+                return;
+            }
+
+            // Set consistent language cookies
+            const cookieOptions = `path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax`;
+            document.cookie = `i18next=${lang}; ${cookieOptions}`;
+            document.cookie = `selectedLanguage=${lang}; ${cookieOptions}`;
+            document.cookie = `language=${lang}; ${cookieOptions}`;
+            
+            // Show loading state
+            const languageToggle = document.getElementById('languageToggle');
+            if (languageToggle) {
+                languageToggle.style.opacity = '0.5';
+                languageToggle.disabled = true;
+            }
+            
+            // Reload page to apply language
+            window.location.reload();
+            
+        } catch (error) {
+            console.error('❌ Language change error:', error);
+        }
     }
 
     /**

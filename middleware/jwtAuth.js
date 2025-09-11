@@ -72,7 +72,6 @@ class JWTAuthMiddleware {
             
             // No tokens available - redirect to login
             if (!tokens.accessToken && !tokens.refreshToken) {
-                console.log(`🔒 No tokens found for ${req.method} ${req.path}`);
                 return this.handleUnauthenticated(req, res);
             }
 
@@ -82,7 +81,6 @@ class JWTAuthMiddleware {
                 try {
                     accessTokenResult = TokenService.verifyAccessToken(tokens.accessToken);
                 } catch (tokenError) {
-                    console.log(`🔒 Access token verification failed: ${tokenError.message}`);
                     accessTokenResult = { valid: false, expired: true };
                 }
             }
@@ -109,7 +107,6 @@ class JWTAuthMiddleware {
 
             // Access token is invalid/expired, try refresh token
             if (tokens.refreshToken && (!accessTokenResult || accessTokenResult.expired)) {
-                console.log(`🔄 Attempting token refresh for user session`);
                 
                 try {
                     const refreshResult = await this.refreshTokens(req, res, tokens.refreshToken);
@@ -133,7 +130,6 @@ class JWTAuthMiddleware {
             }
 
             // Both tokens are invalid, clear cookies and redirect to login
-            console.log(`🔒 Authentication failed - redirecting to login`);
             return this.handleUnauthenticated(req, res);
 
         } catch (error) {
@@ -375,7 +371,6 @@ class JWTAuthMiddleware {
                 };
             }
 
-            console.log(`🔄 Processing token refresh request`);
             
             const refreshResult = await TokenService.refreshAccessToken(refreshToken, this.models);
             

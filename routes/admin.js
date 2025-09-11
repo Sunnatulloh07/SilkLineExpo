@@ -384,8 +384,6 @@ router.get('/data.json', (req, res) => {
 // Test endpoint for debugging users API
 router.get('/api/test-users', async (req, res) => {
   try {
-    console.log('🧪 Test users endpoint called');
-    console.log('🧪 User:', req.user);
     
     const User = require('../models/User');
     const userCount = await User.countDocuments();
@@ -466,21 +464,17 @@ router.post('/set-language', (req, res) => {
     // Set language in session for server-side rendering
     req.session.language = language;
     
-    // Set persistent cookie for client-side
-    res.cookie('selectedLanguage', language, {
+    // Set consistent language cookies
+    const cookieOptions = {
       maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax'
-    });
+    };
     
-    // Also set i18next cookie for consistency
-    res.cookie('i18next', language, {
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
-    });
+    res.cookie('i18next', language, cookieOptions);
+    res.cookie('selectedLanguage', language, cookieOptions);
+    res.cookie('language', language, cookieOptions);
     
       
     res.json({ 

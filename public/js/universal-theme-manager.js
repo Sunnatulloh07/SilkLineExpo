@@ -63,8 +63,10 @@
             document.documentElement.setAttribute('data-theme', theme);
             
             // Add/remove theme classes for backwards compatibility
-            document.body.classList.remove('theme-light', 'theme-dark');
-            document.body.classList.add(`theme-${theme}`);
+            if (document.body) {
+                document.body.classList.remove('theme-light', 'theme-dark');
+                document.body.classList.add(`theme-${theme}`);
+            }
 
             // Force CSS recomputation by triggering a reflow
             document.documentElement.offsetHeight;

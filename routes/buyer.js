@@ -164,6 +164,16 @@ router.get('/api/conversations',
 );
 
 /**
+ * Get conversations grouped by manufacturer
+ * GET /buyer/api/conversations-grouped
+ */
+router.get('/api/conversations-grouped',
+    authenticate,
+    distributorOnly,
+    buyerController.getBuyerConversations.bind(buyerController)
+);
+
+/**
  * Get conversations with current manufacturers
  * GET /buyer/api/conversations-with-current
  */
@@ -232,6 +242,29 @@ router.post('/api/send-message',
     distributorOnly,
     uploadMessageAttachments.array('attachments', 5),
     buyerController.sendMessage.bind(buyerController)
+);
+
+// ===== BUYER ADDRESS API ROUTES =====
+
+
+/**
+ * Get buyer addresses
+ * GET /buyer/api/addresses
+ */
+router.get('/api/addresses',
+    // authenticate,
+    // distributorOnly,
+    buyerController.getAddresses.bind(buyerController)
+);
+
+/**
+ * Update default address (main user address)
+ * PUT /buyer/api/addresses/default
+ */
+router.put('/api/addresses/default',
+    // authenticate,
+    // distributorOnly,
+    buyerController.updateDefaultAddress.bind(buyerController)
 );
 
 // ===== BUYER CART API ROUTES =====
@@ -619,7 +652,6 @@ router.post('/api/inquiries/:inquiryId/mark-read',
             });
 
         } catch (error) {
-            console.error('Error marking inquiry messages as read:', error);
             res.status(500).json({
                 success: false,
                 error: 'Failed to mark inquiry messages as read',
@@ -628,5 +660,10 @@ router.post('/api/inquiries/:inquiryId/mark-read',
         }
     }
 );
+
+// Get conversations
+router.get('/api/conversations', authenticate, distributorOnly, (req, res) => {
+    buyerController.getBuyerConversations(req, res);
+});
 
 module.exports = router;

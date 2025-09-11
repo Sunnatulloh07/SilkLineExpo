@@ -189,7 +189,6 @@ class OrderCommentController {
                         }
                     });
                     
-                    console.log(`✅ Customer notification sent for order ${order.orderNumber}`);
                 } catch (notificationError) {
                     console.error('❌ Error sending customer notification:', notificationError);
                     // Don't fail the whole request if notification fails
@@ -358,7 +357,6 @@ class OrderCommentController {
                             isUpdate: true  // Flag to indicate this is an update notification
                         });
                         
-                        console.log(`✅ Customer notification sent for updated comment on order ${order.orderNumber}`);
                     }
                 } catch (notificationError) {
                     console.error('❌ Error sending customer notification for comment update:', notificationError);
@@ -389,11 +387,9 @@ class OrderCommentController {
     static async deleteComment(req, res) {
         try {
             const { commentId } = req.params;
-            console.log('🗑️ DELETE attempt for commentId:', commentId);
 
             // Validate commentId format
             if (!commentId || !require('mongoose').Types.ObjectId.isValid(commentId)) {
-                console.log('❌ Invalid comment ID format:', commentId);
                 return res.status(400).json({
                     success: false,
                     message: 'Invalid comment ID format'
@@ -401,15 +397,12 @@ class OrderCommentController {
             }
 
             // Find comment with replies count
-            console.log('🔍 Searching for comment in OrderComment collection...');
             const comment = await OrderComment.findById(commentId);
-            console.log('📊 Comment found:', comment ? 'YES' : 'NO');
             
             if (!comment) {
                 // Additional debugging: check if it exists in Comment (product) collection
                 const ProductComment = require('../models/Comment');
                 const productComment = await ProductComment.findById(commentId);
-                console.log('🔍 Found in Product Comment collection:', productComment ? 'YES' : 'NO');
                 
                 return res.status(404).json({
                     success: false,
