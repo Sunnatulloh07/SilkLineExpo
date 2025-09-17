@@ -34,7 +34,7 @@
 .orders-header-content {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: start;
   position: relative;
   z-index: 1;
 }
@@ -980,10 +980,10 @@
 }
 
 .table-more-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  z-index: 10;
+  position: fixed;
+  top: auto;
+  right: auto;
+  z-index: 9999;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 8px;

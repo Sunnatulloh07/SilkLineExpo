@@ -2027,7 +2027,21 @@ class BuyerController {
             const cart = await Cart.getOrCreateCart(buyerId);
             await cart.addItem({ productId, manufacturerId, quantity, unitPrice, selectedSpecs, notes });
 
-            res.json({ success: true, message: 'Product added to cart' });
+            // Get updated cart data after adding item
+            const updatedCart = await Cart.findOne({ buyerId }).populate('items.productId');
+            const totalItems = updatedCart.items.reduce((sum, item) => sum + item.quantity, 0);
+            const productItem = updatedCart.items.find(item => item.productId.toString() === productId);
+
+            res.json({ 
+                success: true, 
+                message: 'Product added to cart',
+                data: {
+                    quantity: productItem ? productItem.quantity : quantity,
+                    cartQuantity: productItem ? productItem.quantity : quantity,
+                    totalCartItems: totalItems,
+                    cartTotal: totalItems
+                }
+            });
         } catch (error) {
             this.logger.error('❌ Error adding to cart:', error);
             res.status(500).json({ success: false, message: error.message });
@@ -3152,6 +3166,79 @@ class BuyerController {
                 success: false,
                 message: 'Failed to get unread messages count',
                 count: 0
+            });
+        }
+    }
+
+    /**
+     * Get inquiry messages with professional mixed content support
+     */
+    async getInquiryMessages(req, res) {
+        try {
+            const buyerId = req.user.userId;
+            const { inquiryId } = req.params;
+            const { page = 1, limit = 50 } = req.query;
+
+            // Validate inquiry exists and user has access
+            const Inquiry = require('../models/Inquiry');
+            const inquiry = await Inquiry.findOne({
+                _id: inquiryId,
+                $or: [
+                    { inquirer: buyerId },
+                    { supplier: buyerId }
+                ]
+            });
+
+            if (!inquiry) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'Inquiry not found or access denied'
+                });
+            }
+
+            // Get messages with attachments
+            const Message = require('../models/Message');
+            const skip = (parseInt(page) - 1) * parseInt(limit);
+            
+            const messages = await Message.find({ inquiryId: inquiryId })
+                .populate('senderId', 'companyName email companyLogo')
+                .populate('recipientId', 'companyName email companyLogo')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(parseInt(limit))
+                .lean();
+
+            // Get total count for pagination
+            const totalCount = await Message.countDocuments({ inquiryId: inquiryId });
+
+            // Professional response with mixed content support
+            res.json({
+                success: true,
+                data: {
+                    messages: messages,
+                    pagination: {
+                        currentPage: parseInt(page),
+                        totalPages: Math.ceil(totalCount / parseInt(limit)),
+                        totalCount: totalCount,
+                        limit: parseInt(limit)
+                    },
+                    inquiry: {
+                        id: inquiry._id,
+                        inquiryNumber: inquiry.inquiryNumber,
+                        status: inquiry.status,
+                        message: inquiry.message,
+                        supplier: inquiry.supplier,
+                        inquirer: inquiry.inquirer
+                    }
+                }
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Get inquiry messages error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to get inquiry messages',
+                message: error.message
             });
         }
     }

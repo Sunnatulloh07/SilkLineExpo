@@ -1,4 +1,4 @@
-<%- include('../partials/header', { title: 'Sozlamalar', lng: lng || 'uz', user: user }) %>
+<%- include('../partials/header', { title: 'Sozlamalar', lng: lng, user: user }) %>
 <%- include('../partials/sidebar', { user: user, currentPage: 'settings' }) %>
 
 <!-- Enhanced CSS Imports - Professional Settings Style -->
@@ -1147,6 +1147,9 @@
   console.log('🎨 Early theme sync:', activeTheme);
 })();
 </script>
+
+<!-- Professional Unified Header Management -->
+<script src="/js/manufacturer/manufacturer-header.js"></script>
 
 <!-- JavaScript -->
 <script src="/js/manufacturer/settings.js"></script>

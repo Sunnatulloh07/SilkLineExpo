@@ -132,7 +132,7 @@ class SupplierProfileManager {
                 throw new Error('Failed to start chat');
             }
         } catch (error) {
-            console.error('Chat error:', error);
+            // console.error('Chat error:', error);
             this.showNotification('Chat service is temporarily unavailable', 'error');
         } finally {
             this.hideLoading();
@@ -163,7 +163,7 @@ class SupplierProfileManager {
                 modal.show();
             }
         } catch (error) {
-            console.error('Quote request error:', error);
+            // console.error('Quote request error:', error);
             this.showNotification('Failed to open quote request form', 'error');
         }
     }
@@ -260,7 +260,7 @@ class SupplierProfileManager {
                 throw new Error('Failed to submit quote request');
             }
         } catch (error) {
-            console.error('Quote submission error:', error);
+            // console.error('Quote submission error:', error);
             this.showNotification('Failed to submit quote request', 'error');
         } finally {
             this.hideLoading();
@@ -323,7 +323,7 @@ class SupplierProfileManager {
                 await this.syncFavoritesWithBackend();
             }
         } catch (error) {
-            console.error('Save supplier error:', error);
+            // console.error('Save supplier error:', error);
             this.showNotification('Failed to save supplier', 'error');
         }
     }
@@ -377,7 +377,7 @@ class SupplierProfileManager {
                 modal.show();
             }
         } catch (error) {
-            console.error('Report supplier error:', error);
+            // console.error('Report supplier error:', error);
             this.showNotification('Failed to open report form', 'error');
         }
     }
@@ -421,7 +421,7 @@ class SupplierProfileManager {
                 throw new Error('Failed to send inquiry');
             }
         } catch (error) {
-            console.error('Contact form error:', error);
+            // console.error('Contact form error:', error);
             this.showNotification('Failed to send inquiry. Please try again.', 'error');
         } finally {
             this.hideLoading();
@@ -1056,7 +1056,7 @@ function navigateToProduct(productUrl) {
             window.location.href = productUrl;
         }, 150);
     } else {
-        console.error('❌ Invalid product URL provided');
+        // console.error('❌ Invalid product URL provided');
     }
 }
 

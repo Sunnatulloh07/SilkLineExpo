@@ -68,8 +68,6 @@ class JWTAuthMiddleware {
             // Extract tokens from request
             const tokens = TokenService.extractTokensFromRequest(req);
             
-            // Debug: Log extracted tokens (removed in production)
-            
             // No tokens available - redirect to login
             if (!tokens.accessToken && !tokens.refreshToken) {
                 return this.handleUnauthenticated(req, res);
@@ -89,8 +87,6 @@ class JWTAuthMiddleware {
                 // Access token is valid, set user data and continue
                 req.user = accessTokenResult.payload;
                 req.sessionId = tokens.sessionId;
-                
-                // Debug: Log decoded user data (removed in production)
                 
                 // Ensure compatibility: map userId to _id for MongoDB consistency
                 if (req.user.userId && !req.user._id) {
@@ -331,7 +327,8 @@ class JWTAuthMiddleware {
             }
             
             // Allow only distributors (distributors are buyers in our system)
-            if (req.user.userType === 'user' && 
+            // Check for both 'user' and 'company_admin' userType (for compatibility)
+            if ((req.user.userType === 'user' || req.user.userType === 'company_admin') && 
                 req.user.role === 'company_admin' && 
                 req.user.companyType === 'distributor') {
                 return next();

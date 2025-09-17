@@ -1,5 +1,5 @@
-<%- include('../partials/header', { title: 'Buyurtma Tafsilotlari', lng: lng || 'uz', user: user }) %>
-<%- include('../partials/sidebar', { user: user, currentPage: 'orders' }) %>
+<%- include('../partials/header', { title: t('manufacturer.orders.detail.page_title'), lng: lng, user: user, t: t }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'orders', t: t }) %>
 
 <!-- Enhanced CSS Imports - Professional Order Detail Page -->
 <link rel="stylesheet" href="/css/products-management-redesign.css">
@@ -38,12 +38,6 @@
     background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%);
   }
 
-  .order-detail-breadcrumb {
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
 
   .breadcrumb-link {
     color: var(--text-muted);
@@ -81,7 +75,6 @@
 
   .order-detail-title-section {
     display: flex;
-    flex-direction: column;
     gap: 1rem;
     margin-bottom: 2rem;
   }
@@ -867,20 +860,6 @@
     gap: 0.75rem;
   }
 
-  .quick-action-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 1rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    text-align: center;
-    color: var(--text-secondary);
-  }
 
   .quick-action-btn:hover {
     background: var(--color-primary);
@@ -1389,80 +1368,25 @@
 <!-- Order Detail Variables for JavaScript -->
 <script type="application/json" id="order-data"><%- JSON.stringify(order) %></script>
 <script>
-  console.log('🚀 Order Detail Page Loading...');
-  console.log('📄 Page URL:', window.location.href);
-  console.log('🏷️ Page Title:', document.title);
   
   // Load order data from JSON script tag
   try {
     const orderDataScript = document.getElementById('order-data');
-    console.log('📜 Order data script element:', orderDataScript);
     
     if (!orderDataScript) {
       throw new Error('Order data script element not found');
     }
     
     const rawData = orderDataScript.textContent;
-    console.log('📝 Raw order data length:', rawData.length);
-    console.log('📝 Raw order data preview:', rawData.substring(0, 200) + '...');
     
     window.orderData = JSON.parse(rawData);
     window.currentOrderId = '<%= order._id %>';
-    
-    console.log('✅ Order data loaded successfully:');
-    console.log('📋 Order ID:', window.orderData._id);
-    console.log('📋 Order Number:', window.orderData.orderNumber);
-    console.log('📋 Order Status:', window.orderData.status);
-    console.log('📋 Order Items Count:', window.orderData.items?.length || 0);
-    
-    if (window.orderData.items?.length > 0) {
-      console.log('📦 First item:', window.orderData.items[0]);
-    }
-    
+ 
   } catch (error) {
-    console.error('❌ Failed to parse order data:', error);
     console.error('❌ Error details:', error.message);
     window.orderData = {};
   }
-  
-  // Debug DOM ready
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ DOM loaded');
-    console.log('🔍 Checking main elements:');
-    console.log('- order-main-grid:', document.querySelector('.order-main-grid'));
-    console.log('- order-main-left:', document.querySelector('.order-main-left'));
-    console.log('- order-main-right:', document.querySelector('.order-main-right'));
-    console.log('- info-cards:', document.querySelectorAll('.info-card').length);
-    console.log('- order-items-section:', document.querySelector('.order-items-section'));
-    console.log('- products-table:', document.querySelector('.products-table'));
-    console.log('- table tbody rows:', document.querySelectorAll('.products-table tbody tr').length);
-    
-    // Check if data is being rendered correctly
-    const itemsCount = document.querySelector('.items-count');
-    if (itemsCount) {
-      console.log('📊 Items count text:', itemsCount.textContent);
-    }
-    
-    const tableRows = document.querySelectorAll('.item-row');
-    console.log('📋 Table rows found:', tableRows.length);
-    
-    if (tableRows.length > 0) {
-      console.log('📋 First row data:', {
-        itemNumber: tableRows[0].querySelector('.item-number')?.textContent,
-        productTitle: tableRows[0].querySelector('.product-title')?.textContent,
-        sku: tableRows[0].querySelector('.sku-code')?.textContent,
-        category: tableRows[0].querySelector('.category-badge')?.textContent,
-        quantity: tableRows[0].querySelector('.quantity-value')?.textContent,
-        price: tableRows[0].querySelector('.unit-price')?.textContent
-      });
-    }
-    
-    // Check for empty state
-    const emptyRow = document.querySelector('.empty-row');
-    if (emptyRow) {
-      console.log('⚠️ Empty state is showing');
-    }
-  });
+
 </script>
 
 <!-- Main Content -->
@@ -1470,35 +1394,26 @@
   <div class="admin-content">
     
          <!-- Order Detail Header -->
-     <div class="order-detail-header">
-      <div class="order-detail-breadcrumb">
-        <a href="/manufacturer/orders" class="breadcrumb-link">
-          <i class="fas fa-arrow-left"></i>
-          Buyurtmalar
-        </a>
-        <i class="fas fa-chevron-right breadcrumb-separator"></i>
-        <span class="breadcrumb-current">Buyurtma #<%= order.orderNumber || order._id.toString().slice(-8).toUpperCase() %></span>
-      </div>
-      
+     <div class="order-detail-header">      
       <div class="order-detail-title-section">
         <h1 class="order-detail-title">
           <i class="fas fa-clipboard-list"></i>
-          Buyurtma Tafsilotlari
+          <%= t('manufacturer.orders.detail.header.title') %>
         </h1>
         <div class="order-detail-meta">
           <span class="order-detail-id">#<%= order.orderNumber || order._id.toString().slice(-8).toUpperCase() %></span>
           <span class="status-badge status-<%= order.status || 'pending' %>">
-            <%= order.status === 'pending' ? '📋 Kutayotgan' :
-                order.status === 'confirmed' ? '✅ Tasdiqlangan' :
-                order.status === 'processing' ? '⚙️ Jarayonda' :
-                order.status === 'manufacturing' ? '🏭 Ishlab chiqarilmoqda' :
-                order.status === 'quality_check' ? '🔍 Sifat nazorati' :
-                order.status === 'ready_to_ship' ? '📦 Yuborishga tayyor' :
-                order.status === 'shipped' ? '🚚 Yo\'lda' :
-                order.status === 'out_for_delivery' ? '🏃‍♂️ Yetkazib berishda' :
-                order.status === 'delivered' ? '🏆 Yetkazildi' :
-                order.status === 'completed' ? '💯 Yakunlandi' :
-                order.status === 'cancelled' ? '❌ Bekor qilindi' : '❓ Noma\'lum' %>
+            <%= order.status === 'pending' ? '📋 ' + t('manufacturer.orders.detail.timeline.status_labels.pending') :
+                order.status === 'confirmed' ? '✅ ' + t('manufacturer.orders.detail.timeline.status_labels.confirmed') :
+                order.status === 'processing' ? '⚙️ ' + t('manufacturer.orders.detail.timeline.status_labels.processing') :
+                order.status === 'manufacturing' ? '🏭 ' + t('manufacturer.orders.detail.timeline.status_labels.manufacturing') :
+                order.status === 'quality_check' ? '🔍 ' + t('manufacturer.orders.detail.timeline.status_labels.quality_check') :
+                order.status === 'ready_to_ship' ? '📦 ' + t('manufacturer.orders.detail.timeline.status_labels.ready_to_ship') :
+                order.status === 'shipped' ? '🚚 ' + t('manufacturer.orders.detail.timeline.status_labels.shipped') :
+                order.status === 'out_for_delivery' ? '🏃‍♂️ ' + t('manufacturer.orders.detail.timeline.status_labels.out_for_delivery') :
+                order.status === 'delivered' ? '🏆 ' + t('manufacturer.orders.detail.timeline.status_labels.delivered') :
+                order.status === 'completed' ? '💯 ' + t('manufacturer.orders.detail.timeline.status_labels.completed') :
+                order.status === 'cancelled' ? '❌ ' + t('manufacturer.orders.detail.timeline.status_labels.cancelled') : '❓ ' + t('manufacturer.orders.detail.timeline.status_labels.unknown') %>
           </span>
         </div>
       </div>
@@ -1506,15 +1421,11 @@
       <div class="order-detail-actions">
         <button class="products-btn products-btn-outline" id="printOrderBtn">
           <i class="fas fa-print"></i>
-          Chop etish
-        </button>
-        <button class="products-btn products-btn-secondary" id="duplicateOrderBtn" data-order-id="<%= order._id %>">
-          <i class="fas fa-copy"></i>
-          Nusxalash
+          <%= t('manufacturer.orders.detail.actions.print') %>
         </button>
         <button class="products-btn products-btn-primary" id="contactCustomerBtn" data-order-id="<%= order._id %>">
           <i class="fas fa-comments"></i>
-          Mijoz bilan aloqa
+          <%= t('manufacturer.orders.detail.modals.communication.title') %>
         </button>
       </div>
     </div>
@@ -1522,87 +1433,6 @@
          <!-- Order Detail Content -->
      <div class="order-detail-content">
       
-      <!-- Professional KPI Cards - Orders Analytics Style -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-lg">
-        
-        <!-- Total Amount -->
-        <div class="stat-card primary animate-fade-in">
-          <div class="stat-header">
-            <h3 class="stat-title">Umumiy Summa</h3>
-            <div class="stat-icon primary">
-              <i class="fas fa-dollar-sign"></i>
-            </div>
-          </div>
-          <div class="stat-value">
-            <span class="metric-value">$<%= (order.totalAmount || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></span>
-          </div>
-          <div class="stat-change positive">
-            <i class="fas fa-coins stat-change-icon"></i>
-            <span class="metric-trend"><%= order.currency || 'USD' %></span>
-          </div>
-        </div>
-
-        <!-- Product Types -->
-        <div class="stat-card success animate-fade-in">
-          <div class="stat-header">
-            <h3 class="stat-title">Mahsulot Turlari</h3>
-            <div class="stat-icon success">
-              <i class="fas fa-boxes"></i>
-            </div>
-          </div>
-          <div class="stat-value">
-            <span class="metric-value"><%= order.items?.length || 0 %></span>
-          </div>
-          <div class="stat-change positive">
-            <i class="fas fa-box stat-change-icon"></i>
-            <span class="metric-trend"><%= order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0 %> dona</span>
-          </div>
-        </div>
-
-        <!-- Remaining Days -->
-        <div class="stat-card warning animate-fade-in">
-          <div class="stat-header">
-            <h3 class="stat-title">Qolgan Kunlar</h3>
-            <div class="stat-icon warning">
-              <i class="fas fa-clock"></i>
-            </div>
-          </div>
-          <div class="stat-value">
-            <span class="metric-value">
-              <% if (order.deadline) { %>
-                <%= Math.ceil((new Date(order.deadline) - new Date()) / (1000 * 60 * 60 * 24)) %>
-              <% } else { %>
-                --
-              <% } %>
-            </span>
-          </div>
-          <div class="stat-change neutral">
-            <i class="fas fa-calendar stat-change-icon"></i>
-            <span class="metric-trend">Muddat: <%= order.deadline ? new Date(order.deadline).toLocaleDateString('uz-UZ') : 'Belgilanmagan' %></span>
-          </div>
-        </div>
-
-        <!-- Priority Level -->
-        <div class="stat-card <%= order.priority === 'high' ? 'danger' : order.priority === 'medium' ? 'info' : 'success' %> animate-fade-in">
-          <div class="stat-header">
-            <h3 class="stat-title">Muhimlik Darajasi</h3>
-            <div class="stat-icon <%= order.priority === 'high' ? 'danger' : order.priority === 'medium' ? 'info' : 'success' %>">
-              <i class="fas fa-exclamation-triangle"></i>
-            </div>
-          </div>
-          <div class="stat-value">
-            <span class="metric-value">
-              <%= order.priority === 'high' ? 'Yuqori' :
-                  order.priority === 'medium' ? 'O\'rta' :
-                  order.priority === 'low' ? 'Past' : 'O\'rta' %>
-            </span>
-          </div>
-          <div class="stat-change neutral">
-            <i class="fas fa-tag stat-change-icon"></i>
-            <span class="metric-trend"><%= order.type || 'B2B' %></span>
-          </div>
-        </div>
-      </div>
 
       <!-- Main Content Grid -->
       <div class="order-main-grid">
@@ -1615,13 +1445,13 @@
             <div class="info-card-header">
               <h3 class="info-card-title">
                 <i class="fas fa-building"></i>
-                Mijoz Ma'lumotlari
+                <%= t('manufacturer.orders.detail.customer_info.title') %>
               </h3>
               <div class="card-actions">
-                <button class="card-action-btn" id="contactCustomerBtn" title="Aloqa">
+                <button class="card-action-btn" id="contactCustomerBtn" title="<%= t('manufacturer.orders.detail.tooltips.contact') %>">
                   <i class="fas fa-phone"></i>
                 </button>
-                <button class="card-action-btn" id="sendEmailBtn" title="Email yuborish">
+                <button class="card-action-btn" id="sendEmailBtn" title="<%= t('manufacturer.orders.detail.tooltips.send_email') %>">
                   <i class="fas fa-envelope"></i>
                 </button>
               </div>
@@ -1629,16 +1459,20 @@
             <div class="info-card-content">
               <div class="customer-profile">
                 <div class="customer-avatar-large">
-                  <%= (order.buyer?.companyName || order.buyer?.name || 'C').charAt(0).toUpperCase() %>
+                  <% if (order.buyer?.companyLogo?.url) { %>
+                    <img src="<%= order.buyer.companyLogo.url %>" alt="<%= order.buyer?.companyName || t('manufacturer.orders.detail.customer_info.logo_alt') %>" class="customer-logo">
+                  <% } else { %>
+                    <%= (order.buyer?.companyName || order.buyer?.name || t('manufacturer.orders.detail.customer_info.default_initial')).charAt(0).toUpperCase() %>
+                  <% } %>
                 </div>
                 <div class="customer-details">
-                  <h4 class="customer-company"><%= order.buyer?.companyName || 'Company Name' %></h4>
-                  <p class="customer-contact-person"><%= order.buyer?.name || 'Contact Person' %></p>
+                  <h4 class="customer-company"><%= order.buyer?.companyName || t('manufacturer.orders.detail.customer_info.company_name') %></h4>
+                  <p class="customer-contact-person"><%= order.buyer?.name || t('manufacturer.orders.detail.customer_info.contact_person') %></p>
                   
                   <div class="customer-contact-info">
                     <div class="contact-item">
                       <i class="fas fa-envelope"></i>
-                      <span><%= order.buyer?.email || 'email@example.com' %></span>
+                      <span><%= order.buyer?.email || t('manufacturer.orders.detail.customer_info.email_placeholder') %></span>
                     </div>
                     <% if (order.buyer?.phone) { %>
                     <div class="contact-item">
@@ -1663,43 +1497,52 @@
             <div class="info-card-header">
               <h3 class="info-card-title">
                 <i class="fas fa-info-circle"></i>
-                Buyurtma Ma'lumotlari
+                <%= t('manufacturer.orders.detail.order_info.title') %>
               </h3>
             </div>
             <div class="info-card-content">
               <div class="info-grid">
                 <div class="info-row">
                   <div class="info-item">
-                    <span class="info-label">Buyurtma raqami:</span>
+                    <span class="info-label"><%= t('manufacturer.orders.detail.order_info.order_number') %></span>
                     <span class="info-value order-number">#<%= order.orderNumber || order._id.toString().slice(-8).toUpperCase() %></span>
                   </div>
                   <div class="info-item">
-                    <span class="info-label">Turi:</span>
-                    <span class="info-value"><%= order.type || 'B2B' %></span>
+                    <span class="info-label"><%= t('manufacturer.orders.detail.order_info.type') %></span>
+                    <span class="info-value"><%= order.type || t('manufacturer.orders.detail.order_info.type_default') %></span>
                   </div>
                 </div>
                 
                 <div class="info-row">
                   <div class="info-item">
-                    <span class="info-label">Yaratilgan sana:</span>
+                    <span class="info-label"><%= t('manufacturer.orders.detail.order_info.created_date') %></span>
                     <span class="info-value"><%= new Date(order.createdAt).toLocaleDateString('uz-UZ') %></span>
                   </div>
                   <div class="info-item">
-                    <span class="info-label">Yaratilgan vaqt:</span>
+                    <span class="info-label"><%= t('manufacturer.orders.detail.order_info.created_time') %></span>
                     <span class="info-value"><%= new Date(order.createdAt).toLocaleTimeString('uz-UZ', {hour: '2-digit', minute: '2-digit'}) %></span>
                   </div>
                 </div>
                 
+                <% if (order.specialInstructions) { %>
+                <div class="info-row">
+                  <div class="info-item full-width">
+                    <span class="info-label"><%= t('manufacturer.orders.detail.order_info.special_instructions') %></span>
+                    <span class="info-value special-instructions"><%= order.specialInstructions %></span>
+                  </div>
+                </div>
+                <% } %>
+                
                 <% if (order.deadline) { %>
                 <div class="info-row">
                   <div class="info-item">
-                    <span class="info-label">Tugash muddati:</span>
+                    <span class="info-label"><%= t('manufacturer.orders.detail.order_info.deadline') %></span>
                     <span class="info-value deadline-value"><%= new Date(order.deadline).toLocaleDateString('uz-UZ') %></span>
                   </div>
                   <div class="info-item">
-                    <span class="info-label">Qolgan vaqt:</span>
+                    <span class="info-label"><%= t('manufacturer.orders.detail.order_info.remaining_time') %></span>
                     <span class="info-value countdown-value">
-                      <%= Math.ceil((new Date(order.deadline) - new Date()) / (1000 * 60 * 60 * 24)) %> kun
+                      <%= Math.ceil((new Date(order.deadline) - new Date()) / (1000 * 60 * 60 * 24)) %> <%= t('manufacturer.orders.detail.order_info.days') %>
                     </span>
                   </div>
                 </div>
@@ -1707,28 +1550,28 @@
                 
                 <div class="info-row">
                   <div class="info-item">
-                    <span class="info-label">Muhimlik darajasi:</span>
+                    <span class="info-label"><%= t('manufacturer.orders.detail.priority.label') %></span>
                     <span class="info-value priority-badge priority-<%= order.priority || 'medium' %>">
-                      <%= order.priority === 'high' ? 'Yuqori' :
-                          order.priority === 'medium' ? 'O\'rta' :
-                          order.priority === 'low' ? 'Past' : 'O\'rta' %>
+                      <%= order.priority === 'high' ? t('manufacturer.orders.detail.priority.high') :
+                          order.priority === 'medium' ? t('manufacturer.orders.detail.priority.medium') :
+                          order.priority === 'low' ? t('manufacturer.orders.detail.priority.low') : t('manufacturer.orders.detail.priority.medium') %>
                     </span>
                   </div>
                   <div class="info-item">
-                    <span class="info-label">Joriy holat:</span>
+                    <span class="info-label"><%= t('manufacturer.orders.detail.status_management.current_status_label') %></span>
                     <span class="info-value">
                       <span class="status-badge status-<%= order.status || 'pending' %>">
-                        <%= order.status === 'pending' ? '📋 Kutayotgan' :
-                            order.status === 'confirmed' ? '✅ Tasdiqlangan' :
-                            order.status === 'processing' ? '⚙️ Jarayonda' :
-                            order.status === 'manufacturing' ? '🏭 Ishlab chiqarilmoqda' :
-                            order.status === 'quality_check' ? '🔍 Sifat nazorati' :
-                            order.status === 'ready_to_ship' ? '📦 Yuborishga tayyor' :
-                            order.status === 'shipped' ? '🚚 Yo\'lda' :
-                            order.status === 'out_for_delivery' ? '🏃‍♂️ Yetkazib berishda' :
-                            order.status === 'delivered' ? '🏆 Yetkazildi' :
-                            order.status === 'completed' ? '💯 Yakunlandi' :
-                            order.status === 'cancelled' ? '❌ Bekor qilindi' : '❓ Noma\'lum' %>
+                        <%= order.status === 'pending' ? '📋 ' + t('manufacturer.orders.detail.timeline.status_labels.pending') :
+                            order.status === 'confirmed' ? '✅ ' + t('manufacturer.orders.detail.timeline.status_labels.confirmed') :
+                            order.status === 'processing' ? '⚙️ ' + t('manufacturer.orders.detail.timeline.status_labels.processing') :
+                            order.status === 'manufacturing' ? '🏭 ' + t('manufacturer.orders.detail.timeline.status_labels.manufacturing') :
+                            order.status === 'quality_check' ? '🔍 ' + t('manufacturer.orders.detail.timeline.status_labels.quality_check') :
+                            order.status === 'ready_to_ship' ? '📦 ' + t('manufacturer.orders.detail.timeline.status_labels.ready_to_ship') :
+                            order.status === 'shipped' ? '🚚 ' + t('manufacturer.orders.detail.timeline.status_labels.shipped') :
+                            order.status === 'out_for_delivery' ? '🏃‍♂️ ' + t('manufacturer.orders.detail.timeline.status_labels.out_for_delivery') :
+                            order.status === 'delivered' ? '🏆 ' + t('manufacturer.orders.detail.timeline.status_labels.delivered') :
+                            order.status === 'completed' ? '💯 ' + t('manufacturer.orders.detail.timeline.status_labels.completed') :
+                            order.status === 'cancelled' ? '❌ ' + t('manufacturer.orders.detail.timeline.status_labels.cancelled') : '❓ ' + t('manufacturer.orders.detail.timeline.status_labels.unknown') %>
                       </span>
                     </span>
                   </div>
@@ -1742,31 +1585,31 @@
             <div class="info-card-header">
               <h3 class="info-card-title">
                 <i class="fas fa-credit-card"></i>
-                To'lov Ma'lumotlari
+                <%= t('manufacturer.orders.detail.payment.title') %>
               </h3>
             </div>
             <div class="info-card-content">
               <div class="payment-summary">
                 <div class="payment-row">
-                  <span class="payment-label">To'lov usuli:</span>
-                  <span class="payment-value"><%= order.paymentMethod || 'Bank Transfer' %></span>
+                  <span class="payment-label"><%= t('manufacturer.orders.detail.order_info.payment_method') %>:</span>
+                  <span class="payment-value"><%= order.paymentMethod || t('manufacturer.orders.detail.order_info.payment_method_default') %></span>
                 </div>
                 <div class="payment-row">
-                  <span class="payment-label">To'lov holati:</span>
+                  <span class="payment-label"><%= t('manufacturer.orders.detail.order_info.payment_status') %>:</span>
                   <span class="payment-value">
                     <span class="payment-status status-<%= order.paymentStatus || 'pending' %>">
-                      <%= order.paymentStatus === 'paid' ? 'To\'langan' :
-                          order.paymentStatus === 'pending' ? 'Kutayotgan' :
-                          order.paymentStatus === 'failed' ? 'Muvaffaqiyatsiz' :
-                          order.paymentStatus === 'refunded' ? 'Qaytarilgan' : 'Kutayotgan' %>
+                      <%= order.paymentStatus === 'paid' ? t('manufacturer.orders.detail.payment_status.paid') :
+                          order.paymentStatus === 'pending' ? t('manufacturer.orders.detail.payment_status.pending') :
+                          order.paymentStatus === 'failed' ? t('manufacturer.orders.detail.payment_status.failed') :
+                          order.paymentStatus === 'refunded' ? t('manufacturer.orders.detail.payment_status.refunded') : t('manufacturer.orders.detail.payment_status.pending') %>
                     </span>
                   </span>
                 </div>
                 <div class="payment-row total-row">
-                  <span class="payment-label">Umumiy summa:</span>
+                  <span class="payment-label"><%= t('manufacturer.orders.detail.order_info.total_amount') %>:</span>
                   <span class="payment-value total-amount">
                     $<%= (order.totalAmount || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %>
-                    <small><%= order.currency || 'USD' %></small>
+                    <small><%= order.currency || t('manufacturer.orders.detail.order_info.currency_default') %></small>
                   </span>
                 </div>
               </div>
@@ -1783,82 +1626,82 @@
             <div class="info-card-header">
               <h3 class="info-card-title">
                 <i class="fas fa-tasks"></i>
-                Holat Boshqaruvi
+                <%= t('manufacturer.orders.detail.status_management.title') %>
               </h3>
             </div>
             <div class="info-card-content">
               <div class="status-current">
                 <div class="current-status-display">
-                  <span class="current-status-label">Joriy holat:</span>
+                  <span class="current-status-label"><%= t('manufacturer.orders.detail.status_management.current_status_label') %></span>
                   <span class="status-badge status-<%= order.status || 'pending' %>">
-                    <%= order.status === 'pending' ? 'Kutayotgan' :
-                        order.status === 'confirmed' ? 'Tasdiqlangan' :
-                        order.status === 'processing' ? 'Jarayonda' :
-                        order.status === 'manufacturing' ? 'Ishlab chiqarilmoqda' :
-                        order.status === 'ready_to_ship' ? 'Jo\'natishga tayyor' :
-                        order.status === 'shipped' ? 'Jo\'natilgan' :
-                        order.status === 'delivered' ? 'Yetkazilgan' :
-                        order.status === 'completed' ? 'Yakunlangan' :
-                        order.status === 'cancelled' ? 'Bekor qilingan' : 'Noma\'lum' %>
+                    <%= order.status === 'pending' ? t('manufacturer.orders.detail.timeline.status_labels.pending') :
+                        order.status === 'confirmed' ? t('manufacturer.orders.detail.timeline.status_labels.confirmed') :
+                        order.status === 'processing' ? t('manufacturer.orders.detail.timeline.status_labels.processing') :
+                        order.status === 'manufacturing' ? t('manufacturer.orders.detail.timeline.status_labels.manufacturing') :
+                        order.status === 'ready_to_ship' ? t('manufacturer.orders.detail.timeline.status_labels.ready_to_ship') :
+                        order.status === 'shipped' ? t('manufacturer.orders.detail.timeline.status_labels.shipped') :
+                        order.status === 'delivered' ? t('manufacturer.orders.detail.timeline.status_labels.delivered') :
+                        order.status === 'completed' ? t('manufacturer.orders.detail.timeline.status_labels.completed') :
+                        order.status === 'cancelled' ? t('manufacturer.orders.detail.timeline.status_labels.cancelled') : t('manufacturer.orders.detail.timeline.status_labels.unknown') %>
                   </span>
                 </div>
               </div>
               
               <div class="status-update-section">
                 <div class="form-group">
-                  <label class="form-label">Buyurtma holatini o'zgartirish:</label>
+                  <label class="form-label"><%= t('manufacturer.orders.detail.status_management.change_status') %></label>
                   <select class="form-select status-select" id="orderStatusSelect" data-order-id="<%= order._id %>">
                     <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>
-                      📋 Kutayotgan - Yangi buyurtma qabul qilindi
+                      📋 <%= t('manufacturer.orders.detail.status_management.status_options.pending') %>
                     </option>
                     <option value="confirmed" <%= order.status === 'confirmed' ? 'selected' : '' %>>
-                      ✅ Tasdiqlangan - Buyurtma tasdiqlandi
+                      ✅ <%= t('manufacturer.orders.detail.status_management.status_options.confirmed') %>
                     </option>
                     <option value="processing" <%= order.status === 'processing' ? 'selected' : '' %>>
-                      ⚙️ Jarayonda - Buyurtma tayyorlanmoqda
+                      ⚙️ <%= t('manufacturer.orders.detail.status_management.status_options.processing') %>
                     </option>
                     <option value="manufacturing" <%= order.status === 'manufacturing' ? 'selected' : '' %>>
-                      🏭 Ishlab chiqarilmoqda - Mahsulotlar tayyorlanmoqda
+                      🏭 <%= t('manufacturer.orders.detail.status_management.status_options.manufacturing') %>
                     </option>
                     <option value="quality_check" <%= order.status === 'quality_check' ? 'selected' : '' %>>
-                      🔍 Sifat nazorati - Mahsulotlar tekshirilmoqda
+                      🔍 <%= t('manufacturer.orders.detail.status_management.status_options.quality_check') %>
                     </option>
                     <option value="ready_to_ship" <%= order.status === 'ready_to_ship' ? 'selected' : '' %>>
-                      📦 Yuborishga tayyor - Buyurtma yuborishga tayyor
+                      📦 <%= t('manufacturer.orders.detail.status_management.status_options.ready_to_ship') %>
                     </option>
                     <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>
-                      🚚 Yo'lda - Buyurtma yo'lga chiqdi
+                      🚚 <%= t('manufacturer.orders.detail.status_management.status_options.shipped') %>
                     </option>
                     <option value="out_for_delivery" <%= order.status === 'out_for_delivery' ? 'selected' : '' %>>
-                      🏃‍♂️ Yetkazib berishda - Kuryer yetkazib bermoqda
+                      🏃‍♂️ <%= t('manufacturer.orders.detail.status_management.status_options.out_for_delivery') %>
                     </option>
                     <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>
-                      🏆 Yetkazildi - Buyurtma yetkazib berildi
+                      🏆 <%= t('manufacturer.orders.detail.status_management.status_options.delivered') %>
                     </option>
                     <option value="completed" <%= order.status === 'completed' ? 'selected' : '' %>>
-                      💯 Yakunlandi - Buyurtma muvaffaqiyatli yakunlandi
+                      💯 <%= t('manufacturer.orders.detail.status_management.status_options.completed') %>
                     </option>
                     <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>
-                      ❌ Bekor qilindi - Buyurtma bekor qilindi
+                      ❌ <%= t('manufacturer.orders.detail.status_management.status_options.cancelled') %>
                     </option>
                   </select>
                 </div>
                 
                 <div class="form-group">
-                  <label class="form-label">Holat o'zgarishi haqida izoh:</label>
-                  <textarea class="form-textarea" id="statusNote" rows="3" placeholder="Mijozga bildirilishi uchun holat o'zgarishi haqida qo'shimcha ma'lumot kiriting..."></textarea>
+                  <label class="form-label"><%= t('manufacturer.orders.detail.status_management.status_note') %></label>
+                  <textarea class="form-textarea" id="statusNote" rows="3" placeholder="<%= t('manufacturer.orders.detail.status_placeholder') %>"></textarea>
                 </div>
                 
                 <div class="form-group">
                   <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <input type="checkbox" id="notifyCustomer" checked>
-                    <label for="notifyCustomer" style="font-size: 0.875rem; margin: 0;">Mijozga xabar berish (email/SMS)</label>
+                    <label for="notifyCustomer" style="font-size: 0.875rem; margin: 0;"><%= t('manufacturer.orders.detail.status_management.notify_customer') %></label>
                   </div>
                 </div>
                 
                 <button class="products-btn products-btn-primary w-full" id="updateStatusBtn" data-order-id="<%= order._id %>">
                   <i class="fas fa-sync-alt"></i>
-                  Holatni Yangilash va Xabar Berish
+                  <%= t('manufacturer.orders.detail.status_management.update_status') %>
                 </button>
               </div>
             </div>
@@ -1869,39 +1712,35 @@
             <div class="info-card-header">
               <h3 class="info-card-title">
                 <i class="fas fa-bolt"></i>
-                Tezkor Amallar
+                <%= t('manufacturer.orders.detail.order_actions.title') %>
               </h3>
             </div>
             <div class="info-card-content">
               <div class="quick-actions-grid">
                 <button class="quick-action-btn" id="addNoteBtn" data-order-id="<%= order._id %>">
                   <i class="fas fa-sticky-note"></i>
-                  <span>Izoh qo'shish</span>
+                  <span><%= t('manufacturer.orders.detail.order_actions.add_note') %></span>
                 </button>
                 
                 <button class="quick-action-btn" id="contactCustomerBtn2">
                   <i class="fas fa-comments"></i>
-                  <span>Mijoz bilan aloqa</span>
+                  <span><%= t('manufacturer.orders.detail.order_actions.contact_customer') %></span>
                 </button>
                 
                 <button class="quick-action-btn" id="printOrderBtn2">
                   <i class="fas fa-print"></i>
-                  <span>Chop etish</span>
+                  <span><%= t('manufacturer.orders.detail.order_actions.print') %></span>
                 </button>
                 
-                <button class="quick-action-btn" id="duplicateOrderBtn2" data-order-id="<%= order._id %>">
-                  <i class="fas fa-copy"></i>
-                  <span>Nusxalash</span>
-                </button>
-                
-                <button class="quick-action-btn" id="exportOrderBtn">
+                <!-- Simple Export Button -->
+                <button class="quick-action-btn" id="exportOrderBtn" title="<%= t('manufacturer.orders.detail.tooltips.export_order') %>">
                   <i class="fas fa-download"></i>
-                  <span>Export</span>
+                  <span><%= t('manufacturer.orders.detail.actions.export_pdf') %></span>
                 </button>
                 
                 <button class="quick-action-btn" id="shareOrderBtn">
                   <i class="fas fa-share-alt"></i>
-                  <span>Ulashish</span>
+                  <span><%= t('manufacturer.orders.detail.actions.share') %></span>
                 </button>
               </div>
             </div>
@@ -1917,17 +1756,13 @@
           <div class="products-table-header">
             <h3 class="products-table-title">
               <i class="fas fa-boxes"></i>
-              Buyurtma Mahsulotlari
-              <span class="items-count">(<%= order.items?.length || 0 %> ta mahsulot)</span>
+                <%= t('manufacturer.orders.detail.order_products.title') %>
+              <span class="items-count">(<%= order.items?.length || 0 %> <%= t('manufacturer.orders.detail.order_products.items_count') %>)</span>
             </h3>
             <div class="products-table-actions">
-              <button class="products-btn products-btn-sm products-btn-outline" id="exportItemsBtn">
+              <button class="products-btn products-btn-sm products-btn-outline" id="exportItemsBtn" title="<%= t('manufacturer.orders.detail.tooltips.export_items') %>">
                 <i class="fas fa-download"></i>
-                Export
-              </button>
-              <button class="products-btn products-btn-sm products-btn-secondary" id="addItemBtn">
-                <i class="fas fa-plus"></i>
-                Mahsulot qo'shish
+                <%= t('manufacturer.orders.detail.actions.export_items') %>
               </button>
             </div>
           </div>
@@ -1937,13 +1772,13 @@
               <thead>
                 <tr>
                   <th class="item-image-col">#</th>
-                  <th class="item-product-col">Mahsulot</th>
-                  <th class="item-sku-col">SKU</th>
-                  <th class="item-category-col">Kategoriya</th>
-                  <th class="item-quantity-col">Miqdori</th>
-                  <th class="item-price-col">Birlik Narxi</th>
-                  <th class="item-total-col">Jami Summa</th>
-                  <th class="item-status-col">Holat</th>
+                  <th class="item-product-col"><%= t('manufacturer.orders.detail.order_products.table.product') %></th>
+                  <th class="item-sku-col"><%= t('manufacturer.orders.detail.order_products.table.sku') %></th>
+                  <th class="item-category-col"><%= t('manufacturer.orders.detail.order_products.table.category') %></th>
+                  <th class="item-quantity-col"><%= t('manufacturer.orders.detail.order_products.table.quantity') %></th>
+                  <th class="item-price-col"><%= t('manufacturer.orders.detail.order_products.table.unit_price') %></th>
+                  <th class="item-total-col"><%= t('manufacturer.orders.detail.order_products.table.total') %></th>
+                  <th class="item-status-col"><%= t('manufacturer.orders.detail.order_products.table.status') %></th>
                 </tr>
               </thead>
               <tbody>
@@ -1980,7 +1815,7 @@
                             <% if (productImage) { %>
                               <img 
                                 src="<%= productImage %>" 
-                                alt="<%= item.product?.title || item.product?.name || 'Product' %>" 
+                                alt="<%= item.product?.title || item.product?.name || t('manufacturer.orders.detail.products.alt_text') %>" 
                                 class="product-thumbnail"
                                 loading="lazy"
                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
@@ -1995,15 +1830,15 @@
                             <% } %>
                           </div>
                           <div class="product-details">
-                            <h4 class="product-title" title="<%= item.product?.title || item.product?.name || 'Product Name' %>">
-                              <%= (item.product?.title || item.product?.name || 'Product Name').length > 40 ? 
-                                  (item.product?.title || item.product?.name || 'Product Name').substring(0, 40) + '...' :
-                                  (item.product?.title || item.product?.name || 'Product Name') %>
+                            <h4 class="product-title" title="<%= item.product?.title || item.product?.name || t('manufacturer.orders.detail.order_products.table.product_name_default') %>">
+                              <%= (item.product?.title || item.product?.name || t('manufacturer.orders.detail.order_products.table.product_name_default')).length > 40 ? 
+                                  (item.product?.title || item.product?.name || t('manufacturer.orders.detail.order_products.table.product_name_default')).substring(0, 40) + '...' :
+                                  (item.product?.title || item.product?.name || t('manufacturer.orders.detail.order_products.table.product_name_default')) %>
                             </h4>
                             <p class="product-description">
                               <%= item.product?.description ? 
                                   (item.product.description.length > 60 ? item.product.description.substring(0, 60) + '...' : item.product.description) :
-                                  'Mahsulot tavsifi mavjud emas' %>
+                                  t('manufacturer.orders.detail.order_products.table.product_description_default') %>
                             </p>
                           </div>
                         </div>
@@ -2023,14 +1858,14 @@
                       <td class="item-quantity-cell">
                         <div class="quantity-info">
                           <span class="quantity-value"><%= item.quantity || 0 %></span>
-                          <span class="quantity-unit">dona</span>
+                          <span class="quantity-unit"><%= t('manufacturer.orders.detail.order_products.table.quantity_unit') %></span>
                         </div>
                       </td>
                       
                       <td class="item-price-cell">
                         <div class="price-info">
                           <span class="unit-price">$<%= (item.price || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></span>
-                          <span class="price-unit">/ dona</span>
+                          <span class="price-unit">/ <%= t('manufacturer.orders.detail.order_products.table.quantity_unit') %></span>
                         </div>
                       </td>
                       
@@ -2042,12 +1877,12 @@
                       
                       <td class="item-status-cell">
                         <span class="item-status-badge status-<%= item.status || 'pending' %>">
-                          <%= item.status === 'pending' ? 'Kutayotgan' :
-                              item.status === 'confirmed' ? 'Tasdiqlangan' :
-                              item.status === 'in_production' ? 'Ishlab chiqarilmoqda' :
-                              item.status === 'ready' ? 'Tayyor' :
-                              item.status === 'shipped' ? 'Jo\'natilgan' :
-                              item.status === 'delivered' ? 'Yetkazilgan' : 'Kutayotgan' %>
+                          <%= item.status === 'pending' ? t('manufacturer.orders.detail.timeline.status_labels.pending') :
+                              item.status === 'confirmed' ? t('manufacturer.orders.detail.timeline.status_labels.confirmed') :
+                              item.status === 'in_production' ? t('manufacturer.orders.detail.item_status.in_production') :
+                              item.status === 'ready' ? t('manufacturer.orders.detail.item_status.ready') :
+                              item.status === 'shipped' ? t('manufacturer.orders.detail.timeline.status_labels.shipped') :
+                              item.status === 'delivered' ? t('manufacturer.orders.detail.timeline.status_labels.delivered') : t('manufacturer.orders.detail.timeline.status_labels.pending') %>
                         </span>
                       </td>
                       
@@ -2059,8 +1894,8 @@
                     <td colspan="8" class="empty-cell">
                       <div class="empty-state">
                         <i class="fas fa-box-open"></i>
-                        <h4>Mahsulotlar topilmadi</h4>
-                        <p>Bu buyurtmada hech qanday mahsulot mavjud emas.</p>
+                        <h4><%= t('manufacturer.orders.detail.products.table.empty_state.title') %></h4>
+                        <p><%= t('manufacturer.orders.detail.products.table.empty_state.description') %></p>
                       </div>
                     </td>
                   </tr>
@@ -2071,7 +1906,7 @@
               <tfoot>
                 <tr class="summary-row">
                   <td colspan="6" class="summary-label-cell">
-                    <strong>Jami:</strong>
+                    <strong><%= t('manufacturer.orders.detail.order_products.table.summary') %></strong>
                   </td>
                   <td class="summary-total-cell">
                     <strong class="total-summary">
@@ -2079,7 +1914,7 @@
                     </strong>
                   </td>
                   <td class="summary-meta-cell">
-                    <span class="currency-info"><%= order.currency || 'USD' %></span>
+                    <span class="currency-info"><%= order.currency || t('manufacturer.orders.detail.order_info.currency_default') %></span>
                   </td>
                 </tr>
               </tfoot>
@@ -2093,7 +1928,7 @@
         <div class="history-header">
           <h3 class="history-title">
             <i class="fas fa-history"></i>
-            Buyurtma Tarixi
+                <%= t('manufacturer.orders.detail.timeline.title') %>
           </h3>
         </div>
         
@@ -2107,15 +1942,15 @@
                 <div class="timeline-content">
                   <div class="timeline-header">
                     <h4 class="timeline-status">
-                      <%= history.status === 'pending' ? 'Kutayotgan' :
-                          history.status === 'confirmed' ? 'Tasdiqlangan' :
-                          history.status === 'processing' ? 'Jarayonda' :
-                          history.status === 'manufacturing' ? 'Ishlab chiqarilmoqda' :
-                          history.status === 'ready_to_ship' ? 'Jo\'natishga tayyor' :
-                          history.status === 'shipped' ? 'Jo\'natilgan' :
-                          history.status === 'delivered' ? 'Yetkazilgan' :
-                          history.status === 'completed' ? 'Yakunlangan' :
-                          history.status === 'cancelled' ? 'Bekor qilingan' : 'Noma\'lum' %>
+                      <%= history.status === 'pending' ? t('manufacturer.orders.detail.timeline.status_labels.pending') :
+                          history.status === 'confirmed' ? t('manufacturer.orders.detail.timeline.status_labels.confirmed') :
+                          history.status === 'processing' ? t('manufacturer.orders.detail.timeline.status_labels.processing') :
+                          history.status === 'manufacturing' ? t('manufacturer.orders.detail.timeline.status_labels.manufacturing') :
+                          history.status === 'ready_to_ship' ? t('manufacturer.orders.detail.timeline.status_labels.ready_to_ship') :
+                          history.status === 'shipped' ? t('manufacturer.orders.detail.timeline.status_labels.shipped') :
+                          history.status === 'delivered' ? t('manufacturer.orders.detail.timeline.status_labels.delivered') :
+                          history.status === 'completed' ? t('manufacturer.orders.detail.timeline.status_labels.completed') :
+                          history.status === 'cancelled' ? t('manufacturer.orders.detail.timeline.status_labels.cancelled') : t('manufacturer.orders.detail.timeline.status_labels.unknown') %>
                     </h4>
                     <span class="timeline-date">
                       <%= new Date(history.timestamp).toLocaleString('uz-UZ') %>
@@ -2124,10 +1959,13 @@
                   <div class="timeline-meta">
                     <span class="timeline-user">
                       <i class="fas fa-user"></i>
-                      <%= history.updatedBy?.name || 'System' %>
+                      <%= history.updatedBy?.name || history.updatedBy?.companyName || t('manufacturer.orders.detail.timeline.system_default') %>
+                      <% if (history.updatedBy?.companyName && history.updatedBy?.companyName !== history.updatedBy?.name) { %>
+                        <span class="company-name">(<%= history.updatedBy.companyName %>)</span>
+                      <% } %>
                     </span>
-                    <% if (history.note) { %>
-                      <p class="timeline-note"><%= history.note %></p>
+                    <% if (history.note || history.notes) { %>
+                      <p class="timeline-note"><%= history.note || history.notes %></p>
                     <% } %>
                   </div>
                 </div>
@@ -2136,63 +1974,11 @@
           <% } else { %>
             <div class="timeline-empty">
               <i class="fas fa-clock"></i>
-              <p>Hali hech qanday tarix mavjud emas.</p>
+              <p><%= t('manufacturer.orders.detail.timeline.empty_state') %></p>
             </div>
           <% } %>
         </div>
       </div>
-
-      <!-- OLD Notes Section - DISABLED -->
-      <!-- <div class="notes-section" style="display: none;">
-        <div class="notes-header">
-          <h3 class="notes-title">
-            <i class="fas fa-sticky-note"></i>
-            Izohlar va Eslatmalar (Eski)
-          </h3>
-          <button class="products-btn products-btn-primary" id="addNoteBtn2">
-            <i class="fas fa-plus"></i>
-            Izoh qo'shish
-          </button>
-        </div>
-        
-        <div class="notes-container">
-          <% if (order.notes && order.notes.length > 0) { %>
-            <% order.notes.forEach((note, index) => { %>
-              <div class="note-item">
-                <div class="note-header">
-                  <div class="note-author">
-                    <div class="author-avatar">
-                      <%= (note.author || 'U').charAt(0).toUpperCase() %>
-                    </div>
-                    <div class="author-info">
-                      <h4 class="author-name"><%= note.author || 'User' %></h4>
-                      <span class="note-date"><%= new Date(note.createdAt).toLocaleString('uz-UZ') %></span>
-                    </div>
-                  </div>
-                  <div class="note-actions">
-                    <button class="note-action-btn" data-action="edit-note" data-note-index="<%= index %>">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="note-action-btn danger" data-action="delete-note" data-note-index="<%= index %>">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-                <div class="note-content">
-                  <p><%= note.content %></p>
-                </div>
-              </div>
-            <% }); %>
-          <% } else { %>
-            <div class="notes-empty">
-              <i class="fas fa-sticky-note"></i>
-              <h4>Hali izohlar yo'q</h4>
-              <p>Bu buyurtma uchun birinchi izohni qo'shing.</p>
-            </div>
-          <% } %>
-        </div>
-      </div> -->
-
     </div>
 
     <!-- Communication Modal -->
@@ -2201,7 +1987,7 @@
         <div class="modal-header">
           <h3 class="modal-title">
             <i class="fas fa-comments"></i>
-            Mijoz bilan aloqa
+            <%= t('manufacturer.orders.detail.modals.communication.title') %>
           </h3>
           <button class="modal-close" id="closeCommunicationModal">
             <i class="fas fa-times"></i>
@@ -2210,30 +1996,30 @@
         <div class="modal-content">
           <form id="communicationForm">
             <div class="form-group">
-              <label class="form-label">Xabar turi:</label>
+              <label class="form-label"><%= t('manufacturer.orders.detail.modals.communication.message_type') %></label>
               <select class="form-select" id="messageType">
-                <option value="status_update">Holat yangilanishi</option>
-                <option value="question">Savol</option>
-                <option value="information">Ma'lumot</option>
-                <option value="delay_notice">Kechikish haqida xabar</option>
-                <option value="quality_update">Sifat haqida ma'lumot</option>
+                <option value="status_update"><%= t('manufacturer.orders.detail.modals.communication.message_types.status_update') %></option>
+                <option value="question"><%= t('manufacturer.orders.detail.modals.communication.message_types.question') %></option>
+                <option value="information"><%= t('manufacturer.orders.detail.modals.communication.message_types.information') %></option>
+                <option value="delay_notice"><%= t('manufacturer.orders.detail.modals.communication.message_types.delay_notice') %></option>
+                <option value="quality_update"><%= t('manufacturer.orders.detail.modals.communication.message_types.quality_update') %></option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Mavzu:</label>
-              <input type="text" class="form-input" id="messageSubject" placeholder="Xabar mavzusi...">
+              <label class="form-label"><%= t('manufacturer.orders.detail.modals.communication.subject') %></label>
+              <input type="text" class="form-input" id="messageSubject" placeholder="<%= t('manufacturer.orders.detail.modals.communication.placeholders.subject') %>">
             </div>
             <div class="form-group">
-              <label class="form-label">Xabar matni:</label>
-              <textarea class="form-textarea" id="messageContent" rows="6" placeholder="Xabar matnini kiriting..."></textarea>
+              <label class="form-label"><%= t('manufacturer.orders.detail.modals.communication.content') %></label>
+              <textarea class="form-textarea" id="messageContent" rows="6" placeholder="<%= t('manufacturer.orders.detail.modals.communication.placeholders.content') %>"></textarea>
             </div>
           </form>
         </div>
         <div class="modal-footer">
-          <button class="products-btn products-btn-secondary" id="cancelCommunication">Bekor qilish</button>
+          <button class="products-btn products-btn-secondary" id="cancelCommunication"><%= t('manufacturer.orders.detail.modals.communication.actions.cancel') %></button>
           <button class="products-btn products-btn-primary" id="sendMessage">
             <i class="fas fa-paper-plane"></i>
-            Yuborish
+            <%= t('manufacturer.orders.detail.modals.communication.actions.send') %>
           </button>
         </div>
       </div>
@@ -2245,7 +2031,7 @@
         <div class="modal-header">
           <h3 class="modal-title" id="noteModalTitle">
             <i class="fas fa-sticky-note"></i>
-            <span id="noteModalTitleText">Buyurtmaga Izoh Qo'shish</span>
+            <span id="noteModalTitleText"><%= t('manufacturer.orders.detail.modals.add_note.title') %></span>
           </h3>
           <button class="modal-close" id="closeNoteModal">
             <i class="fas fa-times"></i>
@@ -2257,52 +2043,52 @@
             <input type="hidden" id="editingCommentId" value="">
             <!-- Comment Type Selection -->
             <div class="form-group">
-              <label class="form-label">Izoh turi:</label>
+              <label class="form-label"><%= t('manufacturer.orders.detail.comments.form.comment_type') %></label>
               <select class="form-select" id="commentType">
-                <option value="general">Umumiy izoh</option>
-                <option value="status_update">Holat yangilanishi</option>
-                <option value="quality_note">Sifat haqida</option>
-                <option value="delivery_note">Yetkazib berish haqida</option>
-                <option value="payment_note">To'lov haqida</option>
-                <option value="internal_note">Ichki izoh (faqat biz ko'ramiz)</option>
-                <option value="customer_note">Mijoz uchun izoh</option>
+                <option value="general"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.general') %></option>
+                <option value="status_update"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.status_update') %></option>
+                <option value="quality_note"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.quality_note') %></option>
+                <option value="delivery_note"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.delivery_note') %></option>
+                <option value="payment_note"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.payment_note') %></option>
+                <option value="internal_note"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.internal_note') %></option>
+                <option value="customer_note"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.customer_note') %></option>
               </select>
             </div>
 
             <!-- Visibility Selection -->
             <div class="form-group">
-              <label class="form-label">Ko'rinish:</label>
+              <label class="form-label"><%= t('manufacturer.orders.detail.comments.form.visibility') %></label>
               <select class="form-select" id="commentVisibility">
-                <option value="public">Hammaga ko'rsatish</option>
-                <option value="internal">Faqat bizning jamoamiz ko'radi</option>
-                <option value="customer">Faqat mijoz ko'radi</option>
+                <option value="public"><%= t('manufacturer.orders.detail.modals.add_note.visibility_options.public') %></option>
+                <option value="internal"><%= t('manufacturer.orders.detail.modals.add_note.visibility_options.internal') %></option>
+                <option value="customer"><%= t('manufacturer.orders.detail.modals.add_note.visibility_options.customer') %></option>
               </select>
             </div>
 
             <!-- Priority Selection -->
             <div class="form-group">
-              <label class="form-label">Muhimlik darajasi:</label>
+              <label class="form-label"><%= t('manufacturer.orders.detail.comments.form.priority') %></label>
               <select class="form-select" id="commentPriority">
-                <option value="normal">Oddiy</option>
-                <option value="low">Past</option>
-                <option value="high">Yuqori</option>
-                <option value="urgent">Shoshilinch</option>
+                <option value="normal"><%= t('manufacturer.orders.detail.modals.add_note.priority_options.normal') %></option>
+                <option value="low"><%= t('manufacturer.orders.detail.modals.add_note.priority_options.low') %></option>
+                <option value="high"><%= t('manufacturer.orders.detail.modals.add_note.priority_options.high') %></option>
+                <option value="urgent"><%= t('manufacturer.orders.detail.modals.add_note.priority_options.urgent') %></option>
               </select>
             </div>
 
             <!-- Comment Content -->
             <div class="form-group">
-              <label class="form-label">Izoh matni: <span class="text-danger">*</span></label>
+              <label class="form-label"><%= t('manufacturer.orders.detail.comments.form.content') %> <span class="text-danger">*</span></label>
               <textarea 
                 class="form-textarea" 
                 id="noteContent" 
                 rows="6" 
-                placeholder="Izoh matnini batafsil kiriting..."
+                placeholder="<%= t('manufacturer.orders.detail.comments.form.content_placeholder') %>"
                 maxlength="2000"
                 required
               ></textarea>
               <small class="form-help">
-                <span id="charCount">0</span>/2000 belgi
+                <span id="charCount">0</span>/2000 <%= t('manufacturer.orders.detail.comments.form.characters') %>
               </small>
             </div>
 
@@ -2314,7 +2100,7 @@
                   <span class="checkmark"></span>
                   <span class="checkbox-label">
                     <i class="fas fa-bell" style="margin-right: 0.25rem; color: #007bff;"></i>
-                    Mijozga bildirishnoma yuborish
+                    <%= t('manufacturer.orders.detail.modals.add_note.actions.notify_customer') %>
                   </span>
                 </label>
               </div>
@@ -2324,14 +2110,14 @@
         <div class="modal-footer">
           <button class="products-btn products-btn-secondary" id="cancelNote" type="button">
             <i class="fas fa-times"></i>
-            Bekor qilish
+            <%= t('manufacturer.orders.detail.modals.add_note.actions.cancel') %>
           </button>
           <button class="products-btn products-btn-primary" id="saveNote" type="submit">
             <i class="fas fa-save" id="saveNoteIcon"></i>
-            <span class="btn-text" id="saveNoteText">Saqlash</span>
+            <span class="btn-text" id="saveNoteText"><%= t('manufacturer.orders.detail.comments.form.save') %></span>
             <span class="btn-loading hidden">
               <i class="fas fa-spinner fa-spin"></i>
-              <span id="saveLoadingText">Saqlanmoqda...</span>
+              <span id="saveLoadingText"><%= t('manufacturer.orders.detail.comments.form.saving') %></span>
             </span>
           </button>
         </div>
@@ -2343,46 +2129,46 @@
       <div class="section-header">
         <h3 class="section-title">
           <i class="fas fa-comments"></i>
-          Buyurtma Izohlar <span class="comments-count" id="commentsCount">(0)</span>
+          <%= t('manufacturer.orders.detail.comments.title') %> <span class="comments-count" id="commentsCount">(0)</span>
         </h3>
         <button class="products-btn products-btn-outline products-btn-sm" id="refreshCommentsBtn">
           <i class="fas fa-sync-alt"></i>
-          Yangilash
+          <%= t('manufacturer.orders.detail.comments.actions.refresh') %>
         </button>
       </div>
       
       <div class="comments-filters">
         <select class="filter-select" id="filterByType">
-          <option value="">Barcha turlar</option>
-          <option value="general">Umumiy</option>
-          <option value="status_update">Holat yangilanishi</option>
-          <option value="quality_note">Sifat</option>
-          <option value="delivery_note">Yetkazib berish</option>
-          <option value="payment_note">To'lov</option>
-          <option value="internal_note">Ichki</option>
-          <option value="customer_note">Mijoz uchun</option>
+          <option value=""><%= t('manufacturer.orders.detail.comments.filters.all_types') %></option>
+          <option value="general"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.general') %></option>
+          <option value="status_update"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.status_update') %></option>
+          <option value="quality_note"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.quality_note') %></option>
+          <option value="delivery_note"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.delivery_note') %></option>
+          <option value="payment_note"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.payment_note') %></option>
+          <option value="internal_note"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.internal_note') %></option>
+          <option value="customer_note"><%= t('manufacturer.orders.detail.modals.add_note.comment_types.customer_note') %></option>
         </select>
         
         <select class="filter-select" id="filterByPriority">
-          <option value="">Barcha muhimlik</option>
-          <option value="urgent">Shoshilinch</option>
-          <option value="high">Yuqori</option>
-          <option value="normal">Oddiy</option>
-          <option value="low">Past</option>
+          <option value=""><%= t('manufacturer.orders.detail.comments.filters.all_priority') %></option>
+          <option value="urgent"><%= t('manufacturer.orders.detail.modals.add_note.priority_options.urgent') %></option>
+          <option value="high"><%= t('manufacturer.orders.detail.modals.add_note.priority_options.high') %></option>
+          <option value="normal"><%= t('manufacturer.orders.detail.modals.add_note.priority_options.normal') %></option>
+          <option value="low"><%= t('manufacturer.orders.detail.modals.add_note.priority_options.low') %></option>
         </select>
       </div>
 
       <div class="comments-list" id="commentsList">
         <div class="loading-state" id="commentsLoading">
           <i class="fas fa-spinner fa-spin"></i>
-          Izohlar yuklanmoqda...
+          <%= t('manufacturer.orders.detail.comments.loading') %>
         </div>
         <div class="empty-state hidden" id="commentsEmpty">
           <i class="fas fa-comment-slash"></i>
-          <p>Hozircha izohlar yo'q</p>
+          <p><%= t('manufacturer.orders.detail.comments.empty_state') %></p>
           <button class="products-btn products-btn-primary" id="addFirstComment">
             <i class="fas fa-plus"></i>
-            Birinchi izohni qo'shish
+            <%= t('manufacturer.orders.detail.comments.add_first') %>
           </button>
         </div>
       </div>
@@ -2390,7 +2176,7 @@
       <div class="comments-pagination hidden" id="commentsPagination">
         <button class="products-btn products-btn-outline" id="loadMoreComments">
           <i class="fas fa-chevron-down"></i>
-          Ko'proq yuklash
+          <%= t('manufacturer.orders.detail.comments.actions.load_more') %>
         </button>
       </div>
     </div>
@@ -2549,6 +2335,9 @@
 }
 </style>
 
+<!-- Professional Unified Header Management -->
+<script src="/js/manufacturer/manufacturer-header.js"></script>
+
 <!-- Enhanced JavaScript -->
 <script src="/js/manufacturer/toast-system.js"></script>
 <script src="/js/manufacturer/modal-system.js"></script>
@@ -2562,7 +2351,6 @@
       companyName: '<%= user?.companyName || "" %>',
       name: '<%= user?.name || "" %>'
     };
-    console.log('👤 Current user data loaded:', window.currentUser);
   </script>
   
   <script src="/js/manufacturer/order-detail.js"></script>

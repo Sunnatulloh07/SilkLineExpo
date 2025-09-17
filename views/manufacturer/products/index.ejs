@@ -1,4 +1,4 @@
-<%- include('../partials/header', { title: title, lng: lng || 'uz', user: user, t: t }) %>
+<%- include('../partials/header', { title: title, lng: lng, user: user, t: t }) %>
 <%- include('../partials/sidebar', { user: user, currentPage: 'products', t: t }) %>
 
 <!-- Enhanced CSS Imports - Marketplace Style -->
@@ -130,16 +130,6 @@
           <i class="fas fa-filter"></i>
           <%= t('manufacturer.products.filters.title') %>
         </h3>
-        <div class="products-filters-actions">
-          <button class="products-btn products-btn-sm products-btn-secondary" id="resetFiltersBtn">
-            <i class="fas fa-undo"></i>
-            <%= t('manufacturer.products.filters.reset') %>
-          </button>
-          <button class="products-btn products-btn-sm products-btn-outline" id="advancedFiltersBtn">
-            <i class="fas fa-cog"></i>
-            <%= t('manufacturer.products.filters.advanced') %>
-          </button>
-        </div>
       </div>
       <div class="products-filters-body">
         <form id="filtersForm" class="products-filters-form">
@@ -1151,6 +1141,63 @@
     });
   </script>
   
+  <!-- i18next Translation System -->
+  <script src="https://cdn.jsdelivr.net/npm/i18next@23.7.6/i18next.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/i18next-browser-languagedetector@7.2.0/i18nextBrowserLanguageDetector.min.js"></script>
+
+  <!-- i18n Initialization Script -->
+  <script>
+    async function initializeTranslation() {
+      try {
+        // Get current language from cookies or default to 'uz'
+        const currentLang = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('i18next='))
+          ?.split('=')[1] || 
+          document.cookie
+          .split('; ')
+          .find(row => row.startsWith('selectedLanguage='))
+          ?.split('=')[1] || 'uz';
+        
+        const response = await fetch(`/api/language/${currentLang}`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        const result = response.ok ? await response.json() : {};
+        const translations = result.data || {};
+
+        await i18next
+          .use(i18nextBrowserLanguageDetector)
+          .init({
+            fallbackLng: 'uz',
+            debug: false,
+            detection: {
+              order: ['cookie', 'localStorage', 'navigator', 'htmlTag'],
+              caches: ['cookie', 'localStorage']
+            },
+            resources: {
+              [currentLang]: {
+                translation: translations
+              }
+            }
+          });
+
+        window.t = i18next.t.bind(i18next);
+      } catch (error) {
+        console.error('❌ Translation initialization failed:', error);
+        // Fallback translation function
+        window.t = function(key) {
+          return key; // Return key as fallback - translations should come from uz.json
+        };
+      }
+    }
+    
+    // Initialize translation when page loads
+    initializeTranslation();
+  </script>
+
+  <!-- Professional Unified Header Management -->
+  <script src="/js/manufacturer/manufacturer-header.js"></script>
+
   <!-- Enhanced Products Management JavaScript -->
   <script src="/js/manufacturer/products-management-enhanced.js"></script>
 

@@ -444,14 +444,14 @@
 }
 
 .table-more-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
+  position: fixed;
+  top: auto;
+  right: auto;
   background: var(--bg-elevated);
   border: 1px solid var(--border-primary);
   border-radius: 8px;
   box-shadow: var(--shadow-lg);
-  z-index: 20;
+  z-index: 9999;
   min-width: 200px;
   overflow: hidden;
   margin-top: var(--space-1);
@@ -865,7 +865,6 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 0;
-  border-bottom: 1px solid #f1f5f9;
 }
 
 .info-item:last-child {
@@ -3332,7 +3331,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 0;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #979797;
 }
 
 .info-row:last-child {
@@ -4096,4 +4095,164 @@
   .table-pagination-ellipsis {
     color: var(--text-secondary-dark, #9ca3af);
   }
+}
+
+/* ========================================
+   CARD DROPDOWN STYLES
+   ======================================== */
+
+.card-more-actions {
+  position: relative;
+}
+
+.card-more-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-primary, #e5e7eb);
+  border-radius: 8px;
+  background: var(--bg-elevated, #ffffff);
+  color: var(--text-secondary, #6b7280);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.card-more-toggle:hover {
+  background: var(--primary-50, #eff6ff);
+  border-color: var(--primary-500, #3b82f6);
+  color: var(--primary-600, #2563eb);
+}
+
+.card-more-toggle:active {
+  background: var(--primary-100, #dbeafe);
+  border-color: var(--primary-600, #2563eb);
+  color: var(--primary-700, #1d4ed8);
+}
+
+.card-more-menu {
+  position: fixed;
+  z-index: 9999;
+  background: var(--bg-elevated, #ffffff);
+  border: 1px solid var(--border-primary, #e5e7eb);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05));
+  min-width: 180px;
+  padding: 0.5rem 0;
+  margin-top: 0.25rem;
+  transform: translateY(-10px);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 400px;
+  overflow: visible;
+}
+
+.card-more-menu:not(.hidden) {
+  transform: translateY(0) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  max-height: 400px !important;
+  overflow: visible !important;
+  display: block !important;
+  position: fixed !important;
+  z-index: 9999 !important;
+}
+
+/* Force visibility for card dropdowns - Higher specificity */
+div.card-more-menu:not(.hidden),
+.card-more-menu:not(.hidden) {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  max-height: 400px !important;
+  overflow: visible !important;
+  position: fixed !important;
+  z-index: 9999 !important;
+}
+
+/* Ultra high specificity for card dropdowns */
+html body div.card-more-menu:not(.hidden) {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  max-height: 400px !important;
+  overflow: visible !important;
+  position: fixed !important;
+  z-index: 9999 !important;
+}
+
+/* Maximum specificity for card dropdowns */
+html body div.card-more-menu:not(.hidden),
+html body .card-more-menu:not(.hidden) {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  max-height: 400px !important;
+  overflow: visible !important;
+  position: fixed !important;
+  z-index: 9999 !important;
+}
+
+.card-more-menu.hidden {
+  transform: translateY(-10px) !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.card-more-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: none;
+  color: var(--text-primary, #111827);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 0;
+}
+
+.card-more-item:hover {
+  background: var(--primary-50, #eff6ff);
+  color: var(--primary-700, #1d4ed8);
+}
+
+.card-more-item:active {
+  background: var(--primary-100, #dbeafe);
+  color: var(--primary-800, #1e40af);
+}
+
+.card-more-item.danger {
+  color: var(--danger-600, #dc2626);
+}
+
+.card-more-item.danger:hover {
+  background: var(--danger-50, #fef2f2);
+  color: var(--danger-700, #b91c1c);
+}
+
+.card-more-item.danger:active {
+  background: var(--danger-100, #fee2e2);
+  color: var(--danger-800, #991b1b);
+}
+
+.card-more-item i {
+  width: 16px;
+  height: 16px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

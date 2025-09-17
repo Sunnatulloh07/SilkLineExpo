@@ -38,7 +38,9 @@ class InquiryController {
                 inquiries: inquiriesData.inquiries,
                 pagination: inquiriesData.pagination,
                 filters: inquiriesData.filters,
-                unreadMessages: unreadMessages || 0
+                unreadMessages: unreadMessages || 0,
+                t: req.t, // Add translation function
+                lng: req.lng || 'uz' // Add language
             });
 
         } catch (error) {
@@ -271,49 +273,6 @@ class InquiryController {
         }
     }
 
-    /**
-     * API: Get single inquiry
-     */
-    async getInquiry(req, res) {
-        try {
-            const { inquiryId } = req.params;
-            const manufacturerId = req.user.userId;
-
-            const inquiry = await Inquiry.findById(inquiryId)
-                .populate('inquirer', 'companyName name email phone country')
-                .populate('product', 'title name category images')
-                .lean();
-
-            if (!inquiry) {
-                return res.status(404).json({
-                    success: false,
-                    error: 'Inquiry not found'
-                });
-            }
-
-            // Check authorization
-            if (inquiry.supplier.toString() !== manufacturerId) {
-                return res.status(403).json({
-                    success: false,
-                    error: 'Unauthorized access to inquiry'
-                });
-            }
-
-            res.json({
-                success: true,
-                inquiry: await this.formatInquiryResponse(inquiry),
-                timestamp: new Date().toISOString()
-            });
-
-        } catch (error) {
-            this.logger.error('❌ Get inquiry API error:', error);
-            res.status(500).json({
-                success: false,
-                error: 'Failed to get inquiry',
-                message: error.message
-            });
-        }
-    }
 
     /**
      * API: Update inquiry status
@@ -410,11 +369,12 @@ class InquiryController {
         const sortOrder = queryParams.sortOrder === 'asc' ? 1 : -1;
         const sort = { [sortField]: sortOrder };
 
-        // Execute query
+        // Execute query with COMPREHENSIVE POPULATION
         const [inquiries, totalCount] = await Promise.all([
             Inquiry.find(query)
-                .populate('inquirer', 'companyName name email phone country')
-                .populate('product', 'title name category images')
+                .populate('inquirer', 'companyName businessName name email phone country companyLogo')
+                .populate('product', 'title name category images pricing inventory')
+                .populate('convertedOrder', 'orderNumber status totalAmount')
                 .sort(sort)
                 .skip(skip)
                 .limit(limit)
@@ -484,27 +444,67 @@ class InquiryController {
     }
 
     /**
-     * Format inquiry for response
+     * Format inquiry for response - COMPREHENSIVE DATA TRANSMISSION
      */
     async formatInquiryResponse(inquiry) {
+        // Build budget range from schema fields
+        const budgetRange = inquiry.budgetMin || inquiry.budgetMax ? {
+            min: inquiry.budgetMin || 0,
+            max: inquiry.budgetMax || 0,
+            currency: inquiry.budgetCurrency || 'USD'
+        } : null;
+
         return {
+            // Basic Information
             _id: inquiry._id,
             inquiryNumber: inquiry.inquiryNumber,
             type: inquiry.type,
             subject: inquiry.subject,
             message: inquiry.message,
+            
+            // Product Requirements
             requestedQuantity: inquiry.requestedQuantity,
             unit: inquiry.unit,
-            budgetRange: inquiry.budgetRange,
+            customSpecifications: inquiry.customSpecifications,
+            
+            // Budget Information (Fixed: from schema fields)
+            budgetRange: budgetRange,
+            budgetMin: inquiry.budgetMin,
+            budgetMax: inquiry.budgetMax,
+            budgetCurrency: inquiry.budgetCurrency,
+            
+            // Timeline Information
+            urgency: inquiry.urgency,
+            requiredBy: inquiry.requiredBy,
+            
+            // Shipping Information
+            shippingMethod: inquiry.shippingMethod,
+            incoterms: inquiry.incoterms,
+            deliveryAddress: inquiry.deliveryAddress,
+            
+            // Status & Priority
             status: inquiry.status,
             priority: inquiry.priority,
             isUrgent: inquiry.priority === 'urgent',
+            
+            // Dates
             createdAt: inquiry.createdAt,
             updatedAt: inquiry.updatedAt,
+            expiresAt: inquiry.expiresAt,
+            
+            // Relationships (Populated)
             inquirer: inquiry.inquirer,
             product: inquiry.product,
-            quotes: inquiry.quotes,
-            messages: inquiry.messages
+            
+            // Communication & Quotes
+            quotes: inquiry.quotes || [],
+            messages: inquiry.messages || [],
+            
+            // Attachments
+            attachments: inquiry.attachments || [],
+            
+            // Conversion
+            convertedOrder: inquiry.convertedOrder
         };
     }
 
@@ -892,6 +892,227 @@ const inquiry = await Inquiry.findById(inquiryId);
                 message: error.message
             });
         }
+    }
+
+    /**
+     * API: Get single inquiry with full details
+     */
+    async getInquiry(req, res) {
+        try {
+            const { inquiryId } = req.params;
+            const manufacturerId = req.user.userId;
+
+            const inquiry = await Inquiry.findById(inquiryId)
+                .populate('inquirer', 'companyName businessName name email phone country companyLogo')
+                .populate('product', 'title name category images pricing inventory')
+                .populate('convertedOrder', 'orderNumber status totalAmount')
+                .lean();
+
+            if (!inquiry) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'Inquiry not found'
+                });
+            }
+
+            // Check authorization
+            if (inquiry.supplier.toString() !== manufacturerId) {
+                return res.status(403).json({
+                    success: false,
+                    error: 'Unauthorized access to inquiry'
+                });
+            }
+
+            // Format inquiry with complete data
+            const formattedInquiry = await this.formatInquiryResponse(inquiry);
+
+            res.json({
+                success: true,
+                inquiry: formattedInquiry,
+                timestamp: new Date().toISOString()
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Get inquiry API error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to get inquiry',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * API: Get inquiry KPIs and analytics
+     */
+    async getInquiryAnalytics(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const { timeRange = 'month' } = req.query;
+
+            // Calculate date range
+            const endDate = new Date();
+            const startDate = new Date();
+            
+            switch (timeRange) {
+                case 'week':
+                    startDate.setDate(endDate.getDate() - 7);
+                    break;
+                case 'month':
+                    startDate.setMonth(endDate.getMonth() - 1);
+                    break;
+                case 'quarter':
+                    startDate.setMonth(endDate.getMonth() - 3);
+                    break;
+                case 'year':
+                    startDate.setFullYear(endDate.getFullYear() - 1);
+                    break;
+                default:
+                    startDate.setMonth(endDate.getMonth() - 1);
+            }
+
+            const analytics = await this.getInquiriesAnalytics(manufacturerId, startDate, endDate);
+
+            res.json({
+                success: true,
+                analytics: analytics,
+                timeRange: timeRange,
+                timestamp: new Date().toISOString()
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Get inquiry analytics API error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to get inquiry analytics',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Get comprehensive inquiry analytics
+     */
+    async getInquiriesAnalytics(manufacturerId, startDate, endDate) {
+        const [
+            totalInquiries,
+            newInquiries,
+            respondedInquiries,
+            quotedInquiries,
+            convertedInquiries,
+            avgResponseTime,
+            topInquiryTypes,
+            statusDistribution
+        ] = await Promise.all([
+            // Total inquiries in period
+            Inquiry.countDocuments({
+                supplier: manufacturerId,
+                createdAt: { $gte: startDate, $lte: endDate }
+            }),
+            
+            // New inquiries (open status)
+            Inquiry.countDocuments({
+                supplier: manufacturerId,
+                status: 'open',
+                createdAt: { $gte: startDate, $lte: endDate }
+            }),
+            
+            // Responded inquiries
+            Inquiry.countDocuments({
+                supplier: manufacturerId,
+                status: { $in: ['responded', 'negotiating'] },
+                createdAt: { $gte: startDate, $lte: endDate }
+            }),
+            
+            // Quoted inquiries
+            Inquiry.countDocuments({
+                supplier: manufacturerId,
+                status: 'quoted',
+                createdAt: { $gte: startDate, $lte: endDate }
+            }),
+            
+            // Converted inquiries
+            Inquiry.countDocuments({
+                supplier: manufacturerId,
+                status: 'converted',
+                createdAt: { $gte: startDate, $lte: endDate }
+            }),
+            
+            // Average response time (placeholder calculation)
+            this.calculateAverageResponseTime(manufacturerId, startDate, endDate),
+            
+            // Top inquiry types
+            Inquiry.aggregate([
+                { $match: { supplier: manufacturerId, createdAt: { $gte: startDate, $lte: endDate } } },
+                { $group: { _id: '$type', count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $limit: 5 }
+            ]),
+            
+            // Status distribution
+            Inquiry.aggregate([
+                { $match: { supplier: manufacturerId, createdAt: { $gte: startDate, $lte: endDate } } },
+                { $group: { _id: '$status', count: { $sum: 1 } } },
+                { $sort: { count: -1 } }
+            ])
+        ]);
+
+        // Calculate rates
+        const responseRate = totalInquiries > 0 ? Math.round((respondedInquiries / totalInquiries) * 100) : 0;
+        const quoteRate = totalInquiries > 0 ? Math.round((quotedInquiries / totalInquiries) * 100) : 0;
+        const conversionRate = totalInquiries > 0 ? Math.round((convertedInquiries / totalInquiries) * 100) : 0;
+
+        return {
+            overview: {
+                totalInquiries,
+                newInquiries,
+                respondedInquiries,
+                quotedInquiries,
+                convertedInquiries
+            },
+            rates: {
+                responseRate,
+                quoteRate,
+                conversionRate
+            },
+            performance: {
+                avgResponseTime,
+                topInquiryTypes: topInquiryTypes.map(item => ({
+                    type: item._id,
+                    count: item.count
+                })),
+                statusDistribution: statusDistribution.map(item => ({
+                    status: item._id,
+                    count: item.count
+                }))
+            },
+            timeRange: {
+                startDate,
+                endDate
+            }
+        };
+    }
+
+    /**
+     * Calculate average response time (simplified)
+     */
+    async calculateAverageResponseTime(manufacturerId, startDate, endDate) {
+        // This is a simplified calculation
+        // In production, you would track actual response times
+        const inquiries = await Inquiry.find({
+            supplier: manufacturerId,
+            status: { $in: ['responded', 'quoted', 'negotiating'] },
+            createdAt: { $gte: startDate, $lte: endDate }
+        }).select('createdAt updatedAt');
+
+        if (inquiries.length === 0) return 0;
+
+        const totalResponseTime = inquiries.reduce((sum, inquiry) => {
+            const responseTime = inquiry.updatedAt - inquiry.createdAt;
+            return sum + responseTime;
+        }, 0);
+
+        return Math.round(totalResponseTime / inquiries.length / (1000 * 60 * 60)); // hours
     }
 }
 

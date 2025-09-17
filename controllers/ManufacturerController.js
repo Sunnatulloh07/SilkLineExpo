@@ -2843,6 +2843,7 @@ class ManufacturerController {
                 const altText = req.body[`imageAlt_${i}`] || '';
                 const isPrimary = req.body[`isPrimary_${i}`] === 'true';
                 
+               
                 const imageData = {
                     url: `/uploads/products/${file.filename}`,
                     alt: altText,
@@ -2855,6 +2856,12 @@ class ManufacturerController {
                 
                 uploadedImages.push(imageData);
                 this.logger.log(`✅ Processed: ${file.originalname} (${isPrimary ? 'PRIMARY' : 'secondary'})`);
+            }
+            
+            // Ensure at least one primary image
+            const hasPrimary = uploadedImages.some(img => img.isPrimary);
+            if (!hasPrimary && uploadedImages.length > 0) {
+                uploadedImages[0].isPrimary = true;
             }
             
             res.json({

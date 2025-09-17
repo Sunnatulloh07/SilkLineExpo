@@ -53,7 +53,7 @@ const inquirySchema = new mongoose.Schema({
     maxlength: 2000
   },
   
-  // Quantity and Specifications
+  // Product Requirements (Simplified for B2B)
   requestedQuantity: {
     type: Number,
     min: 1
@@ -61,51 +61,48 @@ const inquirySchema = new mongoose.Schema({
   
   unit: {
     type: String,
-    enum: ['pieces', 'kg', 'tons', 'liters', 'meters', 'boxes', 'pallets']
+    enum: ['pieces', 'kg', 'tons', 'liters', 'meters', 'boxes', 'pallets'],
+    default: 'pieces'
   },
   
-  customSpecifications: [{
-    name: String,
-    value: String,
-    required: Boolean
-  }],
-  
-  // Budget and Timeline
-  budgetRange: {
-    min: Number,
-    max: Number,
-    currency: {
-      type: String,
-      enum: ['USD', 'UZS', 'EUR', 'CNY', 'KZT'],
-      default: 'USD'
-    }
+  customSpecifications: {
+    type: String,
+    maxlength: 500
   },
   
-  timeline: {
-    urgency: {
-      type: String,
-      enum: ['immediate', 'within_week', 'within_month', 'flexible'],
-      default: 'flexible'
-    },
-    requiredBy: Date,
-    deliveryDate: Date
+  // Budget (Simplified)
+  budgetMin: Number,
+  budgetMax: Number,
+  budgetCurrency: {
+    type: String,
+    enum: ['USD', 'UZS', 'EUR', 'CNY', 'KZT'],
+    default: 'USD'
   },
   
-  // Shipping Requirements
-  shipping: {
-    method: {
-      type: String,
-      enum: ['standard', 'express', 'freight', 'pickup', 'custom']
-    },
-    destination: {
-      country: String,
-      city: String,
-      address: String
-    },
-    incoterms: {
-      type: String,
-      enum: ['EXW', 'FCA', 'CPT', 'CIP', 'DAT', 'DAP', 'DDP', 'FAS', 'FOB', 'CFR', 'CIF']
-    }
+  // Timeline (Simplified)
+  urgency: {
+    type: String,
+    enum: ['flexible', 'within_month', 'within_week', 'immediate'],
+    default: 'flexible'
+  },
+  
+  requiredBy: Date,
+  
+  // Shipping (Simplified)
+  shippingMethod: {
+    type: String,
+    enum: ['standard', 'express', 'freight', 'pickup', 'custom'],
+    default: 'standard'
+  },
+  
+  incoterms: {
+    type: String,
+    enum: ['EXW', 'FCA', 'CPT', 'CIP', 'DAT', 'DAP', 'DDP', 'FAS', 'FOB', 'CFR', 'CIF']
+  },
+  
+  deliveryAddress: {
+    type: String,
+    maxlength: 300
   },
   
   // Status Management
@@ -205,40 +202,14 @@ const inquirySchema = new mongoose.Schema({
     }
   }],
   
-  // Follow-up
-  followUp: {
-    nextFollowUp: Date,
-    followUpCount: {
-      type: Number,
-      default: 0
-    },
-    lastFollowUp: Date
-  },
-  
   // Conversion
   convertedOrder: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Order'
   },
   
-  // Analytics
-  analytics: {
-    responseTime: Number, // hours
-    viewCount: {
-      type: Number,
-      default: 0
-    },
-    lastViewed: Date
-  },
-  
   // Expiry
-  expiresAt: Date,
-  
-  // Internal Notes
-  internalNotes: String,
-  
-  // Tags for categorization
-  tags: [String]
+  expiresAt: Date
   
 }, {
   timestamps: true
@@ -331,18 +302,7 @@ inquirySchema.methods.convertToOrder = function(orderId) {
   return this.save();
 };
 
-inquirySchema.methods.incrementViews = function() {
-  this.analytics.viewCount += 1;
-  this.analytics.lastViewed = new Date();
-  return this.save();
-};
-
-inquirySchema.methods.scheduleFollowUp = function(days = 7) {
-  this.followUp.nextFollowUp = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
-  this.followUp.followUpCount += 1;
-  this.followUp.lastFollowUp = new Date();
-  return this.save();
-};
+// Removed analytics and follow-up methods - these should be handled by separate systems
 
 // Static methods
 inquirySchema.statics.findByInquirer = function(inquirerId, options = {}) {

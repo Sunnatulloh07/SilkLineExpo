@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
-  <title><%= typeof title !== 'undefined' ? title : 'SLEX Manufacturing Dashboard' %></title>
+  <title><%= typeof title !== 'undefined' ? title : (typeof t !== 'undefined' ? t('admin.header.common.dashboard_title') : 'SLEX Ishlab chiqarish Boshqaruv Paneli') %></title>
   
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
@@ -20,7 +20,6 @@
   <link rel="stylesheet" href="/assets/css/line-awesome.min.css">
   
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="/admin/css/admin-dashboard.css">
   <link rel="stylesheet" href="/admin/css/dashboard-components.css">
   <link rel="stylesheet" href="/admin/css/dashboard-loading.css">
   
@@ -36,8 +35,6 @@
   <script src="/js/token-manager.js"></script>
   <script src="/js/token-manager-fix.js"></script>
   
-  <!-- UNIVERSAL THEME MANAGER - LOAD EARLY TO PREVENT CONFLICTS -->
-  <script src="/js/universal-theme-manager.js"></script>
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="/admin/css/admin-dashboard.css">
@@ -53,7 +50,7 @@
   <!-- Theme Variables -->
   <style>
     :root {
-      --header-brand-text: 'Manufacturing';
+      --header-brand-text: '<%= typeof t !== 'undefined' ? t('admin.header.brand.manufacturing') : 'Ishlab chiqarish' %>';
     }
   </style>
   
@@ -85,7 +82,7 @@
         <!-- Brand Logo (Mobile) -->
         <div class="header-brand mobile-only">
           <div class="header-brand-logo">M</div>
-          <span class="header-brand-text">Manufacturing</span>
+          <span class="header-brand-text"><%= typeof t !== 'undefined' ? t('admin.header.brand.manufacturing') : 'Ishlab chiqarish' %></span>
         </div>
       </div>
       
@@ -135,7 +132,7 @@
               </div>
               <div class="language-options">
                 <% Object.entries(langConfig).forEach(([code, config]) => { %>
-                  <a href="/language/<%= code %>?redirect=<%= encodeURIComponent(currentUrl || '/manufacturer/dashboard') %>" 
+                  <a href="/api/language/<%= code %>" 
                      class="language-option <%= currentLang === code ? 'active' : '' %>" 
                      data-lang="<%= code %>"
                      data-name="<%= config.name %>">
@@ -159,7 +156,7 @@
         
         <!-- Messages -->
         <div class="header-dropdown">
-          <button id="messagesBtn" class="header-action-btn" data-tooltip="Xabarlar">
+          <button id="messagesBtn" class="header-action-btn" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.header.messages.tooltip') : 'Xabarlar' %>">
             <i class="fas fa-envelope"></i>
             <span class="notification-badge messages-badge" id="messagesBadge">5</span>
           </button>
@@ -167,25 +164,25 @@
           <!-- Messages Dropdown -->
           <div id="messagesDropdown" class="dropdown-menu messages-dropdown hidden">
             <div class="dropdown-header">
-              <span class="dropdown-title">Xabarlar</span>
-              <button class="btn-sm btn-ghost" onclick="markAllMessagesRead()">Hammasini o'qilgan</button>
+              <span class="dropdown-title"><%= typeof t !== 'undefined' ? t('admin.header.messages.title') : 'Xabarlar' %></span>
+              <button class="btn-sm btn-ghost" onclick="markAllMessagesRead()"><%= typeof t !== 'undefined' ? t('admin.header.messages.mark_all_read') : 'Hammasini o\'qilgan' %></button>
             </div>
             <div class="dropdown-content">
               <!-- Dynamic messages will be loaded here -->
               <div class="loading-messages">
                 <i class="fas fa-spinner fa-spin"></i>
-                <p>Xabarlar yuklanmoqda...</p>
+                <p><%= typeof t !== 'undefined' ? t('admin.header.messages.loading') : 'Xabarlar yuklanmoqda...' %></p>
               </div>
             </div>
             <div class="dropdown-footer">
-              <a href="/manufacturer/messages" class="view-all-link">Barcha xabarlar</a>
+              <a href="/manufacturer/messages" class="view-all-link"><%= typeof t !== 'undefined' ? t('admin.header.messages.view_all') : 'Barcha xabarlar' %></a>
             </div>
           </div>
         </div>
         
         <!-- Notifications -->
         <div class="header-dropdown">
-          <button id="notificationsBtn" class="header-action-btn" data-tooltip="Bildirishnomalar">
+          <button id="notificationsBtn" class="header-action-btn" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.header.notifications.tooltip') : 'Bildirishnomalar' %>">
             <i class="fas fa-bell"></i>
             <span class="notification-badge" id="notificationsBadge" style="display: none;">0</span>
           </button>
@@ -193,8 +190,8 @@
           <!-- Notifications Dropdown -->
           <div id="notificationsDropdown" class="dropdown-menu notifications-dropdown hidden">
             <div class="dropdown-header">
-              <span class="dropdown-title">Bildirishnomalar</span>
-              <button class="btn-sm btn-ghost" onclick="markAllNotificationsRead()">Hammasini o'qilgan deb belgilash</button>
+              <span class="dropdown-title"><%= typeof t !== 'undefined' ? t('admin.header.notifications.title') : 'Bildirishnomalar' %></span>
+              <button class="btn-sm btn-ghost" onclick="markAllNotificationsRead()"><%= typeof t !== 'undefined' ? t('admin.header.notifications.mark_all_read') : 'Hammasini o\'qilgan deb belgilash' %></button>
             </div>
             <div class="dropdown-content" id="notificationsContent">
               <div class="notification-item unread">
@@ -202,9 +199,9 @@
                   <i class="fas fa-check-circle"></i>
                 </div>
                 <div class="notification-content">
-                  <h4 class="notification-title">Order #1234 Completed</h4>
-                  <p class="notification-text">Premium cotton fabric order has been completed</p>
-                  <span class="notification-time">5 minutes ago</span>
+                  <h4 class="notification-title"><%= typeof t !== 'undefined' ? t('admin.header.notifications.order_completed') : 'Buyurtma bajarildi' %></h4>
+                  <p class="notification-text"><%= typeof t !== 'undefined' ? t('admin.header.notifications.order_completed') : 'Premium paxta mato buyurtmasi bajarildi' %></p>
+                  <span class="notification-time">5 <%= typeof t !== 'undefined' ? t('admin.header.common.time_ago.minutes') : 'daqiqa oldin' %></span>
                 </div>
               </div>
               <div class="notification-item">
@@ -212,14 +209,14 @@
                   <i class="fas fa-info-circle"></i>
                 </div>
                 <div class="notification-content">
-                  <h4 class="notification-title">New Order Received</h4>
-                  <p class="notification-text">Large order from Tashkent Textiles</p>
-                  <span class="notification-time">30 minutes ago</span>
+                  <h4 class="notification-title"><%= typeof t !== 'undefined' ? t('admin.header.notifications.order_received') : 'Yangi buyurtma qabul qilindi' %></h4>
+                  <p class="notification-text"><%= typeof t !== 'undefined' ? t('admin.header.notifications.order_received') : 'Toshkent Tekstil kompaniyasidan katta buyurtma' %></p>
+                  <span class="notification-time">30 <%= typeof t !== 'undefined' ? t('admin.header.common.time_ago.minutes') : 'daqiqa oldin' %></span>
                 </div>
               </div>
             </div>
             <div class="dropdown-footer">
-              <a href="/manufacturer/notifications" class="view-all-link">Barcha bildirishnomalar</a>
+              <a href="/manufacturer/notifications" class="view-all-link"><%= typeof t !== 'undefined' ? t('admin.header.notifications.view_all') : 'Barcha bildirishnomalar' %></a>
             </div>
           </div>
         </div>
@@ -229,7 +226,7 @@
           <button class="user-profile-btn avatar-only" id="userProfileToggle">
             <div class="user-avatar">
               <% if (typeof user !== 'undefined' && user.avatar) { %>
-                <img src="<%= user.avatar %>" alt="Profile">
+                <img src="<%= user.avatar %>" alt="<%= typeof t !== 'undefined' ? t('admin.header.common.profile') : 'Profil' %>">
               <% } else { %>
                 <i class="fas fa-user"></i>
               <% } %>
@@ -241,41 +238,41 @@
             <div class="profile-header">
               <div class="profile-avatar-large">
                 <% if (typeof user !== 'undefined' && user.avatar) { %>
-                  <img src="<%= user.avatar %>" alt="Profile">
+                  <img src="<%= user.avatar %>" alt="<%= typeof t !== 'undefined' ? t('admin.header.common.profile') : 'Profil' %>">
                 <% } else { %>
                   <i class="fas fa-user"></i>
                 <% } %>
               </div>
               <div class="profile-info">
-                <h4 class="profile-name"><%= typeof user !== 'undefined' && user.name ? user.name : 'Ishlab chiqaruvchi admin' %></h4>
+                <h4 class="profile-name"><%= typeof user !== 'undefined' && user.name ? user.name : (typeof t !== 'undefined' ? t('admin.header.profile.manufacturer_admin') : 'Ishlab chiqaruvchi admin') %></h4>
                 <p class="profile-email"><%= typeof user !== 'undefined' && user.email ? user.email : 'admin@manufacturer.com' %></p>
-                <span class="profile-badge">Ishlab chiqarish menejeri</span>
+                <span class="profile-badge"><%= typeof t !== 'undefined' ? t('admin.header.profile.production_manager') : 'Ishlab chiqarish menejeri' %></span>
               </div>
             </div>
             <div class="dropdown-divider"></div>
             <div class="dropdown-content">
               <a href="/manufacturer/profile" class="dropdown-item">
                 <i class="fas fa-user-circle"></i>
-                <span>Mening profilim</span>
+                <span><%= typeof t !== 'undefined' ? t('admin.header.profile.my_profile') : 'Mening profilim' %></span>
               </a>
               <a href="/manufacturer/settings" class="dropdown-item">
                 <i class="fas fa-cog"></i>
-                <span>Sozlamalar</span>
+                <span><%= typeof t !== 'undefined' ? t('admin.header.profile.settings') : 'Sozlamalar' %></span>
               </a>
               <a href="/manufacturer/production/stats" class="dropdown-item">
                 <i class="fas fa-chart-bar"></i>
-                <span>Ishlab chiqarish statistikasi</span>
+                <span><%= typeof t !== 'undefined' ? t('admin.header.profile.production_stats') : 'Ishlab chiqarish statistikasi' %></span>
               </a>
               <a href="/manufacturer/help" class="dropdown-item">
                 <i class="fas fa-question-circle"></i>
-                <span>Yordam va qo'llab-quvvatlash</span>
+                <span><%= typeof t !== 'undefined' ? t('admin.header.profile.help_support') : 'Yordam va qo\'llab-quvvatlash' %></span>
               </a>
             </div>
             <div class="dropdown-divider"></div>
             <div class="dropdown-content">
               <a href="/auth/logout" class="dropdown-item text-danger">
                 <i class="fas fa-sign-out-alt"></i>
-                <span>Chiqish</span>
+                <span><%= typeof t !== 'undefined' ? t('admin.header.profile.logout') : 'Chiqish' %></span>
               </a>
             </div>
           </div>

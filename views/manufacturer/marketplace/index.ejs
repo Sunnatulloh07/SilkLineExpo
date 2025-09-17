@@ -1,5 +1,13 @@
-<%- include('../partials/header', { title: title, lng: lng || 'uz', user: user, t: t }) %>
+<%- include('../partials/header', { title: title, lng: lng, user: user, t: t }) %>
 <%- include('../partials/sidebar', { user: user, currentPage: 'marketplace', t: t }) %>
+<style>
+  .header-content{
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+  }
+</style>
+
 <!-- Main Content -->
 <main class="admin-main">
   <div class="admin-content">
@@ -113,7 +121,7 @@
     </div>
 
     <!-- Main Content Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-lg mb-lg">
+    <div class="grid gap-lg mb-lg">
       
       <!-- Featured Products Section -->
       <div class="col-span-2">
@@ -250,9 +258,7 @@
                               <span class="price-amount price-<%= product.priceDisplay.type %>">
                                 <%= product.priceDisplay.display %>
                               </span>
-                              <% if (product.priceDisplay.type === 'range') { %>
-                                <span class="price-note"><%= t('manufacturer.marketplace.featuredProducts.perUnit') %></span>
-                              <% } %>
+                            
                             <% } else { %>
                               <span class="price-amount price-quote"><%= t('manufacturer.marketplace.featuredProducts.priceOnRequest') %></span>
                             <% } %>
@@ -627,8 +633,18 @@
   // Initialize i18next translation system
   async function initializeTranslation() {
     try {
+      // Get current language from cookies or default to 'uz'
+      const currentLang = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('i18next='))
+        ?.split('=')[1] || 
+        document.cookie
+        .split('; ')
+        .find(row => row.startsWith('selectedLanguage='))
+        ?.split('=')[1] || 'uz';
+      
       // Load translations from server
-      const response = await fetch('/api/language/uz', {
+      const response = await fetch(`/api/language/${currentLang}`, {
         headers: { 'Accept': 'application/json' }
       });
       const result = response.ok ? await response.json() : {};
@@ -644,7 +660,7 @@
             caches: ['cookie', 'localStorage']
           },
           resources: {
-            uz: {
+            [currentLang]: {
               translation: translations
             }
           }

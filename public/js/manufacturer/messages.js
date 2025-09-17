@@ -1,4 +1,5 @@
 // 🌐 PROFESSIONAL MESSAGES PAGE - REAL API INTEGRATION
+
 window.MessagesPage = {
   currentUser: {
     id: '<%= user.id %>',
@@ -161,7 +162,6 @@ async function loadConversations(silent = false) {
       displayConversations(conversations);
       updatePagination(pagination);
       updateConversationCount(pagination.total || 0);
-      hideLoadingState();
     } else {
       throw new Error(data.message || 'Failed to load conversations');
     }
@@ -169,11 +169,11 @@ async function loadConversations(silent = false) {
   } catch (error) {
     console.error('❌ Error loading conversations:', error);
     
-    let errorMessage = 'Xabarlarni yuklashda xatolik yuz berdi';
+    let errorMessage = window.t?.('manufacturer.messages.errors.load_conversations_error', 'Error loading conversations');
     if (error.message.includes('HTTP')) {
-      errorMessage = 'Server bilan bog\'lanishda muammo: ' + error.message;
+      errorMessage = window.t?.('manufacturer.messages.errors.network_error', 'Network error') + ': ' + error.message;
     } else {
-      errorMessage = 'Xabarlarni yuklashda xatolik: ' + error.message;
+      errorMessage = window.t?.('manufacturer.messages.errors.load_conversations_error', 'Error loading conversations') + ': ' + error.message;
     }
     
     showErrorState(errorMessage);
@@ -199,7 +199,20 @@ function displayConversations(conversations) {
     return;
   }
   
-  tbody.innerHTML = conversations.map(conversation => `
+  tbody.innerHTML = conversations.map(conversation => {
+    // Auto-detect conversation type
+    let conversationType = conversation.conversationType;
+    if (!conversationType) {
+      if (conversation.inquiryId || conversation.inquiryNumber) {
+        conversationType = 'inquiry';
+      } else if (conversation.orderId || conversation.orderNumber) {
+        conversationType = 'order';
+      } else {
+        conversationType = 'order'; // default
+      }
+    }
+    
+    return `
     <tr class="table-row ${conversation.unreadCount > 0 ? 'unread-conversation' : ''}" data-conversation-id="${conversation.conversationId || conversation.orderId || conversation.inquiryId}">
       <td class="table-checkbox-col">
         <input type="checkbox" class="table-checkbox conversation-checkbox" data-conversation-id="${conversation.conversationId || conversation.orderId || conversation.inquiryId}">
@@ -210,9 +223,9 @@ function displayConversations(conversations) {
         <div class="customer-cell">
           <div class="customer-info">
             <h4 class="customer-name">${conversation.partnerName}</h4>
-            <p class="customer-contact">${conversation.partnerEmail || 'Email mavjud emas'}</p>
+            <p class="customer-contact">${conversation.partnerEmail || window.t?.('manufacturer.messages.errors.not_found', 'Not available')}</p>
             ${conversation.partnerPhone ? `<p class="customer-phone">${conversation.partnerPhone}</p>` : ''}
-            ${conversation.isOnline ? '<span class="online-status-badge">Online</span>' : ''}
+            ${conversation.isOnline ? `<span class="online-status-badge">${window.t?.('manufacturer.messages.chat.messages.online', 'Online')}</span>` : ''}
           </div>
         </div>
       </td>
@@ -222,8 +235,8 @@ function displayConversations(conversations) {
         <div class="order-id-content">
           <span class="order-number">#${conversation.orderNumber || conversation.inquiryNumber}</span>
           <div class="order-meta">
-            <span class="order-type badge-sm">${conversation.conversationType === 'inquiry' ? 'So\'rov' : 'Buyurtma'}</span>
-            ${conversation.unreadCount > 0 ? `<span class="unread-badge">${conversation.unreadCount} yangi</span>` : ''}
+            <span class="order-type badge-sm">${conversationType === 'inquiry' ? window.t?.('manufacturer.messages.chat.chat_info.inquiry_number', 'Inquiry') : window.t?.('manufacturer.messages.chat.chat_info.order_number', 'Order')}</span>
+            ${conversation.unreadCount > 0 ? `<span class="unread-badge">${conversation.unreadCount} ${window.t?.('manufacturer.messages.time.new', 'new')}</span>` : ''}
           </div>
         </div>
       </td>
@@ -231,15 +244,15 @@ function displayConversations(conversations) {
       <!-- Message Column - Custom Design -->
       <td class="message-name-cell">
         <div class="message-name-content">
-          <span class="message-text" title="${conversation.lastMessage || 'Hali yozishma boshlanmagan'}">
+          <span class="message-text" title="${conversation.lastMessage || window.t?.('manufacturer.messages.chat.no_messages_started', 'No conversation started yet')}">
             ${conversation.status === 'no_messages' ? 
-              '<span class="no-messages-text"><i class="fas fa-envelope-open"></i> Hali yozishma yo\'q</span>' : 
-              truncateMessage(conversation.lastMessage || 'Buyurtma yaratildi - hali yozishma yo\'q', 60)
+              `<span class="no-messages-text"><i class="fas fa-envelope-open"></i> ${window.t?.('manufacturer.messages.chat.no_messages_yet', 'No messages yet')}</span>` : 
+              truncateMessage(conversation.lastMessage || window.t?.('manufacturer.messages.chat.order_created_no_messages', 'Order created - no messages yet'), 60)
             }
           </span>
           <span class="message-type">
             <i class="fas fa-comment"></i>
-            ${conversation.status === 'no_messages' ? 'Yozishma yo\'q' : getMessageTypeText(conversation.lastMessage)}
+            ${conversation.status === 'no_messages' ? window.t?.('manufacturer.messages.chat.no_messages', 'No messages') : getMessageTypeText(conversation.lastMessage)}
           </span>
         </div>
       </td>
@@ -258,66 +271,58 @@ function displayConversations(conversations) {
           ${getOrderStatusTextUz(conversation.orderStatus || conversation.inquiryStatus)}
         </span>
         ${conversation.status === 'active' ? '<div class="conversation-active-indicator"></div>' : ''}
-        ${conversation.status === 'no_messages' ? '<div class="no-messages-indicator" title="Hali yozishma yo\'q"><i class="fas fa-envelope-open"></i></div>' : ''}
+        ${conversation.status === 'no_messages' ? `<div class="no-messages-indicator" title="${window.t?.('manufacturer.messages.chat.no_messages_yet', 'No messages yet')}"><i class="fas fa-envelope-open"></i></div>` : ''}
       </td>
       
       <!-- Actions Column - Orders Page Style -->
       <td class="actions-cell">
         <div class="table-actions">
-          <button class="table-action-btn primary" data-action="view" data-conversation-id="${conversation.conversationId || conversation.orderId || conversation.inquiryId}" title="Suhbatni ochish" onclick="openConversation('${conversation.conversationId || conversation.orderId || conversation.inquiryId}', '${conversation.conversationType || 'order'}')">
+           <a href="${conversationType === 'inquiry' ? `/manufacturer/messages/inquiry/${conversation.inquiryId}` : `/manufacturer/messages/order/${conversation.orderId}`}" class="table-action-btn primary" title="${window.t?.('manufacturer.messages.table.actions.start_chat', 'Start Chat')}">
             <i class="fas fa-comments"></i>
-          </button>
+          </a>
           <div class="table-more-actions">
-            <button class="table-action-btn dropdown-toggle" title="Ko'proq amallar">
+            <button class="table-action-btn dropdown-toggle" title="${window.t?.('manufacturer.messages.table.actions.more_actions', 'More actions')}">
               <i class="fas fa-ellipsis-v"></i>
             </button>
             <div class="table-more-menu hidden">
-              <!-- ASOSIY AMALLAR -->
+              <!-- Main Actions -->
               <div class="menu-section">
-                <h6 class="menu-section-title">Asosiy amallar</h6>
-                <button class="menu-item" onclick="openConversation('${conversation.conversationId || conversation.orderId || conversation.inquiryId}', '${conversation.conversationType || 'order'}')">
-                  <i class="fas fa-comments menu-icon"></i>
-                  <span class="menu-text">Suhbatni ochish</span>
-                </button>
-                ${conversation.conversationType === 'inquiry' ? 
-                  `<button class="menu-item" onclick="viewInquiry('${conversation.inquiryId}')">
-                    <i class="fas fa-question-circle menu-icon"></i>
-                    <span class="menu-text">So'rovni ko'rish</span>
-                  </button>` :
+                <h6 class="menu-section-title">${window.t?.('manufacturer.messages.table.actions.main_actions', 'Main actions')}</h6>
+                ${conversationType === 'order' ? 
                   `<button class="menu-item" onclick="viewOrder('${conversation.orderId}')">
                     <i class="fas fa-shopping-cart menu-icon"></i>
-                    <span class="menu-text">Buyurtmani ko'rish</span>
-                  </button>`
+                    <span class="menu-text">${window.t?.('manufacturer.messages.table.actions.view_order', 'View order')}</span>
+                  </button>` : ''
                 }
-                <button class="menu-item" onclick="markAsRead('${conversation.conversationId || conversation.orderId || conversation.inquiryId}', '${conversation.conversationType || 'order'}')">
+                <button class="menu-item" onclick="markAsRead('${conversation.conversationId || conversation.orderId || conversation.inquiryId}', '${conversationType}')">
                   <i class="fas fa-check menu-icon"></i>
-                  <span class="menu-text">O'qilgan deb belgilash</span>
+                  <span class="menu-text">${window.t?.('manufacturer.messages.table.actions.mark_as_read', 'Mark as read')}</span>
                 </button>
               </div>
               
-              <!-- QOSHIMCHA AMALLAR -->
+              <!-- Additional Actions -->
               <div class="menu-section">
-                <h6 class="menu-section-title">Qo'shimcha</h6>
+                <h6 class="menu-section-title">${window.t?.('manufacturer.messages.table.actions.additional_actions', 'Additional actions')}</h6>
                 <button class="menu-item" onclick="archiveConversation('${conversation.conversationId || conversation.orderId || conversation.inquiryId}')">
                   <i class="fas fa-archive menu-icon"></i>
-                  <span class="menu-text">Arxivlash</span>
+                  <span class="menu-text">${window.t?.('manufacturer.messages.table.actions.archive', 'Archive')}</span>
                 </button>
                 <button class="menu-item" onclick="exportConversation('${conversation.conversationId || conversation.orderId || conversation.inquiryId}')">
                   <i class="fas fa-download menu-icon"></i>
-                  <span class="menu-text">Eksport qilish</span>
+                  <span class="menu-text">${window.t?.('manufacturer.messages.table.actions.export', 'Export')}</span>
                 </button>
                 <button class="menu-item" onclick="pinConversation('${conversation.conversationId || conversation.orderId || conversation.inquiryId}')">
                   <i class="fas fa-thumbtack menu-icon"></i>
-                  <span class="menu-text">Qadash</span>
+                  <span class="menu-text">${window.t?.('manufacturer.messages.table.actions.pin', 'Pin')}</span>
                 </button>
               </div>
               
-              <!-- XAVFLI AMALLAR -->
+              <!-- Dangerous Actions -->
               <div class="menu-section danger-section">
-                <h6 class="menu-section-title">Xavfli amallar</h6>
+                <h6 class="menu-section-title">${window.t?.('manufacturer.messages.table.actions.dangerous_actions', 'Dangerous actions')}</h6>
                 <button class="menu-item danger" onclick="deleteConversation('${conversation.conversationId || conversation.orderId || conversation.inquiryId}')">
                   <i class="fas fa-trash menu-icon"></i>
-                  <span class="menu-text">Suhbatni o'chirish</span>
+                  <span class="menu-text">${window.t?.('manufacturer.messages.table.actions.delete_conversation', 'Delete conversation')}</span>
                 </button>
               </div>
             </div>
@@ -325,7 +330,8 @@ function displayConversations(conversations) {
         </div>
       </td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
   
   // Initialize table interactions - Orders page style
   initializeOrdersTableInteractions();
@@ -416,8 +422,8 @@ function showLoadingState() {
           <div class="professional-loading-icon">
             <i class="fas fa-spinner fa-spin"></i>
           </div>
-          <h3 class="professional-loading-title">Yuklanmoqda...</h3>
-          <p class="professional-loading-text">Xabarlar ro'yxati yuklanmoqda, iltimos kuting</p>
+          <h3 class="professional-loading-title">${window.t?.('manufacturer.messages.loading_states.loading_conversations', 'Loading conversations...')}</h3>
+          <p class="professional-loading-text">${window.t?.('manufacturer.messages.loading_states.loading_conversations', 'Loading conversations...')}</p>
           <div class="professional-loading-progress">
             <div class="professional-loading-bar"></div>
           </div>
@@ -427,11 +433,6 @@ function showLoadingState() {
   `;
 }
 
-function hideLoadingState() {
-  // Loading state is automatically hidden when displayConversations() runs
-  // and replaces tbody content with actual conversation data
-  
-}
 
 function showEmptyState() {
   // Keep table view visible but show empty state in tbody
@@ -455,19 +456,18 @@ function showEmptyState() {
           <div class="professional-empty-icon">
             <i class="fas fa-comments"></i>
           </div>
-          <h3 class="professional-empty-title">Hali suhbatlar yo'q</h3>
+          <h3 class="professional-empty-title">${window.t?.('manufacturer.messages.empty_states.no_conversations', 'No conversations yet')}</h3>
           <p class="professional-empty-text">
-            Hamkorlar bilan professional muloqot boshlash uchun buyurtmalar bo'limidan 
-            "Mijoz bilan aloqa" tugmasini bosing yoki yangi so'rov kelishini kuting.
+            ${window.t?.('manufacturer.messages.empty_states.no_conversations_desc', 'When customers contact you, conversations will appear here')}
           </p>
           <div class="professional-empty-actions">
             <a href="/manufacturer/orders" class="professional-empty-btn professional-empty-btn-primary">
               <i class="fas fa-shopping-cart"></i>
-              Buyurtmalarga o'tish
+              ${window.t?.('manufacturer.messages.actions.go_to_orders', 'Go to Orders')}
             </a>
             <button class="professional-empty-btn professional-empty-btn-secondary" onclick="loadConversations()">
               <i class="fas fa-refresh"></i>
-              Yangilash
+              ${window.t?.('manufacturer.messages.actions.refresh', 'Refresh')}
             </button>
           </div>
         </div>
@@ -498,18 +498,18 @@ function showErrorState(errorMessage = 'Xabarlarni yuklashda xatolik yuz berdi')
           <div class="professional-error-icon">
             <i class="fas fa-exclamation-triangle"></i>
           </div>
-          <h3 class="professional-empty-title">Xatolik yuz berdi</h3>
+          <h3 class="professional-empty-title">${window.t?.('manufacturer.messages.errors.load_conversations_error', 'Error occurred')}</h3>
           <p class="professional-empty-text">
-            ${errorMessage}. Iltimos, qayta urinib ko'ring yoki tizim administratori bilan bog'laning.
+            ${errorMessage}. ${window.t?.('manufacturer.messages.errors.load_conversations_error', 'Please try again or contact system administrator.')}
           </p>
           <div class="professional-empty-actions">
             <button class="professional-empty-btn professional-empty-btn-primary" onclick="loadConversations()">
               <i class="fas fa-refresh"></i>
-              Qayta yuklash
+              ${window.t?.('manufacturer.messages.actions.refresh', 'Refresh')}
             </button>
             <a href="/manufacturer/orders" class="professional-empty-btn professional-empty-btn-secondary">
               <i class="fas fa-shopping-cart"></i>
-              Buyurtmalarga o'tish
+              ${window.t?.('manufacturer.messages.actions.go_to_orders', 'Go to Orders')}
             </a>
           </div>
         </div>
@@ -519,57 +519,7 @@ function showErrorState(errorMessage = 'Xabarlarni yuklashda xatolik yuz berdi')
 }
 
 // 🔧 UTILITY FUNCTIONS
-function getOrderStatusText(status) {
-  const statusMap = {
-    'pending': 'Kutilmoqda',
-    'confirmed': 'Tasdiqlandi',
-    'in_production': 'Ishlab chiqarilmoqda',
-    'shipped': 'Yuborildi',
-    'delivered': 'Yetkazildi',
-    'completed': 'Tugallandi',
-    'cancelled': 'Bekor qilindi'
-  };
-  return statusMap[status] || status || 'Noma\'lum';
-}
 
-function formatDateTime(dateString) {
-  if (!dateString) return 'Yangi';
-  
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now - date;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-  
-  if (diffMins < 1) return 'Hozir';
-  if (diffMins < 60) return `${diffMins} daqiqa oldin`;
-  if (diffHours < 24) return `${diffHours} soat oldin`;
-  if (diffDays < 7) return `${diffDays} kun oldin`;
-  
-  return date.toLocaleDateString('uz-UZ', { 
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
-}
-
-function formatDate(dateString) {
-  if (!dateString) return 'Yangi';
-  return new Date(dateString).toLocaleDateString('uz-UZ', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
-}
-
-function formatTime(dateString) {
-  if (!dateString) return '';
-  return new Date(dateString).toLocaleTimeString('uz-UZ', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
 
 // 🛠️ ORDERS PAGE STYLE UTILITY FUNCTIONS
 function formatDateUz(dateString) {
@@ -587,40 +537,40 @@ function formatTimeUz(dateString) {
 
 function getOrderStatusTextUz(status) {
   const statusMap = {
-    'pending': 'Kutayotgan',
-    'confirmed': 'Tasdiqlangan',
-    'processing': 'Jarayonda',
-    'manufacturing': 'Ishlab chiqarilmoqda',
-    'ready_to_ship': 'Jo\'natishga tayyor',
-    'shipped': 'Jo\'natilgan',
-    'delivered': 'Yetkazilgan',
-    'completed': 'Yakunlangan',
-    'cancelled': 'Bekor qilingan'
+    'pending': window.t?.('manufacturer.messages.status.pending', 'Pending'),
+    'confirmed': window.t?.('manufacturer.messages.status.confirmed', 'Confirmed'),
+    'processing': window.t?.('manufacturer.messages.status.processing', 'Processing'),
+    'manufacturing': window.t?.('manufacturer.messages.status.manufacturing', 'Manufacturing'),
+    'ready_to_ship': window.t?.('manufacturer.messages.status.ready_to_ship', 'Ready to ship'),
+    'shipped': window.t?.('manufacturer.messages.status.shipped', 'Shipped'),
+    'delivered': window.t?.('manufacturer.messages.status.delivered', 'Delivered'),
+    'completed': window.t?.('manufacturer.messages.status.completed', 'Completed'),
+    'cancelled': window.t?.('manufacturer.messages.status.cancelled', 'Cancelled')
   };
-  return statusMap[status] || 'Noma\'lum holat';
+  return statusMap[status] || window.t?.('manufacturer.messages.status.unknown', 'Unknown');
 }
 
 function truncateMessage(message, maxLength) {
-  if (!message) return 'Yangi suhbat...';
+  if (!message) return window.t?.('manufacturer.messages.chat.new_conversation', 'New conversation...');
   if (message.length <= maxLength) return message;
   return message.substring(0, maxLength) + '...';
 }
 
 function getMessageTypeText(message) {
-  if (!message) return 'Xabar yo\'q';
+  if (!message) return window.t?.('manufacturer.messages.chat.no_message', 'No message');
   
   // Check for system messages
-  if (message.includes('Buyurtma yaratildi - hali yozishma yo\'q')) return 'Sistema xabari';
-  if (message.includes('Hali yozishma yo\'q')) return 'Sistema xabari';
+  if (message.includes(window.t?.('manufacturer.messages.chat.order_created_no_messages', 'Order created - no messages yet'))) return window.t?.('manufacturer.messages.chat.system_message', 'System message');
+  if (message.includes(window.t?.('manufacturer.messages.chat.no_messages_yet', 'No messages yet'))) return window.t?.('manufacturer.messages.chat.system_message', 'System message');
   
   // Check for file extensions
-  if (message.includes('.pdf')) return 'PDF fayl';
-  if (message.includes('.jpg') || message.includes('.png') || message.includes('.jpeg')) return 'Rasm';
-  if (message.includes('.doc') || message.includes('.docx')) return 'Hujjat';
-  if (message.includes('.xls') || message.includes('.xlsx')) return 'Excel fayl';
-  if (message.length > 100) return 'Uzun xabar';
+  if (message.includes('.pdf')) return window.t?.('manufacturer.messages.chat.pdf_file', 'PDF file');
+  if (message.includes('.jpg') || message.includes('.png') || message.includes('.jpeg')) return window.t?.('manufacturer.messages.chat.image_file', 'Image');
+  if (message.includes('.doc') || message.includes('.docx')) return window.t?.('manufacturer.messages.chat.document_file', 'Document');
+  if (message.includes('.xls') || message.includes('.xlsx')) return window.t?.('manufacturer.messages.chat.excel_file', 'Excel file');
+  if (message.length > 100) return window.t?.('manufacturer.messages.chat.long_message', 'Long message');
   
-  return 'Matn xabar';
+  return window.t?.('manufacturer.messages.chat.text_message', 'Text message');
 }
 
 function updateConversationCount(total) {
@@ -630,7 +580,7 @@ function updateConversationCount(total) {
   }
 }
 
-// 🎯 ACTION FUNCTIONS
+
 function openConversation(orderId, type) {
   if (orderId) {
     window.location.href = `/manufacturer/messages/${type}/${orderId}`;
@@ -664,20 +614,6 @@ async function markAsRead(orderId, type) {
   }
 }
 
-function resetFilters() {
-  window.MessagesPage.filters = {
-    search: '',
-    status: '',
-    orderStatus: '',
-    dateFrom: '',
-    dateTo: ''
-  };
-  
-  // Reset form
-  document.getElementById('messagesFiltersForm').reset();
-  window.MessagesPage.pagination.page = 1;
-  loadConversations();
-}
 
 // 📦 BULK ACTIONS
 function handleSelectAll() {
@@ -688,30 +624,12 @@ function handleSelectAll() {
     checkbox.checked = selectAll.checked;
   });
   
-  updateBulkActions();
 }
 
-function updateBulkActions() {
-  const checkedBoxes = document.querySelectorAll('.conversation-checkbox:checked');
-  const bulkBtn = document.getElementById('bulkConversationsActionsBtn');
-  
-  if (bulkBtn) {
-    bulkBtn.style.display = checkedBoxes.length > 0 ? 'block' : 'none';
-  }
-}
-
-function showBulkActions() {
-  const checkedBoxes = document.querySelectorAll('.conversation-checkbox:checked');
-  const orderIds = Array.from(checkedBoxes).map(cb => cb.value);
-  
-  if (window.showToast) {
-    window.showToast(`${orderIds.length} ta suhbat tanlandi`, 'info');
-  }
-}
 
 function exportConversation(orderId) {
   if (window.showToast) {
-    window.showToast('Eksport funksiyasi tez orada qo\'shiladi', 'info');
+    window.showToast(window.t?.('manufacturer.messages.notifications.new_message', 'Export function will be added soon'), 'info');
   }
 }
 
@@ -771,9 +689,17 @@ function positionDropdownMenu(toggle, menu) {
 
 // 🎛️ TABLE INTERACTIONS - ORDERS PAGE EXACT STYLE
 function initializeOrdersTableInteractions() {
+
   // Checkbox interactions - Orders page style
   document.querySelectorAll('.conversation-checkbox').forEach(checkbox => {
-    checkbox.addEventListener('change', updateBulkActions);
+    checkbox.addEventListener('change', () => {
+      const checkedBoxes = document.querySelectorAll('.conversation-checkbox:checked');
+      const bulkBtn = document.getElementById('bulkConversationsActionsBtn');
+      
+      if (bulkBtn) {
+        bulkBtn.style.display = checkedBoxes.length > 0 ? 'block' : 'none';
+      }
+    });
   });
   
   // Dropdown interactions - Smart positioning
@@ -784,14 +710,12 @@ function initializeOrdersTableInteractions() {
     toggle.addEventListener('click', (e) => {
       e.stopPropagation();
       
-      // Close other menus
       document.querySelectorAll('.table-more-menu').forEach(otherMenu => {
         if (otherMenu !== menu) {
           otherMenu.classList.add('hidden');
         }
       });
       
-      // Smart positioning logic
       if (menu.classList.contains('hidden')) {
         positionDropdownMenu(toggle, menu);
         menu.classList.remove('hidden');
@@ -801,7 +725,6 @@ function initializeOrdersTableInteractions() {
     });
   });
   
-  // Close menus when clicking outside
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.table-more-actions')) {
       document.querySelectorAll('.table-more-menu').forEach(menu => {
@@ -810,32 +733,25 @@ function initializeOrdersTableInteractions() {
     }
   });
   
-  // Close and reposition menus on scroll and resize
-  let scrollTimeout;
   window.addEventListener('scroll', () => {
-    // Hide all open dropdowns on scroll for better UX
     document.querySelectorAll('.table-more-menu:not(.hidden)').forEach(menu => {
       menu.classList.add('hidden');
     });
   }, { passive: true });
   
   window.addEventListener('resize', () => {
-    // Hide all open dropdowns on resize
     document.querySelectorAll('.table-more-menu:not(.hidden)').forEach(menu => {
       menu.classList.add('hidden');
     });
   });
   
-  // Row click disabled - only action buttons work
-  // No row click functionality - users must click action buttons
   
-  // Action button clicks
   document.querySelectorAll('.table-action-btn[data-action="view"]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const conversationId = btn.dataset.conversationId;
       if (conversationId) {
-        openConversation(conversationId, 'order'); // Assuming it's an order conversation
+        openConversation(conversationId, 'order');
       }
     });
   });
@@ -844,21 +760,21 @@ function initializeOrdersTableInteractions() {
 // 📦 ADDITIONAL ACTION FUNCTIONS
 function archiveConversation(orderId) {
   if (window.showToast) {
-    window.showToast('Arxivlash funksiyasi tez orada qo\'shiladi', 'info');
+    window.showToast(window.t?.('manufacturer.messages.notifications.new_message', 'Archive function will be added soon'), 'info');
   }
 }
 
 function deleteConversation(orderId) {
-  if (confirm('Suhbatni o\'chirishni xohlaysizmi? Bu amal bekor qilinmaydi.')) {
+  if (confirm(window.t?.('manufacturer.messages.confirm.delete_conversation', 'Are you sure you want to delete this conversation? This action cannot be undone.'))) {
     if (window.showToast) {
-      window.showToast('O\'chirish funksiyasi tez orada qo\'shiladi', 'info');
+      window.showToast(window.t?.('manufacturer.messages.notifications.delete_coming_soon', 'Delete function will be added soon'), 'info');
     }
   }
 }
 
 function pinConversation(orderId) {
   if (window.showToast) {
-    window.showToast('Qadash funksiyasi tez orada qo\'shiladi', 'info');
+    window.showToast(window.t?.('manufacturer.messages.notifications.pin_coming_soon', 'Pin function will be added soon'), 'info');
   }
 }
 

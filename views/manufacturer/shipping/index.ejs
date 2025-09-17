@@ -1,4 +1,4 @@
-<%- include('../partials/header', { title: title, lng: lng || 'uz', user: user }) %>
+<%- include('../partials/header', { title: title, lng: lng, user: user }) %>
 <%- include('../partials/sidebar', { user: user, currentPage: 'shipping' }) %>
 
 <!-- Shipping Page Meta Tags -->
@@ -231,6 +231,9 @@
 </main>
 
 <%- include('../partials/footer', { user: user }) %>
+
+<!-- Professional Unified Header Management -->
+<script src="/js/manufacturer/manufacturer-header.js"></script>
 
 <!-- Shipping Page JavaScript -->
 <script src="/js/manufacturer/shipping.js"></script>

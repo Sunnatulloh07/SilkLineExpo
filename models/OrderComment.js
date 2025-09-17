@@ -183,7 +183,11 @@ orderCommentSchema.statics.getOrderComments = async function(orderId, userRole, 
         if (visibility) query.visibility = visibility;
 
         const comments = await this.find(query)
-            .populate('author', 'name email companyName role')
+            .populate({
+                path: 'author',
+                select: 'name email companyName role companyLogo',
+                options: { strictPopulate: false }
+            })
             .populate('adminActions.reviewedBy', 'name email')
             .sort({ createdAt: -1 })
             .limit(limit * 1)
@@ -196,7 +200,11 @@ orderCommentSchema.statics.getOrderComments = async function(orderId, userRole, 
             const replies = await this.find({
                 parentComment: { $in: commentIds }
             })
-            .populate('author', 'name email companyName role')
+            .populate({
+                path: 'author',
+                select: 'name email companyName role companyLogo',
+                options: { strictPopulate: false }
+            })
             .sort({ createdAt: 1 })
             .lean();
 
@@ -241,7 +249,11 @@ orderCommentSchema.statics.createComment = async function(commentData) {
         await comment.save();
         
         return await this.findById(comment._id)
-            .populate('author', 'name email companyName role')
+            .populate({
+                path: 'author',
+                select: 'name email companyName role companyLogo',
+                options: { strictPopulate: false }
+            })
             .lean();
     } catch (error) {
         throw new Error(`Failed to create comment: ${error.message}`);

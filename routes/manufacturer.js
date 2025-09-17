@@ -428,6 +428,7 @@ const boundMethods = {
   showInquiriesPage: inquiryController.showInquiriesPage.bind(inquiryController),
   getInquiriesList: inquiryController.getInquiriesList.bind(inquiryController),
   getInquiriesStats: inquiryController.getInquiriesStats.bind(inquiryController),
+  getInquiryAnalytics: inquiryController.getInquiryAnalytics.bind(inquiryController),
   getInquiry: inquiryController.getInquiry.bind(inquiryController),
   respondToInquiry: inquiryController.respondToInquiry.bind(inquiryController),
   sendQuickQuote: inquiryController.sendQuickQuote.bind(inquiryController),
@@ -726,38 +727,8 @@ router.post('/messages/api/order/:orderId/mark-read',
   MessagingController.markOrderMessagesAsRead
 );
 
-// Inquiry-based messaging routes
-router.get('/messages/api/inquiry/:inquiryId/messages',
-  authenticate,
-  manufacturerOnly,
-  MessagingController.getInquiryMessages
-);
-
-router.post('/messages/api/inquiry/:inquiryId/mark-read',
-  authenticate,
-  manufacturerOnly,
-  MessagingController.markInquiryMessagesAsRead
-);
-
-router.post('/messages/api/send', 
-  authenticate,
-  manufacturerOnly,
-  MessagingController.sendMessageValidation(),
-  MessagingController.sendMessage
-);
-
-// Static routes - MUST COME AFTER API ROUTES
-router.get('/messages/order/:orderId', 
-  authenticate,
-  manufacturerOnly,
-  MessagingController.showOrderChat
-);
-
-router.get('/messages/inquiry/:inquiryId', 
-  authenticate,
-  manufacturerOnly,
-  MessagingController.showInquiryChat
-);
+// All messaging routes moved to manufacturer-messaging.js for better organization
+// This prevents route conflicts and centralizes messaging functionality
 
 router.post('/messages/api/upload',
   authenticate,
@@ -767,9 +738,14 @@ router.post('/messages/api/upload',
 );
 
 // ===== INQUIRIES MANAGEMENT ROUTES =====
-router.get("/inquiries", boundMethods.showInquiriesPage);
+router.get("/inquiries", 
+  authenticate,
+  manufacturerOnly,
+  boundMethods.showInquiriesPage
+);
 router.get("/inquiries/api/list", validateManufacturerApiAccess, boundMethods.getInquiriesList);
 router.get("/inquiries/api/stats", validateManufacturerApiAccess, boundMethods.getInquiriesStats);
+router.get("/inquiries/api/analytics", validateManufacturerApiAccess, boundMethods.getInquiryAnalytics);
 router.get("/inquiries/api/:inquiryId", validateManufacturerApiAccess, boundMethods.getInquiry);
 router.post("/inquiries/:inquiryId/respond", validateManufacturerApiAccess, uploadAttachments.array('attachments', 5), boundMethods.respondToInquiry);
 router.post("/inquiries/:inquiryId/quick-quote", validateManufacturerApiAccess, boundMethods.sendQuickQuote);

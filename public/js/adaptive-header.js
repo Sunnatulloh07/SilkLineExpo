@@ -113,7 +113,7 @@ class AdaptiveHeaderManager {
         this.applyOptimizations();
       }
     } catch (error) {
-      console.error('Header optimization error:', error);
+      // console.error('Header optimization error:', error);
     } finally {
       this.isOptimizing = false;
     }

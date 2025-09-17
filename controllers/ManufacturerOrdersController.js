@@ -18,7 +18,7 @@ class ManufacturerOrdersController {
     static async showOrdersPage(req, res) {
         try {
             const manufacturerId = req.user?._id || req.user?.userId;
-            const lng = req.session.language || 'uz';
+            const lng = req.language || res.locals.lng || req.session.language || 'uz';
             
             if (!manufacturerId) {
                 return res.redirect('/auth/login');
@@ -83,6 +83,7 @@ class ManufacturerOrdersController {
                 title: 'Buyurtmalar - Manufacturing Dashboard',
                 lng,
                 user: req.user,
+                t: req.t,
                 orders,
                 orderStats,
                 customers: customerDetails,
@@ -108,8 +109,9 @@ class ManufacturerOrdersController {
             // Return error page or redirect to dashboard
             res.status(500).render('error/500', {
                 title: 'Server Error',
-                lng: req.session.language || 'uz',
+                lng: req.language || res.locals.lng || req.session.language || 'uz',
                 user: req.user,
+                t: req.t,
                 error: {
                     message: 'Buyurtmalar sahifasini yuklashda xatolik',
                     details: process.env.NODE_ENV === 'development' ? error.message : null
@@ -144,11 +146,33 @@ class ManufacturerOrdersController {
                     _id: orderId,
                     seller: manufacturerId
                 })
-                .populate('buyer', 'name email companyName phone address avatar')
+                .populate('buyer', 'name email companyName phone address avatar companyLogo')
+                .populate('statusHistory.updatedBy', 'name email companyName')
                 .lean();
                 
                 if (order) {
-
+                    // Ensure statusHistory exists and is properly formatted
+                    if (!order.statusHistory || order.statusHistory.length === 0) {
+                        // Create initial status history entry
+                        order.statusHistory = [
+                            {
+                                status: order.status,
+                                timestamp: order.createdAt || new Date(),
+                                updatedBy: { name: 'System', companyName: 'SLEX Platform' },
+                                notes: 'Buyurtma yaratildi'
+                            }
+                        ];
+                        
+                        // Add cancellation entry if order is cancelled
+                        if (order.status === 'cancelled' && order.cancellation) {
+                            order.statusHistory.push({
+                                status: 'cancelled',
+                                timestamp: order.cancellation.cancelledDate || new Date(),
+                                updatedBy: order.cancellation.cancelledBy || { name: 'System' },
+                                notes: order.cancellation.reason || 'Buyurtma bekor qilindi'
+                            });
+                        }
+                    }
                     
                     // Parse JSON string fields if they exist
                     if (typeof order.items === 'string') {
@@ -215,7 +239,7 @@ class ManufacturerOrdersController {
                 order = {
                 _id: orderId,
                 orderNumber: `ORD-2024-${orderId.slice(-6).toUpperCase()}`,
-                status: 'processing',
+                status: 'cancelled',
                 type: 'B2B',
                 totalAmount: 35986.00,
                 currency: 'USD',
@@ -224,6 +248,34 @@ class ManufacturerOrdersController {
                 priority: 'high',
                 paymentMethod: 'Bank Transfer',
                 paymentStatus: 'pending',
+                
+                // Status History - Real timeline simulation
+                statusHistory: [
+                    {
+                        status: 'pending',
+                        timestamp: new Date('2024-01-15T10:30:00Z'),
+                        updatedBy: { name: 'System', companyName: 'SLEX Platform' },
+                        notes: 'Buyurtma yaratildi'
+                    },
+                    {
+                        status: 'confirmed',
+                        timestamp: new Date('2024-01-15T14:20:00Z'),
+                        updatedBy: { name: 'Ahmad Karimov', companyName: 'Tech Solutions LLC' },
+                        notes: 'Buyurtma tasdiqlandi'
+                    },
+                    {
+                        status: 'processing',
+                        timestamp: new Date('2024-01-16T09:15:00Z'),
+                        updatedBy: { name: 'System', companyName: 'Manufacturing System' },
+                        notes: 'Ishlab chiqarish jarayoni boshlandi'
+                    },
+                    {
+                        status: 'cancelled',
+                        timestamp: new Date('2024-01-17T16:45:00Z'),
+                        updatedBy: { name: 'John Smith', companyName: 'Tech Solutions LLC' },
+                        notes: 'Mijoz tomonidan bekor qilindi - narx o\'zgarishi'
+                    }
+                ],
                 
                 buyer: {
                     _id: '507f1f77bcf86cd799439011',
@@ -439,6 +491,7 @@ class ManufacturerOrdersController {
                 title: `Buyurtma #${order.orderNumber || order._id.toString().slice(-8).toUpperCase()} - Manufacturing Dashboard`,
                 lng,
                 user: req.user,
+                t: req.t,
                 order,
                 currentPage: 'orders',
                 unreadMessages: unreadMessages || 0

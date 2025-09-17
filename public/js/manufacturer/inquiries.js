@@ -74,6 +74,12 @@ function initializeInquiriesPage() {
   document.getElementById('selectAllInquiries')?.addEventListener('change', handleSelectAll);
   document.getElementById('bulkInquiriesActionsBtn')?.addEventListener('click', showBulkActions);
   
+  // Refresh button functionality
+  document.getElementById('refreshInquiriesBtn2')?.addEventListener('click', function() {
+    loadInquiries();
+    loadInquiriesKPIs();
+  });
+  
   // Auto-refresh every 2 minutes for new inquiries
   setInterval(() => {
     loadInquiries(true);
@@ -142,11 +148,11 @@ async function loadInquiries(silent = false) {
   } catch (error) {
     console.error('❌ Error loading inquiries:', error);
     
-    let errorMessage = 'So\'rovlarni yuklashda xatolik yuz berdi';
+    let errorMessage = window.t?.('manufacturer.orders.detail.inquiries.javascript.load_error_general') || 'So\'rovlarni yuklashda xatolik yuz berdi';
     if (error.message.includes('HTTP')) {
-      errorMessage = 'Server bilan bog\'lanishda muammo: ' + error.message;
+      errorMessage = (window.t?.('manufacturer.orders.detail.inquiries.javascript.server_connection_error') || 'Server bilan bog\'lanishda muammo: ') + error.message;
     } else {
-      errorMessage = 'So\'rovlarni yuklashda xatolik: ' + error.message;
+      errorMessage = (window.t?.('manufacturer.orders.detail.inquiries.javascript.load_error_specific') || 'So\'rovlarni yuklashda xatolik: ') + error.message;
     }
     
     showErrorState(errorMessage);
@@ -181,7 +187,7 @@ function displayInquiries(inquiries) {
           <span class="inquiry-number">#${inquiry.inquiryNumber || inquiry._id.toString().slice(-8).toUpperCase()}</span>
           <div class="inquiry-meta">
             <span class="inquiry-type badge-sm">${getInquiryTypeText(inquiry.type)}</span>
-            ${inquiry.isUrgent ? '<span class="urgent-badge">Shoshilinch</span>' : ''}
+            ${inquiry.isUrgent ? '<span class="urgent-badge">' + (window.t?.('manufacturer.orders.detail.inquiries.priority_options.urgent') || 'Shoshilinch') + '</span>' : ''}
           </div>
         </div>
       </td>
@@ -190,8 +196,8 @@ function displayInquiries(inquiries) {
       <td>
         <div class="customer-cell">
           <div class="customer-info">
-            <h4 class="customer-name">${inquiry.inquirer?.companyName || inquiry.inquirer?.name || 'N/A'}</h4>
-            <p class="customer-contact">${inquiry.inquirer?.email || 'Email mavjud emas'}</p>
+            <h4 class="customer-name">${inquiry.inquirer?.companyName || inquiry.inquirer?.name || (window.t?.('manufacturer.orders.detail.inquiries.javascript.not_available_short') || 'N/A')}</h4>
+            <p class="customer-contact">${inquiry.inquirer?.email || (window.t?.('manufacturer.orders.detail.inquiries.javascript.email_not_available') || 'Email mavjud emas')}</p>
             ${inquiry.inquirer?.phone ? `<p class="customer-phone">${inquiry.inquirer.phone}</p>` : ''}
           </div>
         </div>
@@ -200,12 +206,12 @@ function displayInquiries(inquiries) {
       <!-- Product Column -->
       <td class="product-name-cell">
         <div class="product-name-content">
-          <span class="product-name" title="${inquiry.product?.title || inquiry.subject || 'Umumiy so\'rov'}">
-            ${truncateText(inquiry.product?.title || inquiry.subject || 'Umumiy so\'rov', 40)}
+          <span class="product-name" title="${inquiry.product?.title || inquiry.subject || (window.t?.('manufacturer.orders.detail.inquiries.javascript.general_request') || 'Umumiy so\'rov')}">
+            ${truncateText(inquiry.product?.title || inquiry.subject || (window.t?.('manufacturer.orders.detail.inquiries.javascript.general_request') || 'Umumiy so\'rov'), 40)}
           </span>
           <span class="product-category">
             <i class="fas fa-tag"></i>
-            ${inquiry.product?.category || 'Umumiy'}
+            ${inquiry.product?.category || (window.t?.('manufacturer.orders.detail.inquiries.javascript.general') || 'Umumiy')}
           </span>
         </div>
       </td>
@@ -213,8 +219,8 @@ function displayInquiries(inquiries) {
       <!-- Quantity Column -->
       <td class="quantity-cell">
         <div class="quantity-content">
-          <span class="quantity-value">${inquiry.requestedQuantity || 'N/A'}</span>
-          <span class="quantity-unit">${inquiry.unit || 'dona'}</span>
+          <span class="quantity-value">${inquiry.requestedQuantity !== null && inquiry.requestedQuantity !== undefined ? inquiry.requestedQuantity : (window.t?.('manufacturer.orders.detail.inquiries.javascript.not_available_short') || 'N/A')}</span>
+          <span class="quantity-unit">${inquiry.unit || (window.t?.('manufacturer.orders.detail.inquiries.javascript.unit_piece') || 'dona')}</span>
         </div>
       </td>
       
@@ -223,9 +229,9 @@ function displayInquiries(inquiries) {
         <div class="budget-content">
           ${inquiry.budgetRange ? 
             `<span class="budget-range">$${inquiry.budgetRange.min?.toLocaleString() || '0'} - $${inquiry.budgetRange.max?.toLocaleString() || '0'}</span>` :
-            '<span class="budget-unknown">Muhokama</span>'
+            '<span class="budget-unknown">' + (window.t?.('manufacturer.orders.detail.inquiries.javascript.discussion') || 'Muhokama') + '</span>'
           }
-          <span class="budget-currency">${inquiry.budgetRange?.currency || 'USD'}</span>
+          <span class="budget-currency">${inquiry.budgetRange?.currency || (window.t?.('manufacturer.orders.detail.inquiries.javascript.currency_usd') || 'USD')}</span>
         </div>
       </td>
       
@@ -234,7 +240,7 @@ function displayInquiries(inquiries) {
         <div class="date-cell">
           <span class="inquiry-date">${formatDateUz(inquiry.createdAt)}</span>
           <span class="inquiry-time">${formatTimeUz(inquiry.createdAt)}</span>
-          ${isRecentInquiry(inquiry.createdAt) ? '<span class="new-indicator">Yangi</span>' : ''}
+          ${isRecentInquiry(inquiry.createdAt) ? '<span class="new-indicator">' + (window.t?.('manufacturer.orders.detail.inquiries.javascript.new') || 'New') + '</span>' : ''}
         </div>
       </td>
       
@@ -255,13 +261,13 @@ function displayInquiries(inquiries) {
       <!-- Actions Column -->
       <td class="actions-cell">
         <div class="simple-table-actions">
-          <button class="simple-action-btn primary" data-action="respond" data-inquiry-id="${inquiry._id}" title="Javob berish" onclick="respondToInquiry('${inquiry._id}')">
+          <button class="simple-action-btn primary" data-action="respond" data-inquiry-id="${inquiry._id}" title="${window.t?.('manufacturer.orders.detail.inquiries.table.actions.respond') || 'Javob berish'}" onclick="respondToInquiry('${inquiry._id}')">
             <i class="fas fa-reply"></i>
           </button>
-          <button class="simple-action-btn success" data-action="quick-quote" data-inquiry-id="${inquiry._id}" title="Tezkor taklif" onclick="sendQuickQuote('${inquiry._id}')">
+          <button class="simple-action-btn success" data-action="quick-quote" data-inquiry-id="${inquiry._id}" title="${window.t?.('manufacturer.orders.detail.inquiries.table.actions.quick_quote') || 'Tezkor taklif'}" onclick="sendQuickQuote('${inquiry._id}')">
             <i class="fas fa-bolt"></i>
           </button>
-          <button class="simple-action-btn info" data-action="start-chat" data-inquiry-id="${inquiry._id}" title="Chat boshlash" onclick="startChat('${inquiry._id}')">
+          <button class="simple-action-btn info" data-action="start-chat" data-inquiry-id="${inquiry._id}" title="${window.t?.('manufacturer.orders.detail.inquiries.table.actions.start_chat') || 'Chat boshlash'}" onclick="startChat('${inquiry._id}')">
             <i class="fas fa-comments"></i>
           </button>
         </div>
@@ -309,41 +315,41 @@ function updateInquiriesKPIs(data) {
 // Utility Functions
 function getInquiryTypeText(type) {
   const typeMap = {
-    'product_inquiry': 'Mahsulot',
-    'quote_request': 'Taklif',
-    'bulk_order': 'Ulgurji',
-    'custom_order': 'Maxsus',
-    'partnership': 'Hamkorlik'
+    'product_inquiry': window.t?.('manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.product_inquiry') || 'Product',
+    'quote_request': window.t?.('manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.quote_request') || 'Quote',
+    'bulk_order': window.t?.('manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.bulk_order') || 'Wholesale',
+    'custom_order': window.t?.('manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.custom_order') || 'Custom',
+    'partnership': window.t?.('manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.partnership') || 'Partnership'
   };
-  return typeMap[type] || 'Umumiy';
+  return typeMap[type] || (window.t?.('manufacturer.orders.detail.inquiries.javascript.general') || 'General');
 }
 
 function getStatusTextUz(status) {
   const statusMap = {
-    'open': 'Ochiq',
-    'responded': 'Javob berilgan',
-    'negotiating': 'Muzokaralar',
-    'quoted': 'Taklif yuborilgan',
-    'accepted': 'Qabul qilingan',
-    'rejected': 'Rad etilgan',
-    'expired': 'Muddati tugagan',
-    'converted': 'Buyurtmaga aylandi'
+    'open': window.t?.('manufacturer.orders.detail.inquiries.status_options.open') || 'Open',
+    'responded': window.t?.('manufacturer.orders.detail.inquiries.status_options.responded') || 'Responded',
+    'negotiating': window.t?.('manufacturer.orders.detail.inquiries.status_options.negotiating') || 'Negotiating',
+    'quoted': window.t?.('manufacturer.orders.detail.inquiries.status_options.quoted') || 'Quoted',
+    'accepted': window.t?.('manufacturer.orders.detail.inquiries.status_options.accepted') || 'Accepted',
+    'rejected': window.t?.('manufacturer.orders.detail.inquiries.status_options.rejected') || 'Rejected',
+    'expired': window.t?.('manufacturer.orders.detail.inquiries.status_options.expired') || 'Expired',
+    'converted': window.t?.('manufacturer.orders.detail.inquiries.status_options.converted') || 'Converted'
   };
-  return statusMap[status] || 'Noma\'lum';
+  return statusMap[status] || (window.t?.('manufacturer.orders.detail.inquiries.javascript.unknown') || 'Unknown');
 }
 
 function getPriorityTextUz(priority) {
   const priorityMap = {
-    'urgent': 'Shoshilinch',
-    'high': 'Yuqori',
-    'medium': 'O\'rta',
-    'low': 'Past'
+    'urgent': window.t?.('manufacturer.orders.detail.inquiries.priority_options.urgent') || 'Urgent',
+    'high': window.t?.('manufacturer.orders.detail.inquiries.priority_options.high') || 'High',
+    'medium': window.t?.('manufacturer.orders.detail.inquiries.priority_options.medium') || 'Medium',
+    'low': window.t?.('manufacturer.orders.detail.inquiries.priority_options.low') || 'Low'
   };
-  return priorityMap[priority] || 'O\'rta';
+  return priorityMap[priority] || (window.t?.('manufacturer.orders.detail.inquiries.priority_options.medium') || 'Medium');
 }
 
 function formatDateUz(dateString) {
-  if (!dateString) return 'N/A';
+  if (!dateString) return (window.t?.('manufacturer.orders.detail.inquiries.javascript.not_available_short') || 'N/A');
   return new Date(dateString).toLocaleDateString('uz-UZ');
 }
 
@@ -388,8 +394,8 @@ function showLoadingState() {
           <div class="professional-loading-icon">
             <i class="fas fa-spinner fa-spin"></i>
           </div>
-          <h3 class="professional-loading-title">Yuklanmoqda...</h3>
-          <p class="professional-loading-text">So'rovlar ro'yxati yuklanmoqda, iltimos kuting</p>
+          <h3 class="professional-loading-title">${window.t?.('manufacturer.orders.detail.inquiries.javascript.loading_title') || 'Yuklanmoqda...'}</h3>
+          <p class="professional-loading-text">${window.t?.('manufacturer.orders.detail.inquiries.javascript.loading_text') || 'So\'rovlar ro\'yxati yuklanmoqda, iltimos kuting'}</p>
           <div class="professional-loading-progress">
             <div class="professional-loading-bar"></div>
           </div>
@@ -413,19 +419,18 @@ function showEmptyState() {
           <div class="professional-empty-icon">
             <i class="fas fa-envelope-open"></i>
           </div>
-          <h3 class="professional-empty-title">Hali so'rovlar yo'q</h3>
+          <h3 class="professional-empty-title">${window.t?.('manufacturer.orders.detail.inquiries.javascript.empty_title') || 'Hali so\'rovlar yo\'q'}</h3>
           <p class="professional-empty-text">
-            Mijozlar sizning mahsulotlaringizga qiziqib so'rov yuborgan vaqtda, 
-            ular shu yerda ko'rinadi. Professional javoblar bering va biznesingizni rivojlantiring.
+            ${window.t?.('manufacturer.orders.detail.inquiries.javascript.empty_description') || 'Mijozlar sizning mahsulotlaringizga qiziqib so\'rov yuborgan vaqtda, ular shu yerda ko\'rinadi. Professional javoblar bering va biznesingizni rivojlantiring.'}
           </p>
           <div class="professional-empty-actions">
             <a href="/manufacturer/marketplace" class="professional-empty-btn professional-empty-btn-primary">
               <i class="fas fa-store"></i>
-              Marketplace ga o'tish
+              ${window.t?.('manufacturer.orders.detail.inquiries.javascript.marketplace_redirect') || 'Marketplace ga o\'tish'}
             </a>
             <button class="professional-empty-btn professional-empty-btn-secondary" onclick="loadInquiries()">
               <i class="fas fa-refresh"></i>
-              Yangilash
+              ${window.t?.('manufacturer.orders.detail.inquiries.javascript.refresh') || 'Yangilash'}
             </button>
           </div>
         </div>
@@ -445,14 +450,14 @@ function showErrorState(errorMessage) {
           <div class="professional-error-icon">
             <i class="fas fa-exclamation-triangle"></i>
           </div>
-          <h3 class="professional-empty-title">Xatolik yuz berdi</h3>
+          <h3 class="professional-empty-title">${window.t?.('manufacturer.orders.detail.inquiries.javascript.error_title') || 'Xatolik yuz berdi'}</h3>
           <p class="professional-empty-text">
-            ${errorMessage}. Iltimos, qayta urinib ko'ring yoki tizim administratori bilan bog'laning.
+            ${errorMessage}. ${window.t?.('manufacturer.orders.detail.inquiries.javascript.error_description') || 'Iltimos, qayta urinib ko\'ring yoki tizim administratori bilan bog\'laning.'}
           </p>
           <div class="professional-empty-actions">
             <button class="professional-empty-btn professional-empty-btn-primary" onclick="loadInquiries()">
               <i class="fas fa-refresh"></i>
-              Qayta yuklash
+              ${window.t?.('manufacturer.orders.detail.inquiries.javascript.reload') || 'Qayta yuklash'}
             </button>
           </div>
         </div>
@@ -478,42 +483,46 @@ window.viewInquiryDetails = function(inquiryId) {
 window.changeInquiryStatus = async function(inquiryId) {
   
   const statusOptions = [
-    { value: 'open', label: 'Ochiq' },
-    { value: 'responded', label: 'Javob berilgan' },
-    { value: 'negotiating', label: 'Muzokaralar' },
-    { value: 'quoted', label: 'Taklif yuborilgan' },
-    { value: 'accepted', label: 'Qabul qilingan' },
-    { value: 'rejected', label: 'Rad etilgan' },
-    { value: 'expired', label: 'Muddati tugagan' },
-    { value: 'converted', label: 'Buyurtmaga aylandi' }
+    { value: 'open', label: window.t?.('manufacturer.orders.detail.inquiries.status_options.open') || 'Ochiq' },
+    { value: 'responded', label: window.t?.('manufacturer.orders.detail.inquiries.status_options.responded') || 'Javob berilgan' },
+    { value: 'negotiating', label: window.t?.('manufacturer.orders.detail.inquiries.status_options.negotiating') || 'Muzokaralar' },
+    { value: 'quoted', label: window.t?.('manufacturer.orders.detail.inquiries.status_options.quoted') || 'Taklif yuborilgan' },
+    { value: 'accepted', label: window.t?.('manufacturer.orders.detail.inquiries.status_options.accepted') || 'Qabul qilingan' },
+    { value: 'rejected', label: window.t?.('manufacturer.orders.detail.inquiries.status_options.rejected') || 'Rad etilgan' },
+    { value: 'expired', label: window.t?.('manufacturer.orders.detail.inquiries.status_options.expired') || 'Muddati tugagan' },
+    { value: 'converted', label: window.t?.('manufacturer.orders.detail.inquiries.status_options.converted') || 'Buyurtmaga aylandi' }
   ];
   
-  const selectedStatus = await showSelectModal('So\'rov holatini o\'zgartirish', 'Yangi holatni tanlang:', statusOptions);
+  const selectedStatus = await showSelectModal(window.t?.('manufacturer.orders.detail.inquiries.javascript.change_status_title') || 'So\'rov holatini o\'zgartirish', window.t?.('manufacturer.orders.detail.inquiries.javascript.select_new_status') || 'Yangi holatni tanlang:', statusOptions);
   
   if (selectedStatus) {
-    await makeInquiryApiRequest(`/manufacturer/inquiries/${inquiryId}/status`, 'PATCH', { status: selectedStatus }, 'So\'rov holati muvaffaqiyatli o\'zgartirildi');
+    await makeInquiryApiRequest(`/manufacturer/inquiries/${inquiryId}/status`, 'PATCH', { status: selectedStatus }, window.t?.('manufacturer.orders.detail.inquiries.javascript.status_change_success') || 'So\'rov holati muvaffaqiyatli o\'zgartirildi');
   }
 }
 
 window.setPriority = async function(inquiryId) {
   
   const priorityOptions = [
-    { value: 'low', label: 'Past' },
-    { value: 'medium', label: 'O\'rta' },
-    { value: 'high', label: 'Yuqori' },
-    { value: 'urgent', label: 'Shoshilinch' }
+    { value: 'low', label: window.t?.('manufacturer.orders.detail.inquiries.priority_options.low') || 'Past' },
+    { value: 'medium', label: window.t?.('manufacturer.orders.detail.inquiries.priority_options.medium') || 'O\'rta' },
+    { value: 'high', label: window.t?.('manufacturer.orders.detail.inquiries.priority_options.high') || 'Yuqori' },
+    { value: 'urgent', label: window.t?.('manufacturer.orders.detail.inquiries.priority_options.urgent') || 'Shoshilinch' }
   ];
   
-  const selectedPriority = await showSelectModal('So\'rov muhimligini belgilash', 'Muhimlik darajasini tanlang:', priorityOptions);
+  const selectedPriority = await showSelectModal(window.t?.('manufacturer.orders.detail.inquiries.javascript.set_priority_title') || 'So\'rov muhimligini belgilash', window.t?.('manufacturer.orders.detail.inquiries.javascript.select_priority') || 'Muhimlik darajasini tanlang:', priorityOptions);
   
   if (selectedPriority) {
-    await makeInquiryApiRequest(`/manufacturer/inquiries/${inquiryId}/priority`, 'PATCH', { priority: selectedPriority }, 'So\'rov muhimligi muvaffaqiyatli belgilandi');
+    await makeInquiryApiRequest(`/manufacturer/inquiries/${inquiryId}/priority`, 'PATCH', { priority: selectedPriority }, window.t?.('manufacturer.orders.detail.inquiries.javascript.priority_change_success') || 'So\'rov muhimligi muvaffaqiyatli belgilandi');
   }
 }
 
 window.scheduleFollowUp = async function(inquiryId) {
   
-  const days = await showPromptModal('Kuzatuvni rejalashtirish', 'Necha kun ichida kuzatuv qilish kerak?', '7');
+  const days = await showPromptModal(
+    window.t?.('manufacturer.orders.detail.inquiries.javascript.schedule_followup_title') || 'Kuzatuvni rejalashtirish', 
+    window.t?.('manufacturer.orders.detail.inquiries.javascript.schedule_followup_message') || 'Necha kun ichida kuzatuv qilish kerak?', 
+    '7'
+  );
   
   if (days && !isNaN(days)) {
     try {
@@ -522,11 +531,11 @@ window.scheduleFollowUp = async function(inquiryId) {
       
       if (data.success) {
         await data.inquiry.scheduleFollowUp(parseInt(days));
-        showToastMessage('Kuzatuv muvaffaqiyatli rejalashtirildi', 'success');
+        showToastMessage(window.t?.('manufacturer.orders.detail.inquiries.javascript.followup_scheduled_success') || 'Kuzatuv muvaffaqiyatli rejalashtirildi', 'success');
         loadInquiries();
       }
     } catch (error) {
-      showToastMessage('Kuzatuvni rejalashtirishda xatolik: ' + error.message, 'error');
+      showToastMessage((window.t?.('manufacturer.orders.detail.inquiries.javascript.followup_schedule_error') || 'Kuzatuvni rejalashtirishda xatolik') + ': ' + error.message, 'error');
     }
   }
 }
@@ -560,12 +569,12 @@ window.startChat = async function(inquiryId) {
       showCustomerContactModal(inquiry);
       
     } else {
-      showToastMessage('So\'rov ma\'lumotlari topilmadi', 'error');
+      showToastMessage(window.t?.('manufacturer.orders.detail.inquiries.javascript.inquiry_data_not_found') || 'So\'rov ma\'lumotlari topilmadi', 'error');
     }
     
   } catch (error) {
     console.error('Ma\'lumotlarni yuklashda xatolik:', error);
-    showToastMessage('Ma\'lumotlarni yuklashda xatolik', 'error');
+    showToastMessage(window.t?.('manufacturer.orders.detail.inquiries.javascript.data_load_error') || 'Ma\'lumotlarni yuklashda xatolik', 'error');
     
     // Restore button state
     const chatBtn = document.querySelector(`[onclick="startChat('${inquiryId}')"]`);
@@ -585,7 +594,7 @@ function showCustomerContactModal(inquiry) {
       <div class="modal-header">
         <h3 class="modal-title">
           <i class="fas fa-user-tie"></i>
-          Mijoz bilan bog'lanish
+          ${window.t?.('manufacturer.orders.detail.inquiries.javascript.contact_customer_title') || 'Mijoz bilan bog\'lanish'}
         </h3>
         <button class="modal-close" onclick="this.closest('.customer-contact-modal-overlay').remove();">
           <i class="fas fa-times"></i>
@@ -598,53 +607,53 @@ function showCustomerContactModal(inquiry) {
               <i class="fas fa-building"></i>
             </div>
             <div class="customer-details">
-              <h4>${inquiry.inquirer?.companyName || inquiry.inquirer?.name || 'Mijoz'}</h4>
-              <p class="customer-type">Biznes hamkor</p>
+              <h4>${inquiry.inquirer?.companyName || inquiry.inquirer?.name || (window.t?.('manufacturer.orders.detail.inquiries.javascript.customer') || 'Mijoz')}</h4>
+              <p class="customer-type">${window.t?.('manufacturer.orders.detail.inquiries.javascript.business_partner') || 'Biznes hamkor'}</p>
             </div>
           </div>
           
           <div class="inquiry-summary">
-            <h5>So'rov haqida:</h5>
-            <p><strong>Mavzu:</strong> ${inquiry.subject || 'Umumiy so\'rov'}</p>
-            <p><strong>Mahsulot:</strong> ${inquiry.product?.title || 'N/A'}</p>
-            <p><strong>Miqdor:</strong> ${inquiry.requestedQuantity || 'N/A'} ${inquiry.unit || 'dona'}</p>
+            <h5>${window.t?.('manufacturer.orders.detail.inquiries.javascript.about_inquiry') || 'About inquiry'}:</h5>
+            <p><strong>${window.t?.('manufacturer.orders.detail.inquiries.javascript.subject_label') || 'Subject'}:</strong> ${inquiry.subject || (window.t?.('manufacturer.orders.detail.inquiries.javascript.general_request') || 'Umumiy so\'rov')}</p>
+            <p><strong>${window.t?.('manufacturer.orders.detail.inquiries.javascript.product_label') || 'Product'}:</strong> ${inquiry.product?.title || (window.t?.('manufacturer.orders.detail.inquiries.javascript.not_available_short') || 'N/A')}</p>
+            <p><strong>${window.t?.('manufacturer.orders.detail.inquiries.javascript.quantity_label') || 'Quantity'}:</strong> ${inquiry.requestedQuantity || (window.t?.('manufacturer.orders.detail.inquiries.javascript.not_available_short') || 'N/A')} ${inquiry.unit || (window.t?.('manufacturer.orders.detail.inquiries.javascript.unit_piece') || 'dona')}</p>
             ${inquiry.budgetRange ? 
-              `<p><strong>Byudjet:</strong> $${inquiry.budgetRange.min?.toLocaleString() || '0'} - $${inquiry.budgetRange.max?.toLocaleString() || '0'}</p>` : 
+              `<p><strong>${window.t?.('manufacturer.orders.detail.inquiries.javascript.budget_label') || 'Budget'}:</strong> $${inquiry.budgetRange.min?.toLocaleString() || '0'} - $${inquiry.budgetRange.max?.toLocaleString() || '0'}</p>` : 
               ''
             }
           </div>
           
           <div class="contact-options">
-            <h5>Aloqa usullari:</h5>
+            <h5>${window.t?.('manufacturer.orders.detail.inquiries.javascript.contact_methods') || 'Contact methods'}:</h5>
             ${inquiry.inquirer?.email ? 
-              `<button class="contact-btn email-btn" onclick="window.open('mailto:${inquiry.inquirer.email}?subject=Re: ${inquiry.subject || 'So\'rov'}')">
+              `<button class="contact-btn email-btn" onclick="window.open('mailto:${inquiry.inquirer.email}?subject=Re: ${inquiry.subject || (window.t?.('manufacturer.orders.detail.inquiries.javascript.inquiry_subject_fallback') || 'So\'rov')}')">
                 <i class="fas fa-envelope"></i>
-                <span>Email yuborish</span>
+                <span>${window.t?.('manufacturer.orders.detail.inquiries.javascript.send_email') || 'Send email'}</span>
                 <small>${inquiry.inquirer.email}</small>
               </button>` : ''
             }
             ${inquiry.inquirer?.phone ? 
               `<button class="contact-btn phone-btn" onclick="window.open('tel:${inquiry.inquirer.phone}')">
                 <i class="fas fa-phone"></i>
-                <span>Qo'ng'iroq qilish</span>
+                <span>${window.t?.('manufacturer.orders.detail.inquiries.javascript.make_call') || 'Make call'}</span>
                 <small>${inquiry.inquirer.phone}</small>
               </button>` : ''
             }
             <button class="contact-btn message-btn" onclick="sendMessage('${inquiry._id}'); this.closest('.customer-contact-modal-overlay').remove();">
               <i class="fas fa-comment-dots"></i>
-              <span>Tizim orqali xabar</span>
-              <small>Javob yuborish</small>
+              <span>${window.t?.('manufacturer.orders.detail.inquiries.javascript.system_message') || 'System message'}</span>
+              <small>${window.t?.('manufacturer.orders.detail.inquiries.javascript.send_response') || 'Send response'}</small>
             </button>
           </div>
         </div>
       </div>
       <div class="modal-actions">
         <button class="orders-btn orders-btn-secondary" onclick="this.closest('.customer-contact-modal-overlay').remove();">
-          Yopish
+          ${window.t?.('manufacturer.orders.detail.inquiries.javascript.close_button') || 'Close'}
         </button>
         <button class="orders-btn orders-btn-primary" onclick="respondToInquiry('${inquiry._id}'); this.closest('.customer-contact-modal-overlay').remove();">
           <i class="fas fa-reply"></i>
-          Javob berish
+          ${window.t?.('manufacturer.orders.detail.inquiries.javascript.respond_button') || 'Respond'}
         </button>
       </div>
     </div>
@@ -707,7 +716,10 @@ window.addNote = async function(inquiryId) {
 
 window.duplicateInquiry = async function(inquiryId) {
   
-  const confirmed = await showConfirmModal('So\'rovni nusxalash', 'Haqiqatan ham ushbu so\'rovni nusxalashni xohlaysizmi?');
+  const confirmed = await showConfirmModal(
+    window.t?.('manufacturer.orders.detail.inquiries.javascript.copy_inquiry_title') || 'So\'rovni nusxalash', 
+    window.t?.('manufacturer.orders.detail.inquiries.javascript.copy_inquiry_confirm') || 'Haqiqatan ham ushbu so\'rovni nusxalashni xohlaysizmi?'
+  );
   
   if (confirmed) {
     await makeInquiryApiRequest(`/manufacturer/inquiries/${inquiryId}/duplicate`, 'POST', {}, 'So\'rov muvaffaqiyatli nusxalandi');
@@ -736,12 +748,12 @@ window.exportInquiry = async function(inquiryId) {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
       
-      showToastMessage('So\'rov ma\'lumotlari muvaffaqiyatli eksport qilindi', 'success');
+      showToastMessage(window.t?.('manufacturer.orders.detail.inquiries.javascript.export_success') || 'So\'rov ma\'lumotlari muvaffaqiyatli eksport qilindi', 'success');
     } else {
       throw new Error(data.message || 'Export failed');
     }
   } catch (error) {
-    showToastMessage('Eksport qilishda xatolik: ' + error.message, 'error');
+    showToastMessage((window.t?.('manufacturer.orders.detail.inquiries.javascript.export_error') || 'Eksport qilishda xatolik') + ': ' + error.message, 'error');
   }
 }
 
@@ -752,41 +764,41 @@ window.shareInquiry = async function(inquiryId) {
   if (navigator.share) {
     try {
       await navigator.share({
-        title: 'Biznes So\'rovi',
-        text: 'So\'rov ma\'lumotlari',
+        title: window.t?.('manufacturer.orders.detail.inquiries.javascript.business_inquiry') || 'Biznes So\'rovi',
+        text: window.t?.('manufacturer.orders.detail.inquiries.javascript.inquiry_data') || 'So\'rov ma\'lumotlari',
         url: inquiryUrl
       });
-      showToastMessage('So\'rov muvaffaqiyatli ulashildi', 'success');
+      showToastMessage(window.t?.('manufacturer.orders.detail.inquiries.javascript.share_success') || 'So\'rov muvaffaqiyatli ulashildi', 'success');
     } catch (error) {
       if (error.name !== 'AbortError') {
-        showToastMessage('Ulashishda xatolik: ' + error.message, 'error');
+        showToastMessage((window.t?.('manufacturer.orders.detail.inquiries.javascript.share_error') || 'Ulashishda xatolik') + ': ' + error.message, 'error');
       }
     }
   } else {
     // Fallback: copy to clipboard
     try {
       await navigator.clipboard.writeText(inquiryUrl);
-      showToastMessage('Havola nusxalandi', 'success');
+      showToastMessage(window.t?.('manufacturer.orders.detail.inquiries.javascript.link_copied') || 'Havola nusxalandi', 'success');
     } catch (error) {
-      showToastMessage('Havolani nusxalashda xatolik', 'error');
+      showToastMessage(window.t?.('manufacturer.orders.detail.inquiries.javascript.link_copy_error') || 'Havolani nusxalashda xatolik', 'error');
     }
   }
 }
 
 window.archiveInquiry = async function(inquiryId) {
 
-  const confirmed = await showConfirmModal('So\'rovni arxivlash', 'Haqiqatan ham ushbu so\'rovni arxivlashni xohlaysizmi? Arxivlangan so\'rovlar alohida ro\'yxatda ko\'rsatiladi.');
+  const confirmed = await showConfirmModal(window.t?.('manufacturer.orders.detail.inquiries.javascript.archive_inquiry') || 'So\'rovni arxivlash', window.t?.('manufacturer.orders.detail.inquiries.javascript.archive_confirm') || 'Haqiqatan ham ushbu so\'rovni arxivlashni xohlaysizmi? Arxivlangan so\'rovlar alohida ro\'yxatda ko\'rsatiladi.');
   
   if (confirmed) {
-    await makeInquiryApiRequest(`/manufacturer/inquiries/${inquiryId}/archive`, 'POST', {}, 'So\'rov muvaffaqiyatli arxivlandi');
+    await makeInquiryApiRequest(`/manufacturer/inquiries/${inquiryId}/archive`, 'POST', {}, window.t?.('manufacturer.orders.detail.inquiries.javascript.archive_success') || 'So\'rov muvaffaqiyatli arxivlandi');
   }
 }
 
 window.deleteInquiry = async function(inquiryId) {
-  const confirmed = await showConfirmModal('So\'rovni o\'chirish', 'Diqqat! Ushbu so\'rovni o\'chirishni xohlaysizmi? Bu amalni bekor qilib bo\'lmaydi.', 'danger');
+  const confirmed = await showConfirmModal(window.t?.('manufacturer.orders.detail.inquiries.javascript.delete_inquiry') || 'So\'rovni o\'chirish', window.t?.('manufacturer.orders.detail.inquiries.javascript.delete_confirm') || 'Diqqat! Ushbu so\'rovni o\'chirishni xohlaysizmi? Bu amalni bekor qilib bo\'lmaydi.', 'danger');
   
   if (confirmed) {
-    await makeInquiryApiRequest(`/manufacturer/inquiries/${inquiryId}`, 'DELETE', {}, 'So\'rov muvaffaqiyatli o\'chirildi');
+    await makeInquiryApiRequest(`/manufacturer/inquiries/${inquiryId}`, 'DELETE', {}, window.t?.('manufacturer.orders.detail.inquiries.javascript.delete_success') || 'So\'rov muvaffaqiyatli o\'chirildi');
   }
 }
 
@@ -1109,7 +1121,7 @@ function initializeFileUpload() {
       // Validate file type
       if (!allowedTypes.includes(file.type)) {
         if (window.showToast) {
-          window.showToast(`Fayl turi qo'llab-quvvatlanmaydi: ${file.name}`, 'error');
+          window.showToast((window.t?.('manufacturer.orders.detail.inquiries.javascript.file_type_error') || 'Fayl turi qo\'llab-quvvatlanmaydi: ') + file.name, 'error');
         }
         return;
       }
@@ -1117,7 +1129,7 @@ function initializeFileUpload() {
       // Validate file size
       if (file.size > maxFileSize) {
         if (window.showToast) {
-          window.showToast(`Fayl hajmi 10MB dan oshmasligi kerak: ${file.name}`, 'error');
+          window.showToast((window.t?.('manufacturer.orders.detail.inquiries.javascript.file_size_error') || 'Fayl hajmi 10MB dan oshmasligi kerak: ') + file.name, 'error');
         }
         return;
       }
@@ -1125,7 +1137,7 @@ function initializeFileUpload() {
       // Check total files limit
       if (selectedFiles.length >= maxFiles) {
         if (window.showToast) {
-          window.showToast(`Maksimal ${maxFiles} ta fayl yuklash mumkin`, 'warning');
+          window.showToast((window.t?.('manufacturer.orders.detail.inquiries.javascript.max_files_error') || 'Maksimal ') + maxFiles + (window.t?.('manufacturer.orders.detail.inquiries.javascript.max_files_suffix') || ' ta fayl yuklash mumkin'), 'warning');
         }
         return;
       }
@@ -1133,7 +1145,7 @@ function initializeFileUpload() {
       // Check for duplicates
       if (selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
         if (window.showToast) {
-          window.showToast(`Fayl allaqachon tanlangan: ${file.name}`, 'warning');
+          window.showToast((window.t?.('manufacturer.orders.detail.inquiries.javascript.file_already_selected') || 'Fayl allaqachon tanlangan: ') + file.name, 'warning');
         }
         return;
       }
@@ -1178,7 +1190,9 @@ function initializeFileUpload() {
   function updateFileCounter() {
     const counter = document.getElementById('fileCounter');
     if (counter) {
-      counter.textContent = selectedFiles.length > 0 ? `${selectedFiles.length} ta fayl tanlandi` : 'Fayl tanlanmagan';
+      counter.textContent = selectedFiles.length > 0 ? 
+        `${selectedFiles.length}${window.t?.('manufacturer.orders.detail.inquiries.javascript.files_selected') || ' ta fayl tanlandi'}` : 
+        (window.t?.('manufacturer.orders.detail.inquiries.javascript.no_file_selected') || 'Fayl tanlanmagan');
     }
   }
   
@@ -1303,7 +1317,7 @@ function loadInquiryDataForModal(inquiryId) {
         document.getElementById('modalInquiryId').textContent = inquiry.inquiryNumber;
         document.getElementById('modalCustomerName').textContent = inquiry.inquirer?.companyName || inquiry.inquirer?.name;
         document.getElementById('modalProductName').textContent = inquiry.product?.title || inquiry.subject;
-        document.getElementById('modalQuantity').textContent = `${inquiry.requestedQuantity || 'N/A'} ${inquiry.unit || 'dona'}`;
+        document.getElementById('modalQuantity').textContent = `${inquiry.requestedQuantity || (window.t?.('manufacturer.orders.detail.inquiries.javascript.not_available_short') || 'N/A')} ${inquiry.unit || (window.t?.('manufacturer.orders.detail.inquiries.javascript.unit_piece') || 'dona')}`;
         document.getElementById('modalBudget').textContent = inquiry.budgetRange 
           ? `$${inquiry.budgetRange.min?.toLocaleString() || '0'} - $${inquiry.budgetRange.max?.toLocaleString() || '0'}`
           : 'Muhokama';
@@ -1505,7 +1519,7 @@ async function handleSaveAsDraft() {
     const draftBtn = document.getElementById('saveAsDraft');
     const originalText = draftBtn.textContent;
     draftBtn.disabled = true;
-    draftBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saqlanmoqda...';
+    draftBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (window.t?.('manufacturer.orders.detail.inquiries.javascript.saving') || 'Saqlanmoqda...');
     
     // Collect form data
     const formData = new FormData(form);
@@ -1518,7 +1532,7 @@ async function handleSaveAsDraft() {
     } else if (responseType === 'custom_proposal') {
       message = formData.get('customProposalMessage') || '';
     } else if (responseType === 'detailed_quote') {
-      message = 'Batafsil narx taklifi (Draft)';
+      message = window.t?.('manufacturer.orders.detail.inquiries.javascript.detailed_quote_draft') || 'Batafsil narx taklifi (Draft)';
     }
     
     const draftData = {
@@ -1555,7 +1569,7 @@ async function handleSaveAsDraft() {
       draftBtn.style.background = '';
       
       if (window.showToast) {
-        window.showToast('Draft muvaffaqiyatli saqlandi!', 'success');
+        window.showToast(window.t?.('manufacturer.orders.detail.inquiries.javascript.draft_saved') || 'Draft muvaffaqiyatli saqlandi!', 'success');
       }
     }, 2000);
     
@@ -1601,7 +1615,7 @@ async function handleInquiryResponse() {
     
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Yuborilmoqda...';
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (window.t?.('manufacturer.orders.detail.inquiries.javascript.sending') || 'Yuborilmoqda...');
     
     // Collect form data professionally
     const formData = new FormData(form);
@@ -1614,12 +1628,12 @@ async function handleInquiryResponse() {
     } else if (responseType === 'custom_proposal') {
       message = formData.get('customProposalMessage') || '';
     } else if (responseType === 'detailed_quote') {
-      message = 'Batafsil narx taklifi'; // Default message for detailed quotes
+      message = window.t?.('manufacturer.orders.detail.inquiries.javascript.detailed_quote') || 'Batafsil narx taklifi'; // Default message for detailed quotes
     }
     
     // Validate message
     if (!message.trim()) {
-      throw new Error('Javob matni kiritilishi shart');
+      throw new Error(window.t?.('manufacturer.orders.detail.inquiries.javascript.response_required') || 'Javob matni kiritilishi shart');
     }
     
     const responseData = {
@@ -1675,13 +1689,13 @@ async function handleInquiryResponse() {
     
     if (result.success) {
       // Success animation
-      submitBtn.innerHTML = '<i class="fas fa-check"></i> Muvaffaqiyatli!';
+      submitBtn.innerHTML = '<i class="fas fa-check"></i> ' + (window.t?.('manufacturer.orders.detail.inquiries.javascript.success') || 'Muvaffaqiyatli!');
       submitBtn.style.background = '#52C41A';
       
       setTimeout(() => {
         document.getElementById('inquiryResponseModal').classList.remove('show');
         if (window.showToast) {
-          window.showToast('Javob muvaffaqiyatli yuborildi!', 'success');
+          window.showToast(window.t?.('manufacturer.orders.detail.inquiries.javascript.response_sent') || 'Javob muvaffaqiyatli yuborildi!', 'success');
         }
         loadInquiries(); // Refresh the list
         
@@ -1741,7 +1755,7 @@ async function handleQuickQuote() {
     
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Yuborilmoqda...';
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (window.t?.('manufacturer.orders.detail.inquiries.javascript.sending') || 'Yuborilmoqda...');
     
     // Collect form data professionally
     const formData = new FormData(form);
@@ -1765,7 +1779,7 @@ async function handleQuickQuote() {
     
     // Validation
     if (unitPrice <= 0) {
-      throw new Error('Birlik narxi 0 dan katta bo\'lishi kerak');
+      throw new Error(window.t?.('manufacturer.orders.detail.inquiries.javascript.unit_price_error') || 'Birlik narxi 0 dan katta bo\'lishi kerak');
     }
     
     
@@ -1788,7 +1802,7 @@ async function handleQuickQuote() {
       setTimeout(() => {
         document.getElementById('quickQuoteModal').classList.remove('show');
         if (window.showToast) {
-          window.showToast(`Tezkor taklif yuborildi: $${totalPrice.toLocaleString()}`, 'success');
+          window.showToast((window.t?.('manufacturer.orders.detail.inquiries.javascript.quick_quote_sent') || 'Tezkor taklif yuborildi: $') + totalPrice.toLocaleString(), 'success');
         }
         loadInquiries(); // Refresh the list
         
@@ -1968,7 +1982,7 @@ async function makeInquiryApiRequest(url, method, data, successMessage) {
     }
   } catch (error) {
     console.error('API request error:', error);
-    showToastMessage('Xatolik: ' + error.message, 'error');
+    showToastMessage((window.t?.('manufacturer.orders.detail.inquiries.javascript.error_prefix') || 'Xatolik: ') + error.message, 'error');
     throw error;
   }
 }
@@ -2002,10 +2016,10 @@ async function showConfirmModal(title, message, type = 'warning') {
         </div>
         <div class="modal-actions">
           <button class="orders-btn orders-btn-secondary" onclick="this.closest('.modal-overlay').remove(); resolve(false);">
-            Bekor qilish
+            ${window.t?.('manufacturer.orders.detail.inquiries.javascript.cancel') || 'Bekor qilish'}
           </button>
           <button class="orders-btn orders-btn-${type === 'danger' ? 'danger' : 'primary'}" onclick="this.closest('.modal-overlay').remove(); resolve(true);">
-            ${type === 'danger' ? 'O\'chirish' : 'Tasdiqlash'}
+            ${type === 'danger' ? (window.t?.('manufacturer.orders.detail.inquiries.javascript.delete') || 'O\'chirish') : (window.t?.('manufacturer.orders.detail.inquiries.javascript.confirm') || 'Tasdiqlash')}
           </button>
         </div>
       </div>
@@ -2017,7 +2031,7 @@ async function showConfirmModal(title, message, type = 'warning') {
     modal.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        const isConfirm = btn.textContent.trim() !== 'Bekor qilish';
+        const isConfirm = btn.textContent.trim() !== (window.t?.('manufacturer.orders.detail.inquiries.javascript.cancel') || 'Bekor qilish');
         modal.remove();
         resolve(isConfirm);
       });
@@ -2053,20 +2067,20 @@ async function showSelectModal(title, message, options) {
         <div class="modal-body">
           <p style="margin: 0 0 1rem; font-size: 1rem;">${message}</p>
           <select class="form-control" id="modalSelect" style="width: 100%; padding: 0.75rem;">
-            <option value="">Tanlang...</option>
+            <option value="">${window.t?.('manufacturer.orders.detail.inquiries.javascript.select_option') || 'Tanlang...'}</option>
             ${options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('')}
           </select>
         </div>
         <div class="modal-actions">
           <button class="orders-btn orders-btn-secondary" onclick="this.closest('.modal-overlay').remove(); resolve(null);">
-            Bekor qilish
+            ${window.t?.('manufacturer.orders.detail.inquiries.javascript.cancel') || 'Bekor qilish'}
           </button>
           <button class="orders-btn orders-btn-primary" onclick="
             const value = this.closest('.modal-overlay').querySelector('#modalSelect').value;
             this.closest('.modal-overlay').remove();
             resolve(value || null);
           ">
-            Tasdiqlash
+            ${window.t?.('manufacturer.orders.detail.inquiries.javascript.confirm') || 'Tasdiqlash'}
           </button>
         </div>
       </div>
@@ -2091,6 +2105,201 @@ async function showSelectModal(title, message, options) {
   });
 }
 
+// Professional Product Name Truncation Function
+function truncateProductName(name, maxLength = 30) {
+  if (!name || typeof name !== 'string') {
+    return 'N/A';
+  }
+  
+  if (name.length <= maxLength) {
+    return name;
+  }
+  
+  return name.substring(0, maxLength - 3) + '...';
+}
+
+// Update Modal Product Information
+function updateModalProductInfo(inquiry) {
+  try {
+    // Update customer name
+    const customerName = inquiry.inquirer?.companyName || inquiry.inquirer?.name || 'Unknown Customer';
+    document.getElementById('modalCustomerName').textContent = customerName;
+    
+    // Update product name with truncation and full title
+    const productName = inquiry.product?.name || 'Unknown Product';
+    const productNameElement = document.getElementById('modalProductName');
+    productNameElement.textContent = truncateProductName(productName);
+    productNameElement.title = productName; // Full name in tooltip
+    
+    // Update quantity
+    const quantity = inquiry.quantity || inquiry.quantityRequested || 0;
+    const unit = inquiry.unit || inquiry.product?.inventory?.unit || 'pieces';
+    document.getElementById('modalQuantity').textContent = `${quantity} ${unit}`;
+    
+    // Update budget
+    const budgetMin = inquiry.budgetMin || inquiry.budgetRange?.min || 0;
+    const budgetMax = inquiry.budgetMax || inquiry.budgetRange?.max || 0;
+    const currency = inquiry.budgetCurrency || inquiry.currency || 'USD';
+    const budgetText = budgetMin && budgetMax ? 
+      `${currency} ${budgetMin.toLocaleString()} - ${budgetMax.toLocaleString()}` :
+      budgetMin ? `${currency} ${budgetMin.toLocaleString()}+` :
+      'Not specified';
+    document.getElementById('modalBudget').textContent = budgetText;
+    
+    // Update inquiry date
+    const inquiryDate = inquiry.createdAt ? 
+      new Date(inquiry.createdAt).toLocaleDateString() : 
+      'Unknown';
+    document.getElementById('modalInquiryDate').textContent = inquiryDate;
+    
+    // Update priority
+    const priority = inquiry.priority || 'medium';
+    const priorityElement = document.getElementById('modalPriority');
+    priorityElement.innerHTML = `<span class="priority-badge priority-${priority}">${priority.charAt(0).toUpperCase() + priority.slice(1)}</span>`;
+    
+    // Update status
+    const status = inquiry.status || 'open';
+    const statusElement = document.getElementById('modalStatus');
+    statusElement.innerHTML = `<span class="status-badge status-${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+    
+    // Update inquiry ID
+    const inquiryId = inquiry.inquiryId || inquiry._id || 'Unknown';
+    document.getElementById('modalInquiryId').textContent = `#INQ-${inquiryId}`;
+    
+  } catch (error) {
+    console.error('❌ Error updating modal product information:', error);
+  }
+}
+
+// Global function to respond to inquiry
+async function respondToInquiry(inquiryId) {
+  try {
+    // Get inquiry details first
+    const inquiryResponse = await fetch(`/manufacturer/inquiries/api/${inquiryId}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    if (!inquiryResponse.ok) {
+      throw new Error(`Failed to fetch inquiry details: ${inquiryResponse.status}`);
+    }
+    
+    const inquiryData = await inquiryResponse.json();
+    if (!inquiryData.success) {
+      throw new Error(inquiryData.message || 'Failed to load inquiry details');
+    }
+    
+    const inquiry = inquiryData.inquiry;
+    
+    // Update modal with inquiry data
+    updateModalProductInfo(inquiry);
+    
+    // Show the modal
+    const modal = document.getElementById('inquiryResponseModal');
+    if (modal) {
+      modal.style.display = 'block';
+      modal.classList.add('active');
+      
+      // Add escape key listener
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          closeInquiryResponseModal();
+          document.removeEventListener('keydown', handleEscape);
+        }
+      };
+      document.addEventListener('keydown', handleEscape);
+      
+    } else {
+      throw new Error('Response modal not found');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error opening response modal:', error);
+    alert('So\'rovga javob berish modalini ochishda xatolik yuz berdi. Sahifani qayta yuklang.');
+  }
+}
+
+// Global function to close response modal
+function closeInquiryResponseModal() {
+  const modal = document.getElementById('inquiryResponseModal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('active');
+  }
+}
+
+// Global function for quick quote
+async function sendQuickQuote(inquiryId) {
+  try {
+    // Get inquiry details first
+    const inquiryResponse = await fetch(`/manufacturer/inquiries/api/${inquiryId}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    if (!inquiryResponse.ok) {
+      throw new Error(`Failed to fetch inquiry details: ${inquiryResponse.status}`);
+    }
+    
+    const inquiryData = await inquiryResponse.json();
+    if (!inquiryData.success) {
+      throw new Error(inquiryData.message || 'Failed to load inquiry details');
+    }
+    
+    const inquiry = inquiryData.inquiry;
+    
+    // Update modal with inquiry data
+    updateModalProductInfo(inquiry);
+    
+    // Show quick quote modal
+    const modal = document.getElementById('quickQuoteModal');
+    if (modal) {
+      modal.style.display = 'block';
+      modal.classList.add('active');
+    } else {
+      throw new Error('Quick quote modal not found');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error opening quick quote modal:', error);
+    alert('Tezkor taklif modalini ochishda xatolik yuz berdi. Sahifani qayta yuklang.');
+  }
+}
+
+// Global function to start chat
+async function startChat(inquiryId) {
+  try {
+    // Get inquiry details first
+    const inquiryResponse = await fetch(`/manufacturer/inquiries/api/${inquiryId}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    if (!inquiryResponse.ok) {
+      throw new Error(`Failed to fetch inquiry details: ${inquiryResponse.status}`);
+    }
+    
+    const inquiryData = await inquiryResponse.json();
+    if (!inquiryData.success) {
+      throw new Error(inquiryData.message || 'Failed to load inquiry details');
+    }
+    
+    const inquiry = inquiryData.inquiry;
+    
+    // Redirect to messages page with inquiry context
+    const inquirerId = inquiry.inquirer?._id || inquiry.inquirer?.id;
+    if (inquirerId) {
+      window.location.href = `/manufacturer/messages?inquiry=${inquiryId}&manufacturer=${inquirerId}`;
+    } else {
+      throw new Error('Inquirer information not available');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error starting chat:', error);
+    alert('Chat boshlashda xatolik yuz berdi. Sahifani qayta yuklang.');
+  }
+}
+
 async function showTextareaModal(title, message, placeholder = '') {
   return new Promise((resolve) => {
     const modal = document.createElement('div');
@@ -2112,14 +2321,14 @@ async function showTextareaModal(title, message, placeholder = '') {
         </div>
         <div class="modal-actions">
           <button class="orders-btn orders-btn-secondary" onclick="this.closest('.modal-overlay').remove(); resolve(null);">
-            Bekor qilish
+            ${window.t?.('manufacturer.orders.detail.inquiries.javascript.cancel') || 'Bekor qilish'}
           </button>
           <button class="orders-btn orders-btn-primary" onclick="
             const value = this.closest('.modal-overlay').querySelector('#modalTextarea').value;
             this.closest('.modal-overlay').remove();
             resolve(value || null);
           ">
-            Tasdiqlash
+            ${window.t?.('manufacturer.orders.detail.inquiries.javascript.confirm') || 'Tasdiqlash'}
           </button>
         </div>
       </div>
@@ -2144,6 +2353,203 @@ async function showTextareaModal(title, message, placeholder = '') {
   });
 }
 
+// Professional Product Name Truncation Function
+function truncateProductName(name, maxLength = 30) {
+  if (!name || typeof name !== 'string') {
+    return 'N/A';
+  }
+  
+  if (name.length <= maxLength) {
+    return name;
+  }
+  
+  return name.substring(0, maxLength - 3) + '...';
+}
+
+// Update Modal Product Information
+function updateModalProductInfo(inquiry) {
+  try {
+    // Update customer name
+    const customerName = inquiry.inquirer?.companyName || inquiry.inquirer?.name || 'Unknown Customer';
+    document.getElementById('modalCustomerName').textContent = customerName;
+    
+    // Update product name with truncation and full title
+    const productName = inquiry.product?.name || 'Unknown Product';
+    const productNameElement = document.getElementById('modalProductName');
+    productNameElement.textContent = truncateProductName(productName);
+    productNameElement.title = productName; // Full name in tooltip
+    
+    // Update quantity
+    const quantity = inquiry.quantity || inquiry.quantityRequested || 0;
+    const unit = inquiry.unit || inquiry.product?.inventory?.unit || 'pieces';
+    document.getElementById('modalQuantity').textContent = `${quantity} ${unit}`;
+    
+    // Update budget
+    const budgetMin = inquiry.budgetMin || inquiry.budgetRange?.min || 0;
+    const budgetMax = inquiry.budgetMax || inquiry.budgetRange?.max || 0;
+    const currency = inquiry.budgetCurrency || inquiry.currency || 'USD';
+    const budgetText = budgetMin && budgetMax ? 
+      `${currency} ${budgetMin.toLocaleString()} - ${budgetMax.toLocaleString()}` :
+      budgetMin ? `${currency} ${budgetMin.toLocaleString()}+` :
+      'Not specified';
+    document.getElementById('modalBudget').textContent = budgetText;
+    
+    // Update inquiry date
+    const inquiryDate = inquiry.createdAt ? 
+      new Date(inquiry.createdAt).toLocaleDateString() : 
+      'Unknown';
+    document.getElementById('modalInquiryDate').textContent = inquiryDate;
+    
+    // Update priority
+    const priority = inquiry.priority || 'medium';
+    const priorityElement = document.getElementById('modalPriority');
+    priorityElement.innerHTML = `<span class="priority-badge priority-${priority}">${priority.charAt(0).toUpperCase() + priority.slice(1)}</span>`;
+    
+    // Update status
+    const status = inquiry.status || 'open';
+    const statusElement = document.getElementById('modalStatus');
+    statusElement.innerHTML = `<span class="status-badge status-${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+    
+    // Update inquiry ID
+    const inquiryId = inquiry.inquiryId || inquiry._id || 'Unknown';
+    document.getElementById('modalInquiryId').textContent = `#INQ-${inquiryId}`;
+    
+  } catch (error) {
+    console.error('❌ Error updating modal product information:', error);
+  }
+}
+
+// Global function to respond to inquiry
+async function respondToInquiry(inquiryId) {
+  try {
+    // Get inquiry details first
+    const inquiryResponse = await fetch(`/manufacturer/inquiries/api/${inquiryId}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    if (!inquiryResponse.ok) {
+      throw new Error(`Failed to fetch inquiry details: ${inquiryResponse.status}`);
+    }
+    
+    const inquiryData = await inquiryResponse.json();
+    if (!inquiryData.success) {
+      throw new Error(inquiryData.message || 'Failed to load inquiry details');
+    }
+    
+    const inquiry = inquiryData.inquiry;
+    
+    // Update modal with inquiry data
+    updateModalProductInfo(inquiry);
+    
+    // Show the modal
+    const modal = document.getElementById('inquiryResponseModal');
+    if (modal) {
+      modal.style.display = 'block';
+      modal.classList.add('active');
+      
+      // Add escape key listener
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          closeInquiryResponseModal();
+          document.removeEventListener('keydown', handleEscape);
+        }
+      };
+      document.addEventListener('keydown', handleEscape);
+      
+    } else {
+      throw new Error('Response modal not found');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error opening response modal:', error);
+    alert('So\'rovga javob berish modalini ochishda xatolik yuz berdi. Sahifani qayta yuklang.');
+  }
+}
+
+// Global function to close response modal
+function closeInquiryResponseModal() {
+  const modal = document.getElementById('inquiryResponseModal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('active');
+  }
+}
+
+// Global function for quick quote
+async function sendQuickQuote(inquiryId) {
+  try {
+    // Get inquiry details first
+    const inquiryResponse = await fetch(`/manufacturer/inquiries/api/${inquiryId}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    if (!inquiryResponse.ok) {
+      throw new Error(`Failed to fetch inquiry details: ${inquiryResponse.status}`);
+    }
+    
+    const inquiryData = await inquiryResponse.json();
+    if (!inquiryData.success) {
+      throw new Error(inquiryData.message || 'Failed to load inquiry details');
+    }
+    
+    const inquiry = inquiryData.inquiry;
+    
+    // Update modal with inquiry data
+    updateModalProductInfo(inquiry);
+    
+    // Show quick quote modal
+    const modal = document.getElementById('quickQuoteModal');
+    if (modal) {
+      modal.style.display = 'block';
+      modal.classList.add('active');
+      
+    } else {
+      throw new Error('Quick quote modal not found');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error opening quick quote modal:', error);
+    alert('Tezkor taklif modalini ochishda xatolik yuz berdi. Sahifani qayta yuklang.');
+  }
+}
+
+// Global function to start chat
+async function startChat(inquiryId) {
+  try {
+    
+    // Get inquiry details first
+    const inquiryResponse = await fetch(`/manufacturer/inquiries/api/${inquiryId}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    if (!inquiryResponse.ok) {
+      throw new Error(`Failed to fetch inquiry details: ${inquiryResponse.status}`);
+    }
+    
+    const inquiryData = await inquiryResponse.json();
+    if (!inquiryData.success) {
+      throw new Error(inquiryData.message || 'Failed to load inquiry details');
+    }
+    
+    const inquiry = inquiryData.inquiry;
+    
+    // Redirect to messages page with inquiry context
+    const inquirerId = inquiry.inquirer?._id || inquiry.inquirer?.id;
+    if (inquirerId) {
+      window.location.href = `/manufacturer/messages?inquiry=${inquiryId}&manufacturer=${inquirerId}`;
+    } else {
+      throw new Error('Inquirer information not available');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error starting chat:', error);
+    alert('Chat boshlashda xatolik yuz berdi. Sahifani qayta yuklang.');
+  }
+}
+
 async function showPromptModal(title, message, defaultValue = '') {
   return new Promise((resolve) => {
     const modal = document.createElement('div');
@@ -2165,14 +2571,14 @@ async function showPromptModal(title, message, defaultValue = '') {
         </div>
         <div class="modal-actions">
           <button class="orders-btn orders-btn-secondary" onclick="this.closest('.modal-overlay').remove(); resolve(null);">
-            Bekor qilish
+            ${window.t?.('manufacturer.orders.detail.inquiries.javascript.cancel') || 'Bekor qilish'}
           </button>
           <button class="orders-btn orders-btn-primary" onclick="
             const value = this.closest('.modal-overlay').querySelector('#modalInput').value;
             this.closest('.modal-overlay').remove();
             resolve(value || null);
           ">
-            Tasdiqlash
+            ${window.t?.('manufacturer.orders.detail.inquiries.javascript.confirm') || 'Tasdiqlash'}
           </button>
         </div>
       </div>
@@ -2206,4 +2612,201 @@ async function showPromptModal(title, message, defaultValue = '') {
     };
     document.addEventListener('keydown', handleEscape);
   });
+}
+
+// Professional Product Name Truncation Function
+function truncateProductName(name, maxLength = 30) {
+  if (!name || typeof name !== 'string') {
+    return 'N/A';
+  }
+  
+  if (name.length <= maxLength) {
+    return name;
+  }
+  
+  return name.substring(0, maxLength - 3) + '...';
+}
+
+// Update Modal Product Information
+function updateModalProductInfo(inquiry) {
+  try {
+    // Update customer name
+    const customerName = inquiry.inquirer?.companyName || inquiry.inquirer?.name || 'Unknown Customer';
+    document.getElementById('modalCustomerName').textContent = customerName;
+    
+    // Update product name with truncation and full title
+    const productName = inquiry.product?.name || 'Unknown Product';
+    const productNameElement = document.getElementById('modalProductName');
+    productNameElement.textContent = truncateProductName(productName);
+    productNameElement.title = productName; // Full name in tooltip
+    
+    // Update quantity
+    const quantity = inquiry.quantity || inquiry.quantityRequested || 0;
+    const unit = inquiry.unit || inquiry.product?.inventory?.unit || 'pieces';
+    document.getElementById('modalQuantity').textContent = `${quantity} ${unit}`;
+    
+    // Update budget
+    const budgetMin = inquiry.budgetMin || inquiry.budgetRange?.min || 0;
+    const budgetMax = inquiry.budgetMax || inquiry.budgetRange?.max || 0;
+    const currency = inquiry.budgetCurrency || inquiry.currency || 'USD';
+    const budgetText = budgetMin && budgetMax ? 
+      `${currency} ${budgetMin.toLocaleString()} - ${budgetMax.toLocaleString()}` :
+      budgetMin ? `${currency} ${budgetMin.toLocaleString()}+` :
+      'Not specified';
+    document.getElementById('modalBudget').textContent = budgetText;
+    
+    // Update inquiry date
+    const inquiryDate = inquiry.createdAt ? 
+      new Date(inquiry.createdAt).toLocaleDateString() : 
+      'Unknown';
+    document.getElementById('modalInquiryDate').textContent = inquiryDate;
+    
+    // Update priority
+    const priority = inquiry.priority || 'medium';
+    const priorityElement = document.getElementById('modalPriority');
+    priorityElement.innerHTML = `<span class="priority-badge priority-${priority}">${priority.charAt(0).toUpperCase() + priority.slice(1)}</span>`;
+    
+    // Update status
+    const status = inquiry.status || 'open';
+    const statusElement = document.getElementById('modalStatus');
+    statusElement.innerHTML = `<span class="status-badge status-${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+    
+    // Update inquiry ID
+    const inquiryId = inquiry.inquiryId || inquiry._id || 'Unknown';
+    document.getElementById('modalInquiryId').textContent = `#INQ-${inquiryId}`;
+    
+  } catch (error) {
+    console.error('❌ Error updating modal product information:', error);
+  }
+}
+
+// Global function to respond to inquiry
+async function respondToInquiry(inquiryId) {
+  try {
+    // Get inquiry details first
+    const inquiryResponse = await fetch(`/manufacturer/inquiries/api/${inquiryId}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    if (!inquiryResponse.ok) {
+      throw new Error(`Failed to fetch inquiry details: ${inquiryResponse.status}`);
+    }
+    
+    const inquiryData = await inquiryResponse.json();
+    if (!inquiryData.success) {
+      throw new Error(inquiryData.message || 'Failed to load inquiry details');
+    }
+    
+    const inquiry = inquiryData.inquiry;
+    
+    // Update modal with inquiry data
+    updateModalProductInfo(inquiry);
+    
+    // Show the modal
+    const modal = document.getElementById('inquiryResponseModal');
+    if (modal) {
+      modal.style.display = 'block';
+      modal.classList.add('active');
+      
+      // Add escape key listener
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          closeInquiryResponseModal();
+          document.removeEventListener('keydown', handleEscape);
+        }
+      };
+      document.addEventListener('keydown', handleEscape);
+      
+    } else {
+      throw new Error('Response modal not found');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error opening response modal:', error);
+    alert('So\'rovga javob berish modalini ochishda xatolik yuz berdi. Sahifani qayta yuklang.');
+  }
+}
+
+// Global function to close response modal
+function closeInquiryResponseModal() {
+  const modal = document.getElementById('inquiryResponseModal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('active');
+  }
+}
+
+// Global function for quick quote
+async function sendQuickQuote(inquiryId) {
+  try {
+    // Get inquiry details first
+    const inquiryResponse = await fetch(`/manufacturer/inquiries/api/${inquiryId}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    if (!inquiryResponse.ok) {
+      throw new Error(`Failed to fetch inquiry details: ${inquiryResponse.status}`);
+    }
+    
+    const inquiryData = await inquiryResponse.json();
+    if (!inquiryData.success) {
+      throw new Error(inquiryData.message || 'Failed to load inquiry details');
+    }
+    
+    const inquiry = inquiryData.inquiry;
+    
+    // Update modal with inquiry data
+    updateModalProductInfo(inquiry);
+    
+    // Show quick quote modal
+    const modal = document.getElementById('quickQuoteModal');
+    if (modal) {
+      modal.style.display = 'block';
+      modal.classList.add('active');
+      
+    } else {
+      throw new Error('Quick quote modal not found');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error opening quick quote modal:', error);
+    alert('Tezkor taklif modalini ochishda xatolik yuz berdi. Sahifani qayta yuklang.');
+  }
+}
+
+// Global function to start chat
+async function startChat(inquiryId) {
+  try {
+    
+    // Get inquiry details first
+    const inquiryResponse = await fetch(`/manufacturer/inquiries/api/${inquiryId}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    if (!inquiryResponse.ok) {
+      throw new Error(`Failed to fetch inquiry details: ${inquiryResponse.status}`);
+    }
+    
+    const inquiryData = await inquiryResponse.json();
+    if (!inquiryData.success) {
+      throw new Error(inquiryData.message || 'Failed to load inquiry details');
+    }
+    
+    const inquiry = inquiryData.inquiry;
+    
+    // Redirect to messages page with inquiry context
+    const inquirerId = inquiry.inquirer?._id || inquiry.inquirer?.id;
+    if (inquirerId) {
+      window.location.href = `/manufacturer/messages?inquiry=${inquiryId}&manufacturer=${inquirerId}`;
+    } else {
+      throw new Error('Inquirer information not available');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error starting chat:', error);
+    alert('Chat boshlashda xatolik yuz berdi. Sahifani qayta yuklang.');
+  }
 }

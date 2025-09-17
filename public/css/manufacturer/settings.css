@@ -467,7 +467,7 @@
   min-height: 100px;
 }
 
-.hidden {
+.hidden:not(.card-more-menu):not(.table-more-menu) {
   display: none !important;
 }
 

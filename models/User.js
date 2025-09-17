@@ -139,22 +139,18 @@ const userSchema = new mongoose.Schema({
   companyLogo: {
     filename: {
       type: String,
-      required: true,
       trim: true
     },
     originalName: {
       type: String,
-      required: true,
       trim: true
     },
     mimeType: {
       type: String,
-      required: true,
       enum: ['image/jpeg', 'image/png', 'image/jpg']
     },
     size: {
       type: Number,
-      required: true,
       min: [1, 'File size must be greater than 0'],
       max: [5 * 1024 * 1024, 'File size must not exceed 5MB']
     },
@@ -164,7 +160,6 @@ const userSchema = new mongoose.Schema({
     },
     url: {
       type: String,
-      required: true,
       trim: true
     }, // Full URL path for frontend
     thumbnailUrl: {
@@ -295,6 +290,11 @@ const userSchema = new mongoose.Schema({
   },
   
   totalReviews: {
+    type: Number,
+    default: 0
+  },
+  
+  profileViews: {
     type: Number,
     default: 0
   },
@@ -633,6 +633,7 @@ userSchema.methods.getBusinessStats = function() {
     successRate: this.totalOrders > 0 ? Math.round((this.completedOrders / this.totalOrders) * 100) : 0,
     averageRating: this.averageRating,
     totalReviews: this.totalReviews,
+    profileViews: this.profileViews,
     profileCompletion: this.calculateProfileCompletion()
   };
 };

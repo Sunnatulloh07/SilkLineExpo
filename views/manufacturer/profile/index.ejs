@@ -1,4 +1,4 @@
-<%- include('../partials/header', { title: 'Kompaniya Profili', lng: lng || 'uz', user: user }) %>
+<%- include('../partials/header', { title: 'Kompaniya Profili', lng: lng, user: user }) %>
 <%- include('../partials/sidebar', { user: user, currentPage: 'profile' }) %>
 
 <!-- Enhanced CSS Imports - Professional Profile Style -->
@@ -602,6 +602,9 @@ document.addEventListener('DOMContentLoaded', function() {
   document.documentElement.classList.add('profile-page-html');
 });
 </script>
+
+<!-- Professional Unified Header Management -->
+<script src="/js/manufacturer/manufacturer-header.js"></script>
 
 <!-- JavaScript -->
 <script src="/js/chart.min.js"></script>

@@ -1,5 +1,5 @@
-<%- include('../partials/header', { title: 'Biznes So\'rovlari', lng: lng || 'uz', user: user }) %>
-<%- include('../partials/sidebar', { user: user, currentPage: 'inquiries' }) %>
+<%- include('../partials/header', { title: title, lng: lng, user: user, t: t }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'inquiries', t: t }) %>
 
 <!-- Enhanced CSS Imports - Professional B2B Inquiries Style -->
 <link rel="stylesheet" href="/css/products-management-redesign.css">
@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="/css/manufacturer-cards.css">
 <link rel="stylesheet" href="/css/manufacturer-theme.css">
 <link rel="stylesheet" href="/css/toast-notifications.css">
+
 <link rel="stylesheet" href="/css/modal-system.css">
 <link rel="stylesheet" href="/css/manufacturer/inquiries.css">
 
@@ -21,22 +22,18 @@
         <div class="orders-title-section">
           <h1 class="orders-main-title">
             <i class="fas fa-envelope-open-text"></i>
-            Biznes So'rovlari
+            <%= t('manufacturer.orders.detail.inquiries.header.title') %>
           </h1>
-          <p class="orders-subtitle">Professional B2B so'rovlar boshqaruvi va mijozlar bilan aloqa markazi</p>
+          <p class="orders-subtitle"><%= t('manufacturer.orders.detail.inquiries.header.subtitle') %></p>
         </div>
         <div class="orders-header-actions">
-          <button class="orders-btn orders-btn-primary" id="createQuoteTemplateBtn">
-            <i class="fas fa-file-invoice-dollar"></i>
-            Taklif Shablon
-          </button>
           <button class="orders-btn orders-btn-outline" id="exportInquiriesBtn">
             <i class="fas fa-download"></i>
-            Export Hisobot
+            <%= t('manufacturer.orders.detail.inquiries.actions.export_report') %>
           </button>
           <button class="orders-btn orders-btn-secondary" id="refreshInquiriesBtn">
             <i class="fas fa-sync-alt"></i>
-            Yangilash
+            <%= t('manufacturer.orders.detail.inquiries.actions.refresh') %>
           </button>
         </div>
       </div>
@@ -48,7 +45,7 @@
       <!-- Total Inquiries -->
       <div class="stat-card primary animate-fade-in" data-kpi="totalInquiries">
         <div class="stat-header">
-          <h3 class="stat-title">Jami So'rovlar</h3>
+          <h3 class="stat-title"><%= t('manufacturer.orders.detail.inquiries.kpi.total_inquiries') %></h3>
           <div class="stat-icon primary">
             <i class="fas fa-envelope-open"></i>
           </div>
@@ -60,14 +57,14 @@
         </div>
         <div class="stat-change positive">
           <i class="fas fa-arrow-up stat-change-icon"></i>
-          <span class="metric-trend">Barcha so'rovlar</span>
+          <span class="metric-trend"><%= t('manufacturer.orders.detail.inquiries.kpi.all_inquiries') %></span>
         </div>
       </div>
 
       <!-- New Inquiries -->
       <div class="stat-card success animate-fade-in" data-kpi="newInquiries">
         <div class="stat-header">
-          <h3 class="stat-title">Yangi So'rovlar</h3>
+          <h3 class="stat-title"><%= t('manufacturer.orders.detail.inquiries.kpi.new_inquiries') %></h3>
           <div class="stat-icon success">
             <i class="fas fa-bell"></i>
           </div>
@@ -79,14 +76,14 @@
         </div>
         <div class="stat-change positive">
           <i class="fas fa-arrow-up stat-change-icon"></i>
-          <span class="metric-trend">Javob kutmoqda</span>
+          <span class="metric-trend"><%= t('manufacturer.orders.detail.inquiries.kpi.awaiting_response') %></span>
         </div>
       </div>
 
       <!-- Response Rate -->
       <div class="stat-card info animate-fade-in" data-kpi="responseRate">
         <div class="stat-header">
-          <h3 class="stat-title">Javob Berish %</h3>
+          <h3 class="stat-title"><%= t('manufacturer.orders.detail.inquiries.kpi.response_rate') %></h3>
           <div class="stat-icon info">
             <i class="fas fa-chart-pie"></i>
           </div>
@@ -98,14 +95,14 @@
         </div>
         <div class="stat-change positive">
           <i class="fas fa-arrow-up stat-change-icon"></i>
-          <span class="metric-trend">Bu oy</span>
+          <span class="metric-trend"><%= t('manufacturer.orders.detail.inquiries.kpi.this_month') %></span>
         </div>
       </div>
 
       <!-- Conversion Rate -->
       <div class="stat-card warning animate-fade-in" data-kpi="conversionRate">
         <div class="stat-header">
-          <h3 class="stat-title">Konversiya %</h3>
+          <h3 class="stat-title"><%= t('manufacturer.orders.detail.inquiries.kpi.conversion_rate') %></h3>
           <div class="stat-icon warning">
             <i class="fas fa-handshake"></i>
           </div>
@@ -117,7 +114,7 @@
         </div>
         <div class="stat-change neutral">
           <i class="fas fa-arrow-right stat-change-icon"></i>
-          <span class="metric-trend">So'rov → Buyurtma</span>
+          <span class="metric-trend"><%= t('manufacturer.orders.detail.inquiries.kpi.inquiry_to_order') %></span>
         </div>
       </div>
 
@@ -128,32 +125,22 @@
       <div class="products-filters-header">
         <h3 class="products-filters-title">
           <i class="fas fa-filter"></i>
-          Filtr va Qidiruv
+          <%= t('manufacturer.orders.detail.inquiries.filters.title') %>
         </h3>
-        <div class="products-filters-actions">
-          <button class="products-btn products-btn-sm products-btn-secondary" id="resetInquiriesFiltersBtn">
-            <i class="fas fa-undo"></i>
-            Reset
-          </button>
-          <button class="products-btn products-btn-sm products-btn-outline" id="advancedInquiriesFiltersBtn">
-            <i class="fas fa-cog"></i>
-            Kengaytirilgan
-          </button>
-        </div>
       </div>
       <div class="products-filters-body">
         <form id="inquiriesFiltersForm" class="products-filters-form">
           
           <!-- Search Input -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Qidiruv</label>
+            <label class="products-filter-label"><%= t('manufacturer.orders.detail.inquiries.filters.search') %></label>
             <div class="products-search-wrapper">
               <i class="fas fa-search products-search-icon"></i>
               <input 
                 type="text" 
                 id="inquiriesSearchInput" 
                 name="search" 
-                placeholder="Kompaniya nomi, mahsulot, so'rov ID..."
+                placeholder="<%= t('manufacturer.orders.detail.inquiries.filters.search_placeholder') %>"
                 class="products-form-input search"
               >
             </div>
@@ -161,101 +148,101 @@
 
           <!-- Status Filter -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Holat</label>
+            <label class="products-filter-label"><%= t('manufacturer.orders.detail.inquiries.filters.status') %></label>
             <select name="status" id="inquiriesStatusFilter" class="products-form-select">
-              <option value="">Barcha holatlar</option>
-              <option value="open">Ochiq</option>
-              <option value="responded">Javob berilgan</option>
-              <option value="negotiating">Muzokaralar</option>
-              <option value="quoted">Taklif yuborilgan</option>
-              <option value="accepted">Qabul qilingan</option>
-              <option value="rejected">Rad etilgan</option>
-              <option value="expired">Muddati tugagan</option>
-              <option value="converted">Buyurtmaga aylantirilgan</option>
+              <option value=""><%= t('manufacturer.orders.detail.inquiries.filters.all_statuses') %></option>
+              <option value="open"><%= t('manufacturer.orders.detail.inquiries.status_options.open') %></option>
+              <option value="responded"><%= t('manufacturer.orders.detail.inquiries.status_options.responded') %></option>
+              <option value="negotiating"><%= t('manufacturer.orders.detail.inquiries.status_options.negotiating') %></option>
+              <option value="quoted"><%= t('manufacturer.orders.detail.inquiries.status_options.quoted') %></option>
+              <option value="accepted"><%= t('manufacturer.orders.detail.inquiries.status_options.accepted') %></option>
+              <option value="rejected"><%= t('manufacturer.orders.detail.inquiries.status_options.rejected') %></option>
+              <option value="expired"><%= t('manufacturer.orders.detail.inquiries.status_options.expired') %></option>
+              <option value="converted"><%= t('manufacturer.orders.detail.inquiries.status_options.converted') %></option>
             </select>
           </div>
 
           <!-- Priority Filter -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Muhimlik</label>
+            <label class="products-filter-label"><%= t('manufacturer.orders.detail.inquiries.filters.priority') %></label>
             <select name="priority" id="inquiriesPriorityFilter" class="products-form-select">
-              <option value="">Barcha muhimliklar</option>
-              <option value="urgent">Shoshilinch</option>
-              <option value="high">Yuqori</option>
-              <option value="medium">O'rta</option>
-              <option value="low">Past</option>
+              <option value=""><%= t('manufacturer.orders.detail.inquiries.filters.all_priorities') %></option>
+              <option value="urgent"><%= t('manufacturer.orders.detail.inquiries.priority_options.urgent') %></option>
+              <option value="high"><%= t('manufacturer.orders.detail.inquiries.priority_options.high') %></option>
+              <option value="medium"><%= t('manufacturer.orders.detail.inquiries.priority_options.medium') %></option>
+              <option value="low"><%= t('manufacturer.orders.detail.inquiries.priority_options.low') %></option>
             </select>
           </div>
 
           <!-- Date Range Filter -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Sana oralig'i</label>
+            <label class="products-filter-label"><%= t('manufacturer.orders.detail.inquiries.filters.date_range') %></label>
             <select name="dateRange" id="inquiriesDateRangeFilter" class="products-form-select">
-              <option value="">Barcha vaqt</option>
-              <option value="today">Bugun</option>
-              <option value="week">Bu hafta</option>
-              <option value="month">Bu oy</option>
-              <option value="quarter">Bu chorak</option>
-              <option value="year">Bu yil</option>
-              <option value="custom">Maxsus oraliq</option>
+              <option value=""><%= t('manufacturer.orders.detail.inquiries.filters.all_time') %></option>
+              <option value="today"><%= t('manufacturer.orders.detail.inquiries.filters.today') %></option>
+              <option value="week"><%= t('manufacturer.orders.detail.inquiries.filters.week') %></option>
+              <option value="month"><%= t('manufacturer.orders.detail.inquiries.filters.month') %></option>
+              <option value="quarter"><%= t('manufacturer.orders.detail.inquiries.filters.quarter') %></option>
+              <option value="year"><%= t('manufacturer.orders.detail.inquiries.filters.year') %></option>
+              <option value="custom"><%= t('manufacturer.orders.detail.inquiries.filters.custom') %></option>
             </select>
           </div>
 
           <!-- Budget Range Filter -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Byudjet oralig'i</label>
+            <label class="products-filter-label"><%= t('manufacturer.orders.detail.inquiries.filters.budget_range') %></label>
             <select name="budget" id="inquiriesBudgetFilter" class="products-form-select">
-              <option value="">Barcha byudjetlar</option>
-              <option value="0-1000">$0 - $1,000</option>
-              <option value="1000-5000">$1,000 - $5,000</option>
-              <option value="5000-10000">$5,000 - $10,000</option>
-              <option value="10000-50000">$10,000 - $50,000</option>
-              <option value="50000+">$50,000+</option>
+              <option value=""><%= t('manufacturer.orders.detail.inquiries.filters.all_budgets') %></option>
+              <option value="0-1000"><%= t('manufacturer.orders.detail.inquiries.budget_ranges.0-1000') %></option>
+              <option value="1000-5000"><%= t('manufacturer.orders.detail.inquiries.budget_ranges.1000-5000') %></option>
+              <option value="5000-10000"><%= t('manufacturer.orders.detail.inquiries.budget_ranges.5000-10000') %></option>
+              <option value="10000-50000"><%= t('manufacturer.orders.detail.inquiries.budget_ranges.10000-50000') %></option>
+              <option value="50000+"><%= t('manufacturer.orders.detail.inquiries.budget_ranges.50000+') %></option>
             </select>
           </div>
 
           <!-- Product Category Filter -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Mahsulot kategoriyasi</label>
+            <label class="products-filter-label"><%= t('manufacturer.orders.detail.inquiries.filters.product_category') %></label>
             <select name="category" id="inquiriesCategoryFilter" class="products-form-select">
-              <option value="">Barcha kategoriyalar</option>
-              <option value="cotton">Paxta matolari</option>
-              <option value="silk">Ipak matolari</option>
-              <option value="wool">Jun matolari</option>
-              <option value="synthetic">Sintetik matolar</option>
-              <option value="technical">Texnik matolar</option>
+              <option value=""><%= t('manufacturer.orders.detail.inquiries.filters.all_categories') %></option>
+              <option value="cotton"><%= t('manufacturer.orders.detail.inquiries.categories.cotton') %></option>
+              <option value="silk"><%= t('manufacturer.orders.detail.inquiries.categories.silk') %></option>
+              <option value="wool"><%= t('manufacturer.orders.detail.inquiries.categories.wool') %></option>
+              <option value="synthetic"><%= t('manufacturer.orders.detail.inquiries.categories.synthetic') %></option>
+              <option value="technical"><%= t('manufacturer.orders.detail.inquiries.categories.technical') %></option>
             </select>
           </div>
 
           <!-- Sort Options -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Saralash</label>
+            <label class="products-filter-label"><%= t('manufacturer.orders.detail.inquiries.filters.sort_by') %></label>
             <select name="sortBy" id="inquiriesSortFilter" class="products-form-select">
-              <option value="createdAt">Yaratilgan vaqt</option>
-              <option value="priority">Muhimlik</option>
-              <option value="budgetRange">Byudjet</option>
-              <option value="status">Holat</option>
-              <option value="companyName">Kompaniya nomi</option>
+              <option value="createdAt"><%= t('manufacturer.orders.detail.inquiries.sort_options.createdAt') %></option>
+              <option value="priority"><%= t('manufacturer.orders.detail.inquiries.sort_options.priority') %></option>
+              <option value="budgetRange"><%= t('manufacturer.orders.detail.inquiries.sort_options.budgetRange') %></option>
+              <option value="status"><%= t('manufacturer.orders.detail.inquiries.sort_options.status') %></option>
+              <option value="companyName"><%= t('manufacturer.orders.detail.inquiries.sort_options.companyName') %></option>
             </select>
           </div>
 
           <!-- Sort Order -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Tartib</label>
+            <label class="products-filter-label"><%= t('manufacturer.orders.detail.inquiries.filters.sort_order') %></label>
             <select name="sortOrder" id="inquiriesSortOrderFilter" class="products-form-select">
-              <option value="desc">Kamayish tartibida</option>
-              <option value="asc">O'sish tartibida</option>
+              <option value="desc"><%= t('manufacturer.orders.detail.inquiries.filters.descending') %></option>
+              <option value="asc"><%= t('manufacturer.orders.detail.inquiries.filters.ascending') %></option>
             </select>
           </div>
           
           <div class="products-filters-submit">
             <button type="submit" class="products-btn products-btn-primary" id="searchInquiriesFiltersBtn">
               <i class="fas fa-search"></i>
-              Qidiruv
+              <%= t('manufacturer.orders.detail.inquiries.filters.search_button') %>
             </button>
             <button type="button" class="products-btn products-btn-secondary" id="clearInquiriesFiltersBtn">
               <i class="fas fa-times"></i>
-              Tozalash
+              <%= t('manufacturer.orders.detail.inquiries.filters.clear_button') %>
             </button>
           </div>
         </form>
@@ -266,28 +253,12 @@
     <div class="products-main-container">
       <div class="products-content-header">
         <h3 class="products-content-title">
-          <i class="fas fa-clipboard-list"></i>
-          So'rovlar
-          <span class="products-count" id="inquiriesCountText">
-            <%= inquiries ? inquiries.length : 0 %>
-          </span>
+          <i class="fas fa-question-circle"></i>
+          <%= t('manufacturer.orders.detail.inquiries.table.table_title') %>
         </h3>
         <div class="products-content-actions">
-          <div class="products-view-toggle">
-            <button class="products-view-btn" data-view="cards" title="Card ko'rinish" id="cardsViewBtn">
-              <i class="fas fa-th"></i>
-              <span>Cards</span>
-            </button>
-            <button class="products-view-btn active" data-view="table" title="Table ko'rinish" id="tableViewBtn">
-              <i class="fas fa-list"></i>
-              <span>Table</span>
-            </button>
-            <button class="products-view-btn" data-view="kanban" title="Kanban ko'rinish" id="kanbanViewBtn">
-              <i class="fas fa-columns"></i>
-              <span>Kanban</span>
-            </button>
-          </div>
-          <button class="products-btn products-btn-sm products-btn-secondary" id="refreshInquiriesBtn2">
+          
+          <button class="products-btn products-btn-sm products-btn-secondary" id="refreshInquiriesBtn2" title="<%= t('manufacturer.orders.detail.inquiries.tooltips.refresh_inquiries') %>">
             <i class="fas fa-sync-alt"></i>
           </button>
         </div>
@@ -299,22 +270,8 @@
           <div class="products-table-header">
             <h4 class="products-table-title">
               <i class="fas fa-table"></i>
-              So'rovlar jadvali
+              <%= t('manufacturer.orders.detail.inquiries.table.table_title') %>
             </h4>
-            <div class="products-table-actions">
-              <button class="products-btn products-btn-sm products-btn-secondary" id="refreshInquiriesTableBtn" title="So'rovlarni yangilash">
-                <i class="fas fa-sync-alt"></i>
-                Yangilash
-              </button>
-              <button class="products-btn products-btn-sm products-btn-outline" id="selectAllInquiriesBtn">
-                <i class="fas fa-check-square"></i>
-                Barchasini belgilash
-              </button>
-              <button class="products-btn products-btn-sm products-btn-secondary" id="bulkInquiriesActionsBtn">
-                <i class="fas fa-tasks"></i>
-                Ommaviy amallar
-              </button>
-            </div>
           </div>
           
           <div class="products-table-wrapper">
@@ -325,37 +282,37 @@
                     <input type="checkbox" id="selectAllInquiries" class="table-checkbox">
                   </th>
                   <th class="inquiry-id-col sortable" data-sort="inquiryNumber">
-                    So'rov ID
+                    <%= t('manufacturer.orders.detail.inquiries.table.headers.inquiry_id') %>
                     <i class="fas fa-sort sort-icon"></i>
                   </th>
                   <th class="customer-col sortable" data-sort="inquirer">
-                    Mijoz / Kompaniya
+                    <%= t('manufacturer.orders.detail.inquiries.table.headers.customer') %>
                     <i class="fas fa-sort sort-icon"></i>
                   </th>
                   <th class="product-col">
-                    Mahsulot / Xizmat
+                    <%= t('manufacturer.orders.detail.inquiries.table.headers.product') %>
                   </th>
                   <th class="quantity-col sortable" data-sort="requestedQuantity">
-                    Miqdor
+                    <%= t('manufacturer.orders.detail.inquiries.table.headers.quantity') %>
                     <i class="fas fa-sort sort-icon"></i>
                   </th>
                   <th class="budget-col sortable" data-sort="budgetRange">
-                    Byudjet
+                    <%= t('manufacturer.orders.detail.inquiries.table.headers.budget') %>
                     <i class="fas fa-sort sort-icon"></i>
                   </th>
                   <th class="date-col sortable" data-sort="createdAt">
-                    Sana
+                    <%= t('manufacturer.orders.detail.inquiries.table.headers.date') %>
                     <i class="fas fa-sort sort-icon"></i>
                   </th>
                   <th class="status-col sortable" data-sort="status">
-                    Holat
+                    <%= t('manufacturer.orders.detail.inquiries.table.headers.status') %>
                     <i class="fas fa-sort sort-icon"></i>
                   </th>
                   <th class="priority-col sortable" data-sort="priority">
-                    Muhimlik
+                    <%= t('manufacturer.orders.detail.inquiries.table.headers.priority') %>
                     <i class="fas fa-sort sort-icon"></i>
                   </th>
-                  <th class="actions-col">Amallar</th>
+                  <th class="actions-col"><%= t('manufacturer.orders.detail.inquiries.table.headers.actions') %></th>
                 </tr>
               </thead>
               <tbody id="inquiriesTableBody">
@@ -367,7 +324,7 @@
           <!-- Professional Pagination -->
           <div class="table-pagination" id="inquiriesPagination" style="display: none;">
             <div class="table-pagination-info">
-              <span id="inquiriesPaginationInfo">1-dan 0-gacha, jami 0 ta ko'rsatilmoqda</span>
+              <span id="inquiriesPaginationInfo"><%= t('manufacturer.orders.detail.inquiries.pagination.info_template', {start: 1, end: 0, total: 0}) || '1-dan 0-gacha, jami 0 ta ko\'rsatilmoqda' %></span>
             </div>
             <div class="table-pagination-controls" id="inquiriesPaginationControls">
               <!-- Pagination buttons will be inserted here -->
@@ -387,7 +344,7 @@
     <div class="modal-header">
       <h3 class="modal-title">
         <i class="fas fa-reply"></i>
-        So'rovga Javob Berish
+        <%= t('manufacturer.orders.detail.inquiries.modals.response.title') %>
       </h3>
       <button class="modal-close" id="closeInquiryResponseModal">
         <i class="fas fa-times"></i>
@@ -399,52 +356,106 @@
         <!-- Inquiry Summary -->
         <div class="inquiry-summary-card">
           <div class="inquiry-summary-header">
-            <h4>So'rov ma'lumotlari</h4>
+            <h4><%= t('manufacturer.orders.detail.inquiries.modals.response.inquiry_info') %></h4>
             <span class="inquiry-id" id="modalInquiryId">#INQ-2024-001</span>
           </div>
           <div class="inquiry-summary-content">
-            <div class="summary-row">
-              <span class="summary-label">Mijoz:</span>
-              <span class="summary-value" id="modalCustomerName">Toshkent Textile Distribution</span>
-            </div>
-            <div class="summary-row">
-              <span class="summary-label">Mahsulot:</span>
-              <span class="summary-value" id="modalProductName">Premium Cotton Fabric</span>
-            </div>
-            <div class="summary-row">
-              <span class="summary-label">Miqdor:</span>
-              <span class="summary-value" id="modalQuantity">500 metr</span>
-            </div>
-            <div class="summary-row">
-              <span class="summary-label">Byudjet:</span>
-              <span class="summary-value" id="modalBudget">$5,000 - $10,000</span>
+            <!-- Professional Product Information Table -->
+            <div class="product-info-table-container">
+              <table class="product-info-table">
+                <thead>
+                  <tr>
+                    <th class="field-col"><%= t('manufacturer.orders.detail.inquiries.table.headers.field') || 'Field' %></th>
+                    <th class="value-col"><%= t('manufacturer.orders.detail.inquiries.table.headers.value') || 'Value' %></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="field-label">
+                      <i class="fas fa-user text-primary me-2"></i>
+                      <%= t('manufacturer.orders.detail.inquiries.table.headers.customer') %>:
+                    </td>
+                    <td class="field-value" id="modalCustomerName">Toshkent Textile Distribution</td>
+                  </tr>
+                  <tr>
+                    <td class="field-label">
+                      <i class="fas fa-box text-success me-2"></i>
+                      <%= t('manufacturer.orders.detail.inquiries.javascript.product') %>:
+                    </td>
+                    <td class="field-value">
+                      <span class="product-name-cell" id="modalProductName" title="Premium Cotton Fabric - High Quality Textile Material">
+                        Premium Cotton Fabric
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="field-label">
+                      <i class="fas fa-hashtag text-warning me-2"></i>
+                      <%= t('manufacturer.orders.detail.inquiries.table.headers.quantity') %>:
+                    </td>
+                    <td class="field-value" id="modalQuantity">500 metr</td>
+                  </tr>
+                  <tr>
+                    <td class="field-label">
+                      <i class="fas fa-dollar-sign text-info me-2"></i>
+                      <%= t('manufacturer.orders.detail.inquiries.filters.budget_range') %>:
+                    </td>
+                    <td class="field-value" id="modalBudget">$5,000 - $10,000</td>
+                  </tr>
+                  <tr>
+                    <td class="field-label">
+                      <i class="fas fa-calendar text-secondary me-2"></i>
+                      <%= t('manufacturer.orders.detail.inquiries.table.headers.date') %>:
+                    </td>
+                    <td class="field-value" id="modalInquiryDate">2024-01-15</td>
+                  </tr>
+                  <tr>
+                    <td class="field-label">
+                      <i class="fas fa-flag text-danger me-2"></i>
+                      <%= t('manufacturer.orders.detail.inquiries.table.headers.priority') %>:
+                    </td>
+                    <td class="field-value" id="modalPriority">
+                      <span class="priority-badge priority-medium">Medium</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="field-label">
+                      <i class="fas fa-info-circle text-primary me-2"></i>
+                      <%= t('manufacturer.orders.detail.inquiries.table.headers.status') %>:
+                    </td>
+                    <td class="field-value" id="modalStatus">
+                      <span class="status-badge status-open">Open</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
 
         <!-- Response Type -->
         <div class="form-group">
-          <label class="form-label">Javob turi</label>
+          <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.response.response_type') %></label>
           <div class="response-type-selector">
             <label class="response-type-option">
               <input type="radio" name="responseType" value="quick_response" checked>
               <div class="response-type-content">
                 <i class="fas fa-comment-alt"></i>
-                <span>Tezkor javob</span>
+                <span><%= t('manufacturer.orders.detail.inquiries.modals.response.quick_response_message') %></span>
               </div>
             </label>
             <label class="response-type-option">
               <input type="radio" name="responseType" value="detailed_quote">
               <div class="response-type-content">
                 <i class="fas fa-file-invoice-dollar"></i>
-                <span>Batafsil taklif</span>
+                <span><%= t('manufacturer.orders.detail.inquiries.modals.response.detailed_quote') %></span>
               </div>
             </label>
             <label class="response-type-option">
               <input type="radio" name="responseType" value="custom_proposal">
               <div class="response-type-content">
                 <i class="fas fa-handshake"></i>
-                <span>Maxsus taklif</span>
+                <span><%= t('manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.custom_order') %></span>
               </div>
             </label>
           </div>
@@ -453,8 +464,8 @@
         <!-- Quick Response Section -->
         <div class="response-section" id="quickResponseSection">
           <div class="form-group">
-            <label class="form-label">Tezkor javob <span class="required">*</span></label>
-            <textarea id="quickResponseMessage" name="quickResponseMessage" class="form-control" rows="4" placeholder="Mijozga javobingizni yozing..." required></textarea>
+            <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.response.quick_response_message') %> <span class="required">*</span></label>
+            <textarea id="quickResponseMessage" name="quickResponseMessage" class="form-control" rows="4" placeholder="<%= t('manufacturer.orders.detail.inquiries.modals.response.quick_response_placeholder') %>" required></textarea>
           </div>
         </div>
 
@@ -463,29 +474,29 @@
           <div class="quote-builder">
             <h4 class="quote-builder-title">
               <i class="fas fa-calculator"></i>
-              Narx taklifini yaratish
+              <%= t('manufacturer.orders.detail.inquiries.modals.response.quote_builder') %>
             </h4>
             
             <div class="quote-grid">
               <div class="form-group">
-                <label class="form-label">Birlik narxi (USD) <span class="required">*</span></label>
+                <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.response.unit_price') %> <span class="required">*</span></label>
                 <input type="number" id="unitPrice" name="unitPrice" class="form-control" placeholder="0.00" step="0.01" required>
               </div>
               <div class="form-group">
-                <label class="form-label">Minimal miqdor (MOQ)</label>
+                <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.response.minimum_quantity') %></label>
                 <input type="number" id="minimumQuantity" name="minimumQuantity" class="form-control" placeholder="100">
               </div>
               <div class="form-group">
-                <label class="form-label">Yetkazib berish narxi</label>
+                <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.response.shipping_cost') %></label>
                 <input type="number" id="shippingCost" name="shippingCost" class="form-control" placeholder="0.00" step="0.01">
               </div>
               <div class="form-group">
-                <label class="form-label">Taklif amal qilish muddati</label>
+                <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.response.quote_validity') %></label>
                 <select id="quoteValidityDays" name="quoteValidityDays" class="form-control">
-                  <option value="7">7 kun</option>
-                  <option value="14" selected>14 kun</option>
-                  <option value="30">30 kun</option>
-                  <option value="60">60 kun</option>
+                  <option value="7">7 <%= t('manufacturer.orders.detail.inquiries.modals.response.days') %></option>
+                  <option value="14" selected>14 <%= t('manufacturer.orders.detail.inquiries.modals.response.days') %></option>
+                  <option value="30">30 <%= t('manufacturer.orders.detail.inquiries.modals.response.days') %></option>
+                  <option value="60">60 <%= t('manufacturer.orders.detail.inquiries.modals.response.days') %></option>
                 </select>
               </div>
             </div>
@@ -493,22 +504,22 @@
             <!-- Calculated Total -->
             <div class="quote-summary">
               <div class="quote-summary-row">
-                <span>Mahsulot narxi:</span>
+                <span><%= t('manufacturer.orders.detail.inquiries.javascript.product') %> <%= t('manufacturer.orders.detail.inquiries.modals.response.unit_price') %>:</span>
                 <span id="calculatedProductPrice">$0.00</span>
               </div>
               <div class="quote-summary-row">
-                <span>Yetkazib berish:</span>
+                <span><%= t('manufacturer.orders.detail.inquiries.modals.response.shipping_cost') %>:</span>
                 <span id="calculatedShippingPrice">$0.00</span>
               </div>
               <div class="quote-summary-row total">
-                <span>Jami summa:</span>
+                <span><%= t('manufacturer.orders.detail.inquiries.modals.response.total_amount') %>:</span>
                 <span id="calculatedTotalPrice">$0.00</span>
               </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Shartlar va qo'shimcha ma'lumotlar</label>
-              <textarea id="quoteTerms" name="quoteTerms" class="form-control" rows="3" placeholder="To'lov shartlari, yetkazib berish muddati va boshqa shartlar..."></textarea>
+              <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.response.terms_conditions') %></label>
+              <textarea id="quoteTerms" name="quoteTerms" class="form-control" rows="3" placeholder="<%= t('manufacturer.orders.detail.inquiries.modals.response.terms_placeholder') %>"></textarea>
             </div>
           </div>
         </div>
@@ -516,51 +527,51 @@
         <!-- Custom Proposal Section -->
         <div class="response-section hidden" id="customProposalSection">
           <div class="form-group">
-            <label class="form-label">Maxsus taklif matn <span class="required">*</span></label>
-            <textarea id="customProposalMessage" name="customProposalMessage" class="form-control" rows="6" placeholder="Mijozga maxsus taklifingizni yozing..." required></textarea>
+            <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.response.custom_proposal_text') %> <span class="required">*</span></label>
+            <textarea id="customProposalMessage" name="customProposalMessage" class="form-control" rows="6" placeholder="<%= t('manufacturer.orders.detail.inquiries.modals.response.custom_proposal_placeholder') %>" required></textarea>
           </div>
           
           <!-- Professional File Upload Section -->
           <div class="form-group">
-            <label class="form-label">Qo'shimcha hujjatlar</label>
+            <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.response.additional_documents') %></label>
             <div id="fileDropZone" class="file-drop-zone">
               <input type="file" id="responseAttachments" name="responseAttachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv" style="display: none;">
               <div class="file-upload-content">
                 <i class="fas fa-cloud-upload-alt"></i>
-                <h4>Fayllarni yuklash</h4>
-                <p>Fayllarni sudrab olib keling yoki bosing</p>
-                <small>PDF, Word, Excel, Rasmlar (maksimal 10MB)</small>
+                <h4><%= t('manufacturer.orders.detail.inquiries.modals.response.upload_files') %></h4>
+                <p><%= t('manufacturer.orders.detail.inquiries.modals.response.drag_drop_text') %></p>
+                <small><%= t('manufacturer.orders.detail.inquiries.modals.response.file_types') %></small>
               </div>
             </div>
             <div id="attachmentsList" class="attachments-list"></div>
-            <div id="fileCounter" class="file-counter">Fayl tanlanmagan</div>
+            <div id="fileCounter" class="file-counter"><%= t('manufacturer.orders.detail.inquiries.modals.response.no_files_selected') %></div>
           </div>
         </div>
 
         <!-- Follow-up Settings -->
         <div class="form-group">
-          <label class="form-label">Kuzatuv sozlamalari</label>
+          <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.response.follow_up_settings') %></label>
           <div class="follow-up-options">
             <label class="checkbox-option">
               <input type="checkbox" id="scheduleFollowUp" checked>
-              <span>Avtomatik kuzatuv belgilash</span>
+              <span><%= t('manufacturer.orders.detail.inquiries.modals.response.auto_follow_up') %></span>
             </label>
             <div class="follow-up-settings" id="followUpSettings">
               <select id="followUpDays" class="form-control">
-                <option value="3">3 kun ichida</option>
-                <option value="7" selected>1 hafta ichida</option>
-                <option value="14">2 hafta ichida</option>
+                <option value="3">3 <%= t('manufacturer.orders.detail.inquiries.modals.response.within_days') %></option>
+                <option value="7" selected>1 <%= t('manufacturer.orders.detail.inquiries.modals.response.within_days') %></option>
+                <option value="14">2 <%= t('manufacturer.orders.detail.inquiries.modals.response.within_days') %></option>
               </select>
             </div>
           </div>
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="orders-btn orders-btn-secondary" id="cancelInquiryResponse">Bekor qilish</button>
-          <button type="button" class="orders-btn orders-btn-outline" id="saveAsDraft">Draft saqlaش</button>
+          <button type="button" class="orders-btn orders-btn-secondary" id="cancelInquiryResponse"><%= t('manufacturer.orders.detail.inquiries.modals.response.actions.cancel') %></button>
+          <button type="button" class="orders-btn orders-btn-outline" id="saveAsDraft"><%= t('manufacturer.orders.detail.inquiries.modals.response.actions.save_draft') %></button>
           <button type="submit" class="orders-btn orders-btn-primary">
             <i class="fas fa-paper-plane"></i>
-            Javob yuborish
+            <%= t('manufacturer.orders.detail.inquiries.modals.response.actions.send_response') %>
           </button>
         </div>
       </form>
@@ -574,7 +585,7 @@
     <div class="modal-header">
       <h3 class="modal-title">
         <i class="fas fa-bolt"></i>
-        Tezkor Taklif Yuborish
+        <%= t('manufacturer.orders.detail.inquiries.modals.quick_quote.title') %>
       </h3>
       <button class="modal-close" id="closeQuickQuoteModal">
         <i class="fas fa-times"></i>
@@ -583,31 +594,31 @@
     <div class="modal-body">
       <form id="quickQuoteForm">
         <div class="form-group">
-          <label class="form-label">Birlik narxi (USD) <span class="required">*</span></label>
+          <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.quick_quote.unit_price') %> <span class="required">*</span></label>
           <input type="number" id="quickUnitPrice" name="quickUnitPrice" class="form-control" placeholder="0.00" step="0.01" required>
         </div>
         <div class="form-group">
-          <label class="form-label">Jami summa (USD)</label>
+          <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.quick_quote.total_price') %></label>
           <input type="number" id="quickTotalPrice" name="quickTotalPrice" class="form-control" placeholder="0.00" step="0.01" readonly>
         </div>
         <div class="form-group">
-          <label class="form-label">Amal qilish muddati</label>
+          <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.quick_quote.validity_period') %></label>
           <select id="quickValidityDays" name="quickValidityDays" class="form-control">
-            <option value="7">7 kun</option>
-            <option value="14">14 kun</option>
-            <option value="30" selected>30 kun</option>
-            <option value="60">60 kun</option>
+            <option value="7">7 <%= t('manufacturer.orders.detail.inquiries.modals.response.days') %></option>
+            <option value="14">14 <%= t('manufacturer.orders.detail.inquiries.modals.response.days') %></option>
+            <option value="30" selected>30 <%= t('manufacturer.orders.detail.inquiries.modals.response.days') %></option>
+            <option value="60">60 <%= t('manufacturer.orders.detail.inquiries.modals.response.days') %></option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Qisqa izoh</label>
-          <textarea id="quickNote" name="quickNote" class="form-control" rows="3" placeholder="Taklifingiz haqida qisqa ma'lumot..."></textarea>
+          <label class="form-label"><%= t('manufacturer.orders.detail.inquiries.modals.quick_quote.short_note') %></label>
+          <textarea id="quickNote" name="quickNote" class="form-control" rows="3" placeholder="<%= t('manufacturer.orders.detail.inquiries.modals.quick_quote.note_placeholder') %>"></textarea>
         </div>
         <div class="modal-actions">
-          <button type="button" class="orders-btn orders-btn-secondary" id="cancelQuickQuote">Bekor qilish</button>
+          <button type="button" class="orders-btn orders-btn-secondary" id="cancelQuickQuote"><%= t('manufacturer.orders.detail.inquiries.modals.quick_quote.actions.cancel') %></button>
           <button type="submit" class="orders-btn orders-btn-primary">
             <i class="fas fa-paper-plane"></i>
-            Yuborish
+            <%= t('manufacturer.orders.detail.inquiries.modals.quick_quote.actions.send') %>
           </button>
         </div>
       </form>
@@ -619,6 +630,74 @@
 <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11;">
   <!-- Toasts will be dynamically added here -->
 </div>
+
+<!-- Professional Unified Header Management -->
+<script src="/js/manufacturer/manufacturer-header.js"></script>
+
+<script type="application/json" id="translations">
+ {
+  "manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.product_inquiry": "<%= t('manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.product_inquiry') %>",
+  "manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.custom_order": "<%= t('manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.custom_order') %>",
+  "manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.service_inquiry": "<%= t('manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.service_inquiry') %>",
+  "manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.quotation_inquiry": "<%= t('manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.quotation_inquiry') %>",
+  "manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.other_inquiry": "<%= t('manufacturer.orders.detail.inquiries.javascript.inquiry_type_labels.other_inquiry') %>",
+  "manufacturer.orders.detail.inquiries.filters.all_priorities": "<%= t('manufacturer.orders.detail.inquiries.filters.all_priorities') %>",
+  "manufacturer.orders.detail.inquiries.filters.all_time": "<%= t('manufacturer.orders.detail.inquiries.filters.all_time') %>",
+  "manufacturer.orders.detail.inquiries.filters.today": "<%= t('manufacturer.orders.detail.inquiries.filters.today') %>",
+  "manufacturer.orders.detail.inquiries.filters.week": "<%= t('manufacturer.orders.detail.inquiries.filters.week') %>",
+  "manufacturer.orders.detail.inquiries.filters.month": "<%= t('manufacturer.orders.detail.inquiries.filters.month') %>",
+  "manufacturer.orders.detail.inquiries.filters.quarter": "<%= t('manufacturer.orders.detail.inquiries.filters.quarter') %>",
+  "manufacturer.orders.detail.inquiries.filters.year": "<%= t('manufacturer.orders.detail.inquiries.filters.year') %>",
+  "manufacturer.orders.detail.inquiries.filters.custom": "<%= t('manufacturer.orders.detail.inquiries.filters.custom') %>",
+  "manufacturer.orders.detail.inquiries.priority_options.high": "<%= t('manufacturer.orders.detail.inquiries.priority_options.high') %>",
+  "manufacturer.orders.detail.inquiries.priority_options.urgent": "<%= t('manufacturer.orders.detail.inquiries.priority_options.urgent') %>",
+  "manufacturer.orders.detail.inquiries.priority_options.low": "<%= t('manufacturer.orders.detail.inquiries.priority_options.low') %>",
+  "manufacturer.orders.detail.inquiries.priority_options.medium": "<%= t('manufacturer.orders.detail.inquiries.priority_options.medium') %>",
+  "manufacturer.orders.detail.inquiries.status_options.quoted": "<%= t('manufacturer.orders.detail.inquiries.status_options.quoted') %>",
+  "manufacturer.orders.detail.inquiries.status_options.accepted": "<%= t('manufacturer.orders.detail.inquiries.status_options.accepted') %>",
+  "manufacturer.orders.detail.inquiries.status_options.rejected": "<%= t('manufacturer.orders.detail.inquiries.status_options.rejected') %>",
+  "manufacturer.orders.detail.inquiries.status_options.expired": "<%= t('manufacturer.orders.detail.inquiries.status_options.expired') %>",
+  "manufacturer.orders.detail.inquiries.status_options.converted": "<%= t('manufacturer.orders.detail.inquiries.status_options.converted') %>",
+  "manufacturer.orders.detail.inquiries.status_options.negotiating": "<%= t('manufacturer.orders.detail.inquiries.status_options.negotiating') %>",
+  "manufacturer.orders.detail.inquiries.status_options.responded": "<%= t('manufacturer.orders.detail.inquiries.status_options.responded') %>",
+  "manufacturer.orders.detail.inquiries.status_options.open": "<%= t('manufacturer.orders.detail.inquiries.status_options.open') %>",
+  "manufacturer.orders.detail.inquiries.javascript.contact_customer_title":"<%= t('manufacturer.orders.detail.inquiries.javascript.contact_customer_title') %>",
+  "manufacturer.orders.detail.inquiries.javascript.business_partner":"<%= t('manufacturer.orders.detail.inquiries.javascript.business_partner') %>",
+  "manufacturer.orders.detail.inquiries.javascript.about_inquiry":"<%= t('manufacturer.orders.detail.inquiries.javascript.about_inquiry') %>",
+  "manufacturer.orders.detail.inquiries.javascript.subject_label":"<%= t('manufacturer.orders.detail.inquiries.javascript.subject_label') %>",
+  "manufacturer.orders.detail.inquiries.javascript.product_label":"<%= t('manufacturer.orders.detail.inquiries.javascript.product_label') %>",
+  "manufacturer.orders.detail.inquiries.javascript.not_available_short":"<%= t('manufacturer.orders.detail.inquiries.javascript.not_available_short') %>",
+  "manufacturer.orders.detail.inquiries.javascript.quantity_label":"<%= t('manufacturer.orders.detail.inquiries.javascript.quantity_label') %>",
+  "manufacturer.orders.detail.inquiries.javascript.budget_label":"<%= t('manufacturer.orders.detail.inquiries.javascript.budget_label') %>",
+  "manufacturer.orders.detail.inquiries.javascript.contact_methods":"<%= t('manufacturer.orders.detail.inquiries.javascript.contact_methods') %>",
+  "manufacturer.orders.detail.inquiries.javascript.send_email":"<%= t('manufacturer.orders.detail.inquiries.javascript.send_email') %>",
+  "manufacturer.orders.detail.inquiries.javascript.make_call":"<%= t('manufacturer.orders.detail.inquiries.javascript.make_call') %>",
+  "manufacturer.orders.detail.inquiries.javascript.system_message":"<%= t('manufacturer.orders.detail.inquiries.javascript.system_message') %>",
+  "manufacturer.orders.detail.inquiries.javascript.send_response":"<%= t('manufacturer.orders.detail.inquiries.javascript.send_response') %>",
+  "manufacturer.orders.detail.inquiries.javascript.close_button":"<%= t('manufacturer.orders.detail.inquiries.javascript.close_button') %>",
+  "manufacturer.orders.detail.inquiries.javascript.respond_button":"<%= t('manufacturer.orders.detail.inquiries.javascript.respond_button') %>",
+  "manufacturer.orders.detail.inquiries.javascript.send_response":"<%= t('manufacturer.orders.detail.inquiries.javascript.send_response') %>"
+}
+</script>
+
+<script>
+  // Pass server-side translations to client-side
+  window.translations = JSON.parse(document.getElementById('translations').textContent);
+  
+  window.t = function(key, fallback = '') {
+    try {
+      // Use server-side translations
+      if (window.translations && window.translations[key]) {
+        return window.translations[key];
+      }
+      // Fallback to provided fallback or key
+      return fallback || key;
+    } catch (error) {
+      console.error('Translation error:', error);
+      return fallback || key;
+    }
+  };
+  </script>
 
 <!-- Dashboard Initialization -->
 <script src="/js/manufacturer/dashboard-init.js"></script>

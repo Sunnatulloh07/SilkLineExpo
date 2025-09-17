@@ -143,7 +143,7 @@ class ProfessionalAuthHandler {
             }
             
         } catch (error) {
-            console.error('Login error:', error);
+            // console.error('Login error:', error);
             this.handleNetworkError(error);
         } finally {
             this.isSubmitting = false;
@@ -167,7 +167,7 @@ class ProfessionalAuthHandler {
 
     async submitLogin(formData, retryCount = 0) {
         try {
-            console.log(`🔐 Submitting login for: ${formData.email}`);
+            // console.log(`🔐 Submitting login for: ${formData.email}`);
             
             const response = await fetch('/auth/login', {
                 method: 'POST',
@@ -184,7 +184,7 @@ class ProfessionalAuthHandler {
             if (!response.ok) {
                 // Handle specific HTTP errors
                 if (response.status === 500 && retryCount < this.maxRetries) {
-                    console.log(`🔄 Retrying login attempt ${retryCount + 1}/${this.maxRetries}`);
+                    // console.log(`🔄 Retrying login attempt ${retryCount + 1}/${this.maxRetries}`);
                     await this.delay(this.retryDelay * (retryCount + 1));
                     return this.submitLogin(formData, retryCount + 1);
                 }
@@ -196,7 +196,7 @@ class ProfessionalAuthHandler {
             
         } catch (error) {
             if (retryCount < this.maxRetries && this.isRetryableError(error)) {
-                console.log(`🔄 Retrying login due to error: ${error.message}`);
+                // console.log(`🔄 Retrying login due to error: ${error.message}`);
                 await this.delay(this.retryDelay * (retryCount + 1));
                 return this.submitLogin(formData, retryCount + 1);
             }
@@ -205,7 +205,7 @@ class ProfessionalAuthHandler {
     }
 
     async handleLoginSuccess(response) {
-        console.log('✅ Login successful:', response.data?.user?.email);
+        // console.log('✅ Login successful:', response.data?.user?.email);
         
         // Save credentials if remember me is checked
         if (this.rememberMe?.checked) {
@@ -251,13 +251,13 @@ class ProfessionalAuthHandler {
         const redirectUrl = response.data?.redirectUrl || this.getDefaultRedirectUrl(response.data?.user);
         
         setTimeout(() => {
-            console.log(`🔄 Redirecting to: ${redirectUrl}`);
+            // console.log(`🔄 Redirecting to: ${redirectUrl}`);
             window.location.href = redirectUrl;
         }, 1500);
     }
 
     handleLoginError(response) {
-        console.error('❌ Login failed:', response);
+        // console.error('❌ Login failed:', response);
         
         let message = response.message || 'Login failed. Please try again.';
         let alertType = 'error';
@@ -301,7 +301,7 @@ class ProfessionalAuthHandler {
     }
 
     handleNetworkError(error) {
-        console.error('🌐 Network error:', error);
+        // console.error('🌐 Network error:', error);
         
         let message = 'Connection error. Please check your network and try again.';
         

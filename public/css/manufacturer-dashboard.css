@@ -182,10 +182,6 @@
   left: 280px !important;
 }
 
-/* Adjust main content for fixed header */
-.admin-content {
-  padding-top: var(--header-height);
-}
 
 /* 3. Simplified Header - Only Avatar */
 .header-right {

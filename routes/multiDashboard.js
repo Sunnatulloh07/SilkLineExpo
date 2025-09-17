@@ -132,6 +132,7 @@ router.get('/me',
                         userType: payload.userType,
                         permissions: payload.permissions || [],
                         companyName: payload.companyName,
+                        companyType: payload.companyType,
                         isActive: payload.isActive !== false
                     },
                     token: {
@@ -254,7 +255,8 @@ router.get('/validate/:dashboardType',
                         role: payload.role,
                         companyType: payload.companyType,
                         name: payload.name,
-                        email: payload.email
+                        email: payload.email,
+                        companyType: payload.companyType
                     }
                 });
             } else {
@@ -356,7 +358,8 @@ router.get('/routes',
                     userType: payload.userType,
                     role: payload.role,
                     companyType: payload.companyType,
-                    name: payload.name
+                        name: payload.name,
+                    companyType: payload.companyType
                 },
                 routes,
                 dashboardConfig

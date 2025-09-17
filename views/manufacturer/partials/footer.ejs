@@ -353,8 +353,6 @@
     
     // Initialize manufacturer dashboard
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('🏭 Manufacturer Dashboard Initialized');
-      
       // Apply saved theme with proper sync
       const savedTheme = window.MANUFACTURER_CONFIG.theme;
       if (savedTheme) {
@@ -382,10 +380,7 @@
           clearTimeout(autoSaveTimer);
           autoSaveTimer = setTimeout(() => {
             const form = e.target.closest('form');
-            if (form && form.dataset.autoSave === 'true') {
-              // Trigger auto-save
-              console.log('Auto-saving form data...');
-            }
+          
           }, window.MANUFACTURER_CONFIG.autoSaveInterval);
         }
       });

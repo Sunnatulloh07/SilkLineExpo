@@ -215,95 +215,9 @@ router.post('/verify-session',
 
 // ===== LANGUAGE MANAGEMENT =====
 
-/**
- * POST /language/change
- * Change user language preference
- */
-router.post('/language/change', 
-    optionalAuth,
-    (req, res) => {
-        try {
-            const { language } = req.body;
-            const supportedLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
-            
-            if (!language || !supportedLanguages.includes(language)) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Invalid language code'
-                });
-            }
-            
-            // Set language cookie
-            res.cookie('language', language, {
-                maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-                httpOnly: false, // Allow client-side access
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict'
-            });
-            
-            // Update session language if user is logged in
-            if (req.session) {
-                req.session.language = language;
-            }
-            
-            res.json({
-                success: true,
-                message: 'Language changed successfully',
-                data: { language }
-            });
-            
-        } catch (error) {
-            console.error('Language change error:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to change language'
-            });
-        }
-    }
-);
+// Language change route moved to unified API in /api/language/:lang
 
-/**
- * GET /language/:lang
- * Change language via GET request (for direct links)
- */
-router.get('/language/:lang', (req, res) => {
-    try {
-        const { lang } = req.params;
-        const supportedLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
-        
-        if (supportedLanguages.includes(lang)) {
-            // Set consistent language cookies
-            const cookieOptions = {
-                maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-                httpOnly: false,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax'
-            };
-            
-            res.cookie('i18next', lang, cookieOptions);
-            res.cookie('selectedLanguage', lang, cookieOptions);
-            res.cookie('language', lang, cookieOptions);
-            
-            // Update session language if user is logged in
-            if (req.session) {
-                req.session.language = lang;
-            }
-            
-            // Update i18next language for current request
-            if (req.i18n && req.i18n.changeLanguage) {
-                req.i18n.changeLanguage(lang);
-            }
-        }
-        
-        // Get redirect URL from query parameter or referer
-        const redirectUrl = req.query.redirect || req.get('Referer') || '/';
-        res.redirect(redirectUrl);
-        
-    } catch (error) {
-        console.error('❌ Language redirect error:', error);
-        res.redirect('/');
-    }
-});
+// Language GET route moved to unified API in /api/language/:lang
 
 // ===== SECURITY ENDPOINTS =====
 

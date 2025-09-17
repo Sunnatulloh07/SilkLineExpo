@@ -25,7 +25,7 @@ class BuyerSuppliers {
                 this.renderSuppliersGrid(result.data);
             }
         } catch (error) {
-            console.error('Error loading suppliers:', error);
+            // console.error('Error loading suppliers:', error);
         }
     }
 
@@ -152,7 +152,7 @@ class BuyerSuppliers {
                 this.loadSuppliers(); // Refresh grid
             }
         } catch (error) {
-            console.error('Error toggling favorite:', error);
+            // console.error('Error toggling favorite:', error);
         }
     }
 

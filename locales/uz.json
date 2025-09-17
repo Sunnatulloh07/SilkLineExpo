@@ -28,7 +28,7 @@
     "breadcrumbHome": "Boshqaruv Paneli",
     "breadcrumbFavorites": "Mening sevimlilarim",
     "clearAll": "Hammasini tozalash",
-    "notification": {
+    "notifications": {
       "clearAll": "Hammasini tozalashni xohlaysizmi? Bu amalni qaytarib bo'lmaydi.",
       "clearAllSuccess": "Hammasi tozalandi.",
       "clearAllError": "Hammasini tozalashda xatolik yuz berdi.",
@@ -38,6 +38,7 @@
       "removedFromFavorites": "Mahsulot sevimlilardan olib tashlandi.",
       "addedToCartError": "Mahsulot savatga qo'shishda xatolik yuz berdi.",
       "removedFromCartError": "Mahsulot savatdan olib tashlashda xatolik yuz berdi.",
+      "productRemoved": "Mahsulot sevimlilardan olib tashlandi.",    
       "addedToFavoritesError": "Mahsulot sevimlilarga qo'shishda xatolik yuz berdi.",
       "removedFromFavoritesError": "Mahsulot sevimlilardan olib tashlashda xatolik yuz berdi.",
       "quantityIncreased": "Mahsulot miqdori oshirildi.",
@@ -1605,6 +1606,8 @@
     "size": "O'lcham",
     "category": "Kategoriya",
     "supplier": "Yetkazib beruvchi",
+    "verified": "Tasdiqlangan",
+    "verificationPending": "Tasdiqlanish kutilmoqda",
     "perUnit": "dona uchun",
     "addToFavorites": "Sevimlilariga Qo'shish",
     "removeFromFavorites": "Sevimlilardan O'chirish",
@@ -1963,15 +1966,208 @@
       "system_logs": "Tizim jurnallari"
     },
     "header": {
-      "search_placeholder": "Qidirish...",
+      "search_placeholder": "Mahsulotlar, buyurtmalar, hisobotlarni qidirish...",
       "change_language": "Tilni o'zgartirish",
       "select_language": "Tilni tanlang",
       "toggle_theme": "Mavzuni o'zgartirish",
-      "notifications": "Bildirishnomalar",
-      "profile": "Profil",
       "settings": "Sozlamalar",
       "help_support": "Yordam va qo'llab-quvvatlash",
-      "logout": "Chiqish"
+      "logout": "Chiqish",
+      "messages": {
+        "title": "Xabarlar",
+        "tooltip": "Xabarlar",
+        "mark_all_read": "Hammasini o'qilgan",
+        "loading": "Xabarlar yuklanmoqda...",
+        "view_all": "Barcha xabarlar",
+        "no_messages": "Hozircha xabarlar yo'q",
+        "mark_all_read_btn": "Barchasini o'qilgan deb belgilash"
+      },
+      "notifications": {
+        "title": "Bildirishnomalar",
+        "tooltip": "Bildirishnomalar",
+        "mark_all_read": "Hammasini o'qilgan deb belgilash",
+        "view_all": "Barcha bildirishnomalar",
+        "no_notifications": "Hozircha yangi bildirishnomalar yo'q",
+        "new_inquiries": "Yangi So'rovlar",
+        "new_orders": "Yangi Buyurtmalar",
+        "new_inquiry": "Yangi so'rov",
+        "inquiry_sent": "So'rov yuborildi",
+        "new_order": "Yangi buyurtma",
+        "order_completed": "Buyurtma bajarildi",
+        "order_received": "Yangi buyurtma qabul qilindi",
+        "order_number": "Buyurtma",
+        "order_prefix": "Buyurtma"
+      },
+      "profile": {
+        "manufacturer_admin": "Ishlab chiqaruvchi admin",
+        "production_manager": "Ishlab chiqarish menejeri",
+        "my_profile": "Mening profilim",
+        "settings": "Sozlamalar",
+        "production_stats": "Ishlab chiqarish statistikasi",
+        "help_support": "Yordam va qo'llab-quvvatlash",
+        "logout": "Chiqish"
+      },
+      "brand": {
+        "manufacturing": "Ishlab chiqarish"
+      },
+      "common": {
+        "profile": "Profil",
+        "dashboard_title": "SLEX Ishlab chiqarish Boshqaruv Paneli",
+        "time_ago": {
+          "just_now": "Hozir",
+          "minutes": "daqiqa oldin",
+          "hours": "soat oldin",
+          "days": "kun oldin"
+        }
+      },
+      "orders": {
+        "page_title": "Buyurtmalar - Manufacturing Dashboard",
+        "header": {
+          "title": "Buyurtmalar Boshqaruvi",
+          "subtitle": "Professional B2B buyurtmalar tizimi va bozor integratsiyasi",
+          "actions": {
+            "export_report": "Export Hisobot",
+            "bulk_actions": "Ommaviy Amallar",
+            "refresh": "Yangilash"
+          }
+        },
+        "kpi": {
+          "total_orders": "Jami Buyurtmalar",
+          "active_orders": "Faol Buyurtmalar",
+          "monthly_revenue": "Oylik Daromad",
+          "pending_orders": "Kutayotgan Buyurtmalar",
+          "trends": {
+            "all_orders": "Barcha buyurtmalar",
+            "in_progress": "Jarayonda",
+            "current_month": "Joriy oy",
+            "awaiting_confirmation": "Tasdiqlash kutilmoqda"
+          }
+        },
+        "filters": {
+          "title": "Filtr va Qidiruv",
+          "actions": {
+            "reset": "Reset",
+            "advanced": "Kengaytirilgan"
+          },
+          "labels": {
+            "search": "Qidiruv",
+            "status": "Holat",
+            "date_range": "Sana oralig'i",
+            "customer": "Mijoz",
+            "amount_range": "Summa oralig'i",
+            "sort_by": "Saralash",
+            "sort_order": "Tartib"
+          },
+          "placeholders": {
+            "search": "Buyurtma ID, mijoz nomi...",
+            "all_statuses": "Barcha holatlar",
+            "all_time": "Barcha vaqt",
+            "all_customers": "Barcha mijozlar",
+            "all_amounts": "Barcha summalar"
+          },
+          "status_options": {
+            "pending": "Kutayotgan",
+            "confirmed": "Tasdiqlangan",
+            "processing": "Jarayonda",
+            "manufacturing": "Ishlab chiqarilmoqda",
+            "ready_to_ship": "Jo'natishga tayyor",
+            "shipped": "Jo'natilgan",
+            "delivered": "Yetkazilgan",
+            "completed": "Yakunlangan",
+            "cancelled": "Bekor qilingan"
+          },
+          "date_options": {
+            "today": "Bugun",
+            "week": "Bu hafta",
+            "month": "Bu oy",
+            "quarter": "Bu chorak",
+            "year": "Bu yil",
+            "custom": "Maxsus oraliq"
+          },
+          "sort_options": {
+            "created_at": "Yaratilgan vaqt",
+            "total_amount": "Summa",
+            "status": "Holat",
+            "customer_name": "Mijoz nomi"
+          },
+          "sort_order": {
+            "desc": "Kamayish tartibida",
+            "asc": "O'sish tartibida"
+          },
+          "buttons": {
+            "search": "Qidiruv",
+            "clear": "Tozalash"
+          }
+        },
+        "table": {
+          "title": "Buyurtmalar jadvali",
+          "headers": {
+            "order_id": "Buyurtma ID",
+            "customer": "Mijoz",
+            "date": "Sana",
+            "product_name": "Mahsulot Nomi",
+            "quantity": "Miqdori",
+            "total_amount": "Umumiy Summa",
+            "status": "Holat",
+            "actions": "Amallar"
+          },
+          "actions": {
+            "select_all": "Barchasini belgilash",
+            "bulk_actions": "Ommaviy amallar",
+            "view_details": "Batafsil ko'rish",
+            "customer_communication": "Mijoz bilan aloqa",
+            "duplicate": "Nusxalash"
+          },
+          "product_info": {
+            "no_product": "Mahsulot ma'lumoti yo'q",
+            "multiple_products": "boshqa mahsulot",
+            "pieces": "dona",
+            "products_count": "mahsulot"
+          }
+        },
+        "cards": {
+          "view_modes": {
+            "cards": "Cards",
+            "table": "Table",
+            "timeline": "Timeline"
+          },
+          "actions": {
+            "view": "Ko'rish",
+            "communication": "Aloqa"
+          }
+        },
+        "timeline": {
+          "orders_count": "buyurtma",
+          "customer_label": "Mijoz:",
+          "amount_label": "Summa:",
+          "products_label": "Mahsulotlar:",
+          "view_action": "Ko'rish"
+        },
+        "empty_state": {
+          "title": "Buyurtmalar topilmadi",
+          "description": "Hozircha buyurtmalar yo'q. Mijozlar mahsulotlaringizni ko'rib, buyurtma berishganlarida, ular shu yerda ko'rinadi.",
+          "actions": {
+            "go_to_marketplace": "Marketplace ga o'tish",
+            "view_products": "Mahsulotlarni ko'rish"
+          }
+        },
+        "modals": {
+          "status_change": {
+            "title": "Buyurtma Holatini O'zgartirish",
+            "new_status_label": "Yangi holat",
+            "select_status": "Holatni tanlang",
+            "note_label": "Izoh (ixtiyoriy)",
+            "note_placeholder": "Holat o'zgarishi sababi...",
+            "cancel": "Bekor qilish",
+            "change": "O'zgartirish"
+          }
+        },
+        "messages": {
+          "loading_error": "Buyurtmalarni yuklashda xatolik",
+          "refresh_success": "Buyurtmalar yangilandi",
+          "management_error": "Orders Management yuxolanishda xatolik"
+        }
+      }
     },
     "dashboard": {
       "platform_working": "SilkInExpo platformasi ishlayapti",
@@ -2206,8 +2402,8 @@
     "averageRating": "O'rtacha baholangan",
     "inCart": "Savatda",
     "alreadyInCart": "Bu mahsulot allaqachon savatda",
-    "inquiry": "So'rov",
-    "chat": "Chat",
+    "inquiry": "So'rov yuborish",
+    "chat": "Chat boshlash",
     "sample": "Namuna",
     "manufacturer": "Ishlab chiqaruvchi",
     "quoteBase": "Taklifga asoslangan",
@@ -2250,15 +2446,6 @@
     "profileViews": "Profil ko'rishlar",
     "averageRating": "O'rtacha baholangan"
   },
-  "modal": {
-    "sendInquiry": "So'rov yuborish",
-    "sendInquiryDescription": "Yetkazib beruvchiga so'rov yuborish uchun quyidagi shaklni to'ldiring.",
-    "name": "Ism",
-    "email": "Email",
-    "phone": "Telefon",
-    "message": "Xabar",
-    "send": "Yuborish"
-  },
   "form": {
     "yourName": "Ismingiz",
     "companyName": "Kompaniya nomi",
@@ -2288,6 +2475,7 @@
   "buttons": {
     "moreAboutUs": "Biz haqimizda ko'proq",
     "by": "tomonidan",
+    "browseProducts": "Mahsulotlarni ko'rish",
     "cancel": "Bekor qilish",
     "sendInquiry": "So'rov yuborish",
     "startChat": "Chatni boshlash",
@@ -2337,15 +2525,20 @@
     "catalog": "Katalog",
     "other": "Boshqa"
   },
-  "supplier": {
-    "supplierProfile": "Ta'minotchi profili",
-    "verified": "Tasdiqlangan",
-    "reviews": "sharhlar",
-    "established": "Tashkil etilgan",
-    "totalProducts": "Mahsulotlar",
-    "yearsExperience": "Yillik tajriba",
-    "employees": "Ishchilar",
-    "responseRate": "Javob berish ko'rsatkichi",
+    "supplier": {
+      "supplierProfile": "Ta'minotchi profili",
+      "verified": "Tasdiqlangan",
+      "verificationPending": "Tasdiqlanish kutilmoqda",
+      "reviews": "sharhlar",
+      "established": "Tashkil etilgan",
+      "totalProducts": "Mahsulotlar",
+      "yearsExperience": "Yillik tajriba",
+      "employees": "Ishchilar",
+      "responseRate": "Javob berish ko'rsatkichi",
+      "completionRate": "Yakunlanish ko'rsatkichi",
+      "activeOrders": "Faol buyurtmalar",
+      "totalReviews": "Jami sharhlar",
+      "memberSince": "A'zo bo'lgan yil",
     "companyOverview": "Kompaniya haqida umumiy ma'lumot",
     "industry": "Sanoat",
     "businessType": "Biznes turi",
@@ -3062,7 +3255,7 @@
         "addProduct": "Mahsulot qo'shish",
         "available": "Mavjud",
         "noCategory": "Kategoriyasiz",
-        "perUnit": "Dona uchun",
+        "perUnit": "donasi",
         "noProductsDesc": "Marketplace'da ko'rsatish uchun mahsulot qo'shing",
         "addFirstProduct": "Birinchi mahsulotni qo'shish",
         "productImage": "Mahsulot rasmi",
@@ -3285,6 +3478,964 @@
         "deleteProduct": "Mahsulotni o'chirishni xohlaysizmi? Bu amalni qaytarib bo'lmaydi."
       }
     },
+    "orders": {
+      "page_title": "Buyurtmalar - Manufacturing Dashboard",
+      "header": {
+        "title": "Buyurtmalar Boshqaruvi",
+        "subtitle": "Professional B2B buyurtmalar tizimi va bozor integratsiyasi",
+        "actions": {
+          "export_report": "Export Hisobot",
+          "bulk_actions": "Ommaviy Amallar",
+          "refresh": "Yangilash"
+        }
+      },
+      "kpi": {
+        "total_orders": "Jami Buyurtmalar",
+        "active_orders": "Faol Buyurtmalar",
+        "monthly_revenue": "Oylik Daromad",
+        "pending_orders": "Kutayotgan Buyurtmalar",
+        "trends": {
+          "all_orders": "Barcha buyurtmalar",
+          "in_progress": "Jarayonda",
+          "current_month": "Joriy oy",
+          "awaiting_confirmation": "Tasdiqlash kutilmoqda"
+        }
+      },
+      "filters": {
+        "title": "Filtr va Qidiruv",
+        "actions": {
+          "reset": "Reset",
+          "advanced": "Kengaytirilgan"
+        },
+        "labels": {
+          "search": "Qidiruv",
+          "status": "Holat",
+          "date_range": "Sana oralig'i",
+          "customer": "Mijoz",
+          "amount_range": "Summa oralig'i",
+          "sort_by": "Saralash",
+          "sort_order": "Tartib"
+        },
+        "placeholders": {
+          "search": "Buyurtma ID, mijoz nomi...",
+          "all_statuses": "Barcha holatlar",
+          "all_time": "Barcha vaqt",
+          "all_customers": "Barcha mijozlar",
+          "all_amounts": "Barcha summalar"
+        },
+        "status_options": {
+          "pending": "Kutayotgan",
+          "confirmed": "Tasdiqlangan",
+          "processing": "Jarayonda",
+          "manufacturing": "Ishlab chiqarilmoqda",
+          "ready_to_ship": "Jo'natishga tayyor",
+          "shipped": "Jo'natilgan",
+          "delivered": "Yetkazilgan",
+          "completed": "Yakunlangan",
+          "cancelled": "Bekor qilingan"
+        },
+        "date_options": {
+          "today": "Bugun",
+          "week": "Bu hafta",
+          "month": "Bu oy",
+          "quarter": "Bu chorak",
+          "year": "Bu yil",
+          "custom": "Maxsus oraliq"
+        },
+        "sort_options": {
+          "created_at": "Yaratilgan vaqt",
+          "total_amount": "Summa",
+          "status": "Holat",
+          "customer_name": "Mijoz nomi"
+        },
+        "sort_order": {
+          "desc": "Kamayish tartibida",
+          "asc": "O'sish tartibida"
+        },
+        "buttons": {
+          "search": "Qidiruv",
+          "clear": "Tozalash"
+        }
+      },
+      "table": {
+        "title": "Buyurtmalar jadvali",
+        "headers": {
+          "customer": "Mijoz",
+          "product_name": "Mahsulot Nomi",
+          "quantity": "Miqdori",
+          "total_amount": "Umumiy Summa",
+          "status": "Holat",
+          "actions": "Amallar"
+        },
+        "actions": {
+          "select_all": "Barchasini belgilash",
+          "bulk_actions": "Ommaviy amallar",
+          "view_details": "Batafsil ko'rish"
+        },
+        "product_info": {
+          "no_product": "Mahsulot ma'lumoti yo'q",
+          "multiple_products": "boshqa mahsulot",
+          "pieces": "dona",
+          "products_count": "mahsulot"
+        }
+      },
+      "cards": {
+        "view_modes": {
+          "cards": "Cards",
+          "table": "Table",
+          "timeline": "Timeline"
+        },
+        "actions": {
+          "view": "Ko'rish",
+          "communication": "Aloqa"
+        }
+      },
+      "timeline": {
+        "orders_count": "buyurtma",
+        "customer_label": "Mijoz:",
+        "amount_label": "Summa:",
+        "products_label": "Mahsulotlar:",
+        "view_action": "Ko'rish"
+      },
+      "empty_state": {
+        "title": "Buyurtmalar topilmadi",
+        "description": "Hozircha buyurtmalar yo'q. Mijozlar mahsulotlaringizni ko'rib, buyurtma berishganlarida, ular shu yerda ko'rinadi.",
+        "actions": {
+          "go_to_marketplace": "Marketplace ga o'tish",
+          "view_products": "Mahsulotlarni ko'rish"
+        }
+      },
+      "modals": {
+        "status_change": {
+          "title": "Buyurtma Holatini O'zgartirish",
+          "new_status_label": "Yangi holat",
+          "select_status": "Holatni tanlang",
+          "note_label": "Izoh (ixtiyoriy)",
+          "note_placeholder": "Holat o'zgarishi sababi...",
+          "cancel": "Bekor qilish",
+          "change": "O'zgartirish"
+        }
+      },
+      "messages": {
+        "loading_error": "Buyurtmalarni yuklashda xatolik",
+        "refresh_success": "Buyurtmalar yangilandi",
+        "management_error": "Orders Management yuxolanishda xatolik"
+      },
+      "additional_labels": {
+        "date_range": "Sana oralig'i",
+        "customer": "Mijoz",
+        "amount_range": "Summa oralig'i",
+        "sort_by": "Saralash",
+        "sort_order": "Tartiblash",
+        "all_time": "Barcha vaqt",
+        "today": "Bugun",
+        "week": "Bu hafta",
+        "month": "Bu oy",
+        "quarter": "Bu chorak",
+        "year": "Bu yil",
+        "custom": "Maxsus oraliq",
+        "all_customers": "Barcha mijozlar",
+        "all_amounts": "Barcha summalar",
+        "created_at": "Yaratilgan vaqt",
+        "total_amount": "Summa",
+        "status": "Holat",
+        "customer_name": "Mijoz nomi",
+        "desc": "Kamayish tartibida",
+        "asc": "O'sish tartibida",
+        "search": "Qidiruv",
+        "cards": "Cards",
+        "table": "Table",
+        "timeline": "Timeline",
+        "product_name": "Mahsulot Nomi",
+        "quantity": "Miqdori",
+        "actions": "Amallar",
+        "no_product": "Mahsulot ma'lumoti yo'q",
+        "pieces": "dona",
+        "products_count": "mahsulot",
+        "date_label": "Sana:",
+        "products_label": "Mahsulotlar:",
+        "amount_label": "Summa:",
+        "view": "Ko'rish",
+        "communication": "Aloqa",
+        "orders_count": "buyurtma",
+        "customer_label": "Mijoz:",
+        "empty_title": "Buyurtmalar topilmadi",
+        "modal_title": "Buyurtma Holatini O'zgartirish",
+        "new_status_label": "Yangi holat",
+        "select_status": "Holatni tanlang",
+        "note_label": "Izoh (ixtiyoriy)",
+        "note_placeholder": "Holat o'zgarishi sababi...",
+        "cancel": "Bekor qilish",
+        "change": "O'zgartirish",
+        "orders_table": "Buyurtmalar jadvali",
+        "select_all": "Barchasini tanlash",
+        "bulk_actions": "Ommaviy amallar",
+        "b2b_type": "B2B",
+        "status_cancelled_uz": "Bekor qilingan",
+        "status_pending_uz": "Kutayotgan",
+        "status_confirmed_uz": "Tasdiqlangan",
+        "status_processing_uz": "Jarayonda",
+        "status_manufacturing_uz": "Ishlab chiqarilmoqda",
+        "status_ready_to_ship_uz": "Jo'natishga tayyor",
+        "status_shipped_uz": "Jo'natilgan",
+        "status_delivered_uz": "Yetkazilgan",
+        "status_completed_uz": "Yakunlangan",
+        "status_unknown_uz": "Noma'lum holat",
+        "boshqa_mahsulot": "boshqa mahsulot",
+        "product_not_available": "Mahsulot mavjud emas",
+        "currency_usd": "USD",
+        "currency_symbol": "$",
+        "unit_price_symbol": "@$",
+        "order_number_prefix": "#",
+        "loading_dots": "...",
+        "truncation_dots": "...",
+        "chevron_down_icon": "chevron-down",
+        "layer_group_icon": "layer-group",
+        "boxes_icon": "boxes",
+        "tag_icon": "tag",
+        "plus_symbol": "+",
+        "b2b_default": "B2B",
+        "zero_value": "0",
+        "order_id": "Buyurtma ID",
+        "date": "Sana",
+        "customer_communication": "Mijoz bilan aloqa",
+        "duplicate": "Nusxalash",
+        "enhanced_css_imports": "Enhanced CSS Imports ",
+        "main_content": "Main Content",
+        "professional_b2b_orders_header": "Professional B2B Orders Header",
+        "professional_b2b_kpi_cards": "Professional B2B KPI Cards - Orders Analytics",
+        "total_orders": "Total Orders",
+        "active_orders": "Active Orders",
+        "monthly_revenue": "Monthly Revenue",
+        "pending_orders": "Pending Orders",
+        "search_input": "Search Input",
+        "status_filter": "Status Filter",
+        "date_range_filter": "Date Range Filter",
+        "customer_filter": "Customer Filter",
+        "amount_range_filter": "Amount Range Filter",
+        "sort_options": "Sort Options",
+        "table_view": "TABLE VIEW - Products Style",
+        "cards_view": "CARDS VIEW - Products Style",
+        "timeline_view": "TIMELINE VIEW - Products Style",
+        "order_card_header": "Order Card Header",
+        "customer_info": "Customer Info",
+        "order_details": "Order Details",
+        "order_actions": "Order Actions",
+        "expandable_products_details": "Expandable Products Details (Hidden by default)",
+        "empty_state": "Empty State",
+        "status_change_modal": "Status Change Modal",
+        "toast_container": "Toast Container",
+        "bootstrap_js": "Bootstrap JS",
+        "dashboard_init": "Dashboard Init",
+        "real_data_script": "Real Data Script",
+        "i18n_init_script": "I18n Init Script",
+        "i18next_system": "I18next System",
+        "header_management": "Header Management",
+        "orders_management_js": "Orders Management JS",
+        "update_total_orders": "Update Total Orders",
+        "update_active_orders": "Update Active Orders",
+        "update_monthly_revenue": "Update Monthly Revenue",
+        "update_pending_orders": "Update Pending Orders"
+      },
+      "js_messages": {
+        "filters_cleared": "Filterlar tozalandi",
+        "order_duplicated": "Buyurtma muvaffaqiyatli nusxalandi",
+        "duplicate_error": "Buyurtmani nusxalashda xatolik",
+        "select_new_status": "Yangi holatni tanlang",
+        "status_updated": "Buyurtma holati yangilandi",
+        "status_update_error": "Buyurtma holatini yangilashda xatolik",
+        "order_cancelled": "Buyurtma bekor qilindi",
+        "cancel_error": "Buyurtmani bekor qilishda xatolik",
+        "no_orders_selected": "Birorta buyurtma tanlanmagan",
+        "bulk_action_error": "Ommaviy amal bajarishda xatolik",
+        "orders_exported": "Buyurtmalar export qilindi",
+        "export_error": "Export qilishda xatolik",
+        "invoice_opened": "Hisob-faktura chop etish uchun ochildi",
+        "documents_downloading": "Hujjatlar yuklab olinmoqda...",
+        "refund_started": "Pulni qaytarish jarayoni boshlandi...",
+        "confirm_duplicate": "Bu buyurtmani nusxalashni xohlaysizmi?",
+        "confirm_cancel": "Bu buyurtmani bekor qilishni xohlaysizmi? Bu amalni bekor qilib bo'lmaydi.",
+        "confirm_refund": "Haqiqatan ham bu buyurtma uchun pulni qaytarishni xohlaysizmi?",
+        "status_pending": "Kutayotgan",
+        "status_confirmed": "Tasdiqlangan",
+        "status_processing": "Jarayonda",
+        "status_manufacturing": "Ishlab chiqarilmoqda",
+        "status_ready_to_ship": "Jo'natishga tayyor",
+        "status_shipped": "Jo'natilgan",
+        "status_delivered": "Yetkazilgan",
+        "status_completed": "Yakunlangan",
+        "status_cancelled": "Bekor qilingan",
+        "orders_title": "Buyurtmalar",
+        "loading": "Loading...",
+        "view_products_count": "ta mahsulotni ko'rish",
+        "total_label": "Jami:",
+        "pieces_short": "ta",
+        "view_details": "Batafsil ko'rish",
+        "more_actions": "Ko'proq amallar",
+        "email_not_available": "Email mavjud emas",
+        "card_view": "Card ko'rinish",
+        "table_view": "Table ko'rinish",
+        "timeline_view": "Timeline ko'rinish",
+        "customer": "Mijoz",
+        "total_amount": "Umumiy Summa",
+        "status": "Holat",
+        "mahsulotni_ko'rish": "ta mahsulotni ko'rish",
+        "mahsulotlarni_yashirish": "Mahsulotlarni yashirish",
+        "error_occurred": "Xatolik yuz berdi",
+        "reload_orders": "Qaytadan yuklash",
+        "orders_loading_error": "Buyurtmalarni yuklashda xatolik yuz berdi. Qaytadan urinib ko'ring.",
+        "product_not_available": "Mahsulot mavjud emas",
+        "na_value": "N/A",
+        "product_default": "Product",
+        "loading_orders_data": "📊 Loading real orders data...",
+        "orders_data_received": "📊 Orders data received:",
+        "failed_to_load_orders": "❌ Failed to load orders data",
+        "error_loading_orders": "❌ Error loading orders data:",
+        "orders_kpis_updated": "✅ Orders KPIs updated with real data",
+        "initializing_orders": "📋 Initializing Orders Management...",
+        "orders_initialized": "✅ Orders Management initialized successfully",
+        "translation_init_failed": "❌ Translation initialization failed:",
+        "main_actions": "ASOSIY AMALLAR",
+        "dynamically_populated": "Dynamically populated",
+        "use_fallback_data": "Use fallback static data",
+        "return_key_fallback": "Return key as fallback - translations should come from uz.json",
+        "toasts_dynamic": "Toasts will be dynamically added here",
+        "end_products_container": "End products-main-container",
+        "empty_state": "Empty State",
+        "status_change_modal": "Status Change Modal",
+        "toast_container": "Toast Container",
+        "bootstrap_js": "Bootstrap 5 JavaScript",
+        "dashboard_init": "Dashboard Initialization - Theme & Core Functions",
+        "real_data_script": "Real Data Loading Script",
+        "i18n_init_script": "i18n Initialization Script",
+        "i18next_system": "i18next Translation System",
+        "header_management": "Professional Unified Header Management",
+        "orders_management_js": "Professional Orders Management JavaScript",
+        "all_products": "Barcha mahsulotlar",
+        "empty_description": "Hozircha buyurtmalar yo'q. Mijozlar mahsulotlaringizni ko'rib, buyurtma berishganlarida, ular shu yerda ko'rinadi.",
+        "marketplace_go": "Marketplace ga o'tish",
+        "view_products": "Mahsulotlarni ko'rish",
+        "boshqa_mahsulot": "boshqa mahsulot",
+        "usd": "USD",
+        "quantity_pieces": "dona"
+      },
+      "detail": {
+        "page_title": "Buyurtma Tafsilotlari",
+        "breadcrumb_orders": "Buyurtmalar",
+        "breadcrumb_detail": "Tafsilotlar",
+        "header": {
+          "title": "Buyurtma Tafsilotlari",
+          "order_number": "Buyurtma raqami",
+          "current_status": "Joriy holat"
+        },
+        "customer_info": {
+          "title": "Mijoz Ma'lumotlari",
+          "company_name": "Company Name",
+          "contact_person": "Contact Person",
+          "email": "Email",
+          "phone": "Telefon",
+          "address": "Manzil",
+          "email_placeholder": "email@example.com",
+          "logo_alt": "Company Logo",
+          "default_initial": "C"
+        },
+        "tooltips": {
+          "contact": "Aloqa",
+          "send_email": "Email yuborish",
+          "export_order": "Buyurtma ma'lumotlarini export qilish",
+          "export_items": "Mahsulotlar ro'yxatini export qilish"
+        },
+        "sections": {
+          "old_notes": "Izohlar va Eslatmalar (Eski)"
+        },
+        "products": {
+          "alt_text": "Product"
+        },
+        "javascript": {
+          "unsaved_changes": "Saqlenmagan o'zgarishlar mavjud. Sahifani tark etishga ishonchingiz komilmi?",
+          "status_update_error": "Buyurtma holatini yangilashda xatolik",
+          "note_save_success": "Izoh muvaffaqiyatli qo'shildi",
+          "note_save_error": "Izohni saqlashda xatolik",
+          "note_update_success": "Izoh muvaffaqiyatli yangilandi",
+          "note_update_error": "Izohni yangilashda xatolik",
+          "note_delete_success": "Izoh muvaffaqiyatli o'chirildi",
+          "note_delete_error": "Izohni o'chirishda xatolik yuz berdi",
+          "duplicate_error": "Buyurtmani nusxalashda xatolik",
+          "message_send_error": "Xabar yuborishda xatolik",
+          "export_error": "Export da xatolik yuz berdi!",
+          "form_validation_error": "Iltimos, barcha majburiy maydonlarni to'ldiring",
+          "comment_add_error": "Izoh qo'shishda xatolik yuz berdi",
+          "comment_load_error": "Izohlarni yuklashda xatolik yuz berdi",
+          "comment_edit_error": "Izohni tahrirlashda xatolik",
+          "comment_access_error": "Bu izohga ruxsat yo'q",
+          "comment_get_error": "Izoh ma'lumotlarini olishda xatolik",
+          "comment_not_found": "Izoh topilmadi",
+          "comment_data_not_retrieved": "Izoh ma'lumotlari olinmadi",
+        "network_error": "Tarmoq xatoligi"
+      },
+      "inquiries": {
+        "page_title": "Biznes So'rovlari",
+        "header": {
+          "title": "Biznes So'rovlari",
+          "subtitle": "Professional B2B so'rovlar boshqaruvi va mijozlar bilan aloqa markazi"
+        },
+        "actions": {
+          "create_quote_template": "Taklif Shablon",
+          "export_report": "Export Hisobot",
+          "refresh": "Yangilash"
+        },
+        "kpi": {
+          "total_inquiries": "Jami So'rovlar",
+          "new_inquiries": "Yangi So'rovlar",
+          "response_rate": "Javob Berish %",
+          "conversion_rate": "Konversiya %",
+          "all_inquiries": "Barcha so'rovlar",
+          "awaiting_response": "Javob kutmoqda",
+          "this_month": "Bu oy",
+          "inquiry_to_order": "So'rov → Buyurtma"
+        },
+        "filters": {
+          "title": "Filtr va Qidiruv",
+          "reset": "Reset",
+          "advanced": "Kengaytirilgan",
+          "search": "Qidiruv",
+          "search_placeholder": "Kompaniya nomi, mahsulot, so'rov ID...",
+          "status": "Holat",
+          "all_statuses": "Barcha holatlar",
+          "priority": "Muhimlik",
+          "all_priorities": "Barcha muhimliklar",
+          "date_range": "Sana oralig'i",
+          "all_time": "Barcha vaqt",
+          "today": "Bugun",
+          "week": "Bu hafta",
+          "month": "Bu oy",
+          "quarter": "Bu chorak",
+          "year": "Bu yil",
+          "custom": "Maxsus oraliq",
+          "budget_range": "Byudjet oralig'i",
+          "all_budgets": "Barcha byudjetlar",
+          "product_category": "Mahsulot kategoriyasi",
+          "all_categories": "Barcha kategoriyalar",
+          "sort_by": "Saralash",
+          "created_time": "Yaratilgan vaqt",
+          "sort_order": "Tartib",
+          "descending": "Kamayish tartibida",
+          "ascending": "O'sish tartibida",
+          "search_button": "Qidiruv",
+          "clear_button": "Tozalash"
+        },
+        "status_options": {
+          "open": "Ochiq",
+          "responded": "Javob berilgan",
+          "negotiating": "Muzokaralar",
+          "quoted": "Taklif yuborilgan",
+          "accepted": "Qabul qilingan",
+          "rejected": "Rad etilgan",
+          "expired": "Muddati tugagan",
+          "converted": "Buyurtmaga aylantirilgan"
+        },
+        "priority_options": {
+          "urgent": "Shoshilinch",
+          "high": "Yuqori",
+          "medium": "O'rta",
+          "low": "Past"
+        },
+        "budget_ranges": {
+          "0-1000": "$0 - $1,000",
+          "1000-5000": "$1,000 - $5,000",
+          "5000-10000": "$5,000 - $10,000",
+          "10000-50000": "$10,000 - $50,000",
+          "50000+": "$50,000+"
+        },
+        "categories": {
+          "cotton": "Paxta matolari",
+          "silk": "Ipak matolari",
+          "wool": "Jun matolari",
+          "synthetic": "Sintetik matolar",
+          "technical": "Texnik matolar"
+        },
+        "sort_options": {
+          "createdAt": "Yaratilgan vaqt",
+          "priority": "Muhimlik",
+          "budgetRange": "Byudjet",
+          "status": "Holat",
+          "companyName": "Kompaniya nomi"
+        },
+        "table": {
+          "title": "So'rovlar",
+          "inquiries_count": "ta so'rov",
+          "table_title": "So'rovlar jadvali",
+          "refresh_table": "Yangilash",
+          "select_all": "Barchasini belgilash",
+          "bulk_actions": "Ommaviy amallar",
+          "headers": {
+            "inquiry_id": "So'rov ID",
+            "customer": "Mijoz / Kompaniya",
+            "product": "Mahsulot / Xizmat",
+            "quantity": "Miqdor",
+            "budget": "Byudjet",
+            "date": "Sana",
+            "status": "Holat",
+            "priority": "Muhimlik",
+            "actions": "Amallar"
+          },
+          "actions": {
+            "respond": "Javob berish",
+            "quick_quote": "Tezkor taklif",
+            "start_chat": "Chat boshlash"
+          }
+        },
+        "modals": {
+          "response": {
+            "title": "So'rovga Javob Berish",
+            "inquiry_info": "So'rov ma'lumotlari",
+            "customer": "Mijoz:",
+            "product": "Mahsulot:",
+            "quantity": "Miqdor:",
+            "budget": "Byudjet:",
+            "response_type": "Javob turi",
+            "quick_response": "Tezkor javob",
+            "detailed_quote": "Batafsil taklif",
+            "custom_proposal": "Maxsus taklif",
+            "quick_response_message": "Tezkor javob",
+            "quick_response_placeholder": "Mijozga javobingizni yozing...",
+            "quote_builder": "Narx taklifini yaratish",
+            "unit_price": "Birlik narxi (USD)",
+            "minimum_quantity": "Minimal miqdor (MOQ)",
+            "shipping_cost": "Yetkazib berish narxi",
+            "quote_validity": "Taklif amal qilish muddati",
+            "days": "kun",
+            "product_price": "Mahsulot narxi:",
+            "shipping_price": "Yetkazib berish:",
+            "total_amount": "Jami summa:",
+            "terms_conditions": "Shartlar va qo'shimcha ma'lumotlar",
+            "terms_placeholder": "To'lov shartlari, yetkazib berish muddati va boshqa shartlar...",
+            "custom_proposal_text": "Maxsus taklif matn",
+            "custom_proposal_placeholder": "Mijozga maxsus taklifingizni yozing...",
+            "additional_documents": "Qo'shimcha hujjatlar",
+            "upload_files": "Fayllarni yuklash",
+            "drag_drop_text": "Fayllarni sudrab olib keling yoki bosing",
+            "file_types": "PDF, Word, Excel, Rasmlar (maksimal 10MB)",
+            "no_files_selected": "Fayl tanlanmagan",
+            "follow_up_settings": "Kuzatuv sozlamalari",
+            "auto_follow_up": "Avtomatik kuzatuv belgilash",
+            "within_days": "kun ichida",
+            "actions": {
+              "cancel": "Bekor qilish",
+              "save_draft": "Draft saqlaش",
+              "send_response": "Javob yuborish"
+            }
+          },
+          "quick_quote": {
+            "title": "Tezkor Taklif Yuborish",
+            "unit_price": "Birlik narxi (USD)",
+            "total_price": "Jami summa (USD)",
+            "validity_period": "Amal qilish muddati",
+            "short_note": "Qisqa izoh",
+            "note_placeholder": "Taklifingiz haqida qisqa ma'lumot...",
+            "actions": {
+              "cancel": "Bekor qilish",
+              "send": "Yuborish",
+              "save_draft": "Draft saqlaش",
+              "send_response": "Javob yuborish"
+            }
+          }
+        },
+        "javascript": {
+          "loading_title": "Yuklanmoqda...",
+          "loading_text": "So'rovlar ro'yxati yuklanmoqda, iltimos kuting",
+          "empty_title": "Hali so'rovlar yo'q",
+          "empty_description": "Mijozlar sizning mahsulotlaringizga qiziqib so'rov yuborgan vaqtda, ular shu yerda ko'rinadi. Professional javoblar bering va biznesingizni rivojlantiring.",
+          "error_title": "Xatolik yuz berdi",
+          "error_description": "Iltimos, qayta urinib ko'ring yoki tizim administratori bilan bog'laning.",
+          "refresh": "Yangilash",
+          "reload": "Qayta yuklash",
+          "email_not_available": "Email mavjud emas",
+          "general_request": "Umumiy so'rov",
+          "general": "Umumiy",
+          "not_available": "N/A",
+          "unit_piece": "dona",
+          "discussion": "Muhokama",
+          "product": "Mahsulot",
+          "quote": "Taklif",
+          "bulk_order": "Ulgurji",
+          "custom_order": "Maxsus",
+          "partnership": "Hamkorlik",
+          "unknown": "Noma'lum",
+          "marketplace_redirect": "Marketplace ga o'tish",
+          "change_status_title": "So'rov holatini o'zgartirish",
+          "select_new_status": "Yangi holatni tanlang:",
+          "status_change_success": "So'rov holati muvaffaqiyatli o'zgartirildi",
+          "set_priority_title": "So'rov muhimligini belgilash",
+          "select_priority": "Muhimlik darajasini tanlang:",
+          "followup_scheduled_success": "Kuzatuv muvaffaqiyatli rejalashtirildi",
+          "followup_schedule_error": "Kuzatuvni rejalashtirishda xatolik",
+          "inquiry_data_not_found": "So'rov ma'lumotlari topilmadi",
+          "data_load_error": "Ma'lumotlarni yuklashda xatolik",
+          "customer": "Mijoz",
+          "business_partner": "Biznes hamkor",
+          "subject": "Mavzu",
+          "close": "Yopish",
+          "respond": "Javob berish",
+          "export_success": "So'rov ma'lumotlari muvaffaqiyatli eksport qilindi",
+          "export_error": "Eksport qilishda xatolik",
+          "business_inquiry": "Biznes So'rovi",
+          "inquiry_data": "So'rov ma'lumotlari",
+          "share_success": "So'rov muvaffaqiyatli ulashildi",
+          "share_error": "Ulashishda xatolik",
+          "archive_inquiry": "So'rovni arxivlash",
+          "archive_confirm": "Haqiqatan ham ushbu so'rovni arxivlashni xohlaysizmi? Arxivlangan so'rovlar alohida ro'yxatda ko'rsatiladi.",
+          "archive_success": "So'rov muvaffaqiyatli arxivlandi",
+          "delete_inquiry": "So'rovni o'chirish",
+          "delete_confirm": "Diqqat! Ushbu so'rovni o'chirishni xohlaysizmi? Bu amalni bekor qilib bo'lmaydi.",
+          "delete_success": "So'rov muvaffaqiyatli o'chirildi",
+          "cancel": "Bekor qilish",
+          "delete": "O'chirish",
+          "confirm": "Tasdiqlash",
+          "select_option": "Tanlang...",
+          "saving": "Saqlanmoqda...",
+          "sending": "Yuborilmoqda...",
+          "success": "Muvaffaqiyatli!",
+          "error_prefix": "Xatolik: ",
+          "draft_saved": "Draft saqlandi!",
+          "response_sent": "Javob muvaffaqiyatli yuborildi!",
+          "quick_quote_sent": "Tezkor taklif yuborildi: $",
+          "load_error_general": "So'rovlarni yuklashda xatolik yuz berdi",
+          "server_connection_error": "Server bilan bog'lanishda muammo: ",
+          "load_error_specific": "So'rovlarni yuklashda xatolik: ",
+          "schedule_followup_title": "Kuzatuvni rejalashtirish",
+          "schedule_followup_message": "Necha kun ichida kuzatuv qilish kerak?",
+          "contact_customer_title": "Mijoz bilan bog'lanish",
+          "copy_inquiry_title": "So'rovni nusxalash",
+          "copy_inquiry_confirm": "Haqiqatan ham ushbu so'rovni nusxalashni xohlaysizmi?",
+          "link_copied": "Havola nusxalandi",
+          "link_copy_error": "Havolani nusxalashda xatolik",
+          "file_type_error": "Fayl turi qo'llab-quvvatlanmaydi: ",
+          "file_size_error": "Fayl hajmi 10MB dan oshmasligi kerak: ",
+          "max_files_error": "Maksimal ",
+          "max_files_suffix": " ta fayl yuklash mumkin",
+          "file_already_selected": "Fayl allaqachon tanlangan: ",
+          "files_selected": " ta fayl tanlandi",
+          "no_file_selected": "Fayl tanlanmagan",
+          "detailed_quote_draft": "Batafsil narx taklifi (Draft)",
+          "detailed_quote": "Batafsil narx taklifi",
+          "response_required": "Javob matni kiritilishi shart",
+          "unit_price_error": "Birlik narxi 0 dan katta bo'lishi kerak",
+          "not_available_short": "N/A",
+          "currency_usd": "USD",
+          "unit_pieces": "dona",
+          "unit_pieces_eng": "pieces",
+          "inquiry_subject_fallback": "So'rov",
+          "about_inquiry": "So'rov haqida",
+          "subject_label": "Mavzu",
+          "product_label": "Mahsulot",
+          "quantity_label": "Miqdor",
+          "budget_label": "Byudjet",
+          "contact_methods": "Aloqa usullari",
+          "send_email": "Email yuborish",
+          "make_call": "Qo'ng'iroq qilish",
+          "system_message": "Tizim orqali xabar",
+          "send_response": "Javob yuborish",
+          "close_button": "Yopish",
+          "respond_button": "Javob berish",
+          "inquiry_type_labels": {
+            "product_inquiry": "Mahsulot",
+            "quote_request": "Taklif", 
+            "bulk_order": "Ulgurji",
+            "custom_order": "Maxsus",
+            "partnership": "Hamkorlik"
+          },
+          "status_options": {
+            "open": "Ochiq",
+            "responded": "Javob berilgan",
+            "negotiating": "Muzokaralar",
+            "quoted": "Taklif yuborilgan",
+            "accepted": "Qabul qilingan",
+            "rejected": "Rad etilgan",
+            "expired": "Muddati tugagan",
+            "converted": "Buyurtmaga aylandi"
+          },
+          "priority_options": {
+            "low": "Past",
+            "medium": "O'rta",
+            "high": "Yuqori",
+            "urgent": "Shoshilinch"
+          },
+          "new": "Yangi",
+          "priority_change_success": "So'rov muhimligi muvaffaqiyatli belgilandi"
+        },
+        "view_options": {
+          "card_view": "Card ko'rinish",
+          "table_view": "Table ko'rinish", 
+          "kanban_view": "Kanban ko'rinish",
+          "cards": "Cards",
+          "table": "Table",
+          "kanban": "Kanban"
+        },
+        "pagination": {
+          "info_template": "{start}-dan {end}-gacha, jami {total} ta ko'rsatilmoqda",
+          "showing": "Ko'rsatilmoqda",
+          "of": "dan",
+          "total": "jami",
+          "items": "ta",
+          "previous": "Oldingi",
+          "next": "Keyingi",
+          "first": "Birinchi",
+          "last": "Oxirgi",
+          "page": "Sahifa",
+          "goto": "O'tish"
+        },
+        "tooltips": {
+          "view_card": "Card ko'rinishda ko'rish",
+          "view_table": "Jadval ko'rinishda ko'rish", 
+          "view_kanban": "Kanban ko'rinishda ko'rish",
+          "refresh_inquiries": "So'rovlarni yangilash",
+          "select_all": "Barchasini belgilash",
+          "bulk_actions": "Ommaviy amallar",
+          "sort_ascending": "O'sish tartibida saralash",
+          "sort_descending": "Kamayish tartibida saralash",
+          "filter_reset": "Filtrlarni tozalash",
+          "advanced_filters": "Kengaytirilgan filtrlar"
+        },
+        "placeholders": {
+          "search_inquiries": "Kompaniya nomi, mahsulot, so'rov ID...",
+          "filter_date_from": "Boshlanish sanasi",
+          "filter_date_to": "Tugash sanasi",
+          "budget_min": "Minimal byudjet",
+          "budget_max": "Maksimal byudjet",
+          "note_optional": "Izoh (ixtiyoriy)",
+          "followup_days": "Kuzatuv kunlari"
+        },
+        "form_validation": {
+          "required_field": "Bu maydon majburiy",
+          "invalid_email": "Email manzil noto'g'ri",
+          "invalid_phone": "Telefon raqam noto'g'ri",
+          "invalid_date": "Sana noto'g'ri",
+          "invalid_budget": "Byudjet miqdori noto'g'ri",
+          "min_length": "Kamida {min} belgi bo'lishi kerak",
+          "max_length": "Maksimal {max} belgi bo'lishi mumkin"
+        },
+        "empty_states": {
+          "no_results": "Qidiruv natijalari topilmadi",
+          "no_filters": "Filtr natijalari yo'q",
+          "try_different": "Boshqa so'z bilan qidiring",
+          "clear_filters": "Filtrlarni tozalang",
+          "or": "yoki"
+        },
+        "loading_states": {
+          "loading_inquiries": "So'rovlar yuklanmoqda...",
+          "processing": "Ishlanmoqda...",
+          "saving": "Saqlanmoqda...",
+          "updating": "Yangilanmoqda...",
+          "please_wait": "Iltimos kuting"
+        }
+      },
+        "order_info": {
+          "title": "Buyurtma Ma'lumotlari",
+          "order_number": "Buyurtma raqami:",
+          "type": "Turi:",
+          "created_date": "Yaratilgan sana:",
+          "created_time": "Yaratilgan vaqt:",
+          "deadline": "Tugash muddati:",
+          "remaining_time": "Qolgan vaqt:",
+          "days": "kun",
+          "special_instructions": "Maxsus buyurtma ma'lumotlari:",
+          "type_default": "B2B",
+          "currency_default": "USD",
+          "total_amount": "Umumiy summa",
+          "payment_status": "To'lov holati",
+          "payment_method": "To'lov usuli",
+          "payment_method_default": "Bank Transfer"
+        },
+        "status_management": {
+          "title": "Holat Boshqaruvi",
+          "current_status": "Joriy holat:",
+          "change_status": "Buyurtma holatini o'zgartirish:",
+          "status_note": "Holat o'zgarishi haqida izoh:",
+          "notify_customer": "Mijozga xabar berish (email/SMS)",
+          "update_status": "Holatni yangilash",
+          "current_status_label": "Joriy holat:",
+          "status_options": {
+            "pending": "Kutayotgan - Buyurtma kutilmoqda",
+            "confirmed": "Tasdiqlangan - Buyurtma tasdiqlandi",
+            "processing": "Jarayonda - Buyurtma tayyorlanmoqda",
+            "manufacturing": "Ishlab chiqarilmoqda - Mahsulotlar tayyorlanmoqda",
+            "quality_check": "Sifat nazorati - Mahsulotlar tekshirilmoqda",
+            "ready_to_ship": "Yuborishga tayyor - Buyurtma yuborishga tayyor",
+            "shipped": "Yo'lda - Buyurtma yo'lga chiqdi",
+            "out_for_delivery": "Yetkazib berishda - Kuryer yetkazib bermoqda",
+            "delivered": "Yetkazildi - Buyurtma yetkazib berildi",
+            "completed": "Yakunlandi - Buyurtma muvaffaqiyatli yakunlandi",
+            "cancelled": "Bekor qilindi - Buyurtma bekor qilindi"
+          }
+        },
+        "order_products": {
+          "title": "Buyurtma Mahsulotlari",
+          "items_count": "ta mahsulot",
+          "table": {
+            "no": "№",
+            "product": "Mahsulot",
+            "category": "Kategoriya",
+            "quantity": "Miqdor",
+            "unit_price": "Birlik narxi",
+            "total": "Jami",
+            "status": "Holat",
+            "summary": "Jami:","product_name_default": "Product Name",
+            "product_description_default": "Mahsulot tavsifi mavjud emas",
+            "quantity_unit": "dona",
+            "price": "Narx",
+            "sku": "SKU",
+            "empty_state": {
+              "title": "Mahsulotlar topilmadi",
+              "description": "Bu buyurtmada hech qanday mahsulot mavjud emas."
+            }
+          }
+        },
+        "timeline": {
+          "title": "Buyurtma Tarixi",
+          "empty_state": "Hali hech qanday tarix mavjud emas.",
+          "system_default": "System",
+          "status_labels": {
+            "quality_check": "Sifat nazorati",
+            "out_for_delivery": "Yetkazib berishda",
+            "pending": "Kutayotgan",
+            "confirmed": "Tasdiqlangan",
+            "processing": "Jarayonda",
+            "manufacturing": "Ishlab chiqarilmoqda",
+            "ready_to_ship": "Yuborishga tayyor",
+            "shipped": "Yuborilgan",
+            "delivered": "Yetkazilgan",
+            "completed": "Yakunlangan",
+            "cancelled": "Bekor qilingan",
+            "unknown": "Noma'lum"
+          }
+        },
+        "actions": {
+          "print": "Chop etish",
+          "export_pdf": "Export PDF",
+          "share": "Ulashish",
+          "export_items": "Export",
+          "duplicate": "Nusxalash",
+          "cancel": "Bekor qilish"
+        },
+        "modals": {
+          "communication": {
+            "title": "Mijoz bilan aloqa",
+            "close": "Yopish",
+            "message_type": "Xabar turi:",
+            "subject": "Mavzu:",
+            "content": "Xabar matni:",
+            "message_types": {
+              "status_update": "Holat yangilanishi",
+              "question": "Savol",
+              "information": "Ma'lumot",
+              "delay_notice": "Kechikish haqida xabar",
+              "quality_update": "Sifat haqida ma'lumot"
+            },
+            "placeholders": {
+              "subject": "Xabar mavzusi...",
+              "content": "Xabar matnini kiriting..."
+            },
+            "actions": {
+              "cancel": "Bekor qilish",
+              "send": "Yuborish"
+            }
+          },
+          "add_note": {
+            "title": "Buyurtmaga Izoh Qo'shish",
+            "close": "Yopish",
+            "comment_type": "Izoh turi:",
+            "visibility": "Ko'rinish:",
+            "priority": "Muhimlik darajasi:",
+            "content": "Izoh matni:",
+            "comment_types": {
+              "general": "Umumiy izoh",
+              "status_update": "Holat yangilanishi",
+              "quality_note": "Sifat haqida",
+              "delivery_note": "Yetkazib berish haqida",
+              "payment_note": "To'lov haqida",
+              "internal_note": "Ichki izoh (faqat biz ko'ramiz)",
+              "customer_note": "Mijoz uchun izoh"
+            },
+            "visibility_options": {
+              "public": "Hammaga ko'rsatish",
+              "internal": "Faqat bizning jamoamiz ko'radi",
+              "customer": "Faqat mijoz ko'radi"
+            },
+            "priority_options": {
+              "normal": "Oddiy",
+              "low": "Past",
+              "high": "Yuqori",
+              "urgent": "Shoshilinch"
+            },
+            "placeholders": {
+              "content": "Izoh matnini batafsil kiriting..."
+            },
+            "actions": {
+              "cancel": "Bekor qilish",
+              "save": "Saqlash",
+              "notify_customer": "Mijozga bildirishnoma yuborish"
+            }
+          }
+        },
+        "status_placeholder": "Mijozga bildirilishi uchun holat o'zgarishi haqida qo'shimcha ma'lumot kiriting...",
+        "payment_status": {
+          "paid": "To'langan",
+          "pending": "Kutayotgan",
+          "failed": "Muvaffaqiyatsiz",
+          "refunded": "Qaytarilgan"
+        },
+        "item_status": {
+          "ready": "Tayyor",
+          "in_production": "Ishlab chiqarilmoqda"
+        },
+        "priority": {
+          "label": "Muhimlik darajasi:",
+          "high": "Yuqori",
+          "medium": "O'rta",
+          "low": "Past"
+        },
+        "payment": {
+          "title": "To'lov Ma'lumotlari"
+        },
+        "order_actions": {
+          "title": "Tezkor Amallar",
+          "add_note": "Izoh qo'shish",
+          "contact_customer": "Mijoz bilan aloqa",
+          "print": "Chop etish"
+        },
+        "comments": {
+          "title": "Buyurtma Izohlar",
+          "empty_title": "Hali izohlar yo'q",
+          "empty_description": "Bu buyurtma uchun birinchi izohni qo'shing.",
+          "add_note": "Izoh qo'shish",
+          "empty_state": "Hozircha izohlar yo'q",
+          "add_first": "Birinchi izohni qo'shish",
+          "form": {
+            "comment_type": "Izoh turi:",
+            "visibility": "Ko'rinish:",
+            "priority": "Muhimlik darajasi:",
+            "content": "Izoh matni:",
+            "content_placeholder": "Izoh matnini batafsil kiriting...",
+            "save": "Saqlash",
+            "saving": "Saqlanmoqda...",
+            "characters": "belgi"
+          },
+          "loading": "Izohlar yuklanmoqda...",
+          "default_author": "User",
+          "default_initial": "U",
+          "filters": {
+            "all_types": "Barcha turlar",
+            "all_priority": "Barcha muhimlik"
+          },
+          "actions": {
+            "refresh": "Yangilash",
+            "load_more": "Ko'proq yuklash",
+            "notify_customer": "Mijozga bildirishnoma yuborish"
+          }
+        }
+      }
+    },
     "products": {
       "add": {
         "breadcrumb": {
@@ -3424,15 +4575,32 @@
         },
         "loading": {
           "savingAsDraft": "Saqlanmoqda...",
-          "convertingToBase64": "Base64 ga konvertatsiya qilinmoqda..."
+          "convertingToBase64": "Base64 ga konvertatsiya qilinmoqda...",
+          "publishing": "Chop etilmoqda..."
         },
         "success": {
           "savedAsDraft": "Mahsulot qoralama sifatida saqlandi",
           "templateApplied": "Shablon muvaffaqiyatli qo'llandi",
           "imagesAdded": "{{count}} ta rasm qo'shildi",
+          "imagesAddedSuffix": "ta rasm muvaffaqiyatli qo'shildi",
           "imageRemoved": "Rasm o'chirildi",
           "primaryImageChanged": "Asosiy rasm o'zgartirildi",
-          "imageReplaced": "Rasm almashtirildi"
+          "imageReplaced": "Rasm almashtirildi",
+          "productCreated": "Mahsulot muvaffaqiyatli yaratildi!",
+          "modalTitle": "Mahsulot yaratildi!",
+          "modalSubtitle": "Mahsulot muvaffaqiyatli yaratildi!",
+          "modalDescription": "Sizning mahsulotingiz endi marketplace da ko'rinadi va xaridorlar uni topishi mumkin.",
+          "viewInMarketplace": "Marketplace da ko'rish",
+          "goToMarketplace": "Marketplace ga o'tish",
+          "addAnotherProduct": "Yana mahsulot qo'shish"
+        },
+        "messages": {
+          "almostReady": "🎉 Chop etishga deyarli tayyor! 90% tayyor",
+          "goodStart": "🎯 Yaxshi boshlanish! 25% tayyor",
+          "halfWay": "🚀 Yarim yo'l bosib o'tildi! 50% tayyor",
+          "excellent": "⭐ Ajoyib! 75% tayyor",
+          "ready": "tayyor",
+          "almostReadyText": "Deyarli tayyor"
         },
         "errors": {
           "saveDraftFailed": "Qoralama saqlashda xatolik yuz berdi",
@@ -3442,19 +4610,53 @@
           "fileTypeNotSupported": "{{fileName}} fayli qo'llab-quvvatlanmaydi. Faqat JPG, PNG, WebP fayllar mumkin.",
           "fileTooLarge": "{{fileName}} fayli juda katta (maksimal 5MB)",
           "maxImagesExceeded": "Maksimal {{maxFiles}} ta rasm yuklash mumkin",
+          "maxImagesPrefix": "Maksimal",
+          "maxImagesSuffix": "ta rasm yuklash mumkin",
           "imageProcessingError": "Rasmlarni qayta ishlashda xatolik yuz berdi",
           "unsupportedFileType": "Fayl turi qo'llab-quvvatlanmaydi",
-          "imageReplaceFailed": "Rasmni almashtirish amalga oshmadi"
+          "imageReplaceFailed": "Rasmni almashtirish amalga oshmadi",
+          "fileReadError": "Faylni o'qishda xatolik",
+          "backendValidation": "Backend validation",
+          "networkError": "Network error",
+          "generalError": "Xatolik yuz berdi",
+          "imageUploadError": "Rasmlarni yuklashda xatolik",
+          "imageUploadRetry": "Rasmlarni yuklashda xatolik. Iltimos, qayta urinib ko'ring."
         },
         "validation": {
           "productNameLength": "Mahsulot nomi kamida 3 ta belgidan iborat bo'lishi kerak",
           "descriptionLength": "Mahsulot ta'rif kamida 20 ta belgidan iborat bo'lishi kerak",
-          "categoryRequired": "Kategoriya tanlanishi shart",
-          "basePriceRequired": "Asosiy narx 0 dan katta bo'lishi kerak",
-          "minOrderQtyRequired": "Eng kam buyurtma miqdori 0 dan katta bo'lishi kerak",
           "stockQuantityRequired": "Umumiy ombor miqdori 0 dan katta bo'lishi kerak",
-          "unitRequired": "O'lchov birligi tanlanishi shart",
-          "imageRequired": "Kamida bitta mahsulot rasmi yuklash shart"
+          "draftSaveRequired": "Qoralama saqlash uchun",
+          "draftProductNameLength": "Mahsulot nomi kamida 3 ta belgi bo'lishi kerak",
+          "draftDescriptionLength": "Mahsulot tavsifi kamida 10 ta belgi bo'lishi kerak",
+          "draftCategoryRequired": "Kategoriya tanlash majburiy",
+          "formErrors": "Formani to'ldirish paytida xatoliklar bor",
+          "modalTitle": "Quyidagi maydonlarni to'ldiring",
+          "formRequired": "Formani to'ldirish kerak",
+          "pleaseFillRequired": "Iltimos, barcha majburiy maydonlarni to'ldiring",
+          "productNameRequired": "Mahsulot nomi majburiy",
+          "productNameMinLength": "Mahsulot nomi kamida 3 ta belgi bo'lishi kerak",
+          "productNameMaxLength": "Mahsulot nomi 200 ta belgidan oshmasligi kerak",
+          "productDescriptionRequired": "Mahsulot tavsifi majburiy",
+          "productDescriptionMinLength": "Mahsulot tavsifi kamida 10 ta belgi bo'lishi kerak",
+          "productDescriptionMaxLength": "Mahsulot tavsifi 2000 ta belgidan oshmasligi kerak",
+          "categoryRequired": "Kategoriya tanlash majburiy",
+          "subcategoryInvalid": "Kategoriya tanlanmagan holda subkategoriya tanlash mumkin emas",
+          "basePriceRequired": "Asosiy narx majburiy",
+          "basePriceInvalid": "Asosiy narx 0 dan katta raqam bo'lishi kerak",
+          "basePriceMax": "Asosiy narx 1,000,000 dan oshmasligi kerak",
+          "minOrderQtyRequired": "Minimal buyurtma miqdori majburiy",
+          "minOrderQtyInvalid": "Minimal buyurtma miqdori 0 dan katta raqam bo'lishi kerak",
+          "maxOrderQtyInvalid": "Maksimal buyurtma miqdori 0 dan katta raqam bo'lishi kerak",
+          "maxOrderQtyLogic": "Maksimal buyurtma miqdori minimal miqdordan katta bo'lishi kerak",
+          "totalStockRequired": "Jami miqdor majburiy",
+          "totalStockInvalid": "Jami miqdor 0 dan katta yoki teng raqam bo'lishi kerak",
+          "reservedStockInvalid": "Zaxira miqdor 0 dan katta yoki teng raqam bo'lishi kerak",
+          "reservedStockLogic": "Zaxira miqdor jami miqdordan oshmasligi kerak",
+          "unitRequired": "O'lchov birligi majburiy",
+          "imageRequired": "Kamida 1 ta rasm yuklash majburiy",
+          "primaryImageRequired": "Kamida 1 ta rasm asosiy rasm sifatida belgilanishi kerak",
+          "imageInvalid": "ta rasm noto'g'ri formatda yoki hajmi katta"
         },
         "sidebar": {
           "creationGuide": "Yaratish bo'yicha maslahatlar",
@@ -3472,7 +4674,8 @@
           "templateUpload": "Shablon yuklash",
           "categoryGuide": "Kategoriya bo'yicha yordam",
           "marketResearch": "Bozor tahlili",
-          "bulkUpload": "Ommaviy yuklash"
+          "bulkUpload": "Ommaviy yuklash",
+          "categoryGuideTitle": "Kategoriya bo'yicha yordam"
         },
         "status": {
           "title": "Yaratish jarayoni",
@@ -3480,7 +4683,10 @@
           "pricingAndMOQ": "Narx va miqdor",
           "specifications": "Texnik xususiyatlar",
           "images": "Rasmlar",
-          "shipping": "Yetkazib berish"
+          "shipping": "Yetkazib berish",
+          "readyToPublish": "Chop etishga tayyor",
+          "pricing": "Narx",
+          "inventory": "Inventar"
         },
         "templates": {
           "selectTemplate": "Shablon tanlang",
@@ -3494,7 +4700,9 @@
           "b2bOnline": "B2B onlayn savdo",
           "rapidDevelopment": "tez rivojlanmoqda",
           "recommendation": "Tavsiya",
-          "adaptToMarket": "Mahsulotingizni bozor ehtiyojlariga moslashtiring"
+          "adaptToMarket": "Mahsulotingizni bozor ehtiyojlariga moslashtiring",
+          "categoryLabel": "Kategoriya",
+          "estimatedPrice": "Taxminiy narx"
         },
         "specifications": {
           "namePlaceholder": "Xususiyat nomi (Masalan: Material)",
@@ -3506,8 +4714,35 @@
           "replace": "Almashtirib yuklash",
           "remove": "O'chirish",
           "counter": "{{current}}/{{max}} rasm",
+          "maxImages": "Maksimal 10 ta rasm",
+          "selectedImages": "Tanlangan rasmlar",
+          "selectedImagesCount": "Tanlangan rasmlar: {{count}}",
           "new": "Yangi",
-          "existing": "Yuklangan"
+          "existing": "Yuklangan",
+          "setPrimaryTitle": "Asosiy rasm qilish",
+          "removeTitle": "O'chirish",
+          "primaryChanged": "Asosiy rasm o'zgartirildi",
+          "confirmDelete": "Rasmni o'chirishni xohlaysizmi?",
+          "maxBulkPricing": "Maksimal {{max}} ta bulk pricing qo'shish mumkin",
+          "maxSpecifications": "Maksimal {{max}} ta xususiyat qo'shish mumkin",
+          "maxCharacters": "Maksimal {{max}} ta belgi",
+          "bulkPricingError": "Bulk pricing ma'lumotlarida xatoliklar bor",
+          "specificationsError": "Xususiyatlar ma'lumotlarida xatoliklar bor",
+          "maxOrderQtyInvalid": "Maksimal buyurtma miqdori 0 dan katta raqam bo'lishi kerak",
+          "maxOrderQtyLogic": "Maksimal buyurtma miqdori minimal miqdordan katta bo'lishi kerak",
+          "imageRequired": "Kamida 1 ta rasm yuklash majburiy",
+          "primaryImageRequired": "Kamida 1 ta rasm asosiy rasm sifatida belgilanishi kerak",
+          "imageInvalid": "ta rasm noto'g'ri formatda yoki hajmi katta",
+          "validationErrors": "Quyidagi xatoliklar topildi",
+          "entityTooLarge": "Ma'lumot hajmi juda katta. Rasmlar sonini kamaytiring yoki kichik hajmdagi rasmlar ishlating.",
+          "castError": "Ma'lumotlarni tekshirishda xatolik. ID noto'g'ri formatda.",
+          "validationError": "Ma'lumotlarni tekshirishda xatolik. Barcha majburiy maydonlarni to'ldiring.",
+          "productCreationError": "Mahsulot yaratishda xatolik yuz berdi",
+          "payloadTooLarge": "Ma'lumot hajmi juda katta. Rasmlar sonini kamaytiring yoki kichik rasmlar ishlating.",
+          "autoSaved": "Avtomatik saqlandi",
+          "saveError": "Saqlashda xatolik",
+          "allowedFormats": "Faqat JPG, PNG, WebP formatdagi rasmlar qabul qilinadi",
+          "fileReadError": "Faylni o'qishda xatolik"
         }
       },
       "pageTitle": "Mahsulotlar Boshqaruvi",
@@ -3733,8 +4968,12 @@
           "uploadNote": "Rasmlar vaqtincha saqlanadi. Product saqlangandagina server'ga yuklanadi.",
           "selectFiles": "Fayllarni tanlash",
           "setPrimary": "Asosiy qilish",
+          "setPrimaryTitle": "Asosiy qilish",
           "remove": "O'chirish",
+          "removeTitle": "O'chirish",
           "primary": "Asosiy",
+          "new": "Yangi",
+          "existing": "Mavjud",
           "uploading": "Yuklanmoqda...",
           "primaryChanged": "Asosiy rasm o'zgartirildi",
           "replacing": "Rasm almashtirilmoqda...",
@@ -3743,18 +4982,25 @@
           "replaceError": "Rasm almashtirishda xatolik",
           "wrongFileType": "Noto'g'ri fayl turi: {{fileName}}",
           "fileTooLarge": "Fayl juda katta: {{fileName}} ({{fileSize}}MB)",
-          "maxImagesReached": "Maksimal {{maxFiles}} ta rasm yuklash mumkin. Hozir {{currentTotal}} ta mavjud.",
           "processing": "Rasmlar qayta ishlanmoqda...",
           "addedSuccessfully": "{{count}} ta rasm qo'shildi",
           "processingError": "Rasmlarni qayta ishfashda xatolik",
           "counter": "0/10 rasm",
-          "new": "Yangi",
-          "existing": "Mavjud"
+          "noImages": "Hech qanday rasm yo'q",
+          "uploadFirst": "Mahsulot uchun rasm yuklang",
+          "loadError": "Mavjud rasmlarni yuklashda xatolik",
+          "existingImage": "Mavjud rasm",
+          "maxImagesReached": "Maksimal {{max}} ta rasm yuklash mumkin",
+          "confirmDelete": "Rasmni o'chirishni xohlaysizmi?",
+          "imageRemoved": "Rasm o'chirildi"
         },
         "actions": {
           "saveAsDraft": "Qoralama sifatida saqlash",
           "publish": "Chop etish",
-          "preview": "Ko'rish"
+          "preview": "Ko'rish",
+          "previewDisabled": "Mahsulot ko'rinishi - modal o'chirilgan",
+          "revertToDraft": "Qoralamaga qaytarish",
+          "published": "Chop etilgan"
         },
         "alerts": {
           "attention": "Diqqat!"
@@ -3774,7 +5020,8 @@
         "loading": {
           "saving": "Saqlanmoqda...",
           "publishing": "Chop etilmoqda...",
-          "validating": "Tekshirilmoqda..."
+          "validating": "Tekshirilmoqda...",
+          "savingAsDraft": "Qoralama sifatida saqlanmoqda..."
         },
         "messages": {
           "savedAsDraft": "Mahsulot qoralama sifatida saqlandi",
@@ -3787,7 +5034,14 @@
           "validationError": "Ma'lumotlarni to'ldiring",
           "updateError": "Mahsulotni yangilashda xatolik yuz berdi",
           "productIdNotFound": "Mahsulot ID topilmadi",
-          "loadProductError": "Mahsulot ma'lumotlarini yuklashda xatolik"
+          "loadProductError": "Mahsulot ma'lumotlarini yuklashda xatolik",
+          "payloadTooLarge": "Ma'lumot hajmi juda katta. Rasmlar sonini kamaytiring yoki kichik hajmdagi rasmlar ishlating.",
+          "castError": "Kategoriya maydoni noto'g'ri. Iltimos, kategoriyani qayta tanlang.",
+          "validationErrorGeneric": "Ma'lumotlarni tekshirishda xatolik. Barcha majburiy maydonlarni to'ldiring.",
+          "pageLoadError": "Sahifa yuklanishida xatolik!",
+          "pageReloadHint": "Sahifani qayta yuklang yoki administrator bilan bog'laning.",
+          "generalError": "Xatolik yuz berdi",
+          "imageUploadError": "Rasmlarni yuklashda xatolik. Iltimos, qayta urinib ko'ring."
         },
         "form": {
           "leadTime": "Tayyorlash muddati",
@@ -3854,10 +5108,6 @@
           "stockQuantity": "Mavjud miqdor",
           "stockQuantityPlaceholder": "1000",
           "lowStockThreshold": "Kam qolgan chegara",
-          "minQuantity": "Min miqdor",
-          "maxQuantity": "Max miqdor",
-          "price": "Narx (USD)",
-          "discount": "Chegirma %",
           "lowStockThresholdPlaceholder": "100",
           "lowStockThresholdHint": "Bu miqdordan kam qolganda ogohlantirish",
           "inventoryUnit": "O'lchov birligi",
@@ -3867,9 +5117,13 @@
           "unitLiters": "Litr (l)",
           "unitBoxes": "Quti (boxes)",
           "unitRolls": "Rulon (rolls)",
-                      "inventoryUnitHint": "Mahsulot qanday o'lchov birligida hisoblanadi",
-            "select": "Tanlang..."
-          },
+          "inventoryUnitHint": "Mahsulot qanday o'lchov birligida hisoblanadi",
+          "select": "Tanlang...",
+          "minQuantity": "Min miqdor",
+          "maxQuantity": "Max miqdor",
+          "price": "Narx (USD)",
+          "discount": "Chegirma %"
+        },
         "analytics": {
           "title": "Mahsulot statistikasi",
           "views": "Ko'rishlar",
@@ -3909,7 +5163,9 @@
           "minOrderQtyRequired": "Eng kam buyurtma miqdori 0 dan katta bo'lishi kerak",
           "totalStockRequired": "Umumiy ombor miqdori 0 dan katta bo'lishi kerak",
           "unitRequired": "O'lchov birligi tanlanishi shart",
-          "imagesRequired": "Kamida bitta mahsulot rasmi yuklash shart"
+          "tooManyImages": "Maksimal 10 ta rasm yuklash mumkin",
+          "pricePositive": "Narx 0 dan katta bo'lishi kerak",
+          "quantityOverlap": "Miqdor oralig'i boshqa qatorlar bilan mos kelmaydi"
         },
         "success": {
           "publishedTitle": "Mahsulot muvaffaqiyatli chop etildi!",
@@ -3935,6 +5191,310 @@
             "marketplace": "Marketplace",
             "editProduct": "Mahsulotni tahrirlash"
           }
+        }
+      },
+      "messages": {
+        "page_title": "Biznes Xabarlari",
+        "header": {
+          "title": "Biznes Xabarlari",
+          "subtitle": "Professional B2B aloqa tizimi va hamkorlik boshqaruvi"
+        },
+        "actions": {
+          "new_conversation": "Yangi Suhbat",
+          "export_messages": "Eksport",
+          "refresh": "Yangilash",
+          "go_to_orders": "Buyurtmalarga o'tish"
+        },
+        "filters": {
+          "title": "Filtr va Qidiruv",
+          "reset": "Reset",
+          "advanced": "Kengaytirilgan",
+          "search": "Qidiruv",
+          "search_placeholder": "Kompaniya nomi, buyurtma ID...",
+          "status_filter": "Holat",
+          "status_all": "Barcha holatlar",
+          "status_active": "Faol",
+          "status_archived": "Arxivlangan",
+          "status_closed": "Yopilgan",
+          "date_range": "Sana oralig'i",
+          "date_from": "Boshlanish sanasi",
+          "date_to": "Tugash sanasi",
+          "partner_filter": "Hamkor",
+          "partner_all": "Barcha hamkorlar",
+          "order_status": "Buyurtma Holati",
+          "all_orders": "Barcha buyurtmalar",
+          "all_time": "Barcha vaqt",
+          "today": "Bugun",
+          "this_week": "Bu hafta",
+          "this_month": "Bu oy",
+          "this_quarter": "Bu chorak",
+          "this_year": "Bu yil",
+          "custom_range": "Maxsus oraliq",
+          "sort_by": "Saralash",
+          "sort_order": "Tartib",
+          "ascending": "O'sish tartibida",
+          "descending": "Kamayish tartibida",
+          "clear": "Tozalash",
+          "last_message_time": "Oxirgi xabar vaqti",
+          "partner_name": "Hamkor nomi",
+          "order_id": "Buyurtma ID",
+          "unread_messages": "O'qilmagan xabarlar"
+        },
+        "table": {
+          "title": "Xabarlar jadvali",
+          "headers": {
+            "title":"Suhbatlar",
+            "partner": "Biznes Hamkor",
+            "order_id": "Buyurtma/So'rov ID",
+            "last_message": "Oxirgi Xabar",
+            "date": "Sana",
+            "status": "Holat",
+            "actions": "Amallar"
+          },
+          "actions": {
+            "start_chat": "Chat boshlash",
+            "view_details": "Tafsilotlarni ko'rish",
+            "archive": "Arxivlash",
+            "delete": "O'chirish",
+            "select_all": "Barchasini belgilash",
+            "bulk_actions": "Ommaviy amallar",
+            "more_actions": "Ko'proq amallar",
+            "main_actions": "Asosiy amallar",
+            "open_conversation": "Suhbatni ochish",
+            "view_inquiry": "So'rovni ko'rish",
+            "view_order": "Buyurtmani ko'rish",
+            "mark_as_read": "O'qilgan deb belgilash",
+            "additional_actions": "Qo'shimcha amallar",
+            "export": "Eksport qilish",
+            "pin": "Qadash",
+            "dangerous_actions": "Xavfli amallar",
+            "delete_conversation": "Suhbatni o'chirish"
+          }
+        },
+        "status": {
+          "pending": "Kutayotgan",
+          "confirmed": "Tasdiqlangan",
+          "processing": "Jarayonda",
+          "manufacturing": "Ishlab chiqarilmoqda",
+          "ready_to_ship": "Jo'natishga tayyor",
+          "shipped": "Jo'natilgan",
+          "delivered": "Yetkazilgan",
+          "completed": "Bajarilgan",
+          "cancelled": "Bekor qilingan",
+          "unknown": "Noma'lum",
+
+          "active": "Faol",
+          "archived": "Arxivlangan",
+          "closed": "Yopilgan",
+          "in_progress": "Jarayonda",
+          "responded": "Javob berildi",
+          "quoted": "Narx belgilandi",
+          "accepted": "Qabul qilindi",
+          "rejected": "Rad etildi",
+          "reviewing": "Ko'rib chiqilmoqda",
+          "pending_review": "Ko'rib chiqilmoqda"
+        },
+        "chat": {
+          "page_title": "Biznes Suhbat",
+          "file_name": "Fayl nomi",
+          "file_size": "Fayl hajmi",
+          "file_type": "Fayl turi",
+          "last_modified": "Oxirgi o'zgarish",
+          "file_path": "Fayl joylashuvi",
+          "file_url": "Fayl URL",
+          "file_description": "Fayl tavsifi",
+          "file_created_at": "Fayl yaratilgan sana",
+          "breadcrumb": {
+            "messages": "Biznes xabarlari",
+            "inquiry_messages": "So'rov xabarlari",
+            "order_messages": "Buyurtma xabarlari"
+          },
+          "header": {
+            "partner_info": "Hamkor Ma'lumotlari",
+            "company_name": "Kompaniya nomi",
+            "contact_person": "Aloqa shaxsi",
+            "email": "Email",
+            "phone": "Telefon",
+            "location": "Joylashuv",
+            "business_type": "Biznes turi",
+            "verification_status": "Tasdiqlash holati",
+            "verified": "Tasdiqlangan",
+            "pending": "Kutilmoqda",
+            "unverified": "Tasdiqlanmagan"
+          },
+          "order_info": {
+            "title": "Buyurtma Ma'lumotlari",
+            "order_number": "Buyurtma raqami",
+            "order_type": "Buyurtma turi",
+            "created_date": "Yaratilgan sana",
+            "deadline": "Tugash muddati",
+            "total_amount": "Umumiy summa",
+            "payment_status": "To'lov holati",
+            "special_instructions": "Maxsus buyurtma ma'lumotlari"
+          },
+          "chat_info": {
+            "inquiry_number": "So'rov",
+            "order_number": "Buyurtma",
+            "no_inquiry_message": "So'rov mavjud emas",
+            "order_value": "Buyurtma qiymati",
+            "inquiry_status": "So'rov holati",
+            "order_status": "Buyurtma holati"
+          },
+          "video_actions": {
+            "video_call": "Video chaqirish"
+          },
+          "empty_state": {
+            "title": "Biznes xabarlarini boshlash",
+            "description": "Biznes xabarlarini boshlash uchun xabarlar yozing. Buni qilish uchun xabarlar yozing."
+          },
+          "no_messages_started": "Hali suhbat boshlanmagan",
+          "new_conversation": "Yangi suhbat...",
+          "system_message": "Sistema xabari",
+          "pdf_file": "PDF fayl",
+          "image_file": "Rasm",
+          "document_file": "Hujjat",
+          "excel_file": "Excel fayl",
+          "long_message": "Uzun xabar",
+          "export_messages": "Xabarlar eksport qilish",
+          "partner_role": "Hamkor",
+          "inquiry_analysis": "So'rov tahlili",
+          "order_analysis": "Buyurtma tahlili",
+          "inquiry_date": "So'rov sanasi",
+          "business_partner": "Biznes hamkor",
+          "toggle_sidebar": "Yon panelni yopish/ochish",
+          "emoji": "Emoji",
+          "send_hint": "yuborish",
+          "new_line_hint": "yangi qator",
+          "email_not_available": "Email mavjud emas",
+          "actions": {
+            "call": "Qo'ng'iroq",
+            "email": "Email",
+            "profile": "Profil"
+          },
+          "no_phone_number": "Telefon raqami mavjud emas",
+          "calling": "Qo'ng'iroq boshlamoqda...",
+          "call_failed": "Qo'ng'iroq boshlamasdan xatolik",
+          "no_email_address": "Email manzili mavjud emas",
+          "opening_email": "Email dasturini ochmoqda...",
+          "email_failed": "Email ochishda xatolik",
+          "sample_template_added": "Namuna shablon qo'shildi",
+          "payment_template_added": "To'lov shablon qo'shildi",
+          "inquiry_message": "So'rov xabari",
+          "products": "Mahsulotlar",
+          "quantity": "Soni",
+          "units": "birlik",
+          "unit_price": "Birlik narx",
+          "total": "Umumiy",
+          "no_products_info": "Mahsulotlar ma'lumotlari mavjud emas",
+          "communication_history": "Muloqot tarixi",
+          "last_activity": "Oxirgi faoliyat",
+          "no_activity": "Faoliyat mavjud emas",
+          "quick_actions": {
+            "title": "Tezkor amallar",
+            "full_order": "To'liq buyurtma",
+            "update_status": "Holatni yangilash",
+            "create_quote": "Taklif yaratish",
+            "schedule_call": "Qo'ng'iroq belgilash",
+            "send_sample": "Namuna yuborish",
+            "request_payment": "To'lov so'rash"
+          },
+          "messages": {
+            "placeholder": "Xabar yozing...",
+            "send": "Yuborish",
+            "typing": "Yozmoqda...",
+            "online": "Onlayn",
+            "offline": "Oflayn",
+            "last_seen": "Oxirgi marta ko'rilgan",
+            "message_sent": "Xabar yuborildi",
+            "message_delivered": "Xabar yetkazildi",
+            "message_read": "Xabar o'qildi",
+            "file_upload": "Fayl yuklash",
+            "image_upload": "Rasm yuklash",
+            "attachment": "Ilova"
+          },
+          "no_messages_yet": "Hali xabarlar yo'q",
+          "no_messages": "Xabarlar yo'q",
+          "order_created_no_messages": "Buyurtma yaratildi - hali xabarlar yo'q",
+          "text_message": "Matn xabari",
+          "no_message": "Xabar yo'q",
+          "templates": {
+            "title": "Biznes Shablonlari",
+            "greeting": "Salom",
+            "sample_template": "Assalomu alaykum! Sizning so'rovingizga javoban, biz mahsulotimizning namunasini yuborishni taklif qilmoqdamiz. Namuna sifatini ko'rib chiqgandan so'ng, to'liq buyurtma berishingiz mumkin. Namuna yuborish uchun qo'shimcha ma'lumotlar kerak bo'lsa, bizga xabar bering. Rahmat!",
+            "payment_template": "Assalomu alaykum! Buyurtmangiz tayyor bo'ldi. To'lovni amalga oshirish uchun quyidagi ma'lumotlarni yuboramiz:\n\n• Buyurtma raqami: [ORDER_NUMBER]\n• To'lov summasi: [AMOUNT]\n• To'lov usuli: [PAYMENT_METHOD]\n\nTo'lov ma'lumotlarini tekshirib, tasdiqlashni so'raymiz. Savollar bo'lsa, bizga murojaat qiling. Rahmat!",
+            "pricing": "Narxlar",
+            "quality": "Sifat nazorat",
+            "delivery": "Yetkazib berish",
+            "payment": "To'lov",
+            "follow_up": "Kuzatuv",
+            "order_status": "Buyurtma holati",
+            "greeting_text": "Xush kelibsiz xabarini yozing",
+            "order_status_text": "Buyurtma holatini yangilang",
+            "pricing_text": "Narxlar va shartlar",
+            "quality_text": "Sifat nazorat va garantiyalar"
+          },
+          "quick_replies": {
+            "title": "Tezkor Javoblar",
+            "yes": "Ha",
+            "no": "Yo'q",
+            "thank_you": "Rahmat",
+            "will_check": "Tekshiraman",
+            "contact_you": "Siz bilan bog'lanaman",
+            "send_quote": "Taklif yuboraman",
+            "need_time": "Vaqt kerak",
+            "agreed": "Roziman",
+            "disagreed": "Rozimasman"
+          }
+        },
+        "empty_states": {
+          "no_conversations": "Hozircha suhbatlar yo'q",
+          "no_conversations_desc": "Mijozlar bilan aloqa qilganda suhbatlar shu yerda ko'rinadi",
+          "no_messages": "Xabarlar yo'q",
+          "no_messages_desc": "Suhbatni boshlash uchun xabar yuboring",
+          "no_results": "Qidiruv natijalari topilmadi",
+          "try_different": "Boshqa so'z bilan qidiring"
+        },
+        "loading_states": {
+          "loading_conversations": "Suhbatlar yuklanmoqda...",
+          "loading_messages": "Xabarlar yuklanmoqda...",
+          "sending_message": "Xabar yuborilmoqda...",
+          "processing": "Ishlanmoqda..."
+        },
+        "errors": {
+          "load_conversations_error": "Suhbatlarni yuklashda xatolik",
+          "load_messages_error": "Xabarlarni yuklashda xatolik",
+          "send_message_error": "Xabar yuborishda xatolik",
+          "file_upload_error": "Fayl yuklashda xatolik",
+          "network_error": "Tarmoq xatoligi",
+          "unauthorized": "Ruxsat yo'q",
+          "not_found": "Topilmadi"
+        },
+        "notifications": {
+          "new_message": "Yangi xabar",
+          "message_received": "Xabar qabul qilindi",
+          "partner_online": "Hamkor onlayn",
+          "partner_offline": "Hamkor oflayn",
+          "typing_indicator": "Yozmoqda...",
+          "delete_coming_soon": "O'chirish funksiyasi tez orada qo'shiladi",
+          "pin_coming_soon": "Qadash funksiyasi tez orada qo'shiladi",
+          "from": "dan"
+        },
+        "pagination": {
+          "showing": "Ko'rsatilmoqda",
+          "of": "dan",
+          "total": "jami",
+          "conversations": "suhbat",
+          "messages": "xabar"
+        },
+        "time": {
+          "new": "Yangi",
+          "now": "Hozir",
+          "minutes_ago": "daqiqa oldin",
+          "hours_ago": "soat oldin",
+          "days_ago": "kun oldin"
+        },
+        "confirm": {
+          "delete_conversation": "Suhbatni o'chirishni xohlaysizmi? Bu amal bekor qilinmaydi."
         }
       }
     },
@@ -3966,28 +5526,56 @@
     },
     "message": "Batafsil xabar",
     "messagePlaceholder": "Iltimos, so'rovingiz, talablaringiz va barcha savollaringiz haqida batafsil ma'lumot bering...",
-    "urgency": "Shoshilish darajasi",
-    "urgencyLevels": {
-      "flexible": "Moslashuvchan",
-      "withinMonth": "Bir oy ichida",
-      "withinWeek": "Bir hafta ichida",
-      "immediate": "Darhol"
-    },
-    "shippingMethod": "Afzal ko'rilgan yetkazib berish",
-    "shippingMethods": {
-      "standard": "Standart",
-      "express": "Ekspress",
-      "freight": "Yuk tashish",
-      "pickup": "O'z olib ketish"
-    },
+    "productDetails": "Mahsulot tafsilotlari",
+    "customSpecifications": "Maxsus spetsifikatsiyalar",
+    "customSpecsPlaceholder": "Maxsus talablar, rang, o'lcham, material va boshqa...",
+    "budgetAndTimeline": "Byudjet va muddat",
     "budgetRange": "Byudjet oralig'i",
     "minBudget": "Minimal byudjet",
     "maxBudget": "Maksimal byudjet",
-    "deliveryDestination": "Yetkazib berish manzili",
-    "destinationPlaceholder": "Shahar, Mamlakat",
-    "specialRequirements": "Maxsus talablar",
-    "specialRequirementsPlaceholder": "Maxsus spetsifikatsiyalar, sertifikatlar yoki talablar...",
-    "optional": "Ixtiyoriy",
+    "urgencyFlexible": "Moslashuvchan",
+    "urgencyWithinMonth": "Bir oy ichida",
+    "urgencyWithinWeek": "Bir hafta ichida",
+    "urgencyImmediate": "Darhol",
+    "requiredBy": "Kerakli sana",
+    "shippingRequirements": "Yetkazib berish talablari",
+    "shippingMethod": "Yetkazib berish usuli",
+    "shippingStandard": "Standart",
+    "shippingExpress": "Ekspress",
+    "shippingFreight": "Yuk tashish",
+    "shippingPickup": "O'z olib ketish",
+    "shippingCustom": "Maxsus",
+    "incoterms": "Incoterms",
+    "selectIncoterms": "Incoterms tanlang",
+    "incotermsOptions": {
+      "EXW": "EXW - Zavoddan",
+      "FCA": "FCA - Bepul tashuvchi", 
+      "CPT": "CPT - Yig'im to'langan joygacha",
+      "CIP": "CIP - Yig'im va sug'urta to'langan",
+      "DAT": "DAT - Terminalda yetkazib berish",
+      "DAP": "DAP - Joyda yetkazib berish",
+      "DDP": "DDP - Soliq to'langan holda yetkazib berish",
+      "FAS": "FAS - Kema yonida bepul",
+      "FOB": "FOB - Kemada bepul",
+      "CFR": "CFR - Yig'im va yuk tashish",
+      "CIF": "CIF - Yig'im, sug'urta va yuk tashish"
+    },
+    "deliveryAddress": "Yetkazib berish manzili",
+    "deliveryAddressPlaceholder": "To'liq manzil: shahar, tuman, ko'cha, uy raqami...",
+    "inquiryDetails": "So'rov tafsilotlari",
+    "inquiryType": "So'rov turi",
+    "typeProductInquiry": "Mahsulot so'rovi",
+    "typeQuoteRequest": "Narx so'rovi",
+    "typeBulkOrder": "Ulgurji buyurtma",
+    "typeCustomOrder": "Maxsus buyurtma",
+    "typePartnership": "Hamkorlik",
+    "currencyOptions": {
+      "USD": "USD - AQSH dollari",
+      "UZS": "UZS - O'zbek so'mi", 
+      "EUR": "EUR - Euro",
+      "CNY": "CNY - Xitoy yuani",
+      "KZT": "KZT - Qozog'iston tengesi"
+    },
     "sendInquiry": "So'rov yuborish",
     "sending": "Yuborilmoqda...",
     "successMessage": "✅ So'rov muvaffaqiyatli yuborildi!",
@@ -4005,5 +5593,118 @@
     "errorMessage": "❌ So'rov yuborishda xatolik",
     "loginRequired": "So'rov yuborish uchun tizimga kiring",
     "permissionDenied": "Faqat distribyutor/haridor kompaniyalar so'rov yubora oladi"
+  },
+  "modal": {
+    "sendInquiry": "So'rov yuborish",
+    "sendInquiryDescription": "Yetkazib beruvchiga so'rov yuborish uchun quyidagi shaklni to'ldiring.",
+    "name": "Ism",
+    "email": "Email",
+    "phone": "Telefon",
+    "message": "Xabar",
+    "send": "Yuborish",
+    "productDetails": {
+      "loading": "Ma'lumot yuklanmoqda...",
+      "error": "Xatolik yuz berdi",
+      "productId": "Product ID",
+      "priceOnRequest": "Narx so'raladi",
+      "unknown": "Noma'lum",
+      "noCategory": "Kategoriyasiz",
+      "noName": "Nomsiz mahsulot",
+      "notSpecified": "Belgilanmagan",
+      "noImage": "Rasm mavjud emas",
+      "status": {
+        "active": "Faol",
+        "inactive": "Nofaol",
+        "draft": "Qoralama",
+        "archived": "Arxivlangan"
+      },
+      "badges": {
+        "marketplace": "Marketplace",
+        "private": "Private"
+      },
+      "labels": {
+        "id": "ID:",
+        "code": "Kod:",
+        "status": "Status:",
+        "discount": "Chegirma",
+        "minimumOrder": "Eng kam:",
+        "views": "Ko'rishlar",
+        "rating": "Reyting",
+        "stock": "Zaxira",
+        "orders": "Buyurtma"
+      },
+      "tabs": {
+        "details": "Tafsilotlar",
+        "specifications": "Xususiyatlar",
+        "inventory": "Zaxira",
+        "analytics": "Tahlil"
+      },
+      "details": {
+        "basicInfo": "Asosiy ma'lumotlar",
+        "pricingInfo": "Narx ma'lumotlari",
+        "name": "Nomi:",
+        "code": "Kodi:",
+        "category": "Kategoriya:",
+        "status": "Holati:",
+        "created": "Yaratilgan:",
+        "updated": "Yangilangan:",
+        "brand": "Brand:",
+        "model": "Model:",
+        "weight": "Og'irlik:",
+        "basePrice": "Asosiy narx:",
+        "discount": "Chegirma:",
+        "minimumOrder": "Eng kam buyurtma:",
+        "currency": "Valyuta:",
+        "wholesalePrice": "Ulgurji narx:",
+        "retailPrice": "Chakana narx:"
+      },
+      "specifications": {
+        "title": "Mahsulot xususiyatlari",
+        "count": "ta xususiyat",
+        "note": "Barcha xususiyatlar standart o'lchovlar bo'yicha",
+        "notSet": "Xususiyatlar belgilanmagan",
+        "notSetDescription": "Bu mahsulot uchun xususiyatlar hali qo'shilmagan.",
+        "addSpecifications": "Xususiyatlar qo'shish"
+      },
+      "inventory": {
+        "status": "Zaxira holati",
+        "shipping": "Yetkazib berish",
+        "totalStock": "Umumiy zaxira:",
+        "available": "Mavjud:",
+        "reserved": "Rezerv:",
+        "leadTime": "Yetkazish muddati:",
+        "weight": "Og'irlik:",
+        "dimensions": "O'lcham:",
+        "noShippingInfo": "Yetkazish ma'lumotlari belgilanmagan."
+      },
+      "analytics": {
+        "views": "Ko'rishlar",
+        "orders": "Buyurtmalar",
+        "rating": "Reyting",
+        "revenue": "Daromad",
+        "stock": "Zaxira",
+        "lastOrder": "Oxirgi buyurtma",
+        "never": "Hech qachon"
+      },
+      "actions": {
+        "edit": "Tahrirlash",
+        "analytics": "Tahlil",
+        "unpublish": "Sotuvdan olib tashlash",
+        "publish": "Sotuvga chiqarish",
+        "delete": "O'chirish"
+      },
+      "description": {
+        "title": "Mahsulot haqida"
+      },
+      "gallery": {
+        "more": "Ko'proq"
+      },
+      "units": {
+        "pieces": "dona",
+        "kg": "kg",
+        "cm": "sm",
+        "days": "kun"
+      }
+    }
   }
 }

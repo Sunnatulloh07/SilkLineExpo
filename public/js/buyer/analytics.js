@@ -24,7 +24,7 @@ class BuyerAnalytics {
                 this.updateDeliveryMetrics(result.data.deliveryPerformance);
             }
         } catch (error) {
-            console.error('Error loading analytics:', error);
+            // console.error('Error loading analytics:', error);
         }
     }
 

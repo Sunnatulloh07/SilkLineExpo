@@ -18,6 +18,7 @@ class MessagingController {
         try {
             const userId = req.user.userId || req.user._id;
             const userType = req.user.companyType || 'manufacturer';
+             const lng = req.language || res.locals.lng || req.session.language || 'uz';
             
             // Get ALL orders where user is involved (manufacturer or buyer/distributor)
             const orders = await Order.find({
@@ -45,11 +46,13 @@ class MessagingController {
                 
                 res.render('manufacturer/messages/index', {
                     title: 'Biznes Xabarlari',
+                    lng,
+                    user: req.user,
+                    t: req.t,
                     conversations: [],
                     unreadCount: 0,
                     unreadMessages: unreadMessages || 0,
                     user: req.user,
-                    lng: req.lng || 'uz'
                 });
                 return;
             }
@@ -135,11 +138,13 @@ class MessagingController {
             
             res.render('manufacturer/messages/index', {
                 title: 'Biznes Xabarlari',
+                lng,
+                user: req.user,
+                t: req.t,
                 conversations,
                 unreadCount: totalUnreadCount,
                 unreadMessages: unreadMessages || 0,
                 user: req.user,
-                lng: req.lng || 'uz'
             });
         } catch (error) {
             console.error('❌ Error loading messaging page:', error);
@@ -471,6 +476,11 @@ class MessagingController {
     /**
      * Show chat with specific inquiry/customer
      */
+
+    /**
+     * Show chat with specific inquiry
+     * Route: GET /manufacturer/messages/inquiry/:inquiryId
+     */
     static async showInquiryChat(req, res) {
         try {
             const { inquiryId } = req.params;
@@ -492,93 +502,58 @@ class MessagingController {
             let inquiry;
             try {
                 inquiry = await Inquiry.findById(inquiryId)
-                    .populate('inquirer', 'email companyName phone companyLogo website country city')
-                    .populate('supplier', 'email companyName phone companyLogo website country city')
+                    .populate('inquirer', 'email companyName phone companyLogo')
+                    .populate('supplier', 'email companyName phone companyLogo')
+                    .populate('product', 'name images')
                     .lean();
-                
-        
             } catch (dbError) {
                 console.error('❌ Database query error:', dbError);
                 throw dbError;
             }
             
             if (!inquiry) {
-                console.error('❌ Inquiry not found in database, creating test inquiry data:', inquiryId);
-                
-                // Create test inquiry data for demonstration
-                inquiry = {
-                    _id: inquiryId,
-                    inquiryNumber: 'TEST-' + inquiryId.slice(-6),
-                    inquirer: {
-                        _id: 'test-inquirer-id',
-                        companyName: 'Test Distribution Company',
-                        email: 'inquirer@test.com',
-                        phone: '+998901234567',
-                        companyLogo: '/assets/images/avatars/default-company.png',
-                        website: 'https://test-distribution.com',
-                        country: 'Uzbekistan',
-                        city: 'Tashkent'
-                    },
-                    supplier: {
-                        _id: 'test-supplier-id', 
-                        companyName: 'Test Manufacturing Company',
-                        email: 'supplier@test.com',
-                        phone: '+998901234568',
-                        companyLogo: '/assets/images/avatars/default-company.png',
-                        website: 'https://test-manufacturing.com',
-                        country: 'Uzbekistan',
-                        city: 'Tashkent'
-                    },
-                    message: 'Test inquiry message for demonstration purposes',
-                    status: 'pending',
-                    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-                    updatedAt: new Date()
-                };
-            }
-            
-            // Check access permissions
-            const hasAccess = MessagingController.checkInquiryAccess(inquiry, userId, userType);
-            
-            // TEMPORARY: Allow access for testing - remove in production
-            if (!hasAccess) {
-            }
-            
-            // Get conversation partner info
-            let partner = null;
-            if (userType === 'manufacturer') {
-                // Manufacturer is viewing - show inquirer (distributor) info
-                partner = inquiry.inquirer;
-            } else {
-                // Inquirer/distributor is viewing - show supplier (manufacturer) info
-                partner = inquiry.supplier;
-            }
-            
-            // Validate partner data
-            if (!partner || !partner._id) {
-                console.error('❌ Partner data is missing or invalid:', partner);
-                console.error('❌ Inquiry data:', inquiry);
-                return res.status(500).render('manufacturer/error', {
-                    title: 'Ma\'lumot xatosi',
-                    message: 'Hamkor ma\'lumotlari topilmadi',
+                console.error('❌ Inquiry not found in database:', inquiryId);
+                return res.status(404).render('manufacturer/error', {
+                    title: 'So\'rov topilmadi',
+                    message: 'So\'rov ma\'lumotlari topilmadi',
                     user: req.user,
                     error: null,
                     lng: req.lng || 'uz'
                 });
             }
             
-            // Get messages for this inquiry with error handling
+            // Check access permissions
+            const hasAccess = MessagingController.checkInquiryAccess(inquiry, userId, userType);
+            if (!hasAccess) {
+                return res.status(403).render('manufacturer/error', {
+                    title: 'Ruxsat yo\'q',
+                    message: 'Bu so\'rovga ruxsat yo\'q',
+                    user: req.user,
+                    error: null,
+                    lng: req.lng || 'uz'
+                });
+            }
+            
+            // Get conversation partner info
+            let partner = null;
+            if (userType === 'manufacturer') {
+                partner = inquiry.inquirer;
+            } else {
+                partner = inquiry.supplier;
+            }
+            
+            // Get messages for this inquiry
             let messages = [];
             try {
                 messages = await Message.find({
                     inquiryId: inquiryId
                 })
-                .populate('senderId', 'companyName')
+                .populate('senderId', 'companyName companyLogo')
+                .populate('recipientId', 'companyName companyLogo')
                 .sort({ createdAt: 1 })
                 .lean();
-                
             } catch (msgError) {
-                console.warn('⚠️ Could not load inquiry messages:', msgError.message);
-                // No test messages for inquiry - only real data
+                console.error('❌ Error loading inquiry messages:', msgError);
                 messages = [];
             }
             
@@ -593,11 +568,11 @@ class MessagingController {
                     readAt: new Date()
                 });
             } catch (updateError) {
-                console.warn('⚠️ Could not mark messages as read:', updateError.message);
+                console.error('❌ Error marking messages as read:', updateError);
             }
             
             res.render('manufacturer/messages/chat', {
-                title: `Aloqa - So'rov #${inquiry.inquiryNumber}`,
+                title: `Aloqa - So\'rov #${inquiry.inquiryNumber}`,
                 inquiry,
                 partner,
                 messages,
@@ -611,14 +586,13 @@ class MessagingController {
                 user: req.user,
                 lng: req.lng || 'uz'
             });
-            
         } catch (error) {
-            console.error('❌ Error in showInquiryChat:', error);
+            console.error('❌ Error loading inquiry chat:', error);
             res.status(500).render('manufacturer/error', {
                 title: 'Server xatosi',
-                message: 'Chat sahifasini yuklashda xatolik yuz berdi',
+                message: 'Chat sahifasini yuklashda xatolik',
+                error: process.env.NODE_ENV === 'development' ? error : null,
                 user: req.user,
-                error: error,
                 lng: req.lng || 'uz'
             });
         }
@@ -831,7 +805,8 @@ class MessagingController {
                 },
                 unreadMessages: 0, // We'll calculate this properly later
                 user: req.user,
-                lng: req.lng || 'uz'
+                lng: req.lng || 'uz',
+                t: req.t
             });
         } catch (error) {
             console.error('❌ Error loading order chat:', error);
@@ -859,9 +834,11 @@ class MessagingController {
                 });
             }
             
-            const { orderId, inquiryId, content, type = 'text' } = req.body;
+            const { orderId, inquiryId, content, type = 'text', attachments = [] } = req.body;
             const senderId = req.user.userId || req.user._id;
             const senderType = req.user.companyType || 'manufacturer';
+            
+            
             
             // Determine conversation type and ID
             let conversationId, conversationType, conversation;
@@ -936,8 +913,11 @@ class MessagingController {
                     content: content.trim(),
                     type,
                     status: 'sent',
-                    createdAt: new Date()
+                    createdAt: new Date(),
+                    attachments: attachments || []
                 };
+                
+                
                 
                 // Add the appropriate ID field
                 if (conversationType === 'order') {
@@ -950,6 +930,7 @@ class MessagingController {
                 await message.save();
                 await message.populate('senderId', 'companyName');
                 
+                
             } catch (saveError) {
                 console.error('❌ Error saving message:', saveError);
                 return res.status(500).json({
@@ -960,19 +941,23 @@ class MessagingController {
             
             // TODO: Send real-time notification via WebSocket
             
+            const responseMessage = {
+                _id: message._id,
+                content: message.content,
+                type: message.type,
+                status: message.status,
+                attachments: message.attachments || [],
+                createdAt: message.createdAt,
+                senderId: message.senderId
+            };
+            
+            
             res.json({
                 success: true,
                 message: 'Xabar muvaffaqiyatli yuborildi',
                 messageId: message._id,
                 data: { 
-                    message: {
-                        _id: message._id,
-                        content: message.content,
-                        type: message.type,
-                        status: message.status,
-                        createdAt: message.createdAt,
-                        senderId: message.senderId
-                    }
+                    message: responseMessage
                 }
             });
         } catch (error) {
@@ -1101,10 +1086,9 @@ class MessagingController {
                 .isMongoId()
                 .withMessage('Noto\'g\'ri so\'rov ID'),
             body('content')
-                .notEmpty()
-                .withMessage('Xabar matni majbur')
-                .isLength({ min: 1, max: 2000 })
-                .withMessage('Xabar matni 1-2000 belgi orasida bo\'lishi kerak'),
+                .optional()
+                .isLength({ min: 0, max: 2000 })
+                .withMessage('Xabar matni 0-2000 belgi orasida bo\'lishi kerak'),
             body('type')
                 .optional()
                 .isIn(['text', 'image', 'file', 'system'])
@@ -1145,74 +1129,9 @@ class MessagingController {
             
             
             if (!inquiry) {
-                // Return test messages for demonstration
-                const testMessages = [
-                    {
-                        _id: 'test-inq-msg-1',
-                        content: 'Assalomu alaykum! So\'rovingiz uchun rahmat. Biz spetsifikatsiyalarni ko\'rib chiqmoqdamiz va tez orada javob beramiz.',
-                        senderId: {
-                            _id: 'test-inquirer-id',
-                            companyName: 'Test Distribution Company',
-                            email: 'inquirer@test.com'
-                        },
-                        recipientId: {
-                            _id: userId,
-                            companyName: 'Uzbek Cotton Mills',
-                            email: 'info@uzbekcotton.uz'
-                        },
-                        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-                        type: 'text',
-                        status: 'read',
-                        inquiryId: inquiryId
-                    },
-                    {
-                        _id: 'test-inq-msg-2',
-                        content: 'So\'rovingiz tafsilotlarini ko\'rib chiqmoqdamiz. Narx belgilash 2-3 ish kuni davom etadi. Davom etishimizni xohlaysizmi?',
-                        senderId: {
-                            _id: userId,
-                            companyName: 'Uzbek Cotton Mills',
-                            email: 'info@uzbekcotton.uz'
-                        },
-                        recipientId: {
-                            _id: 'test-inquirer-id',
-                            companyName: 'Test Distribution Company',
-                            email: 'inquirer@test.com'
-                        },
-                        createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
-                        type: 'text',
-                        status: 'delivered',
-                        inquiryId: inquiryId
-                    }
-                ];
-                
-                return res.json({
-                    success: true,
-                    data: {
-                        messages: testMessages,
-                        pagination: {
-                            currentPage: parseInt(page),
-                            totalPages: 1,
-                            totalCount: testMessages.length,
-                            limit: parseInt(limit)
-                        },
-                        inquiry: {
-                            id: inquiryId,
-                            inquiryNumber: 'TEST-' + inquiryId.slice(-6),
-                            status: 'pending',
-                            message: 'Test inquiry message for demonstration purposes',
-                            supplier: {
-                                _id: userId,
-                                companyName: 'Uzbek Cotton Mills',
-                                email: 'info@uzbekcotton.uz'
-                            },
-                            inquirer: {
-                                _id: 'test-inquirer-id',
-                                companyName: 'Test Distribution Company',
-                                email: 'inquirer@test.com'
-                            }
-                        }
-                    },
-                    message: 'Inquiry not found - showing test conversation'
+                return res.status(404).json({
+                    success: false,
+                    message: 'Inquiry not found or access denied'
                 });
             }
             
@@ -1224,12 +1143,12 @@ class MessagingController {
             })
             .populate({
                 path: 'senderId',
-                select: 'companyName email avatar _id',
+                select: 'companyName email avatar companyLogo _id',
                 model: 'User'
             })
             .populate({
                 path: 'recipientId', 
-                select: 'companyName email avatar _id',
+                select: 'companyName email avatar companyLogo _id',
                 model: 'User'
             })
             .sort({ createdAt: -1 })
@@ -1509,6 +1428,7 @@ class MessagingController {
             }
             
             // Save file (this is a simple implementation, you might want to use cloud storage)
+            
             if (file.buffer) {
                 fs.writeFileSync(fullPath, file.buffer);
             } else if (file.path) {
@@ -1526,41 +1446,8 @@ class MessagingController {
                 uploadedAt: new Date()
             };
             
-            // Create message in database with attachment
-            const { orderId } = req.body;
-            
-            if (orderId) {
-                try {
-                    // Find the order to get recipient
-                    const order = await Order.findById(orderId).populate('seller buyer');
-                    if (order) {
-                        const recipientId = order.seller._id.toString() === userId ? order.buyer._id : order.seller._id;
-                        
-                        // Create message with attachment
-                        const message = new Message({
-                            orderId: orderId,
-                            senderId: userId,
-                            recipientId: recipientId,
-                            content: file.originalname,
-                            type: file.mimetype.startsWith('image/') ? 'image' : 'file',
-                            attachments: [{
-                                filename: fileName,
-                                originalName: file.originalname,
-                                mimetype: file.mimetype,
-                                size: file.size,
-                                url: filePath,
-                                uploadedAt: new Date()
-                            }]
-                        });
-                        
-                        await message.save();
-
-                    }
-                } catch (dbError) {
-                    console.error('❌ Error saving message to database:', dbError);
-                    // Continue with file upload response even if message save fails
-                }
-            }
+            // Return file info without creating message
+            // Message will be created when user sends it via sendMessage API
             
             // File uploaded successfully
             
@@ -2025,98 +1912,6 @@ class MessagingController {
         }
     }
 
-    /**
-     * Get messages for a specific inquiry
-     * API Endpoint: GET /manufacturer/messages/api/inquiry/:inquiryId/messages
-     */
-    static async getInquiryMessages(req, res) {
-        try {
-            const { inquiryId } = req.params;
-            const { page = 1, limit = 50 } = req.query;
-            const userId = req.user.userId || req.user._id;
-            
-            // Verify user has access to this inquiry
-            const inquiry = await Inquiry.findOne({
-                _id: inquiryId,
-                $or: [
-                    { supplier: userId },
-                    { inquirer: userId }
-                ]
-            }).populate('supplier inquirer', 'companyName email');
-            
-            if (!inquiry) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Inquiry not found or access denied'
-                });
-            }
-            
-            // Get messages for this inquiry with proper population
-            const skip = (parseInt(page) - 1) * parseInt(limit);
-            const messages = await Message.find({
-                inquiryId: inquiryId
-            })
-            .populate({
-                path: 'senderId',
-                select: 'companyName email avatar _id',
-                model: 'User'
-            })
-            .populate({
-                path: 'recipientId', 
-                select: 'companyName email avatar _id',
-                model: 'User'
-            })
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit))
-            .lean();
-            
-            // Get total count for pagination
-            const totalCount = await Message.countDocuments({ inquiryId: inquiryId });
-            
-            // Prepare response data
-            const responseData = {
-                success: true,
-                data: {
-                    messages: messages.reverse(),
-                    pagination: {
-                        currentPage: parseInt(page),
-                        totalPages: Math.ceil(totalCount / parseInt(limit)),
-                        totalCount,
-                        limit: parseInt(limit)
-                    },
-                    inquiry: {
-                        id: inquiry._id,
-                        number: inquiry.inquiryNumber,
-                        status: inquiry.status,
-                        message: inquiry.message,
-                        supplier: inquiry.supplier,
-                        inquirer: inquiry.inquirer
-                    }
-                }
-            };
-            
-            // Mark messages as read if user is recipient
-            await Message.updateMany({
-                inquiryId: inquiryId,
-                recipientId: userId,
-                status: 'sent'
-            }, {
-                status: 'read',
-                readAt: new Date()
-            });
-            
-            res.json(responseData);
-            
-        } catch (error) {
-            console.error('❌ Error loading inquiry messages:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to load messages',
-                error: process.env.NODE_ENV === 'development' ? error.message : null
-            });
-        }
-    }
 
     /**
      * Mark inquiry messages as read
@@ -2158,125 +1953,7 @@ class MessagingController {
         }
     }
 
-    /**
-     * Show chat with specific inquiry
-     * Route: GET /manufacturer/messages/inquiry/:inquiryId
-     */
-    static async showInquiryChat(req, res) {
-        try {
-            const { inquiryId } = req.params;
-            const userId = req.user.userId || req.user._id;
-            const userType = req.user.companyType || req.user.userType || 'manufacturer';
-            
-            // Validate ObjectId format
-            if (!inquiryId.match(/^[0-9a-fA-F]{24}$/)) {
-                console.error('❌ Invalid ObjectId format:', inquiryId);
-                return res.status(400).render('manufacturer/error', {
-                    title: 'Noto\'g\'ri so\'rov',
-                    message: 'So\'rov ID formati noto\'g\'ri',
-                    user: req.user,
-                    error: null,
-                    lng: req.lng || 'uz'
-                });
-            }
-            
-            let inquiry;
-            try {
-                inquiry = await Inquiry.findById(inquiryId)
-                    .populate('inquirer', 'email companyName phone')
-                    .populate('supplier', 'email companyName phone')
-                    .populate('product', 'name images')
-                    .lean();
-            } catch (dbError) {
-                console.error('❌ Database query error:', dbError);
-                throw dbError;
-            }
-            
-            if (!inquiry) {
-                console.error('❌ Inquiry not found in database:', inquiryId);
-                return res.status(404).render('manufacturer/error', {
-                    title: 'So\'rov topilmadi',
-                    message: 'So\'rov ma\'lumotlari topilmadi',
-                    user: req.user,
-                    error: null,
-                    lng: req.lng || 'uz'
-                });
-            }
-            
-            // Check access permissions
-            const hasAccess = MessagingController.checkInquiryAccess(inquiry, userId, userType);
-            if (!hasAccess) {
-                return res.status(403).render('manufacturer/error', {
-                    title: 'Ruxsat yo\'q',
-                    message: 'Bu so\'rovga ruxsat yo\'q',
-                    user: req.user,
-                    error: null,
-                    lng: req.lng || 'uz'
-                });
-            }
-            
-            // Get conversation partner info
-            let partner = null;
-            if (userType === 'manufacturer') {
-                partner = inquiry.inquirer;
-            } else {
-                partner = inquiry.supplier;
-            }
-            
-            // Get messages for this inquiry
-            let messages = [];
-            try {
-                messages = await Message.find({
-                    inquiryId: inquiryId
-                })
-                .populate('senderId', 'companyName')
-                .sort({ createdAt: 1 })
-                .lean();
-            } catch (msgError) {
-                console.error('❌ Error loading inquiry messages:', msgError);
-                messages = [];
-            }
-            
-            // Mark messages as read
-            try {
-                await Message.updateMany({
-                    inquiryId: inquiryId,
-                    recipientId: userId,
-                    status: 'sent'
-                }, {
-                    status: 'read',
-                    readAt: new Date()
-                });
-            } catch (updateError) {
-                console.error('❌ Error marking messages as read:', updateError);
-            }
-            
-            res.render('manufacturer/messages/chat', {
-                title: `Aloqa - So\'rov #${inquiry.inquiryNumber}`,
-                inquiry,
-                partner,
-                messages,
-                currentUser: {
-                    id: userId,
-                    type: userType,
-                    name: req.user.companyName,
-                    company: req.user.companyName
-                },
-                unreadMessages: 0,
-                user: req.user,
-                lng: req.lng || 'uz'
-            });
-        } catch (error) {
-            console.error('❌ Error loading inquiry chat:', error);
-            res.status(500).render('manufacturer/error', {
-                title: 'Server xatosi',
-                message: 'Chat sahifasini yuklashda xatolik',
-                error: process.env.NODE_ENV === 'development' ? error : null,
-                user: req.user,
-                lng: req.lng || 'uz'
-            });
-        }
-    }
+
 
     /**
      * Check if user has access to inquiry

@@ -441,58 +441,7 @@ router.post('/api/users/bulk-delete',
   boundMethods.bulkDeleteUsers
 );
 
-// Language change
-router.post('/set-language', (req, res) => {
-  const { language, source } = req.body;
-  
-  // Validate language
-  const supportedLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
-  if (!supportedLanguages.includes(language)) {
-    return res.status(400).json({ 
-      success: false, 
-      error: 'Unsupported language',
-      supported: supportedLanguages 
-    });
-  }
-  
-  try {
-    // Set i18next language for current request
-    if (req.i18n && req.i18n.changeLanguage) {
-      req.i18n.changeLanguage(language);
-    }
-    
-    // Set language in session for server-side rendering
-    req.session.language = language;
-    
-    // Set consistent language cookies
-    const cookieOptions = {
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
-    };
-    
-    res.cookie('i18next', language, cookieOptions);
-    res.cookie('selectedLanguage', language, cookieOptions);
-    res.cookie('language', language, cookieOptions);
-    
-      
-    res.json({ 
-      success: true, 
-      language,
-      message: `Language successfully changed to ${language}`,
-      timestamp: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('❌ Language change error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to change language',
-      details: error.message 
-    });
-  }
-});
+// Language change route moved to unified API in /api/language/:lang
 
 // Super Admin Only APIs (commented out - to be implemented later)
 // router.post('/api/users/:userId/suspend', AdminController.suspendUser);

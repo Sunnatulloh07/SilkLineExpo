@@ -1,10 +1,20 @@
-// Language switching functionality
+// Initialize i18next for client-side translations
+window.i18next = window.i18next || {
+  t: function(key, options = {}) {
+    // Simple translation function - in real implementation this would use i18next library
+    // For now, return the key as fallback
+    return key;
+  }
+};
+
+// Language switching functionality - Updated to use unified API
 function changeLanguage(lng) {
-  // Set cookie and redirect
+  // Set cookie immediately for better UX
   document.cookie = `i18next=${lng}; path=/; max-age=${60 * 60 * 24 * 30}`;
+  document.cookie = `selectedLanguage=${lng}; path=/; max-age=${60 * 60 * 24 * 30}`;
   
-  // Redirect to language route
-  window.location.href = `/language/${lng}`;
+  // Use unified API route instead of old route
+  window.location.href = `/api/language/${lng}`;
 }
 
 // Update current language display
@@ -30,7 +40,7 @@ function updateCurrentLanguage() {
   langItems.forEach(item => {
     item.classList.remove('active');
     const href = item.getAttribute('href');
-    if (href && href.includes(`/language/${currentLang}`)) {
+    if (href && href.includes(`/api/language/${currentLang}`)) {
       item.classList.add('active');
     }
   });

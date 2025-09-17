@@ -16,9 +16,6 @@ class OrderDetailManager {
     }
 
     init() {
-        console.log('🚀 Initializing Order Detail Manager...');
-        console.log('📦 Order Data:', this.originalOrderData);
-        
         // Make this instance globally available for inter-component communication
         window.orderDetailManager = this;
         
@@ -31,8 +28,6 @@ class OrderDetailManager {
         
         // Double-check after DOM is ready
         setTimeout(() => this.disableConflictingAnimations(), 100);
-        
-        console.log('✅ Order Detail Manager initialized successfully');
     }
 
     getOrderIdFromUrl() {
@@ -41,8 +36,6 @@ class OrderDetailManager {
     }
 
     setupEventListeners() {
-        console.log('🎧 Setting up event listeners...');
-        
         // Status management
         document.getElementById('updateStatusBtn')?.addEventListener('click', () => this.updateOrderStatus());
         document.getElementById('orderStatusSelect')?.addEventListener('change', () => this.markAsChanged());
@@ -84,23 +77,13 @@ class OrderDetailManager {
         // Additional quick actions
         document.getElementById('exportOrderBtn')?.addEventListener('click', () => this.exportOrder());
         document.getElementById('shareOrderBtn')?.addEventListener('click', () => this.shareOrder());
-        document.getElementById('sendEmailBtn')?.addEventListener('click', () => this.sendEmail());
-        
-        // Item actions
-        this.setupItemActions();
-
-        // Item management
-        document.addEventListener('change', (e) => this.handleItemChanges(e));
-        document.addEventListener('click', (e) => this.handleItemActions(e));
-
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.table-more-actions')) {
-                document.querySelectorAll('.table-more-menu').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
-            }
+        document.getElementById('sendEmailBtn')?.addEventListener('click', () => {
+            const customer = window.orderData?.buyer;
+            const mailto = `mailto:${customer?.email || ''}?subject=Buyurtma #${this.orderId} haqida`;
+            window.open(mailto);
         });
+        
+
 
         // Modal close on overlay click
         document.addEventListener('click', (e) => {
@@ -117,7 +100,7 @@ class OrderDetailManager {
         window.addEventListener('beforeunload', (e) => {
             if (this.hasUnsavedChanges) {
                 e.preventDefault();
-                e.returnValue = 'Saqlenmagan o\'zgarishlar mavjud. Sahifani tark etishga ishonchingiz komilmi?';
+                e.returnValue = window.t?.('manufacturer.orders.detail.javascript.unsaved_changes') || 'Saqlenmagan o\'zgarishlar mavjud. Sahifani tark etishga ishonchingiz komilmi?';
             }
         });
     }
@@ -141,55 +124,21 @@ class OrderDetailManager {
         document.body.classList.remove('has-unsaved-changes');
     }
 
-    setupItemActions() {
-        console.log('🔧 Setting up item actions...');
-        
-        // Item status change buttons
-        document.querySelectorAll('.item-status-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const itemId = btn.dataset.itemId;
-                const newStatus = btn.dataset.status;
-                this.updateItemStatus(itemId, newStatus);
-            });
-        });
-
-        // Item action dropdowns
-        document.querySelectorAll('.item-action-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const action = btn.dataset.action;
-                const itemId = btn.dataset.itemId;
-                this.handleItemAction(action, itemId);
-            });
-        });
-
-        // Item quantity changes
-        document.querySelectorAll('.item-quantity-input').forEach(input => {
-            input.addEventListener('change', (e) => {
-                const itemId = input.dataset.itemId;
-                const newQuantity = parseInt(input.value);
-                this.updateItemQuantity(itemId, newQuantity);
-            });
-        });
-
-        console.log('✅ Item actions setup complete');
-    }
 
     // Preview status change
     previewStatusChange(newStatus) {
         const statusMap = {
-            'pending': { text: '📋 Kutayotgan', color: '#f59e0b' },
-            'confirmed': { text: '✅ Tasdiqlangan', color: '#22c55e' },
-            'processing': { text: '⚙️ Jarayonda', color: '#3b82f6' },
-            'manufacturing': { text: '🏭 Ishlab chiqarilmoqda', color: '#a855f7' },
-            'quality_check': { text: '🔍 Sifat nazorati', color: '#06b6d4' },
-            'ready_to_ship': { text: '📦 Yuborishga tayyor', color: '#10b981' },
-            'shipped': { text: '🚚 Yo\'lda', color: '#f97316' },
-            'out_for_delivery': { text: '🏃‍♂️ Yetkazib berishda', color: '#8b5cf6' },
-            'delivered': { text: '🏆 Yetkazildi', color: '#16a34a' },
-            'completed': { text: '💯 Yakunlandi', color: '#15803d' },
-            'cancelled': { text: '❌ Bekor qilindi', color: '#ef4444' }
+            'pending': { text: '📋 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.pending') || 'Kutayotgan'), color: '#f59e0b' },
+            'confirmed': { text: '✅ ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.confirmed') || 'Tasdiqlangan'), color: '#22c55e' },
+            'processing': { text: '⚙️ ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.processing') || 'Jarayonda'), color: '#3b82f6' },
+            'manufacturing': { text: '🏭 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.manufacturing') || 'Ishlab chiqarilmoqda'), color: '#a855f7' },
+            'quality_check': { text: '🔍 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.quality_check') || 'Sifat nazorati'), color: '#06b6d4' },
+            'ready_to_ship': { text: '📦 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.ready_to_ship') || 'Yuborishga tayyor'), color: '#10b981' },
+            'shipped': { text: '🚚 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.shipped') || 'Yo\'lda'), color: '#f97316' },
+            'out_for_delivery': { text: '🏃‍♂️ ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.out_for_delivery') || 'Yetkazib berishda'), color: '#8b5cf6' },
+            'delivered': { text: '🏆 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.delivered') || 'Yetkazildi'), color: '#16a34a' },
+            'completed': { text: '💯 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.completed') || 'Yakunlandi'), color: '#15803d' },
+            'cancelled': { text: '❌ ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.cancelled') || 'Bekor qilindi'), color: '#ef4444' }
         };
 
         const status = statusMap[newStatus];
@@ -229,8 +178,6 @@ class OrderDetailManager {
     }
 
     setupAdvancedModalListeners() {
-        console.log('🎧 Setting up advanced modal listeners...');
-        
         // Overlay click to close modals
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal-overlay')) {
@@ -254,27 +201,25 @@ class OrderDetailManager {
     // Get status text with emoji
     getStatusText(status) {
         const statusMap = {
-            'pending': '📋 Kutayotgan',
-            'confirmed': '✅ Tasdiqlangan', 
-            'processing': '⚙️ Jarayonda',
-            'manufacturing': '🏭 Ishlab chiqarilmoqda',
-            'quality_check': '🔍 Sifat nazorati',
-            'ready_to_ship': '📦 Yuborishga tayyor',
-            'shipped': '🚚 Yo\'lda',
-            'out_for_delivery': '🏃‍♂️ Yetkazib berishda',
-            'delivered': '🏆 Yetkazildi',
-            'completed': '💯 Yakunlandi',
-            'cancelled': '❌ Bekor qilindi'
+            'pending': '📋 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.pending') || 'Kutayotgan'),
+            'confirmed': '✅ ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.confirmed') || 'Tasdiqlangan'), 
+            'processing': '⚙️ ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.processing') || 'Jarayonda'),
+            'manufacturing': '🏭 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.manufacturing') || 'Ishlab chiqarilmoqda'),
+            'quality_check': '🔍 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.quality_check') || 'Sifat nazorati'),
+            'ready_to_ship': '📦 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.ready_to_ship') || 'Yuborishga tayyor'),
+            'shipped': '🚚 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.shipped') || 'Yo\'lda'),
+            'out_for_delivery': '🏃‍♂️ ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.out_for_delivery') || 'Yetkazib berishda'),
+            'delivered': '🏆 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.delivered') || 'Yetkazildi'),
+            'completed': '💯 ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.completed') || 'Yakunlandi'),
+            'cancelled': '❌ ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.cancelled') || 'Bekor qilindi')
         };
-        return statusMap[status] || '❓ Noma\'lum';
+        return statusMap[status] || '❓ ' + (window.t?.('manufacturer.orders.detail.timeline.status_labels.unknown') || 'Noma\'lum');
     }
 
     // ENSURE NO ANIMATION INTERFERENCE
     disableConflictingAnimations() {
-        console.log('🚫 Disabling conflicting animations...');
         const elementsToStabilize = [
             '.order-detail-content',
-            '.order-kpi-cards', 
             '.order-main-grid',
             '.info-card',
             '.order-items-section',
@@ -293,154 +238,11 @@ class OrderDetailManager {
                 }
             });
         });
-        console.log('✅ Animation conflicts disabled');
     }
 
-    updateItemStatus(itemId, newStatus) {
-        console.log(`📋 Updating item ${itemId} status to: ${newStatus}`);
-        // Implementation for updating item status
-        window.showToast(`Mahsulot holati "${newStatus}" ga o'zgartirildi`, 'success');
-    }
 
-    handleItemAction(action, itemId) {
-        console.log(`🔧 Handling item action: ${action} for item: ${itemId}`);
-        
-        switch(action) {
-            case 'view':
-                this.viewItemDetails(itemId);
-                break;
-            case 'edit':
-                this.editItemDetails(itemId);
-                break;
-            case 'remove':
-                this.removeItem(itemId);
-                break;
-            case 'duplicate':
-                this.duplicateItem(itemId);
-                break;
-            default:
-                console.log('Unknown action:', action);
-        }
-    }
 
-    updateItemQuantity(itemId, quantity) {
-        console.log(`📊 Updating item ${itemId} quantity to: ${quantity}`);
-        this.markAsChanged();
-        window.showToast('Mahsulot miqdori o\'zgartirildi', 'info');
-    }
 
-    viewItemDetails(itemId) {
-        console.log(`👁️ Viewing details for item: ${itemId}`);
-        // Implementation for viewing item details
-    }
-
-    editItemDetails(itemId) {
-        console.log(`✏️ Editing item: ${itemId}`);
-        // Implementation for editing item
-    }
-
-    removeItem(itemId) {
-        console.log(`🗑️ Removing item: ${itemId}`);
-        if (confirm('Ushbu mahsulotni buyurtmadan olib tashlashni xohlaysizmi?')) {
-            window.showToast('Mahsulot olib tashlandi', 'warning');
-        }
-    }
-
-    duplicateItem(itemId) {
-        console.log(`📋 Duplicating item: ${itemId}`);
-        window.showToast('Mahsulot nusxalandi', 'success');
-    }
-
-    async loadOrderData() {
-        try {
-            this.showLoading('order-data');
-            
-            const response = await fetch(`/api/manufacturer/orders/${this.orderId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            
-            if (data.success) {
-                this.originalOrderData = data.order;
-                this.updateOrderDisplay(data.order);
-                console.log('📋 Order data loaded successfully');
-            } else {
-                throw new Error(data.message || 'Failed to load order data');
-            }
-        } catch (error) {
-            console.error('❌ Error loading order data:', error);
-            window.showToast('Buyurtma ma\'lumotlarini yuklashda xatolik', 'error');
-        } finally {
-            this.hideLoading('order-data');
-        }
-    }
-
-    updateOrderDisplay(order) {
-        // Update dynamic content if needed
-        this.updateItemTotals();
-        this.updateOrderSummary(order);
-    }
-
-    updateItemTotals() {
-        document.querySelectorAll('.quantity-input').forEach(input => {
-            input.addEventListener('change', () => {
-                this.calculateItemTotal(input);
-                this.markAsChanged();
-            });
-        });
-    }
-
-    calculateItemTotal(quantityInput) {
-        const row = quantityInput.closest('tr');
-        if (!row) return;
-
-        const quantity = parseFloat(quantityInput.value) || 0;
-        const unitPriceElement = row.querySelector('.unit-price');
-        const totalElement = row.querySelector('.item-total');
-
-        if (unitPriceElement && totalElement) {
-            const unitPrice = this.parsePrice(unitPriceElement.textContent);
-            const total = quantity * unitPrice;
-            
-            totalElement.textContent = this.formatPrice(total);
-        }
-
-        this.updateOrderTotalSummary();
-    }
-
-    updateOrderTotalSummary() {
-        let grandTotal = 0;
-        
-        document.querySelectorAll('.item-total').forEach(element => {
-            const amount = this.parsePrice(element.textContent);
-            grandTotal += amount;
-        });
-
-        // Update total display
-        const totalElement = document.querySelector('.payment-value.total');
-        if (totalElement) {
-            totalElement.textContent = this.formatPrice(grandTotal);
-        }
-    }
-
-    parsePrice(priceText) {
-        return parseFloat(priceText.replace(/[$,]/g, '')) || 0;
-    }
-
-    formatPrice(amount) {
-        return '$' + amount.toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
 
     async updateOrderStatus() {
         const statusSelect = document.getElementById('orderStatusSelect');
@@ -478,7 +280,7 @@ class OrderDetailManager {
             }
         } catch (error) {
             console.error('❌ Error updating order status:', error);
-            window.showToast('Buyurtma holatini yangilashda xatolik', 'error');
+            window.showToast(window.t?.('manufacturer.orders.detail.javascript.status_update_error') || 'Buyurtma holatini yangilashda xatolik', 'error');
             // Revert select value
             statusSelect.value = currentStatus;
         } finally {
@@ -495,192 +297,25 @@ class OrderDetailManager {
 
     getStatusDisplayName(status) {
         const statusMap = {
-            'pending': 'Kutayotgan',
-            'confirmed': 'Tasdiqlangan',
-            'processing': 'Jarayonda',
-            'manufacturing': 'Ishlab chiqarilmoqda',
-            'ready_to_ship': 'Jo\'natishga tayyor',
-            'shipped': 'Jo\'natilgan',
-            'delivered': 'Yetkazilgan',
-            'completed': 'Yakunlangan',
-            'cancelled': 'Bekor qilingan'
+            'pending': window.t?.('manufacturer.orders.detail.timeline.status_labels.pending') || 'Kutayotgan',
+            'confirmed': window.t?.('manufacturer.orders.detail.timeline.status_labels.confirmed') || 'Tasdiqlangan',
+            'processing': window.t?.('manufacturer.orders.detail.timeline.status_labels.processing') || 'Jarayonda',
+            'manufacturing': window.t?.('manufacturer.orders.detail.timeline.status_labels.manufacturing') || 'Ishlab chiqarilmoqda',
+            'ready_to_ship': window.t?.('manufacturer.orders.detail.timeline.status_labels.ready_to_ship') || 'Jo\'natishga tayyor',
+            'shipped': window.t?.('manufacturer.orders.detail.timeline.status_labels.shipped') || 'Jo\'natilgan',
+            'delivered': window.t?.('manufacturer.orders.detail.timeline.status_labels.delivered') || 'Yetkazilgan',
+            'completed': window.t?.('manufacturer.orders.detail.timeline.status_labels.completed') || 'Yakunlangan',
+            'cancelled': window.t?.('manufacturer.orders.detail.timeline.status_labels.cancelled') || 'Bekor qilingan'
         };
-        return statusMap[status] || 'Noma\'lum';
+        return statusMap[status] || window.t?.('manufacturer.orders.detail.timeline.status_labels.unknown') || 'Noma\'lum';
     }
 
-    handleItemChanges(event) {
-        if (event.target.matches('.quantity-input')) {
-            this.calculateItemTotal(event.target);
-        } else if (event.target.matches('.item-status-select')) {
-            this.updateItemStatus(event.target);
-        }
-    }
 
-    async updateItemStatus(selectElement) {
-        const itemIndex = selectElement.dataset.itemIndex;
-        const newStatus = selectElement.value;
 
-        try {
-            const response = await fetch(`/api/manufacturer/orders/${this.orderId}/items/${itemIndex}/status`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status: newStatus })
-            });
 
-            const data = await response.json();
 
-            if (data.success) {
-                this.markAsSaved();
-                window.showToast('Mahsulot holati yangilandi', 'success');
-            } else {
-                throw new Error(data.message || 'Failed to update item status');
-            }
-        } catch (error) {
-            console.error('❌ Error updating item status:', error);
-            window.showToast('Mahsulot holatini yangilashda xatolik', 'error');
-        }
-    }
 
-    handleItemActions(event) {
-        const target = event.target.closest('[data-action]');
-        if (!target) return;
 
-        event.preventDefault();
-        const action = target.dataset.action;
-
-        switch (action) {
-            case 'view-product':
-                this.viewProduct(target.dataset.productId);
-                break;
-            case 'edit-item':
-                this.editItem(target.dataset.itemIndex);
-                break;
-            case 'remove-item':
-                this.removeItem(target.dataset.itemIndex);
-                break;
-            case 'duplicate-item':
-                this.duplicateItem(target.dataset.itemIndex);
-                break;
-        }
-
-        // Handle dropdown toggle
-        if (target.classList.contains('dropdown-toggle')) {
-            event.stopPropagation();
-            this.toggleDropdown(target);
-        }
-    }
-
-    toggleDropdown(toggleBtn) {
-        const dropdown = toggleBtn.nextElementSibling;
-        if (!dropdown) return;
-
-        // Close all other dropdowns
-        document.querySelectorAll('.table-more-menu').forEach(menu => {
-            if (menu !== dropdown && !menu.classList.contains('hidden')) {
-                menu.classList.add('hidden');
-            }
-        });
-
-        // Toggle current dropdown
-        dropdown.classList.toggle('hidden');
-    }
-
-    viewProduct(productId) {
-        if (productId) {
-            window.open(`/manufacturer/products/${productId}`, '_blank');
-        }
-    }
-
-    editItem(itemIndex) {
-        window.showToast('Mahsulot tahrirlash funksiyasi tez orada qo\'shiladi', 'info');
-    }
-
-    async removeItem(itemIndex) {
-        if (!confirm('Ushbu mahsulotni buyurtmadan olib tashlashga ishonchingiz komilmi?')) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/manufacturer/orders/${this.orderId}/items/${itemIndex}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                location.reload(); // Reload to show updated items
-            } else {
-                throw new Error(data.message || 'Failed to remove item');
-            }
-        } catch (error) {
-            console.error('❌ Error removing item:', error);
-            window.showToast('Mahsulotni o\'chirishda xatolik', 'error');
-        }
-    }
-
-    duplicateItem(itemIndex) {
-        window.showToast('Mahsulot nusxalash funksiyasi tez orada qo\'shiladi', 'info');
-    }
-
-    // Communication Modal - Redirect to messaging page
-    // Note: This method is superseded by the main openCommunicationModal method below
-
-    closeCommunicationModal() {
-        document.getElementById('communicationModal')?.classList.add('hidden');
-        this.clearCommunicationForm();
-    }
-
-    clearCommunicationForm() {
-        document.getElementById('messageType').value = 'status_update';
-        document.getElementById('messageSubject').value = '';
-        document.getElementById('messageContent').value = '';
-    }
-
-    async sendCustomerMessage() {
-        const messageType = document.getElementById('messageType')?.value;
-        const subject = document.getElementById('messageSubject')?.value?.trim();
-        const content = document.getElementById('messageContent')?.value?.trim();
-
-        if (!subject || !content) {
-            window.showToast('Mavzu va xabar matnini to\'ldiring', 'warning');
-            return;
-        }
-
-        try {
-            this.showLoading('send-message');
-
-            const response = await fetch(`/api/manufacturer/orders/${this.orderId}/communication`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    type: messageType,
-                    subject: subject,
-                    content: content
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.closeCommunicationModal();
-                window.showToast('Xabar muvaffaqiyatli yuborildi', 'success');
-            } else {
-                throw new Error(data.message || 'Failed to send message');
-            }
-        } catch (error) {
-            console.error('❌ Error sending message:', error);
-            window.showToast('Xabar yuborishda xatolik', 'error');
-        } finally {
-            this.hideLoading('send-message');
-        }
-    }
 
 
 
@@ -714,7 +349,7 @@ class OrderDetailManager {
             this.showLoading('save-note');
 
             // Use the correct order comments API endpoint
-            const response = await fetch(`/api/orders/${this.orderId}/comments`, {
+            const response = await fetch(`/api/order-comments/orders/${this.orderId}/comments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -734,7 +369,7 @@ class OrderDetailManager {
             if (data.success) {
                 this.closeNoteModal();
                 this.clearNoteForm();
-                window.showToast('Izoh muvaffaqiyatli qo\'shildi', 'success');
+                window.showToast(window.t?.('manufacturer.orders.detail.javascript.note_save_success') || 'Izoh muvaffaqiyatli qo\'shildi', 'success');
                 
                 // Refresh comments instead of full page reload
                 if (window.orderComments && window.orderComments.refreshComments) {
@@ -744,11 +379,11 @@ class OrderDetailManager {
                     setTimeout(() => location.reload(), 1000);
                 }
             } else {
-                throw new Error(data.message || 'Izohni saqlashda xatolik');
+                throw new Error(data.message || window.t?.('manufacturer.orders.detail.javascript.note_save_error') || 'Izohni saqlashda xatolik');
             }
         } catch (error) {
             console.error('❌ Error saving note:', error);
-            window.showToast('Izoh saqlashda xatolik', 'error');
+            window.showToast(window.t?.('manufacturer.orders.detail.javascript.note_save_error') || 'Izoh saqlashda xatolik', 'error');
         } finally {
             this.hideLoading('save-note');
         }
@@ -790,7 +425,7 @@ class OrderDetailManager {
             }
         } catch (error) {
             console.error('❌ Error duplicating order:', error);
-            window.showToast('Buyurtmani nusxalashda xatolik', 'error');
+            window.showToast(window.t?.('manufacturer.orders.detail.javascript.duplicate_error') || 'Buyurtmani nusxalashda xatolik', 'error');
         } finally {
             this.hideLoading('duplicate-order');
         }
@@ -939,7 +574,7 @@ class OrderDetailManager {
             }
         } catch (error) {
             console.error('❌ Error sending message:', error);
-            window.showToast('Xabar yuborishda xatolik', 'error');
+            window.showToast(window.t?.('manufacturer.orders.detail.javascript.message_send_error') || 'Xabar yuborishda xatolik', 'error');
         } finally {
             this.hideLoading('send-message');
         }
@@ -947,24 +582,20 @@ class OrderDetailManager {
 
     // ADDITIONAL ACTION METHODS
     printOrder() {
-        console.log('🖨️ Printing order...');
         window.print();
     }
 
     duplicateOrder() {
-        console.log('📋 Duplicating order...');
         window.showToast('Buyurtma nusxalanmoqda...', 'info');
         // TODO: Implement order duplication logic
     }
 
     exportOrder() {
-        console.log('📄 Exporting order...');
         window.showToast('Buyurtma export qilinmoqda...', 'info');
         // TODO: Implement order export logic
     }
 
     shareOrder() {
-        console.log('🔗 Sharing order...');
         if (navigator.share) {
             navigator.share({
                 title: `Buyurtma #${this.orderId}`,
@@ -976,12 +607,6 @@ class OrderDetailManager {
         }
     }
 
-    sendEmail() {
-        console.log('📧 Opening email...');
-        const customer = this.originalOrderData.buyer;
-        const mailto = `mailto:${customer?.email || ''}?subject=Buyurtma #${this.orderId} haqida`;
-        window.open(mailto);
-    }
 
     // NOTES/COMMENTS MODAL METHODS
     openNoteModal() {
@@ -1067,11 +692,11 @@ class OrderDetailManager {
         const method = isEditing ? 'PUT' : 'POST';
         const url = isEditing 
             ? `/api/order-comments/${editingCommentId}` 
-            : `/api/orders/${this.orderId}/comments`;
+            : `/api/order-comments/orders/${this.orderId}/comments`;
         
         const successMessage = isEditing 
-            ? 'Izoh muvaffaqiyatli yangilandi' 
-            : 'Izoh muvaffaqiyatli qo\'shildi';
+            ? (window.t?.('manufacturer.orders.detail.javascript.note_update_success') || 'Izoh muvaffaqiyatli yangilandi')
+            : (window.t?.('manufacturer.orders.detail.javascript.note_save_success') || 'Izoh muvaffaqiyatli qo\'shildi');
 
         console.log(isEditing ? '✏️ Updating comment...' : '💾 Creating new comment...', {
             method,
@@ -1128,7 +753,9 @@ class OrderDetailManager {
             }
         } catch (error) {
             console.error(`❌ Error ${isEditing ? 'updating' : 'saving'} note:`, error);
-            window.showToast(`Izohni ${isEditing ? 'yangilashda' : 'saqlashda'} xatolik`, 'error');
+            window.showToast(isEditing ? 
+                (window.t?.('manufacturer.orders.detail.javascript.note_update_error') || 'Izohni yangilashda xatolik') :
+                (window.t?.('manufacturer.orders.detail.javascript.note_save_error') || 'Izohni saqlashda xatolik'), 'error');
         } finally {
             this.hideLoading('save-note');
         }
@@ -1168,78 +795,12 @@ class OrderDetailManager {
         }
     }
 
-    // ITEM MANAGEMENT METHODS
-    setupItemActions() {
-        console.log('🔧 Setting up item actions...');
-        // Item action buttons are handled through event delegation
-        // See handleItemActions and handleItemChanges methods
-    }
 
-    handleItemChanges(e) {
-        // Handle quantity changes, item modifications, etc.
-        if (e.target.classList.contains('item-quantity-input')) {
-            this.markAsChanged();
-            console.log('📝 Item quantity changed');
-        }
-    }
-
-    handleItemActions(e) {
-        const target = e.target.closest('[data-action]');
-        if (!target) return;
-
-        const action = target.dataset.action;
-        const itemIndex = target.dataset.itemIndex;
-        const productId = target.dataset.productId;
-
-        console.log(`🎯 Item action: ${action}`, { itemIndex, productId });
-
-        switch (action) {
-            case 'view-product':
-                this.viewProduct(productId);
-                break;
-            case 'edit-item':
-                this.editItem(itemIndex);
-                break;
-            case 'remove-item':
-                this.removeItem(itemIndex);
-                break;
-            case 'duplicate-item':
-                this.duplicateItem(itemIndex);
-                break;
-        }
-    }
-
-    viewProduct(productId) {
-        console.log('👁️ Viewing product:', productId);
-        const url = `/marketplace/products/${productId}`;
-        window.open(url, '_blank');
-    }
-
-    editItem(itemIndex) {
-        console.log('✏️ Editing item:', itemIndex);
-        window.showToast('Mahsulot tahrirlash funksiyasi tez orada qo\'shiladi', 'info');
-        // TODO: Implement item editing
-    }
-
-    removeItem(itemIndex) {
-        console.log('🗑️ Removing item:', itemIndex);
-        if (confirm('Mahsulotni buyurtmadan olib tashlashni xohlaysizmi?')) {
-            window.showToast('Mahsulot olib tashlash funksiyasi tez orada qo\'shiladi', 'info');
-            // TODO: Implement item removal
-        }
-    }
-
-    duplicateItem(itemIndex) {
-        console.log('📋 Duplicating item:', itemIndex);
-        window.showToast('Mahsulot nusxalash funksiyasi tez orada qo\'shiladi', 'info');
-        // TODO: Implement item duplication
-    }
 
     /**
      * Open modal in edit mode for existing comment
      */
     openEditCommentModal(commentId, commentData) {
-        console.log('✏️ Opening edit modal for comment:', commentId);
         
         this.editingCommentId = commentId;
         this.editingCommentData = { ...commentData };
@@ -1273,7 +834,6 @@ class OrderDetailManager {
                 // Focus on content
                 document.getElementById('noteContent')?.focus();
                 
-                console.log('🔄 Edit modal setup complete: handlers -> fill form -> focus');
             }, 100);
         }
     }
@@ -1282,7 +842,6 @@ class OrderDetailManager {
      * Reset modal to add mode
      */
     resetModalToAddMode() {
-        console.log('🔄 Resetting modal to add mode');
         
         this.editingCommentId = null;
         this.editingCommentData = null;
@@ -1305,7 +864,6 @@ class OrderDetailManager {
      * Fill form with comment data for editing
      */
     fillEditForm(commentData) {
-        console.log('📝 Filling edit form with data:', commentData);
         
         const noteContent = document.getElementById('noteContent');
         const commentType = document.getElementById('commentType');
@@ -1321,9 +879,6 @@ class OrderDetailManager {
         // For edit mode, set notification checkbox to unchecked by default
         // This allows user to decide whether to notify customer about the update
         if (notifyCustomer) {
-            console.log('🔍 Before reset - checkbox checked:', notifyCustomer.checked);
-            console.log('🔍 Checkbox element:', notifyCustomer);
-            console.log('🔍 Checkbox parent element:', notifyCustomer.parentElement);
             
             notifyCustomer.checked = false;
             
@@ -1333,7 +888,6 @@ class OrderDetailManager {
             const checkboxLabel = customCheckboxWrapper?.querySelector('.checkbox-label');
             
             if (customCheckboxWrapper) {
-                console.log('🎨 Updating custom checkbox visual state');
                 
                 // Remove checked styling
                 customCheckboxWrapper.classList.remove('checked');
@@ -1347,16 +901,11 @@ class OrderDetailManager {
                 }
             }
             
-            // Update visual state using our method
             this.updateCustomCheckboxVisual(notifyCustomer);
             
             // Trigger change event
             notifyCustomer.dispatchEvent(new Event('change', { bubbles: true }));
             
-            console.log('📧 After reset - checkbox checked:', notifyCustomer.checked);
-            console.log('✅ Edit mode: Notification checkbox reset (user can choose to notify about update)');
-        } else {
-            console.log('❌ Notification checkbox element not found in edit mode');
         }
         
         // Update character count
@@ -1370,12 +919,10 @@ class OrderDetailManager {
      * Professional comment deletion with confirmation
      */
     async deleteComment(commentId) {
-        console.log('🗑️ Attempting to delete comment:', commentId);
         
         // Professional confirmation dialog
         const confirmed = await this.showDeleteConfirmation();
         if (!confirmed) {
-            console.log('❌ Delete cancelled by user');
             return;
         }
         
@@ -1393,7 +940,7 @@ class OrderDetailManager {
             const data = await response.json();
             
             if (data.success) {
-                window.showToast('Izoh muvaffaqiyatli o\'chirildi', 'success');
+                window.showToast(window.t?.('manufacturer.orders.detail.javascript.note_delete_success') || 'Izoh muvaffaqiyatli o\'chirildi', 'success');
                 
                 // Refresh comments
                 if (window.orderComments && window.orderComments.refreshComments) {
@@ -1407,7 +954,7 @@ class OrderDetailManager {
             
         } catch (error) {
             console.error('❌ Error deleting comment:', error);
-            window.showToast('Izohni o\'chirishda xatolik yuz berdi', 'error');
+            window.showToast(window.t?.('manufacturer.orders.detail.javascript.note_delete_error') || 'Izohni o\'chirishda xatolik yuz berdi', 'error');
         } finally {
             this.hideLoading('delete-comment');
         }
@@ -1489,12 +1036,8 @@ class OrderDetailManager {
             notifyCheckbox.removeEventListener('change', this.handleCheckboxChange);
             
             // Add fresh listeners
-            notifyCheckbox.addEventListener('click', this.handleCheckboxClick.bind(this));
             notifyCheckbox.addEventListener('change', this.handleCheckboxChange.bind(this));
             
-            console.log('✅ Checkbox handlers setup complete');
-        } else {
-            console.warn('⚠️ notifyCustomer checkbox not found');
         }
 
         // Also handle label clicks
@@ -1502,51 +1045,20 @@ class OrderDetailManager {
         if (notifyLabel) {
             notifyLabel.addEventListener('click', (e) => {
                 // Let the browser handle the natural label->checkbox interaction
-                console.log('🏷️ Label clicked, checkbox should toggle');
             });
         }
     }
 
-    /**
-     * Handle checkbox click events
-     */
-    handleCheckboxClick(event) {
-        const checkbox = event.target;
-        console.log('🖱️ Checkbox clicked:', {
-            id: checkbox.id,
-            checked: checkbox.checked,
-            disabled: checkbox.disabled
-        });
-        
-        // Ensure the checkbox state is properly set
-        if (!checkbox.disabled) {
-            // Force the checked state to be explicit
-            setTimeout(() => {
-                console.log('✅ Checkbox state after click:', checkbox.checked);
-            }, 10);
-        }
-    }
 
     /**
      * Handle checkbox change events
      */
     handleCheckboxChange(event) {
         const checkbox = event.target;
-        console.log('🔄 Checkbox changed:', {
-            id: checkbox.id,
-            checked: checkbox.checked,
-            value: checkbox.value
-        });
+
         
         // Update custom checkbox visual state
         this.updateCustomCheckboxVisual(checkbox);
-        
-        // Visual feedback
-        if (checkbox.checked) {
-            console.log('🔔 Customer notification enabled');
-        } else {
-            console.log('🔕 Customer notification disabled');
-        }
     }
 
     /**
@@ -1558,7 +1070,6 @@ class OrderDetailManager {
         const checkboxLabel = customCheckboxWrapper?.querySelector('.checkbox-label');
         
         if (customCheckboxWrapper && checkmark) {
-            console.log('🎨 Updating custom checkbox visual for:', checkbox.id, 'checked:', checkbox.checked);
             
             if (checkbox.checked) {
                 // Checked state
@@ -1568,7 +1079,7 @@ class OrderDetailManager {
                     checkboxLabel.style.color = '#007bff';
                     checkboxLabel.style.fontWeight = '500';
                 }
-                console.log('✅ Applied checked styling');
+                
             } else {
                 // Unchecked state
                 checkmark.style.backgroundColor = '#fff';
@@ -1577,10 +1088,10 @@ class OrderDetailManager {
                     checkboxLabel.style.color = '#333';
                     checkboxLabel.style.fontWeight = 'normal';
                 }
-                console.log('❌ Applied unchecked styling');
+             
             }
         } else {
-            console.warn('⚠️ Custom checkbox elements not found for visual update');
+         
         }
     }
 }
@@ -1595,7 +1106,234 @@ const logger = {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.orderDetailManager = new OrderDetailManager();
+    
+    // Export functionality
+    initializeExportButtons();
 });
+
+// Export functionality
+function initializeExportButtons() {
+    // Export Button Click Handler (Simple)
+    const exportOrderBtn = document.getElementById('exportOrderBtn');
+    if (exportOrderBtn) {
+        exportOrderBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            exportOrderData('full');
+        });
+    }
+    
+    // Export Items Button (Products Table)
+    const exportItemsBtn = document.getElementById('exportItemsBtn');
+    if (exportItemsBtn) {
+        exportItemsBtn.addEventListener('click', () => {
+            exportOrderData('items');
+        });
+    }
+}
+
+// Export Order Data Function
+function exportOrderData(type = 'full') {
+    try {
+        const orderData = extractOrderData();
+        
+        if (type === 'items') {
+            exportItemsToExcel(orderData);
+        } else {
+            exportFullOrderToPDF(orderData);
+        }
+        
+        showToast('Export muvaffaqiyatli bajarildi!', 'success');
+        
+    } catch (error) {
+        showToast(window.t?.('manufacturer.orders.detail.javascript.export_error') || 'Export da xatolik yuz berdi!', 'error');
+    }
+}
+
+// Extract order data from page
+function extractOrderData() {
+    const orderNumber = document.querySelector('.order-number')?.textContent || 'N/A';
+    const orderStatus = document.querySelector('.status-badge')?.textContent || 'N/A';
+    const orderDate = document.querySelector('.order-detail-id')?.textContent || 'N/A';
+    const totalAmount = document.querySelector('.total-summary')?.textContent || '$0.00';
+    
+    // Extract customer info
+    const customerName = document.querySelector('.customer-contact-person')?.textContent || 'N/A';
+    const customerCompany = document.querySelector('.customer-company')?.textContent || 'N/A';
+    const customerEmail = document.querySelector('.customer-email')?.textContent || 'N/A';
+    
+    // Extract items
+    const items = [];
+    const itemRows = document.querySelectorAll('.products-table tbody tr:not(.empty-row)');
+    
+    itemRows.forEach((row, index) => {
+        const productName = row.querySelector('.product-title')?.textContent || 'N/A';
+        const quantity = row.querySelector('.quantity-value')?.textContent || '0';
+        const unitPrice = row.querySelector('.unit-price')?.textContent || '$0.00';
+        const totalPrice = row.querySelector('.total-amount')?.textContent || '$0.00';
+        
+        items.push({
+            no: index + 1,
+            product: productName,
+            quantity: quantity,
+            unitPrice: unitPrice,
+            totalPrice: totalPrice
+        });
+    });
+    
+    return {
+        orderNumber,
+        orderStatus,
+        orderDate,
+        totalAmount,
+        customer: {
+            name: customerName,
+            company: customerCompany,
+            email: customerEmail
+        },
+        items: items
+    };
+}
+
+// Export to Excel (CSV format)
+function exportItemsToExcel(orderData) {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    
+    // Header
+    csvContent += "№,Mahsulot nomi,Miqdor,Birlik narxi,Jami narx\n";
+    
+    // Items
+    orderData.items.forEach(item => {
+        csvContent += `${item.no},"${item.product}",${item.quantity},"${item.unitPrice}","${item.totalPrice}"\n`;
+    });
+    
+    // Summary
+    csvContent += `\n\nJami: ${orderData.totalAmount}`;
+    
+    // Download
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `buyurtma_${orderData.orderNumber}_mahsulotlar.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Export to PDF (HTML to PDF)
+function exportFullOrderToPDF(orderData) {
+    // Create print-friendly HTML
+    const printContent = generatePrintHTML(orderData);
+    
+    // Open in new window for printing
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Wait for content to load, then print
+    printWindow.onload = function() {
+        printWindow.print();
+        printWindow.close();
+    };
+}
+
+// Generate print-friendly HTML
+function generatePrintHTML(orderData) {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Buyurtma ${orderData.orderNumber}</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .order-info { margin-bottom: 20px; }
+            .customer-info { margin-bottom: 20px; }
+            .items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            .items-table th, .items-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            .items-table th { background-color: #f2f2f2; }
+            .summary { text-align: right; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Buyurtma ${orderData.orderNumber}</h1>
+            <p>SLEX B2B Platform</p>
+        </div>
+        
+        <div class="order-info">
+            <h3>Buyurtma Ma'lumotlari</h3>
+            <p><strong>Raqam:</strong> ${orderData.orderNumber}</p>
+            <p><strong>Holat:</strong> ${orderData.orderStatus}</p>
+            <p><strong>Sana:</strong> ${orderData.orderDate}</p>
+            <p><strong>Jami:</strong> ${orderData.totalAmount}</p>
+        </div>
+        
+        <div class="customer-info">
+            <h3>Mijoz Ma'lumotlari</h3>
+            <p><strong>Ism:</strong> ${orderData.customer.name}</p>
+            <p><strong>Kompaniya:</strong> ${orderData.customer.company}</p>
+            <p><strong>Email:</strong> ${orderData.customer.email}</p>
+        </div>
+        
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Mahsulot</th>
+                    <th>Miqdor</th>
+                    <th>Birlik narxi</th>
+                    <th>Jami</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${orderData.items.map(item => `
+                    <tr>
+                        <td>${item.no}</td>
+                        <td>${item.product}</td>
+                        <td>${item.quantity}</td>
+                        <td>${item.unitPrice}</td>
+                        <td>${item.totalPrice}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        
+        <div class="summary">
+            <p>Jami: ${orderData.totalAmount}</p>
+        </div>
+    </body>
+    </html>
+    `;
+}
+
+// Simple toast notification
+function showToast(message, type = 'info') {
+    // Use existing toast system if available
+    if (window.showToast) {
+        window.showToast(message, type);
+        return;
+    }
+    
+    // Fallback toast
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        ${type === 'success' ? 'background: #10b981;' : 'background: #ef4444;'}
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        document.body.removeChild(toast);
+    }, 3000);
+}
 
 // Export for external use
 window.OrderDetailManager = OrderDetailManager;

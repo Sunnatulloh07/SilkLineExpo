@@ -1,6 +1,14 @@
 <%- include('../partials/header', { title: title, lng: lng, user: user, t: t, currentUrl: currentUrl }) %>
 <%- include('../partials/sidebar', { user: user, currentPage: 'products', t: t }) %>
 
+<!-- Enhanced CSS Imports - Product Edit Page -->
+<link rel="stylesheet" href="/css/manufacturer-dashboard.css">
+<link rel="stylesheet" href="/css/manufacturer-cards.css">
+<link rel="stylesheet" href="/css/manufacturer-fixes.css">
+<link rel="stylesheet" href="/css/b2b-marketplace-cards.css">
+<link rel="stylesheet" href="/css/toast-notifications.css">
+<link rel="stylesheet" href="/css/modal-system.css">
+
 <!-- Main Content -->
 <main class="admin-main">
   <div class="admin-content">
@@ -14,20 +22,6 @@
             <%= t('manufacturer.products.edit.pageTitle') %>
           </h1>
           <p class="page-subtitle"><%= t('manufacturer.products.edit.pageSubtitle') %></p>
-        </div>
-        <div class="header-actions">
-          <button class="btn-outline" id="previewBtn">
-            <i class="fas fa-eye"></i>
-            <%= t('manufacturer.products.edit.actions.preview') %>
-          </button>
-          <button class="btn-secondary" id="saveAsDraftBtn">
-            <i class="fas fa-save"></i>
-            <%= t('manufacturer.products.edit.actions.saveAsDraft') %>
-          </button>
-          <button class="btn-primary" id="publishBtn">
-            <i class="fas fa-rocket"></i>
-            <%= t('manufacturer.products.edit.actions.publish') %>
-          </button>
         </div>
       </div>
     </div>
@@ -1251,6 +1245,9 @@
 <script src="/assets/js/jquery-3.7.1.min.js"></script>
 <script src="/assets/js/boostrap.bundle.min.js"></script>
 
+
+<script src="/js/manufacturer/dashboard-init.js"></script>
+
 <!-- Professional Unified Header Management -->
 <script src="/js/manufacturer/manufacturer-header.js"></script>
 
@@ -1423,20 +1420,20 @@ class ProductEditManager {
                 this.isDirty = false;
                 
                 // Show success message
-                this.showSuccessToast(window.t ? window.t('manufacturer.products.edit.messages.savedAsDraft') : 'Mahsulot qoralama sifatida saqlandi');
+                this.showSuccessToast(window.t?.('manufacturer.products.edit.messages.savedAsDraft') || 'Mahsulot qoralama sifatida saqlandi');
                 
             } else {
-                this.showErrorToast(result.message || (window.t ? window.t('manufacturer.products.edit.errors.saveDraftError') : 'Qoralama saqlashda xatolik yuz berdi'));
+                this.showErrorToast(result.message || (window.t?.('manufacturer.products.edit.errors.saveDraftError') || 'Qoralama saqlashda xatolik yuz berdi'));
                 console.error('❌ Save as draft failed:', result.message);
             }
             
         } catch (error) {
             console.error('❌ Save as draft error:', error);
-            this.showErrorToast(window.t ? window.t('manufacturer.products.edit.errors.saveDraftError') : 'Qoralama saqlashda xatolik yuz berdi');
+            this.showErrorToast(window.t?.('manufacturer.products.edit.errors.saveDraftError') || 'Qoralama saqlashda xatolik yuz berdi');
         } finally {
             // Reset button state
             const saveAsDraftBtn = document.getElementById('saveAsDraftBtn');
-            this.resetButtonLoading(saveAsDraftBtn, '<i class="fas fa-save"></i> ' + (window.t ? window.t('manufacturer.products.edit.actions.saveAsDraft') : 'Qoralama sifatida saqlash'));
+            this.resetButtonLoading(saveAsDraftBtn, '<i class="fas fa-save"></i> ' + (window.t?.('manufacturer.products.edit.actions.saveAsDraft') || 'Qoralama sifatida saqlash'));
         }
     }
     
@@ -1488,7 +1485,7 @@ class ProductEditManager {
                 if (result.errors && result.errors.length > 0) {
                     this.showValidationErrors(result.errors);
                 } else {
-                    this.showErrorToast(result.message || (window.t ? window.t('manufacturer.products.edit.errors.publishError') : 'Chop etishda xatolik yuz berdi'));
+                    this.showErrorToast(result.message || (window.t?.('manufacturer.products.edit.errors.publishError') || 'Chop etishda xatolik yuz berdi'));
                 }
                 console.error('❌ Publish failed:', result.message);
             }
@@ -1499,7 +1496,7 @@ class ProductEditManager {
         } finally {
             // Reset button state
             const publishBtn = document.getElementById('publishBtn');
-            this.resetButtonLoading(publishBtn, '<i class="fas fa-rocket"></i> Chop etish');
+            this.resetButtonLoading(publishBtn, '<i class="fas fa-rocket"></i> ' + (window.t?.('manufacturer.products.edit.actions.publish') || 'Chop etish'));
         }
     }
     
@@ -1511,11 +1508,11 @@ class ProductEditManager {
         
         // Required field validations
         if (!formData.name || formData.name.trim().length < 3) {
-            errors.push(window.t ? window.t('manufacturer.products.edit.validation.productNameMinLength') : 'Mahsulot nomi kamida 3 ta belgidan iborat bo\'lishi kerak');
+            errors.push(window.t?.('manufacturer.products.edit.validation.productNameMinLength') || 'Mahsulot nomi kamida 3 ta belgidan iborat bo\'lishi kerak');
         }
         
         if (!formData.description || formData.description.trim().length < 20) {
-            errors.push(window.t ? window.t('manufacturer.products.edit.validation.descriptionMinLength') : 'Mahsulot ta\'rif kamida 20 ta belgidan iborat bo\'lishi kerak');
+            errors.push(window.t?.('manufacturer.products.edit.validation.descriptionMinLength') || 'Mahsulot ta\'rif kamida 20 ta belgidan iborat bo\'lishi kerak');
         }
         
         if (!formData.category) {
@@ -1542,9 +1539,9 @@ class ProductEditManager {
         const totalImages = (this.temporaryImages?.length || 0) + (this.existingImages?.length || 0);
         
         if (totalImages === 0) {
-            errors.push(window.t ? window.t('manufacturer.products.edit.validation.imagesRequired') : 'Kamida bitta mahsulot rasmi yuklash shart');
+            errors.push(window.t?.('manufacturer.products.edit.validation.imagesRequired') || 'Kamida bitta mahsulot rasmi yuklash shart');
         } else if (totalImages > 10) {
-            errors.push(window.t ? window.t('manufacturer.products.edit.validation.tooManyImages') : 'Maksimal 10 ta rasm yuklash mumkin');
+            errors.push(window.t?.('manufacturer.products.edit.validation.tooManyImages') || 'Maksimal 10 ta rasm yuklash mumkin');
         }
         
         return {
@@ -1598,13 +1595,13 @@ class ProductEditManager {
             <div class="publish-success-modal">
                 <div class="success-header">
                     <i class="fas fa-check-circle"></i>
-                    <h3>${window.t ? window.t('manufacturer.products.edit.success.publishedTitle') : 'Mahsulot muvaffaqiyatli chop etildi!'}</h3>
+                    <h3>${window.t?.('manufacturer.products.edit.success.publishedTitle') || 'Mahsulot muvaffaqiyatli chop etildi!'}</h3>
                 </div>
                 <div class="success-content">
-                    <p>${window.t ? window.t('manufacturer.products.edit.success.publishedDescription') : 'Sizning mahsulotingiz endi marketplace da ko\'rinadi va xaridorlar uni topishi mumkin.'}</p>
+                    <p>${window.t?.('manufacturer.products.edit.success.publishedDescription') || 'Sizning mahsulotingiz endi marketplace da ko\'rinadi va xaridorlar uni topishi mumkin.'}</p>
                     ${data.marketplaceUrl ? 
                         `<a href="${data.marketplaceUrl}" class="btn btn-outline" target="_blank">
-                            <i class="fas fa-external-link-alt"></i> ${window.t ? window.t('manufacturer.products.edit.success.viewInMarketplace') : 'Marketplace da ko\'rish'}
+                            <i class="fas fa-external-link-alt"></i> ${window.t?.('manufacturer.products.edit.success.viewInMarketplace') || 'Marketplace da ko\'rish'}
                         </a>` : ''
                     }
                 </div>
@@ -2030,14 +2027,14 @@ class ProductEditManager {
                     currentTotal: currentTotalImages,
                     tryingToAdd: validFiles.length
                 }) : 
-                `Maksimal ${maxFiles} ta rasm yuklash mumkin. Hozir ${currentTotalImages} ta mavjud, ${validFiles.length} ta qo'shishga harakat qilmoqdasiz.`;
+                `${window.t?.('manufacturer.products.edit.images.maxImagesReached', {max: maxFiles, current: currentTotalImages, trying: validFiles.length}) || `Maksimal ${maxFiles} ta rasm yuklash mumkin. Hozir ${currentTotalImages} ta mavjud, ${validFiles.length} ta qo'shishga harakat qilmoqdasiz.`}`;
             
             this.showErrorToast(errorMessage);
             return;
         }
 
         try {
-            this.showProcessingState(true, window.t ? window.t('manufacturer.products.edit.images.processing') : 'Rasmlar qayta ishlanmoqda...');
+            // this.showProcessingState(true, window.t ? window.t('manufacturer.products.edit.images.processing') : 'Rasmlar qayta ishlanmoqda...'); // DISABLED - No processing modal
             
             // Convert files to base64 and add to temporary storage
             for (const file of validFiles) {
@@ -2046,14 +2043,14 @@ class ProductEditManager {
             
             // Refresh UI
             this.refreshImageGrid();
-            this.showProcessingState(false);
-            this.showSuccessToast(window.t ? window.t('manufacturer.products.edit.images.addedSuccessfully', { count: validFiles.length }) : `${validFiles.length} ta rasm qo'shildi`);
+            // this.showProcessingState(false); // DISABLED - No processing modal
+            this.showSuccessToast(window.t?.('manufacturer.products.edit.images.addedSuccessfully', { count: validFiles.length }) || `${validFiles.length} ta rasm qo'shildi`);
             
             this.isDirty = true;
             
         } catch (error) {
             console.error('❌ Image processing error:', error);
-            this.showProcessingState(false);
+            // this.showProcessingState(false); // DISABLED - No processing modal
             this.showErrorToast(window.t ? window.t('manufacturer.products.edit.images.processingError') : 'Rasmlarni qayta ishfashda xatolik: ' + error.message);
         }
     }
@@ -2101,10 +2098,7 @@ class ProductEditManager {
         } catch (error) {
             console.error('❌ Error loading existing images:', error);
             this.existingImages = [];
-            this.showErrorToast(window.t ? 
-                window.t('manufacturer.products.edit.images.loadError') :
-                'Mavjud rasmlarni yuklashda xatolik'
-            );
+            this.showErrorToast(window.t?.('manufacturer.products.edit.images.loadError') || 'Mavjud rasmlarni yuklashda xatolik');
         }
     }
 
@@ -2248,8 +2242,8 @@ class ProductEditManager {
         emptyState.innerHTML = `
             <div class="empty-state-content">
                 <i class="fas fa-images"></i>
-                <h4>${window.t ? window.t('manufacturer.products.edit.images.noImages') : 'Hech qanday rasm yo\'q'}</h4>
-                <p>${window.t ? window.t('manufacturer.products.edit.images.uploadFirst') : 'Mahsulot uchun rasm yuklang'}</p>
+                <h4>${window.t?.('manufacturer.products.edit.images.noImages') || 'Hech qanday rasm yo\'q'}</h4>
+                <p>${window.t?.('manufacturer.products.edit.images.uploadFirst') || 'Mahsulot uchun rasm yuklang'}</p>
             </div>
         `;
         imagesGrid.appendChild(emptyState);
@@ -2275,7 +2269,7 @@ class ProductEditManager {
                 <div class="image-overlay">
                     <div class="image-controls">
                         <button type="button" class="btn-sm btn-ghost set-primary" 
-                                title="Asosiy qilish" data-image-id="${imageData.id}">
+                                title="${window.t?.('manufacturer.products.edit.images.setPrimaryTitle') || 'Asosiy qilish'}" data-image-id="${imageData.id}">
                             <i class="fas fa-star"></i>
                         </button>
                         <button type="button" class="btn-sm btn-ghost replace-image" 
@@ -2283,17 +2277,17 @@ class ProductEditManager {
                             <i class="fas fa-sync-alt"></i>
                         </button>
                         <button type="button" class="btn-sm btn-ghost remove-image" 
-                                title="O'chirish" data-image-id="${imageData.id}">
+                                title="${window.t?.('manufacturer.products.edit.images.removeTitle') || 'O\'chirish'}" data-image-id="${imageData.id}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 </div>
                 
-                ${imageData.isPrimary ? '<div class="primary-badge">Asosiy</div>' : ''}
-                ${isTemporary ? '<div class="temp-badge">Yangi</div>' : ''}
+                ${imageData.isPrimary ? `<div class="primary-badge">${window.t?.('manufacturer.products.edit.images.primary') || 'Asosiy'}</div>` : ''}
+                ${isTemporary ? `<div class="temp-badge">${window.t?.('manufacturer.products.edit.images.new') || 'Yangi'}</div>` : ''}
                 
                 <div class="image-info">
-                    <div class="image-filename">${isTemporary ? imageData.filename : 'Mavjud rasm'}</div>
+                    <div class="image-filename">${isTemporary ? imageData.filename : (window.t?.('manufacturer.products.edit.images.existingImage') || 'Mavjud rasm')}</div>
                     ${isTemporary ? `<div class="image-size">${(imageData.size / 1024).toFixed(0)} KB</div>` : ''}
                 </div>
             </div>
@@ -2338,7 +2332,7 @@ class ProductEditManager {
      * Remove image from storage
      */
     removeImageAdvanced(imageId) {
-        if (!confirm('Rasmni o\'chirishni xohlaysizmi?')) return;
+        if (!confirm(window.t?.('manufacturer.products.edit.images.confirmDelete') || 'Rasmni o\'chirishni xohlaysizmi?')) return;
         
         
         // Remove from temporary images
@@ -2364,7 +2358,7 @@ class ProductEditManager {
         
         this.refreshImageGrid();
         this.isDirty = true;
-        this.showSuccessToast('Rasm o\'chirildi');
+        this.showSuccessToast(window.t?.('manufacturer.products.edit.images.imageRemoved') || 'Rasm o\'chirildi');
     }
 
     /**
@@ -2388,7 +2382,7 @@ class ProductEditManager {
         
         this.refreshImageGrid();
         this.isDirty = true;
-        this.showSuccessToast(window.t ? window.t('manufacturer.products.edit.images.primaryChanged') : 'Asosiy rasm o\'zgartirildi');
+        this.showSuccessToast(window.t?.('manufacturer.products.edit.images.primaryChanged') || 'Asosiy rasm o\'zgartirildi');
     }
 
     /**
@@ -2438,7 +2432,7 @@ class ProductEditManager {
         }
         
         try {
-            this.showProcessingState(true, window.t ? window.t('manufacturer.products.edit.images.replacing') : 'Rasm almashtirilmoqda...');
+            // this.showProcessingState(true, window.t ? window.t('manufacturer.products.edit.images.replacing') : 'Rasm almashtirilmoqda...'); // DISABLED - No processing modal
             
             
             // Find the image being replaced
@@ -2475,18 +2469,18 @@ class ProductEditManager {
                 
             } else {
                 console.error(`❌ Image not found for replacement: ${this.replacingImageId}`);
-                this.showErrorToast(window.t ? window.t('manufacturer.products.edit.images.imageNotFound') : 'Almashtirilayotgan rasm topilmadi');
+                this.showErrorToast(window.t?.('manufacturer.products.edit.images.imageNotFound') || 'Almashtirilayotgan rasm topilmadi');
                 return;
             }
             
             this.refreshImageGrid();
-            this.showProcessingState(false);
+            // this.showProcessingState(false); // DISABLED - No processing modal
             this.showSuccessToast(window.t ? window.t('manufacturer.products.edit.images.replacedSuccessfully') : 'Rasm muvaffaqiyatli almashtirildi');
             this.isDirty = true;
             
         } catch (error) {
             console.error('❌ Image replacement error:', error);
-            this.showProcessingState(false);
+            // this.showProcessingState(false); // DISABLED - No processing modal
             this.showErrorToast(window.t ? window.t('manufacturer.products.edit.images.replaceError') : 'Rasm almashtirishda xatolik');
         }
         
@@ -2542,9 +2536,7 @@ class ProductEditManager {
         // Update main counter with proper ID selector
         const counterElement = document.getElementById('imageCounter');
         if (counterElement) {
-            const counterText = window.t ? 
-                window.t('manufacturer.products.edit.images.counter', { count: totalImages, max: 10 }) :
-                `${totalImages}/10 rasm`;
+            const counterText = window.t?.('manufacturer.products.edit.images.counter', { count: totalImages, max: 10 }) || `${totalImages}/10 rasm`;
             counterElement.textContent = counterText;
             
             // Add visual indication if limit is approaching
@@ -2586,10 +2578,7 @@ class ProductEditManager {
         
         if (totalImages >= 10) {
             uploadArea.style.display = 'none';
-            this.showInfoToast(window.t ? 
-                window.t('manufacturer.products.edit.images.maxImagesReached', { max: 10 }) :
-                'Maksimal 10 ta rasm yuklash mumkin'
-            );
+            this.showInfoToast(window.t?.('manufacturer.products.edit.images.maxImagesReached', { max: 10 }) || 'Maksimal 10 ta rasm yuklash mumkin');
         } else {
             uploadArea.style.display = 'block';
         }
@@ -2604,14 +2593,14 @@ class ProductEditManager {
             <div class="image-wrapper">
                 <img src="${imageUrl}" alt="Product Image" loading="lazy">
                 <div class="image-overlay">
-                    <button type="button" class="btn-sm btn-ghost set-primary" title="Asosiy qilish">
+                    <button type="button" class="btn-sm btn-ghost set-primary" title="${window.t?.('manufacturer.products.edit.images.setPrimaryTitle') || 'Asosiy qilish'}">
                         <i class="fas fa-star"></i>
                     </button>
-                    <button type="button" class="btn-sm btn-ghost remove-image" title="O'chirish">
+                    <button type="button" class="btn-sm btn-ghost remove-image" title="${window.t?.('manufacturer.products.edit.images.removeTitle') || 'O\'chirish'}">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
-                ${isPrimary ? '<div class="primary-badge">Asosiy</div>' : ''}
+                ${isPrimary ? `<div class="primary-badge">${window.t?.('manufacturer.products.edit.images.primary') || 'Asosiy'}</div>` : ''}
             </div>
         `;
 
@@ -2637,7 +2626,7 @@ class ProductEditManager {
     }
 
     removeImage(imageItem) {
-        if (confirm('Rasmni o\'chirishni xohlaysizmi?')) {
+        if (confirm(window.t?.('manufacturer.products.edit.images.confirmDelete') || 'Rasmni o\'chirishni xohlaysizmi?')) {
             imageItem.remove();
             this.isDirty = true;
         }
@@ -2650,7 +2639,7 @@ class ProductEditManager {
         // Add primary badge to selected image
         const primaryBadge = document.createElement('div');
         primaryBadge.className = 'primary-badge';
-        primaryBadge.textContent = 'Asosiy';
+        primaryBadge.textContent = window.t?.('manufacturer.products.edit.images.primary') || 'Asosiy';
         imageItem.querySelector('.image-wrapper').appendChild(primaryBadge);
 
         // Move to first position
@@ -2675,11 +2664,11 @@ class ProductEditManager {
         
         row.innerHTML = `
             <div class="bulk-inputs">
-                <input type="number" name="pricing.bulkPricing[${index}].minQuantity" placeholder="Min miqdor" class="form-input small">
+                <input type="number" name="pricing.bulkPricing[${index}].minQuantity" placeholder="${window.t?.('manufacturer.products.edit.form.minQuantity') || 'Min miqdor'}" class="form-input small">
                 <span>-</span>
-                <input type="number" name="pricing.bulkPricing[${index}].maxQuantity" placeholder="Max miqdor" class="form-input small">
-                <input type="number" name="pricing.bulkPricing[${index}].price" placeholder="Narx (USD)" step="0.01" class="form-input small">
-                <input type="number" name="pricing.bulkPricing[${index}].discount" placeholder="Chegirma %" class="form-input small">
+                <input type="number" name="pricing.bulkPricing[${index}].maxQuantity" placeholder="${window.t?.('manufacturer.products.edit.form.maxQuantity') || 'Max miqdor'}" class="form-input small">
+                <input type="number" name="pricing.bulkPricing[${index}].price" placeholder="${window.t?.('manufacturer.products.edit.form.price') || 'Narx (USD)'}" step="0.01" class="form-input small">
+                <input type="number" name="pricing.bulkPricing[${index}].discount" placeholder="${window.t?.('manufacturer.products.edit.form.discount') || 'Chegirma %'}" class="form-input small">
             </div>
             <button type="button" class="btn-sm btn-ghost remove-bulk-price">
                 <i class="fas fa-trash"></i>
@@ -2753,20 +2742,20 @@ class ProductEditManager {
         if (e) e.preventDefault();
 
         if (!this.validateForm()) {
-            this.showError('Formani to\'ldirish paytida xatoliklar bor');
+            this.showErrorToast('Formani to\'ldirish paytida xatoliklar bor');
             return;
         }
 
         try {
-            this.showLoading(true);
+            // this.showLoading(true); // DISABLED - No loading modal
             
             const formData = this.collectFormData();
             const response = await this.updateProduct(formData);
             
-            this.showLoading(false);
+            // this.showLoading(false); // DISABLED - No loading modal
             this.isDirty = false;
             
-            this.showSuccess(window.t ? window.t('manufacturer.products.edit.messages.updated') : 'Mahsulot muvaffaqiyatli yangilandi!');
+            this.showSuccessToast(window.t?.('manufacturer.products.edit.messages.updated') || 'Mahsulot muvaffaqiyatli yangilandi!');
             
             // Redirect after successful update
             setTimeout(() => {
@@ -2774,11 +2763,11 @@ class ProductEditManager {
             }, 2000);
             
         } catch (error) {
-            this.showLoading(false);
+            // this.showLoading(false); // DISABLED - No loading modal
             console.error('❌ Form submission failed:', error);
             
             // Enhanced error handling with specific messages
-            let errorMessage = 'Xatolik yuz berdi: ' + error.message;
+            let errorMessage = (window.t?.('manufacturer.products.edit.errors.generalError') || 'Xatolik yuz berdi') + ': ' + error.message;
             
             if (error.message.includes('validation')) {
                 errorMessage = 'Ma\'lumotlarni tekshirishda xatolik. Barcha majburiy maydonlarni to\'ldiring va qayta urinib ko\'rinang.';
@@ -2790,7 +2779,7 @@ class ProductEditManager {
                 errorMessage = 'Kategoriya noto\'g\'ri tanlangan. Iltimos, kategoriyani qayta tanlang.';
             }
             
-            this.showError(errorMessage);
+            this.showErrorToast(errorMessage);
         }
     }
 
@@ -2907,7 +2896,7 @@ class ProductEditManager {
                     uploadedImageUrls = await this.uploadTemporaryImages();
                 } catch (uploadError) {
                     console.error('❌ Image upload failed:', uploadError);
-                    throw new Error('Rasmlarni yuklashda xatolik. Iltimos, qayta urinib ko\'ring.');
+                    throw new Error(window.t?.('manufacturer.products.edit.errors.imageUploadError') || 'Rasmlarni yuklashda xatolik. Iltimos, qayta urinib ko\'ring.');
                 }
             }
             
@@ -2949,13 +2938,13 @@ class ProductEditManager {
             if (!result.success) {
                 // Enhanced error handling for different error types
                 if (result.message && result.message.includes('request entity too large')) {
-                    throw new Error('Ma\'lumot hajmi juda katta. Rasmlar sonini kamaytiring yoki kichik hajmdagi rasmlar ishlating.');
+                    throw new Error(window.t?.('manufacturer.products.edit.errors.payloadTooLarge') || 'Ma\'lumot hajmi juda katta. Rasmlar sonini kamaytiring yoki kichik hajmdagi rasmlar ishlating.');
                 } else if (result.error && result.error.includes('Cast to ObjectId failed')) {
-                    throw new Error('Kategoriya maydoni noto\'g\'ri. Iltimos, kategoriyani qayta tanlang.');
+                    throw new Error(window.t?.('manufacturer.products.edit.errors.castError') || 'Kategoriya maydoni noto\'g\'ri. Iltimos, kategoriyani qayta tanlang.');
                 } else if (result.error && result.error.includes('validation')) {
-                    throw new Error('Ma\'lumotlarni tekshirishda xatolik. Barcha majburiy maydonlarni to\'ldiring.');
+                    throw new Error(window.t?.('manufacturer.products.edit.errors.validationErrorGeneric') || 'Ma\'lumotlarni tekshirishda xatolik. Barcha majburiy maydonlarni to\'ldiring.');
                 } else {
-                    throw new Error(result.message || (window.t ? window.t('manufacturer.products.edit.errors.updateError') : 'Mahsulotni yangilashda xatolik yuz berdi'));
+                    throw new Error(result.message || (window.t?.('manufacturer.products.edit.errors.updateError') || 'Mahsulotni yangilashda xatolik yuz berdi'));
                 }
             }
 
@@ -2991,7 +2980,7 @@ class ProductEditManager {
             
             // Enhanced user-friendly error messages
             if (error.message.includes('PayloadTooLargeError') || error.message.includes('request entity too large')) {
-                throw new Error('Ma\'lumot hajmi juda katta. Rasmlar sonini kamaytiring yoki kichik rasmlar ishlating.');
+                throw new Error(window.t?.('manufacturer.products.edit.errors.payloadTooLarge') || 'Ma\'lumot hajmi juda katta. Rasmlar sonini kamaytiring yoki kichik rasmlar ishlating.');
             }
             
             throw error;
@@ -3035,10 +3024,10 @@ class ProductEditManager {
         const submitBtn = document.getElementById('submitForm');
         if (show) {
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saqlanmoqda...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (window.t?.('manufacturer.products.edit.loading.saving') || 'Saqlanmoqda...');
         } else {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-save"></i> Saqlash';
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> ' + (window.t?.('manufacturer.products.edit.navigation.save') || 'Saqlash');
         }
     }
 
@@ -3430,7 +3419,9 @@ function handleImageError(img) {
 }
 
 /**
- * Product Modal Manager for Edit Page
+ * Product Modal Manager for Edit Page - DISABLED
+ * This class was causing initialization errors and modal issues
+ * Modal functionality has been removed as it was not working properly
  */
 class ProductModalManager {
     constructor() {
@@ -3438,313 +3429,53 @@ class ProductModalManager {
         this.modalBody = null;
         this.isInitialized = false;
         this.logger = console;
+        console.log('⚠️ ProductModalManager is disabled - modal functionality removed');
     }
 
-    init() {
-        try {
-            this.modal = document.getElementById('productDetailsModal');
-            this.modalBody = document.getElementById('modalBody');
-            
-            if (!this.modal || !this.modalBody) {
-                this.logger.error('❌ Modal elements not found');
-                return false;
-            }
-            
-            this.setupEventListeners();
-            this.isInitialized = true;
-            this.logger.log('✅ Product Modal Manager initialized');
-            return true;
-            
-        } catch (error) {
-            this.logger.error('❌ Modal manager initialization error:', error);
-            return false;
-        }
-    }
-
+    // All methods disabled to prevent errors
     setupEventListeners() {
-        // Close modal button
-        const closeBtn = document.getElementById('closeModal');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.closeModal());
-        }
-
-        // Close modal on overlay click
-        this.modal.addEventListener('click', (e) => {
-            if (e.target === this.modal) {
-                this.closeModal();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.modal.classList.contains('active')) {
-                this.closeModal();
-            }
-        });
-
-        // Preview button functionality
+        console.log('⚠️ Modal event listeners disabled');
+        // Preview button functionality - simplified without modal
         const previewBtn = document.getElementById('previewBtn');
         if (previewBtn) {
             previewBtn.addEventListener('click', () => {
-                const productId = this.getProductIdFromUrl();
-                if (productId) {
-                    this.showProductDetails(productId);
-                } else {
-                    this.showError(window.t ? window.t('manufacturer.products.edit.errors.productIdNotFound') : 'Mahsulot ID topilmadi');
-                }
+                // Simple alert instead of modal
+                alert(window.t?.('manufacturer.products.edit.actions.previewDisabled') || 'Mahsulot ko\'rinishi - modal o\'chirilgan');
             });
         }
     }
 
     getProductIdFromUrl() {
-        const urlParts = window.location.pathname.split('/');
-        const editIndex = urlParts.indexOf('edit');
-        return editIndex !== -1 && editIndex + 1 < urlParts.length ? urlParts[editIndex + 1] : null;
+        // Disabled - modal functionality removed
+        return null;
     }
 
     async showProductDetails(productId) {
-        try {
-            this.logger.log(`👁️ Showing product details for: ${productId}`);
-            
-            if (!this.modal || !this.modalBody) {
-                this.showError('Modal topilmadi');
+        // Disabled - modal functionality removed
+        console.log('⚠️ showProductDetails disabled - modal functionality removed');
                 return;
             }
 
-            // Show modal with loading state
-            this.modal.classList.add('active');
-            this.modalBody.innerHTML = `
-                <div class="loading-content">
-                    <div class="loading-spinner"></div>
-                    <p>Ma'lumot yuklanmoqda...</p>
-                </div>
-            `;
-
-            // Fetch product details
-            const response = await fetch(`/manufacturer/api/products/${productId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-
-            const result = await response.json();
-
-            if (result.success && result.data) {
-                const product = result.data;
-                
-                try {
-                    const htmlContent = this.generateProductDetailsHTML(product);
-                    this.modalBody.innerHTML = htmlContent;
-                } catch (htmlError) {
-                    console.error('🚨 HTML yaratishda xatolik:', htmlError);
-                    this.modalBody.innerHTML = `
-                        <div class="error-content">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <p>HTML yaratishda xatolik: ${htmlError.message}</p>
-                        </div>
-                    `;
-                }
-            } else {
-                this.modalBody.innerHTML = `
-                    <div class="error-content">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>${result.message || (window.t ? window.t('manufacturer.products.edit.errors.loadProductError') : 'Mahsulot ma\'lumotlarini yuklashda xatolik')}</p>
-                    </div>
-                `;
-            }
-
-        } catch (error) {
-            this.logger.error('❌ Show product details error:', error);
-            if (this.modalBody) {
-                this.modalBody.innerHTML = `
-                    <div class="error-content">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Ma'lumotlarni yuklashda xatolik yuz berdi: ${error.message}</p>
-                    </div>
-                `;
-            }
-        }
-    }
-
-    generateProductDetailsHTML(product) {
-        // Helper function to safely get category string
-        const getCategoryString = (category) => {
-            if (typeof category === 'string') {
-                return category;
-            } else if (typeof category === 'object' && category !== null) {
-                return category.name || category._id || 'general';
-            }
-            return 'general';
-        };
-        
-        const formatPrice = (pricing) => {
-            if (!pricing || !pricing.basePrice) return 'Narx so\'raladi';
-            const currency = pricing.currency === 'USD' ? '$' : pricing.currency;
-            return `${currency}${pricing.basePrice.toLocaleString()}`;
-        };
-
-        const formatSpecs = (specifications) => {
-            if (!specifications || specifications.length === 0) return '<p>Texnik xususiyatlar ko\'rsatilmagan</p>';
-            return specifications.map(spec => 
-                `<div class="spec-row">
-                    <span class="spec-name">${spec.name}</span>
-                    <span class="spec-value">${spec.value}${spec.unit ? ' ' + spec.unit : ''}</span>
-                </div>`
-            ).join('');
-        };
-
-        return `
-            <div class="product-details-content">
-                <!-- Product Header -->
-                <div class="modal-product-header">
-                    <div class="modal-product-image">
-                        ${product.images && product.images.length > 0 ? 
-                            `<img src="${typeof product.images[0] === 'string' ? product.images[0] : product.images[0].url || product.images[0]}" 
-                                alt="${product.name}" 
-                                class="modal-real-image"
-                                data-category="${getCategoryString(product.category)}"
-                                data-product-id="${product._id}"
-                                data-product-name="${product.name || (window.t ? window.t('manufacturer.products.edit.modal.unnamedProduct') : 'Nomsiz mahsulot')}"
-                                onerror="handleImageError(this)">` :
-                            `<img 
-                                src="${(() => {
-                                    const mockSrc = generateMockImage(getCategoryString(product.category), product._id, product.name);
-                                    return mockSrc;
-                                })()}" 
-                                alt="${product.name}" 
-                                class="modal-mock-image" 
-                                data-category="${getCategoryString(product.category)}"
-                                data-product-id="${product._id}"
-                                data-product-name="${product.name || (window.t ? window.t('manufacturer.products.edit.modal.unnamedProduct') : 'Nomsiz mahsulot')}"
-                                onerror="handleImageError(this)"
-                            >`
-                        }
-                    </div>
-                    <div class="modal-product-info">
-                        <h3 class="modal-product-title">${product.name || (window.t ? window.t('manufacturer.products.edit.modal.unnamedProduct') : 'Nomsiz mahsulot')}</h3>
-                        <p class="modal-product-category">
-                            <i class="fas fa-tag"></i>
-                            ${product.category?.name || product.category || (window.t ? window.t('manufacturer.products.edit.modal.noCategory') : 'Kategoriyasiz')}
-                        </p>
-                        <div class="modal-product-id">ID: ${product._id.toString().slice(-8).toUpperCase()}</div>
-                        <div class="modal-product-price">
-                            <span class="price-large">${formatPrice(product.pricing)}</span>
-                            ${product.pricing?.minimumOrderQuantity ? 
-                                `<span class="moq-large">${window.t ? window.t('manufacturer.products.edit.modal.minOrder') : 'Eng kam'}: ${product.pricing.minimumOrderQuantity.toLocaleString()} ${window.t ? window.t('manufacturer.products.edit.modal.pieces') : 'dona'}</span>` : 
-                                `<span class="moq-large">${window.t ? window.t('manufacturer.products.edit.modal.minOrder') : 'Eng kam'}: 100 ${window.t ? window.t('manufacturer.products.edit.modal.pieces') : 'dona'}</span>`
-                            }
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product Description -->
-                ${product.description ? 
-                    `<div class="modal-section">
-                        <h4 class="section-title">${window.t ? window.t('manufacturer.products.edit.modal.description') : 'Ta\'rif'}</h4>
-                        <p class="product-description">${product.description}</p>
-                    </div>` : ''
-                }
-
-                <!-- Specifications -->
-                <div class="modal-section">
-                                            <h4 class="section-title">${window.t ? window.t('manufacturer.products.edit.modal.specifications') : 'Texnik xususiyatlar'}</h4>
-                    <div class="specifications-grid">
-                        ${formatSpecs(product.specifications)}
-                    </div>
-                </div>
-
-                <!-- Inventory & Shipping -->
-                <div class="modal-sections-grid">
-                    <div class="modal-section">
-                        <h4 class="section-title">${window.t ? window.t('manufacturer.products.edit.modal.inventoryStatus') : 'Ombor holati'}</h4>
-                        <div class="inventory-info">
-                            <div class="inventory-item">
-                                <span class="inventory-label">${window.t ? window.t('manufacturer.products.edit.modal.total') : 'Umumiy'}:</span>
-                                <span class="inventory-value">${product.inventory?.totalStock?.toLocaleString() || '0'} ${product.inventory?.unit || 'dona'}</span>
-                            </div>
-                            <div class="inventory-item">
-                                <span class="inventory-label">${window.t ? window.t('manufacturer.products.edit.modal.available') : 'Mavjud'}:</span>
-                                <span class="inventory-value">${product.inventory?.availableStock?.toLocaleString() || '0'} ${product.inventory?.unit || 'dona'}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-section">
-                        <h4 class="section-title">Yetkazish</h4>
-                        <div class="shipping-info">
-                            ${product.shipping?.leadTime ? 
-                                `<div class="shipping-item">
-                                    <span class="shipping-label">Muddat:</span>
-                                    <span class="shipping-value">${product.shipping.leadTime.min}-${product.shipping.leadTime.max} kun</span>
-                                </div>` : ''
-                            }
-                            ${product.shipping?.weight ? 
-                                `<div class="shipping-item">
-                                    <span class="shipping-label">Og'irlik:</span>
-                                    <span class="shipping-value">${product.shipping.weight} kg</span>
-                                </div>` : ''
-                            }
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product Stats -->
-                <div class="modal-section">
-                    <h4 class="section-title">Statistika</h4>
-                    <div class="modal-stats-grid">
-                        <div class="modal-stat">
-                            <i class="fas fa-eye"></i>
-                            <div class="stat-info">
-                                <span class="stat-value">${(product.views || 0).toLocaleString()}</span>
-                                <span class="stat-label">Ko'rishlar</span>
-                            </div>
-                        </div>
-                        <div class="modal-stat">
-                            <i class="fas fa-star"></i>
-                            <div class="stat-info">
-                                <span class="stat-value">${product.rating || 4.5}</span>
-                                <span class="stat-label">Reyting</span>
-                            </div>
-                        </div>
-                        <div class="modal-stat">
-                            <i class="fas fa-shopping-cart"></i>
-                            <div class="stat-info">
-                                <span class="stat-value">${product.orderCount || 0}</span>
-                                <span class="stat-label">Buyurtmalar</span>
-                            </div>
-                        </div>
-                        <div class="modal-stat">
-                            <i class="fas fa-calendar-plus"></i>
-                            <div class="stat-info">
-                                <span class="stat-value">${product.createdAt ? new Date(product.createdAt).toLocaleDateString('uz-UZ') : 'Noma\'lum'}</span>
-                                <span class="stat-label">Yaratilgan</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="modal-actions">
-                    <button class="btn-modal btn-outline" onclick="document.getElementById('productDetailsModal').classList.remove('active')">
-                        <i class="fas fa-times"></i>
-                        Yopish
-                    </button>
-                </div>
-            </div>
-        `;
+    // All other modal methods disabled
+    init() {
+        console.log('⚠️ Modal init disabled');
     }
 
     closeModal() {
-        if (this.modal) {
-            this.modal.classList.remove('active');
-        }
+        console.log('⚠️ Modal close disabled');
+    }
+
+    showErrorToast(message) {
+        console.log('⚠️ Modal error toast disabled:', message);
+    }
+
+    generateProductDetailsHTML(product) {
+        // Disabled - modal functionality removed
+        return '';
     }
 
     showError(message) {
-        console.error(message);
-        // You can implement toast notifications here if needed
+        console.log('⚠️ Modal showError disabled:', message);
     }
 }
 
@@ -3757,7 +3488,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('❌ Product edit data missing!');
             return;
         }
-        
         
         // Initialize header functionality
         if (window.ManufacturerHeader) {
@@ -3778,31 +3508,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Initialize product edit manager
-        window.productEditManager = new ProductEditManager();
+            window.productEditManager = new ProductEditManager();
         
-        // Initialize modal functionality
-        window.productModalManager = new ProductModalManager();
-        window.productModalManager.init();
+        // REMOVED: ProductModalManager initialization - modal was causing issues
+        // window.productModalManager = new ProductModalManager();
+        // window.productModalManager.init();
         
+        console.log('✅ Product Edit Page initialized successfully');
         
     } catch (error) {
         console.error('❌ Product Edit Page initialization failed:', error);
         
-        // Show user-friendly error message
+        // Only show error message if it's a critical error, not just missing modal
+        if (error.message && !error.message.includes('modal')) {
         const errorDiv = document.createElement('div');
-        errorDiv.className = 'alert alert-danger';
-        errorDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+            errorDiv.className = 'alert alert-danger';
+            errorDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
         errorDiv.innerHTML = `
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-exclamation-circle"></i>
-                <strong>Sahifa yuklanishida xatolik!</strong>
+                    <i class="fas fa-exclamation-circle"></i>
+                    <strong>${window.t?.('manufacturer.products.edit.errors.pageLoadError') || 'Sahifa yuklanishida xatolik!'}</strong>
             </div>
-            <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem;">Sahifani qayta yuklang yoki administrator bilan bog'laning.</p>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem;">${window.t?.('manufacturer.products.edit.errors.pageReloadHint') || 'Sahifani qayta yuklang yoki administrator bilan bog\'laning.'}</p>
         `;
         document.body.appendChild(errorDiv);
         
-        // Auto remove after 10 seconds
-        setTimeout(() => errorDiv.remove(), 10000);
+            // Auto remove after 10 seconds
+            setTimeout(() => errorDiv.remove(), 10000);
+        }
     }
 });
 
@@ -3843,24 +3576,8 @@ window.addEventListener('beforeunload', () => {
     margin: 0;
 }
 
-.header-actions {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    flex-shrink: 0;
-}
 
-.header-actions button {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-    border: none;
-    cursor: pointer;
-}
+
 
 .btn-outline {
     background: transparent;
@@ -3977,11 +3694,11 @@ window.addEventListener('beforeunload', () => {
 .step.active .step-number {
     background: var(--primary-color);
     border-color: var(--primary-color);
-    color: white;
+    color: rgb(34, 170, 255);
 }
 
 .step.active .step-label {
-    color: var(--primary-color);
+    color: rgb(34, 170, 255);
     font-weight: 600;
 }
 
@@ -4934,11 +4651,6 @@ window.addEventListener('beforeunload', () => {
 
 @media (max-width: 768px) {
     
-    .header-actions {
-        width: 100%;
-        justify-content: flex-start;
-        flex-wrap: wrap;
-    }
     
     .form-grid {
         grid-template-columns: 1fr;
@@ -5382,24 +5094,6 @@ window.addEventListener('beforeunload', () => {
 }
 </style>
 
-<!-- Product Details Modal -->
-<div class="modal-overlay" id="productDetailsModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2 class="modal-title"><%= t('manufacturer.products.edit.modal.productDetails') %></h2>
-      <button class="modal-close" id="closeModal">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-    <div class="modal-body" id="modalBody">
-      <!-- Dinamik kontent shu yerga yuklanadi -->
-      <div class="loading-content">
-        <div class="loading-spinner"></div>
-        <p><%= t('manufacturer.products.edit.modal.loading') %></p>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Product Data Script -->
 <script id="product-data" type="application/json">

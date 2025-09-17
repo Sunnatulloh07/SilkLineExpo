@@ -7,22 +7,6 @@
 (function() {
     'use strict';
 
-    // ===============================================
-    //    PROFESSIONAL LOGGING SYSTEM
-    // ===============================================
-    const logger = {
-        log: (message, ...args) => {
-            if (window.DEBUG_MODE || localStorage.getItem('debug_orders') === 'true') {
-                console.log(`[OrdersManager] ${message}`, ...args);
-            }
-        },
-        error: (message, ...args) => {
-            console.error(`[OrdersManager] ${message}`, ...args);
-        },
-        warn: (message, ...args) => {
-            console.warn(`[OrdersManager] ${message}`, ...args);
-        }
-    };
 
     // ===============================================
     //    ORDERS MANAGEMENT CORE CLASS
@@ -41,8 +25,6 @@
         }
 
         async init() {
-            logger.log('🚀 Initializing Professional Orders Management...');
-            
             try {
                 this.setupEventListeners();
                 this.setupViewToggle();
@@ -53,11 +35,9 @@
                 
                 // Load initial data
                 await this.loadOrdersData();
-                
-                logger.log('✅ Orders Management initialized successfully');
             } catch (error) {
-                logger.error('❌ Failed to initialize Orders Management:', error);
-                this.showToast('Orders Management yuxolanishda xatolik', 'error');
+                console.error('Failed to initialize Orders Management:', error);
+                this.showToast(this.getTranslation('admin.orders.messages.management_error', 'Orders Management yuxolanishda xatolik'), 'error');
             }
         }
 
@@ -241,7 +221,6 @@
             });
             document.getElementById(`${view}View`)?.classList.remove('hidden');
 
-            logger.log(`📊 Switched to ${view} view`);
         }
 
         toggleFiltersPanel() {
@@ -269,14 +248,23 @@
             this.showLoadingState();
 
             try {
-                logger.log('📊 Loading orders data...');
-                
+                // Build comprehensive query parameters
                 const params = new URLSearchParams({
                     page: this.currentPage,
                     limit: this.pageSize,
                     sort: this.sortBy,
                     ...this.filters
                 });
+
+                // Remove empty parameters
+                for (let [key, value] of params.entries()) {
+                    if (!value || value.trim() === '') {
+                        params.delete(key);
+                    }
+                }
+
+                // Add cache-busting for fresh data
+                params.append('_t', Date.now());
 
                 const response = await fetch(`/api/manufacturer/orders?${params}`, {
                     method: 'GET',
@@ -294,19 +282,26 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    this.renderOrders(data.orders || []);
-                    this.updateOrdersCount(data.pagination?.total || 0);
-                    this.updatePagination(data.pagination);
+                    // Handle new comprehensive data structure
+                    const orders = data.data?.orders || data.orders || [];
+                    const pagination = data.data?.pagination || data.pagination || {};
+                    const statusDistribution = data.data?.filters?.available?.statusDistribution || {};
                     
-                    logger.log('✅ Orders data loaded successfully', data);
+                    this.renderOrders(orders);
+                    this.updateOrdersCount(pagination.total || 0);
+                    this.updatePagination(pagination);
+                    this.updateStatusDistribution(statusDistribution);
+                    
+                    // Update comprehensive orders display
+                    this.updateComprehensiveOrdersDisplay(data.data || data);
                 } else {
                     throw new Error(data.message || 'Failed to load orders');
                 }
 
             } catch (error) {
-                logger.error('❌ Error loading orders:', error);
+                console.error('Error loading orders:', error);
                 this.showErrorState();
-                this.showToast('Buyurtmalarni yuklashda xatolik', 'error');
+                this.showToast(this.getTranslation('admin.orders.messages.loading_error', 'Buyurtmalarni yuklashda xatolik'), 'error');
             } finally {
                 this.isLoading = false;
                 this.hideLoadingState();
@@ -314,11 +309,10 @@
         }
 
         async refreshOrders() {
-            logger.log('🔄 Refreshing orders...');
             this.selectedOrders.clear();
             this.updateSelectAllCheckbox();
             await this.loadOrdersData();
-            this.showToast('Buyurtmalar yangilandi', 'success');
+            this.showToast(this.getTranslation('admin.orders.messages.refresh_success', 'Buyurtmalar yangilandi'), 'success');
         }
 
         // ===============================================
@@ -349,8 +343,7 @@
             this.currentPage = 1; // Reset to first page
             this.loadOrdersData();
 
-            logger.log('🔍 Applied filters:', this.filters);
-        }
+           }
 
         clearFilters() {
             // Reset filter form
@@ -363,8 +356,7 @@
             this.currentPage = 1;
             this.loadOrdersData();
 
-            logger.log('🗑️ Filters cleared');
-            this.showToast('Filterlar tozalandi', 'info');
+            this.showToast(this.getTranslation('manufacturer.orders.js_messages.filters_cleared', 'Filterlar tozalandi'), 'info');
         }
 
         performSearch() {
@@ -373,28 +365,26 @@
                 this.filters.search = searchTerm;
                 this.currentPage = 1;
                 this.loadOrdersData();
-                logger.log('🔍 Search performed:', searchTerm);
             }
         }
 
         showCustomDatePicker() {
-            // Implement custom date range picker
-            logger.log('📅 Opening custom date picker...');
-            // This would integrate with a date picker library
+            // Simple date range picker implementation
+            const startDate = prompt('Boshlanish sanasi (YYYY-MM-DD):');
+            const endDate = prompt('Tugash sanasi (YYYY-MM-DD):');
+            
+            if (startDate && endDate) {
+                this.filters.startDate = startDate;
+                this.filters.endDate = endDate;
+                this.loadOrdersData();
+            }
         }
 
         // ===============================================
         //    ORDER ACTIONS HANDLING
         // ===============================================
         handleOrderActions(event) {
-            // Debug click event
-            logger.log('🖱️ Order actions click event:', {
-                target: event.target,
-                className: event.target.className,
-                closest_dropdown: event.target.closest('.dropdown-toggle'),
-                closest_card_toggle: event.target.closest('.card-more-toggle')
-            });
-
+       
             // Handle expand/collapse buttons for multi-product orders
             if (event.target.closest('.expand-order-btn')) {
                 const expandBtn = event.target.closest('.expand-order-btn');
@@ -407,7 +397,6 @@
             if (event.target.closest('.dropdown-toggle')) {
                 const toggleBtn = event.target.closest('.dropdown-toggle');
                 const dropdown = toggleBtn.nextElementSibling;
-                logger.log('🔽 Table dropdown toggle clicked:', { toggleBtn, dropdown });
                 this.toggleActionDropdown(dropdown, toggleBtn);
                 event.stopPropagation();
                 return;
@@ -417,7 +406,6 @@
             if (event.target.closest('.card-more-toggle')) {
                 const toggleBtn = event.target.closest('.card-more-toggle');
                 const dropdown = toggleBtn.nextElementSibling;
-                logger.log('🔽 Card dropdown toggle clicked:', { toggleBtn, dropdown });
                 this.toggleCardDropdown(dropdown, toggleBtn);
                 event.stopPropagation();
                 return;
@@ -436,14 +424,9 @@
             const action = target.dataset.action;
             const orderId = target.dataset.orderId;
 
-            logger.log(`🎯 Order action: ${action} for order: ${orderId}`);
-
             switch (action) {
                 case 'view':
                     this.viewOrderDetails(orderId);
-                    break;
-                case 'edit':
-                    this.editOrder(orderId);
                     break;
                 case 'duplicate':
                     this.duplicateOrder(orderId);
@@ -451,29 +434,14 @@
                 case 'status-change':
                     this.showStatusChangeModal(orderId);
                     break;
-                case 'track-shipment':
-                    this.trackShipment(orderId);
-                    break;
                 case 'communication':
                     this.openCommunication(orderId);
-                    break;
-                case 'add-note':
-                    this.addOrderNote(orderId);
-                    break;
-                case 'print-invoice':
-                    this.printInvoice(orderId);
-                    break;
-                case 'download-documents':
-                    this.downloadDocuments(orderId);
                     break;
                 case 'cancel':
                     this.cancelOrder(orderId);
                     break;
-                case 'refund':
-                    this.processRefund(orderId);
-                    break;
                 default:
-                    logger.warn('Unknown action:', action);
+                    console.warn('Unknown action:', action);
             }
         }
 
@@ -483,7 +451,7 @@
         toggleOrderExpansion(orderId, expandBtn) {
             const detailsRow = document.querySelector(`[data-parent-order="${orderId}"]`);
             if (!detailsRow) {
-                logger.warn(`Details row not found for order: ${orderId}`);
+                console.warn(`Details row not found for order: ${orderId}`);
                 return;
             }
 
@@ -498,8 +466,7 @@
                     chevronIcon.style.transform = 'rotate(0deg)';
                 }
                 expandBtn.setAttribute('title', `${expandBtn.textContent.trim()} ta mahsulotni ko'rish`);
-                logger.log(`📊 Order ${orderId} collapsed`);
-            } else {
+               } else {
                 // Expand
                 detailsRow.classList.remove('hidden');
                 expandBtn.classList.add('expanded');
@@ -507,8 +474,7 @@
                     chevronIcon.style.transform = 'rotate(180deg)';
                 }
                 expandBtn.setAttribute('title', 'Mahsulotlarni yashirish');
-                logger.log(`📊 Order ${orderId} expanded`);
-            }
+               }
         }
 
         toggleActionDropdown(dropdown, toggleBtn) {
@@ -521,10 +487,16 @@
                 }
             });
 
+            // Check if dropdown was hidden before
+            const wasHidden = dropdown.classList.contains('hidden');
+
             // Toggle current dropdown
             dropdown.classList.toggle('hidden');
 
-            logger.log(`🔽 Table action dropdown toggled`);
+            // Position dropdown outside container when showing
+            if (wasHidden) {
+                this.positionTableDropdown(dropdown, toggleBtn);
+            }
         }
 
         toggleCardDropdown(dropdown, toggleBtn) {
@@ -547,8 +519,39 @@
             if (wasHidden) {
                 this.positionCardDropdown(dropdown, toggleBtn);
             }
+ }
 
-            logger.log(`🔽 Card action dropdown toggled`);
+        positionTableDropdown(dropdown, toggleBtn) {
+            if (!dropdown || !toggleBtn) return;
+
+            // Get button position
+            const btnRect = toggleBtn.getBoundingClientRect();
+            const dropdownRect = dropdown.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const viewportWidth = window.innerWidth;
+
+            // Calculate optimal position
+            let top = btnRect.bottom + 5;
+            let left = btnRect.right - 180; // dropdown min-width is 180px
+
+            // Adjust if dropdown goes below viewport
+            if (top + dropdownRect.height > viewportHeight) {
+                top = btnRect.top - dropdownRect.height - 5;
+            }
+
+            // Adjust if dropdown goes outside left edge
+            if (left < 10) {
+                left = 10;
+            }
+
+            // Adjust if dropdown goes outside right edge
+            if (left + 180 > viewportWidth - 10) {
+                left = viewportWidth - 190;
+            }
+
+            // Apply position
+            dropdown.style.top = `${top}px`;
+            dropdown.style.left = `${left}px`;
         }
 
         positionCardDropdown(dropdown, toggleBtn) {
@@ -614,7 +617,6 @@
             // Apply sorting
             this.applySorting();
 
-            logger.log(`📊 Table sorted by ${sortField} ${newDirection}`);
         }
 
         updateSortUI(activeBtn, direction) {
@@ -668,18 +670,13 @@
         // ===============================================
         viewOrderDetails(orderId) {
             if (orderId) {
-                logger.log('👁️ Redirecting to order details page:', orderId);
                 window.location.href = `/manufacturer/orders/${orderId}`;
             }
         }
 
-        editOrder(orderId) {
-            logger.log('✏️ Redirecting to edit order:', orderId);
-            window.location.href = `/manufacturer/orders/${orderId}/edit`;
-        }
 
         async duplicateOrder(orderId) {
-            if (!confirm('Bu buyurtmani nusxalashni xohlaysizmi?')) return;
+            if (!confirm(this.getTranslation('manufacturer.orders.js_messages.confirm_duplicate', 'Bu buyurtmani nusxalashni xohlaysizmi?'))) return;
 
             try {
                 const response = await fetch(`/api/manufacturer/orders/${orderId}/duplicate`, {
@@ -693,12 +690,12 @@
                 if (!response.ok) throw new Error('Failed to duplicate order');
                 
                 const data = await response.json();
-                this.showToast('Buyurtma muvaffaqiyatli nusxalandi', 'success');
+                this.showToast(this.getTranslation('manufacturer.orders.js_messages.order_duplicated', 'Buyurtma muvaffaqiyatli nusxalandi'), 'success');
                 this.refreshOrders();
 
             } catch (error) {
-                logger.error('❌ Error duplicating order:', error);
-                this.showToast('Buyurtmani nusxalashda xatolik', 'error');
+                console.error('Error duplicating order:', error);
+                this.showToast(this.getTranslation('manufacturer.orders.js_messages.duplicate_error', 'Buyurtmani nusxalashda xatolik'), 'error');
             }
         }
 
@@ -712,7 +709,7 @@
             const note = document.getElementById('statusChangeNote').value.trim();
 
             if (!newStatus) {
-                this.showToast('Yangi holatni tanlang', 'warning');
+                this.showToast(this.getTranslation('manufacturer.orders.js_messages.select_new_status', 'Yangi holatni tanlang'), 'warning');
                 return;
             }
 
@@ -731,23 +728,22 @@
 
                 if (!response.ok) throw new Error('Failed to update order status');
                 
-                this.showToast('Buyurtma holati yangilandi', 'success');
+                this.showToast(this.getTranslation('manufacturer.orders.js_messages.status_updated', 'Buyurtma holati yangilandi'), 'success');
                 this.closeModal('statusChangeModal');
                 this.refreshOrders();
 
             } catch (error) {
-                logger.error('❌ Error updating order status:', error);
-                this.showToast('Buyurtma holatini yangilashda xatolik', 'error');
+                console.error('Error updating order status:', error);
+                this.showToast(this.getTranslation('manufacturer.orders.js_messages.status_update_error', 'Buyurtma holatini yangilashda xatolik'), 'error');
             }
         }
 
         openCommunication(orderId) {
-            logger.log('💬 Opening communication for order:', orderId);
             window.location.href = `/manufacturer/messages?order=${orderId}`;
         }
 
         async cancelOrder(orderId) {
-            if (!confirm('Bu buyurtmani bekor qilishni xohlaysizmi? Bu amalni bekor qilib bo\'lmaydi.')) return;
+            if (!confirm(this.getTranslation('manufacturer.orders.js_messages.confirm_cancel', 'Bu buyurtmani bekor qilishni xohlaysizmi? Bu amalni bekor qilib bo\'lmaydi.'))) return;
 
             try {
                 const response = await fetch(`/api/manufacturer/orders/${orderId}/cancel`, {
@@ -760,12 +756,12 @@
 
                 if (!response.ok) throw new Error('Failed to cancel order');
                 
-                this.showToast('Buyurtma bekor qilindi', 'warning');
+                this.showToast(this.getTranslation('manufacturer.orders.js_messages.order_cancelled', 'Buyurtma bekor qilindi'), 'warning');
                 this.refreshOrders();
 
             } catch (error) {
-                logger.error('❌ Error canceling order:', error);
-                this.showToast('Buyurtmani bekor qilishda xatolik', 'error');
+                console.error('Error canceling order:', error);
+                this.showToast(this.getTranslation('manufacturer.orders.js_messages.cancel_error', 'Buyurtmani bekor qilishda xatolik'), 'error');
             }
         }
 
@@ -774,7 +770,7 @@
         // ===============================================
         handleBulkActions() {
             if (this.selectedOrders.size === 0) {
-                this.showToast('Birorta buyurtma tanlanmagan', 'warning');
+                this.showToast(this.getTranslation('manufacturer.orders.js_messages.no_orders_selected', 'Birorta buyurtma tanlanmagan'), 'warning');
                 return;
             }
 
@@ -790,7 +786,22 @@
                 { label: 'Bekor qilish', action: 'cancel', danger: true }
             ];
 
-            this.showActionMenu(actions, (action) => this.executeBulkAction(action));
+            // Show simple confirmation for bulk actions
+            const action = prompt(`Tanlang:\n1. Export\n2. Status o'zgartirish\n3. Bekor qilish\n\nRaqam kiriting (1-3):`);
+            
+            switch (action) {
+                case '1':
+                    this.executeBulkAction('export');
+                    break;
+                case '2':
+                    this.executeBulkAction('status-change');
+                    break;
+                case '3':
+                    this.executeBulkAction('cancel');
+                    break;
+                default:
+                    this.showToast('Noto\'g\'ri tanlov', 'warning');
+            }
         }
 
         async executeBulkAction(action) {
@@ -809,8 +820,8 @@
                         break;
                 }
             } catch (error) {
-                logger.error('❌ Bulk action failed:', error);
-                this.showToast('Ommaviy amal bajarishda xatolik', 'error');
+                console.error('Bulk action failed:', error);
+                this.showToast(this.getTranslation('manufacturer.orders.js_messages.bulk_action_error', 'Ommaviy amal bajarishda xatolik'), 'error');
             }
         }
 
@@ -819,8 +830,6 @@
         // ===============================================
         async handleExportOrders() {
             try {
-                logger.log('📊 Exporting orders...');
-                
                 const response = await fetch('/api/manufacturer/orders/export', {
                     method: 'POST',
                     headers: {
@@ -844,31 +853,89 @@
                 a.click();
                 window.URL.revokeObjectURL(url);
 
-                this.showToast('Buyurtmalar export qilindi', 'success');
+                this.showToast(this.getTranslation('manufacturer.orders.js_messages.orders_exported', 'Buyurtmalar export qilindi'), 'success');
 
             } catch (error) {
-                logger.error('❌ Export failed:', error);
-                this.showToast('Export qilishda xatolik', 'error');
+                console.error('Export failed:', error);
+                this.showToast(this.getTranslation('manufacturer.orders.js_messages.export_error', 'Export qilishda xatolik'), 'error');
             }
         }
 
         async exportSelectedOrders(orderIds) {
-            // Similar to handleExportOrders but with specific order IDs
-            logger.log('📊 Exporting selected orders:', orderIds);
-            // Implementation here
+            try {
+                const response = await fetch('/api/manufacturer/orders/export', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.getCookie('accessToken')}`
+                    },
+                    body: JSON.stringify({
+                        orderIds: orderIds,
+                        format: 'excel'
+                    })
+                });
+
+                if (!response.ok) throw new Error('Export failed');
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `selected-orders-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+
+                this.showToast(this.getTranslation('manufacturer.orders.js_messages.orders_exported', 'Tanlangan buyurtmalar export qilindi'), 'success');
+            } catch (error) {
+                console.error('Export failed:', error);
+                this.showToast(this.getTranslation('manufacturer.orders.js_messages.export_error', 'Export qilishda xatolik'), 'error');
+            }
+        }
+
+        showBulkStatusChangeModal(orderIds) {
+            this.currentBulkOrderIds = orderIds;
+            this.showModal('bulkStatusChangeModal');
+        }
+
+        async cancelSelectedOrders(orderIds) {
+            if (!confirm(this.getTranslation('manufacturer.orders.js_messages.confirm_cancel', `Haqiqatan ham ${orderIds.length} ta buyurtmani bekor qilishni xohlaysizmi?`))) return;
+
+            try {
+                const response = await fetch('/api/manufacturer/orders/bulk-cancel', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.getCookie('accessToken')}`
+                    },
+                    body: JSON.stringify({ orderIds })
+                });
+
+                if (!response.ok) throw new Error('Bulk cancel failed');
+                
+                this.showToast(`${orderIds.length} ta buyurtma bekor qilindi`, 'warning');
+                this.refreshOrders();
+            } catch (error) {
+                console.error('Bulk cancel failed:', error);
+                this.showToast('Ommaviy bekor qilishda xatolik', 'error');
+            }
         }
 
         // ===============================================
         //    UI HELPERS
         // ===============================================
         renderOrders(orders) {
-            // This would typically update the DOM with the orders data
-            // In a real implementation, this would integrate with the EJS template
-            // or use client-side templating
-            logger.log('🎨 Rendering orders:', orders.length);
+            // Update orders count display
+            this.updateOrdersCount(orders.length);
+            
+            // Update order checkboxes state
+            this.updateSelectAllCheckbox();
+            
+            // Update bulk actions state
+            this.updateBulkActionsState();
+            
+            // In a real implementation, this would update the DOM with new orders data
+            // For now, the EJS template handles the initial rendering
         }
-
-
 
         updateOrdersCount(count) {
             const countElement = document.getElementById('ordersCountText');
@@ -878,9 +945,25 @@
         }
 
         updatePagination(pagination) {
-            // Update pagination controls
-            if (pagination) {
-                logger.log('📄 Updating pagination:', pagination);
+            if (!pagination) return;
+            
+            // Update pagination info
+            const paginationInfo = document.getElementById('paginationInfo');
+            if (paginationInfo) {
+                const start = (pagination.page - 1) * pagination.limit + 1;
+                const end = Math.min(pagination.page * pagination.limit, pagination.total);
+                paginationInfo.textContent = `${start}-${end} of ${pagination.total}`;
+            }
+            
+            // Update pagination buttons
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+            
+            if (prevBtn) {
+                prevBtn.disabled = pagination.page <= 1;
+            }
+            if (nextBtn) {
+                nextBtn.disabled = pagination.page >= pagination.pages;
             }
         }
 
@@ -939,20 +1022,6 @@
         // ===============================================
         //    DROPDOWN MANAGEMENT
         // ===============================================
-        toggleDropdown(button) {
-            const menu = button.parentElement.querySelector('.table-more-menu, .card-more-menu');
-            if (menu) {
-                const wasHidden = menu.classList.contains('hidden');
-                
-                // Close all other dropdowns
-                this.closeAllDropdowns();
-                
-                // Toggle current dropdown
-                if (wasHidden) {
-                    menu.classList.remove('hidden');
-                }
-            }
-        }
 
         closeAllDropdowns() {
             document.querySelectorAll('.table-more-menu, .card-more-menu').forEach(menu => {
@@ -965,17 +1034,71 @@
         // ===============================================
         showLoadingState() {
             // Show loading indicators
-            logger.log('⏳ Showing loading state...');
+            const loadingElements = document.querySelectorAll('.loading-placeholder');
+            loadingElements.forEach(el => {
+                el.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            });
+            
+            // Disable action buttons
+            const actionButtons = document.querySelectorAll('.orders-btn, .table-action-btn, .card-action-btn');
+            actionButtons.forEach(btn => btn.disabled = true);
         }
 
         hideLoadingState() {
             // Hide loading indicators
-            logger.log('✅ Hiding loading state...');
+            const loadingElements = document.querySelectorAll('.loading-placeholder');
+            loadingElements.forEach(el => {
+                el.innerHTML = '...';
+            });
+            
+            // Enable action buttons
+            const actionButtons = document.querySelectorAll('.orders-btn, .table-action-btn, .card-action-btn');
+            actionButtons.forEach(btn => btn.disabled = false);
         }
 
         showErrorState() {
             // Show error state
-            logger.log('❌ Showing error state...');
+            const errorContainer = document.getElementById('ordersErrorContainer');
+            if (errorContainer) {
+                errorContainer.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Xatolik yuz berdi</h3>
+                        <p>Buyurtmalarni yuklashda xatolik yuz berdi. Qaytadan urinib ko'ring.</p>
+                        <button class="orders-btn orders-btn-primary" onclick="window.ordersManager.refreshOrders()">
+                            <i class="fas fa-refresh"></i>
+                            Qaytadan yuklash
+                        </button>
+                    </div>
+                `;
+                errorContainer.classList.remove('hidden');
+            }
+        }
+
+        showEmptyState() {
+            // Show empty state
+            const emptyState = document.querySelector('.orders-empty-state');
+            if (emptyState) {
+                emptyState.style.display = 'block';
+            }
+            
+            const ordersContainer = document.getElementById('ordersContainer');
+            if (ordersContainer) {
+                ordersContainer.style.display = 'none';
+            }
+        }
+
+        hideEmptyState() {
+            // Hide empty state
+            const emptyState = document.querySelector('.orders-empty-state');
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+            
+            const ordersContainer = document.getElementById('ordersContainer');
+            if (ordersContainer) {
+                ordersContainer.style.display = 'block';
+            }
         }
 
         // ===============================================
@@ -988,17 +1111,27 @@
             return null;
         }
 
+        getTranslation(key, fallback = '') {
+            if (typeof window.i18next !== 'undefined' && window.i18next.t) {
+                return window.i18next.t(key);
+            }
+            if (typeof window.t !== 'undefined') {
+                return window.t(key);
+            }
+            return fallback || key;
+        }
+
         getStatusText(status) {
             const statusTexts = {
-                'pending': 'Kutayotgan',
-                'confirmed': 'Tasdiqlangan',
-                'processing': 'Jarayonda',
-                'manufacturing': 'Ishlab chiqarilmoqda',
-                'ready_to_ship': 'Jo\'natishga tayyor',
-                'shipped': 'Jo\'natilgan',
-                'delivered': 'Yetkazilgan',
-                'completed': 'Yakunlangan',
-                'cancelled': 'Bekor qilingan'
+                'pending': this.getTranslation('manufacturer.orders.js_messages.status_pending', 'Kutayotgan'),
+                'confirmed': this.getTranslation('manufacturer.orders.js_messages.status_confirmed', 'Tasdiqlangan'),
+                'processing': this.getTranslation('manufacturer.orders.js_messages.status_processing', 'Jarayonda'),
+                'manufacturing': this.getTranslation('manufacturer.orders.js_messages.status_manufacturing', 'Ishlab chiqarilmoqda'),
+                'ready_to_ship': this.getTranslation('manufacturer.orders.js_messages.status_ready_to_ship', 'Jo\'natishga tayyor'),
+                'shipped': this.getTranslation('manufacturer.orders.js_messages.status_shipped', 'Jo\'natilgan'),
+                'delivered': this.getTranslation('manufacturer.orders.js_messages.status_delivered', 'Yetkazilgan'),
+                'completed': this.getTranslation('manufacturer.orders.js_messages.status_completed', 'Yakunlangan'),
+                'cancelled': this.getTranslation('manufacturer.orders.js_messages.status_cancelled', 'Bekor qilingan')
             };
             return statusTexts[status] || status;
         }
@@ -1040,85 +1173,56 @@
             return icons[type] || 'info-circle';
         }
 
-        showActionMenu(actions, callback) {
-            // Create and show contextual action menu
-            logger.log('📋 Showing action menu:', actions);
-            // Implementation would create a dynamic menu
+        // Update status distribution for filter options
+        updateStatusDistribution(statusDistribution) {
+            // Update status filter options with counts
+            const statusSelect = document.querySelector('select[name="status"]');
+            if (statusSelect && statusDistribution) {
+                Array.from(statusSelect.options).forEach(option => {
+                    if (option.value && statusDistribution[option.value]) {
+                        option.textContent = `${option.dataset.label || option.textContent} (${statusDistribution[option.value]})`;
+                    }
+                });
+            }
         }
 
-        // ===============================================
-        //    NEW ORDER ACTION METHODS
-        // ===============================================
-        
-        /**
-         * Track shipment for order
-         */
-        trackShipment(orderId) {
-            logger.log(`📦 Tracking shipment for order: ${orderId}`);
-            window.location.href = `/manufacturer/orders/${orderId}/tracking`;
-        }
-
-        /**
-         * Add note to order
-         */
-        addOrderNote(orderId) {
-            logger.log(`📝 Adding note to order: ${orderId}`);
-            window.location.href = `/manufacturer/orders/${orderId}/detail#notes`;
-        }
-
-        /**
-         * Print invoice for order
-         */
-        printInvoice(orderId) {
-            logger.log(`🖨️ Printing invoice for order: ${orderId}`);
-            const printUrl = `/manufacturer/orders/${orderId}/invoice?print=true`;
-            const printWindow = window.open(printUrl, '_blank', 'width=800,height=600');
+        // Update comprehensive orders display
+        updateComprehensiveOrdersDisplay(data) {
+            // Update orders count with detailed breakdown
+            const totalOrders = data.totalOrders || 0;
+            const activeOrders = data.activeOrders || 0;
+            const cancelledOrders = data.statusBreakdown?.cancelled || 0;
             
-            if (printWindow) {
-                printWindow.onload = function() {
-                    printWindow.print();
-                    setTimeout(() => printWindow.close(), 1000);
-                };
+            // Update header display
+            const headerElements = document.querySelectorAll('.orders-header-count, .orders-total-display');
+            headerElements.forEach(element => {
+                if (totalOrders > 0) {
+                    element.innerHTML = `
+                        <span class="total-count">${totalOrders} buyurtma</span>
+                        <span class="breakdown">(${activeOrders} faol${cancelledOrders > 0 ? `, ${cancelledOrders} bekor qilingan` : ''})</span>
+                    `;
+                } else {
+                    element.innerHTML = '0 buyurtma';
+                }
+            });
+            
+            // Update empty state if no orders - only if elements exist
+            if (totalOrders === 0) {
+                // Check if empty state element exists before showing
+                const emptyState = document.querySelector('.orders-empty-state');
+                if (emptyState) {
+                    this.showEmptyState();
+                }
             } else {
-                // Fallback - direct link
-                window.open(printUrl, '_blank');
-            }
-            this.showToast('Hisob-faktura chop etish uchun ochildi', 'info');
-        }
-
-        /**
-         * Download documents for order
-         */
-        downloadDocuments(orderId) {
-            logger.log(`📄 Downloading documents for order: ${orderId}`);
-            const downloadUrl = `/api/manufacturer/orders/${orderId}/documents/download`;
-            
-            // Create temporary download link
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.download = `order-${orderId}-documents.zip`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            this.showToast('Hujjatlar yuklab olinmoqda...', 'info');
-        }
-
-        /**
-         * Process refund for order
-         */
-        processRefund(orderId) {
-            logger.log(`💰 Processing refund for order: ${orderId}`);
-            
-            if (confirm('Haqiqatan ham bu buyurtma uchun pulni qaytarishni xohlaysizmi?')) {
-                this.showToast('Pulni qaytarish jarayoni boshlandi...', 'warning');
-                
-                // Redirect to refund page
-                setTimeout(() => {
-                    window.location.href = `/manufacturer/orders/${orderId}/refund`;
-                }, 2000);
+                // Check if orders container exists before hiding empty state
+                const ordersContainer = document.getElementById('ordersContainer');
+                if (ordersContainer) {
+                    this.hideEmptyState();
+                }
             }
         }
+
+
     }
 
     // ===============================================

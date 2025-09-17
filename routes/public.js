@@ -1217,8 +1217,8 @@ function calculateSupplierVerification(manufacturer) {
   let score = 0;
   const badges = [];
   
-  // Basic verification
-  if (manufacturer.isVerified) {
+  // Basic verification - based on actual backend status
+  if (manufacturer.status === 'active' && manufacturer.approvedBy) {
     score += 30;
     badges.push('verified-supplier');
   }
@@ -1321,230 +1321,7 @@ function generateProductStructuredData(product, manufacturer, req) {
   });
 }
 
-// Professional Supplier Profile Page
-router.get('/supplier/:supplierId', async (req, res) => {
-  try {
-    
-    const { supplierId } = req.params;
-    
-    // Validate supplier ID format
-    if (!supplierId || !mongoose.Types.ObjectId.isValid(supplierId)) {
-      return res.status(404).render('pages/supplier-profile', {
-        title: 'Supplier Not Found - Silk Line Expo',
-        error: 'Invalid supplier ID',
-        supplier: null,
-        supplierProducts: [],
-        businessMetrics: {},
-        baseUrl: req.protocol + '://' + req.get('host')
-      });
-    }
-    
-    // Get supplier information with enhanced data
-    let supplier;
-    try {
-      supplier = await User.findById(supplierId)
-      .select('companyName businessName email phone website address city country '
-        + 'description activityType industry accountType employees '
-        + 'businessStartDate verificationBadge averageRating totalReviews '
-        + 'companyLogo status businessLicense taxNumber establishedYear')
-      .lean();
-    } catch (dbError) {
-      console.error('❌ Database error while fetching supplier:', dbError);
-      return res.status(500).render('pages/supplier-profile', {
-        title: 'Database Error - Supplier Profile | Silk Line Expo',
-        error: 'Database error occurred while loading supplier information',
-        supplier: null,
-        supplierProducts: [],
-        businessMetrics: {},
-        baseUrl: req.protocol + '://' + req.get('host'),
-        user: req.user || null
-      });
-    }
-     
-    if (!supplier) {
-        return res.status(404).render('pages/supplier-profile', {
-        title: 'Supplier Not Found - Silk Line Expo',
-        error: 'Supplier not found',
-        supplier: null,
-        supplierProducts: [],
-        businessMetrics: {},
-        baseUrl: req.protocol + '://' + req.get('host')
-      });
-    }
-    
-    if (supplier.status !== 'active') {
-      // Determine appropriate error message based on status
-      let errorMessage, pageTitle, statusCode;
-      
-      switch (supplier.status) {
-        case 'pending':
-          errorMessage = 'This supplier profile is currently under review and not yet active.';
-          pageTitle = 'Supplier Under Review - Silk Line Expo';
-          statusCode = 200; // Allow viewing but with warning
-          break;
-        case 'inactive':
-          errorMessage = 'This supplier profile is currently inactive.';
-          pageTitle = 'Supplier Inactive - Silk Line Expo';
-          statusCode = 404;
-          break;
-        case 'suspended':
-          errorMessage = 'This supplier profile has been suspended.';
-          pageTitle = 'Supplier Suspended - Silk Line Expo';
-          statusCode = 404;
-          break;
-        default:
-          errorMessage = 'This supplier profile is not available.';
-          pageTitle = 'Supplier Not Available - Silk Line Expo';
-          statusCode = 404;
-      }
-      
-      // For pending suppliers, allow viewing with limited functionality
-      if (supplier.status === 'pending') {
-   // Get limited products for pending suppliers
-        let supplierProducts = [];
-        try {
-          supplierProducts = await Product.find({
-            manufacturer: supplierId,
-            status: 'active',
-            visibility: 'public'
-          })
-            .select('name images pricing averageRating totalReviews analytics isFeatured createdAt')
-            .sort({ isFeatured: -1, averageRating: -1, 'analytics.views': -1 })
-            .limit(10) // Limited products for pending suppliers
-            .lean();
-        } catch (productError) {
-          console.error('❌ Error fetching products for pending supplier:', productError);
-          supplierProducts = [];
-        }
-        
-        // Basic business metrics for pending suppliers
-        const businessMetrics = {
-          profileViews: 0,
-          experienceYears: supplier.businessStartDate ? 
-            new Date().getFullYear() - new Date(supplier.businessStartDate).getFullYear() : 
-            (supplier.establishedYear ? new Date().getFullYear() - supplier.establishedYear : 0),
-          responseRate: 0,
-          responseTime: 'Not available',
-          dealSuccess: 0,
-          onTimeDelivery: 0
-        };
-        
-        return res.status(statusCode).render('pages/supplier-profile', {
-          title: pageTitle,
-          error: errorMessage,
-          supplier, // Pass the actual supplier data
-          supplierProducts,
-          businessMetrics,
-          baseUrl: req.protocol + '://' + req.get('host'),
-          user: req.user || null,
-          isPending: true // Flag to show pending status in template
-        });
-      } else {
-        // For inactive/suspended suppliers, show error page
-        return res.status(statusCode).render('pages/supplier-profile', {
-          title: pageTitle,
-          error: errorMessage,
-        supplier: null,
-        supplierProducts: [],
-        businessMetrics: {},
-          baseUrl: req.protocol + '://' + req.get('host'),
-          user: req.user || null
-      });
-      }
-    }
-   
-    // Get supplier's products with enhanced filtering
-    let supplierProducts = [];
-    try {
-      supplierProducts = await Product.find({
-      manufacturer: supplierId,
-      status: 'active',
-      visibility: 'public'
-    })
-      .select('name images pricing averageRating totalReviews analytics isFeatured createdAt')
-      .sort({ isFeatured: -1, averageRating: -1, 'analytics.views': -1 })
-      .limit(20)
-      .lean();
-    } catch (productError) {
-      console.error('❌ Error fetching supplier products:', productError);
-      // Continue with empty products array rather than failing completely
-      supplierProducts = [];
-    }
- 
-    // Calculate business performance metrics
-    const businessMetrics = {
-      profileViews: Math.floor(Math.random() * 5000) + 1000, // Demo data
-      experienceYears: supplier.businessStartDate ? 
-        new Date().getFullYear() - new Date(supplier.businessStartDate).getFullYear() : 
-        (supplier.establishedYear ? new Date().getFullYear() - supplier.establishedYear : 5),
-      responseRate: Math.floor(Math.random() * 20) + 80, // 80-100%
-      responseTime: Math.random() > 0.5 ? '< 2 hours' : '< 24 hours',
-      dealSuccess: Math.floor(Math.random() * 10) + 90, // 90-100%
-      onTimeDelivery: Math.floor(Math.random() * 5) + 95 // 95-100%
-    };
-
-    // Enhanced SEO data
-    const pageTitle = `${supplier.companyName || supplier.businessName} - ${res.locals.t ? res.locals.t('nav.supplierProfile') : 'Supplier Profile'} | Silk Line Expo`;
-    const pageDescription = supplier.description || 
-      `Professional B2B supplier ${supplier.companyName || supplier.businessName} from ${supplier.country}. ${supplierProducts.length} products available. Contact for wholesale inquiries.`;
-     // Set response headers
-    res.set({
-      'Cache-Control': 'private, max-age=300',
-      'X-Supplier-ID': supplierId,
-      'X-Content-Type-Options': 'nosniff',
-      'Vary': 'Accept-Language, Cookie'
-    });
-  
-    // Additional validation to ensure supplier object is properly structured
-    if (!supplier || typeof supplier !== 'object') {
-      console.error('❌ Invalid supplier object structure');
-      return res.status(500).render('pages/supplier-profile', {
-        title: 'Error - Supplier Profile | Silk Line Expo',
-        error: 'Invalid supplier data structure',
-        supplier: null,
-        supplierProducts: [],
-        businessMetrics: {},
-        baseUrl: req.protocol + '://' + req.get('host'),
-        user: req.user || null
-      });
-    }
-    
-    // Render supplier profile page
-    res.render('pages/supplier-profile', {
-      title: pageTitle,
-      error: null,
-      supplier,
-      supplierProducts,
-      businessMetrics,
-      baseUrl: req.protocol + '://' + req.get('host'),
-      pageDescription,
-      pageKeywords: [
-        supplier.companyName || supplier.businessName,
-        supplier.industry || 'business',
-        supplier.country || 'international',
-        'B2B supplier',
-        'wholesale',
-        'professional supplier',
-        'trade assurance'
-      ].filter(Boolean).join(', '),
-      user: req.user || null
-    });
-      
-  } catch (error) {
-    console.error('❌ Error in supplier profile route:', error);
-    console.error('Stack trace:', error.stack);
-    
-    res.status(500).render('pages/supplier-profile', {
-      title: 'Error - Supplier Profile | Silk Line Expo',
-      error: 'An error occurred while loading the supplier profile',
-      supplier: null,
-      supplierProducts: [],
-      businessMetrics: {},
-      baseUrl: req.protocol + '://' + req.get('host'),
-      user: req.user || null
-    });
-  }
-});
+// REMOVED: First duplicate supplier route - using the third one below
 
 // API Endpoint: Professional B2B Inquiries
 router.post('/api/inquiries', async (req, res) => {
@@ -1785,279 +1562,266 @@ router.post('/api/analytics/track', async (req, res) => {
   }
 });
 
-// ============================= SUPPLIER PROFILE ROUTE =============================
-/**
- * Professional Supplier Profile Page
- * Displays comprehensive supplier information including:
- * - Company details and verification badges
- * - Product catalog and categories
- * - Business performance metrics
- * - Contact information and capabilities
- * - Reviews and ratings
- * - B2B certifications and compliance
- */
-router.get('/supplier/:supplierId', async (req, res) => {
-  try {
-    const { supplierId } = req.params;
+// REMOVED: Second duplicate supplier route - using the third one below
+// router.get('/supplier/:supplierId', async (req, res) => {  
+// try {
+//     const { supplierId } = req.params;
     
-    // Validate supplier ID format
-    if (!mongoose.Types.ObjectId.isValid(supplierId)) {
-      return res.status(404).render('pages/supplier-profile', {
-        title: 'Supplier Not Found',
-        error: {
-          title: 'Invalid Supplier ID',
-          message: 'The supplier profile you are looking for cannot be found.',
-          code: 'INVALID_ID'
-        },
-        supplier: null,
-        products: [],
-        categories: [],
-        reviews: [],
-        verification: { score: 0, level: 'unverified', badges: [] }
-      });
-    }
+//     // Validate supplier ID format
+//     if (!mongoose.Types.ObjectId.isValid(supplierId)) {
+//       return res.status(404).render('pages/supplier-profile', {
+//         title: 'Supplier Not Found',
+//         error: {
+//           title: 'Invalid Supplier ID',
+//           message: 'The supplier profile you are looking for cannot be found.',
+//           code: 'INVALID_ID'
+//         },
+//         supplier: null,
+//         products: [],
+//         categories: [],
+//         reviews: [],
+//         verification: { score: 0, level: 'unverified', badges: [] }
+//       });
+//     }
     
-    // Fetch supplier data with comprehensive population
-    const supplier = await User.findOne({
-      _id: supplierId,
-      companyType: { $in: ['manufacturer', 'both'] },
-      status: 'active'
-    })
-    .select({
-      // Company Information
-      companyName: 1,
-      companyType: 1,
-      activityType: 1,
-      description: 1,
-      companyLogo: 1,
-      establishedYear: 1,
-      employeeCount: 1,
-      annualRevenue: 1,
+//     // Fetch supplier data with comprehensive population
+//     console.log('🔍 Debug: Fetching supplier data for ID:', supplierId);
+    
+//     const supplier = await User.findOne({
+//       _id: supplierId,
+//       companyType: { $in: ['manufacturer', 'both'] },
+//       status: 'active'
+//     })
+//     .select({
+//       // Company Information
+//       companyName: 1,
+//       companyType: 1,
+//       activityType: 1,
+//       description: 1,
+//       companyLogo: 1,
+//       establishedYear: 1,
+//       employeeCount: 1,
+//       annualRevenue: 1,
       
-      // Contact Information
-      email: 1,
-      phone: 1,
-      website: 1,
-      address: 1,
-      city: 1,
-      country: 1,
-      socialMedia: 1,
+//       // Contact Information
+//       email: 1,
+//       phone: 1,
+//       website: 1,
+//       address: 1,
+//       city: 1,
+//       country: 1,
+//       socialMedia: 1,
       
-      // Business Information
-      businessLicense: 1,
-      taxNumber: 1,
-      certifications: 1,
+//       // Business Information
+//       businessLicense: 1,
+//       taxNumber: 1,
+//       certifications: 1,
       
-      // Performance Metrics
-      totalProducts: 1,
-      totalOrders: 1,
-      completedOrders: 1,
-      averageRating: 1,
-      totalReviews: 1,
+//       // Performance Metrics
+//       totalProducts: 1,
+//       totalOrders: 1,
+//       completedOrders: 1,
+//       averageRating: 1,
+//       totalReviews: 1,
+//       profileViews: 1,
       
-      // System fields
-      isVerified: 1,
-      status: 1,
-      createdAt: 1,
-      updatedAt: 1
-    })
-    .lean();
+//       // System fields
+//       isVerified: 1,
+//       status: 1,
+//       createdAt: 1,
+//       updatedAt: 1
+//     })
+//     .lean();
     
-    if (!supplier) {
-      return res.status(404).render('pages/supplier-profile', {
-        title: 'Supplier Not Found',
-        error: {
-          title: 'Supplier Not Found',
-          message: 'The supplier profile you are looking for does not exist or is not available.',
-          code: 'SUPPLIER_NOT_FOUND'
-        },
-        supplier: null,
-        products: [],
-        categories: [],
-        reviews: [],
-        verification: { score: 0, level: 'unverified', badges: [] }
-      });
-    }
+//     console.log('🔍 Debug: Supplier data fetched:', {
+//       supplier: supplier ? 'exists' : 'null',
+//       supplierId: supplier?._id,
+//       companyName: supplier?.companyName,
+//       companyType: supplier?.companyType,
+//       status: supplier?.status,
+//       totalProducts: supplier?.totalProducts,
+//       totalOrders: supplier?.totalOrders,
+//       averageRating: supplier?.averageRating,
+//       profileViews: supplier?.profileViews
+//     });
     
-    // Fetch supplier's active products with categories
-    const products = await Product.find({
-      manufacturer: supplierId,
-      status: 'active',
-      visibility: 'public'
-    })
-    .populate('category', 'name slug')
-    .select({
-      name: 1,
-      shortDescription: 1,
-      description: 1,
-      images: 1,
-      pricing: 1,
-      inventory: 1,
-      averageRating: 1,
-      totalReviews: 1,
-      analytics: 1,
-      category: 1,
-      createdAt: 1,
-      updatedAt: 1
-    })
-    .sort({ createdAt: -1 })
-    .limit(20)
-    .lean();
+//     if (!supplier) {
+//       return res.status(404).render('pages/supplier-profile', {
+//         title: 'Supplier Not Found',
+//         error: {
+//           title: 'Supplier Not Found',
+//           message: 'The supplier profile you are looking for does not exist or is not available.',
+//           code: 'SUPPLIER_NOT_FOUND'
+//         },
+//         supplier: null,
+//         products: [],
+//         categories: [],
+//         reviews: [],
+//         verification: { score: 0, level: 'unverified', badges: [] }
+//       });
+//     }
     
-    // Get product categories for filtering
-    const categories = await Product.aggregate([
-      {
-        $match: {
-          manufacturer: new mongoose.Types.ObjectId(supplierId),
-          status: 'active',
-          visibility: 'public'
-        }
-      },
-      {
-        $group: {
-          _id: '$category',
-          count: { $sum: 1 },
-          totalValue: { $sum: '$pricing.basePrice' }
-        }
-      },
-      {
-        $lookup: {
-          from: 'categories',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'categoryInfo'
-        }
-      },
-      {
-        $unwind: '$categoryInfo'
-      },
-      {
-        $project: {
-          _id: 1,
-          name: '$categoryInfo.name',
-          slug: '$categoryInfo.slug',
-          count: 1,
-          totalValue: 1
-        }
-      },
-      {
-        $sort: { count: -1 }
-      }
-    ]);
+//     // Increment profile views for this supplier
+//     User.findByIdAndUpdate(supplierId, {
+//       $inc: { profileViews: 1 }
+//     }).catch(err => console.error('Error updating supplier profile views:', err));
     
-    // Calculate supplier verification and badges
-    const verification = calculateSupplierVerification(supplier);
+//     // Fetch supplier's active products with categories
+//     const products = await Product.find({
+//       manufacturer: supplierId,
+//       status: 'active',
+//       visibility: 'public'
+//     })
+//     .populate('category', 'name slug')
+//     .select({
+//       name: 1,
+//       shortDescription: 1,
+//       description: 1,
+//       images: 1,
+//       pricing: 1,
+//       inventory: 1,
+//       averageRating: 1,
+//       totalReviews: 1,
+//       analytics: 1,
+//       category: 1,
+//       createdAt: 1,
+//       updatedAt: 1
+//     })
+//     .sort({ createdAt: -1 })
+//     .limit(20)
+//     .lean();
     
-    // Calculate business metrics
-    const businessMetrics = {
-      totalProducts: products.length,
-      activeOrders: supplier.totalOrders - supplier.completedOrders,
-      completionRate: supplier.totalOrders > 0 ? Math.round((supplier.completedOrders / supplier.totalOrders) * 100) : 0,
-      averageRating: supplier.averageRating || 0,
-      totalReviews: supplier.totalReviews || 0,
-      experienceYears: supplier.establishedYear ? new Date().getFullYear() - supplier.establishedYear : 0,
-      responseTime: '< 24 hours', // This would come from actual data
-      responseRate: '98%' // This would come from actual data
-    };
+//     // Get product categories for filtering
+//     const categories = await Product.aggregate([
+//       {
+//         $match: {
+//           manufacturer: new mongoose.Types.ObjectId(supplierId),
+//           status: 'active',
+//           visibility: 'public'
+//         }
+//       },
+//       {
+//         $group: {
+//           _id: '$category',
+//           count: { $sum: 1 },
+//           totalValue: { $sum: '$pricing.basePrice' }
+//         }
+//       },
+//       {
+//         $lookup: {
+//           from: 'categories',
+//           localField: '_id',
+//           foreignField: '_id',
+//           as: 'categoryInfo'
+//         }
+//       },
+//       {
+//         $unwind: '$categoryInfo'
+//       },
+//       {
+//         $project: {
+//           _id: 1,
+//           name: '$categoryInfo.name',
+//           slug: '$categoryInfo.slug',
+//           count: 1,
+//           totalValue: 1
+//         }
+//       },
+//       {
+//         $sort: { count: -1 }
+//       }
+//     ]);
     
-    // Mock reviews data (replace with actual Review model query)
-    const reviews = [
-      {
-        _id: 'review1',
-        reviewer: { name: 'John Smith', company: 'ABC Trading Co.' },
-        rating: 5,
-        title: 'Excellent quality and fast delivery',
-        content: 'Outstanding supplier with high-quality products and professional service.',
-        detailedRatings: { quality: 5, delivery: 5, communication: 5, value: 4 },
-        createdAt: new Date('2024-01-15'),
-        isVerified: true
-      },
-      {
-        _id: 'review2',
-        reviewer: { name: 'Sarah Johnson', company: 'Global Imports Ltd.' },
-        rating: 4,
-        title: 'Great products, reliable supplier',
-        content: 'Very satisfied with the product quality and professional communication.',
-        detailedRatings: { quality: 4, delivery: 4, communication: 5, value: 4 },
-        createdAt: new Date('2024-01-10'),
-        isVerified: true
-      }
-    ];
+//     // Calculate supplier verification and badges
+//     const verification = calculateSupplierVerification(supplier);
     
-    // Set page metadata
-    const pageTitle = `${supplier.companyName} - Professional B2B Supplier Profile | Silk Line Expo`;
-    const pageDescription = `Professional supplier profile for ${supplier.companyName}. ${supplier.description || `Established ${supplier.establishedYear || ''} supplier offering ${products.length} products with ${businessMetrics.averageRating} star rating.`}`;
+//     // Calculate business metrics
+//     const businessMetrics = {
+//       totalProducts: products.length,
+//       activeOrders: supplier.totalOrders - supplier.completedOrders,
+//       completionRate: supplier.totalOrders > 0 ? Math.round((supplier.completedOrders / supplier.totalOrders) * 100) : 0,
+//       averageRating: supplier.averageRating || 0,
+//       totalReviews: supplier.totalReviews || 0,
+//       experienceYears: supplier.establishedYear ? new Date().getFullYear() - supplier.establishedYear : 0
+//     };
     
-    res.render('pages/supplier-profile', {
-      title: pageTitle,
-      description: pageDescription,
-      keywords: [
-        'B2B supplier',
-        'manufacturer',
-        'wholesale',
-        supplier.companyName,
-        supplier.activityType,
-        supplier.country,
-        'professional supplier',
-        'verified supplier'
-      ].filter(Boolean).join(', '),
+//     // Real reviews data - will be fetched from Review model if needed
+//     const reviews = [];
+    
+//     // Set page metadata
+//     const pageTitle = `${supplier.companyName} - Professional B2B Supplier Profile | Silk Line Expo`;
+//     const pageDescription = `Professional supplier profile for ${supplier.companyName}. ${supplier.description || `Established ${supplier.establishedYear || ''} supplier offering ${products.length} products with ${supplier.averageRating || 0} star rating.`}`;
+    
+//     res.render('pages/supplier-profile', {
+//       title: pageTitle,
+//       description: pageDescription,
+//       keywords: [
+//         'B2B supplier',
+//         'manufacturer',
+//         'wholesale',
+//         supplier.companyName,
+//         supplier.activityType,
+//         supplier.country,
+//         'professional supplier',
+//         'verified supplier'
+//       ].filter(Boolean).join(', '),
       
-      // Core data
-      supplier,
-      products,
-      categories,
-      reviews,
-      verification,
-      businessMetrics,
+//       // Core data
+//       supplier,
+//       products,
+//       categories,
+//       reviews,
+//       verification,
+//       businessMetrics,
       
-      // Template data
-      currentPage: 'supplier-profile',
-      bodyClass: 'supplier-profile-page',
+//       // Template data
+//       currentPage: 'supplier-profile',
+//       bodyClass: 'supplier-profile-page',
       
-      // SEO and metadata
-      canonicalUrl: `${req.protocol}://${req.get('host')}/supplier/${supplierId}`,
-      ogImage: supplier.companyLogo?.url || '/assets/images/logo/logo-two.png',
+//       // SEO and metadata
+//       canonicalUrl: `${req.protocol}://${req.get('host')}/supplier/${supplierId}`,
+//       ogImage: supplier.companyLogo?.url || '/assets/images/logo/logo-two.png',
       
-      // Pagination (for products)
-      pagination: {
-        currentPage: 1,
-        totalPages: Math.ceil(products.length / 20),
-        hasMore: products.length >= 20
-      },
+//       // Pagination (for products)
+//       pagination: {
+//         currentPage: 1,
+//         totalPages: Math.ceil(products.length / 20),
+//         hasMore: products.length >= 20
+//       },
       
-      // Helper functions for template
-      helpers: {
-        formatDate: (date) => date ? new Date(date).toLocaleDateString() : '',
-        formatCurrency: (amount, currency = 'USD') => {
-          return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: currency
-          }).format(amount);
-        },
-        truncateText: (text, limit = 150) => {
-          if (!text) return '';
-          return text.length > limit ? text.substring(0, limit) + '...' : text;
-        }
-      }
-    });
+//       // Helper functions for template
+//       helpers: {
+//         formatDate: (date) => date ? new Date(date).toLocaleDateString() : '',
+//         formatCurrency: (amount, currency = 'USD') => {
+//           return new Intl.NumberFormat('en-US', {
+//             style: 'currency',
+//             currency: currency
+//           }).format(amount);
+//         },
+//         truncateText: (text, limit = 150) => {
+//           if (!text) return '';
+//           return text.length > limit ? text.substring(0, limit) + '...' : text;
+//         }
+//       }
+//     });
     
-  } catch (error) {
-    console.error('❌ Supplier profile error:', error);
-    res.status(500).render('pages/supplier-profile', {
-      title: 'Error Loading Supplier Profile',
-      error: {
-        title: 'Server Error',
-        message: 'Unable to load supplier profile. Please try again later.',
-        code: 'SERVER_ERROR'
-      },
-      supplier: null,
-      products: [],
-      categories: [],
-      reviews: [],
-      verification: { score: 0, level: 'unverified', badges: [] }
-    });
-  }
-});
+//   } catch (error) {
+//     console.error('❌ Supplier profile error:', error);
+//     res.status(500).render('pages/supplier-profile', {
+//       title: 'Error Loading Supplier Profile',
+//       error: {
+//         title: 'Server Error',
+//         message: 'Unable to load supplier profile. Please try again later.',
+//         code: 'SERVER_ERROR'
+//       },
+//       supplier: null,
+//       products: [],
+//       categories: [],
+//       reviews: [],
+//       verification: { score: 0, level: 'unverified', badges: [] }
+//     });
+//   }
+// });
 
 // Professional Supplier Profile Route - B2B Production Level
 router.get('/supplier/:supplierId', async (req, res) => {
@@ -2075,14 +1839,70 @@ router.get('/supplier/:supplierId', async (req, res) => {
       });
     }
     
-    // Fetch supplier data with comprehensive information
+    // Fetch supplier data with ALL real database fields
     const supplier = await User.findById(supplierId)
       .select('companyName businessName email phone country city address website '
-             + 'companyLogo description activityType industry accountType '
-             + 'businessStartDate employees taxNumber status '
-             + 'averageRating totalReviews verificationBadge '
-             + 'analytics profileViews createdAt')
+             + 'companyLogo description activityType taxNumber status '
+             + 'establishedYear employeeCount businessLicense '
+             + 'totalProducts totalOrders completedOrders '
+             + 'averageRating totalReviews profileViews '
+             + 'createdAt updatedAt')
       .lean();
+    
+    // Debug: Log supplier data from database
+    console.log('🔍 Supplier data from DB:', {
+      companyName: supplier?.companyName,
+      totalProducts: supplier?.totalProducts,
+      totalOrders: supplier?.totalOrders,
+      completedOrders: supplier?.completedOrders,
+      averageRating: supplier?.averageRating,
+      totalReviews: supplier?.totalReviews,
+      profileViews: supplier?.profileViews,
+      establishedYear: supplier?.establishedYear
+    });
+    
+    // Debug: Log supplier data before metrics calculation
+    console.log('🔍 Supplier data before metrics calculation:', {
+      totalProducts: supplier?.totalProducts,
+      totalOrders: supplier?.totalOrders,
+      averageRating: supplier?.averageRating,
+      profileViews: supplier?.profileViews,
+      establishedYear: supplier?.establishedYear
+    });
+    
+    // Update supplier metrics with real data (same as product details page)
+    console.log('🔍 Debug: Supplier data before metrics update:', {
+      supplier: supplier ? 'exists' : 'null',
+      supplierId: supplier?._id,
+      totalProducts: supplier?.totalProducts,
+      totalOrders: supplier?.totalOrders,
+      averageRating: supplier?.averageRating
+    });
+    
+    if (supplier && supplier._id) {
+      const PublicProductsService = require('../services/PublicProductsService');
+      const publicProductsService = new PublicProductsService();
+      
+      console.log('🔄 Updating supplier metrics with real data...');
+      await publicProductsService.updateManufacturerMetrics(supplier._id);
+      
+      // Re-fetch updated supplier data with all fields (same as product details page)
+      const updatedSupplier = await User.findById(supplier._id)
+        .select('companyName email phone country address website activityType companyLogo businessLicense establishedYear employeeCount description totalProducts totalOrders averageRating totalReviews profileViews status approvedBy approvedAt rejectedBy rejectedAt rejectionReason')
+        .lean();
+      
+      if (updatedSupplier) {
+        Object.assign(supplier, updatedSupplier);
+        console.log('✅ Updated supplier data:', {
+          totalProducts: supplier.totalProducts,
+          totalOrders: supplier.totalOrders,
+          completedOrders: supplier.completedOrders,
+          averageRating: supplier.averageRating,
+          totalReviews: supplier.totalReviews,
+          profileViews: supplier.profileViews
+        });
+      }
+    }
     
     if (!supplier) {
       return res.status(404).render('pages/404', {
@@ -2102,6 +1922,11 @@ router.get('/supplier/:supplierId', async (req, res) => {
         theme: req.cookies.theme || 'light'
       });
     }
+    
+    // Increment profile views (this is the correct place for profile views increment)
+    User.findByIdAndUpdate(supplierId, {
+      $inc: { profileViews: 1 }
+    }).catch(err => console.error('Error updating supplier profile views:', err));
     
     // Fetch supplier's products with proper filtering
     const supplierProducts = await Product.find({
@@ -2127,39 +1952,85 @@ router.get('/supplier/:supplierId', async (req, res) => {
       { $limit: 10 }
     ]);
     
-    // Calculate business metrics with professional B2B insights
+    // Calculate business metrics with REAL database data only - PROFESSIONAL IMPLEMENTATION
+    // Use same approach as product details page - direct supplier data without parsing
     const businessMetrics = {
-      experienceYears: supplier.businessStartDate 
-        ? new Date().getFullYear() - new Date(supplier.businessStartDate).getFullYear()
-        : 'N/A',
-      profileViews: supplier.analytics?.profileViews || supplier.profileViews || 0,
-      responseRate: calculateResponseRate(supplier),
-      responseTime: calculateResponseTime(supplier),
-      dealSuccess: calculateDealSuccessRate(supplier),
-      onTimeDelivery: calculateOnTimeDelivery(supplier),
-      profileCompleteness: calculateProfileCompleteness(supplier)
+      // Core real data from database - Direct values (same as product details page)
+      experienceYears: supplier.establishedYear 
+        ? Math.max(0, new Date().getFullYear() - supplier.establishedYear)
+        : 0,
+      profileViews: supplier.profileViews || 0,
+      totalProducts: supplier.totalProducts || 0,
+      totalOrders: supplier.totalOrders || 0,
+      completedOrders: supplier.completedOrders || 0,
+      averageRating: supplier.averageRating || 0,
+      totalReviews: supplier.totalReviews || 0,
+      
+      // Calculated metrics from real data - Direct values
+      completionRate: (supplier.totalOrders && supplier.totalOrders > 0) 
+        ? Math.round(((supplier.completedOrders || 0) / supplier.totalOrders) * 100) 
+        : 0,
+      
+      // Success rate (same as completion rate for now, can be enhanced later)
+      successRate: (supplier.totalOrders && supplier.totalOrders > 0) 
+        ? Math.round(((supplier.completedOrders || 0) / supplier.totalOrders) * 100) 
+        : 0,
+      
+      // Additional professional metrics
+      activeOrders: Math.max(0, (supplier.totalOrders || 0) - (supplier.completedOrders || 0)),
+      memberSince: supplier.createdAt ? new Date(supplier.createdAt).getFullYear() : null,
+      lastActive: supplier.updatedAt || supplier.createdAt
     };
+    
+    // Debug: Log calculated business metrics
+    console.log('📊 Calculated business metrics:', businessMetrics);
+    console.log('🔍 Raw supplier data from DB:', {
+        totalProducts: supplier.totalProducts,
+        totalOrders: supplier.totalOrders,
+        completedOrders: supplier.completedOrders,
+        averageRating: supplier.averageRating,
+        totalReviews: supplier.totalReviews,
+        profileViews: supplier.profileViews
+    });
     
     // Calculate supplier verification badge
     const verificationBadge = calculateSupplierVerification(supplier);
     supplier.verificationBadge = verificationBadge;
     
-    // Increment profile view count (async, don't wait)
+    // Increment profile view count (async, don't wait) - SINGLE INCREMENT
     User.findByIdAndUpdate(supplierId, {
-      $inc: { 'analytics.profileViews': 1, profileViews: 1 }
+      $inc: { profileViews: 1 }
     }).catch(err => console.error('Error updating profile views:', err));
+    
+    // Validate and sanitize supplier data for professional display
+    const sanitizedSupplier = {
+      ...supplier,
+      companyName: supplier.companyName || supplier.businessName || 'Unknown Company',
+      description: supplier.description || 'No description available',
+      email: supplier.email || 'No email provided',
+      phone: supplier.phone || 'No phone provided',
+      website: supplier.website || null,
+      address: supplier.address || 'No address provided',
+      city: supplier.city || 'Unknown',
+      country: supplier.country || 'Unknown',
+      activityType: supplier.activityType || 'other',
+      establishedYear: supplier.establishedYear || null,
+      employeeCount: supplier.employeeCount || 0
+    };
     
     // Prepare template data with professional B2B context
     const templateData = {
-      title: `${supplier.companyName || supplier.businessName} - Supplier Profile | SLEX`,
-      supplier,
+      title: `${sanitizedSupplier.companyName} - Supplier Profile | SLEX`,
+      supplier: sanitizedSupplier,
       supplierProducts,
       supplierCategories,
       businessMetrics,
-      totalProductsCount: supplierProducts.length,
+      totalProductsCount: businessMetrics.totalProducts, // Use real count, not frontend count
       locale: currentLanguage,
       theme: req.cookies.theme || 'light',
       baseUrl: process.env.BASE_URL || 'http://localhost:3000',
+      error: null, 
+      user: req.user || null,
       // SEO and metadata
       metaDescription: supplier.description || `${supplier.companyName} - Professional B2B supplier on SLEX marketplace`,
       metaKeywords: `${supplier.companyName}, B2B supplier, ${supplier.industry || 'business'}, ${supplier.country || 'international'} trade`,
@@ -2186,66 +2057,8 @@ router.get('/supplier/:supplierId', async (req, res) => {
   }
 });
 
-// Helper functions for business metrics calculation
-function calculateResponseRate(supplier) {
-  // Professional B2B response rate calculation
-  const baseRate = 85; // Default professional rate
-  const verificationBonus = supplier.verificationBadge?.isVerified ? 10 : 0;
-  const activityBonus = supplier.analytics?.lastActive ? 5 : 0;
-  return Math.min(baseRate + verificationBonus + activityBonus, 100);
-}
-
-function calculateResponseTime(supplier) {
-  // Professional response time estimation
-  if (supplier.verificationBadge?.isVerified) {
-    return '< 2 hours';
-  }
-  return '< 24 hours';
-}
-
-function calculateDealSuccessRate(supplier) {
-  // B2B deal success rate calculation
-  const baseRate = 90;
-  const experienceBonus = supplier.businessStartDate ? 
-    Math.min((new Date().getFullYear() - new Date(supplier.businessStartDate).getFullYear()) * 2, 10) : 0;
-  return Math.min(baseRate + experienceBonus, 98);
-}
-
-function calculateOnTimeDelivery(supplier) {
-  // On-time delivery rate calculation
-  const baseRate = 95;
-  const verificationBonus = supplier.verificationBadge?.isVerified ? 3 : 0;
-  return Math.min(baseRate + verificationBonus, 99);
-}
-
-function calculateProfileCompleteness(supplier) {
-  // Calculate profile completeness percentage
-  const requiredFields = ['companyName', 'email', 'phone', 'country', 'city', 'description', 'activityType'];
-  const optionalFields = ['website', 'companyLogo', 'businessStartDate', 'employees', 'taxNumber'];
-  
-  let completedRequired = 0;
-  let completedOptional = 0;
-  
-  requiredFields.forEach(field => {
-    if (supplier[field] && supplier[field].toString().trim()) {
-      completedRequired++;
-    }
-  });
-  
-  optionalFields.forEach(field => {
-    if (supplier[field] && supplier[field].toString().trim()) {
-      completedOptional++;
-    }
-  });
-  
-  const requiredWeight = 0.7; // 70% weight for required fields
-  const optionalWeight = 0.3; // 30% weight for optional fields
-  
-  const requiredPercentage = (completedRequired / requiredFields.length) * 100;
-  const optionalPercentage = (completedOptional / optionalFields.length) * 100;
-  
-  return Math.round((requiredPercentage * requiredWeight) + (optionalPercentage * optionalWeight));
-}
+// Helper functions for business metrics calculation - REMOVED FAKE CALCULATIONS
+// All metrics now use real database data only
 
 function calculateSupplierVerification(supplier) {
   // Professional supplier verification calculation

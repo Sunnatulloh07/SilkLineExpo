@@ -14,6 +14,79 @@ const { authenticate, manufacturerOnly } = require('../../middleware/jwtAuth');
 const { body, validationResult } = require('express-validator');
 
 // ===============================================
+//    PROFESSIONAL HELPER FUNCTIONS
+// ===============================================
+
+/**
+ * Get status text in Uzbek
+ */
+function getStatusText(status) {
+    const statusTexts = {
+        'draft': 'Qoralama',
+        'pending': 'Kutayotgan',
+        'confirmed': 'Tasdiqlangan',
+        'processing': 'Jarayonda',
+        'manufacturing': 'Ishlab chiqarilmoqda',
+        'quality_check': 'Sifat nazorati',
+        'ready_to_ship': 'Jo\'natishga tayyor',
+        'shipped': 'Jo\'natilgan',
+        'in_transit': 'Yo\'lda',
+        'delivered': 'Yetkazilgan',
+        'completed': 'Yakunlangan',
+        'cancelled': 'Bekor qilingan',
+        'refunded': 'Qaytarilgan',
+        'disputed': 'Nizo'
+    };
+    return statusTexts[status] || status;
+}
+
+/**
+ * Get status CSS class for styling
+ */
+function getStatusClass(status) {
+    const statusClasses = {
+        'draft': 'status-draft',
+        'pending': 'status-pending',
+        'confirmed': 'status-confirmed',
+        'processing': 'status-processing',
+        'manufacturing': 'status-manufacturing',
+        'quality_check': 'status-quality-check',
+        'ready_to_ship': 'status-ready-to-ship',
+        'shipped': 'status-shipped',
+        'in_transit': 'status-in-transit',
+        'delivered': 'status-delivered',
+        'completed': 'status-completed',
+        'cancelled': 'status-cancelled',
+        'refunded': 'status-refunded',
+        'disputed': 'status-disputed'
+    };
+    return statusClasses[status] || 'status-unknown';
+}
+
+/**
+ * Get status priority for sorting
+ */
+function getStatusPriority(status) {
+    const priorities = {
+        'pending': 1,
+        'confirmed': 2,
+        'processing': 3,
+        'manufacturing': 4,
+        'quality_check': 5,
+        'ready_to_ship': 6,
+        'shipped': 7,
+        'in_transit': 8,
+        'delivered': 9,
+        'completed': 10,
+        'cancelled': 11,
+        'refunded': 12,
+        'disputed': 13,
+        'draft': 14
+    };
+    return priorities[status] || 99;
+}
+
+// ===============================================
 //    ORDERS STATISTICS API
 // ===============================================
 
@@ -51,7 +124,7 @@ router.get('/stats',
             const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
             const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
             
-            // Get aggregated statistics with enhanced error handling
+            // Get comprehensive aggregated statistics with enhanced error handling
             const stats = await Order.aggregate([
                 { $match: { seller: new mongoose.Types.ObjectId(manufacturerId) } },
                 {
@@ -62,15 +135,38 @@ router.get('/stats',
                             $sum: { 
                                 $cond: [
                                     { 
-                                        $in: ["$status", ["confirmed", "processing", "manufacturing", "ready_to_ship", "shipped"]] 
+                                        $in: ["$status", [
+                                            "pending", "confirmed", "processing", 
+                                            "manufacturing", "ready_to_ship", "shipped"
+                                        ]] 
                                     }, 
                                     1, 
                                     0
                                 ]
                             }
                         },
+                        
+                        // Individual status counts for detailed analytics
                         pendingOrders: {
                             $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] }
+                        },
+                        confirmedOrders: {
+                            $sum: { $cond: [{ $eq: ["$status", "confirmed"] }, 1, 0] }
+                        },
+                        processingOrders: {
+                            $sum: { $cond: [{ $eq: ["$status", "processing"] }, 1, 0] }
+                        },
+                        manufacturingOrders: {
+                            $sum: { $cond: [{ $eq: ["$status", "manufacturing"] }, 1, 0] }
+                        },
+                        readyToShipOrders: {
+                            $sum: { $cond: [{ $eq: ["$status", "ready_to_ship"] }, 1, 0] }
+                        },
+                        shippedOrders: {
+                            $sum: { $cond: [{ $eq: ["$status", "shipped"] }, 1, 0] }
+                        },
+                        deliveredOrders: {
+                            $sum: { $cond: [{ $eq: ["$status", "delivered"] }, 1, 0] }
                         },
                         completedOrders: {
                             $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
@@ -78,13 +174,32 @@ router.get('/stats',
                         cancelledOrders: {
                             $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] }
                         },
+                        refundedOrders: {
+                            $sum: { $cond: [{ $eq: ["$status", "refunded"] }, 1, 0] }
+                        },
+                        
+                        // Revenue calculations
                         totalRevenue: { $sum: "$totalAmount" },
+                        activeRevenue: {
+                            $sum: {
+                                $cond: [
+                                    { 
+                                        $in: ["$status", [
+                                            "pending", "confirmed", "processing", 
+                                            "manufacturing", "ready_to_ship", "shipped"
+                                        ]] 
+                                    },
+                                    "$totalAmount",
+                                    0
+                                ]
+                            }
+                        },
                         averageOrderValue: { $avg: "$totalAmount" }
                     }
                 }
             ]);
 
-            // Get monthly revenue
+            // Get monthly revenue (excluding cancelled and refunded orders)
             const monthlyStats = await Order.aggregate([
                 { 
                     $match: { 
@@ -97,51 +212,116 @@ router.get('/stats',
                     $group: {
                         _id: null,
                         monthlyRevenue: { $sum: "$totalAmount" },
-                        monthlyOrders: { $sum: 1 }
+                        monthlyOrders: { $sum: 1 },
+                        monthlyActiveOrders: {
+                            $sum: { 
+                                $cond: [
+                                    { 
+                                        $in: ["$status", [
+                                            "pending", "confirmed", "processing", 
+                                            "manufacturing", "ready_to_ship", "shipped"
+                                        ]] 
+                                    }, 
+                                    1, 
+                                    0
+                                ]
+                            }
+                        }
                     }
                 }
             ]);
             
+            // Combine comprehensive statistics
             const result = stats.length > 0 ? stats[0] : {
                 totalOrders: 0,
                 activeOrders: 0,
                 pendingOrders: 0,
+                confirmedOrders: 0,
+                processingOrders: 0,
+                manufacturingOrders: 0,
+                readyToShipOrders: 0,
+                shippedOrders: 0,
+                deliveredOrders: 0,
                 completedOrders: 0,
                 cancelledOrders: 0,
+                refundedOrders: 0,
                 totalRevenue: 0,
+                activeRevenue: 0,
                 averageOrderValue: 0
             };
 
             const monthlyResult = monthlyStats.length > 0 ? monthlyStats[0] : {
                 monthlyRevenue: 0,
-                monthlyOrders: 0
+                monthlyOrders: 0,
+                monthlyActiveOrders: 0
             };
             
             // Remove _id from results
             delete result._id;
             delete monthlyResult._id;
 
-            // Combine results
-            const finalResult = {
-                ...result,
-                monthlyRevenue: monthlyResult.monthlyRevenue,
-                monthlyOrders: monthlyResult.monthlyOrders
+            // Calculate business metrics
+            const businessMetrics = {
+                // Order completion rate
+                completionRate: result.totalOrders > 0 ? 
+                    ((result.completedOrders + result.deliveredOrders) / result.totalOrders * 100).toFixed(1) : 0,
+                
+                // Cancellation rate
+                cancellationRate: result.totalOrders > 0 ? 
+                    (result.cancelledOrders / result.totalOrders * 100).toFixed(1) : 0,
+                
+                // Active order percentage
+                activeOrderPercentage: result.totalOrders > 0 ? 
+                    (result.activeOrders / result.totalOrders * 100).toFixed(1) : 0,
+                
+                // Revenue efficiency (active revenue vs total revenue)
+                revenueEfficiency: result.totalRevenue > 0 ? 
+                    (result.activeRevenue / result.totalRevenue * 100).toFixed(1) : 0
             };
-            
-            
+
+            // Return comprehensive professional statistics
             res.json({
                 success: true,
-                data: finalResult,
-                // Backward compatibility - flatten data to root level
-                totalOrders: finalResult.totalOrders,
-                activeOrders: finalResult.activeOrders,
-                pendingOrders: finalResult.pendingOrders,
-                completedOrders: finalResult.completedOrders,
-                cancelledOrders: finalResult.cancelledOrders,
-                monthlyRevenue: finalResult.monthlyRevenue,
-                totalRevenue: finalResult.totalRevenue,
-                averageOrderValue: finalResult.averageOrderValue,
-                message: 'Orders statistics retrieved successfully'
+                data: {
+                    // Core metrics
+                    totalOrders: result.totalOrders,
+                    activeOrders: result.activeOrders,
+                    
+                    // Detailed status breakdown
+                    statusBreakdown: {
+                        pending: result.pendingOrders,
+                        confirmed: result.confirmedOrders,
+                        processing: result.processingOrders,
+                        manufacturing: result.manufacturingOrders,
+                        readyToShip: result.readyToShipOrders,
+                        shipped: result.shippedOrders,
+                        delivered: result.deliveredOrders,
+                        completed: result.completedOrders,
+                        cancelled: result.cancelledOrders,
+                        refunded: result.refundedOrders
+                    },
+                    
+                    // Revenue metrics
+                    totalRevenue: result.totalRevenue,
+                    activeRevenue: result.activeRevenue,
+                    averageOrderValue: result.averageOrderValue,
+                    
+                    // Monthly metrics
+                    monthlyRevenue: monthlyResult.monthlyRevenue,
+                    monthlyOrders: monthlyResult.monthlyOrders,
+                    monthlyActiveOrders: monthlyResult.monthlyActiveOrders,
+                    
+                    // Business analytics
+                    businessMetrics,
+                    
+                    // Metadata
+                    timestamp: new Date().toISOString(),
+                    manufacturerId: manufacturerId,
+                    queryDate: {
+                        monthStart: monthStart.toISOString(),
+                        monthEnd: monthEnd.toISOString()
+                    }
+                }
             });
             
         } catch (error) {
@@ -188,12 +368,33 @@ router.get('/',
                 search
             } = req.query;
 
-            // Build query
+            // Build comprehensive query with professional filtering
             const query = { seller: new mongoose.Types.ObjectId(manufacturerId) };
 
-            // Status filter
+            // Professional status filtering with multiple status support
             if (status) {
-                query.status = status;
+                // Support multiple statuses (comma-separated)
+                const statusArray = status.split(',').map(s => s.trim()).filter(s => s);
+                if (statusArray.length === 1) {
+                    query.status = statusArray[0];
+                } else if (statusArray.length > 1) {
+                    query.status = { $in: statusArray };
+                }
+                
+                // Special status groups
+                if (status === 'active') {
+                    query.status = { 
+                        $in: ['pending', 'confirmed', 'processing', 'manufacturing', 'ready_to_ship', 'shipped'] 
+                    };
+                } else if (status === 'completed') {
+                    query.status = { 
+                        $in: ['delivered', 'completed'] 
+                    };
+                } else if (status === 'inactive') {
+                    query.status = { 
+                        $in: ['cancelled', 'refunded'] 
+                    };
+                }
             }
 
             // Date range filter
@@ -240,13 +441,17 @@ router.get('/',
                 }
             }
 
-            // Search filter
+            // Professional search filter with comprehensive matching
             if (search) {
+                const searchRegex = { $regex: search, $options: 'i' };
                 query.$or = [
-                    { orderNumber: { $regex: search, $options: 'i' } },
-                    { 'buyer.companyName': { $regex: search, $options: 'i' } },
-                    { 'buyer.name': { $regex: search, $options: 'i' } },
-                    { 'buyer.email': { $regex: search, $options: 'i' } }
+                    { orderNumber: searchRegex },
+                    { 'buyer.companyName': searchRegex },
+                    { 'buyer.name': searchRegex },
+                    { 'buyer.email': searchRegex },
+                    { 'items.product.name': searchRegex },
+                    { 'items.product.title': searchRegex },
+                    { 'items.product.sku': searchRegex }
                 ];
             }
 
@@ -260,33 +465,109 @@ router.get('/',
             const limitNum = parseInt(limit);
             const skip = (pageNum - 1) * limitNum;
 
-            // Execute query with population
-            const [orders, total] = await Promise.all([
+            // Execute comprehensive query with professional population
+            const [orders, total, statusCounts] = await Promise.all([
                 Order.find(query)
-                    .populate('buyer', 'name email companyName avatar')
-                    .populate('items.product', 'title name images category')
+                    .populate('buyer', 'name email companyName avatar phone address')
+                    .populate('items.product', 'title name images category pricing sku')
+                    .populate('items.product.category', 'name')
                     .sort(sortOptions)
                     .skip(skip)
                     .limit(limitNum)
                     .lean(),
-                Order.countDocuments(query)
+                Order.countDocuments(query),
+                // Get status distribution for current query
+                Order.aggregate([
+                    { $match: { seller: new mongoose.Types.ObjectId(manufacturerId) } },
+                    {
+                        $group: {
+                            _id: '$status',
+                            count: { $sum: 1 }
+                        }
+                    }
+                ])
             ]);
 
-            // Calculate pagination info
+            // Calculate comprehensive pagination info
             const totalPages = Math.ceil(total / limitNum);
             const hasNextPage = pageNum < totalPages;
             const hasPreviousPage = pageNum > 1;
 
+            // Process orders data for professional display
+            const processedOrders = orders.map(order => {
+                // Ensure proper data structure
+                if (typeof order.items === 'string') {
+                    try {
+                        order.items = JSON.parse(order.items);
+                    } catch (e) {
+                        order.items = [];
+                    }
+                }
+
+                // Calculate order summary
+                const totalItems = order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
+                const uniqueProducts = order.items?.length || 0;
+
+                return {
+                    ...order,
+                    // Additional computed fields
+                    totalItems,
+                    uniqueProducts,
+                    // Status display info
+                    statusInfo: {
+                        text: getStatusText(order.status),
+                        class: getStatusClass(order.status),
+                        priority: getStatusPriority(order.status)
+                    },
+                    // Business metrics
+                    businessMetrics: {
+                        isActive: ['pending', 'confirmed', 'processing', 'manufacturing', 'ready_to_ship', 'shipped'].includes(order.status),
+                        isCompleted: ['delivered', 'completed'].includes(order.status),
+                        isCancelled: ['cancelled', 'refunded'].includes(order.status),
+                        daysSinceCreated: Math.floor((new Date() - new Date(order.createdAt)) / (1000 * 60 * 60 * 24))
+                    }
+                };
+            });
+
+            // Build status distribution object
+            const statusDistribution = {};
+            statusCounts.forEach(item => {
+                statusDistribution[item._id] = item.count;
+            });
+
             res.json({
                 success: true,
-                orders,
-                pagination: {
-                    currentPage: pageNum,
-                    totalPages,
-                    totalOrders: total,
-                    hasNextPage,
-                    hasPreviousPage,
-                    limit: limitNum
+                data: {
+                    orders: processedOrders,
+                    pagination: {
+                        currentPage: pageNum,
+                        totalPages,
+                        totalOrders: total,
+                        hasNextPage,
+                        hasPreviousPage,
+                        limit: limitNum,
+                        offset: skip
+                    },
+                    filters: {
+                        applied: {
+                            status,
+                            dateRange,
+                            customer,
+                            amount,
+                            search
+                        },
+                        available: {
+                            statusDistribution,
+                            dateRanges: ['today', 'week', 'month', 'quarter', 'year', 'custom'],
+                            amountRanges: ['0-1000', '1000-5000', '5000-10000', '10000-50000', '50000+']
+                        }
+                    },
+                    metadata: {
+                        query: query,
+                        sortOptions,
+                        timestamp: new Date().toISOString(),
+                        manufacturerId: manufacturerId
+                    }
                 },
                 message: 'Orders retrieved successfully'
             });
@@ -565,9 +846,9 @@ router.patch('/:orderId/status',
                 updatedAt: new Date(),
                 $push: {
                     statusHistory: {
-                        status: status,
-                        timestamp: new Date(),
-                        updatedBy: manufacturerId,
+                status: status,
+                timestamp: new Date(),
+                updatedBy: manufacturerId,
                         notes: note,
                         reason: reason
                     }
@@ -761,7 +1042,7 @@ router.patch('/:orderId/status',
                 success: true,
                 message: `Order status updated successfully from '${currentStatus}' to '${status}'${notificationSent ? '. Customer notified.' : ''}`,
                 data: {
-                    order: {
+                order: {
                         _id: updatedOrder._id,
                         orderNumber: updatedOrder.orderNumber,
                         status: updatedOrder.status,
@@ -775,8 +1056,8 @@ router.patch('/:orderId/status',
                             completedAt: updatedOrder.completedAt,
                             cancelledAt: updatedOrder.cancelledAt
                         }
-                    },
-                    notifications: {
+                },
+                notifications: {
                         customerNotified: notificationSent,
                         channels: notificationSent ? ['email', 'inApp', 'push'] : []
                     },
@@ -1097,6 +1378,82 @@ router.patch('/bulk/status',
 // ===============================================
 
 /**
+ * Bulk cancel orders
+ * PATCH /api/manufacturer/orders/bulk-cancel
+ */
+router.patch('/bulk-cancel',
+    authenticate,
+    manufacturerOnly,
+    [
+        body('orderIds').isArray().withMessage('Order IDs must be an array'),
+        body('orderIds.*').isMongoId().withMessage('Each order ID must be valid')
+    ],
+    async (req, res) => {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Validation failed',
+                    errors: errors.array()
+                });
+            }
+
+            const { orderIds } = req.body;
+            const manufacturerId = req.user?._id || req.user?.userId;
+
+            if (!manufacturerId) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Authentication required'
+                });
+            }
+
+            // Verify all orders belong to this manufacturer
+            const orders = await Order.find({
+                _id: { $in: orderIds },
+                seller: new mongoose.Types.ObjectId(manufacturerId)
+            });
+
+            if (orders.length !== orderIds.length) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Some orders not found or access denied'
+                });
+            }
+
+            // Update orders status to cancelled
+            const result = await Order.updateMany(
+                { _id: { $in: orderIds } },
+                { 
+                    status: 'cancelled',
+                    updatedAt: new Date(),
+                    cancellationReason: 'Bulk cancelled by manufacturer'
+                }
+            );
+
+            res.json({
+                success: true,
+                message: `${result.modifiedCount} orders cancelled successfully`,
+                data: {
+                    cancelledCount: result.modifiedCount,
+                    orderIds: orderIds
+                }
+            });
+
+        } catch (error) {
+            console.error('❌ Bulk cancel orders error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to cancel orders',
+                error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+                code: 'BULK_CANCEL_ERROR'
+            });
+        }
+    }
+);
+
+/**
  * Export orders to Excel/CSV
  * POST /api/manufacturer/orders/export
  */
@@ -1106,10 +1463,15 @@ router.post('/export',
     async (req, res) => {
         try {
             const manufacturerId = req.user?._id || req.user?.userId;
-            const { format = 'excel', filters = {} } = req.body;
+            const { format = 'excel', filters = {}, orderIds } = req.body;
 
             // Build query based on filters
             const query = { seller: new mongoose.Types.ObjectId(manufacturerId) };
+            
+            // If specific order IDs provided, filter by them
+            if (orderIds && Array.isArray(orderIds) && orderIds.length > 0) {
+                query._id = { $in: orderIds };
+            }
             
             // Apply filters (similar to GET route)
             if (filters.status) query.status = filters.status;

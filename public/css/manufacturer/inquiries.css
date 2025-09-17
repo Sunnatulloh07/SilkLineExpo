@@ -399,7 +399,6 @@
   font-weight: 700;
   font-size: 1.1rem;
   color: var(--primary-color, #FF6A00);
-  border-top: 2px solid var(--border, #e2e8f0);
   margin-top: 0.5rem;
   padding-top: 1rem;
 }

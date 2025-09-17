@@ -82,7 +82,7 @@ class ManufacturerDashboard {
             });
             
         } catch (error) {
-            console.error('❌ Language initialization error:', error);
+            // console.error('❌ Language initialization error:', error);
         }
     }
 
@@ -131,7 +131,7 @@ class ManufacturerDashboard {
         try {
             const supportedLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
             if (!supportedLanguages.includes(lang)) {
-                console.error('❌ Unsupported language:', lang);
+                // console.error('❌ Unsupported language:', lang);
                 return;
             }
 
@@ -148,11 +148,11 @@ class ManufacturerDashboard {
                 languageToggle.disabled = true;
             }
             
-            // Reload page to apply language
-            window.location.reload();
+            // Use unified API route instead of reload
+            window.location.href = `/api/language/${lang}`;
             
         } catch (error) {
-            console.error('❌ Language change error:', error);
+            // console.error('❌ Language change error:', error);
         }
     }
 
@@ -253,7 +253,7 @@ class ManufacturerDashboard {
             ]);
             
         } catch (error) {
-            console.error('Failed to load dashboard data:', error);
+            // console.error('Failed to load dashboard data:', error);
             this.showErrorState();
         }
     }
@@ -315,7 +315,7 @@ class ManufacturerDashboard {
                 this.updateProductionChart(data.data);
             }
         } catch (error) {
-            console.error('Failed to load production metrics:', error);
+            // console.error('Failed to load production metrics:', error);
         }
     }
 
@@ -331,7 +331,7 @@ class ManufacturerDashboard {
                 this.renderEquipmentStatus(data.data);
             }
         } catch (error) {
-            console.error('Failed to load equipment status:', error);
+            // console.error('Failed to load equipment status:', error);
         }
     }
 
@@ -370,7 +370,7 @@ class ManufacturerDashboard {
                 this.renderRecentOrders(data.data.orders || data.data);
             }
         } catch (error) {
-            console.error('Failed to load recent orders:', error);
+            // console.error('Failed to load recent orders:', error);
         }
     }
 
@@ -415,7 +415,7 @@ class ManufacturerDashboard {
                 this.renderQualityMetrics(data.data);
             }
         } catch (error) {
-            console.error('Failed to load quality metrics:', error);
+            // console.error('Failed to load quality metrics:', error);
         }
     }
 
@@ -516,7 +516,7 @@ class ManufacturerDashboard {
     }
 
     showErrorState() {
-        console.error('Failed to load dashboard data');
+        // console.error('Failed to load dashboard data');
         // Show error message to user
     }
 

@@ -31,7 +31,7 @@ function loadConversations() {
             }
         })
         .catch(error => {
-            console.error('Error loading conversations:', error);
+            // console.error('Error loading conversations:', error);
         });
 }
 

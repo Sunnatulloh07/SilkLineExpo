@@ -680,6 +680,7 @@ router.get('/:productId/details',
     }
 );
 
+
 /**
  * Auto-save product draft
  * POST /api/manufacturer/products/:productId/autosave

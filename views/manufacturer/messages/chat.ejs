@@ -1,5 +1,5 @@
-<%- include('../partials/header', { title: `Biznes suhbat - ${partner?.companyName || 'Hamkor'}`, lng: lng || 'uz', user: user }) %>
-<%- include('../partials/sidebar', { user: user, currentPage: 'messages' }) %>
+<%- include('../partials/header', { title: `${t('manufacturer.messages.chat.page_title')} - ${partner?.companyName || t('manufacturer.messages.chat.header.partner_info')}`, lng: lng, user: user, t: t }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'messages', t: t }) %>
 
 <!-- Enhanced CSS Imports - Matching Orders Page Style -->
 <link rel="stylesheet" href="/css/products-management-redesign.css">
@@ -19,44 +19,35 @@
     
     <!-- Alibaba-Style Business Header -->
     <div class="b2b-business-header animate-fade-in">
-      <div class="b2b-header-breadcrumb">
-        <a href="/manufacturer/messages" class="b2b-breadcrumb-item">
-          <i class="fas fa-comments"></i>
-          <span>Biznes xabarlari</span>
-        </a>
-        <i class="fas fa-chevron-right b2b-breadcrumb-separator"></i>
-        <span class="b2b-breadcrumb-item" style="background: var(--b2b-primary-bg); color: var(--b2b-primary); border-color: var(--b2b-primary);">
-          <% if (typeof inquiry !== 'undefined' && inquiry) { %>
-            <i class="fas fa-question-circle"></i>
-            <span>So'rov xabarlari</span>
-          <% } else { %>
-            <i class="fas fa-shopping-cart"></i>
-            <span>Buyurtma xabarlari</span>
-          <% } %>
-        </span>
-      </div>
       
       <div class="b2b-header-main">
         <div class="b2b-business-info">
           <div class="b2b-partner-avatar">
-            <% if (partner?.companyLogo && partner.companyLogo !== '/assets/images/avatars/default-company.png') { %>
-              <img src="<%= partner.companyLogo %>" 
-                   alt="<%= partner?.companyName || 'Biznes hamkor' %>"
+            <% 
+              // Fix chat header logo - handle companyLogo object properly
+              const headerLogo = partner?.companyLogo;
+              const logoUrl = (typeof headerLogo === 'object' && headerLogo?.url) ? headerLogo.url :
+                             (typeof headerLogo === 'string') ? headerLogo :
+                             '/assets/images/avatars/default-company.png';
+            %>
+            <% if (logoUrl && logoUrl !== '/assets/images/avatars/default-company.png') { %>
+              <img src="<%= logoUrl %>" 
+                   alt="<%= partner?.companyName || (typeof t === 'function' ? t('manufacturer.messages.chat.header.partner_info') : 'Business Partner') %>"
                    onerror="this.src='/assets/images/avatars/default-company.png'">
             <% } else { %>
               <img src="/assets/images/avatars/default-company.png" 
-                   alt="<%= partner?.companyName || 'Biznes hamkor' %>"
+                   alt="<%= partner?.companyName || (typeof t === 'function' ? t('manufacturer.messages.chat.header.partner_info') : 'Business Partner') %>"
                    onerror="this.src='/assets/images/avatars/default.png'">
             <% } %>
           </div>
           
           <div class="b2b-business-details">
-            <h1><%= partner?.companyName || 'Biznes hamkor' %></h1>
+            <h1><%= partner?.companyName || (typeof t === 'function' ? t('manufacturer.messages.chat.header.partner_info') : 'Business Partner') %></h1>
             <p class="b2b-business-subtitle">
               <% if (partner?.country || partner?.city) { %>
                 <%= [partner?.country, partner?.city].filter(Boolean).join(', ') %>
               <% } else { %>
-                Biznes hamkor
+                <%= typeof t === 'function' ? t('manufacturer.messages.chat.header.partner_info') : 'Business Partner' %>
               <% } %>
             </p>
             
@@ -85,77 +76,45 @@
               </div>
             <% } %>
             
+          
+          </div>
+        </div>
             <div class="b2b-order-context">
               <% if (typeof inquiry !== 'undefined' && inquiry) { %>
                 <!-- Inquiry Context -->
                 <div class="b2b-order-badge">
                   <i class="fas fa-question-circle"></i>
-                  <span>So'rov #<%= inquiry.inquiryNumber %></span>
+              <span><%= typeof t === 'function' ? t('manufacturer.messages.chat.chat_info.inquiry_number') : 'Inquiry' %>:  #<%= inquiry.inquiryNumber %></span>
                 </div>
                 
-                <div class="b2b-status-indicator <%= inquiry.status %>">
-                  <i class="fas fa-circle"></i>
-                  <%= inquiry.status === 'pending' ? 'Kutilmoqda' :
-                      inquiry.status === 'responded' ? 'Javob berildi' :
-                      inquiry.status === 'quoted' ? 'Narx belgilandi' :
-                      inquiry.status === 'accepted' ? 'Qabul qilindi' :
-                      inquiry.status === 'rejected' ? 'Rad etildi' :
-                      inquiry.status === 'archived' ? 'Arxivlandi' : 'Ko\'rib chiqilmoqda'
-                  %>
-                </div>
-                
-                <div style="color: var(--b2b-text-muted); font-size: var(--b2b-font-size-sm);">
-                  <i class="fas fa-comment"></i>
-                  <%= inquiry.message ? inquiry.message.substring(0, 50) + '...' : 'So\'rov mavjud emas' %>
-                </div>
               <% } else if (typeof order !== 'undefined' && order) { %>
                 <!-- Order Context -->
                 <div class="b2b-order-badge">
                   <i class="fas fa-shopping-cart"></i>
-                  <span>Buyurtma #<%= order.orderNumber %></span>
+              <span><%= typeof t === 'function' ? t('manufacturer.messages.chat.chat_info.order_number') : 'Order' %>: #<%= order.orderNumber %></span>
                 </div>
                 
                 <div class="b2b-status-indicator <%= order.status %>">
                   <i class="fas fa-circle"></i>
-                  <%= order.status === 'pending' ? 'Pending Review' :
-                      order.status === 'confirmed' ? 'Confirmed' :
-                      order.status === 'in_production' ? 'In Production' :
-                      order.status === 'shipped' ? 'Shipped' :
-                      order.status === 'delivered' ? 'Delivered' :
-                      order.status === 'completed' ? 'Completed' : 
-                      order.status === 'cancelled' ? 'Cancelled' : 'Processing'
+              <%= typeof t === 'function' ? t('manufacturer.messages.chat.chat_info.order_status') : 'Order status' %>: 
+              <%= order.status === 'pending' ? (typeof t === 'function' ? t('manufacturer.messages.status.pending_review') : 'Pending Review') :
+                  order.status === 'confirmed' ? (typeof t === 'function' ? t('manufacturer.messages.status.confirmed') : 'Confirmed') :
+                  order.status === 'in_production' ? (typeof t === 'function' ? t('manufacturer.messages.status.manufacturing') : 'Manufacturing') :
+                  order.status === 'shipped' ? (typeof t === 'function' ? t('manufacturer.messages.status.shipped') : 'Shipped') :
+                  order.status === 'delivered' ? (typeof t === 'function' ? t('manufacturer.messages.status.delivered') : 'Delivered') :
+                  order.status === 'completed' ? (typeof t === 'function' ? t('manufacturer.messages.status.completed') : 'Completed') : 
+                  order.status === 'cancelled' ? (typeof t === 'function' ? t('manufacturer.messages.status.cancelled') : 'Cancelled') : (typeof t === 'function' ? t('manufacturer.messages.status.processing') : 'Processing')
                   %>
                 </div>
                 
-                <div style="color: var(--b2b-text-muted); font-size: var(--b2b-font-size-sm);">
+            <div class="b2b-order-value">
+              <%= typeof t === 'function' ? t('manufacturer.messages.chat.chat_info.order_value') : 'Order value' %>: 
+              <span>
                   <i class="fas fa-dollar-sign"></i>
                   $<%= (order.totalAmount || 0).toLocaleString() %>
+              </span>
                 </div>
               <% } %>
-            </div>
-          </div>
-        </div>
-        
-        <div class="b2b-header-actions">
-          <% if (typeof inquiry !== 'undefined' && inquiry) { %>
-            <button class="b2b-action-btn primary" onclick="viewInquiryDetails()">
-              <i class="fas fa-external-link-alt"></i>
-              <span>So'rovni ko'rish</span>
-            </button>
-          <% } else if (typeof order !== 'undefined' && order) { %>
-            <button class="b2b-action-btn primary" onclick="viewOrderDetails()">
-              <i class="fas fa-external-link-alt"></i>
-              <span>Buyurtma ko'rish</span>
-            </button>
-          <% } %>
-          <button class="b2b-action-btn secondary" onclick="scheduleVideoCall()">
-            <i class="fas fa-video"></i>
-            <span>Video chaqirish</span>
-          </button>
-          <button class="b2b-action-btn secondary" onclick="exportChatHistory()">
-            <i class="fas fa-download"></i>
-            <span>Eksport qilish</span>
-          </button>
         </div>
       </div>
     </div>
@@ -175,8 +134,8 @@
                 <i class="fas fa-handshake"></i>
               </div>
               <div class="b2b-empty-content">
-                <h3>Biznes xabarlarini boshlash</h3>
-                <p>Biznes xabarlarini boshlash uchun xabarlar yozing. Buni qilish uchun xabarlar yozing.</p>
+                <h3><%= typeof t === 'function' ? t('manufacturer.messages.chat.empty_state.title') : 'Start Business Messages' %></h3>
+                <p><%= typeof t === 'function' ? t('manufacturer.messages.chat.empty_state.description') : 'Start your business conversation by sending a message below.' %></p>
                 
                 <!-- Professional Quick Templates -->
                 <div class="b2b-quick-templates">
@@ -185,9 +144,9 @@
                       <div class="template-icon">
                         <i class="fas fa-handshake"></i>
                       </div>
-                      <h4>Xush kelibsiz</h4>
+                      <h4><%= typeof t === 'function' ? t('manufacturer.messages.chat.templates.greeting') : 'Greeting' %></h4>
                     </div>
-                    <p>Xush kelibsiz xabarini yozing</p>
+                    <p><%= typeof t === 'function' ? t('manufacturer.messages.chat.templates.greeting_text') : 'Send a welcome message' %></p>
                   </div>
                   
                   <div class="b2b-template-card" onclick="useBusinessTemplate('status')">
@@ -195,9 +154,9 @@
                       <div class="template-icon">
                         <i class="fas fa-info-circle"></i>
                       </div>
-                      <h4>Buyurtma holati</h4>
+                      <h4><%= typeof t === 'function' ? t('manufacturer.messages.chat.templates.order_status') : 'Order Status' %></h4>
                     </div>
-                    <p>Buyurtma holatini yangilang</p>
+                    <p><%= typeof t === 'function' ? t('manufacturer.messages.chat.templates.order_status_text') : 'Update order status' %></p>
                   </div>
                   
                   <div class="b2b-template-card" onclick="useBusinessTemplate('pricing')">
@@ -205,9 +164,9 @@
                       <div class="template-icon">
                         <i class="fas fa-calculator"></i>
                       </div>
-                      <h4>Narxlar</h4>
+                      <h4><%= typeof t === 'function' ? t('manufacturer.messages.chat.templates.pricing') : 'Pricing' %></h4>
                     </div>
-                    <p>Narxlar va shartlar</p>
+                    <p><%= typeof t === 'function' ? t('manufacturer.messages.chat.templates.pricing_text') : 'Pricing and terms' %></p>
                   </div>
                   
                   <div class="b2b-template-card" onclick="useBusinessTemplate('quality')">
@@ -215,9 +174,9 @@
                       <div class="template-icon">
                         <i class="fas fa-award"></i>
                       </div>
-                      <h4>Sifat nazorat</h4>
+                      <h4><%= typeof t === 'function' ? t('manufacturer.messages.chat.templates.quality') : 'Quality Control' %></h4>
                     </div>
-                    <p>Sifat nazorat va garantiyalar</p>
+                    <p><%= typeof t === 'function' ? t('manufacturer.messages.chat.templates.quality_text') : 'Quality control and guarantees' %></p>
                   </div>
                 </div>
               </div>
@@ -251,58 +210,202 @@
                 
                 <!-- Professional Message Group -->
                 <div class="b2b-message-group <%= isOwnMessage ? 'own' : 'partner' %>">
-                  <% if (!isOwnMessage && showAvatar) { %>
-                    <div class="b2b-message-avatar online">
-                      <img src="/assets/images/avatars/default-company.png" 
-                           alt="<%= partner?.companyName %>"
-                           onerror="this.src='/assets/images/avatars/default.png'">
-                    </div>
-                  <% } %>
+                    <% if (!isOwnMessage && showAvatar) { %>
+                      <div class="b2b-message-avatar online">
+                        <% 
+                          // Use sender's logo for message avatar - FIXED OBJECT HANDLING
+                          const senderLogo = message.senderId?.companyLogo;
+                          const messageAvatarUrl = (typeof senderLogo === 'object' && senderLogo?.url) ? senderLogo.url :
+                                                  (typeof senderLogo === 'string') ? senderLogo :
+                                                  (typeof partner?.companyLogo === 'object' && partner?.companyLogo?.url) ? partner.companyLogo.url :
+                                                  (typeof partner?.companyLogo === 'string') ? partner.companyLogo :
+                                                  '/assets/images/avatars/default-company.png';
+                          %>
+                          <img src="<%= messageAvatarUrl %>" 
+                             alt="<%= message.senderId?.companyName || partner?.companyName %>"
+                             onerror="this.src='/assets/images/avatars/default-company.png'">
+                      </div>
+                    <% } %>
                   
                   <div class="b2b-message-content">
                     <% if (!isOwnMessage && showAvatar) { %>
                       <div class="b2b-message-sender">
-                        <span><%= message.senderId?.companyName || partner?.companyName || 'Biznes hamkor' %></span>
-                        <span class="b2b-sender-role">Hamkor</span>
+                        <span><%= message.senderId?.companyName || partner?.companyName || (typeof t === 'function' ? t('manufacturer.messages.chat.header.partner_info') : 'Business Partner') %></span>
+                        <span class="b2b-sender-role"><%= typeof t === 'function' ? t('manufacturer.messages.chat.partner_role') : 'Partner' %></span>
                       </div>
                     <% } %>
                     
                     <div class="b2b-message-bubble">
-                      <% if (message.attachments && message.attachments.length > 0) { %>
-                        <!-- Attachment Message -->
-                        <% const attachment = message.attachments[0]; %>
-                        <% const isImage = (attachment.mimetype && attachment.mimetype.startsWith('image/')) || (attachment.mimeType && attachment.mimeType.startsWith('image/')) || (attachment.originalName && /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(attachment.originalName)); %>
+                      <% 
+                        // Fix undefined content issue
+                        const messageContent = message.content || '';
+                        const hasContent = messageContent && messageContent.trim().length > 0;
+                        const hasAttachments = message.attachments && message.attachments.length > 0;
+                        const isMixedMessage = hasContent && hasAttachments;
                         
-                        <% if (isImage) { %>
-                          <div class="b2b-image-attachment">
-                            <img src="<%= attachment.url %>" 
-                                 alt="<%= attachment.originalName %>" 
-                                 onclick="openImageModal('<%= attachment.url %>', '<%= attachment.originalName %>')"
-                                 onerror="handleChatImageError(this, '<%= attachment.url %>', '<%= attachment.originalName %>')">
+                        // Debug: Backend data will be logged in JavaScript
+                        // Safe EJS data collection
+                      %>
+                      
+                      <% if (isMixedMessage) { %>
+                        <!-- PROFESSIONAL MIXED CONTENT MESSAGE -->
+                        <div class="b2b-mixed-message">
+                          
+                          <!-- Text Content Section -->
+                          <% if (hasContent) { %>
+                            <div class="b2b-message-text-section">
+                              <div class="b2b-message-text">
+                                <%- messageContent.replace(/\n/g, '<br>') %>
+                              </div>
+                            </div>
+                          <% } %>
+                          
+                          <!-- Attachments Grid Section -->
+                          <% if (hasAttachments) { %>
+                            <div class="b2b-attachments-grid">
+                              <% 
+                                const images = message.attachments.filter(att => {
+                                  const isImage = (att.mimetype && att.mimetype.startsWith('image/')) || 
+                                                (att.mimeType && att.mimeType.startsWith('image/')) || 
+                                                (att.originalName && /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(att.originalName));
+                                  return isImage;
+                                });
+                                const files = message.attachments.filter(att => {
+                                  const isImage = (att.mimetype && att.mimetype.startsWith('image/')) || 
+                                                (att.mimeType && att.mimeType.startsWith('image/')) || 
+                                                (att.originalName && /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(att.originalName));
+                                  return !isImage;
+                                });
+                              %>
+                              
+                              <!-- Images Grid -->
+                              <% if (images.length > 0) { %>
+                                <div class="b2b-images-grid">
+                                  <% images.forEach(function(image, index) { %>
+                                    <div class="b2b-image-attachment-grid">
+                                      <img src="<%= image.url %>" 
+                                           alt="<%= image.originalName %>" 
+                                           onclick="console.log('🖱️ Image clicked:', '<%= image.url %>'); openImageModal('<%= image.url %>', '<%= image.originalName %>')"
+                                           onerror="handleChatImageError(this, '<%= image.url %>', '<%= image.originalName %>')"
+                                           style="cursor: pointer;">
                             <div class="b2b-image-overlay">
                               <i class="fas fa-search-plus"></i>
                             </div>
                           </div>
-                        <% } else { %>
-                          <div class="b2b-file-attachment">
+                                  <% }); %>
+                                </div>
+                              <% } %>
+                              
+                              <!-- Files List -->
+                              <% if (files.length > 0) { %>
+                                <div class="b2b-files-list">
+                                  <% files.forEach(function(file, index) { %>
+                                    <div class="b2b-file-attachment-grid">
                             <div class="b2b-file-icon">
-                              <i class="fas fa-file-alt"></i>
+                                        <% 
+                                          const fileExt = file.originalName.split('.').pop().toLowerCase();
+                                          let iconClass = 'fas fa-file-alt';
+                                          if (fileExt === 'pdf') iconClass = 'fas fa-file-pdf';
+                                          else if (['doc', 'docx'].includes(fileExt)) iconClass = 'fas fa-file-word';
+                                          else if (['xls', 'xlsx'].includes(fileExt)) iconClass = 'fas fa-file-excel';
+                                          else if (['zip', 'rar', '7z'].includes(fileExt)) iconClass = 'fas fa-file-archive';
+                                          else if (['mp4', 'avi', 'mov'].includes(fileExt)) iconClass = 'fas fa-file-video';
+                                          else if (['mp3', 'wav', 'flac'].includes(fileExt)) iconClass = 'fas fa-file-audio';
+                                        %>
+                                        <i class="<%= iconClass %>"></i>
                             </div>
                             <div class="b2b-file-details">
-                              <h6><%= attachment.originalName %></h6>
-                              <p><%= (attachment.size / 1024).toFixed(1) %> KB</p>
+                                        <h6><%= file.originalName %></h6>
+                                        <p><%= (file.size / 1024).toFixed(1) %> KB</p>
                             </div>
                             <div class="b2b-file-actions">
-                              <a href="<%= attachment.url %>" download="<%= attachment.originalName %>" class="b2b-file-download">
+                                        <a href="<%= file.url %>" download="<%= file.originalName %>" class="b2b-file-download">
                                 <i class="fas fa-download"></i>
                               </a>
                             </div>
+                                    </div>
+                                  <% }); %>
                           </div>
                         <% } %>
+                              
+                            </div>
+                          <% } %>
+                          
+                        </div>
+                        
+                      <% } else if (hasAttachments) { %>
+                        <!-- ATTACHMENT ONLY MESSAGE -->
+                        <div class="b2b-attachments-grid">
+                          <% 
+                            const images = message.attachments.filter(att => {
+                              const isImage = (att.mimetype && att.mimetype.startsWith('image/')) || 
+                                            (att.mimeType && att.mimeType.startsWith('image/')) || 
+                                            (att.originalName && /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(att.originalName));
+                              return isImage;
+                            });
+                            const files = message.attachments.filter(att => {
+                              const isImage = (att.mimetype && att.mimetype.startsWith('image/')) || 
+                                            (att.mimeType && att.mimeType.startsWith('image/')) || 
+                                            (att.originalName && /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(att.originalName));
+                              return !isImage;
+                            });
+                          %>
+                          
+                          <!-- Images Grid -->
+                          <% if (images.length > 0) { %>
+                            <div class="b2b-images-grid">
+                              <% images.forEach(function(image, index) { %>
+                                <div class="b2b-image-attachment-grid">
+                                  <img src="<%= image.url %>" 
+                                       alt="<%= image.originalName %>" 
+                                       onclick="console.log('🖱️ Image clicked:', '<%= image.url %>'); openImageModal('<%= image.url %>', '<%= image.originalName %>')"
+                                       onerror="handleChatImageError(this, '<%= image.url %>', '<%= image.originalName %>')"
+                                       style="cursor: pointer;">
+                                  <div class="b2b-image-overlay">
+                                    <i class="fas fa-search-plus"></i>
+                                  </div>
+                                </div>
+                              <% }); %>
+                            </div>
+                          <% } %>
+                          
+                          <!-- Files List -->
+                          <% if (files.length > 0) { %>
+                            <div class="b2b-files-list">
+                              <% files.forEach(function(file, index) { %>
+                                <div class="b2b-file-attachment-grid">
+                                  <div class="b2b-file-icon">
+                                    <% 
+                                      const fileExt = file.originalName.split('.').pop().toLowerCase();
+                                      let iconClass = 'fas fa-file-alt';
+                                      if (fileExt === 'pdf') iconClass = 'fas fa-file-pdf';
+                                      else if (['doc', 'docx'].includes(fileExt)) iconClass = 'fas fa-file-word';
+                                      else if (['xls', 'xlsx'].includes(fileExt)) iconClass = 'fas fa-file-excel';
+                                      else if (['zip', 'rar', '7z'].includes(fileExt)) iconClass = 'fas fa-file-archive';
+                                      else if (['mp4', 'avi', 'mov'].includes(fileExt)) iconClass = 'fas fa-file-video';
+                                      else if (['mp3', 'wav', 'flac'].includes(fileExt)) iconClass = 'fas fa-file-audio';
+                                    %>
+                                    <i class="<%= iconClass %>"></i>
+                                  </div>
+                                  <div class="b2b-file-details">
+                                    <h6><%= file.originalName %></h6>
+                                    <p><%= (file.size / 1024).toFixed(1) %> KB</p>
+                                  </div>
+                                  <div class="b2b-file-actions">
+                                    <a href="<%= file.url %>" download="<%= file.originalName %>" class="b2b-file-download">
+                                      <i class="fas fa-download"></i>
+                                    </a>
+                                  </div>
+                                </div>
+                              <% }); %>
+                            </div>
+                          <% } %>
+                        </div>
+                        
                       <% } else { %>
-                        <!-- Regular Text Message -->
+                        <!-- TEXT ONLY MESSAGE -->
                         <div class="b2b-message-text">
-                          <%- message.content.replace(/\n/g, '<br>') %>
+                          <%- messageContent.replace(/\n/g, '<br>') %>
                         </div>
                       <% } %>
                       
@@ -321,11 +424,11 @@
                         <% if (isOwnMessage) { %>
                           <div class="b2b-message-status">
                             <% if (message.status === 'read') { %>
-                              <i class="fas fa-check-double status-read" title="O'qildi"></i>
+                              <i class="fas fa-check-double status-read" title="<%= typeof t === 'function' ? t('manufacturer.messages.chat.messages.message_read') : 'Read' %>"></i>
                             <% } else if (message.status === 'delivered') { %>
-                              <i class="fas fa-check-double status-delivered" title="Yetkazildi"></i>
+                              <i class="fas fa-check-double status-delivered" title="<%= typeof t === 'function' ? t('manufacturer.messages.chat.messages.message_delivered') : 'Delivered' %>"></i>
                             <% } else { %>
-                              <i class="fas fa-check status-sent" title="Yuborildi"></i>
+                              <i class="fas fa-check status-sent" title="<%= typeof t === 'function' ? t('manufacturer.messages.chat.messages.message_sent') : 'Sent' %>"></i>
                             <% } %>
                           </div>
                         <% } %>
@@ -335,9 +438,16 @@
                   
                   <% if (isOwnMessage) { %>
                     <div class="b2b-message-avatar">
-                      <img src="/assets/images/avatars/manufacturer-avatar.png" 
+                      <% 
+                        // Fix own message avatar - handle companyLogo object
+                        const ownLogo = currentUser.companyLogo;
+                        const ownAvatarUrl = (typeof ownLogo === 'object' && ownLogo?.url) ? ownLogo.url :
+                                           (typeof ownLogo === 'string') ? ownLogo :
+                                           '/assets/images/avatars/manufacturer-avatar.png';
+                      %>
+                      <img src="<%= ownAvatarUrl %>" 
                            alt="<%= currentUser.company %>"
-                           onerror="this.src='/assets/images/avatars/default.png'">
+                           onerror="this.src='/assets/images/avatars/manufacturer-avatar.png'">
                     </div>
                   <% } %>
                 </div>
@@ -357,7 +467,7 @@
               <div class="b2b-input-wrapper">
                 <textarea id="messageInput" 
                           class="b2b-message-input"
-                          placeholder="Xabar yozing..."
+                          placeholder="<%= typeof t === 'function' ? t('manufacturer.messages.chat.messages.placeholder') : 'Type a message...' %>"
                           rows="1"
                           maxlength="10000"
                           onkeydown="handleProfessionalKeyPress(event)"
@@ -365,7 +475,7 @@
                 
                           <div class="d-flex gap-4">
                             <div class="telegram-attachment-wrapper">
-                             <button type="button" class="telegram-attachment-btn" id="attachmentBtn" title="Attach">
+                             <button type="button" class="telegram-attachment-btn" id="attachmentBtn" title="<%= typeof t === 'function' ? t('manufacturer.messages.chat.messages.attachment') : 'Attach' %>">
                                <i class="fas fa-paperclip"></i>
                              </button>
                              
@@ -373,15 +483,15 @@
                              <div class="telegram-attachment-menu" id="attachmentMenu">
                                <button type="button" class="telegram-menu-item" onclick="attachFile()">
                                  <i class="fas fa-file-alt"></i>
-                                 <span>Fayl</span>
+                                 <span><%= typeof t === 'function' ? t('manufacturer.messages.chat.messages.file_upload') : 'File' %></span>
                                </button>
                                <button type="button" class="telegram-menu-item" onclick="attachImage()">
                                  <i class="fas fa-image"></i>
-                                 <span>Rasm</span>
+                                 <span><%= typeof t === 'function' ? t('manufacturer.messages.chat.messages.image_upload') : 'Image' %></span>
                                </button>
                                <button type="button" class="telegram-menu-item" onclick="insertEmoji()">
                                  <i class="fas fa-smile"></i>
-                                <span>Emoji</span>
+                                <span><%= typeof t === 'function' ? t('manufacturer.messages.chat.emoji') : 'Emoji' %></span>
                                </button>
                              </div>
                            </div>
@@ -391,8 +501,8 @@
                               <span id="charCount">0</span>/10,000
                             </div>
                             <div class="b2b-input-hints">
-                              <span><kbd>Enter</kbd> yuborish</span>
-                              <span><kbd>Shift+Enter</kbd> yangi qator</span>
+                              <span><kbd>Enter</kbd> <%= typeof t === 'function' ? t('manufacturer.messages.chat.send_hint') : 'send' %></span>
+                              <span><kbd>Shift+Enter</kbd> <%= typeof t === 'function' ? t('manufacturer.messages.chat.new_line_hint') : 'new line' %></span>
                             </div>
                           </div>
 
@@ -418,9 +528,9 @@
         <div class="b2b-sidebar-header">
           <h3>
             <i class="fas fa-shopping-cart"></i>
-            <span>Buyurtma ma'lumotlari</span>
+            <span><%= typeof t === 'function' ? t('manufacturer.messages.chat.order_info.title') : 'Order Information' %></span>
           </h3>
-          <button class="b2b-sidebar-toggle" id="chatSidebarToggle" title="Yon panelni yopish/ochish">
+          <button class="b2b-sidebar-toggle" id="chatSidebarToggle" title="<%= typeof t === 'function' ? t('manufacturer.messages.chat.toggle_sidebar') : 'Toggle sidebar' %>">
             <i class="fas fa-chevron-right"></i>
           </button>
         </div>
@@ -431,16 +541,16 @@
           <!-- Inquiry Details Section -->
           <div class="b2b-info-section">
             <div class="b2b-section-header">
-              <h4><i class="fas fa-info-circle"></i> So'rov tahlili</h4>
+              <h4><i class="fas fa-info-circle"></i> <%= typeof t === 'function' ? t('manufacturer.messages.chat.inquiry_analysis') : 'Inquiry Analysis' %></h4>
             </div>
             <div class="b2b-info-card">
               <div class="b2b-info-grid">
                 <div class="b2b-info-item">
-                  <label>So'rov raqami</label>
+                  <label><%= typeof t === 'function' ? t('manufacturer.messages.chat.chat_info.inquiry_number') : 'Inquiry' %></label>
                   <span class="b2b-info-value">#<%= inquiry.inquiryNumber %></span>
                 </div>
                 <div class="b2b-info-item">
-                  <label>So'rov sanasi</label>
+                  <label><%= typeof t === 'function' ? t('manufacturer.messages.chat.inquiry_date') : 'Inquiry Date' %></label>
                   <span class="b2b-info-value">
                     <%= new Date(inquiry.createdAt).toLocaleDateString('en-US', { 
                       month: 'short', 
@@ -450,20 +560,20 @@
                   </span>
                 </div>
                 <div class="b2b-info-item">
-                  <label>Holat</label>
+                  <label><%= typeof t === 'function' ? t('manufacturer.messages.table.headers.status') : 'Status' %></label>
                   <span class="b2b-status-indicator <%= inquiry.status %>">
-                    <%= inquiry.status === 'pending' ? 'Kutilmoqda' :
-                        inquiry.status === 'responded' ? 'Javob berildi' :
-                        inquiry.status === 'quoted' ? 'Narx belgilandi' :
-                        inquiry.status === 'accepted' ? 'Qabul qilindi' :
-                        inquiry.status === 'rejected' ? 'Rad etildi' :
-                        inquiry.status === 'archived' ? 'Arxivlandi' : 'Ko\'rib chiqilmoqda'
+                    <%= inquiry.status === 'pending' ? (typeof t === 'function' ? t('manufacturer.messages.status.pending') : 'Pending') :
+                        inquiry.status === 'responded' ? (typeof t === 'function' ? t('manufacturer.messages.status.responded') : 'Responded') :
+                        inquiry.status === 'quoted' ? (typeof t === 'function' ? t('manufacturer.messages.status.quoted') : 'Quoted') :
+                        inquiry.status === 'accepted' ? (typeof t === 'function' ? t('manufacturer.messages.status.accepted') : 'Accepted') :
+                        inquiry.status === 'rejected' ? (typeof t === 'function' ? t('manufacturer.messages.status.rejected') : 'Rejected') :
+                        inquiry.status === 'archived' ? (typeof t === 'function' ? t('manufacturer.messages.status.archived') : 'Archived') : (typeof t === 'function' ? t('manufacturer.messages.status.reviewing') : 'Reviewing')
                     %>
                   </span>
                 </div>
                 <div class="b2b-info-item">
-                  <label>Xabar</label>
-                  <span class="b2b-info-value"><%= inquiry.message || 'Xabar mavjud emas' %></span>
+                  <label><%= typeof t === 'function' ? t('manufacturer.messages.pagination.messages') : 'Message' %></label>
+                  <span class="b2b-info-value"><%= inquiry.message || (typeof t === 'function' ? t('manufacturer.messages.chat.no_inquiry_message') : 'No inquiry message') %></span>
                 </div>
               </div>
             </div>
@@ -472,16 +582,16 @@
           <!-- Order Details Section -->
           <div class="b2b-info-section">
             <div class="b2b-section-header">
-              <h4><i class="fas fa-info-circle"></i> Buyurtma tahlili</h4>
+              <h4><i class="fas fa-info-circle"></i> <%= typeof t === 'function' ? t('manufacturer.messages.chat.order_analysis') : 'Order Analysis' %></h4>
             </div>
             <div class="b2b-info-card">
               <div class="b2b-info-grid">
                 <div class="b2b-info-item">
-                  <label>Buyurtma raqami</label>
+                  <label><%= typeof t === 'function' ? t('manufacturer.messages.chat.order_info.order_number') : 'Order Number' %></label>
                   <span class="b2b-info-value">#<%= order.orderNumber %></span>
                 </div>
                 <div class="b2b-info-item">
-                  <label>Buyurtma sanasi</label>
+                  <label><%= typeof t === 'function' ? t('manufacturer.messages.chat.order_info.created_date') : 'Order Date' %></label>
                   <span class="b2b-info-value">
                     <%= new Date(order.createdAt).toLocaleDateString('en-US', { 
                       month: 'short', 
@@ -491,19 +601,19 @@
                   </span>
                 </div>
                 <div class="b2b-info-item">
-                  <label>Umumiy summa</label>
+                  <label><%= typeof t === 'function' ? t('manufacturer.messages.chat.order_info.total_amount') : 'Total Amount' %></label>
                   <span class="b2b-info-value b2b-price">$<%= (order.totalAmount || 0).toLocaleString() %></span>
                 </div>
                 <div class="b2b-info-item">
-                  <label>Holat</label>
+                  <label><%= typeof t === 'function' ? t('manufacturer.messages.table.headers.status') : 'Status' %></label>
                   <span class="b2b-status-indicator <%= order.status %>">
-                    <%= order.status === 'pending' ? 'Kutilmoqda' :
-                        order.status === 'confirmed' ? 'Tasdiqlandi' :
-                        order.status === 'in_production' ? 'Ishlab chiqarilmoqda' :
-                        order.status === 'shipped' ? 'Yuborildi' :
-                        order.status === 'delivered' ? 'Yetkazildi' :
-                        order.status === 'completed' ? 'Tugallandi' : 
-                        order.status === 'cancelled' ? 'Bekor qilindi' : 'Qayta ishlanmoqda'
+                    <%= order.status === 'pending' ? (typeof t === 'function' ? t('manufacturer.messages.status.pending') : 'Pending') :
+                        order.status === 'confirmed' ? (typeof t === 'function' ? t('manufacturer.messages.status.confirmed') : 'Confirmed') :
+                        order.status === 'in_production' ? (typeof t === 'function' ? t('manufacturer.messages.status.manufacturing') : 'Manufacturing') :
+                        order.status === 'shipped' ? (typeof t === 'function' ? t('manufacturer.messages.status.shipped') : 'Shipped') :
+                        order.status === 'delivered' ? (typeof t === 'function' ? t('manufacturer.messages.status.delivered') : 'Delivered') :
+                        order.status === 'completed' ? (typeof t === 'function' ? t('manufacturer.messages.status.completed') : 'Completed') : 
+                        order.status === 'cancelled' ? (typeof t === 'function' ? t('manufacturer.messages.status.cancelled') : 'Cancelled') : (typeof t === 'function' ? t('manufacturer.messages.status.processing') : 'Processing')
                     %>
                   </span>
                 </div>
@@ -515,19 +625,26 @@
           <!-- Business Partner Section -->
           <div class="b2b-info-section">
             <div class="b2b-section-header">
-              <h4><i class="fas fa-building"></i> Biznes hamkor</h4>
+              <h4><i class="fas fa-building"></i> <%= typeof t === 'function' ? t('manufacturer.messages.chat.business_partner') : 'Business Partner' %></h4>
             </div>
             <div class="b2b-partner-card">
               <div class="b2b-partner-header">
                 <div class="b2b-partner-avatar-sm">
-                  <img src="/assets/images/avatars/default-company.png" 
+                  <% 
+                    // Fix sidebar logo - handle companyLogo object properly
+                    const sidebarLogo = partner?.companyLogo;
+                    const sidebarLogoUrl = (typeof sidebarLogo === 'object' && sidebarLogo?.url) ? sidebarLogo.url :
+                                         (typeof sidebarLogo === 'string') ? sidebarLogo :
+                                         '/assets/images/avatars/default-company.png';
+                  %>
+                  <img src="<%= sidebarLogoUrl %>" 
                        alt="<%= partner?.companyName %>"
-                       onerror="this.src='/assets/images/avatars/default.png'">
+                       onerror="this.src='/assets/images/avatars/default-company.png'">
                   <div class="b2b-online-indicator"></div>
                 </div>
                 <div class="b2b-partner-info">
-                  <h5><%= partner?.companyName || 'Biznes hamkor' %></h5>
-                  <p><%= partner?.email || 'Email mavjud emas' %></p>
+                  <h5><%= partner?.companyName || (typeof t === 'function' ? t('manufacturer.messages.chat.header.partner_info') : 'Business Partner') %></h5>
+                  <p><%= partner?.email || (typeof t === 'function' ? t('manufacturer.messages.chat.email_not_available') : 'Email not available') %></p>
                 </div>
               </div>
               <% if (partner?.phone) { %>
@@ -537,18 +654,18 @@
                 </div>
               <% } %>
               <div class="b2b-partner-actions">
-                <button class="b2b-partner-action" onclick="initiateCall()">
+                <% if (partner?.phone) { %>
+                  <button class="b2b-partner-action" onclick="initiateCall('<%= partner.phone %>')">
                   <i class="fas fa-phone"></i>
-                  <span>Qo'ng'iroq</span>
+                    <span><%= typeof t === 'function' ? t('manufacturer.messages.chat.actions.call') : 'Call' %></span>
                 </button>
-                <button class="b2b-partner-action" onclick="sendEmail()">
+                <% } %>
+                <% if (partner?.email) { %>
+                  <button class="b2b-partner-action" onclick="sendEmail('<%= partner.email %>')">
                   <i class="fas fa-envelope"></i>
-                  <span>Elektron pochta</span>
+                    <span><%= typeof t === 'function' ? t('manufacturer.messages.chat.actions.email') : 'Email' %></span>
                 </button>
-                <button class="b2b-partner-action" onclick="viewProfile()">
-                  <i class="fas fa-user"></i>
-                  <span>Profil</span>
-                </button>
+                <% } %>
               </div>
             </div>
           </div>
@@ -559,12 +676,12 @@
             <div class="b2b-section-header">
               <h4>
                 <i class="fas fa-comment"></i> 
-                So'rov xabari
+                <%= typeof t === 'function' ? t('manufacturer.messages.chat.inquiry_message') : 'Inquiry Message' %>
               </h4>
             </div>
             <div class="b2b-inquiry-message">
               <div class="b2b-message-content">
-                <p><%= inquiry.message || 'So\'rov xabari mavjud emas' %></p>
+                <p><%= inquiry.message || (typeof t === 'function' ? t('manufacturer.messages.chat.no_inquiry_message') : 'No inquiry message') %></p>
                 <div class="b2b-message-meta">
                   <span class="b2b-message-time">
                     <i class="fas fa-clock"></i>
@@ -586,11 +703,8 @@
             <div class="b2b-section-header">
               <h4>
                 <i class="fas fa-box"></i> 
-                Mahsulotlar (<%= (order.items || []).length %>)
+                <%= typeof t === 'function' ? t('manufacturer.messages.chat.products') : 'Products' %> (<%= (order.items || []).length %>)
               </h4>
-              <button class="b2b-section-toggle" onclick="toggleSection('products')">
-                <i class="fas fa-chevron-down"></i>
-              </button>
             </div>
             <div class="b2b-products-list" id="productsSection">
               <% if (order.items && order.items.length > 0) { %>
@@ -612,15 +726,15 @@
                       <h6><%= item.product?.name || item.product?.title || 'Product' %></h6>
                       <div class="b2b-product-specs">
                         <div class="b2b-spec-item">
-                          <label>Soni:</label>
-                          <span><%= item.quantity %> birlik</span>
+                          <label><%= typeof t === 'function' ? t('manufacturer.messages.chat.quantity') : 'Quantity' %>:</label>
+                          <span><%= item.quantity %> <%= typeof t === 'function' ? t('manufacturer.messages.chat.units') : 'units' %></span>
                         </div>
                         <div class="b2b-spec-item">
-                          <label>Birlik narx:</label>
+                          <label><%= typeof t === 'function' ? t('manufacturer.messages.chat.unit_price') : 'Unit Price' %>:</label>
                           <span class="b2b-price">$<%= (item.unitPrice || 0).toLocaleString() %></span>
                         </div>
                         <div class="b2b-spec-item">
-                            <label>Umumiy:</label>
+                            <label><%= typeof t === 'function' ? t('manufacturer.messages.chat.total') : 'Total' %>:</label>
                           <span class="b2b-price b2b-total">$<%= ((item.unitPrice || 0) * item.quantity).toLocaleString() %></span>
                         </div>
                       </div>
@@ -630,81 +744,40 @@
               <% } else { %>
                 <div class="b2b-empty-products">
                   <i class="fas fa-box-open"></i>
-                  <p>Mahsulotlar ma'lumotlari mavjud emas</p>
+                  <p><%= typeof t === 'function' ? t('manufacturer.messages.chat.no_products_info') : 'Product information not available' %></p>
                 </div>
               <% } %>
             </div>
           </div>
           <% } %>
 
-          <!-- Quick Actions Section -->
+          <!-- Quick Actions Section - ONLY FOR ORDERS -->
+          <% if (typeof order !== 'undefined' && order) { %>
           <div class="b2b-info-section">
             <div class="b2b-section-header">
-              <h4><i class="fas fa-bolt"></i> Tezkor amallar</h4>
+              <h4><i class="fas fa-bolt"></i> <%= typeof t === 'function' ? t('manufacturer.messages.chat.quick_actions.title') : 'Quick Actions' %></h4>
             </div>
             <div class="b2b-quick-actions">
               <button class="b2b-quick-action primary" onclick="viewOrderDetails()">
                 <i class="fas fa-external-link-alt"></i>
-                <span>To'liq buyurtma</span>
+                <span><%= typeof t === 'function' ? t('manufacturer.messages.chat.quick_actions.full_order') : 'Full Order' %></span>
               </button>
               <button class="b2b-quick-action" onclick="updateOrderStatus()">
                 <i class="fas fa-edit"></i>
-                <span>Holatni yangilash</span>
-              </button>
-              <button class="b2b-quick-action" onclick="generateQuote()">
-                <i class="fas fa-file-invoice-dollar"></i>
-                <span>Taklif yaratish</span>
-              </button>
-              <button class="b2b-quick-action" onclick="scheduleVideoCall()">
-                <i class="fas fa-video"></i>
-                <span>Qo'ng'iroq belgilash</span>
+                <span><%= typeof t === 'function' ? t('manufacturer.messages.chat.quick_actions.update_status') : 'Update Status' %></span>
               </button>
               <button class="b2b-quick-action" onclick="sendSample()">
                 <i class="fas fa-shipping-fast"></i>
-                <span>Namuna yuborish</span>
+                <span><%= typeof t === 'function' ? t('manufacturer.messages.chat.quick_actions.send_sample') : 'Send Sample' %></span>
               </button>
               <button class="b2b-quick-action" onclick="requestPayment()">
                 <i class="fas fa-credit-card"></i>
-                <span>To'lov so'rash</span>
+                <span><%= typeof t === 'function' ? t('manufacturer.messages.chat.quick_actions.request_payment') : 'Request Payment' %></span>
               </button>
             </div>
           </div>
-
-          <!-- Muloqot tarixi bo'limi -->
-          <div class="b2b-info-section">
-            <div class="b2b-section-header">
-              <h4><i class="fas fa-history"></i> Muloqot tarixi</h4>
-              <button class="b2b-section-toggle" onclick="toggleSection('history')">
-                <i class="fas fa-chevron-down"></i>
-              </button>
+          <% } %>
             </div>
-            <div class="b2b-comm-history" id="historySection">
-              <div class="b2b-comm-stats">
-                <div class="b2b-stat">
-                  <label>Xabarlar:</label>
-                  <span><%= messages.length %></span>
-                </div>
-                <div class="b2b-stat">
-                  <label>Oxirgi faoliyat:</label>
-                  <span>
-                    <% if (messages.length > 0) { %>
-                      <%= new Date(messages[messages.length - 1].createdAt).toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: '2-digit' 
-                      }) %>
-                    <% } else { %>
-                      Faoliyat mavjud emas
-                    <% } %>
-                  </span>
-                </div>
-              </div>
-              <button class="b2b-export-btn" onclick="exportChatHistory()">
-                <i class="fas fa-download"></i>
-                <span>Xabarlar eksport qilish</span>
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -714,50 +787,81 @@
 <!-- Dashboard Initialization - Theme & Core Functions -->
 <script src="/js/manufacturer/dashboard-init.js"></script>
 
+<script id="chat-data" type="application/json">
+  {
+    "inquiry": <%- JSON.stringify(typeof inquiry !== 'undefined' ? inquiry : null) %>,
+    "order": <%- JSON.stringify(typeof order !== 'undefined' ? order : null) %>,
+    "partner": <%- JSON.stringify(partner || null) %>,
+    "currentUser": <%- JSON.stringify(user || null) %>
+  }
+</script>
+
+<script type="application/json" id="inquiry-data">
+  <%- JSON.stringify({
+    id: (typeof inquiry !== 'undefined' && inquiry) ? inquiry._id : null,
+    inquiryNumber: (typeof inquiry !== 'undefined' && inquiry) ? inquiry.inquiryNumber : "N/A",
+    status: (typeof inquiry !== 'undefined' && inquiry) ? inquiry.status : null,
+    message: (typeof inquiry !== 'undefined' && inquiry) ? inquiry.message : "",
+    createdAt: (typeof inquiry !== 'undefined' && inquiry) ? inquiry.createdAt : null
+  }) %>
+</script>
+
+<script type="application/json" id="order-data">
+  <%- JSON.stringify({
+    id: (typeof order !== 'undefined' && order) ? order._id : null,
+    orderNumber: (typeof order !== 'undefined' && order) ? order.orderNumber : "N/A",
+    status: (typeof order !== 'undefined' && order) ? order.status : null,
+    totalAmount: (typeof order !== 'undefined' && order) ? parseFloat(order.totalAmount || 0) : 0,
+    createdAt: (typeof order !== 'undefined' && order) ? order.createdAt : null,
+    items: (typeof order !== 'undefined' && order) ? order.items : []
+  }) %>
+</script>
+
 <!-- Chat Page Data Configuration -->
 <script>
 // 🌐 GLOBAL CHAT CONFIGURATION - EJS TO JS DATA TRANSFER
 /* eslint-disable */
-window.B2BChat = window.B2BChat || {};
+const chatData = document.getElementById('chat-data').textContent;
+const chatDataJson = JSON.parse(chatData);
+  window.B2BChat = window.B2BChat || {};
 
 // Detect conversation type from URL
 window.B2BChat.conversationType = window.location.pathname.includes('/inquiry/') ? 'inquiry' : 'order';
 
 // Conversation data based on type
-<% if (typeof inquiry !== 'undefined' && inquiry) { %>
-window.B2BChat.inquiryData = {
-    id: '<%= inquiry._id %>',
-    inquiryNumber: '<%= inquiry.inquiryNumber || "N/A" %>',
-    status: '<%= inquiry.status %>',
-    message: '<%= inquiry.message || "" %>',
-    createdAt: '<%= inquiry.createdAt %>'
-};
-<% } else { %>
-window.B2BChat.inquiryData = null;
-<% } %>
+try {
+  const inquiryDataElement = document.getElementById('inquiry-data');
+  if (inquiryDataElement && inquiryDataElement.textContent.trim()) {
+    window.B2BChat.inquiryData = JSON.parse(inquiryDataElement.textContent);
+  } else {
+    window.B2BChat.inquiryData = null;
+  }
+} catch (error) {
+  console.error('Error parsing inquiry data:', error);
+  window.B2BChat.inquiryData = null;
+}
 
-<% if (typeof order !== 'undefined' && order) { %>
-window.B2BChat.orderData = {
-    id: '<%= order._id %>',
-    orderNumber: '<%= order.orderNumber || "N/A" %>',
-    status: '<%= order.status %>',
-    totalAmount: parseFloat('<%= order.totalAmount || 0 %>'),
-    createdAt: '<%= order.createdAt %>',
-    items: '<%- JSON.stringify(order.items || []) %>'
-};
-<% } else { %>
-window.B2BChat.orderData = null;
-<% } %>
+try {
+  const orderDataElement = document.getElementById('order-data');
+  if (orderDataElement && orderDataElement.textContent.trim()) {
+    window.B2BChat.orderData = JSON.parse(orderDataElement.textContent);
+  } else {
+    window.B2BChat.orderData = null;
+  }
+} catch (error) {
+  console.error('Error parsing order data:', error);
+  window.B2BChat.orderData = null;
+} 
 
 window.B2BChat.currentUser = {
-    id: '<%= currentUser.id %>',
-    company: '<%= currentUser.company || currentUser.companyName %>',
-    companyType: '<%= currentUser.companyType %>'
+    id: '<%= user?._id || user?.id || "" %>',
+    company: '<%= user?.company || user?.companyName || "" %>',
+    companyType: '<%= user?.companyType || "" %>'
 };
 
 window.B2BChat.partner = {
     id: '<%= partner?._id || "unknown" %>',
-    companyName: '<%= partner?.companyName || "Hamkor kompaniya" %>',
+    companyName: '<%= partner?.companyName || (typeof t === "function" ? t("messages.chat.header.partner_info") : "Business Partner") %>',
     email: '<%= partner?.email || "" %>',
     phone: '<%= partner?.phone || "" %>'
 };
@@ -770,6 +874,54 @@ window.B2BChat.pagination = null;
 /* eslint-enable */
 </script>
 
+  <!-- i18n Initialization -->
+  <script src="/js/i18n.js"></script>
+
+  <!-- Professional Unified Header Management -->
+  <script src="/js/manufacturer/manufacturer-header.js"></script>
+
+  <script type="application/json" id="translations">
+    {
+      "manufacturer.messages.chat.chat_info.inquiry_number": "<%= t('manufacturer.messages.chat.chat_info.inquiry_number') %>",
+      "manufacturer.messages.chat.chat_info.order_number": "<%= t('manufacturer.messages.chat.chat_info.order_number') %>",
+      "manufacturer.messages.chat.messages.online": "<%= t('manufacturer.messages.chat.messages.online') %>",
+      "manufacturer.messages.chat.no_messages_yet": "<%= t('manufacturer.messages.chat.no_messages_yet') %>",
+      "manufacturer.messages.chat.no_messages": "<%= t('manufacturer.messages.chat.no_messages') %>",
+      "manufacturer.messages.chat.text_message": "<%= t('manufacturer.messages.chat.text_message') %>",
+      "manufacturer.messages.status.pending": "<%= t('manufacturer.messages.status.pending') %>",
+      "manufacturer.messages.status.cancelled": "<%= t('manufacturer.messages.status.cancelled') %>",
+      "manufacturer.messages.status.unknown": "<%= t('manufacturer.messages.status.unknown') %>",
+      "manufacturer.messages.chat.file_name": "<%= t('manufacturer.messages.chat.file_name') %>",
+      "manufacturer.messages.chat.file_size": "<%= t('manufacturer.messages.chat.file_size') %>",
+      "manufacturer.messages.chat.file_type": "<%= t('manufacturer.messages.chat.file_type') %>",
+      "manufacturer.messages.chat.file_path": "<%= t('manufacturer.messages.chat.file_path') %>",
+      "manufacturer.messages.chat.file_url": "<%= t('manufacturer.messages.chat.file_url') %>",
+      "manufacturer.messages.chat.file_description": "<%= t('manufacturer.messages.chat.file_description') %>",
+      "manufacturer.messages.chat.file_created_at": "<%= t('manufacturer.messages.chat.file_created_at') %>"
+    }
+  </script>
+
+  <!-- Set translation function for JavaScript -->
+<script>
+// Pass server-side translations to client-side
+window.translations = JSON.parse(document.getElementById('translations').textContent);
+
+window.t = function(key, fallback = '') {
+  try {
+    // Use server-side translations
+    if (window.translations && window.translations[key]) {
+      return window.translations[key];
+    }
+    // Fallback to provided fallback or key
+    return fallback || key;
+  } catch (error) {
+    console.error('Translation error:', error);
+    return fallback || key;
+  }
+};
+</script>
+
   <script src="/js/manufacturer/messages-chat.js"></script>
+
 </body>
 </html>

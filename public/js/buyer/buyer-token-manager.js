@@ -504,7 +504,7 @@ class BuyerTokenManager {
      */
     log(...args) {
         if (this.config.debug) {
-            console.log('[BuyerTokenManager]', ...args);
+            // console.log('[BuyerTokenManager]', ...args);
         }
     }
 

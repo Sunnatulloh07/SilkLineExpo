@@ -14,7 +14,7 @@ class ManufacturerShipping {
      * Initialize shipping page functionality
      */
     init() {
-        console.log('🚚 Initializing Manufacturer Shipping Page...');
+        // console.log('🚚 Initializing Manufacturer Shipping Page...');
         
         try {
             this.setupEventListeners();
@@ -24,9 +24,9 @@ class ManufacturerShipping {
             this.setupContactCardAnimations();
             this.isLoaded = true;
             
-            console.log('✅ Shipping page initialized successfully');
+            // console.log('✅ Shipping page initialized successfully');
         } catch (error) {
-            console.error('❌ Error initializing shipping page:', error);
+            // console.error('❌ Error initializing shipping page:', error);
         }
     }
 
@@ -102,7 +102,7 @@ class ManufacturerShipping {
                 });
             });
         } catch (error) {
-            console.error('Error setting up event listeners:', error);
+            // console.error('Error setting up event listeners:', error);
         }
     }
 
@@ -123,7 +123,7 @@ class ManufacturerShipping {
                 console.warn('Progress elements not found');
             }
         } catch (error) {
-            console.error('Error setting up progress animation:', error);
+            // console.error('Error setting up progress animation:', error);
         }
     }
 
@@ -133,7 +133,7 @@ class ManufacturerShipping {
     animateProgress(fillElement, percentageElement, targetProgress) {
         try {
             if (!fillElement || !percentageElement) {
-                console.error('Progress elements not provided');
+                // console.error('Progress elements not provided');
                 return;
             }
 
@@ -160,12 +160,12 @@ class ManufacturerShipping {
                         progressBar.setAttribute('aria-valuenow', Math.round(currentProgress));
                     }
                 } catch (error) {
-                    console.error('Error in progress animation frame:', error);
+                    // console.error('Error in progress animation frame:', error);
                     clearInterval(progressInterval);
                 }
             }, intervalTime);
         } catch (error) {
-            console.error('Error setting up progress animation:', error);
+            // console.error('Error setting up progress animation:', error);
         }
     }
 
@@ -206,7 +206,7 @@ class ManufacturerShipping {
                 observer.observe(element);
             });
         } catch (error) {
-            console.error('Error setting up scroll animations:', error);
+            // console.error('Error setting up scroll animations:', error);
             // Fallback: show elements immediately
             const animatedElements = document.querySelectorAll('.service-card, .contact-card, .stage');
             animatedElements.forEach(element => {
@@ -267,7 +267,7 @@ class ManufacturerShipping {
      * Handle subscribe to updates button click
      */
     handleSubscribeUpdates() {
-        console.log('🔔 Subscribe to updates clicked');
+        // console.log('🔔 Subscribe to updates clicked');
         
         // Simulate subscription process
         const btn = document.getElementById('subscribeUpdatesBtn');
@@ -294,7 +294,7 @@ class ManufacturerShipping {
      * Handle contact shipping button click
      */
     handleContactShipping() {
-        console.log('📞 Contact shipping clicked');
+        // console.log('📞 Contact shipping clicked');
         
         this.showToast('Tez orada sizga aloqa markazi orqali bog\'lanamiz!', 'info');
         
@@ -315,7 +315,7 @@ class ManufacturerShipping {
         const cardTitle = card.querySelector('h4').textContent;
         const cardContent = card.querySelector('p').textContent;
         
-        console.log(`📞 Contact card clicked: ${cardTitle}`);
+        // console.log(`📞 Contact card clicked: ${cardTitle}`);
         
         // Add click animation
         card.style.transform = 'scale(0.95)';
@@ -363,7 +363,7 @@ class ManufacturerShipping {
      * Handle development stage click
      */
     handleStageClick(stage, index) {
-        console.log(`🛤️ Stage ${index + 1} clicked`);
+        // console.log(`🛤️ Stage ${index + 1} clicked`);
         
         const stageTitle = stage.querySelector('h4').textContent;
         const stageDesc = stage.querySelector('p').textContent;
@@ -412,9 +412,9 @@ class ManufacturerShipping {
                 document.execCommand('copy');
                 textArea.remove();
             }
-            console.log('✅ Text copied to clipboard:', text);
+            // console.log('✅ Text copied to clipboard:', text);
         } catch (error) {
-            console.error('❌ Failed to copy text:', error);
+            // console.error('❌ Failed to copy text:', error);
         }
     }
 
@@ -597,7 +597,7 @@ class ManufacturerShipping {
      * Destroy shipping page functionality
      */
     destroy() {
-        console.log('🚚 Destroying shipping page...');
+        // console.log('🚚 Destroying shipping page...');
         
         // Remove event listeners
         const buttons = document.querySelectorAll('.dev-btn, .contact-card, .service-card, .stage');
@@ -612,13 +612,13 @@ class ManufacturerShipping {
         toasts.forEach(toast => toast.remove());
 
         this.isLoaded = false;
-        console.log('✅ Shipping page destroyed');
+        // console.log('✅ Shipping page destroyed');
     }
 }
 
 // Initialize shipping page when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚚 DOM loaded, initializing Shipping Page...');
+    // console.log('🚚 DOM loaded, initializing Shipping Page...');
     window.manufacturerShipping = new ManufacturerShipping();
 });
 

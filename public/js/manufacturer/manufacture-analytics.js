@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 window.manufacturerHeader = new ManufacturerHeader();
             } catch (error) {
-                console.error('❌ ManufacturerHeader initialization failed:', error);
+                // console.error('❌ ManufacturerHeader initialization failed:', error);
                 initBasicHeaderFunctionality();
             }
         } else {
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             });
         } else {
-            console.error('❌ Language elements still not found after manual fix attempt');
+            // console.error('❌ Language elements still not found after manual fix attempt');
         }
     }
     
@@ -420,7 +420,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.manufacturerDashboard.init().then(function() {
             // Dashboard initialized
         })['catch'](function(error) {
-            console.error('❌ Manufacturer Dashboard initialization failed:', error);
+            // console.error('❌ Manufacturer Dashboard initialization failed:', error);
         });
     }
     
@@ -629,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Try to get real data if available (ALWAYS prioritize real data, even if 0)
             if (productData && productData.weeklyTrend && productData.weeklyTrend.length > 0) {
-                console.log('📊 Revenue Chart: Using real backend data', productData.weeklyTrend);
+                // console.log('📊 Revenue Chart: Using real backend data', productData.weeklyTrend);
                 
                 // Extract labels and data from backend response
                 revenueLabels = productData.weeklyTrend.map(item => item.label || item.date || 'N/A');
@@ -646,13 +646,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     revenueDataPoints = realRevenueData.map((val, index) => val > 0 ? val : (index % 2 === 0 ? 1 : 0.5));
                 }
                 
-                console.log('📊 Revenue Chart Labels:', revenueLabels);
-                console.log('📊 Revenue Chart Data:', revenueDataPoints);
+                // console.log('📊 Revenue Chart Labels:', revenueLabels);
+                // console.log('📊 Revenue Chart Data:', revenueDataPoints);
             } else if (dashboardData && dashboardData.revenueChart && dashboardData.revenueChart.data) {
                 revenueDataPoints = dashboardData.revenueChart.data;
-                console.log('📊 Revenue Chart: Using dashboard data fallback');
+                // console.log('📊 Revenue Chart: Using dashboard data fallback');
             } else {
-                console.log('📊 Revenue Chart: Using static fallback data');
+                // console.log('📊 Revenue Chart: Using static fallback data');
             }
             
             try {
@@ -788,7 +788,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Try to get real data if available (ALWAYS prioritize real data, even if 0)
             if (productData && productData.weeklyTrend && productData.weeklyTrend.length > 0) {
-                console.log('📊 Orders Chart: Using real backend data', productData.weeklyTrend);
+                // console.log('📊 Orders Chart: Using real backend data', productData.weeklyTrend);
                 
                 // Extract labels and data from backend response (same as revenue chart)
                 ordersLabels = productData.weeklyTrend.map(item => item.label || item.date || 'N/A');
@@ -803,10 +803,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     ordersDataPoints = realOrdersData.map((val, index) => val > 0 ? val : (index % 3 === 0 ? 1 : 0));
                 }
                 
-                console.log('📊 Orders Chart Labels:', ordersLabels);
-                console.log('📊 Orders Chart Data:', ordersDataPoints);
+                // console.log('📊 Orders Chart Labels:', ordersLabels);
+                // console.log('📊 Orders Chart Data:', ordersDataPoints);
             } else {
-                console.log('📊 Orders Chart: Using static fallback data');
+                // console.log('📊 Orders Chart: Using static fallback data');
             }
             
             try {
@@ -917,7 +917,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.ordersChartInstance = ordersChart;
 
             } catch (error) {
-                console.error('❌ Orders chart creation failed:', error);
+                // console.error('❌ Orders chart creation failed:', error);
             }
         }
         
@@ -931,16 +931,16 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Try to get real data if available
             if (businessData && businessData.monthlyMetrics && businessData.monthlyMetrics.length > 0) {
-                console.log('📊 Business Chart: Using real backend data', businessData.monthlyMetrics);
+                // console.log('📊 Business Chart: Using real backend data', businessData.monthlyMetrics);
                 
                 // Extract labels and data from backend response
                 businessLabels = businessData.monthlyMetrics.map(item => item.label || item.month || item.date || 'N/A');
                 businessDataPoints = businessData.monthlyMetrics.map(item => item.performance || item.value || 0);
                 
-                console.log('📊 Business Chart Labels:', businessLabels);
-                console.log('📊 Business Chart Data:', businessDataPoints);
+                // console.log('📊 Business Chart Labels:', businessLabels);
+                // console.log('📊 Business Chart Data:', businessDataPoints);
             } else {
-                console.log('📊 Business Chart: Using static fallback data');
+                // console.log('📊 Business Chart: Using static fallback data');
             }
             
             try {
@@ -1053,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Store chart instance globally for filtering
                 window.businessChartInstance = businessChart;
             } catch (error) {
-                console.error('❌ Business chart creation failed:', error);
+                // console.error('❌ Business chart creation failed:', error);
             }
         }
         
@@ -1070,7 +1070,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 categoryLabels = businessData.categoryBreakdown.map(item => item.name || item.category || 'Category');
                 categoryDataPoints = businessData.categoryBreakdown.map(item => item.percentage || item.count || 0);
             } else {
-              console.log('   ⚠️ No real data found - reason:');
+              // console.log('   ⚠️ No real data found - reason:');
             }
             
             try {
@@ -1172,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const categoriesChart = new ApexCharts(categoriesElement, categoriesOptions);
                 categoriesChart.render();
             } catch (error) {
-                console.error('❌ Categories chart creation failed:', error);
+                // console.error('❌ Categories chart creation failed:', error);
             }
         }
         
@@ -1214,7 +1214,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const productId = new URLSearchParams(window.location.search).get('product');
         if (!productId) return;
 
-        console.log(`📊 Updating Revenue Chart for period: ${period} days`);
+        // console.log(`📊 Updating Revenue Chart for period: ${period} days`);
 
         fetch(`/manufacturer/api/product-analytics/${productId}?period=${period}`)
             .then(response => response.json())
@@ -1222,7 +1222,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success && data.data && data.data.weeklyTrend) {
                     const revenueChart = window.revenueChartInstance;
                     if (revenueChart) {
-                        console.log('📊 Revenue Chart Update - Backend Data:', data.data.weeklyTrend);
+                        // console.log('📊 Revenue Chart Update - Backend Data:', data.data.weeklyTrend);
                         
                         // Extract data and labels from enhanced backend response
                         const newData = data.data.weeklyTrend.map(item => item.revenue || item.amount || 0);
@@ -1233,29 +1233,28 @@ document.addEventListener('DOMContentLoaded', function() {
                         const enhancedData = hasNonZeroData ? newData : 
                             newData.map((val, index) => val > 0 ? val : (index % 2 === 0 ? 1 : 0.5));
                         
-                        console.log('📊 Revenue Chart Update - Labels:', newLabels);
-                        console.log('📊 Revenue Chart Update - Data:', enhancedData);
+                        // console.log('📊 Revenue Chart Update - Labels:', newLabels);
+                        // console.log('📊 Revenue Chart Update - Data:', enhancedData);
                         
                         revenueChart.updateOptions({
                             xaxis: { categories: newLabels },
                             series: [{ name: 'Daromad ($)', data: enhancedData }]
                         });
                         
-                        console.log('✅ Revenue chart updated successfully');
+                        // console.log('✅ Revenue chart updated successfully');
                     }
                 } else {
-                    console.error('❌ Revenue chart update: Invalid response format');
+                    // console.error('❌ Revenue chart update: Invalid response format');
                 }
             })
-            .catch(error => console.error('❌ Revenue chart update failed:', error));
-    }
+              }
 
     // Update Orders Chart with filtered data (Enhanced Smart Labeling)
     function updateOrdersChart(period) {
         const productId = new URLSearchParams(window.location.search).get('product');
         if (!productId) return;
 
-        console.log(`📊 Updating Orders Chart for period: ${period} days`);
+        // console.log(`📊 Updating Orders Chart for period: ${period} days`);
 
         fetch(`/manufacturer/api/product-analytics/${productId}?period=${period}`)
             .then(response => response.json())
@@ -1263,7 +1262,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success && data.data && data.data.weeklyTrend) {
                     const ordersChart = window.ordersChartInstance;
                     if (ordersChart) {
-                        console.log('📊 Orders Chart Update - Backend Data:', data.data.weeklyTrend);
+                        // console.log('📊 Orders Chart Update - Backend Data:', data.data.weeklyTrend);
                         
                         // Extract data and labels from enhanced backend response
                         const newData = data.data.weeklyTrend.map(item => item.orders || item.count || 0);
@@ -1274,26 +1273,25 @@ document.addEventListener('DOMContentLoaded', function() {
                         const enhancedData = hasNonZeroData ? newData : 
                             newData.map((val, index) => val > 0 ? val : (index % 3 === 0 ? 1 : 0));
                         
-                        console.log('📊 Orders Chart Update - Labels:', newLabels);
-                        console.log('📊 Orders Chart Update - Data:', enhancedData);
+                        // console.log('📊 Orders Chart Update - Labels:', newLabels);
+                        // console.log('📊 Orders Chart Update - Data:', enhancedData);
                         
                         ordersChart.updateOptions({
                             xaxis: { categories: newLabels },
                             series: [{ name: 'Buyurtmalar', data: enhancedData }]
                         });
                         
-                        console.log('✅ Orders chart updated successfully');
+                        // console.log('✅ Orders chart updated successfully');
                     }
                 } else {
-                    console.error('❌ Orders chart update: Invalid response format');
+                    // console.error('❌ Orders chart update: Invalid response format');
                 }
             })
-            .catch(error => console.error('❌ Orders chart update failed:', error));
-    }
+          }
 
     // Update Business Chart with filtered data (Enhanced Smart Labeling)
     function updateBusinessChart(period) {
-        console.log(`📊 Updating Business Chart for period: ${period} days`);
+        // console.log(`📊 Updating Business Chart for period: ${period} days`);
         
         fetch(`/manufacturer/api/business-analytics?period=${period}`)
             .then(response => response.json())
@@ -1301,30 +1299,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success && data.data && data.data.businessIntelligence && data.data.businessIntelligence.monthlyMetrics) {
                     const businessChart = window.businessChartInstance;
                     if (businessChart) {
-                        console.log('📊 Business Chart Update - Backend Data:', data.data.businessIntelligence.monthlyMetrics);
+                        // console.log('📊 Business Chart Update - Backend Data:', data.data.businessIntelligence.monthlyMetrics);
                         
                         // Extract data and labels from enhanced backend response
                         const monthlyMetrics = data.data.businessIntelligence.monthlyMetrics;
                         const newData = monthlyMetrics.map(item => item.performance || item.value || 0);
                         const newLabels = monthlyMetrics.map(item => item.label || item.month || item.date || 'N/A');
                         
-                        console.log('📊 Business Chart Update - Labels:', newLabels);
-                        console.log('📊 Business Chart Update - Data:', newData);
+                        // console.log('📊 Business Chart Update - Labels:', newLabels);
+                        // console.log('📊 Business Chart Update - Data:', newData);
                         
                         businessChart.updateOptions({
                             xaxis: { categories: newLabels },
                             series: [{ name: 'Biznes ko\'rsatkichlari', data: newData }]
                         });
                         
-                        console.log('✅ Business chart updated successfully');
+                        // console.log('✅ Business chart updated successfully');
                     }
                 } else {
-                    console.error('❌ Business chart update: Invalid response format');
-                    console.log('🔍 Response structure:', data);
+                    // console.error('❌ Business chart update: Invalid response format');
+                    // console.log('🔍 Response structure:', data);
                 }
             })
-            .catch(error => console.error('❌ Business chart update failed:', error));
-    }
+            }
      
      // Analytics Controls (Real Integration)
      function setupAnalyticsControls() {

@@ -3,14 +3,6 @@
    Real Production Project Standards
    =================================================== */
 
-/* ENHANCED Responsive Grid for Product Cards */
-.products-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  padding: 0;
-  width: 100%;
-}
 
 /* BALANCED RESPONSIVE GRID & IMAGE SYSTEM */
 @media (max-width: 480px) {
@@ -686,7 +678,7 @@
 
 /* Essential Pricing - Clean & Simple */
 .product-pricing-section {
-  background: var(--bg-secondary, #f8fafc);
+  border: 1px solid var(--bg-secondary, #6e6e6e);
   border-radius: 6px; /* Slightly smaller radius */
 }
 
@@ -745,7 +737,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
   padding: 0.75rem;
-  background: var(--bg-secondary, #f8fafc);
+  border: 1px solid var(--bg-secondary, #6e6e6e);
   border-radius: 6px;
 }
 
@@ -2051,7 +2043,7 @@
 .b2b-product-card[data-animation-delay="0.5"] { animation-delay: 0.5s; }
 
 /* ===== DARK MODE SUPPORT ===== */
- [data-theme="light"] {
+ [data-theme="dark"] {
   .b2b-product-card {
     background: var(--bg-elevated-dark, #1f2937);
     border-color: var(--border-color-dark, #374151);
@@ -2148,7 +2140,7 @@
 /* Products Grid */
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 1.5rem;
     margin-top: 1rem;
 }
@@ -2283,11 +2275,6 @@
     gap: 0.5rem;
     transition: all 0.3s ease;
     border: 1px solid transparent;
-}
-
-.product-actions .btn-primary {
-    background: var(--primary-color);
-    color: white;
 }
 
 .product-actions .btn-primary:hover {
@@ -2815,8 +2802,11 @@ img[data-error-handled="true"] {
 }
 
 /* Dark Mode Compatibility */
-[data-theme="dark"] .marketplace-header {
+.marketplace-header {
     background: linear-gradient(135deg, #1e40af, #7c3aed);
+}
+.header-content .page-title{
+  color: white;
 }
 
 [data-theme="dark"] .product-image-placeholder {

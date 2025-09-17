@@ -617,8 +617,8 @@ class MultiDashboardLogin {
     getCurrentLanguage() {
         // Try to get language from various sources
         const htmlLang = document.documentElement.lang;
-        const langFromUrl = window.location.pathname.includes('/language/') ? 
-          window.location.pathname.split('/language/')[1]?.split('/')[0] : null;
+        const langFromUrl = window.location.pathname.includes('/api/language/') ? 
+          window.location.pathname.split('/api/language/')[1]?.split('/')[0] : null;
         const langFromSelector = document.querySelector('.current-lang-text')?.textContent?.toLowerCase();
         
         return htmlLang || langFromUrl || langFromSelector || 'en';

@@ -185,7 +185,7 @@
 .dropdown-menu {
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
+  right: 15px;
   z-index: var(--z-dropdown);
   min-width: 200px;
   background-color: var(--bg-card);
@@ -363,10 +363,10 @@
 }
 
 /* Language Menu */
-.language-menu {
+.language-menu.profile-dropdown {
   position: absolute;
   top: calc(100% + 4px);
-  right: 0;
+  right: 15px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
@@ -719,7 +719,8 @@
   color: var(--color-primary);
 }
 
-.notification-icon.info {
+.notification-icon.info,
+.notification-icon.order {
   background-color: color-mix(in srgb, var(--color-info) 20%, transparent);
   color: var(--color-info);
 }
@@ -4261,11 +4262,12 @@
 }
 
 /* Dropdown menu positioning and visibility */
-.dropdown-menu,
-.language-menu {
+.dropdown-menu.messages-dropdown,
+.dropdown-menu.notifications-dropdown,
+.dropdown-menu.language-menu {
   position: absolute;
-  top: 100%;
-  right: 0;
+  top: 60px;
+  right:-64px;
   z-index: 1050;
   min-width: 280px;
   background: var(--bg-card);

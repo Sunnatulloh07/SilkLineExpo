@@ -40,7 +40,7 @@ class ModalSystem {
     show(modalId) {
         const modal = document.getElementById(modalId);
         if (!modal) {
-            console.error(`Modal with ID ${modalId} not found`);
+            // console.error(`Modal with ID ${modalId} not found`);
             return;
         }
 
@@ -141,5 +141,3 @@ class ModalSystem {
 
 // Initialize global modal system
 window.modalSystem = new ModalSystem();
-
-console.log('✅ Modal System initialized');

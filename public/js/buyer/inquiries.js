@@ -31,7 +31,7 @@ function loadInquiries() {
             }
         })
         .catch(error => {
-            console.error('Error loading inquiries:', error);
+            // console.error('Error loading inquiries:', error);
         });
 }
 

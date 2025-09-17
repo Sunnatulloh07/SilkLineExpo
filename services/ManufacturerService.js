@@ -3205,6 +3205,223 @@ class ManufacturerService {
   }
 
   /**
+   * Create product draft with relaxed validation - Auto-save functionality
+   * @param {Object} productData - Raw product data from form
+   * @returns {Object} Created draft product
+   */
+  async createProductDraft(productData) {
+    try {
+      const manufacturerObjectId = new ObjectId(productData.manufacturer);
+      
+      // Verify manufacturer exists
+      const manufacturer = await User.findOne({
+        _id: manufacturerObjectId,
+        role: { $in: ['manufacturer', 'company_admin'] }
+      });
+      
+      if (!manufacturer) {
+        throw new Error('Manufacturer not found or invalid role');
+      }
+
+      // Relaxed validation for drafts - only validate what's provided
+      const sanitizedProductData = await this._validateAndSanitizeDraftData(productData);
+      
+      const newProduct = new Product({
+        ...sanitizedProductData,
+        manufacturer: manufacturerObjectId,
+        status: 'draft',
+        visibility: 'private',
+        isDraft: true,
+        draftCreatedAt: new Date(),
+        pricing: {
+          ...sanitizedProductData.pricing,
+          currency: sanitizedProductData.pricing?.currency || 'USD',
+          lastUpdated: new Date()
+        }
+      });
+
+      const savedProduct = await newProduct.save();
+      
+      return {
+        _id: savedProduct._id,
+        name: savedProduct.name || 'Untitled Draft',
+        status: savedProduct.status,
+        isDraft: true,
+        createdAt: savedProduct.createdAt
+      };
+      
+    } catch (error) {
+      if (error.name === 'ValidationError') {
+        const validationErrors = Object.values(error.errors).map(err => err.message);
+        throw new Error(`Draft validation error: ${validationErrors.join(', ')}`);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Update existing product draft
+   * @param {String} draftId - Draft product ID
+   * @param {Object} productData - Updated product data
+   * @returns {Object} Updated draft product
+   */
+  async updateProductDraft(draftId, productData) {
+    try {
+      const manufacturerObjectId = new ObjectId(productData.manufacturer);
+      
+      // Find existing draft
+      const existingDraft = await Product.findOne({
+        _id: draftId,
+        manufacturer: manufacturerObjectId,
+        status: 'draft'
+      });
+      
+      if (!existingDraft) {
+        throw new Error('Draft not found or access denied');
+      }
+
+      // Relaxed validation for draft updates
+      const sanitizedProductData = await this._validateAndSanitizeDraftData(productData);
+      
+      // Update draft with new data
+      const updatedDraft = await Product.findByIdAndUpdate(
+        draftId,
+        {
+          ...sanitizedProductData,
+          draftUpdatedAt: new Date(),
+          pricing: {
+            ...existingDraft.pricing,
+            ...sanitizedProductData.pricing,
+            lastUpdated: new Date()
+          }
+        },
+        { new: true, runValidators: false }
+      );
+      
+      return {
+        _id: updatedDraft._id,
+        name: updatedDraft.name || 'Untitled Draft',
+        status: updatedDraft.status,
+        isDraft: true,
+        updatedAt: updatedDraft.draftUpdatedAt
+      };
+      
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Validate and sanitize draft data - Relaxed validation for auto-save
+   * @param {Object} productData - Raw product data from form
+   * @returns {Object} Validated and sanitized draft data
+   */
+  async _validateAndSanitizeDraftData(productData) {
+    const sanitized = {};
+    
+    // Only validate fields that are provided and not empty
+    if (productData.name && productData.name.trim().length >= 1) {
+      sanitized.name = productData.name.trim();
+    } else {
+      // Set default name for draft
+      sanitized.name = 'Untitled Draft';
+    }
+    
+    if (productData.description && productData.description.trim().length >= 1) {
+      sanitized.description = productData.description.trim();
+    } else {
+      // Set default description for draft
+      sanitized.description = 'Draft product - description pending';
+    }
+    
+    if (productData.shortDescription && productData.shortDescription.trim().length >= 1) {
+      sanitized.shortDescription = productData.shortDescription.trim();
+    }
+    
+    if (productData.category && ObjectId.isValid(productData.category)) {
+      sanitized.category = new ObjectId(productData.category);
+    }
+    
+    // Pricing - only validate if provided, set defaults for draft
+    sanitized.pricing = {
+      basePrice: 0,
+      minimumOrderQuantity: 1,
+      currency: 'USD',
+      priceType: 'fixed'
+    };
+    
+    if (productData.pricing) {
+      if (productData.pricing.basePrice && parseFloat(productData.pricing.basePrice) > 0) {
+        sanitized.pricing.basePrice = parseFloat(productData.pricing.basePrice);
+      }
+      
+      if (productData.pricing.minimumOrderQuantity && parseInt(productData.pricing.minimumOrderQuantity) >= 1) {
+        sanitized.pricing.minimumOrderQuantity = parseInt(productData.pricing.minimumOrderQuantity);
+      }
+      
+      if (productData.pricing.maximumOrderQuantity && parseInt(productData.pricing.maximumOrderQuantity) >= 1) {
+        sanitized.pricing.maximumOrderQuantity = parseInt(productData.pricing.maximumOrderQuantity);
+      }
+      
+      if (productData.pricing.priceType) {
+        sanitized.pricing.priceType = productData.pricing.priceType;
+      }
+      
+      if (productData.pricing.currency) {
+        sanitized.pricing.currency = productData.pricing.currency;
+      }
+    }
+    
+    // Inventory - set defaults for draft
+    sanitized.inventory = {
+      totalStock: 0,
+      lowStockThreshold: 10,
+      unit: 'pieces',
+      trackInventory: true
+    };
+    
+    if (productData.inventory) {
+      if (productData.inventory.totalStock !== undefined) {
+        sanitized.inventory.totalStock = parseInt(productData.inventory.totalStock) || 0;
+      }
+      
+      if (productData.inventory.lowStockThreshold !== undefined) {
+        sanitized.inventory.lowStockThreshold = parseInt(productData.inventory.lowStockThreshold) || 10;
+      }
+      
+      if (productData.inventory.unit) {
+        sanitized.inventory.unit = productData.inventory.unit;
+      }
+    }
+    
+    // Specifications - only validate if provided
+    if (productData.specifications && Array.isArray(productData.specifications)) {
+      sanitized.specifications = productData.specifications.filter(spec => 
+        spec.name && spec.value && spec.name.trim() && spec.value.trim()
+      );
+    }
+    
+    // Shipping - only validate if provided
+    if (productData.shipping) {
+      sanitized.shipping = {};
+      
+      if (productData.shipping.methods && Array.isArray(productData.shipping.methods)) {
+        sanitized.shipping.methods = productData.shipping.methods;
+      }
+      
+      if (productData.shipping.leadTime !== undefined) {
+        sanitized.shipping.leadTime = parseInt(productData.shipping.leadTime) || 1;
+      }
+      
+      if (productData.shipping.cost !== undefined) {
+        sanitized.shipping.cost = parseFloat(productData.shipping.cost) || 0;
+      }
+    }
+    
+    return sanitized;
+  }
+
+  /**
    * Validate and sanitize product data - Professional Implementation
    * @param {Object} productData - Raw product data from form
    * @returns {Object} Validated and sanitized product data
@@ -5442,7 +5659,7 @@ class ManufacturerService {
 
     return {
       type: 'range',
-      display: `${currency === 'USD' ? '$' : currency} ${min.toLocaleString()}-${max.toLocaleString()}`,
+      display: `${currency === 'USD' ? '$' : currency} ${min.toLocaleString()} ${max.toLocaleString()}`,
       currency: currency
     };
   }

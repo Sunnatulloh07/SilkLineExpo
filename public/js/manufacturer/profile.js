@@ -22,7 +22,7 @@ class ManufacturerProfile {
     this.initializeEventListeners();
     this.loadRecentData();
     
-    console.log('✅ Manufacturer Profile initialized');
+    // console.log('✅ Manufacturer Profile initialized');
   }
 
   // ====================================
@@ -61,7 +61,7 @@ class ManufacturerProfile {
         throw new Error(response.message || 'Ma\'lumotlarni yuklashda xatolik');
       }
     } catch (error) {
-      console.error('Load profile data error:', error);
+      // console.error('Load profile data error:', error);
       this.showToast('Profil ma\'lumotlarini yuklashda xatolik: ' + error.message, 'error');
     }
   }
@@ -75,7 +75,7 @@ class ManufacturerProfile {
       this.loadRecentOrders();
       
     } catch (error) {
-      console.error('Load recent data error:', error);
+      // console.error('Load recent data error:', error);
     }
   }
 
@@ -87,7 +87,7 @@ class ManufacturerProfile {
         this.renderRecentProducts(response.data);
       }
     } catch (error) {
-      console.error('Load recent products error:', error);
+      // console.error('Load recent products error:', error);
       this.showProductsError();
     }
   }
@@ -100,7 +100,7 @@ class ManufacturerProfile {
         this.renderRecentOrders(response.data);
       }
     } catch (error) {
-      console.error('Load recent orders error:', error);
+      // console.error('Load recent orders error:', error);
       this.showOrdersError();
     }
   }
@@ -249,7 +249,7 @@ class ManufacturerProfile {
         return this.getEmptyChartData(period);
       }
     } catch (error) {
-      console.error('Load chart data error:', error);
+      // console.error('Load chart data error:', error);
       console.warn('Using empty chart data instead of sample data');
       return this.getEmptyChartData(period);
     }
@@ -288,7 +288,7 @@ class ManufacturerProfile {
   // ====================================
 
   updateProfileStats(stats) {
-    console.log('📊 Updating profile stats:', stats);
+    // console.log('📊 Updating profile stats:', stats);
     
     // Update quick stats in hero section with proper formatting
     this.updateElement('totalProducts', stats.totalProducts || 0);
@@ -325,7 +325,7 @@ class ManufacturerProfile {
   }
 
   updatePerformanceMetrics(metrics) {
-    console.log('📊 Updating performance metrics:', metrics);
+    // console.log('📊 Updating performance metrics:', metrics);
     
     // Update performance metrics with proper formatting
     this.updateElement('totalSales', this.formatCurrency(metrics.totalSales || 0));
@@ -415,7 +415,7 @@ class ManufacturerProfile {
 
   updateBusinessInfo(businessInfo) {
     try {
-      console.log('📊 Updating business info:', businessInfo);
+      // console.log('📊 Updating business info:', businessInfo);
       
       // Update business license
       this.updateElement('businessLicense', businessInfo.businessLicense || 'Belgilanmagan');
@@ -438,15 +438,15 @@ class ManufacturerProfile {
       // Update annual revenue (if element exists)
       this.updateElement('annualRevenue', businessInfo.annualRevenue || 'Belgilanmagan');
       
-      console.log('✅ Business info updated successfully');
+      // console.log('✅ Business info updated successfully');
     } catch (error) {
-      console.error('❌ Error updating business info:', error);
+      // console.error('❌ Error updating business info:', error);
     }
   }
 
   updateContactInfo(contactInfo) {
     try {
-      console.log('📊 Updating contact info:', contactInfo);
+      // console.log('📊 Updating contact info:', contactInfo);
       
       // Update email
       const emailElement = document.getElementById('contactEmail');
@@ -484,15 +484,15 @@ class ManufacturerProfile {
         addressElement.textContent = contactInfo.fullAddress || contactInfo.address || 'Belgilanmagan';
       }
       
-      console.log('✅ Contact info updated successfully');
+      // console.log('✅ Contact info updated successfully');
     } catch (error) {
-      console.error('❌ Error updating contact info:', error);
+      // console.error('❌ Error updating contact info:', error);
     }
   }
 
   updateProductionCapabilities(capabilities) {
     try {
-      console.log('📊 Updating production capabilities:', capabilities);
+      // console.log('📊 Updating production capabilities:', capabilities);
       
       const capabilitiesContainer = document.querySelector('.capabilities-grid');
       if (!capabilitiesContainer) {
@@ -519,9 +519,9 @@ class ManufacturerProfile {
         `;
       }
       
-      console.log('✅ Production capabilities updated successfully');
+      // console.log('✅ Production capabilities updated successfully');
     } catch (error) {
-      console.error('❌ Error updating production capabilities:', error);
+      // console.error('❌ Error updating production capabilities:', error);
     }
   }
 
@@ -739,7 +739,7 @@ class ManufacturerProfile {
         correctLevel: QRCode.CorrectLevel.M
       });
     } catch (error) {
-      console.error('QR Code generation error:', error);
+      // console.error('QR Code generation error:', error);
     }
   }
 
@@ -760,7 +760,7 @@ class ManufacturerProfile {
         this.showToast('Profil havolasi nusxalandi', 'success');
       }
     } catch (error) {
-      console.error('Copy URL error:', error);
+      // console.error('Copy URL error:', error);
       this.showToast('Nusxalashda xatolik', 'error');
     }
   }
@@ -777,7 +777,7 @@ class ManufacturerProfile {
       
       this.showToast('QR kod yuklab olindi', 'success');
     } catch (error) {
-      console.error('Download QR error:', error);
+      // console.error('Download QR error:', error);
       this.showToast('QR kod yuklab olishda xatolik', 'error');
     }
   }
@@ -911,7 +911,7 @@ class ManufacturerProfile {
         throw new Error(data.message || 'Sertifikat qo\'shishda xatolik');
       }
     } catch (error) {
-      console.error('Save certification error:', error);
+      // console.error('Save certification error:', error);
       this.showToast('Sertifikat qo\'shishda xatolik: ' + error.message, 'error');
     }
   }
@@ -956,7 +956,7 @@ class ManufacturerProfile {
         throw new Error(data.message || 'Sertifikat yuklashda xatolik');
       }
     } catch (error) {
-      console.error('Upload certificate error:', error);
+      // console.error('Upload certificate error:', error);
       this.showToast('Sertifikat yuklashda xatolik: ' + error.message, 'error');
     }
   }
@@ -1145,7 +1145,7 @@ document.head.appendChild(profileStyle);
 
 ManufacturerProfile.prototype.updateCompanyInfo = function(companyInfo) {
   try {
-    console.log('📊 Updating company info:', companyInfo);
+    // console.log('📊 Updating company info:', companyInfo);
     
     // Update company logo
     if (companyInfo.logo || companyInfo.url) {
@@ -1154,7 +1154,7 @@ ManufacturerProfile.prototype.updateCompanyInfo = function(companyInfo) {
         const logoUrl = companyInfo.logo || companyInfo.url;
         // Add timestamp to prevent caching
         logoElement.src = logoUrl + '?t=' + Date.now();
-        console.log('✅ Company logo updated:', logoUrl);
+        // console.log('✅ Company logo updated:', logoUrl);
       }
     }
     
@@ -1202,9 +1202,9 @@ ManufacturerProfile.prototype.updateCompanyInfo = function(companyInfo) {
       }
     }
     
-    console.log('✅ Company info updated successfully');
+    // console.log('✅ Company info updated successfully');
     
   } catch (error) {
-    console.error('❌ Error updating company info:', error);
+    // console.error('❌ Error updating company info:', error);
   }
 };

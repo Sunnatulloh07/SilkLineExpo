@@ -50,4 +50,25 @@ router.post('/api/send',
     MessagingController.sendMessage
 );
 
+/**
+ * @route   GET /manufacturer/messages/inquiry/:inquiryId
+ * @desc    Show chat interface for specific inquiry
+ * @access  Private (Manufacturer)
+ */
+router.get('/inquiry/:inquiryId', MessagingController.showInquiryChat);
+
+/**
+ * @route   GET /manufacturer/messages/api/inquiry/:inquiryId/messages
+ * @desc    Get inquiry messages with pagination
+ * @access  Private (Manufacturer)
+ */
+router.get('/api/inquiry/:inquiryId/messages', MessagingController.getInquiryMessages);
+
+/**
+ * @route   POST /manufacturer/messages/api/inquiry/:inquiryId/mark-read
+ * @desc    Mark inquiry messages as read
+ * @access  Private (Manufacturer)
+ */
+router.post('/api/inquiry/:inquiryId/mark-read', MessagingController.markInquiryMessagesAsRead);
+
 module.exports = router;

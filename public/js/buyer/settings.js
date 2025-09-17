@@ -94,7 +94,7 @@ function saveProfileSettings() {
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
         
-        console.log('Saving profile settings:', data);
+        // console.log('Saving profile settings:', data);
         
         // Show success message
         alert('Profile settings saved successfully!');
@@ -123,7 +123,7 @@ function changePassword() {
         }
         
         // In a real implementation, this would submit the password change request
-        console.log('Changing password');
+        // console.log('Changing password');
         
         // Show success message
         alert('Password changed successfully!');
@@ -138,7 +138,7 @@ function changePassword() {
  */
 function changeLanguage(language) {
     // In a real implementation, this would change the language
-    console.log('Changing language to:', language);
+    // console.log('Changing language to:', language);
     
     // This would typically involve:
     // 1. Setting a cookie or localStorage value
@@ -153,7 +153,7 @@ function changeLanguage(language) {
  */
 function changeTheme(theme) {
     // In a real implementation, this would change the theme
-    console.log('Changing theme to:', theme);
+    // console.log('Changing theme to:', theme);
     
     // Set data-theme attribute on body
     document.body.setAttribute('data-theme', theme);

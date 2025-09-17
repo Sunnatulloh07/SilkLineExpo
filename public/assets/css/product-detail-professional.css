@@ -1754,7 +1754,7 @@ body {
   background: white;
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-2xl);
-  max-width: 600px;
+  max-width: 1200px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
@@ -1827,7 +1827,6 @@ body {
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
 }
 
@@ -2082,11 +2081,7 @@ body {
     justify-content: flex-start;
     padding: var(--space-4);
   }
-  
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
+
   .modal-container {
     width: 95%;
     max-height: 95vh;

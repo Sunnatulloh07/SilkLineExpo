@@ -25,7 +25,7 @@ class ManufacturerSettings {
     this.initializeAutoSave();
     this.loadInitialData();
     
-    console.log('✅ Manufacturer Settings initialized');
+    // console.log('✅ Manufacturer Settings initialized');
   }
 
   // ====================================
@@ -48,11 +48,11 @@ class ManufacturerSettings {
     
     // Listen for theme change events
     window.addEventListener('themeChanged', (e) => {
-      console.log('🎨 Settings: Received theme change event', e.detail.theme);
+      // console.log('🎨 Settings: Received theme change event', e.detail.theme);
       this.updateThemeUI(e.detail.theme);
     });
     
-    console.log('🎨 Theme sync initialized');
+    // console.log('🎨 Theme sync initialized');
   }
   
   syncAllThemes() {
@@ -63,14 +63,7 @@ class ManufacturerSettings {
     
     // Priority: slex_theme > theme > manufacturer-theme > default
     const activeTheme = slexTheme || theme || manufacturerTheme || 'light';
-    
-    console.log('🎨 Settings: Syncing themes', {
-      slex_theme: slexTheme,
-      theme: theme,
-      manufacturer_theme: manufacturerTheme,
-      active: activeTheme
-    });
-    
+
     // Sync all keys
     localStorage.setItem('dashboard-theme', activeTheme);
     
@@ -100,7 +93,7 @@ class ManufacturerSettings {
   
   setupHeaderThemeToggle() {
     // No need to override - Universal Theme Manager handles this
-    console.log('🎨 Settings: Using Universal Theme Manager for header toggle');
+    // console.log('🎨 Settings: Using Universal Theme Manager for header toggle');
     
     // Just ensure we sync with universal theme on settings page load
     if (window.UniversalTheme) {
@@ -311,7 +304,7 @@ class ManufacturerSettings {
     const file = event.target.files[0];
     if (!file) return;
 
-    console.log('📤 Logo upload started:', file.name, file.size, file.type);
+    // console.log('📤 Logo upload started:', file.name, file.size, file.type);
 
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
@@ -333,7 +326,7 @@ class ManufacturerSettings {
       const formData = new FormData();
       formData.append('logo', file);
 
-      console.log('📤 Sending logo to server...');
+      // console.log('📤 Sending logo to server...');
 
       // Upload file
       const response = await fetch('/manufacturer/settings/upload-logo', {
@@ -346,7 +339,7 @@ class ManufacturerSettings {
       });
 
       const data = await response.json();
-      console.log('📥 Server response:', data);
+      // console.log('📥 Server response:', data);
 
       if (data.success) {
         // Update logo preview immediately
@@ -356,7 +349,7 @@ class ManufacturerSettings {
           const logoUrl = data.data.logoUrl + '?t=' + Date.now();
           logoPreview.src = logoUrl;
           
-          console.log('✅ Logo preview updated:', logoUrl);
+          // console.log('✅ Logo preview updated:', logoUrl);
           
           // Add a subtle animation to show the change
           logoPreview.style.opacity = '0.5';
@@ -377,7 +370,7 @@ class ManufacturerSettings {
         throw new Error(data.error || data.message || 'Logo yuklashda xatolik');
       }
     } catch (error) {
-      console.error('❌ Logo upload error:', error);
+      // console.error('❌ Logo upload error:', error);
       
       let errorMessage = 'Logo yuklashda xatolik';
       if (error.message.includes('File too large')) {
@@ -508,7 +501,7 @@ class ManufacturerSettings {
   async saveCompanyInfo() {
     const formData = this.getFormData('company-tab');
     
-    console.log('📤 Company form data being sent:', formData);
+    // console.log('📤 Company form data being sent:', formData);
     
     if (!this.validateTab('company-tab')) {
       this.showToast('Iltimos, xatoliklarni tuzating', 'error');
@@ -529,7 +522,7 @@ class ManufacturerSettings {
 
       const response = await this.makeApiRequest('/manufacturer/settings/company', 'PUT', formData);
       
-      console.log('📥 Server response:', response);
+      // console.log('📥 Server response:', response);
 
       if (response.success) {
         this.showToast('Kompaniya ma\'lumotlari muvaffaqiyatli saqlandi', 'success');
@@ -543,7 +536,7 @@ class ManufacturerSettings {
         throw new Error(response.error || response.message || 'Saqlashda xatolik');
       }
     } catch (error) {
-      console.error('❌ Save company info error:', error);
+      // console.error('❌ Save company info error:', error);
       
       // Show specific error messages
       let errorMessage = 'Saqlashda xatolik';
@@ -580,7 +573,7 @@ class ManufacturerSettings {
     }
     
     // Add more field updates as needed
-    console.log('✅ Form updated with saved data:', data);
+    // console.log('✅ Form updated with saved data:', data);
   }
 
   async saveContactInfo() {
@@ -603,7 +596,7 @@ class ManufacturerSettings {
         throw new Error(response.message || 'Saqlashda xatolik');
       }
     } catch (error) {
-      console.error('Save contact info error:', error);
+      // console.error('Save contact info error:', error);
       this.showToast('Saqlashda xatolik: ' + error.message, 'error');
     } finally {
       this.hideLoading();
@@ -625,7 +618,7 @@ class ManufacturerSettings {
         throw new Error(response.message || 'Saqlashda xatolik');
       }
     } catch (error) {
-      console.error('Save business info error:', error);
+      // console.error('Save business info error:', error);
       this.showToast('Saqlashda xatolik: ' + error.message, 'error');
     } finally {
       this.hideLoading();
@@ -672,7 +665,7 @@ class ManufacturerSettings {
         throw new Error(response.message || 'Parol o\'zgartirishda xatolik');
       }
     } catch (error) {
-      console.error('Change password error:', error);
+      // console.error('Change password error:', error);
       this.showToast('Parol o\'zgartirishda xatolik: ' + error.message, 'error');
     } finally {
       this.hideLoading();
@@ -699,7 +692,7 @@ class ManufacturerSettings {
         throw new Error(response.message || 'Saqlashda xatolik');
       }
     } catch (error) {
-      console.error('Save preferences error:', error);
+      // console.error('Save preferences error:', error);
       this.showToast('Saqlashda xatolik: ' + error.message, 'error');
     } finally {
       this.hideLoading();
@@ -721,7 +714,7 @@ class ManufacturerSettings {
         throw new Error(response.message || 'Saqlashda xatolik');
       }
     } catch (error) {
-      console.error('Save integrations error:', error);
+      // console.error('Save integrations error:', error);
       this.showToast('Saqlashda xatolik: ' + error.message, 'error');
     } finally {
       this.hideLoading();
@@ -754,7 +747,7 @@ class ManufacturerSettings {
         throw new Error(response.message || 'Saqlashda xatolik');
       }
     } catch (error) {
-      console.error('Save all settings error:', error);
+      // console.error('Save all settings error:', error);
       this.showToast('Saqlashda xatolik: ' + error.message, 'error');
     } finally {
       this.hideLoading();
@@ -782,7 +775,7 @@ class ManufacturerSettings {
         throw new Error(response.message || 'Qayta tiklashda xatolik');
       }
     } catch (error) {
-      console.error('Reset settings error:', error);
+      // console.error('Reset settings error:', error);
       this.showToast('Qayta tiklashda xatolik: ' + error.message, 'error');
     } finally {
       this.hideLoading();
@@ -811,7 +804,7 @@ class ManufacturerSettings {
         throw new Error(response.message || 'API kalit yaratishda xatolik');
       }
     } catch (error) {
-      console.error('Regenerate API key error:', error);
+      // console.error('Regenerate API key error:', error);
       this.showToast('API kalit yaratishda xatolik: ' + error.message, 'error');
     } finally {
       this.hideLoading();
@@ -882,11 +875,11 @@ class ManufacturerSettings {
       });
 
       if (response.success) {
-        console.log('✅ Auto-saved successfully');
+        // console.log('✅ Auto-saved successfully');
         this.markAsClean();
       }
     } catch (error) {
-      console.error('Auto-save error:', error);
+      // console.error('Auto-save error:', error);
     }
   }
 
@@ -968,7 +961,7 @@ class ManufacturerSettings {
         this.populateFormData(response.data);
       }
     } catch (error) {
-      console.error('Load initial data error:', error);
+      // console.error('Load initial data error:', error);
     }
   }
 
@@ -991,7 +984,7 @@ class ManufacturerSettings {
     // Use Universal Theme Manager if available
     if (window.UniversalTheme) {
       window.UniversalTheme.setTheme(theme);
-      console.log('🎨 Settings: Using Universal Theme Manager to set theme:', theme);
+      // console.log('🎨 Settings: Using Universal Theme Manager to set theme:', theme);
     } else {
       // Fallback to manual implementation
       document.documentElement.setAttribute('data-theme', theme);
@@ -1003,7 +996,7 @@ class ManufacturerSettings {
         detail: { theme: theme }
       }));
       
-      console.log('🎨 Settings: Fallback theme change to', theme);
+      // console.log('🎨 Settings: Fallback theme change to', theme);
     }
   }
 
@@ -1093,7 +1086,7 @@ class ManufacturerSettings {
         throw new Error(response.message || '2FA sozlashda xatolik');
       }
     } catch (error) {
-      console.error('2FA toggle error:', error);
+      // console.error('2FA toggle error:', error);
       this.showToast('2FA sozlashda xatolik: ' + error.message, 'error');
       
       // Revert toggle state
@@ -1127,7 +1120,7 @@ class ManufacturerSettings {
         throw new Error(response.message || 'Sessiyalarni tugatishda xatolik');
       }
     } catch (error) {
-      console.error('Logout all sessions error:', error);
+      // console.error('Logout all sessions error:', error);
       this.showToast('Sessiyalarni tugatishda xatolik: ' + error.message, 'error');
     } finally {
       this.hideLoading();
@@ -1332,7 +1325,7 @@ function toggleTheme() {
       detail: { theme: newTheme }
     }));
     
-    console.log('🎨 Settings: Fallback theme toggle to', newTheme);
+    // console.log('🎨 Settings: Fallback theme toggle to', newTheme);
   }
 }
 

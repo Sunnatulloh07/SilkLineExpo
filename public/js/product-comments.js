@@ -129,7 +129,7 @@ class ProductCommentsManager {
         
         // Validate productId exists and is not an orderId
         if (!this.productId || this.productId.length !== 24) {
-            console.error('Invalid or missing productId for product comments');
+            // console.error('Invalid or missing productId for product comments');
             this.showError("Mahsulot ID'si noto'g'ri");
             return;
         }
@@ -155,7 +155,7 @@ class ProductCommentsManager {
                 this.showError('Izohlarni yuklashda xatolik yuz berdi');
             }
         } catch (error) {
-            console.error('Error loading comments:', error);
+            // console.error('Error loading comments:', error);
             this.showError('Izohlarni yuklashda xatolik yuz berdi');
             
             // Show empty state instead of loading
@@ -473,7 +473,7 @@ class ProductCommentsManager {
                 this.showError(result.message || 'Izoh yuborishda xatolik yuz berdi');
             }
         } catch (error) {
-            console.error('Error submitting comment:', error);
+            // console.error('Error submitting comment:', error);
             this.showError('Izoh yuborishda xatolik yuz berdi');
         } finally {
             this.isLoading = false;
@@ -516,7 +516,7 @@ class ProductCommentsManager {
                 this.showError(result.message || 'Ovoz berishda xatolik yuz berdi');
             }
         } catch (error) {
-            console.error('Error voting:', error);
+            // console.error('Error voting:', error);
             this.showError('Ovoz berishda xatolik yuz berdi');
         }
     }
@@ -650,7 +650,7 @@ class ProductCommentsManager {
                 this.showError(result.message || 'Javob yuborishda xatolik yuz berdi');
             }
         } catch (error) {
-            console.error('Error submitting reply:', error);
+            // console.error('Error submitting reply:', error);
             this.showError('Javob yuborishda xatolik yuz berdi');
         } finally {
             submitBtn.disabled = false;

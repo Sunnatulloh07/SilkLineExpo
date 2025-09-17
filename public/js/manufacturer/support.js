@@ -13,7 +13,7 @@ class ManufacturerSupport {
     this.startAnimations();
     this.setupProgressAnimation();
     
-    console.log('✅ Manufacturer Support initialized');
+    // console.log('✅ Manufacturer Support initialized');
   }
 
   // ====================================

@@ -1,8 +1,3 @@
-/**
- * Toast Notification System for Manufacturer Dashboard
- * Professional Implementation
- */
-
 class ToastSystem {
     constructor() {
         this.container = document.getElementById('toast-container');
@@ -81,5 +76,3 @@ class ToastSystem {
 // Initialize global toast system
 window.toastSystem = new ToastSystem();
 window.showToast = (message, type, duration) => window.toastSystem.show(message, type, duration);
-
-console.log('✅ Toast System initialized');

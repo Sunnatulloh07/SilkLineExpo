@@ -169,7 +169,7 @@ class GlobalThemeManager {
             return true;
             
         } catch (error) {
-            console.error('❌ Language change error:', error);
+            // console.error('❌ Language change error:', error);
             this.showToast('Failed to change language. Please try again.', 'error');
             return false;
         }

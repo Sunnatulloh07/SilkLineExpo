@@ -45,7 +45,7 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com", "https://cdn.jsdelivr.net"],
       scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
       connectSrc: ["'self'", "https://www.google-analytics.com", "https://analytics.google.com"],
       frameSrc: ["'self'", "https://maps.google.com", "https://www.google.com"], // Allow Google Maps
       baseUri: ["'self'"],
@@ -309,6 +309,13 @@ app.use('/manufacturer',
     dashboardSecurityHeaders,
     authenticate,
     manufacturerRoutes
+);
+
+// Manufacturer Messaging Routes (Protected)
+app.use('/manufacturer/messages', 
+    dashboardSecurityHeaders,
+    authenticate,
+    require('./routes/manufacturer-messaging')
 );    
 
 // Buyer Profile Routes (Professional dedicated buyer routes)

@@ -96,7 +96,7 @@ The server will start at `http://localhost:3000`
 - **`/test`** - Language switching test page
 
 ### Language Routes
-- **`/language/:lng`** - Switch language (uz, en, ru, tr, fa, zh)
+- **`/api/language/:lng`** - Switch language (uz, en, ru, tr, fa, zh)
 
 ### API Endpoints
 - **`/api/countries`** - Get all countries data (JSON)

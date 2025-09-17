@@ -2539,6 +2539,12 @@
     font-size: 1.125rem;
   }
   
+  .verification-badge-large.unverified {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fbbf24;
+  }
+  
   .experience-highlight {
     display: flex;
     flex-direction: column;
@@ -2705,6 +2711,12 @@
     background: var(--dark-black-five) !important;
     color: #22c55e !important;
     border-color: #22c55e !important;
+  }
+  
+  .verification-badge-large.unverified {
+    background: var(--dark-black-five) !important;
+    color: #f59e0b !important;
+    border-color: #f59e0b !important;
   }
   
   .experience-highlight i {
@@ -4837,24 +4849,24 @@
                 
                   <button class="secondary-btn chat-btn" 
                           data-manufacturer-id="<%= product.manufacturer?._id %>" 
-                          onclick="window.openChat('<%= product.manufacturer?._id %>')">
+                          onclick="window.productDetail.openChat()">
                   <i class="fas fa-comments"></i>
                     <span><%= t('productDetails.chat') %></span>
                 </button>
-                
+<!--                 
                   <button class="secondary-btn sample-btn" data-product-id="<%= product._id %>">
                   <i class="fas fa-vial"></i>
                     <span><%= t('productDetails.sample') %></span>
-                </button>
+                </button> -->
                 </div>
               </div>
 
               <!-- Additional Options -->
                 <div class="additional-options" style="margin-top: 8px;">
-                <button class="option-btn compare-toggle" data-product-id="<%= product._id %>">
+                <!-- <button class="option-btn compare-toggle" data-product-id="<%= product._id %>">
                   <i class="fas fa-balance-scale"></i>
                   <%- t('productDetails.addToCompare') %>
-                </button>
+                </button> -->
                 
                 <button class="option-btn share-product" data-product-id="<%= product._id %>">
                   <i class="fas fa-share-alt"></i>
@@ -4981,6 +4993,11 @@
                   <div class="stat-item">
                     <span class="stat-label"><%= t('supplier.totalOrders') %>:</span>
                     <span class="stat-value"><%= (product.manufacturer.totalOrders || 0).toLocaleString() %></span>
+                  </div>
+                  
+                  <div class="stat-item">
+                    <span class="stat-label"><%= t('supplier.profileViews') %>:</span>
+                    <span class="stat-value"><%= (product.manufacturer.profileViews || 0).toLocaleString() %></span>
                   </div>
                   
                   <% if (product.manufacturer.establishedYear) { %>
@@ -5267,11 +5284,35 @@
                       
                       <!-- Company Verification & Experience -->
                       <div class="company-verification-section">
-                        <% if (product.manufacturer.isVerified || supplierVerification.level) { %>
+                        <% if (product.manufacturer.status === 'active' && product.manufacturer.approvedBy) { %>
                           <div class="verification-status">
                             <span class="verification-badge-large verified">
                               <i class="fas fa-shield-check"></i>
-                              <%= supplierVerification.level ? supplierVerification.level.charAt(0).toUpperCase() + supplierVerification.level.slice(1) : t('productDetails.verified') %> <%= t('productDetails.supplier') %>
+                              <%= t('productDetails.verified') %> <%= t('productDetails.supplier') %>
+                            </span>
+                          </div>
+                        <% } else if (product.manufacturer.status === 'pending') { %>
+                          <!-- Pending approval -->
+                          <div class="verification-status">
+                            <span class="verification-badge-large unverified">
+                              <i class="fas fa-clock"></i>
+                              <%= t('productDetails.supplier') %> - <%= t('productDetails.verificationPending') %>
+                            </span>
+                          </div>
+                        <% } else if (product.manufacturer.status === 'blocked') { %>
+                          <!-- Blocked/Rejected -->
+                          <div class="verification-status">
+                            <span class="verification-badge-large unverified">
+                              <i class="fas fa-exclamation-triangle"></i>
+                              <%= t('productDetails.supplier') %> - <%= t('productDetails.verificationPending') %>
+                            </span>
+                          </div>
+                        <% } else { %>
+                          <!-- Default case -->
+                          <div class="verification-status">
+                            <span class="verification-badge-large unverified">
+                              <i class="fas fa-shield-alt"></i>
+                              <%= t('productDetails.supplier') %> - <%= t('productDetails.verificationPending') %>
                             </span>
                           </div>
                         <% } %>
@@ -5338,6 +5379,7 @@
                       <!-- Business Performance Stats -->
                       <div class="company-performance">
                         <h4><i class="fas fa-chart-line"></i> <%- t('productDetails.businessPerformance') %></h4>
+                        
                         <div class="performance-grid">
                           <div class="performance-item">
                             <span class="performance-label"><%- t('productDetails.totalProducts') %></span>
@@ -5347,12 +5389,10 @@
                             <span class="performance-label"><%- t('productDetails.totalOrders') %></span>
                             <span class="performance-value"><%= (product.manufacturer.totalOrders || 0).toLocaleString() %></span>
                           </div>
-                          <% if (product.manufacturer.stats && product.manufacturer.stats.totalViews) { %>
                             <div class="performance-item">
                               <span class="performance-label"><%- t('productDetails.profileViews') %></span>
-                              <span class="performance-value"><%= product.manufacturer.stats.totalViews.toLocaleString() %></span>
+                            <span class="performance-value"><%= (product.manufacturer.profileViews || 0).toLocaleString() %></span>
                             </div>
-                          <% } %>
                           <div class="performance-item">
                             <span class="performance-label"><%- t('productDetails.averageRating') %></span>
                             <div class="rating-display">
@@ -5462,10 +5502,14 @@
           </div>
         </div>
         
+        <!-- Product Details Section -->
+        <div class="form-section">
+          <h4 class="form-section-title"><%= t('inquiry.productDetails') %></h4>
+        
         <div class="form-row">
           <div class="form-group">
             <label class="form-label"><%= t('form.quantity') %> *</label>
-            <input type="number" class="form-input" name="quantity" min="1" required>
+              <input type="number" class="form-input" name="requestedQuantity" min="1" required>
           </div>
           <div class="form-group">
             <label class="form-label"><%= t('form.unit') %></label>
@@ -5475,14 +5519,119 @@
               <option value="tons"><%= t('units.tons') %></option>
               <option value="liters"><%= t('units.liters') %></option>
               <option value="meters"><%= t('units.meters') %></option>
+                <option value="boxes"><%= t('units.boxes') %></option>
+                <option value="pallets"><%= t('units.pallets') %></option>
             </select>
           </div>
+        </div>
+          
+          <div class="form-group">
+            <label class="form-label"><%= t('inquiry.customSpecifications') %></label>
+            <textarea class="form-textarea" name="customSpecifications" rows="2" 
+                      placeholder="<%= t('inquiry.customSpecsPlaceholder') %>"></textarea>
+          </div>
+        </div>
+        
+        <!-- Budget Section -->
+        <div class="form-section">
+          <h4 class="form-section-title"><%= t('inquiry.budgetAndTimeline') %></h4>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><%= t('inquiry.budgetRange') %></label>
+              <div class="budget-inputs">
+                <input type="number" class="form-input" name="budgetMin" placeholder="<%= t('inquiry.minBudget') %>">
+                <span class="budget-separator">-</span>
+                <input type="number" class="form-input" name="budgetMax" placeholder="<%= t('inquiry.maxBudget') %>">
+                <select class="form-select budget-currency" name="budgetCurrency">
+                  <option value="USD"><%= t('inquiry.currencyOptions.USD') %></option>
+                  <option value="UZS"><%= t('inquiry.currencyOptions.UZS') %></option>
+                  <option value="EUR"><%= t('inquiry.currencyOptions.EUR') %></option>
+                  <option value="CNY"><%= t('inquiry.currencyOptions.CNY') %></option>
+                  <option value="KZT"><%= t('inquiry.currencyOptions.KZT') %></option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><%= t('inquiry.urgency') %></label>
+              <select class="form-select" name="urgency">
+                <option value="flexible"><%= t('inquiry.urgencyFlexible') %></option>
+                <option value="within_month"><%= t('inquiry.urgencyWithinMonth') %></option>
+                <option value="within_week"><%= t('inquiry.urgencyWithinWeek') %></option>
+                <option value="immediate"><%= t('inquiry.urgencyImmediate') %></option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><%= t('inquiry.requiredBy') %></label>
+              <input type="date" class="form-input" name="requiredBy">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Shipping Section -->
+        <div class="form-section">
+          <h4 class="form-section-title"><%= t('inquiry.shippingRequirements') %></h4>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label"><%= t('inquiry.shippingMethod') %></label>
+              <select class="form-select" name="shippingMethod">
+                <option value="standard"><%= t('inquiry.shippingStandard') %></option>
+                <option value="express"><%= t('inquiry.shippingExpress') %></option>
+                <option value="freight"><%= t('inquiry.shippingFreight') %></option>
+                <option value="pickup"><%= t('inquiry.shippingPickup') %></option>
+                <option value="custom"><%= t('inquiry.shippingCustom') %></option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><%= t('inquiry.incoterms') %></label>
+              <select class="form-select" name="incoterms">
+                <option value=""><%= t('inquiry.selectIncoterms') %></option>
+                <option value="EXW"><%= t('inquiry.incotermsOptions.EXW') %></option>
+                <option value="FCA"><%= t('inquiry.incotermsOptions.FCA') %></option>
+                <option value="CPT"><%= t('inquiry.incotermsOptions.CPT') %></option>
+                <option value="CIP"><%= t('inquiry.incotermsOptions.CIP') %></option>
+                <option value="DAT"><%= t('inquiry.incotermsOptions.DAT') %></option>
+                <option value="DAP"><%= t('inquiry.incotermsOptions.DAP') %></option>
+                <option value="DDP"><%= t('inquiry.incotermsOptions.DDP') %></option>
+                <option value="FAS"><%= t('inquiry.incotermsOptions.FAS') %></option>
+                <option value="FOB"><%= t('inquiry.incotermsOptions.FOB') %></option>
+                <option value="CFR"><%= t('inquiry.incotermsOptions.CFR') %></option>
+                <option value="CIF"><%= t('inquiry.incotermsOptions.CIF') %></option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label"><%= t('inquiry.deliveryAddress') %></label>
+            <textarea class="form-textarea" name="deliveryAddress" rows="2" 
+                      placeholder="<%= t('inquiry.deliveryAddressPlaceholder') %>"></textarea>
+          </div>
+        </div>
+        
+        <!-- Inquiry Details Section -->
+        <div class="form-section">
+          <h4 class="form-section-title"><%= t('inquiry.inquiryDetails') %></h4>
+          
+          <div class="form-group">
+            <label class="form-label"><%= t('inquiry.inquiryType') %></label>
+            <select class="form-select" name="inquiryType">
+              <option value="product_inquiry"><%= t('inquiry.typeProductInquiry') %></option>
+              <option value="quote_request"><%= t('inquiry.typeQuoteRequest') %></option>
+              <option value="bulk_order"><%= t('inquiry.typeBulkOrder') %></option>
+              <option value="custom_order"><%= t('inquiry.typeCustomOrder') %></option>
+              <option value="partnership"><%= t('inquiry.typePartnership') %></option>
+            </select>
         </div>
         
         <div class="form-group">
           <label class="form-label"><%= t('form.message') %> *</label>
           <textarea class="form-textarea" name="message" rows="4" 
                     placeholder="<%= t('form.inquiryPlaceholder') %>" required></textarea>
+          </div>
         </div>
         
         <input type="hidden" name="productId" value="<%= product ? product._id : '' %>">
@@ -5506,7 +5655,9 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- Professional JavaScript -->
-<script src="/assets/js/product-detail-professional.js"></script>
+<!-- Buyer Token Manager - Load before product-details.js -->
+<script src="/js/buyer/buyer-token-manager.js"></script>
+<script src="/assets/js/product-details.js"></script>
 
 <!-- Safe User Data Injection -->
 <script id="user-data" type="application/json"><%- JSON.stringify(user || null) %></script>
@@ -5585,867 +5736,42 @@ try {
 // Inject server-side product status for authenticated distributors
 window.serverProductStatus = null;
 
-class ProductDetailManager {
-    constructor() {
-        this.currentUser = null;
-        this.isAuthenticated = false;
-        this.userType = null;
-        this.companyType = null;
-        this.productData = {
-            id: null,
-            manufacturerId: null,
-            unitPrice: 0,
-            currency: (window.translations?.common?.usd || 'USD'),
-            minQty: 1,
-            maxQty: 999,
-            stock: 0
-        };
-        
-        this.init();
-    }
-
-    async init() {
-        try {
-            this.initProductData();
-            await this.initializeUI();
-            this.bindEvents();
-        } catch (error) {
-            // Try to continue with basic functionality
-            try {
-                this.initProductData();
-                this.bindEvents();
-            } catch (fallbackError) {
-                // Silent fallback - essential functionality only
-            }
-        }
-    }
-
-    initProductData() {
-        const quantityInput = document.getElementById('productQuantity');
-        if (quantityInput) {
-            this.productData = {
-                id: quantityInput.dataset.productId,
-                manufacturerId: quantityInput.dataset.manufacturerId,
-                unitPrice: parseFloat(quantityInput.dataset.unitPrice) || 0,
-                currency: quantityInput.dataset.currency || (window.translations?.common?.usd || 'USD'),
-                minQty: parseInt(quantityInput.dataset.minQty) || 1,
-                maxQty: parseInt(quantityInput.dataset.maxQty) || 999,
-                stock: parseInt(quantityInput.dataset.stock) || 0
-            };
-        }
-    }
-
-    async checkAuthStatus() {
-        try {
-            // Check if user has tokens (cookies)
-            const refreshToken = this.getCookie('refreshToken');
-            const accessToken = this.getCookie('accessToken');
-            const hasTokens = !!(refreshToken && accessToken);
-            
-            if (!hasTokens) {
-                // No tokens = not logged in
-                this.isAuthenticated = false;
-                this.currentUser = null;
-                this.userType = null;
-                this.companyType = null;
-               
-                return;
-            }
-            
-            // User has tokens = logged in
-            this.isAuthenticated = true;
-            
-            // Check localStorage for distributor data
-            const userData = localStorage.getItem('slex_buyer_user_data');
-            
-            if (userData) {
-                try {
-                    const parsedData = JSON.parse(userData);
-                   
-                    // If localStorage exists, set userType and companyType properly
-                    if (parsedData.companyType || parsedData.userType) {
-                        this.currentUser = parsedData;
-                        this.userType = parsedData.userType || 'user';
-                        this.companyType = parsedData.companyType || null;
-                        return;
-                    }
-                } catch (e) {
-                   
-                }
-            }
-            
-            // Has tokens but no localStorage = likely manufacturer or admin
-            // Try to get user info from API to determine exact type
-            try {
-                const apiEndpoints = [
-                    '/auth/me',
-                    '/multiDashboard/auth/me',
-                    '/user/api/profile',
-                    '/buyer/api/profile'
-                ];
-                
-                for (const endpoint of apiEndpoints) {
-                    try {
-                        const response = await fetch(endpoint, {
-                            credentials: 'include',
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        });
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            
-                            // Handle different response structures
-                            let user = null;
-                            if (data.success && data.user) {
-                                user = data.user;
-                            } else if (data.success && data.data && data.data.user) {
-                                user = data.data.user;
-                            } else if (data.user) {
-                                user = data.user;
-                            } else if (data.id) {
-                                user = data; // Direct user object
-                            }
-                            
-                            if (user) {
-                                this.currentUser = user;
-                                
-                                // Set userType from actual userType field and companyType separately  
-                                this.userType = user.userType || 'user'; // user, admin, etc.
-                                this.companyType = user.companyType || null; // distributor, manufacturer, etc.
-                                
-                                // For legacy compatibility, also check role-based logic
-                                if (user.role === 'super_admin' || user.role === 'admin') {
-                                    this.userType = 'admin';
-                                }
-                                
-                                // Update localStorage only for distributors
-                                if (this.companyType === 'distributor') {
-                                    try {
-                                        localStorage.setItem('slex_buyer_user_data', JSON.stringify(user));
-                                    } catch (storageError) {
-                                        // Silent storage error
-                                    }
-                                }
-                                
-                                return;
-                            }
-                            break; // Found working endpoint
-                        } else {
-                            // API endpoint returned non-OK status
-                        }
-                    } catch (endpointError) {
-                        continue; // Try next endpoint
-                    }
-                }
-                
-                // API failed but user has tokens - check for distributor in localStorage
-                const buyerData = localStorage.getItem('slex_buyer_user_data');
-                if (buyerData) {
-                    try {
-                        const parsed = JSON.parse(buyerData);
-                        this.userType = 'user';
-                        this.companyType = 'distributor';
-                        this.currentUser = parsed;
-                        return;
-                    } catch (e) {
-                        // Failed to parse buyer data
-                    }
-                }
-                
-                // Last resort - assume distributor if tokens exist (for testing)
-                this.userType = 'user';
-                this.companyType = 'distributor';
-                 
-            } catch (apiError) {
-                // Fallback: has tokens but unknown type - assume distributor for testing
-                this.userType = 'user';
-                this.companyType = 'distributor';
-            }
-            
-        } catch (error) {
-            this.isAuthenticated = false;
-            this.currentUser = null;
-            this.userType = null;
-            this.companyType = null;
-        }
-    }
-    
-    getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-        return null;
-    }
-
-    async initializeUI() {
-        try {
-            await this.checkAuthStatus();
-            
-            // Apply role-based button control following SLEX specification
-            if (this.isAuthenticated && this.userType === 'user' && this.companyType === 'distributor') {
-                this.enableButtons();
-                // Check product status via API for distributor companies  
-                await this.checkProductStatus();
-            } else if (this.isAuthenticated && (this.companyType === 'manufacturer' || this.userType === 'admin')) {
-                this.disableButtons();
-            } else if (!this.isAuthenticated) {
-                this.enableButtons(); // Guest users can see buttons but will get login prompts
-            } else {
-                this.enableButtons();
-            }
-            
-        } catch (error) {
-            // Enable buttons by default if initialization fails
-            this.enableButtons();
-        }
-    }
-
-    enableButtons() {
-        const addToCartBtn = document.getElementById('addToCartBtn');
-        const favoriteBtn = document.getElementById('favoriteBtn');
-        
-        if (addToCartBtn) {
-            addToCartBtn.disabled = false;
-            addToCartBtn.classList.remove('disabled');
-            addToCartBtn.style.opacity = '1';
-            addToCartBtn.style.cursor = 'pointer';
-            addToCartBtn.style.pointerEvents = 'auto';
-            addToCartBtn.removeAttribute('title');
-            
-            // Ensure icon and text are visible
-            const icon = addToCartBtn.querySelector('i:not(.fa-spinner)');
-            const text = addToCartBtn.querySelector('.btn-text');
-            if (icon) icon.style.display = 'inline-block';
-            if (text) text.style.display = 'inline-block';
-        }
-        if (favoriteBtn) {
-            favoriteBtn.disabled = false;
-            favoriteBtn.classList.remove('disabled');
-            favoriteBtn.style.opacity = '1';
-            favoriteBtn.style.cursor = 'pointer';
-            favoriteBtn.style.pointerEvents = 'auto';
-            favoriteBtn.removeAttribute('title');
-            
-            // Ensure icon and text are visible
-            const icon = favoriteBtn.querySelector('i:not(.fa-spinner)');
-            const text = favoriteBtn.querySelector('.btn-text');
-            if (icon) icon.style.display = 'inline-block';
-            if (text) text.style.display = 'inline-block';
-        }
-    }
-    
-    disableButtons() {
-        const addToCartBtn = document.getElementById('addToCartBtn');
-        const favoriteBtn = document.getElementById('favoriteBtn');
-        
-        const userTypeText = this.companyType === 'manufacturer' ? 'manufacturer' : 'admin';
-        const message = `This action is not available for ${userTypeText} accounts. Only distributors can add products to cart and favorites.`;
-        
-        if (addToCartBtn) {
-            addToCartBtn.disabled = true;
-            addToCartBtn.classList.add('disabled');
-            addToCartBtn.style.opacity = '0.5';
-            addToCartBtn.style.cursor = 'not-allowed';
-            addToCartBtn.style.pointerEvents = 'none';
-            addToCartBtn.title = message;
-            
-            // Keep icon and text visible but disabled
-            const icon = addToCartBtn.querySelector('i:not(.fa-spinner)');
-            const text = addToCartBtn.querySelector('.btn-text');
-            if (icon) icon.style.display = 'inline-block';
-            if (text) text.style.display = 'inline-block';
-        }
-        if (favoriteBtn) {
-            favoriteBtn.disabled = true;
-            favoriteBtn.classList.add('disabled');
-            favoriteBtn.style.opacity = '0.5';
-            favoriteBtn.style.cursor = 'not-allowed';
-            favoriteBtn.style.pointerEvents = 'none';
-            favoriteBtn.title = message;
-            
-            // Keep icon and text visible but disabled
-            const icon = favoriteBtn.querySelector('i:not(.fa-spinner)');
-            const text = favoriteBtn.querySelector('.btn-text');
-            if (icon) icon.style.display = 'inline-block';
-            if (text) text.style.display = 'inline-block';
-        }
-    }
-
-    bindEvents() {
-        try {
-            // Quantity controls
-            const decreaseBtn = document.getElementById('decreaseQty');
-            const increaseBtn = document.getElementById('increaseQty');
-            const quantityInput = document.getElementById('productQuantity');
-
-            if (decreaseBtn) {
-                try {
-                    decreaseBtn.addEventListener('click', () => {
-                        this.decreaseQuantity();
-                    });
-                } catch (e) {
-                    // Silent error for button binding
-                }
-            }
-            
-            if (increaseBtn) {
-                try {
-                    increaseBtn.addEventListener('click', () => {
-                        this.increaseQuantity();
-                    });
-                } catch (e) {
-                    // Silent error for button binding
-                }
-            }
-            
-            if (quantityInput) {
-                try {
-                    quantityInput.addEventListener('change', () => this.validateQuantity());
-                    quantityInput.addEventListener('input', () => this.updateTotalPrice());
-                } catch (e) {
-                    // Silent error for input binding
-                }
-            }
-
-            // Action buttons
-            const addToCartBtn = document.getElementById('addToCartBtn');
-            const favoriteBtn = document.getElementById('favoriteBtn');
-
-            if (addToCartBtn) {
-                try {
-                    addToCartBtn.addEventListener('click', () => {
-                        this.addToCart();
-                    });
-                } catch (e) {
-                    // Silent error for cart button binding
-                }
-            }
-            
-            if (favoriteBtn) {
-                try {
-                    favoriteBtn.addEventListener('click', (event) => {
-                        this.toggleFavorite(event);
-                    });
-                } catch (e) {
-                    // Silent error for favorite button binding
-                }
-            }
-
-            // Image favorite button
-            const imageFavoriteBtn = document.getElementById('imageFavoriteBtn');
-            if (imageFavoriteBtn) {
-                try {
-                    imageFavoriteBtn.addEventListener('click', (event) => this.toggleFavorite(event));
-                } catch (e) {
-                    // Silent error for image favorite button binding
-                }
-            }
-            
-        } catch (error) {
-            // Silent error for complete event binding failure
-        }
-    }
-
-    decreaseQuantity() {
-        const quantityInput = document.getElementById('productQuantity');
-        if (quantityInput) {
-            const currentQty = parseInt(quantityInput.value) || this.productData.minQty;
-            const newQty = Math.max(currentQty - 1, this.productData.minQty);
-            quantityInput.value = newQty;
-            this.validateQuantity();
-        }
-    }
-
-    increaseQuantity() {
-        const quantityInput = document.getElementById('productQuantity');
-        if (quantityInput) {
-            const currentQty = parseInt(quantityInput.value) || this.productData.minQty;
-            const maxAllowed = Math.min(this.productData.maxQty, this.productData.stock);
-            const newQty = Math.min(currentQty + 1, maxAllowed);
-            quantityInput.value = newQty;
-            this.validateQuantity();
-        }
-    }
-
-    validateQuantity() {
-        const quantityInput = document.getElementById('productQuantity');
-        if (!quantityInput) return;
-
-        const qty = parseInt(quantityInput.value) || this.productData.minQty;
-        const maxAllowed = Math.min(this.productData.maxQty, this.productData.stock);
-
-        if (qty < this.productData.minQty) {
-            quantityInput.value = this.productData.minQty;
-            this.showToast(`Minimum quantity is ${this.productData.minQty}`, 'warning');
-        } else if (qty > maxAllowed) {
-            quantityInput.value = maxAllowed;
-            this.showToast(`Maximum available quantity is ${maxAllowed}`, 'warning');
-        }
-
-        // Update total price
-        this.updateTotalPrice();
-    }
-
-    updateTotalPrice() {
-        const quantityInput = document.getElementById('productQuantity');
-        const totalPriceElement = document.getElementById('totalPrice');
-        
-        if (quantityInput && totalPriceElement) {
-            const quantity = parseInt(quantityInput.value) || this.productData.minQty;
-            const totalPrice = (this.productData.unitPrice * quantity).toFixed(2);
-            totalPriceElement.textContent = `$${totalPrice}`;
-        }
-    }
-
-    async addToCart() {
-        // Re-check authentication on click
-        await this.checkAuthStatus();
-        
-        if (!this.isAuthenticated) {
-            this.showToast(`⚠️ ${window.translations.productDetails.loginRequired}`, 'warning');
-            return;
-        }
-
-        // Let backend handle all authorization - no frontend validation
-        // This provides better UX and consistent backend error messages
-
-        // Check if already in cart
-        const addToCartBtn = document.getElementById('addToCartBtn');
-        if (addToCartBtn && addToCartBtn.getAttribute('data-in-cart') === 'true') {
-            this.showToast('✅ Product is already in your cart', 'info');
-            return;
-        }
-        const quantityInput = document.getElementById('productQuantity');
-        
-        if (!quantityInput) {
-            this.showToast('Quantity input not found', 'error');
-            return;
-        }
-
-        const quantity = parseInt(quantityInput.value) || this.productData.minQty;
-
-        try {
-            // Show loading state
-            this.setButtonLoading(addToCartBtn, true);
-
-            const response = await this.fetchWithAuth('/buyer/api/cart/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    productId: this.productData.id,
-                    manufacturerId: this.productData.manufacturerId,
-                    quantity: quantity,
-                    unitPrice: this.productData.unitPrice,
-                    selectedSpecs: {},
-                    notes: ''
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.showToast(`✅ ${window.translations.productDetails.addedToCart}`, 'success');
-                this.updateCartCounter();
-                
-                // Refresh product status from server to ensure consistency
-                await this.checkProductStatus();
-            } else {
-                this.showToast(data.message || window.translations.productDetails.failedToAddCart, 'error');
-            }
-
-        } catch (error) {
-           
-            if (error.message.includes('Authentication failed')) {
-                this.showToast(`⚠️ ${window.translations.auth.pleaseLoginAgain || 'Please login again to continue'}`, 'warning');
-                setTimeout(() => {
-                    window.location.href = '/login';
-                }, 2000);
-            } else {
-                this.showToast('Failed to add product to cart', 'error');
-            }
-        } finally {
-            this.setButtonLoading(addToCartBtn, false);
-        }
-    }
-
-    async toggleFavorite(event) {
-        // Re-check authentication on click
-        await this.checkAuthStatus();
-        
-    
-        
-        if (!this.isAuthenticated) {
-            this.showToast(`⚠️ ${window.translations.productDetails.loginRequired}`, 'warning');
-            return;
-        }
-
-        // Let backend handle all authorization - no frontend validation
-        // This provides better UX and consistent backend error messages
-
-        // Determine which button was clicked
-        const clickedButton = event ? event.currentTarget : document.getElementById('favoriteBtn');
-        const isImageButton = clickedButton.id === 'imageFavoriteBtn';
-        
-        // Check current favorite state from the clicked button
-        const isCurrentlyFavorite = clickedButton.getAttribute('data-favorited') === 'true';
-
-        try {
-            // Set loading state for the clicked button
-            this.setButtonLoading(clickedButton, true);
-
-            const url = isCurrentlyFavorite ? 
-                '/buyer/api/remove-from-favorites' :
-                '/buyer/api/add-to-favorites';
-
-            const response = await this.fetchWithAuth(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    productId: this.productData.id
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                // Show success message
-                if (isCurrentlyFavorite) {
-                    this.showToast(`❤️ ${window.translations.productDetails.removedFromFavorites}`, 'success');
-                } else {
-                    this.showToast(`❤️ ${window.translations.productDetails.addedToFavorites}`, 'success');
-                }
-                
-                // Refresh product status from server to ensure consistency
-                await this.checkProductStatus();
-            } else {
-                this.showToast(data.message || window.translations.productDetails.failedToUpdateFavorites, 'error');
-            }
-
-        } catch (error) {
-           
-            if (error.message.includes('Authentication failed')) {
-                this.showToast(`⚠️ ${window.translations.productDetails.pleaseLoginAgain || 'Please login again to continue'}`, 'warning');
-                setTimeout(() => {
-                    window.location.href = '/login';
-                }, 2000);
-            } else {
-                this.showToast('Failed to update favorites', 'error');
-            }
-        } finally {
-            // Remove loading state from the clicked button
-            this.setButtonLoading(clickedButton, false);
-        }
-    }
-
-    async checkProductStatus() {
-
-        
-        // Allow both distributor and buyers (since distributor routes moved to buyer)
-        if (!this.isAuthenticated || (this.companyType !== 'distributor' && this.userType !== 'user')) {
-            return;
-        }
-
-        try {
-            const response = await this.fetchWithAuth(`/buyer/api/product-status/${this.productData.id}`);
-            const data = await response.json();
-            
-           
-
-            if (data.success) {
-                // Update favorite button
-                this.updateFavoriteButton(data.data.isFavorite);
-                
-                // Update add to cart button
-                this.updateAddToCartButton(data.data.isInCart, data.data.cartQuantity);
-            }
-        } catch (error) {
-           
-        }
-    }
-
-    // Helper function to decode HTML entities
-    decodeHtmlEntities(text) {
-        const textarea = document.createElement('textarea');
-        textarea.innerHTML = text;
-        return textarea.value;
-    }
-
-    updateFavoriteButton(isFavorite) {
-        // Update main favorite button
-        const favoriteBtn = document.getElementById('favoriteBtn');
-        if (favoriteBtn) {
-            const icon = favoriteBtn.querySelector('i:not(.fa-spinner)');
-            const text = favoriteBtn.querySelector('.btn-text');
-
-            if (isFavorite) {
-                if (icon) icon.className = 'fas fa-heart';
-                if (text) text.textContent = this.decodeHtmlEntities(window.translations?.productDetails?.removeFromFavorites || 'Remove from Favorites');
-                favoriteBtn.setAttribute('data-favorited', 'true');
-            } else {
-                if (icon) icon.className = 'far fa-heart';
-                if (text) text.textContent = this.decodeHtmlEntities(window.translations?.productDetails?.addToFavorites || 'Add to Favorites');
-                favoriteBtn.setAttribute('data-favorited', 'false');
-            }
-        }
-
-        // Update image favorite button
-        const imageFavoriteBtn = document.getElementById('imageFavoriteBtn');
-        if (imageFavoriteBtn) {
-            const icon = imageFavoriteBtn.querySelector('i');
-            if (icon) {
-                icon.className = isFavorite ? 'fas fa-heart' : 'far fa-heart';
-            }
-            imageFavoriteBtn.setAttribute('data-favorited', isFavorite.toString());
-        }
-    }
-
-    updateAddToCartButton(isInCart, cartQuantity) {
-        const addToCartBtn = document.getElementById('addToCartBtn');
-        if (!addToCartBtn) return;
-
-        const text = addToCartBtn.querySelector('.btn-text');
-        
-        if (isInCart) {
-            // Product already in cart - show quantity and disable
-            const inCartText = this.decodeHtmlEntities(window.translations?.productDetails?.inCart || window.translations?.common?.inCart || 'In Cart');
-            if (text) text.textContent = `${inCartText} (${cartQuantity})`;
-            addToCartBtn.disabled = true;
-            addToCartBtn.style.opacity = '0.7';
-            addToCartBtn.style.cursor = 'not-allowed';
-            const titleText = this.decodeHtmlEntities(window.translations?.productDetails?.alreadyInCart || 'This product is already in your cart');
-            addToCartBtn.title = `${titleText} (${window.translations?.productDetails?.quantity || 'quantity'}: ${cartQuantity})`;
-            addToCartBtn.setAttribute('data-in-cart', 'true');
-        } else {
-            // Product not in cart - normal state
-            if (text) text.textContent = this.decodeHtmlEntities(window.translations?.productDetails?.addToCart || 'Add to Cart');
-            addToCartBtn.disabled = false;
-            addToCartBtn.style.opacity = '1';
-            addToCartBtn.style.cursor = 'pointer';
-            addToCartBtn.removeAttribute('title');
-            addToCartBtn.setAttribute('data-in-cart', 'false');
-        }
-    }
-
-    setButtonLoading(button, loading) {
-        if (!button) return;
-
-        // Correct selectors based on actual HTML structure  
-        const icon = button.querySelector('i:not(.fa-spinner)'); // Direct icon child (not loading spinner)
-        const text = button.querySelector('.btn-text');
-        const loadingSpinner = button.querySelector('.btn-loading');
-
-        if (loading) {
-            button.disabled = true;
-            if (icon) icon.style.display = 'none';
-            if (text) text.style.display = 'none';
-            if (loadingSpinner) loadingSpinner.style.display = 'inline-block';
-        } else {
-            button.disabled = false;
-            if (icon) icon.style.display = 'inline-block';
-            if (text) text.style.display = 'inline-block';
-            if (loadingSpinner) loadingSpinner.style.display = 'none';
-        }
-    }
-
-    async fetchWithAuth(url, options = {}) {
-        // Ensure we have fresh tokens
-        if (window.buyerTokenManager) {
-            const status = window.buyerTokenManager.getStatus();
-            if (status.isExpired) {
-                const refreshed = await window.buyerTokenManager.refreshToken();
-                if (!refreshed) {
-                    throw new Error(window.translations.auth.authenticationFailed || 'Authentication failed');
-                }
-            }
-        }
-
-        const defaultOptions = {
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                ...options.headers
-            }
-        };
-
-        const fetchOptions = { ...defaultOptions, ...options };
-
-        try {
-            const response = await fetch(url, fetchOptions);
-            
-            if (response.status === 401 && window.buyerTokenManager) {
-                const refreshed = await window.buyerTokenManager.refreshToken();
-                if (refreshed) {
-                    return await fetch(url, fetchOptions);
-                } else {
-                    throw new Error(window.translations.auth.authenticationFailed || 'Authentication failed');
-                }
-            }
-
-            return response;
-        } catch (error) {
-
-            throw error;
-        }
-    }
-
-    updateCartCounter() {
-        // Update cart counter in navigation if exists
-        const cartCounter = document.querySelector('.cart-counter, .cart-badge');
-        if (cartCounter) {
-            const currentCount = parseInt(cartCounter.textContent) || 0;
-            cartCounter.textContent = currentCount + 1;
-        }
-    }
-
-    showToast(message, type = 'info') {
-        // Create toast notification
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.style.cssText = `
-            position: fixed !important;
-            top: 20px !important;
-            right: 20px !important;
-            background: white !important;
-            border-radius: 12px !important;
-            padding: 16px 20px !important;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
-            border-left: 4px solid ${type === 'warning' ? '#f59e0b' : type === 'error' ? '#ef4444' : type === 'success' ? '#22c55e' : '#3b82f6'} !important;
-            z-index: 9999 !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 12px !important;
-            min-width: 300px !important;
-            max-width: 500px !important;
-            font-family: inherit !important;
-            animation: slideInRight 0.3s ease-out !important;
-        `;
-        
-        toast.innerHTML = `
-            <div class="toast-content" style="display: flex; align-items: center; gap: 8px; flex: 1; font-weight: 500; color: #374151;">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}" style="color: ${type === 'warning' ? '#f59e0b' : type === 'error' ? '#ef4444' : type === 'success' ? '#22c55e' : '#3b82f6'};"></i>
-                <span>${message}</span>
-            </div>
-            <button class="toast-close" style="background: none; border: none; color: #9ca3af; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: all 0.2s ease;">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-
-        const container = document.getElementById('toastContainer') || document.body;
-        container.appendChild(toast);
-
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.remove();
-            }
-        }, 5000);
-
-        // Close button
-        const closeBtn = toast.querySelector('.toast-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => toast.remove());
-        }
-    }
-
-    // Open chat with manufacturer
-    openChat() {
-        // Check if user is authenticated using server data
-        if (!window.currentUser) {
-            this.showToast('⚠️ Chat uchun tizimga kiring', 'warning');
-            setTimeout(() => {
-                window.location.href = '/login';
-            }, 2000);
-            return;
-        }
-
-        // Check if user is distributor/buyer (correct logic for SLEX system)
-        
-        
-        const isBuyer = window.currentUser && 
-                        window.currentUser.role === 'company_admin' && 
-                        (window.currentUser.companyType === 'distributor' || window.currentUser.companyType === 'buyer');
-        
-        
-        if (!isBuyer) {
-            let message = '';
-            if (window.currentUser?.companyType === 'manufacturer') {
-                message = 'Ishlab chiqaruvchilar chat qila olmaydi';
-            } else if (window.currentUser?.role === 'admin' || window.currentUser?.role === 'super_admin') {
-                message = 'Adminlar chat qila olmaydi';
-            } else {
-                message = 'Faqat distribyutor/haridor kompanyalar chat qila oladi';
-            }
-            this.showToast(`⚠️ ${message}`, 'warning');
-            return;
-        }
-
-        // Get manufacturer ID from chat button or product data
-        const chatBtn = document.querySelector('.chat-btn');
-        const manufacturerId = chatBtn?.dataset.manufacturerId || this.productData.manufacturerId;
-        
-        if (!manufacturerId) {
-            this.showToast('⚠️ Ishlab chiqaruvchi ma\'lumotlari topilmadi', 'error');
-            return;
-        }
-
-        const redirectUrl = `/buyer/messages?manufacturer=${manufacturerId}`;
-        
-        // Redirect to messages page with manufacturer parameter
-        window.location.href = redirectUrl;
-    }
-}
 
 </script>
 
-<!-- Safe User Data Injection - Following SLEX Specification -->
 <!-- Step 1: Place user data in JSON script tag -->
 <script id="user-data" type="application/json"><%- JSON.stringify(user || null) %></script>
 
-<!-- Step 2: Safely parse and assign to window.currentUser -->
 <script>
 // Safe user data injection following SLEX specification
 try {
     const userDataElement = document.getElementById('user-data');
     if (userDataElement && userDataElement.textContent) {
         window.currentUser = JSON.parse(userDataElement.textContent);
-    } else {
+                        } else {
         window.currentUser = null;
     }
-} catch (error) {
+        } catch (error) {
     window.currentUser = null;
 }
 
-// Define openChat function immediately to prevent errors
-window.openChat = function(manufacturerId) {
-    if (window.productDetailManager && window.productDetailManager.openChat) {
-        window.productDetailManager.openChat();
-    } else {
-        // Check if user is distributor/buyer (correct SLEX logic)
-        const isBuyer = window.currentUser && 
-                        window.currentUser.role === 'company_admin' && 
-                        (window.currentUser.companyType === 'distributor' || window.currentUser.companyType === 'buyer');
-        
-        if (isBuyer) {
-            const redirectUrl = `/buyer/messages?manufacturer=${manufacturerId}`;
-            window.location.href = redirectUrl;
-        } else {
-            alert('Chat uchun distribyutor/haridor kompaniya sifatida tizimga kiring');
-        }
+// Initialize ProfessionalProductDetail when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize product data first
+    if (window.productDetail && typeof window.productDetail.initProductData === 'function') {
+        window.productDetail.initProductData();
     }
-};
-
-// Initialize when everything is fully loaded
-window.addEventListener('load', function() {
-    // Wait a bit more for all elements to be ready
-    setTimeout(function() {
-        // Initialize ProductDetailManager with proper authentication handling
-        window.productDetailManager = new ProductDetailManager();
-    }, 1000); // Wait 1 second for everything to load
+    
+    // Initialize UI and check auth status
+    setTimeout(async () => {
+        if (window.productDetail && typeof window.productDetail.checkAuthStatus === 'function') {
+            await window.productDetail.checkAuthStatus();
+        }
+        
+        if (window.productDetail && typeof window.productDetail.initializeUI === 'function') {
+            await window.productDetail.initializeUI();
+        }
+    }, 500);
 });
 </script>
 
@@ -6453,14 +5779,71 @@ window.addEventListener('load', function() {
 <style>
 /* Toast Animation */
 @keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Professional Inquiry Form Styles */
+.form-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #999999;
+}
+
+.form-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #3b82f6;
+}
+
+.budget-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.budget-inputs .form-input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.budget-separator {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.budget-currency {
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.form-row {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  
+  .budget-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .budget-inputs .form-input,
+  .budget-currency {
+    min-width: auto;
+  }
 }
 
 @keyframes slideOutRight {
@@ -7647,6 +7030,76 @@ window.addEventListener('load', function() {
     }
 }
 </style>
+
+<script>
+// Initialize buyer token manager for product details page
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.buyerTokenManager) {
+        // Setup token event listeners
+        window.buyerTokenManager.on('token-refreshed', (data) => {
+            console.log('✅ Token refreshed successfully');
+        });
+
+        window.buyerTokenManager.on('auth-error', (data) => {
+            console.warn('⚠️ Buyer authentication error:', data.reason);
+            if (data.reason === 'refresh-failed') {
+                // Show user-friendly message before redirect
+                alert('Your session has expired. You will be redirected to login.');
+            }
+        });
+
+        const status = window.buyerTokenManager.getStatus();
+    }
+    
+    // Initialize BuyerTokenManager first
+    if (window.BuyerTokenManager) {
+        window.buyerTokenManager = new BuyerTokenManager();
+        console.log('✅ BuyerTokenManager initialized');
+        
+        // Setup token event listeners
+        window.buyerTokenManager.on('token-refreshed', (data) => {
+            console.log('✅ Token refreshed successfully');
+        });
+
+        window.buyerTokenManager.on('auth-error', (data) => {
+            console.warn('⚠️ Buyer authentication error:', data.reason);
+            if (data.reason === 'refresh-failed') {
+                // Show user-friendly message before redirect
+                alert('Your session has expired. You will be redirected to login.');
+            }
+        });
+
+        // Log token status for debugging
+        const status = window.buyerTokenManager.getStatus();
+        console.log('🔍 Initial token status:', status);
+    } else {
+        console.log('❌ BuyerTokenManager not available');
+    }
+    
+    // Initialize ProfessionalProductDetail (main class)
+    if (window.productDetail && typeof window.productDetail.initProductData === 'function') {
+        window.productDetail.initProductData();
+    }
+    
+    // Initial authentication and product status check (single call)
+    setTimeout(async () => {
+        if (window.productDetail && typeof window.productDetail.checkAuthStatus === 'function') {
+            await window.productDetail.checkAuthStatus();
+        }
+    }, 500);
+    
+    // Start automatic token monitoring for public pages
+    if (window.buyerTokenManager) {
+        window.buyerTokenManager.startTokenMonitoring();
+        
+        // Force initial token check
+        setTimeout(() => {
+            console.log('🔄 Forcing initial token check...');
+            window.buyerTokenManager.checkAndRefreshToken();
+        }, 1000);
+    }
+});
+</script>
 
 <%- include('../partials/footer') %>
 

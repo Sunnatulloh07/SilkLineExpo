@@ -177,7 +177,7 @@ class OrderCommentsManager {
         e.preventDefault();
         
         if (!this.validateForm()) {
-            this.showError('Iltimos, barcha majburiy maydonlarni to\'ldiring');
+            this.showError(window.t?.('manufacturer.orders.detail.javascript.form_validation_error') || 'Iltimos, barcha majburiy maydonlarni to\'ldiring');
             return;
         }
 
@@ -192,7 +192,7 @@ class OrderCommentsManager {
         try {
             this.showLoading();
             
-            const response = await fetch(`/api/orders/${this.orderId}/comments`, {
+            const response = await fetch(`/api/order-comments/orders/${this.orderId}/comments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -204,19 +204,19 @@ class OrderCommentsManager {
             const result = await response.json();
 
             if (result.success) {
-                this.showSuccess('Izoh muvaffaqiyatli qo\'shildi');
+                this.showSuccess(window.t?.('manufacturer.orders.detail.javascript.note_save_success') || 'Izoh muvaffaqiyatli qo\'shildi');
                 this.closeModal();
                 this.refreshComments();
                 
                 // Show comments section if hidden
                 this.showCommentsSection();
             } else {
-                throw new Error(result.message || 'Izoh qo\'shishda xatolik yuz berdi');
+                throw new Error(result.message || window.t?.('manufacturer.orders.detail.javascript.comment_add_error') || 'Izoh qo\'shishda xatolik yuz berdi');
             }
 
         } catch (error) {
             console.error('Error submitting comment:', error);
-            this.showError(error.message || 'Izoh qo\'shishda xatolik yuz berdi');
+            this.showError(error.message || window.t?.('manufacturer.orders.detail.javascript.comment_add_error') || 'Izoh qo\'shishda xatolik yuz berdi');
         } finally {
             this.hideLoading();
         }
@@ -237,7 +237,7 @@ class OrderCommentsManager {
             this.loading = true;
             this.showCommentsLoading();
 
-            const url = new URL(`/api/orders/${this.orderId}/comments`, window.location.origin);
+            const url = new URL(`/api/order-comments/orders/${this.orderId}/comments`, window.location.origin);
             url.searchParams.set('page', page);
             url.searchParams.set('limit', 10);
             url.searchParams.set('includeReplies', 'true');
@@ -266,7 +266,10 @@ class OrderCommentsManager {
                 }
                 
                 this.updatePagination(result.data.pagination);
-                this.updateCommentsCount(result.data.statistics.totalComments);
+                
+                // Fix: Use correct statistics path
+                const totalComments = result.data.statistics?.totalComments || result.data.pagination?.total || 0;
+                this.updateCommentsCount(totalComments);
                 
                 // Show/hide comments section
                 if (result.data.comments.length > 0) {
@@ -275,21 +278,21 @@ class OrderCommentsManager {
                     this.showEmptyState();
                 }
             } else {
-                throw new Error(result.message || 'Izohlarni yuklashda xatolik');
+                throw new Error(result.message || window.t?.('manufacturer.orders.detail.javascript.comment_load_error') || 'Izohlarni yuklashda xatolik');
             }
 
         } catch (error) {
-            this.showError('Izohlarni yuklashda xatolik yuz berdi');
+            this.showError(window.t?.('manufacturer.orders.detail.javascript.comment_load_error') || 'Izohlarni yuklashda xatolik yuz berdi');
         } finally {
             this.loading = false;
             this.hideCommentsLoading();
         }
     }
 
-    refreshComments() {
+    async refreshComments() {
         // Reset pagination and reload comments
         this.currentPage = 1;
-        this.loadComments(1);
+        await this.loadComments(1);
     }
 
     displayComments(comments) {
@@ -350,8 +353,10 @@ class OrderCommentsManager {
         div.innerHTML = `
             <div class="comment-header">
                 <div class="comment-author">
-                    <img src="/assets/images/avatars/default.png" alt="" class="author-avatar" 
-                         onerror="this.src='/assets/images/thumbs/profile-info-img.png'; this.onerror=null;">
+                    ${comment.author?.companyLogo?.url ? 
+                        `<img src="${comment.author.companyLogo.url}" alt="${comment.author?.companyName || 'Company Logo'}" class="author-avatar author-logo">` :
+                        `<div class="author-avatar author-initial">${(comment.author?.companyName || comment.author?.name || 'U').charAt(0).toUpperCase()}</div>`
+                    }
                     <div class="author-info">
                         <span class="author-name">${this.escapeHtml(comment.author?.name || comment.author?.companyName || 'Unknown')}</span>
                         <span class="comment-time">${this.formatDate(comment.createdAt)}</span>
@@ -395,8 +400,14 @@ class OrderCommentsManager {
         return `
             <div class="comment-reply" data-reply-id="${reply._id}">
                 <div class="reply-author">
-                    <span class="author-name">${this.escapeHtml(reply.author?.name || reply.author?.companyName || 'Unknown')}</span>
-                    <span class="reply-time">${this.formatDate(reply.createdAt)}</span>
+                    ${reply.author?.companyLogo?.url ? 
+                        `<img src="${reply.author.companyLogo.url}" alt="${reply.author?.companyName || 'Company Logo'}" class="reply-avatar reply-logo">` :
+                        `<div class="reply-avatar reply-initial">${(reply.author?.companyName || reply.author?.name || 'U').charAt(0).toUpperCase()}</div>`
+                    }
+                    <div class="reply-author-info">
+                        <span class="author-name">${this.escapeHtml(reply.author?.name || reply.author?.companyName || 'Unknown')}</span>
+                        <span class="reply-time">${this.formatDate(reply.createdAt)}</span>
+                    </div>
                 </div>
                 <div class="reply-content">
                     <p>${this.escapeHtml(reply.content).replace(/\n/g, '<br>')}</p>
@@ -480,15 +491,15 @@ class OrderCommentsManager {
             const result = await response.json();
 
             if (result.success) {
-                window.showToast('Izoh muvaffaqiyatli o\'chirildi', 'success');
+                window.showToast(window.t?.('manufacturer.orders.detail.javascript.note_delete_success') || 'Izoh muvaffaqiyatli o\'chirildi', 'success');
                 // Refresh comments
                 this.loadComments();
             } else {
-                window.showToast(result.message || 'Izohni o\'chirishda xatolik', 'error');
+                window.showToast(result.message || window.t?.('manufacturer.orders.detail.javascript.note_delete_error') || 'Izohni o\'chirishda xatolik', 'error');
             }
         } catch (error) {
             console.error('❌ Error deleting comment:', error);
-            window.showToast('Tarmoq xatoligi', 'error');
+            window.showToast(window.t?.('manufacturer.orders.detail.javascript.network_error') || 'Tarmoq xatoligi', 'error');
         }
     }
 
@@ -553,11 +564,11 @@ class OrderCommentsManager {
         } catch (error) {
             // Show user-friendly error message
             if (error.message.includes('not found')) {
-                window.showToast('Izoh topilmadi', 'error');
+                window.showToast(window.t?.('manufacturer.orders.detail.javascript.comment_not_found') || 'Izoh topilmadi', 'error');
             } else if (error.message.includes('Access denied')) {
-                window.showToast('Bu izohga ruxsat yo\'q', 'error');
+                window.showToast(window.t?.('manufacturer.orders.detail.javascript.comment_access_error') || 'Bu izohga ruxsat yo\'q', 'error');
             } else {
-                window.showToast('Izoh ma\'lumotlarini olishda xatolik', 'error');
+                window.showToast(window.t?.('manufacturer.orders.detail.javascript.comment_get_error') || 'Izoh ma\'lumotlarini olishda xatolik', 'error');
             }
             
             return null;
@@ -658,10 +669,6 @@ class OrderCommentsManager {
         }
     }
 
-    async refreshComments() {
-        this.currentPage = 1;
-        await this.loadComments(1);
-    }
 
     async loadMoreComments() {
         if (this.currentPage < this.totalPages) {
@@ -725,7 +732,7 @@ class OrderCommentsManager {
         const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
         
         if (!commentElement) {
-            window.showToast('Izoh topilmadi', 'error');
+            window.showToast(window.t?.('manufacturer.orders.detail.javascript.comment_not_found') || 'Izoh topilmadi', 'error');
             return;
         }
         
@@ -740,11 +747,11 @@ class OrderCommentsManager {
                     this.openFallbackEditModal(commentId, commentData);
                 }
             } else {
-                window.showToast('Izoh ma\'lumotlari olinmadi', 'error');
+                window.showToast(window.t?.('manufacturer.orders.detail.javascript.comment_data_not_retrieved') || 'Izoh ma\'lumotlari olinmadi', 'error');
             }
         } catch (error) {
             console.error('❌ Error in editComment:', error);
-            window.showToast('Izohni tahrirlashda xatolik', 'error');
+            window.showToast(window.t?.('manufacturer.orders.detail.javascript.comment_edit_error') || 'Izohni tahrirlashda xatolik', 'error');
         }
     }
 

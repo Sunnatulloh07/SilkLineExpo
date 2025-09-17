@@ -25,7 +25,7 @@ class BuyerCommunication {
                 this.renderConversations(result.data);
             }
         } catch (error) {
-            console.error('Error loading conversations:', error);
+            // console.error('Error loading conversations:', error);
         }
     }
 
@@ -112,7 +112,7 @@ class BuyerCommunication {
 
             container.scrollTop = container.scrollHeight;
         } catch (error) {
-            console.error('Error loading messages:', error);
+            // console.error('Error loading messages:', error);
         }
     }
 
@@ -155,7 +155,7 @@ class BuyerCommunication {
                 this.renderRFQs(result.data);
             }
         } catch (error) {
-            console.error('Error loading RFQs:', error);
+            // console.error('Error loading RFQs:', error);
         }
     }
 
@@ -246,7 +246,7 @@ class BuyerCommunication {
                 this.loadMessages(this.currentConversation); // Refresh messages
             }
         } catch (error) {
-            console.error('Error sending message:', error);
+            // console.error('Error sending message:', error);
         }
     }
 
@@ -279,7 +279,7 @@ class BuyerCommunication {
                 this.loadRFQs(); // Refresh RFQ list
             }
         } catch (error) {
-            console.error('Error creating RFQ:', error);
+            // console.error('Error creating RFQ:', error);
         }
     }
 

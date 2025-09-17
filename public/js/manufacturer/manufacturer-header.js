@@ -222,9 +222,12 @@ class ManufacturerHeader {
     toggleDropdown(dropdown) {
         const wasHidden = dropdown.classList.contains('hidden');
         
+       
         // Close all other dropdowns
         document.querySelectorAll('.dropdown-menu').forEach(menu => {
-            menu.classList.add('hidden');
+            if (menu !== dropdown) {
+                menu.classList.add('hidden');
+            }
         });
         
         // Toggle current dropdown
@@ -263,7 +266,7 @@ class ManufacturerHeader {
             // Validate language code
             const supportedLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
             if (!supportedLanguages.includes(lang)) {
-                console.error('❌ Unsupported language:', lang);
+                // console.error('❌ Unsupported language:', lang);
                 return;
             }
 
@@ -273,9 +276,8 @@ class ManufacturerHeader {
             document.cookie = `selectedLanguage=${lang}; ${cookieOptions}`;
             document.cookie = `language=${lang}; ${cookieOptions}`;
             
-            // Get current URL and add language parameter
-            const currentUrl = window.location.pathname + window.location.search;
-            const redirectUrl = `/language/${lang}?redirect=${encodeURIComponent(currentUrl)}`;
+            // Use unified API route instead of old route
+            const redirectUrl = `/api/language/${lang}`;
             
             // Show loading state
             const languageToggle = document.getElementById('languageToggle');
@@ -284,11 +286,11 @@ class ManufacturerHeader {
                 languageToggle.disabled = true;
             }
             
-            // Navigate to language change route
+            // Navigate to unified language API route
             window.location.href = redirectUrl;
             
         } catch (error) {
-            console.error('❌ Language change error:', error);
+            // console.error('❌ Language change error:', error);
         }
     }
 
@@ -343,7 +345,7 @@ class ManufacturerHeader {
                 this.renderNotifications(data.notifications);
             }
         } catch (error) {
-            console.error('Failed to load notifications:', error);
+            // console.error('Failed to load notifications:', error);
         }
     }
 
@@ -371,7 +373,7 @@ class ManufacturerHeader {
             
             this.updateNotificationBadge(totalCount);
         } catch (error) {
-            console.error('Error updating notifications badge:', error);
+            // console.error('Error updating notifications badge:', error);
         }
     }
 
@@ -399,7 +401,7 @@ class ManufacturerHeader {
             
             this.renderInquiriesAndOrders(inquiries, orders);
         } catch (error) {
-            console.error('Error loading inquiries and orders:', error);
+            // console.error('Error loading inquiries and orders:', error);
         }
     }
 
@@ -420,7 +422,7 @@ class ManufacturerHeader {
             container.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-bell-slash"></i>
-                    <p>No new notifications</p>
+                    <p>${this.getTranslation('admin.header.notifications.no_notifications', 'Hozircha yangi bildirishnomalar yo\'q')}</p>
                 </div>
             `;
             return;
@@ -466,7 +468,7 @@ class ManufacturerHeader {
                 <div class="notifications-section">
                     <h5 class="section-title">
                         <i class="fas fa-envelope text-primary"></i>
-                        Yangi So'rovlar (${inquiries.length})
+                        ${this.getTranslation('admin.header.notifications.new_inquiries', 'Yangi So\'rovlar')} (${inquiries.length})
                     </h5>
             `;
             
@@ -478,8 +480,8 @@ class ManufacturerHeader {
                             <i class="fas fa-envelope"></i>
                         </div>
                         <div class="notification-content">
-                            <h4 class="notification-title">${inquiry.subject || inquiry.title || 'Yangi so\'rov'}</h4>
-                            <p class="notification-text">${inquiry.message || inquiry.description || 'So\'rov yuborildi'}</p>
+                            <h4 class="notification-title">${inquiry.subject || inquiry.title || this.getTranslation('admin.header.notifications.new_inquiry', 'Yangi so\'rov')}</h4>
+                            <p class="notification-text">${inquiry.message || inquiry.description || this.getTranslation('admin.header.notifications.inquiry_sent', 'So\'rov yuborildi')}</p>
                             <span class="notification-time">${this.formatTime(inquiry.createdAt)}</span>
                         </div>
                     </div>
@@ -495,7 +497,7 @@ class ManufacturerHeader {
                 <div class="notifications-section">
                     <h5 class="section-title">
                         <i class="fas fa-shopping-cart text-success"></i>
-                        Yangi Buyurtmalar (${orders.length})
+                        ${this.getTranslation('admin.header.notifications.new_orders', 'Yangi Buyurtmalar')} (${orders.length})
                     </h5>
             `;
             
@@ -507,8 +509,8 @@ class ManufacturerHeader {
                             <i class="fas fa-shopping-cart"></i>
                         </div>
                         <div class="notification-content">
-                            <h4 class="notification-title">Buyurtma #${order.orderNumber || order._id}</h4>
-                            <p class="notification-text">${order.status || 'Yangi buyurtma'}</p>
+                            <h4 class="notification-title">${this.getTranslation('admin.header.notifications.order_number', 'Buyurtma')} #${order.orderNumber || order._id}</h4>
+                            <p class="notification-text">${order.status || this.getTranslation('admin.header.notifications.new_order', 'Yangi buyurtma')}</p>
                             <span class="notification-time">${this.formatTime(order.createdAt)}</span>
                         </div>
                     </div>
@@ -523,7 +525,7 @@ class ManufacturerHeader {
             content = `
                 <div class="empty-state">
                     <i class="fas fa-bell-slash"></i>
-                    <p>Hozircha yangi xabarlar yo'q</p>
+                    <p>${this.getTranslation('admin.header.notifications.no_notifications', 'Hozircha yangi xabarlar yo\'q')}</p>
                 </div>
             `;
         }
@@ -537,7 +539,7 @@ class ManufacturerHeader {
                 <div class="mark-all-read-section">
                     <button class="btn btn-sm btn-outline-primary mark-all-read-btn" onclick="window.markAllNotificationsRead()">
                         <i class="fas fa-check-double"></i>
-                        Barchasini o'qilgan deb belgilash (${unreadInquiries.length + unreadOrders.length})
+                        ${this.getTranslation('admin.header.notifications.mark_all_read', 'Barchasini o\'qilgan deb belgilash')} (${unreadInquiries.length + unreadOrders.length})
                     </button>
                 </div>
             `;
@@ -600,7 +602,7 @@ class ManufacturerHeader {
                         window.location.href = '/manufacturer/orders';
                     }
                 } catch (error) {
-                    console.error('Error marking item as read:', error);
+                    // console.error('Error marking item as read:', error);
                     // Still redirect even if marking as read fails
                     if (itemType === 'inquiry') {
                         window.location.href = '/manufacturer/inquiries';
@@ -621,7 +623,12 @@ class ManufacturerHeader {
         const messagesDropdown = document.getElementById('messagesDropdown');
         
         if (messagesBtn && messagesDropdown) {
-            messagesBtn.addEventListener('click', (e) => {
+            // Remove any existing event listeners to prevent conflicts
+            const newMessagesBtn = messagesBtn.cloneNode(true);
+            messagesBtn.parentNode.replaceChild(newMessagesBtn, messagesBtn);
+            
+            // Add fresh event listener
+            newMessagesBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 this.toggleDropdown(messagesDropdown);
@@ -636,6 +643,24 @@ class ManufacturerHeader {
             this.loadMessages();
             this.updateSidebarMessagesBadge();
         }, 30000);
+    }
+
+    /**
+     * Get translation function
+     */
+    getTranslation(key, fallback = '') {
+        // Try to get translation from global i18next
+        if (typeof window.i18next !== 'undefined' && window.i18next.t) {
+            return window.i18next.t(key);
+        }
+        
+        // Try to get translation from global t function
+        if (typeof window.t !== 'undefined') {
+            return window.t(key);
+        }
+        
+        // Return fallback
+        return fallback || key;
     }
 
     async loadMessages() {
@@ -711,7 +736,7 @@ class ManufacturerHeader {
             container.innerHTML = `
                 <div class="no-messages">
                     <i class="fas fa-inbox text-muted"></i>
-                    <p class="text-muted">Hozircha xabarlar yo'q</p>
+                    <p class="text-muted">${this.getTranslation('admin.header.messages.no_messages', 'Hozircha xabarlar yo\'q')}</p>
                 </div>
             `;
             return;
@@ -722,7 +747,7 @@ class ManufacturerHeader {
             <div class="mark-all-read-section">
                 <button class="btn btn-sm btn-outline-primary mark-all-read-btn" onclick="window.markAllMessagesRead()">
                     <i class="fas fa-check-double"></i>
-                    Barchasini o'qilgan deb belgilash
+                    ${this.getTranslation('admin.header.messages.mark_all_read_btn', 'Barchasini o\'qilgan deb belgilash')}
                 </button>
             </div>
         `;
@@ -737,7 +762,7 @@ class ManufacturerHeader {
                     <h4 class="message-sender">${message.sender}</h4>
                     <p class="message-text">${message.content}</p>
                     <span class="message-time">${message.time}</span>
-                    ${message.orderNumber !== 'N/A' ? `<small class="message-order">Buyurtma: ${message.orderNumber}</small>` : ''}
+                    ${message.orderNumber !== 'N/A' ? `<small class="message-order">${this.getTranslation('admin.header.messages.order_prefix', 'Buyurtma')}: ${message.orderNumber}</small>` : ''}
                 </div>
             </div>
         `).join('');
@@ -776,7 +801,7 @@ class ManufacturerHeader {
                     // Navigate to messages page
                     window.location.href = '/manufacturer/messages';
                 } catch (error) {
-                    console.error('Error marking message as read:', error);
+                    // console.error('Error marking message as read:', error);
                     // Still navigate even if marking as read fails
                     window.location.href = '/manufacturer/messages';
                 }
@@ -820,7 +845,7 @@ class ManufacturerHeader {
                 
             }
         } catch (error) {
-            console.error('Failed to update messages badge:', error);
+            // console.error('Failed to update messages badge:', error);
         }
     }
 
@@ -832,9 +857,9 @@ class ManufacturerHeader {
         const now = new Date();
         const diff = Math.floor((now - date) / 1000);
 
-        if (diff < 60) return 'Just now';
-        if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
-        if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+        if (diff < 60) return this.getTranslation('admin.header.common.time_ago.just_now', 'Just now');
+        if (diff < 3600) return `${Math.floor(diff / 60)} ${this.getTranslation('admin.header.common.time_ago.minutes', 'minutes ago')}`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)} ${this.getTranslation('admin.header.common.time_ago.hours', 'hours ago')}`;
         return date.toLocaleDateString();
     }
 }
@@ -855,14 +880,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100);
     }, 50);
 
-    // Direct event listener as backup
+    // Direct event listener as backup - ENHANCED
     const messagesBtn = document.getElementById('messagesBtn');
     const messagesDropdown = document.getElementById('messagesDropdown');
     
     if (messagesBtn && messagesDropdown) {
-        messagesBtn.addEventListener('click', (e) => {
+        // Remove any existing listeners first
+        const newMessagesBtn = messagesBtn.cloneNode(true);
+        messagesBtn.parentNode.replaceChild(newMessagesBtn, messagesBtn);
+        
+        newMessagesBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            
+            // Close all other dropdowns
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if (menu !== messagesDropdown) {
+                    menu.classList.add('hidden');
+                }
+            });
             
             // Toggle dropdown
             const wasHidden = messagesDropdown.classList.contains('hidden');
@@ -914,7 +950,7 @@ window.markAllNotificationsRead = async function() {
         }
         
     } catch (error) {
-        console.error('Failed to mark notifications as read:', error);
+        // console.error('Failed to mark notifications as read:', error);
         alert('Xatolik yuz berdi!');
     }
 };
@@ -938,11 +974,11 @@ window.markAllMessagesRead = async function() {
                 alert('ℹ️ Barcha xabarlar allaqachon o\'qilgan!');
             }
         } else {
-            console.error('API error:', data.error);
+            // console.error('API error:', data.error);
             alert('Xatolik yuz berdi!');
         }
     } catch (error) {
-        console.error('Failed to mark messages as read:', error);
+        // console.error('Failed to mark messages as read:', error);
         alert('Xatolik yuz berdi!');
     }
 };

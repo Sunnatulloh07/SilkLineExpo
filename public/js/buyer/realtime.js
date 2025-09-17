@@ -28,7 +28,7 @@ class BuyerRealtime {
             this.ws.onclose = this.onClose.bind(this);
             this.ws.onerror = this.onError.bind(this);
         } catch (error) {
-            console.error('WebSocket connection failed:', error);
+            // console.error('WebSocket connection failed:', error);
             this.reconnect();
         }
     }
@@ -50,7 +50,7 @@ class BuyerRealtime {
             const data = JSON.parse(event.data);
             this.handleMessage(data);
         } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
+            // console.error('Error parsing WebSocket message:', error);
         }
     }
 
@@ -60,7 +60,7 @@ class BuyerRealtime {
     }
 
     onError(error) {
-        console.error('WebSocket error:', error);
+        // console.error('WebSocket error:', error);
     }
 
     handleMessage(data) {

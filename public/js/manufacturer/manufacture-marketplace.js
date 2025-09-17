@@ -2047,253 +2047,38 @@ document.addEventListener('DOMContentLoaded', async function() {
         initializeHeaderFunctionality();
     }
     
-    // EXACT DASHBOARD-INIT.JS THEME PATTERN
+    // THEME MANAGEMENT DISABLED - DELEGATED TO DASHBOARD-INIT.JS
     function initTheme() {
+        // Theme functionality is handled by dashboard-init.js to prevent conflicts
+        // This function is kept for compatibility but does nothing
+        console.log('⚠️ Marketplace theme init disabled - delegated to dashboard-init.js');
+        
+        // Just ensure theme is applied from localStorage without adding duplicate listeners
         const savedTheme = localStorage.getItem('dashboard-theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
         
-        // Update theme icon
+        // Update theme icon without adding duplicate event listener
         const themeToggle = document.getElementById('themeToggle');
         if (themeToggle) {
             const icon = themeToggle.querySelector('i');
             if (icon) {
                 icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
             }
-            
-            // Theme toggle handler (EXACT Dashboard-init.js Pattern)
-            themeToggle.addEventListener('click', function() {
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('dashboard-theme', newTheme);
-                
-                // Update icon
-                const icon = this.querySelector('i');
-                if (icon) {
-                    icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-                }
-                
-                // Dispatch event
-                window.dispatchEvent(new CustomEvent('themeChanged', { detail: newTheme }));
-            });
         }
     }
     
-    // ENHANCED LANGUAGE FUNCTION WITH DEBUGGING
+    // LANGUAGE FUNCTION DISABLED - DELEGATED TO DASHBOARD-INIT.JS
     function initLanguage() {
-        
-        // Get current language from cookie
-        const cookies = document.cookie.split(';');
-        let currentLang = 'uz';
-        
-        for (let cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === 'i18next') {
-                currentLang = value;
-                break;
-            }
-        }
-        
-        
-        // Language toggle handler
-        const languageToggle = document.getElementById('languageToggle');
-        const languageMenu = document.getElementById('languageMenu');
-        
-        
-        if (languageToggle && languageMenu) {
-            // Remove any existing listeners
-            const newLanguageToggle = languageToggle.cloneNode(true);
-            languageToggle.parentNode.replaceChild(newLanguageToggle, languageToggle);
-            
-            newLanguageToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const isHidden = languageMenu.classList.contains('hidden');
-                
-                if (isHidden) {
-                    languageMenu.classList.remove('hidden');
-                    languageMenu.style.display = 'block';
-                } else {
-                    languageMenu.classList.add('hidden');
-                    languageMenu.style.display = 'none';
-                }
-            });
-            
-            // Language option handlers
-            const languageOptions = document.querySelectorAll('.language-option');
-            
-            languageOptions.forEach(option => {
-                option.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    const lang = this.dataset.lang;
-                    const supportedLanguages = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
-                    
-                    if (!supportedLanguages.includes(lang)) {
-                        return;
-                    }
-                    
-                    
-                    // Set consistent language cookies
-                    const cookieOptions = `path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax`;
-                    document.cookie = `i18next=${lang}; ${cookieOptions}`;
-                    document.cookie = `selectedLanguage=${lang}; ${cookieOptions}`;
-                    document.cookie = `language=${lang}; ${cookieOptions}`;
-                    
-                    // Show loading state
-                    if (languageToggle) {
-                        languageToggle.style.opacity = '0.5';
-                        languageToggle.disabled = true;
-                    }
-                    
-                    // Reload page to apply language
-                    window.location.reload();
-                });
-            });
-            
-        } else {
-        }
+        // Language functionality is handled by dashboard-init.js to prevent conflicts
+        // This function is kept for compatibility but does nothing
+        console.log('⚠️ Marketplace language init disabled - delegated to dashboard-init.js');
     }
     
-    // CORRECT DASHBOARD HEADER DROPDOWNS (EXACT IDs FROM HEADER.EJS)
+    // DROPDOWN FUNCTION DISABLED - DELEGATED TO DASHBOARD-INIT.JS
     function initDropdowns() {
-        // Close dropdowns on outside click (EXACT Dashboard Pattern)
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.header-dropdown') && 
-                !e.target.closest('.header-user-dropdown') &&
-                !e.target.closest('.language-selector-wrapper')) {
-                
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
-                
-                // Also hide language menu
-                const languageMenu = document.getElementById('languageMenu');
-                if (languageMenu) {
-                    languageMenu.classList.add('hidden');
-                }
-            }
-        });
-        
-        // User Profile Dropdown (ENHANCED WITH DEBUGGING)
-        const userProfileToggle = document.getElementById('userProfileToggle');
-        const profileDropdown = document.getElementById('profileDropdown');
-        
-        
-        if (userProfileToggle && profileDropdown) {
-            // Remove any existing listeners
-            const newUserProfileToggle = userProfileToggle.cloneNode(true);
-            userProfileToggle.parentNode.replaceChild(newUserProfileToggle, userProfileToggle);
-            
-            newUserProfileToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const isHidden = profileDropdown.classList.contains('hidden');
-                
-                if (isHidden) {
-                    profileDropdown.classList.remove('hidden');
-                    profileDropdown.style.display = 'block';
-                } else {
-                    profileDropdown.classList.add('hidden');
-                    profileDropdown.style.display = 'none';
-                }
-                
-                // Close other dropdowns
-                document.querySelectorAll('.dropdown-menu:not(#profileDropdown)').forEach(menu => {
-                    menu.classList.add('hidden');
-                    menu.style.display = 'none';
-                });
-            });
-            
-        } else {
-        }
-        
-        // Messages Dropdown (ENHANCED WITH DEBUGGING)
-        const messagesBtn = document.getElementById('messagesBtn');
-        const messagesDropdown = document.getElementById('messagesDropdown');
-        
-        
-        if (messagesBtn && messagesDropdown) {
-            // Remove any existing listeners
-            const newMessagesBtn = messagesBtn.cloneNode(true);
-            messagesBtn.parentNode.replaceChild(newMessagesBtn, messagesBtn);
-            
-            newMessagesBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const isHidden = messagesDropdown.classList.contains('hidden');
-                
-                if (isHidden) {
-                    messagesDropdown.classList.remove('hidden');
-                    messagesDropdown.style.display = 'block';
-                } else {
-                    messagesDropdown.classList.add('hidden');
-                    messagesDropdown.style.display = 'none';
-                }
-                
-                // Close other dropdowns
-                document.querySelectorAll('.dropdown-menu:not(#messagesDropdown)').forEach(menu => {
-                    menu.classList.add('hidden');
-                    menu.style.display = 'none';
-                });
-            });
-            
-        } else {
-        }
-        
-        // Notifications Dropdown (ENHANCED WITH DEBUGGING)
-        const notificationsBtn = document.getElementById('notificationsBtn');
-        const notificationsDropdown = document.getElementById('notificationsDropdown');
-        
-        
-        if (notificationsBtn && notificationsDropdown) {
-            // Remove any existing listeners
-            const newNotificationsBtn = notificationsBtn.cloneNode(true);
-            notificationsBtn.parentNode.replaceChild(newNotificationsBtn, notificationsBtn);
-            
-            newNotificationsBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const isHidden = notificationsDropdown.classList.contains('hidden');
-                
-                if (isHidden) {
-                    notificationsDropdown.classList.remove('hidden');
-                    notificationsDropdown.style.display = 'block';
-                } else {
-                    notificationsDropdown.classList.add('hidden');
-                    notificationsDropdown.style.display = 'none';
-                }
-                
-                // Close other dropdowns
-                document.querySelectorAll('.dropdown-menu:not(#notificationsDropdown)').forEach(menu => {
-                    menu.classList.add('hidden');
-                    menu.style.display = 'none';
-                });
-            });
-            
-        } else {
-        }
-        
-        // Alerts Dropdown (IF EXISTS - Dashboard-init.js pattern)
-        const alertsBtn = document.getElementById('alertsBtn');
-        const alertsDropdown = document.getElementById('alertsDropdown');
-        
-        if (alertsBtn && alertsDropdown) {
-            alertsBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                alertsDropdown.classList.toggle('hidden');
-                // Close other dropdowns
-                document.querySelectorAll('.dropdown-menu:not(#alertsDropdown)').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
-            });
-        }
+        // Dropdown functionality is handled by dashboard-init.js to prevent conflicts
+        // This function is kept for compatibility but does nothing
+        console.log('⚠️ Marketplace dropdown init disabled - delegated to dashboard-init.js');
     }
     
     // SIDEBAR FUNCTIONALITY DELEGATED TO DASHBOARD-INIT.JS

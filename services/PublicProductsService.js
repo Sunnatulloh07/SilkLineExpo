@@ -8,6 +8,8 @@
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 const User = require('../models/User');
+const Review = require('../models/Review');
+const Comment = require('../models/Comment');
 const mongoose = require('mongoose');
 const Logger = require('../utils/Logger');
 const { CLIENT_RENEG_LIMIT } = require('tls');
@@ -737,7 +739,7 @@ class PublicProductsService {
             })
             .populate({
                 path: 'manufacturer',
-                select: 'companyName email phone country address website activityType companyLogo businessLicense isVerified establishedYear employeeCount description totalProducts totalOrders averageRating totalReviews'
+                select: 'companyName email phone country address website activityType companyLogo businessLicense establishedYear employeeCount description totalProducts totalOrders averageRating totalReviews profileViews status approvedBy approvedAt rejectedBy rejectedAt rejectionReason'
             })
             .populate({
                 path: 'category',
@@ -756,17 +758,30 @@ class PublicProductsService {
                 return null;
             }
             
-             // Increment view count asynchronously with last viewed timestamp
-            Product.findByIdAndUpdate(
-                productId,
-                { 
-                    $inc: { 'analytics.views': 1 },
-                    'analytics.lastViewed': new Date()
-                },
-                { new: false }
-            ).exec().catch(err => {
-                this.logger.error('❌ Failed to increment view count:', err);
-            });
+            
+            // Update real metrics if manufacturer exists
+            if (product.manufacturer && product.manufacturer._id) {
+                await this.updateManufacturerMetrics(product.manufacturer._id);
+                
+                // Re-populate manufacturer with updated data
+                const updatedManufacturer = await User.findById(product.manufacturer._id)
+                    .select('companyName email phone country address website activityType companyLogo businessLicense establishedYear employeeCount description totalProducts totalOrders averageRating totalReviews profileViews status approvedBy approvedAt rejectedBy rejectedAt rejectionReason')
+                    .lean();
+                
+                if (updatedManufacturer) {
+                    product.manufacturer = updatedManufacturer;
+                }
+            }
+            
+             // Increment product view count asynchronously with last viewed timestamp
+            Product.findByIdAndUpdate(productId, {
+                $inc: { 'analytics.views': 1 },
+                $set: { 'analytics.lastViewed': new Date() }
+            }).catch(err => console.error('Error updating product views:', err));
+            
+            // Note: Profile views should only be incremented when visiting supplier profile page, not product details
+            
+            // Note: Product views already updated above
 
             // Get related products from same manufacturer
             const relatedProducts = await Product.find({
@@ -1436,6 +1451,122 @@ class PublicProductsService {
             data,
             timestamp: Date.now()
         });
+    }
+
+    /**
+     * Update manufacturer metrics with real data
+     * @param {string} manufacturerId - Manufacturer ID
+     */
+    async updateManufacturerMetrics(manufacturerId) {
+        try {
+            const Order = require('../models/Order');
+
+            // Count real products
+            const totalProducts = await Product.countDocuments({
+                manufacturer: manufacturerId,
+                status: 'active',
+                visibility: 'public'
+            });
+
+            // Count real orders
+            const totalOrders = await Order.countDocuments({
+                seller: manufacturerId,
+                status: { $in: ['confirmed', 'processing', 'shipped', 'delivered'] }
+            });
+
+            // Calculate average rating from ALL product reviews of this manufacturer
+            // Include both Review model and Comment model ratings
+            const [reviewStats, commentStats] = await Promise.all([
+                // Review model aggregation
+                Review.aggregate([
+                    {
+                        $lookup: {
+                            from: 'products',
+                            localField: 'product',
+                            foreignField: '_id',
+                            as: 'productData'
+                        }
+                    },
+                    {
+                        $match: {
+                            'productData.manufacturer': new mongoose.Types.ObjectId(manufacturerId),
+                            status: 'approved',
+                            reviewType: 'product'
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            averageRating: { $avg: '$rating' },
+                            totalReviews: { $sum: 1 }
+                        }
+                    }
+                ]),
+                // Comment model aggregation
+                Comment.aggregate([
+                    {
+                        $lookup: {
+                            from: 'products',
+                            localField: 'product',
+                            foreignField: '_id',
+                            as: 'productData'
+                        }
+                    },
+                    {
+                        $match: {
+                            'productData.manufacturer': new mongoose.Types.ObjectId(manufacturerId),
+                            status: 'approved',
+                            rating: { $exists: true, $ne: null }
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            averageRating: { $avg: '$rating' },
+                            totalReviews: { $sum: 1 }
+                        }
+                    }
+                ])
+            ]);
+
+            // Combine ratings from both sources
+            let combinedRating = 0;
+            let combinedTotalReviews = 0;
+            let totalRatingSum = 0;
+
+            if (reviewStats.length > 0) {
+                totalRatingSum += reviewStats[0].averageRating * reviewStats[0].totalReviews;
+                combinedTotalReviews += reviewStats[0].totalReviews;
+            }
+
+            if (commentStats.length > 0) {
+                totalRatingSum += commentStats[0].averageRating * commentStats[0].totalReviews;
+                combinedTotalReviews += commentStats[0].totalReviews;
+            }
+
+            const averageRating = combinedTotalReviews > 0 ? totalRatingSum / combinedTotalReviews : 0;
+            const totalReviews = combinedTotalReviews;
+
+            console.log('📊 Supplier rating calculation:', {
+                manufacturerId,
+                reviewStats: reviewStats.length > 0 ? reviewStats[0] : null,
+                commentStats: commentStats.length > 0 ? commentStats[0] : null,
+                combinedRating: averageRating,
+                combinedTotalReviews: totalReviews
+            });
+
+            // Update manufacturer with real data
+            await User.findByIdAndUpdate(manufacturerId, {
+                totalProducts,
+                totalOrders,
+                averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
+                totalReviews
+            });
+
+  
+        } catch (error) {
+            console.error('❌ Error updating manufacturer metrics:', error);
+        }
     }
 }
 

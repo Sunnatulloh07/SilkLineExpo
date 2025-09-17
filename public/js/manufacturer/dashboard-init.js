@@ -259,31 +259,8 @@
             });
         }
         
-        // Messages dropdown (MISSING - FIXED!)
-        const messagesBtn = document.getElementById('messagesBtn');
-        const messagesDropdown = document.getElementById('messagesDropdown');
-        
-        if (messagesBtn && messagesDropdown) {
-            messagesBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                
-                // Close all other dropdowns first
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    if (menu !== messagesDropdown) {
-                        menu.classList.add('hidden');
-                    }
-                });
-                
-                // Close language menu specifically
-                const languageMenu = document.getElementById('languageMenu');
-                if (languageMenu) {
-                    languageMenu.classList.add('hidden');
-                }
-                
-                // Toggle messages dropdown
-                messagesDropdown.classList.toggle('hidden');
-            });
-        }
+        // Messages dropdown - REMOVED to prevent conflict with manufacturer-header.js
+        // The manufacturer-header.js handles messages dropdown functionality
     }
     
     // Sidebar Toggle - UNIFIED SYSTEM

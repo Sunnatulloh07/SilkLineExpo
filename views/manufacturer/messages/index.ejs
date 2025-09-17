@@ -1,5 +1,5 @@
-<%- include('../partials/header', { title: 'Biznes Xabarlari', lng: lng || 'uz', user: user }) %>
-<%- include('../partials/sidebar', { user: user, currentPage: 'messages' }) %>
+<%- include('../partials/header', { title: t('manufacturer.messages.page_title'), lng: lng, user: user, t: t }) %>
+<%- include('../partials/sidebar', { user: user, currentPage: 'messages', t: t }) %>
 
 <!-- Professional CSS Imports - Matching Orders Page Architecture -->
 <link rel="stylesheet" href="/css/products-management-redesign.css">
@@ -21,23 +21,9 @@
         <div class="orders-title-section">
           <h1 class="orders-main-title">
             <i class="fas fa-comments"></i>
-            Biznes Xabarlari
+            <%= t('manufacturer.messages.header.title') %>
           </h1>
-          <p class="orders-subtitle">Professional B2B aloqa tizimi va hamkorlik boshqaruvi</p>
-        </div>
-        <div class="orders-header-actions">
-          <button class="orders-btn orders-btn-primary" id="newConversationBtn">
-            <i class="fas fa-plus"></i>
-            Yangi Suhbat
-          </button>
-          <button class="orders-btn orders-btn-outline" id="exportMessagesBtn">
-            <i class="fas fa-download"></i>
-            Eksport
-          </button>
-          <button class="orders-btn orders-btn-secondary" id="refreshMessagesBtn">
-            <i class="fas fa-sync-alt"></i>
-            Yangilash
-          </button>
+          <p class="orders-subtitle"><%= t('manufacturer.messages.header.subtitle') %></p>
         </div>
       </div>
     </div>
@@ -47,32 +33,22 @@
       <div class="products-filters-header">
         <h3 class="products-filters-title">
           <i class="fas fa-filter"></i>
-          Filtr va Qidiruv
+          <%= t('manufacturer.messages.filters.title') %>
         </h3>
-        <div class="products-filters-actions">
-          <button class="products-btn products-btn-sm products-btn-secondary" id="resetMessagesFiltersBtn">
-            <i class="fas fa-undo"></i>
-            Reset
-          </button>
-          <button class="products-btn products-btn-sm products-btn-outline" id="advancedMessagesFiltersBtn">
-            <i class="fas fa-cog"></i>
-            Kengaytirilgan
-          </button>
-        </div>
       </div>
       <div class="products-filters-body">
         <form id="messagesFiltersForm" class="products-filters-form">
           
           <!-- Search Input -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Qidiruv</label>
+            <label class="products-filter-label"><%= t('manufacturer.messages.filters.search') %></label>
             <div class="products-search-wrapper">
               <i class="fas fa-search products-search-icon"></i>
               <input 
                 type="text" 
                 id="messagesSearchInput" 
                 name="search" 
-                placeholder="Hamkor nomi, buyurtma ID..."
+                placeholder="<%= t('manufacturer.messages.filters.search_placeholder') %>"
                 class="products-form-input search"
               >
             </div>
@@ -80,84 +56,84 @@
 
           <!-- Status Filter -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Holat</label>
+            <label class="products-filter-label"><%= t('manufacturer.messages.filters.status_filter') %></label>
             <select name="status" id="messagesStatusFilter" class="products-form-select">
-              <option value="">Barcha holatlar</option>
-              <option value="active">Faol (yangi xabarlar bor)</option>
-              <option value="read">O'qilgan</option>
-              <option value="no_messages">Hali yozishma yo'q</option>
-              <option value="archived">Arxivlangan</option>
+              <option value=""><%= t('manufacturer.messages.filters.status_all') %></option>
+              <option value="active"><%= t('manufacturer.messages.status.active') %></option>
+              <option value="read"><%= t('manufacturer.messages.status.completed') %></option>
+              <option value="no_messages"><%= t('manufacturer.messages.status.pending') %></option>
+              <option value="archived"><%= t('manufacturer.messages.status.archived') %></option>
             </select>
           </div>
 
           <!-- Order Status Filter -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Buyurtma Holati</label>
+            <label class="products-filter-label"><%= t('manufacturer.messages.filters.order_status') %></label>
             <select name="orderStatus" id="messagesOrderStatusFilter" class="products-form-select">
-              <option value="">Barcha buyurtmalar</option>
-              <option value="pending">Kutayotgan</option>
-              <option value="confirmed">Tasdiqlangan</option>
-              <option value="processing">Jarayonda</option>
-              <option value="manufacturing">Ishlab chiqarilmoqda</option>
-              <option value="ready_to_ship">Jo'natishga tayyor</option>
-              <option value="shipped">Jo'natilgan</option>
-              <option value="delivered">Yetkazilgan</option>
-              <option value="completed">Yakunlangan</option>
-              <option value="cancelled">Bekor qilingan</option>
+              <option value=""><%= t('manufacturer.messages.filters.all_orders') %></option>
+              <option value="pending"><%= t('manufacturer.messages.status.pending') %></option>
+              <option value="confirmed"><%= t('manufacturer.messages.status.confirmed') %></option>
+              <option value="processing"><%= t('manufacturer.messages.status.processing') %></option>
+              <option value="manufacturing"><%= t('manufacturer.messages.status.manufacturing') %></option>
+              <option value="ready_to_ship"><%= t('manufacturer.messages.status.ready_to_ship') %></option>
+              <option value="shipped"><%= t('manufacturer.messages.status.shipped') %></option>
+              <option value="delivered"><%= t('manufacturer.messages.status.delivered') %></option>
+              <option value="completed"><%= t('manufacturer.messages.status.completed') %></option>
+              <option value="cancelled"><%= t('manufacturer.messages.status.cancelled') %></option>
             </select>
           </div>
 
           <!-- Date Range Filter -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Sana oralig'i</label>
+            <label class="products-filter-label"><%= t('manufacturer.messages.filters.date_range') %></label>
             <select name="dateRange" id="messagesDateRangeFilter" class="products-form-select">
-              <option value="">Barcha vaqt</option>
-              <option value="today">Bugun</option>
-              <option value="week">Bu hafta</option>
-              <option value="month">Bu oy</option>
-              <option value="quarter">Bu chorak</option>
-              <option value="year">Bu yil</option>
-              <option value="custom">Maxsus oraliq</option>
+              <option value=""><%= t('manufacturer.messages.filters.all_time') %></option>
+              <option value="today"><%= t('manufacturer.messages.filters.today') %></option>
+              <option value="week"><%= t('manufacturer.messages.filters.this_week') %></option>
+              <option value="month"><%= t('manufacturer.messages.filters.this_month') %></option>
+              <option value="quarter"><%= t('manufacturer.messages.filters.this_quarter') %></option>
+              <option value="year"><%= t('manufacturer.messages.filters.this_year') %></option>
+              <option value="custom"><%= t('manufacturer.messages.filters.custom_range') %></option>
             </select>
           </div>
 
           <!-- Partner Filter -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Hamkor</label>
+            <label class="products-filter-label"><%= t('manufacturer.messages.filters.partner_filter') %></label>
             <select name="partner" id="messagesPartnerFilter" class="products-form-select">
-              <option value="">Barcha hamkorlar</option>
+              <option value=""><%= t('manufacturer.messages.filters.partner_all') %></option>
               <!-- Dynamically populated -->
             </select>
           </div>
 
           <!-- Sort Options -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Saralash</label>
+            <label class="products-filter-label"><%= t('manufacturer.messages.filters.sort_by') %></label>
             <select name="sortBy" id="messagesSortFilter" class="products-form-select">
-              <option value="lastMessageAt">Oxirgi xabar vaqti</option>
-              <option value="partner">Hamkor nomi</option>
-              <option value="orderNumber">Buyurtma ID</option>
-              <option value="unreadCount">O'qilmagan xabarlar</option>
+              <option value="lastMessageAt"><%= t('manufacturer.messages.filters.last_message_time') %></option>
+              <option value="partner"><%= t('manufacturer.messages.filters.partner_name') %></option>
+              <option value="orderNumber"><%= t('manufacturer.messages.filters.order_id') %></option>
+              <option value="unreadCount"><%= t('manufacturer.messages.filters.unread_messages') %></option>
             </select>
           </div>
 
           <!-- Sort Order -->
           <div class="products-filter-group">
-            <label class="products-filter-label">Tartib</label>
+            <label class="products-filter-label"><%= t('manufacturer.messages.filters.sort_order') %></label>
             <select name="sortOrder" id="messagesSortOrderFilter" class="products-form-select">
-              <option value="desc">Kamayish tartibida</option>
-              <option value="asc">O'sish tartibida</option>
+              <option value="desc"><%= t('manufacturer.messages.filters.descending') %></option>
+              <option value="asc"><%= t('manufacturer.messages.filters.ascending') %></option>
             </select>
           </div>
           
           <div class="products-filters-submit">
             <button type="submit" class="products-btn products-btn-primary" id="searchMessagesFiltersBtn">
               <i class="fas fa-search"></i>
-              Qidiruv
+              <%= t('manufacturer.messages.filters.search') %>
             </button>
             <button type="button" class="products-btn products-btn-secondary" id="clearMessagesFiltersBtn">
               <i class="fas fa-times"></i>
-              Tozalash
+              <%= t('manufacturer.messages.filters.clear') %>
             </button>
           </div>
         </form>
@@ -169,13 +145,18 @@
       <div class="products-content-header">
         <h3 class="products-content-title">
           <i class="fas fa-inbox"></i>
-          Suhbatlar
+          <%= t('manufacturer.messages.table.headers.title') %>
           <span class="products-count" id="conversationsCountText">
             <%= conversations ? conversations.length : 0 %>
           </span>
         </h3>
         <div class="products-content-actions">
-          <!-- Actions moved to table header -->
+
+          <div class="products-table-actions">
+            <button class="products-btn products-btn-sm products-btn-secondary" id="refreshConversationsBtn" title="<%= t('manufacturer.messages.actions.refresh') %>">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
         </div>
       </div>
       
@@ -183,24 +164,10 @@
       <div class="products-view-container" id="messagesTableView">
         <div class="products-table-container">
           <div class="products-table-header">
-            <h4 class="products-table-title">
-              <i class="fas fa-table"></i>
-              Xabarlar jadvali
-            </h4>
-            <div class="products-table-actions">
-              <button class="products-btn products-btn-sm products-btn-secondary" id="refreshConversationsBtn" title="Xabarlarni yangilash">
-                <i class="fas fa-sync-alt"></i>
-                Yangilash
-              </button>
-              <button class="products-btn products-btn-sm products-btn-outline" id="selectAllConversationsBtn">
-                <i class="fas fa-check-square"></i>
-                Barchasini belgilash
-              </button>
-              <button class="products-btn products-btn-sm products-btn-secondary" id="bulkConversationsActionsBtn">
-                <i class="fas fa-tasks"></i>
-                Ommaviy amallar
-              </button>
-            </div>
+              <h4 class="products-table-title">
+                <i class="fas fa-table"></i>
+                <%= t('manufacturer.messages.table.title') %>
+              </h4>
           </div>
           
           <div class="products-table-wrapper">
@@ -211,25 +178,25 @@
                     <input type="checkbox" id="selectAllConversations" class="table-checkbox">
                   </th>
                   <th class="partner-col sortable" data-sort="partner">
-                    Biznes Hamkor
+                    <%= t('manufacturer.messages.table.headers.partner') %>
                     <i class="fas fa-sort sort-icon"></i>
                   </th>
                   <th class="order-id-col sortable" data-sort="order">
-                    Buyurtma/So'rov ID
+                    <%= t('manufacturer.messages.table.headers.order_id') %>
                     <i class="fas fa-sort sort-icon"></i>
                   </th>
                   <th class="message-col">
-                    Oxirgi Xabar
+                    <%= t('manufacturer.messages.table.headers.last_message') %>
                   </th>
                   <th class="date-col sortable" data-sort="time">
-                    Sana
+                    <%= t('manufacturer.messages.table.headers.date') %>
                     <i class="fas fa-sort sort-icon"></i>
                   </th>
                   <th class="status-col sortable" data-sort="status">
-                    Holat
+                    <%= t('manufacturer.messages.table.headers.status') %>
                     <i class="fas fa-sort sort-icon"></i>
                   </th>
-                  <th class="actions-col">Amallar</th>
+                  <th class="actions-col"><%= t('manufacturer.messages.table.headers.actions') %></th>
                 </tr>
               </thead>
               <tbody id="conversationsTableBody">
@@ -241,7 +208,7 @@
           <!-- Professional Pagination - Products Page Style -->
           <div class="table-pagination" id="messagesPagination" style="display: none;">
             <div class="table-pagination-info">
-              <span id="paginationInfo">1-dan 0-gacha, jami 0 ta ko'rsatilmoqda</span>
+              <span id="paginationInfo"><%= t('manufacturer.messages.pagination.showing') %> 1 <%= t('manufacturer.messages.pagination.of') %> 0, <%= t('manufacturer.messages.pagination.total') %> 0 <%= t('manufacturer.messages.pagination.conversations') %></span>
             </div>
             <div class="table-pagination-controls" id="paginationControls">
               <!-- Pagination buttons will be inserted here -->
@@ -256,10 +223,60 @@
   </div>
 </main>
 
+<!-- i18n Initialization -->
+<script src="/js/i18n.js"></script>
+
 <!-- Dashboard Initialization -->
 <script src="/js/manufacturer/dashboard-init.js"></script>
 
-<!-- Professional Messages Page JavaScript -->
+<!-- Professional Unified Header Management -->
+<script src="/js/manufacturer/manufacturer-header.js"></script>
+
+
+<script type="application/json" id="translations">
+  {
+    "manufacturer.messages.chat.chat_info.inquiry_number": "<%= t('manufacturer.messages.chat.chat_info.inquiry_number') %>",
+    "manufacturer.messages.chat.chat_info.order_number": "<%= t('manufacturer.messages.chat.chat_info.order_number') %>",
+    "manufacturer.messages.chat.messages.online": "<%= t('manufacturer.messages.chat.messages.online') %>",
+    "manufacturer.messages.chat.no_messages_yet": "<%= t('manufacturer.messages.chat.no_messages_yet') %>",
+    "manufacturer.messages.chat.no_messages": "<%= t('manufacturer.messages.chat.no_messages') %>",
+    "manufacturer.messages.chat.text_message": "<%= t('manufacturer.messages.chat.text_message') %>",
+    "manufacturer.messages.status.pending": "<%= t('manufacturer.messages.status.pending') %>",
+    "manufacturer.messages.status.cancelled": "<%= t('manufacturer.messages.status.cancelled') %>",
+    "manufacturer.messages.status.unknown": "<%= t('manufacturer.messages.status.unknown') %>",
+    "manufacturer.messages.table.actions.main_actions": "<%= t('manufacturer.messages.table.actions.main_actions') %>",
+    "manufacturer.messages.table.actions.open_conversation": "<%= t('manufacturer.messages.table.actions.open_conversation') %>",
+    "manufacturer.messages.table.actions.view_order": "<%= t('manufacturer.messages.table.actions.view_order') %>",
+    "manufacturer.messages.table.actions.mark_as_read": "<%= t('manufacturer.messages.table.actions.mark_as_read') %>",
+    "manufacturer.messages.table.actions.additional_actions": "<%= t('manufacturer.messages.table.actions.additional_actions') %>",
+    "manufacturer.messages.table.actions.archive": "<%= t('manufacturer.messages.table.actions.archive') %>",
+    "manufacturer.messages.table.actions.export": "<%= t('manufacturer.messages.table.actions.export') %>",
+    "manufacturer.messages.table.actions.pin": "<%= t('manufacturer.messages.table.actions.pin') %>",
+    "manufacturer.messages.table.actions.dangerous_actions": "<%= t('manufacturer.messages.table.actions.dangerous_actions') %>",
+    "manufacturer.messages.table.actions.delete_conversation": "<%= t('manufacturer.messages.table.actions.delete_conversation') %>",
+    "manufacturer.messages.table.actions.view_order": "<%= t('manufacturer.messages.table.actions.view_order') %>"
+  }
+</script>
+<!-- Set translation function for JavaScript -->
+<script>
+// Pass server-side translations to client-side
+window.translations = JSON.parse(document.getElementById('translations').textContent);
+
+window.t = function(key, fallback = '') {
+  try {
+    // Use server-side translations
+    if (window.translations && window.translations[key]) {
+      return window.translations[key];
+    }
+    // Fallback to provided fallback or key
+    return fallback || key;
+  } catch (error) {
+    console.error('Translation error:', error);
+    return fallback || key;
+  }
+};
+</script>
+
 <script src="/js/manufacturer/messages.js"></script>
 
 

@@ -18,15 +18,10 @@
     
     const logger = {
         log: function(...args) {
-            if (isDevelopment && typeof console !== 'undefined' && console.log) {
-                console.log(...args);
-            }
+            // Production mode - no logging
         },
         error: function(...args) {
-            // Always log errors, even in production
-            if (typeof console !== 'undefined' && console.error) {
-                console.error(...args);
-            }
+           
         },
         warn: function(...args) {
             if (typeof console !== 'undefined' && console.warn) {
@@ -121,7 +116,7 @@
                 // Example integration with error tracking
                 // window.errorTracker?.report({ error, context, timestamp: Date.now() });
             } catch (e) {
-                console.error('Failed to report error:', e);
+                // console.error('Failed to report error:', e);
             }
         }
     };
@@ -179,7 +174,6 @@
      */
     function initializeProductsManagement() {
         try {
-            logger.log('🚀 Initializing Enhanced Products Management System');
             
             // Load server data
             loadServerData();
@@ -202,7 +196,6 @@
             // Initialize modal system
             initModalSystemOnReady();
             
-            logger.log('✅ Enhanced Products Management System initialized');
             
         } catch (error) {
             logger.error('❌ Failed to initialize Products Management:', error);
@@ -220,23 +213,15 @@
                 try {
                     productsData = JSON.parse(dataScript.textContent);
                     currentFilters = productsData.filters || {};
-                    logger.log('📊 Server data loaded:', {
-                        products: productsData.products?.length || 0,
-                        filters: Object.keys(currentFilters),
-                        stats: productsData.stats
-                    });
                 } catch (parseError) {
-                    logger.error('❌ Failed to parse server data JSON:', parseError);
                     productsData = { products: [], pagination: {}, filters: {}, stats: {} };
                     currentFilters = {};
                 }
             } else {
-                logger.warn('⚠️ No server data script found, using empty data');
                 productsData = { products: [], pagination: {}, filters: {}, stats: {} };
                 currentFilters = {};
             }
         } catch (error) {
-            logger.error('❌ Failed to load server data:', error);
             productsData = { products: [], pagination: {}, filters: {}, stats: {} };
         }
     }
@@ -277,7 +262,6 @@
         // Modal
         DOM.bulkActionsModal = document.getElementById('bulkActionsModal');
         
-        logger.log('🎯 DOM elements cached successfully');
     }
 
     /**
@@ -332,6 +316,9 @@
             btn.addEventListener('click', handleViewToggle);
         });
 
+        // Card and table dropdown handlers (priority)
+        document.addEventListener('click', handleMoreActionsToggle);
+
         // Unified click handler to prevent conflicts
         document.addEventListener('click', handleUnifiedClick);
 
@@ -348,12 +335,21 @@
             DOM.bulkActionsModal.addEventListener('click', handleBulkActionsModal);
         }
 
+        // Close dropdowns on scroll to prevent positioning issues
+        window.addEventListener('scroll', () => {
+            closeAllDropdowns();
+        }, { passive: true });
+
+        // Close dropdowns on window resize
+        window.addEventListener('resize', () => {
+            closeAllDropdowns();
+        }, { passive: true });
+
         // Debug: Test dropdown system after DOM load
         setTimeout(() => {
             testDropdownSystem();
         }, 1000);
 
-        logger.log('🔗 Event listeners setup completed');
     }
 
     /**
@@ -399,7 +395,6 @@
         // Store preference
         localStorage.setItem('products-view-preference', view);
         
-        logger.log(`👁️ View changed to: ${view}`);
     }
 
     /**
@@ -454,7 +449,6 @@
         // Apply sort
         applyFilters({ sortBy, sortOrder: newOrder });
         
-        logger.log(`🔄 Table sorted by: ${sortBy} ${newOrder}`);
         
         return true; // Sort was handled
     }
@@ -492,7 +486,6 @@
         }
         
         updateSelectionUI();
-        logger.log(`📋 ${isChecked ? 'Selected' : 'Deselected'} all products: ${selectedProducts.size}`);
     }
 
     /**
@@ -502,9 +495,6 @@
         try {
             // Handle product actions first (highest priority)
             if (handleProductActions(event)) return;
-            
-            // Handle dropdown system
-            if (handleDropdownSystem(event)) return;
             
             // Handle modal close
             if (handleModalClose(event)) return;
@@ -544,7 +534,6 @@
             DOM.selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < allCheckboxes.length;
         }
         
-        logger.log(`📋 Product ${productId} ${target.checked ? 'selected' : 'deselected'}. Total: ${selectedProducts.size}`);
     }
 
     /**
@@ -591,7 +580,6 @@
             return true; // Handled but with error
         }
         
-        logger.log(`🎯 Product action: ${action} for product: ${productId}`);
 
         switch (action) {
             case 'view':
@@ -702,7 +690,6 @@
                 // Update statistics
                 updateStatisticsAfterMarketplaceAction(action);
                 
-                logger.log(`✅ Marketplace ${action} successful for product: ${productId}`);
                 
             } else {
                 throw new Error(result.message || 'Xatolik yuz berdi');
@@ -753,7 +740,6 @@
      * Optimistic UI update for marketplace actions
      */
     function updateMarketplaceStatusOptimistic(productId, action) {
-        logger.log(`🎯 Optimistic UI update: ${action} for product ${productId}`);
         updateMarketplaceStatus(productId, action);
     }
     
@@ -761,7 +747,6 @@
      * Revert optimistic UI update if API call fails
      */
     function revertMarketplaceStatusUpdate(productId, action) {
-        logger.log(`🔄 Reverting UI update for product ${productId}`);
         const revertAction = action === 'publish' ? 'unpublish' : 'publish';
         updateMarketplaceStatus(productId, revertAction);
     }
@@ -788,7 +773,6 @@
                 }
             }
             
-            logger.log(`📊 Statistics updated for ${action} action`);
         } catch (error) {
             logger.warn('⚠️ Failed to update statistics:', error);
         }
@@ -882,7 +866,6 @@
      * Handle export products
      */
     function handleExportProducts() {
-        logger.log('📤 Exporting products');
         
         const queryParams = new URLSearchParams(currentFilters);
         queryParams.set('export', 'xlsx');
@@ -908,7 +891,6 @@
         
         if (isLoading) return;
         
-        logger.log('🔍 Processing filter submission');
         
         const formData = new FormData(DOM.filtersForm);
         const filters = Object.fromEntries(formData.entries());
@@ -945,7 +927,6 @@
         const { name, value } = event.target;
         currentFilters[name] = value;
         
-        logger.log(`🔄 Filter changed: ${name} = ${value}`);
         
         // Don't auto-apply filter changes, wait for search button
         // applyFilters({ [name]: value });
@@ -955,7 +936,6 @@
      * Handle clear/reset filters
      */
     function handleClearFilters() {
-        logger.log('🗑️ Clearing all filters');
         
         // Reset form
         if (DOM.filtersForm) {
@@ -976,7 +956,6 @@
         // Navigate to clean URL (no query params)
         const cleanUrl = window.location.pathname;
         
-        logger.log('🧹 Navigating to clean URL:', cleanUrl);
         showToast('Filtrlar tozalandi', 'success');
         
         window.location.href = cleanUrl;
@@ -1018,7 +997,6 @@
         // Navigate to filtered results
         const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
         
-        logger.log('🚀 Applying filters, navigating to:', newUrl);
         showToast('Filtrlar qo\'llanmoqda...', 'info');
         
         window.location.href = newUrl;
@@ -1028,7 +1006,6 @@
      * Handle add new product
      */
     function handleAddProduct() {
-        logger.log('➕ Adding new product');
         window.location.href = '/manufacturer/products/add';
     }
 
@@ -1041,7 +1018,6 @@
             return;
         }
 
-        logger.log(`📦 Opening bulk actions for ${selectedProducts.size} products`);
         showModal('bulkActionsModal');
     }
 
@@ -1049,7 +1025,6 @@
      * Handle filter reset
      */
     function handleResetFilters() {
-        logger.log('🔄 Resetting all filters');
         
         // Reset form
         if (DOM.filtersForm) {
@@ -1076,7 +1051,6 @@
     function handleRefreshProducts() {
         if (isLoading) return;
         
-        logger.log('🔄 Refreshing products');
         showToast('Mahsulotlar yangilanmoqda...', 'info');
         
         // Reload current page
@@ -1090,7 +1064,6 @@
      * Show product details modal
      */
     async function showProductDetailsModal(productId) {
-        logger.log(`👁️ Viewing product details: ${productId}`);
         
         const modal = document.getElementById('productDetailsModal');
         const content = document.getElementById('productDetailsContent');
@@ -1102,20 +1075,19 @@
         
         try {
             // Show loading state
+            const t = window.t || function(key) { return key; }; // Fallback translation function
             content.innerHTML = `
                 <div class="loading-content">
                     <div class="loading-spinner"></div>
-                    <p>Ma'lumot yuklanmoqda...</p>
+                    <p>${t('productDetails.loading')}</p>
                 </div>
             `;
             
             // Show modal immediately - MARKETPLACE STYLE
             modal.classList.add('active');
             document.body.style.overflow = 'hidden'; // Prevent body scroll
-            console.log('✅ Modal shown with marketplace style');
             
             // ALWAYS FETCH FROM API FOR COMPLETE DATA INCLUDING IMAGES
-            logger.log(`🌐 Fetching complete product data from API for: ${productId}`);
             
             // Try multiple endpoints to find working one
             let response;
@@ -1127,7 +1099,6 @@
             
             for (const endpoint of endpoints) {
                 try {
-                    console.log(`🔄 Trying endpoint: ${endpoint}`);
                     response = await fetch(endpoint, {
                         method: 'GET',
                         headers: {
@@ -1138,13 +1109,10 @@
                     });
                     
                     if (response.ok) {
-                        console.log(`✅ Success with endpoint: ${endpoint}`);
                         break;
                     } else {
-                        console.log(`❌ Failed with endpoint: ${endpoint} - ${response.status}`);
                     }
                 } catch (error) {
-                    console.log(`❌ Error with endpoint: ${endpoint} - ${error.message}`);
                 }
             }
             
@@ -1153,24 +1121,9 @@
             }
             
             const result = await response.json();
-            console.log('🔍 API Response:', result);
-            console.log('🔍 API Response type:', typeof result);
-            console.log('🔍 API Response keys:', Object.keys(result));
             
             if (result.data) {
-                console.log('📦 API Response data:', result.data);
-                console.log('📦 API Response data keys:', Object.keys(result.data));
-                console.log('🖼️ API Response data images:', result.data.images);
-                console.log('🖼️ Images type:', typeof result.data.images);
-                console.log('🖼️ Is images array:', Array.isArray(result.data.images));
                 if (result.data.images && Array.isArray(result.data.images)) {
-                    result.data.images.forEach((img, i) => {
-                        console.log(`🖼️ Raw API image ${i}:`, img);
-                        console.log(`🖼️ Raw API image ${i} type:`, typeof img);
-                        if (typeof img === 'object' && img) {
-                            console.log(`🖼️ Raw API image ${i} keys:`, Object.keys(img));
-                        }
-                    });
                 }
             }
             
@@ -1207,44 +1160,23 @@
                 ...product
             };
             
-            logger.log(`📦 Complete product data prepared:`, product);
-            console.log('🔍 Final product object keys:', Object.keys(product));
-            console.log('🖼️ Final product images field:', product.images);
-            console.log('🔍 Product images type:', typeof product.images);
-            if (product.images && Array.isArray(product.images)) {
-                console.log('📸 Images array length:', product.images.length);
-                product.images.forEach((img, i) => {
-                    console.log(`📷 Image ${i}:`, img);
-                    console.log(`📷 Image ${i} type:`, typeof img);
-                    if (typeof img === 'object' && img) {
-                        console.log(`📷 Image ${i} keys:`, Object.keys(img));
-                    }
-                });
-            }
             
             // Generate and show content
-            console.log('🎨 About to call generateProductDetailsHTML with product:', product);
-            console.log('🔍 generateProductDetailsHTML function type:', typeof generateProductDetailsHTML);
             
             content.innerHTML = generateProductDetailsHTML(product);
-            logger.log('✅ Product details loaded successfully with complete data');
             
-            // Check if any [object Object] exists in the generated HTML
-            const generatedHTML = content.innerHTML;
-            if (generatedHTML.includes('[object Object]')) {
-                console.error('❌ FOUND [object Object] IN GENERATED HTML!');
-                console.log('🔍 HTML snippet with issue:', generatedHTML.substring(generatedHTML.indexOf('[object Object]') - 100, generatedHTML.indexOf('[object Object]') + 100));
-            } else {
-                console.log('✅ No [object Object] found in generated HTML');
-            }
+            // Setup modal action handlers
+            setupModalActionHandlers();
+            
             
         } catch (error) {
             logger.error('Error loading product details:', error);
+            const t = window.t || function(key) { return key; }; // Fallback translation function
             content.innerHTML = `
                 <div class="error-content">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <p>Xatolik yuz berdi: ${error.message}</p>
-                    <p class="text-muted">Product ID: ${productId}</p>
+                    <p>${t('productDetails.error')}: ${error.message}</p>
+                    <p class="text-muted">${t('productDetails.productId')}: ${productId}</p>
                 </div>
             `;
             
@@ -1256,11 +1188,60 @@
 
     // Modal functions are defined globally below - removed duplicate definitions
 
+
+    /**
+     * Setup modal action handlers
+     */
+    function setupModalActionHandlers() {
+        const modal = document.getElementById('productDetailsModal');
+        if (!modal) return;
+        
+        // Add event listener for modal action buttons
+        modal.addEventListener('click', function(event) {
+            const button = event.target.closest('[data-action]');
+            if (!button) return;
+            
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const action = button.dataset.action;
+            const productId = button.dataset.productId;
+            
+            if (!productId) {
+                logger.error('Product ID not found for action:', action);
+                return;
+            }
+            
+            // Close modal first
+            hideModal('productDetailsModal');
+            
+            // Execute action
+            switch (action) {
+                case 'edit':
+                    handleEditProduct(productId);
+                    break;
+                case 'analytics':
+                    handleProductAnalytics(productId);
+                    break;
+                case 'publish':
+                    handleMarketplaceToggle(productId, 'publish');
+                    break;
+                case 'unpublish':
+                    handleMarketplaceToggle(productId, 'unpublish');
+                    break;
+                case 'delete':
+                    handleDeleteProduct(productId);
+                    break;
+                default:
+                    logger.warn('Unknown modal action:', action);
+            }
+        });
+    }
+
     /**
      * Extract product data from DOM elements
      */
     function extractProductDataFromDOM(productElement, productId) {
-        logger.log(`🔍 Extracting product data from DOM for: ${productId}`);
         
         const product = {
             _id: productId,
@@ -1333,7 +1314,6 @@
             logger.error('Error extracting product data from DOM:', error);
         }
 
-        logger.log('📦 Extracted product data:', product);
         return product;
     }
 
@@ -1411,7 +1391,7 @@
                             })()}" 
                                              alt="${product.name}" 
                                              class="product-hero-image"
-                                             onerror="console.log('❌ Hero image failed:', this.src); this.src='/images/placeholder-product.png'; this.onerror=null;"
+                                             onerror="this.src='/images/placeholder-product.png'; this.onerror=null;"
                                              onclick="openImageZoom('${(() => {
                                 const firstImage = product.images && Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : null;
                                 if (firstImage && typeof firstImage === 'object' && firstImage.url) {
@@ -1453,7 +1433,7 @@
                                                 <div class="thumbnail-item ${index === 0 ? 'active' : ''}" 
                                                      onclick="changeMainImage('${imageUrl}', ${index})">
                                                     <img src="${imageUrl}" alt="Thumbnail ${index + 1}" 
-                                                         onerror="console.log('❌ Thumbnail failed:', this.src); this.src='/images/placeholder-product.png'; this.onerror=null;">
+                                                         onerror="this.src='/images/placeholder-product.png'; this.onerror=null;">
                                                 </div>
                                             `;}).join('')}
                                         </div>
@@ -1895,7 +1875,6 @@
      * Show delete confirmation modal
      */
     function showDeleteModal(productId) {
-        logger.log(`🗑️ Showing delete modal for product: ${productId}`);
         
         const modal = document.getElementById('deleteProductModal');
         const confirmBtn = document.getElementById('confirmDeleteBtn');
@@ -1929,7 +1908,6 @@
      * Handle delete confirmation
      */
     async function handleDeleteConfirm(productId) {
-        logger.log(`🗑️ Confirming delete for product: ${productId}`);
         
         try {
             showToast('Mahsulot o\'chirilmoqda...', 'info');
@@ -1966,7 +1944,6 @@
      * Show marketplace publish modal
      */
     function showMarketplaceModal(productId) {
-        logger.log(`🏪 Showing marketplace modal for product: ${productId}`);
         
         const productIdInput = document.getElementById('marketplaceProductId');
         if (productIdInput) {
@@ -2016,7 +1993,6 @@
      * Show duplicate product modal
      */
     function showDuplicateModal(productId) {
-        logger.log(`📋 Showing duplicate modal for product: ${productId}`);
         
         const productIdInput = document.getElementById('duplicateProductId');
         const nameInput = document.getElementById('duplicateName');
@@ -2081,7 +2057,6 @@
      * Show analytics modal
      */
     async function showAnalyticsModal(productId) {
-        logger.log(`📊 Showing analytics modal for product: ${productId}`);
         
         const modal = new bootstrap.Modal(document.getElementById('analyticsModal'));
         const content = document.getElementById('analyticsContent');
@@ -2167,7 +2142,6 @@
      * Show status change modal
      */
     function showStatusChangeModal(productId) {
-        logger.log(`🔄 Showing status change modal for product: ${productId}`);
         
         const productIdInput = document.getElementById('statusProductId');
         if (productIdInput) {
@@ -2217,7 +2191,6 @@
      * Handle product edit
      */
     function handleEditProduct(productId) {
-        logger.log(`✏️ Editing product: ${productId}`);
         window.location.href = `/manufacturer/products/edit/${productId}`;
     }
 
@@ -2401,7 +2374,6 @@
                  const activeModal = document.querySelector('.modal.show, .modal[style*="display: block"]');
                  if (activeModal) {
                      const modalId = activeModal.id;
-                     logger.log('⌨️ Escape key pressed, closing modal:', modalId);
                      handleBackdropClick({ target: activeModal, currentTarget: activeModal });
                  }
              }
@@ -2430,7 +2402,6 @@
              });
          });
 
-         logger.log('✅ Professional modal system initialized with backdrop and keyboard support');
      }
 
      // Old modal functions removed - will be rewritten professionally
@@ -2438,7 +2409,6 @@
      // Initialize modal system - will be called from main init
      function initModalSystemOnReady() {
          initializeModalSystem();
-         logger.log('🚀 Professional modal system ready');
      }
 
     /**
@@ -2545,18 +2515,15 @@
             return false;
         }
 
-        logger.log('🖱️ Button clicked:', clickedButton.className);
 
         // Handle dropdown toggle buttons
         if (clickedButton.classList.contains('dropdown-toggle')) {
-            logger.log('🔽 Dropdown toggle button detected');
             handleDropdownToggle(event, clickedButton);
             return;
         }
 
         // Handle dropdown menu item actions
         if (clickedButton.classList.contains('table-more-item')) {
-            logger.log('🎬 Dropdown action item detected');
             handleDropdownAction(event, clickedButton);
             return;
         }
@@ -2577,7 +2544,6 @@
             event.preventDefault();
             event.stopPropagation();
 
-            logger.log('🔽 Dropdown toggle clicked');
 
             // Validate inputs
             if (!toggleButton) {
@@ -2600,7 +2566,6 @@
                 logger.warn('⚠️ Product ID not found on toggle button');
             }
             
-            logger.log(`🎯 Toggle dropdown for product: ${productId}`);
 
             // Close all other dropdowns first
             closeAllDropdowns(dropdownMenu);
@@ -2618,6 +2583,9 @@
                 dropdownMenu.classList.add('dropdown-open');
                 toggleButton.classList.add('dropdown-active');
                 
+                // Position dropdown outside container
+                positionEnhancedDropdown(dropdownMenu, toggleButton);
+                
                 // Add accessibility attributes
                 toggleButton.setAttribute('aria-expanded', 'true');
                 dropdownMenu.setAttribute('aria-hidden', 'false');
@@ -2628,7 +2596,6 @@
                     firstItem.focus();
                 }
                 
-                logger.log('✅ Dropdown opened successfully');
             } else {
                 // Close dropdown
                 closeDropdown(dropdownMenu, toggleButton);
@@ -2658,7 +2625,6 @@
             return;
         }
 
-        logger.log(`🎬 Dropdown action triggered: ${action} for product: ${productId}`);
 
         // Close dropdown after action
         const dropdownMenu = actionButton.closest('.table-more-menu');
@@ -2676,10 +2642,10 @@
      * Close all dropdowns except the specified one
      */
     function closeAllDropdowns(exceptMenu = null) {
-        document.querySelectorAll('.table-more-menu').forEach(menu => {
+        document.querySelectorAll('.table-more-menu, .card-more-menu').forEach(menu => {
             if (menu !== exceptMenu && !menu.classList.contains('hidden')) {
-                const container = menu.closest('.table-more-actions');
-                const toggle = container?.querySelector('.dropdown-toggle');
+                const container = menu.closest('.table-more-actions, .card-more-actions');
+                const toggle = container?.querySelector('.dropdown-toggle, .card-more-toggle');
                 closeDropdown(menu, toggle);
             }
         });
@@ -2694,14 +2660,100 @@
         menu.classList.add('hidden');
         menu.classList.remove('dropdown-open');
         menu.setAttribute('aria-hidden', 'true');
+        
+        // Force hide with JavaScript
+        menu.style.cssText = `
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            transform: translateY(-10px) !important;
+            max-height: 0 !important;
+            overflow: hidden !important;
+        `;
 
         if (toggleButton) {
             toggleButton.classList.remove('dropdown-active');
             toggleButton.setAttribute('aria-expanded', 'false');
         }
 
-        logger.log('🔽 Dropdown closed');
     }
+
+    /**
+     * Position enhanced dropdown outside container
+     */
+    function positionEnhancedDropdown(dropdown, toggleBtn) {
+        if (!dropdown || !toggleBtn) return;
+
+        // Get button position
+        const btnRect = toggleBtn.getBoundingClientRect();
+        const dropdownRect = dropdown.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+
+        // Calculate optimal position
+        let top = btnRect.bottom + 5;
+        let left = btnRect.right - 200; // dropdown min-width is 200px
+
+        // Adjust if dropdown goes below viewport
+        if (top + dropdownRect.height > viewportHeight) {
+            top = btnRect.top - dropdownRect.height - 5;
+        }
+
+        // Adjust if dropdown goes outside left edge
+        if (left < 10) {
+            left = 10;
+        }
+
+        // Adjust if dropdown goes outside right edge
+        if (left + 200 > viewportWidth - 10) {
+            left = viewportWidth - 210;
+        }
+
+        // Apply position
+        dropdown.style.top = `${top}px`;
+        dropdown.style.left = `${left}px`;
+    }
+
+    /**
+     * Position card dropdown outside container
+     */
+    function positionCardDropdown(dropdown, toggleBtn) {
+        if (!dropdown || !toggleBtn) return;
+
+        const btnRect = toggleBtn.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+
+        // Calculate dropdown dimensions
+        const dropdownWidth = 200; // min-width from CSS
+        const dropdownHeight = 160; // approximate height
+
+        let top = btnRect.bottom + 5;
+        let left = btnRect.right - dropdownWidth;
+
+        // Adjust if dropdown goes below viewport
+        if (top + dropdownHeight > viewportHeight) {
+            top = btnRect.top - dropdownHeight - 5;
+        }
+
+        // Adjust if dropdown goes outside left edge
+        if (left < 10) {
+            left = 10;
+        }
+
+        // Adjust if dropdown goes outside right edge
+        if (left + dropdownWidth > viewportWidth - 10) {
+            left = viewportWidth - dropdownWidth - 10;
+        }
+
+        // Ensure dropdown is within viewport bounds
+        top = Math.max(10, Math.min(top, viewportHeight - dropdownHeight - 10));
+        left = Math.max(10, Math.min(left, viewportWidth - dropdownWidth - 10));
+
+        dropdown.style.top = `${top}px`;
+        dropdown.style.left = `${left}px`;
+    }
+
 
     /**
      * Execute product action with enhanced error handling
@@ -2755,7 +2807,6 @@
      * Handle product analytics
      */
     function handleProductAnalytics(productId) {
-        logger.log(`📊 Viewing analytics for product: ${productId}`);
         window.location.href = `/manufacturer/analytics?product=${productId}`;
     }
 
@@ -2763,7 +2814,6 @@
      * Handle product archive
      */
     async function handleArchiveProduct(productId) {
-        logger.log(`📦 Archiving product: ${productId}`);
         
         if (!confirm('Ushbu mahsulotni arxivlashni xohlaysizmi?')) {
             return;
@@ -2797,7 +2847,6 @@
      * Handle marketplace toggle (publish/unpublish)
      */
     async function handleMarketplaceToggle(productId, action = 'toggle') {
-        logger.log(`🏪 Marketplace ${action} for product: ${productId}`);
         
         try {
             const actionText = action === 'publish' ? 'sotuvga chiqarilmoqda' : 'sotuvdan olib tashlanmoqda';
@@ -2994,7 +3043,6 @@
             }
         }, duration);
         
-        logger.log(`📱 Toast: ${type} - ${message}`);
     }
 
     /**
@@ -3018,17 +3066,11 @@
     function handleModalClose(event) {
         const target = event.target;
         
-        console.log('🔍 handleModalClose called with target:', {
-            target: target,
-            targetClasses: target.className,
-            targetId: target.id
-        });
         
         // Handle close button clicks
         if (target.classList.contains('btn-close') || target.classList.contains('modal-close-btn')) {
             const modal = target.closest('.professional-product-modal');
             if (modal && modalManager.activeModals.has(modal.id)) {
-                console.log('🚨 CLOSE BUTTON CLICKED - CLOSING MODAL:', modal.id);
                 event.preventDefault();
                 event.stopPropagation();
                 modalManager.hide(modal.id);
@@ -3041,7 +3083,6 @@
         if (target.classList.contains('professional-product-modal')) {
             const modalId = target.id;
             if (modalId && modalManager.activeModals.has(modalId)) {
-                console.log('🚨 BACKDROP CLICK VIA handleModalClose - CLOSING:', modalId);
                 event.preventDefault();
                 event.stopPropagation();
                 modalManager.hide(modalId);
@@ -3050,7 +3091,6 @@
         }
         */
         
-        console.log('✅ handleModalClose - no action taken');
         return false;
     }
 
@@ -3058,11 +3098,19 @@
      * Handle more actions dropdown toggle
      */
     function handleMoreActionsToggle(event) {
-        const target = event.target.closest('.card-more-toggle, .table-action-btn[title="Boshqa amallar"]');
+        const target = event.target.closest('.card-more-toggle, .table-action-btn.dropdown-toggle');
         
-        if (target && (target.classList.contains('card-more-toggle') || target.title === 'Boshqa amallar')) {
+        if (target) {
+            event.preventDefault();
             event.stopPropagation();
-            const menu = target.parentElement.querySelector('.card-more-menu, .table-more-menu');
+            let menu;
+            
+            // Find the correct menu based on target type
+            if (target.classList.contains('card-more-toggle')) {
+                menu = target.parentElement.querySelector('.card-more-menu');
+            } else if (target.classList.contains('dropdown-toggle')) {
+                menu = target.parentElement.querySelector('.table-more-menu');
+            }
             
             if (menu) {
                 // Close all other menus
@@ -3070,13 +3118,91 @@
                     if (m !== menu) m.classList.add('hidden');
                 });
                 
+                // Check if menu was hidden before
+                const wasHidden = menu.classList.contains('hidden');
+                
                 // Toggle current menu
                 menu.classList.toggle('hidden');
+                
+                // Force display style with JavaScript (higher priority than CSS)
+                if (!menu.classList.contains('hidden')) {
+                    // Show dropdown - create complete styling
+                    menu.style.cssText = `
+                        display: block !important;
+                        visibility: visible !important;
+                        opacity: 1 !important;
+                        transform: translateY(0) !important;
+                        max-height: 400px !important;
+                        overflow: visible !important;
+                        position: fixed !important;
+                        z-index: 9999 !important;
+                        background: white !important;
+                        border: 1px solid #e5e7eb !important;
+                        border-radius: 12px !important;
+                        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+                        padding: 8px 0 !important;
+                        margin: 0 !important;
+                        min-width: 200px !important;
+                        transition: all 0.2s ease !important;
+                    `;
+                } else {
+                    // Hide dropdown
+                    menu.style.cssText = `
+                        display: none !important;
+                        visibility: hidden !important;
+                        opacity: 0 !important;
+                        transform: translateY(-10px) !important;
+                        max-height: 0 !important;
+                        overflow: hidden !important;
+                    `;
+                }
+                
+           
+                
+                // Position dropdown outside container when showing
+                if (wasHidden) {
+                    if (target.classList.contains('card-more-toggle')) {
+                        positionCardDropdown(menu, target);
+                    } else {
+                        positionEnhancedDropdown(menu, target);
+                    }
+                    
+                    // Force show again after positioning (in case positioning affected visibility)
+                    if (!menu.classList.contains('hidden')) {
+                        menu.style.cssText = `
+                            display: block !important;
+                            visibility: visible !important;
+                            opacity: 1 !important;
+                            transform: translateY(0) !important;
+                            max-height: 400px !important;
+                            overflow: visible !important;
+                            position: fixed !important;
+                            z-index: 9999 !important;
+                            background: white !important;
+                            border: 1px solid #e5e7eb !important;
+                            border-radius: 12px !important;
+                            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+                            padding: 8px 0 !important;
+                            margin: 0 !important;
+                            min-width: 200px !important;
+                            transition: all 0.2s ease !important;
+                        `;
+                    }
+                }
             }
         } else {
             // Close all menus when clicking outside
             document.querySelectorAll('.card-more-menu, .table-more-menu').forEach(m => {
                 m.classList.add('hidden');
+                // Force hide with JavaScript
+                m.style.cssText = `
+                    display: none !important;
+                    visibility: hidden !important;
+                    opacity: 0 !important;
+                    transform: translateY(-10px) !important;
+                    max-height: 0 !important;
+                    overflow: hidden !important;
+                `;
             });
         }
     }
@@ -3090,7 +3216,6 @@
 
         const action = target.dataset.action;
         
-        logger.log(`📦 Bulk action: ${action} for ${selectedProducts.size} products`);
 
         switch (action) {
             case 'publish-selected':
@@ -3398,7 +3523,6 @@
         setInterval(() => {
             const inactiveTime = Date.now() - lastActivity;
             if (inactiveTime > 15 * 60 * 1000) { // 15 minutes
-                logger.log('🔄 Auto-refreshing due to inactivity');
                 window.location.reload();
             }
         }, 5 * 60 * 1000); // 5 minutes
@@ -3456,7 +3580,6 @@
             };
             
             this.init();
-            logger.log('🚀 Professional Modal Manager initialized');
         }
         
         /**
@@ -3489,7 +3612,6 @@
                 // Merge options with defaults
                 const config = { ...this.config, ...options };
                 
-                logger.log(`🎯 Opening modal: ${modalId}`);
                 
                 // Close any existing modal of same type
                 if (this.activeModals.has(modalId)) {
@@ -3512,14 +3634,6 @@
                 // Animate modal in
                 await this.animateIn(modal);
                 
-                console.log(`✅ Modal animation completed: ${modalId}`);
-                console.log('Modal element state:', {
-                    id: modal.id,
-                    display: modal.style.display,
-                    opacity: modal.style.opacity,
-                    classes: modal.className,
-                    isVisible: modal.offsetParent !== null
-                });
                 
                 // Set up focus trap
                 if (config.focusTrap) {
@@ -3531,14 +3645,11 @@
                     detail: { modalId, manager: this } 
                 }));
                 
-                logger.log(`✅ Modal opened successfully: ${modalId}`);
                 
                 // Add a delayed check to see if modal is still open
                 setTimeout(() => {
                     if (this.activeModals.has(modalId)) {
-                        console.log(`✅ Modal still open after 1 second: ${modalId}`);
             } else {
-                        console.log(`❌ Modal was closed within 1 second: ${modalId}`);
                     }
                 }, 1000);
                 
@@ -3555,16 +3666,13 @@
          */
         async hide(modalId) {
             try {
-                console.log(`🚨 HIDE CALLED FOR MODAL: ${modalId}`);
                 console.trace('Modal hide call stack:');
                 
                 const modal = document.getElementById(modalId);
                 if (!modal || !this.activeModals.has(modalId)) {
-                    console.log(`❌ Modal not found or not active: ${modalId}`);
                     return false;
                 }
                 
-                logger.log(`🎯 Closing modal: ${modalId}`);
                 
                 // Dispatch custom event
                 modal.dispatchEvent(new CustomEvent('modal:hiding', { 
@@ -3592,7 +3700,6 @@
                     detail: { modalId, manager: this } 
                 }));
                 
-                logger.log(`✅ Modal closed successfully: ${modalId}`);
                 return true;
                 
             } catch (error) {
@@ -3616,22 +3723,11 @@
             
             // Add backdrop click handler directly to modal with detailed debugging
             modal.addEventListener('click', (e) => {
-                console.log('🔍 Modal click event:', {
-                    target: e.target,
-                    currentTarget: e.currentTarget,
-                    modal: modal,
-                    isModalItself: e.target === modal,
-                    targetClasses: e.target.className,
-                    modalId: modalId
-                });
                 
                 // Only close if clicking the modal container itself, not child elements
                 if (e.target === modal) {
-                    console.log(`🚨 MODAL BACKDROP CLICKED - CLOSING: ${modalId}`);
-                    logger.log(`🎯 Modal backdrop clicked: ${modalId}`);
                     this.hide(modalId);
             } else {
-                    console.log('✅ Click on child element - NOT closing modal');
                 }
             });
             
@@ -3796,14 +3892,12 @@
     // Enhanced backdrop click handler - REMOVED to prevent conflicts
     // Backdrop functionality is now handled directly in modal manager
     window.handleBackdropClick = function(event) {
-        console.log('🚨 DEPRECATED handleBackdropClick called - this should not happen');
         console.trace('Deprecated handleBackdropClick call stack:');
     };
     
     // Export modal manager for advanced usage
     window.modalManager = modalManager;
     
-    logger.log('🚀 Professional Modal System v2.0 loaded successfully');
     
     // Global debugging functions for testing
     window.debugDropdowns = function() {
@@ -3812,7 +3906,6 @@
         // Test dropdown toggle
         const firstToggle = document.querySelector('.dropdown-toggle');
         if (firstToggle) {
-            logger.log('🧪 Testing first dropdown toggle...');
             firstToggle.click();
         } else {
             logger.warn('❌ No dropdown toggle found for testing');
@@ -3829,7 +3922,6 @@
     
     // Test marketplace API endpoints
     window.testMarketplaceAPI = async function(productId, action = 'publish') {
-        console.log(`🧪 Testing marketplace API: ${action} for product ${productId}`);
         
         try {
             const response = await fetch(`/api/manufacturer/products/${productId}/marketplace/${action}`, {
@@ -3847,11 +3939,10 @@
             });
             
             const result = await response.json();
-            console.log('✅ API Response:', result);
             return result;
             
         } catch (error) {
-            console.error('❌ API Test Failed:', error);
+            // console.error('❌ API Test Failed:', error);
             return { success: false, error: error.message };
         }
     };
@@ -3863,23 +3954,15 @@
         const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
         const dropdownMenus = document.querySelectorAll('.table-more-menu');
         
-        logger.log(`🧪 Testing dropdown system:`);
-        logger.log(`📊 Found ${dropdownToggles.length} dropdown toggles`);
-        logger.log(`📊 Found ${dropdownMenus.length} dropdown menus`);
         
         if (dropdownToggles.length === 0) {
             logger.warn('❌ No dropdown toggles found! Check CSS class names.');
         }
         
         dropdownToggles.forEach((toggle, index) => {
-            logger.log(`🔘 Toggle ${index + 1}:`, toggle);
-            logger.log(`   - Classes: ${toggle.className}`);
-            logger.log(`   - Product ID: ${toggle.dataset.productId}`);
             
             const container = toggle.closest('.table-more-actions');
             const menu = container?.querySelector('.table-more-menu');
-            logger.log(`   - Has container: ${!!container}`);
-            logger.log(`   - Has menu: ${!!menu}`);
         });
     }
 
@@ -3979,7 +4062,6 @@ function initializeMarketplaceModal() {
     closeBtn.addEventListener('click', () => {
         modal.classList.remove('active');
         document.body.style.overflow = ''; // Restore body scroll
-        console.log('✅ Modal closed via close button');
     });
 
     // Close modal on overlay click
@@ -3987,7 +4069,6 @@ function initializeMarketplaceModal() {
         if (e.target === modal) {
             modal.classList.remove('active');
             document.body.style.overflow = ''; // Restore body scroll
-            console.log('✅ Modal closed via overlay click');
         }
     });
 
@@ -3996,11 +4077,9 @@ function initializeMarketplaceModal() {
         if (e.key === 'Escape' && modal.classList.contains('active')) {
             modal.classList.remove('active');
             document.body.style.overflow = ''; // Restore body scroll
-            console.log('✅ Modal closed via Escape key');
         }
     });
     
-    console.log('✅ Marketplace style modal initialized');
 }
 
 /**
@@ -4008,9 +4087,32 @@ function initializeMarketplaceModal() {
  * Simple, Clean, and Working Implementation
  */
 function generateProductDetailsHTML(product) {
-    // Helper functions
+    
+    // Helper functions with multi-language support
+    const t = function(key) {
+        // Try productDetails.* first, then productDetails.*, then fallback
+        const modalKey = `modal.${key}`;
+        const directKey = key;
+        
+        if (window.t) {
+            // Try productDetails.* format first
+            const modalResult = window.t(modalKey);
+            if (modalResult !== modalKey) {
+                return modalResult;
+            }
+            
+            // Try productDetails.* format
+            const directResult = window.t(directKey);
+            if (directResult !== directKey) {
+                return directResult;
+            }
+        }
+        // Return key as fallback - translations should come from uz.json
+        return key;
+    };
+    
     const formatPrice = (price) => {
-        if (!price) return 'Narx so\'raladi';
+        if (!price) return t('productDetails.priceOnRequest');
         return new Intl.NumberFormat('uz-UZ', {
             style: 'currency',
             currency: 'USD',
@@ -4019,7 +4121,7 @@ function generateProductDetailsHTML(product) {
     };
     
     const formatDate = (dateStr) => {
-        if (!dateStr) return 'Noma\'lum';
+        if (!dateStr) return t('productDetails.unknown');
         return new Date(dateStr).toLocaleDateString('uz-UZ', {
             year: 'numeric',
             month: 'long',
@@ -4029,54 +4131,42 @@ function generateProductDetailsHTML(product) {
     
     const getStatusBadge = (status) => {
         const statusMap = {
-            'active': { class: 'success', text: 'Faol', icon: 'check-circle' },
-            'inactive': { class: 'warning', text: 'Nofaol', icon: 'pause-circle' },
-            'draft': { class: 'secondary', text: 'Qoralama', icon: 'edit' },
-            'archived': { class: 'dark', text: 'Arxivlangan', icon: 'archive' }
+            'active': { class: 'success', text: t('productDetails.status.active'), icon: 'check-circle' },
+            'inactive': { class: 'warning', text: t('productDetails.status.inactive'), icon: 'pause-circle' },
+            'draft': { class: 'secondary', text: t('productDetails.status.draft'), icon: 'edit' },
+            'archived': { class: 'dark', text: t('productDetails.status.archived'), icon: 'archive' }
         };
         const s = statusMap[status] || statusMap['active'];
         return `<span class="badge bg-${s.class}"><i class="fas fa-${s.icon}"></i> ${s.text}</span>`;
     };
     
         const getImages = () => {
-        console.log('🖼️ Processing product images:', product.images);
-        console.log('🔍 Product images type:', typeof product.images);
-        console.log('🔍 Is array:', Array.isArray(product.images));
         
         // EXACTLY LIKE TABLE/CARD VIEW - Use product.images[0].url format
         if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-            console.log('📸 Found images array with length:', product.images.length);
-            
             const processedImages = product.images.map((img, index) => {
-                console.log(`🖼️ Processing image ${index}:`, img);
-                console.log(`🖼️ Image ${index} type:`, typeof img);
                 
                 let imageUrl;
                 
                 // EXACTLY LIKE EJS TEMPLATE: product.images[0].url
                 if (img && typeof img === 'object' && img.url) {
                     imageUrl = String(img.url); // Convert to string explicitly
-                    console.log(`✅ Found object with .url property: ${imageUrl}`);
                 } 
                 // Fallback for string format
                 else if (typeof img === 'string') {
                     imageUrl = String(img); // Ensure it's a string
-                    console.log(`✅ Found string URL: ${imageUrl}`);
                 } 
                 // Other object formats
                 else if (img && typeof img === 'object') {
                     const altUrl = img.src || img.path || img.image;
                     imageUrl = altUrl ? String(altUrl) : null; // Convert to string
-                    console.log(`🔄 Found alternative object format: ${imageUrl}`);
                 } 
                 else {
-                    console.log(`❌ Invalid image format:`, img);
                     return null;
                 }
                 
                 // Double check that we have a valid string URL
                 if (typeof imageUrl !== 'string') {
-                    console.log(`❌ imageUrl is not a string:`, typeof imageUrl, imageUrl);
                     return null;
                 }
                 
@@ -4085,45 +4175,32 @@ function generateProductDetailsHTML(product) {
                     // Clean the URL
                     imageUrl = imageUrl.trim();
                     
-                    console.log(`🔗 Processing URL: ${imageUrl}`);
-                    
                     const finalImageObj = {
                         url: imageUrl,
-                        alt: img.alt || `${product.name} - Rasm ${index + 1}`,
+                        alt: img.alt || `${product.name} - ${t('productDetails.noImage')} ${index + 1}`,
                         isReal: true
                     };
-                    
-                    console.log(`🎯 Final image object ${index}:`, finalImageObj);
-                    console.log(`🔗 Final URL type:`, typeof finalImageObj.url);
-                    console.log(`🔗 Final URL value:`, finalImageObj.url);
                     
                     return finalImageObj;
                 }
                 
-                console.log(`❌ Invalid URL for image ${index}:`, imageUrl);
                 return null;
             }).filter(img => img !== null);
             
             if (processedImages.length > 0) {
-                console.log('✅ Successfully processed images:', processedImages.length);
-                console.log('📋 Final processed images:', processedImages);
                 return processedImages;
             }
         }
         
         // EXACTLY LIKE EJS TEMPLATE - Same fallback as table/card view
-        console.log('⚠️ No valid images found, using same placeholder as table/card view');
         return [{
             url: '/images/placeholder-product.png',
-            alt: 'Rasm mavjud emas',
+            alt: t('productDetails.noImage'),
             isReal: false
         }];
     };
     
     const images = getImages();
-    
-    console.log('🎨 Generated product details for:', product.name);
-    console.log('📸 Using images:', images);
     
     return `
         <div class="product-details-container">
@@ -4138,8 +4215,8 @@ function generateProductDetailsHTML(product) {
                                 <div class="main-image-container">
                                     <div class="image-badge">
                                         ${product.visibility === 'public' ? 
-                                            '<span class="badge-marketplace"><i class="fas fa-globe"></i> Marketplace</span>' : 
-                                            '<span class="badge-private"><i class="fas fa-eye-slash"></i> Private</span>'
+                                            `<span class="badge-marketplace"><i class="fas fa-globe"></i> ${t('productDetails.badges.marketplace')}</span>` : 
+                                            `<span class="badge-private"><i class="fas fa-eye-slash"></i> ${t('productDetails.badges.private')}</span>`
                                         }
                                     </div>
                                     <img src="${String(images[0].url)}" 
@@ -4165,7 +4242,7 @@ function generateProductDetailsHTML(product) {
                                             ${images.length > 5 ? `
                                                 <div class="thumbnail-item more-images-item">
                                                     <div class="more-images-count">+${images.length - 5}</div>
-                                                    <small>Ko'proq</small>
+                                                    <small>${t('productDetails.gallery.more')}</small>
                                                 </div>
                                             ` : ''}
                                         </div>
@@ -4181,22 +4258,22 @@ function generateProductDetailsHTML(product) {
                                 <div class="product-header-info">
                                     <div class="product-category">
                                         <i class="fas fa-folder"></i>
-                                        <span>${product.category?.name || product.category || 'Kategoriyasiz'}</span>
+                                        <span>${product.category?.name || product.category || t('productDetails.noCategory')}</span>
                                     </div>
                                     
-                                    <h1 class="product-name">${product.name || 'Nomsiz mahsulot'}</h1>
+                                    <h1 class="product-name">${product.name || t('productDetails.noName')}</h1>
                                     
                                     <div class="product-metadata">
                                         <div class="metadata-item">
-                                            <span class="metadata-label">ID:</span>
+                                            <span class="metadata-label">${t('productDetails.labels.id')}</span>
                                             <span class="metadata-value">${(product._id || '').toString().slice(-8).toUpperCase() || 'N/A'}</span>
                                         </div>
                                         <div class="metadata-item">
-                                            <span class="metadata-label">Kod:</span>
-                                            <span class="metadata-value">${product.code || product.sku || 'Belgilanmagan'}</span>
+                                            <span class="metadata-label">${t('productDetails.labels.code')}</span>
+                                            <span class="metadata-value">${product.code || product.sku || t('productDetails.notSpecified')}</span>
                                         </div>
                                         <div class="metadata-item">
-                                            <span class="metadata-label">Status:</span>
+                                            <span class="metadata-label">${t('productDetails.labels.status')}</span>
                                             <span class="metadata-value">${getStatusBadge(product.status)}</span>
                                         </div>
                                     </div>
@@ -4209,14 +4286,14 @@ function generateProductDetailsHTML(product) {
                                         ${product.pricing?.discount ? `
                                             <div class="discount-badge">
                                                 <span class="discount-percent">${product.pricing.discount}%</span>
-                                                <span class="discount-text">Chegirma</span>
+                                                <span class="discount-text">${t('productDetails.labels.discount')}</span>
                                             </div>
                                         ` : ''}
                                     </div>
                                     ${product.pricing?.minimumOrderQuantity ? `
                                         <div class="moq-info">
                                             <i class="fas fa-box"></i>
-                                            <span>Eng kam: ${product.pricing.minimumOrderQuantity.toLocaleString()} dona</span>
+                                            <span>${t('productDetails.labels.minimumOrder')} ${product.pricing.minimumOrderQuantity.toLocaleString()} ${t('productDetails.units.pieces')}</span>
                                         </div>
                                     ` : ''}
                                 </div>
@@ -4232,7 +4309,7 @@ function generateProductDetailsHTML(product) {
                                             </div>
                                             <div class="stat-content">
                                                 <div class="stat-number">${(product.views || 0).toLocaleString()}</div>
-                                                <div class="stat-label">Ko'rishlar</div>
+                                                <div class="stat-label">${t('productDetails.labels.views')}</div>
                                             </div>
                                         </div>
                                         
@@ -4242,7 +4319,7 @@ function generateProductDetailsHTML(product) {
                                             </div>
                                             <div class="stat-content">
                                                 <div class="stat-number">${product.rating || '0.0'}</div>
-                                                <div class="stat-label">Reyting</div>
+                                                <div class="stat-label">${t('productDetails.labels.rating')}</div>
                                             </div>
                                         </div>
                                         
@@ -4252,7 +4329,7 @@ function generateProductDetailsHTML(product) {
                                             </div>
                                             <div class="stat-content">
                                                 <div class="stat-number">${(product.stockQuantity || 0).toLocaleString()}</div>
-                                                <div class="stat-label">Zaxira</div>
+                                                <div class="stat-label">${t('productDetails.labels.stock')}</div>
                                             </div>
                                         </div>
                                         
@@ -4262,7 +4339,7 @@ function generateProductDetailsHTML(product) {
                                             </div>
                                             <div class="stat-content">
                                                 <div class="stat-number">${product.orderCount || 0}</div>
-                                                <div class="stat-label">Buyurtma</div>
+                                                <div class="stat-label">${t('productDetails.labels.orders')}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -4275,7 +4352,7 @@ function generateProductDetailsHTML(product) {
                          <!-- Description -->
                                 ${product.description ? `
                                     <div class="product-description">
-                                        <h6 class="section-title">Mahsulot haqida</h6>
+                                        <h6 class="section-title">${t('productDetails.description.title')}</h6>
                                         <p class="description-text">${product.description}</p>
                                     </div>
                                 ` : ''}
@@ -4289,22 +4366,22 @@ function generateProductDetailsHTML(product) {
                 <ul class="nav nav-tabs" id="productTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab">
-                            <i class="fas fa-info-circle"></i> Tafsilotlar
+                            <i class="fas fa-info-circle"></i> ${t('productDetails.tabs.details')}
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#specifications" type="button" role="tab">
-                            <i class="fas fa-list"></i> Xususiyatlar
+                            <i class="fas fa-list"></i> ${t('productDetails.tabs.specifications')}
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory" type="button" role="tab">
-                            <i class="fas fa-boxes"></i> Zaxira
+                            <i class="fas fa-boxes"></i> ${t('productDetails.tabs.inventory')}
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
-                            <i class="fas fa-chart-line"></i> Tahlil
+                            <i class="fas fa-chart-line"></i> ${t('productDetails.tabs.analytics')}
                         </button>
                     </li>
                 </ul>
@@ -4314,84 +4391,84 @@ function generateProductDetailsHTML(product) {
                     <div class="tab-pane fade show active" id="details" role="tabpanel">
                         <div class="row">
                             <div class="col-md-6">
-                                <h6>Asosiy ma'lumotlar</h6>
+                                <h6>${t('productDetails.details.basicInfo')}</h6>
                                 <table class="table table-sm">
                                                                             <tr>
-                                            <td><strong>Nomi:</strong></td>
-                                            <td>${product.name || product.title || 'Noma\'lum'}</td>
+                                            <td><strong>${t('productDetails.details.name')}</strong></td>
+                                            <td>${product.name || product.title || t('productDetails.unknown')}</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Kodi:</strong></td>
-                                            <td>${product.code || product.sku || 'Belgilanmagan'}</td>
+                                            <td><strong>${t('productDetails.details.code')}</strong></td>
+                                            <td>${product.code || product.sku || t('productDetails.notSpecified')}</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Kategoriya:</strong></td>
-                                            <td>${product.category?.name || (typeof product.category === 'string' ? product.category : 'Kategoriyasiz')}</td>
+                                            <td><strong>${t('productDetails.details.category')}</strong></td>
+                                            <td>${product.category?.name || (typeof product.category === 'string' ? product.category : t('productDetails.noCategory'))}</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Holati:</strong></td>
+                                            <td><strong>${t('productDetails.details.status')}</strong></td>
                                             <td>${getStatusBadge(product.status)}</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Yaratilgan:</strong></td>
+                                            <td><strong>${t('productDetails.details.created')}</strong></td>
                                             <td>${formatDate(product.createdAt)}</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Yangilangan:</strong></td>
+                                            <td><strong>${t('productDetails.details.updated')}</strong></td>
                                             <td>${formatDate(product.updatedAt || product.modifiedAt)}</td>
                                         </tr>
                                         ${product.brand ? `
                                             <tr>
-                                                <td><strong>Brand:</strong></td>
+                                                <td><strong>${t('productDetails.details.brand')}</strong></td>
                                                 <td>${product.brand}</td>
                                             </tr>
                                         ` : ''}
                                         ${product.model ? `
                                             <tr>
-                                                <td><strong>Model:</strong></td>
+                                                <td><strong>${t('productDetails.details.model')}</strong></td>
                                                 <td>${product.model}</td>
                                             </tr>
                                         ` : ''}
                                         ${product.weight ? `
                                             <tr>
-                                                <td><strong>Og'irlik:</strong></td>
-                                                <td>${product.weight} kg</td>
+                                                <td><strong>${t('productDetails.details.weight')}</strong></td>
+                                                <td>${product.weight} ${t('productDetails.units.kg')}</td>
                                             </tr>
                                         ` : ''}
                                 </table>
                             </div>
                             <div class="col-md-6">
-                                <h6>Narx ma'lumotlari</h6>
+                                <h6>${t('productDetails.details.pricingInfo')}</h6>
                                 <table class="table table-sm">
                                     <tr>
-                                        <td><strong>Asosiy narx:</strong></td>
+                                        <td><strong>${t('productDetails.details.basePrice')}</strong></td>
                                         <td>${formatPrice(product.pricing?.basePrice || product.price || product.basePrice)}</td>
                                     </tr>
                                     ${(product.pricing?.discount || product.discount) ? `
                                         <tr>
-                                            <td><strong>Chegirma:</strong></td>
+                                            <td><strong>${t('productDetails.details.discount')}</strong></td>
                                             <td>${product.pricing?.discount || product.discount}%</td>
                                         </tr>
                                     ` : ''}
                                     ${(product.pricing?.minimumOrderQuantity || product.minimumOrderQuantity || product.minQuantity) ? `
                                         <tr>
-                                            <td><strong>Eng kam buyurtma:</strong></td>
-                                            <td>${product.pricing?.minimumOrderQuantity || product.minimumOrderQuantity || product.minQuantity} dona</td>
+                                            <td><strong>${t('productDetails.details.minimumOrder')}</strong></td>
+                                            <td>${product.pricing?.minimumOrderQuantity || product.minimumOrderQuantity || product.minQuantity} ${t('productDetails.units.pieces')}</td>
                                         </tr>
                                     ` : ''}
                                     <tr>
-                                        <td><strong>Valyuta:</strong></td>
+                                        <td><strong>${t('productDetails.details.currency')}</strong></td>
                                         <td>${product.pricing?.currency || product.currency || 'USD'}</td>
                                     </tr>
                                     ${(product.pricing?.wholesalePrice || product.wholesalePrice) ? `
                                         <tr>
-                                            <td><strong>Ulgurji narx:</strong></td>
+                                            <td><strong>${t('productDetails.details.wholesalePrice')}</strong></td>
                                             <td>${formatPrice(product.pricing?.wholesalePrice || product.wholesalePrice)}</td>
                                         </tr>
                                     ` : ''}
                                     ${(product.pricing?.retailPrice || product.retailPrice) ? `
                                         <tr>
-                                            <td><strong>Chakana narx:</strong></td>
+                                            <td><strong>${t('productDetails.details.retailPrice')}</strong></td>
                                             <td>${formatPrice(product.pricing?.retailPrice || product.retailPrice)}</td>
                                         </tr>
                                     ` : ''}
@@ -4407,9 +4484,9 @@ function generateProductDetailsHTML(product) {
                                 <div class="specifications-header">
                                     <h6 class="specifications-title">
                                         <i class="fas fa-list-alt"></i>
-                                        Mahsulot xususiyatlari
+                                        ${t('productDetails.specifications.title')}
                                     </h6>
-                                    <span class="specifications-count">${product.specifications.length} ta xususiyat</span>
+                                    <span class="specifications-count">${product.specifications.length} ${t('productDetails.specifications.count')}</span>
                                 </div>
                                 
                                 <div class="specifications-list">
@@ -4430,7 +4507,7 @@ function generateProductDetailsHTML(product) {
                                 <div class="specifications-footer">
                                     <div class="spec-note">
                                         <i class="fas fa-info-circle"></i>
-                                        <span>Barcha xususiyatlar standart o'lchovlar bo'yicha</span>
+                                        <span>${t('productDetails.specifications.note')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -4439,11 +4516,11 @@ function generateProductDetailsHTML(product) {
                                 <div class="no-specs-icon">
                                     <i class="fas fa-list-alt"></i>
                                 </div>
-                                <h6>Xususiyatlar belgilanmagan</h6>
-                                <p class="text-muted">Bu mahsulot uchun xususiyatlar hali qo'shilmagan.</p>
+                                <h6>${t('productDetails.specifications.notSet')}</h6>
+                                <p class="text-muted">${t('productDetails.specifications.notSetDescription')}</p>
                                 <button class="btn btn-outline-primary btn-sm" onclick="editProduct('${product._id}')">
                                     <i class="fas fa-plus"></i>
-                                    Xususiyatlar qo'shish
+                                    ${t('productDetails.specifications.addSpecifications')}
                                 </button>
                             </div>
                         `}
@@ -4453,48 +4530,48 @@ function generateProductDetailsHTML(product) {
                     <div class="tab-pane fade" id="inventory" role="tabpanel">
                         <div class="row">
                             <div class="col-md-6">
-                                <h6>Zaxira holati</h6>
+                                <h6>${t('productDetails.inventory.status')}</h6>
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span>Umumiy zaxira:</span>
-                                            <strong>${(product.inventory?.totalStock || product.stockQuantity || 0).toLocaleString()} dona</strong>
+                                            <span>${t('productDetails.inventory.totalStock')}</span>
+                                            <strong>${(product.inventory?.totalStock || product.stockQuantity || 0).toLocaleString()} ${t('productDetails.units.pieces')}</strong>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span>Mavjud:</span>
-                                            <strong>${(product.inventory?.availableStock || product.stockQuantity || 0).toLocaleString()} dona</strong>
+                                            <span>${t('productDetails.inventory.available')}</span>
+                                            <strong>${(product.inventory?.availableStock || product.stockQuantity || 0).toLocaleString()} ${t('productDetails.units.pieces')}</strong>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <span>Rezerv:</span>
-                                            <strong>${(product.inventory?.reservedStock || 0).toLocaleString()} dona</strong>
+                                            <span>${t('productDetails.inventory.reserved')}</span>
+                                            <strong>${(product.inventory?.reservedStock || 0).toLocaleString()} ${t('productDetails.units.pieces')}</strong>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <h6>Yetkazib berish</h6>
+                                <h6>${t('productDetails.inventory.shipping')}</h6>
                                 <div class="card">
                                     <div class="card-body">
                                         ${product.shipping?.leadTime ? `
                                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <span>Yetkazish muddati:</span>
-                                                <strong>${product.shipping.leadTime.min}-${product.shipping.leadTime.max} kun</strong>
+                                                <span>${t('productDetails.inventory.leadTime')}</span>
+                                                <strong>${product.shipping.leadTime.min}-${product.shipping.leadTime.max} ${t('productDetails.units.days')}</strong>
                                             </div>
                                         ` : ''}
                                         ${product.shipping?.weight ? `
                                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <span>Og'irlik:</span>
-                                                <strong>${product.shipping.weight} kg</strong>
+                                                <span>${t('productDetails.inventory.weight')}</span>
+                                                <strong>${product.shipping.weight} ${t('productDetails.units.kg')}</strong>
                                             </div>
                                         ` : ''}
                                         ${product.shipping?.dimensions ? `
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <span>O'lcham:</span>
-                                                <strong>${product.shipping.dimensions.length}×${product.shipping.dimensions.width}×${product.shipping.dimensions.height} sm</strong>
+                                                <span>${t('productDetails.inventory.dimensions')}</span>
+                                                <strong>${product.shipping.dimensions.length}×${product.shipping.dimensions.width}×${product.shipping.dimensions.height} ${t('productDetails.units.cm')}</strong>
                                             </div>
                                         ` : ''}
                                         ${!product.shipping?.leadTime && !product.shipping?.weight && !product.shipping?.dimensions ? 
-                                            '<p class="text-muted mb-0">Yetkazish ma\'lumotlari belgilanmagan.</p>' : ''}
+                                            `<p class="text-muted mb-0">${t('productDetails.inventory.noShippingInfo')}</p>` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -4509,7 +4586,7 @@ function generateProductDetailsHTML(product) {
                                     <div class="card-body">
                                         <i class="fas fa-eye fa-2x text-primary mb-2"></i>
                                         <h5>${(product.analytics?.views || product.metrics?.views || product.views || 0).toLocaleString()}</h5>
-                                        <small class="text-muted">Ko'rishlar</small>
+                                        <small class="text-muted">${t('productDetails.analytics.views')}</small>
                                     </div>
                                 </div>
                             </div>
@@ -4518,7 +4595,7 @@ function generateProductDetailsHTML(product) {
                                     <div class="card-body">
                                         <i class="fas fa-shopping-cart fa-2x text-success mb-2"></i>
                                         <h5>${(product.analytics?.totalOrders || product.metrics?.totalOrders || product.orderCount || product.totalOrders || 0).toLocaleString()}</h5>
-                                        <small class="text-muted">Buyurtmalar</small>
+                                        <small class="text-muted">${t('productDetails.analytics.orders')}</small>
                                     </div>
                                 </div>
                             </div>
@@ -4527,7 +4604,7 @@ function generateProductDetailsHTML(product) {
                                     <div class="card-body">
                                         <i class="fas fa-star fa-2x text-warning mb-2"></i>
                                         <h5>${(product.analytics?.averageRating || product.metrics?.averageRating || product.rating || product.averageRating || 0).toFixed(1)}</h5>
-                                        <small class="text-muted">Reyting</small>
+                                        <small class="text-muted">${t('productDetails.analytics.rating')}</small>
                                     </div>
                                 </div>
                             </div>
@@ -4536,7 +4613,7 @@ function generateProductDetailsHTML(product) {
                                     <div class="card-body">
                                         <i class="fas fa-dollar-sign fa-2x text-info mb-2"></i>
                                         <h5>${formatPrice(product.analytics?.totalRevenue || product.metrics?.totalRevenue || product.totalRevenue || 0)}</h5>
-                                        <small class="text-muted">Daromad</small>
+                                        <small class="text-muted">${t('productDetails.analytics.revenue')}</small>
                                     </div>
                                 </div>
                             </div>
@@ -4545,7 +4622,7 @@ function generateProductDetailsHTML(product) {
                                     <div class="card-body">
                                         <i class="fas fa-box fa-2x text-primary mb-2"></i>
                                         <h5>${(product.inventory?.totalStock || product.stockQuantity || product.stock || 0).toLocaleString()}</h5>
-                                        <small class="text-muted">Zaxira</small>
+                                        <small class="text-muted">${t('productDetails.analytics.stock')}</small>
                                     </div>
                                 </div>
                             </div>
@@ -4553,8 +4630,8 @@ function generateProductDetailsHTML(product) {
                                 <div class="card text-center">
                                     <div class="card-body">
                                         <i class="fas fa-calendar fa-2x text-secondary mb-2"></i>
-                                        <h5>${product.analytics?.lastOrderDate || product.metrics?.lastOrderDate ? formatDate(product.analytics?.lastOrderDate || product.metrics?.lastOrderDate) : 'Hech qachon'}</h5>
-                                        <small class="text-muted">Oxirgi buyurtma</small>
+                                        <h5>${product.analytics?.lastOrderDate || product.metrics?.lastOrderDate ? formatDate(product.analytics?.lastOrderDate || product.metrics?.lastOrderDate) : t('productDetails.analytics.never')}</h5>
+                                        <small class="text-muted">${t('productDetails.analytics.lastOrder')}</small>
                                     </div>
                                 </div>
                             </div>
@@ -4566,20 +4643,22 @@ function generateProductDetailsHTML(product) {
             <!-- Action Buttons -->
             <div class="product-actions mt-4 pt-3 border-top">
                 <div class="d-flex gap-2 flex-wrap justify-content-center justify-md-start">
-                    <button class="btn btn-primary" onclick="handleEditProduct('${product._id}')">
-                        <i class="fas fa-edit"></i> Tahrirlash
+                    <button class="btn btn-primary" data-action="edit" data-product-id="${product._id}">
+                        <i class="fas fa-edit"></i> ${t('productDetails.actions.edit')}
                     </button>
-                    <button class="btn btn-success" onclick="handleDuplicateProduct('${product._id}')">
-                        <i class="fas fa-copy"></i> Nusxa olish
+                    <button class="btn btn-info" data-action="analytics" data-product-id="${product._id}">
+                        <i class="fas fa-chart-line"></i> ${t('productDetails.actions.analytics')}
                     </button>
-                    <button class="btn btn-info" onclick="handleProductAnalytics('${product._id}')">
-                        <i class="fas fa-chart-line"></i> Tahlil
-                    </button>
-                    <button class="btn btn-warning" onclick="handleMarketplaceToggle('${product._id}')">
-                        <i class="fas fa-globe"></i> Marketplace
-                    </button>
-                    <button class="btn btn-outline-danger" onclick="handleDeleteProduct('${product._id}')">
-                        <i class="fas fa-trash"></i> O'chirish
+                    ${product.visibility === 'public' ? 
+                        `<button class="btn btn-warning" data-action="unpublish" data-product-id="${product._id}">
+                            <i class="fas fa-eye-slash"></i> ${t('productDetails.actions.unpublish')}
+                        </button>` : 
+                        `<button class="btn ${product.status === 'active' ? 'btn-success' : 'btn-outline-success'}" data-action="publish" data-product-id="${product._id}">
+                            <i class="fas fa-globe"></i> ${t('productDetails.actions.publish')}
+                        </button>`
+                    }
+                    <button class="btn btn-outline-danger" data-action="delete" data-product-id="${product._id}">
+                        <i class="fas fa-trash"></i> ${t('productDetails.actions.delete')}
                     </button>
                 </div>
             </div>
@@ -4587,19 +4666,12 @@ function generateProductDetailsHTML(product) {
         
                 <script>
             function changeMainImage(imageUrl, index) {
-                console.log('🔄 Changing main image to:', imageUrl, 'index:', index);
-                console.log('🔍 imageUrl type:', typeof imageUrl);
-
                 // Ensure imageUrl is a string
                 const safeImageUrl = String(imageUrl);
-                console.log('✅ Safe image URL:', safeImageUrl);
 
                 const mainImg = document.getElementById('mainProductImage');
                 if (mainImg) {
                     mainImg.src = safeImageUrl;
-                    console.log('✅ Main image src updated to:', mainImg.src);
-                } else {
-                    console.log('❌ Main image element not found');
                 }
 
                 // Update active thumbnail using new class structure

@@ -582,22 +582,11 @@
 }
 
 .card-more-menu {
-  position: absolute;
-  top: calc(100% + var(--space-2));
-  right: 0;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-primary);
-  border-radius: 12px;
-  box-shadow: var(--shadow-xl);
-  z-index: 20;
-  min-width: 200px;
-  overflow: hidden;
-  backdrop-filter: blur(8px);
+  /* All styling will be handled by JavaScript - no CSS interference */
+  display: none !important;
 }
 
-.card-more-menu.hidden {
-  display: none;
-}
+/* All dropdown styling handled by JavaScript */
 
 .card-more-item {
   display: flex;

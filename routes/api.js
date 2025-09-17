@@ -82,7 +82,9 @@ router.get('/language/:lang', (req, res) => {
     
     // Otherwise redirect (browser navigation)
     const referer = req.get('Referer') || '/';
-    res.redirect(referer);
+    // Remove any existing language parameters from referer to avoid conflicts
+    const cleanReferer = referer.replace(/[?&]lng=[^&]*/g, '').replace(/[?&]lang=[^&]*/g, '');
+    res.redirect(cleanReferer);
     
   } catch (error) {
     if (req.headers.accept && req.headers.accept.includes('application/json')) {

@@ -22,7 +22,7 @@ class BuyerDashboard {
                 this.updateKPICards(result.data);
             }
         } catch (error) {
-            console.error('Error loading dashboard stats:', error);
+            // console.error('Error loading dashboard stats:', error);
         }
     }
 
@@ -52,7 +52,7 @@ class BuyerDashboard {
                 this.renderRecentOrders(result.data.orders);
             }
         } catch (error) {
-            console.error('Error loading recent orders:', error);
+            // console.error('Error loading recent orders:', error);
         }
     }
 

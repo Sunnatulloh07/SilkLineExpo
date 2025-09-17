@@ -277,7 +277,7 @@ class RegisterFormValidator {
         this.showToast(result.message || 'Registration failed. Please try again.', 'error');
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      // console.error('Registration error:', error);
       this.showToast('Network error. Please check your connection and try again.', 'error');
     } finally {
       this.isSubmitting = false;

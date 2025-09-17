@@ -994,6 +994,10 @@
 }
 </style>
 
+<script type="application/json" id="favorites-data">
+<%- JSON.stringify({ favorites: favorites || [] }) %>
+</script>
+
 <!-- Professional JavaScript -->
 <script>
 // Global variables
@@ -1061,15 +1065,13 @@ function initializeSearch() {
 
 // Load favorites data
 async function loadFavorites() {
-  try {
-    showLoading();
-    
-    // Get favorites from the page data
-    const favorites = JSON.parse('<%- JSON.stringify(favorites || []) %>');
-    const suppliers = JSON.parse('<%- JSON.stringify([]) %>'); // Will be implemented later
-    
-    currentProducts = favorites || [];
-    currentSuppliers = suppliers || [];
+    try {
+      showLoading();
+      
+      // Get favorites from the page data
+      const favoritesData = JSON.parse(document.getElementById('favorites-data').textContent);
+      currentProducts = favoritesData.favorites || [];
+      currentSuppliers = []; // Will be implemented later
     
     // Update counts
     updateCounts();

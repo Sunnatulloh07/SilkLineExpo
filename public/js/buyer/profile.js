@@ -31,7 +31,7 @@ function loadProfileStats() {
             }
         })
         .catch(error => {
-            console.error('Error loading profile stats:', error);
+            // console.error('Error loading profile stats:', error);
         });
 }
 

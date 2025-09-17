@@ -215,11 +215,11 @@ class SLEXDashboard {
     // Close dropdown
     this.closeLanguageDropdown();
     
-    // Use PUBLIC PAGES STYLE routing for maximum compatibility
-    const languageUrl = `/language/${langCode}`;
+    // Use unified API routing for maximum compatibility
+    const languageUrl = `/api/language/${langCode}`;
     
-    // Try backend API first, then fallback to public pages routing
-    fetch('/admin/set-language', {
+    // Try unified API first, then fallback to unified routing
+    fetch('/api/language/change', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -244,9 +244,9 @@ class SLEXDashboard {
     })
     .catch(error => {
       console.warn('⚠️ Backend failed, using PUBLIC PAGES STYLE routing:', error);
-      // Fallback to public pages style language routing (GUARANTEED TO WORK)
+      // Fallback to unified API routing (GUARANTEED TO WORK)
       setTimeout(() => {
-        window.location.href = languageUrl + '?redirect=' + encodeURIComponent('/admin/dashboard');
+        window.location.href = languageUrl;
       }, 300);
     })
     .finally(() => {
@@ -5636,7 +5636,7 @@ class AdminHeaderDropdownFix {
       this.showLanguageLoading(true);
       
       // Make API request to change language
-      const response = await fetch('/admin/api/language/change', {
+      const response = await fetch('/api/language/change', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

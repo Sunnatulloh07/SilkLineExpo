@@ -14,7 +14,7 @@ class ManufacturerInventory {
      * Initialize inventory page functionality
      */
     init() {
-        console.log('🏭 Initializing Manufacturer Inventory Page...');
+        // console.log('🏭 Initializing Manufacturer Inventory Page...');
         
         try {
             this.setupEventListeners();
@@ -25,9 +25,9 @@ class ManufacturerInventory {
             this.setupContactCardAnimations();
             this.isLoaded = true;
             
-            console.log('✅ Inventory page initialized successfully');
+            // console.log('✅ Inventory page initialized successfully');
         } catch (error) {
-            console.error('❌ Error initializing inventory page:', error);
+            // console.error('❌ Error initializing inventory page:', error);
         }
     }
 
@@ -122,7 +122,7 @@ class ManufacturerInventory {
                 });
             });
         } catch (error) {
-            console.error('Error setting up event listeners:', error);
+            // console.error('Error setting up event listeners:', error);
         }
     }
 
@@ -143,7 +143,7 @@ class ManufacturerInventory {
                 console.warn('Progress elements not found');
             }
         } catch (error) {
-            console.error('Error setting up progress animation:', error);
+            // console.error('Error setting up progress animation:', error);
         }
     }
 
@@ -153,7 +153,7 @@ class ManufacturerInventory {
     animateProgress(fillElement, percentageElement, targetProgress) {
         try {
             if (!fillElement || !percentageElement) {
-                console.error('Progress elements not provided');
+                // console.error('Progress elements not provided');
                 return;
             }
 
@@ -180,12 +180,12 @@ class ManufacturerInventory {
                         progressBar.setAttribute('aria-valuenow', Math.round(currentProgress));
                     }
                 } catch (error) {
-                    console.error('Error in progress animation frame:', error);
+                    // console.error('Error in progress animation frame:', error);
                     clearInterval(progressInterval);
                 }
             }, intervalTime);
         } catch (error) {
-            console.error('Error setting up progress animation:', error);
+            // console.error('Error setting up progress animation:', error);
         }
     }
 
@@ -226,7 +226,7 @@ class ManufacturerInventory {
                 observer.observe(element);
             });
         } catch (error) {
-            console.error('Error setting up scroll animations:', error);
+            // console.error('Error setting up scroll animations:', error);
             // Fallback: show elements immediately
             const animatedElements = document.querySelectorAll('.feature-card, .benefit-item, .contact-card, .stage');
             animatedElements.forEach(element => {
@@ -298,7 +298,7 @@ class ManufacturerInventory {
      * Handle subscribe to updates button click
      */
     handleSubscribeUpdates() {
-        console.log('🔔 Subscribe to inventory updates clicked');
+        // console.log('🔔 Subscribe to inventory updates clicked');
         
         // Simulate subscription process
         const btn = document.getElementById('subscribeUpdatesBtn');
@@ -325,7 +325,7 @@ class ManufacturerInventory {
      * Handle contact inventory button click
      */
     handleContactInventory() {
-        console.log('📞 Contact inventory clicked');
+        // console.log('📞 Contact inventory clicked');
         
         this.showToast('Tez orada sizga ombor tizimi bo\'yicha aloqa markazi orqali bog\'lanamiz!', 'info');
         
@@ -346,7 +346,7 @@ class ManufacturerInventory {
         const cardTitle = card.querySelector('h4').textContent;
         const cardContent = card.querySelector('p').textContent;
         
-        console.log(`📞 Contact card clicked: ${cardTitle}`);
+        // console.log(`📞 Contact card clicked: ${cardTitle}`);
         
         // Add click animation
         card.style.transform = 'scale(0.95)';
@@ -414,7 +414,7 @@ class ManufacturerInventory {
      * Handle development stage click
      */
     handleStageClick(stage, index) {
-        console.log(`🛤️ Stage ${index + 1} clicked`);
+        // console.log(`🛤️ Stage ${index + 1} clicked`);
         
         const stageTitle = stage.querySelector('h4').textContent;
         const stageDesc = stage.querySelector('p').textContent;
@@ -433,7 +433,7 @@ class ManufacturerInventory {
      * Handle feature item click
      */
     handleFeatureItemClick(item, index) {
-        console.log(`🔧 Feature ${index + 1} clicked`);
+        // console.log(`🔧 Feature ${index + 1} clicked`);
         
         const featureText = item.querySelector('span').textContent;
         
@@ -481,9 +481,9 @@ class ManufacturerInventory {
                 document.execCommand('copy');
                 textArea.remove();
             }
-            console.log('✅ Text copied to clipboard:', text);
+            // console.log('✅ Text copied to clipboard:', text);
         } catch (error) {
-            console.error('❌ Failed to copy text:', error);
+            // console.error('❌ Failed to copy text:', error);
         }
     }
 
@@ -688,7 +688,7 @@ class ManufacturerInventory {
      * Destroy inventory page functionality
      */
     destroy() {
-        console.log('🏭 Destroying inventory page...');
+        // console.log('🏭 Destroying inventory page...');
         
         // Remove event listeners
         const buttons = document.querySelectorAll('.dev-btn, .contact-card, .feature-card, .benefit-item, .stage, .feature-item');
@@ -704,13 +704,13 @@ class ManufacturerInventory {
         toasts.forEach(toast => toast.remove());
 
         this.isLoaded = false;
-        console.log('✅ Inventory page destroyed');
+        // console.log('✅ Inventory page destroyed');
     }
 }
 
 // Initialize inventory page when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🏭 DOM loaded, initializing Inventory Page...');
+    // console.log('🏭 DOM loaded, initializing Inventory Page...');
     window.manufacturerInventory = new ManufacturerInventory();
 });
 

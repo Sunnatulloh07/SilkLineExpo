@@ -61,6 +61,83 @@
         </section>
         <% } else { %>
             
+        <!-- Professional Data Container (Hidden) -->
+        <div id="supplier-data-container" style="display: none;" 
+             data-supplier-id="<%= supplier?._id || '' %>"
+             data-supplier-name="<%= supplier?.companyName || 'Unknown' %>"
+             data-supplier-status="<%= supplier?.status || 'unknown' %>">
+          
+          <!-- Supplier Data -->
+          <script type="application/json" id="supplier-json">
+            <%- JSON.stringify({
+              companyName: supplier?.companyName,
+              businessName: supplier?.businessName,
+              email: supplier?.email,
+              phone: supplier?.phone,
+              website: supplier?.website,
+              address: supplier?.address,
+              city: supplier?.city,
+              country: supplier?.country,
+              description: supplier?.description,
+              activityType: supplier?.activityType,
+              taxNumber: supplier?.taxNumber,
+              businessLicense: supplier?.businessLicense,
+              establishedYear: supplier?.establishedYear,
+              employeeCount: supplier?.employeeCount,
+              totalProducts: supplier?.totalProducts,
+              totalOrders: supplier?.totalOrders,
+              completedOrders: supplier?.completedOrders,
+              averageRating: supplier?.averageRating,
+              totalReviews: supplier?.totalReviews,
+              profileViews: supplier?.profileViews,
+              status: supplier?.status,
+              createdAt: supplier?.createdAt,
+              updatedAt: supplier?.updatedAt
+            }) %>
+          </script>
+          
+          <!-- Business Metrics Data -->
+          <script type="application/json" id="business-metrics-json">
+            <%- JSON.stringify(businessMetrics || {}) %>
+          </script>
+          
+        </div>
+        
+        <!-- Professional Data Initialization -->
+        <script>
+        // Professional Supplier Data Initialization
+        function initializeSupplierData() {
+            try {
+                // Initialize supplier data
+                const supplierScript = document.getElementById('supplier-json');
+                if (supplierScript && supplierScript.textContent.trim()) {
+                    window.supplierData = JSON.parse(supplierScript.textContent);
+                } else {
+                    window.supplierData = {};
+                }
+                
+                // Initialize business metrics
+                const metricsScript = document.getElementById('business-metrics-json');
+                if (metricsScript && metricsScript.textContent.trim()) {
+                    window.businessMetrics = JSON.parse(metricsScript.textContent);
+                } else {
+                    window.businessMetrics = {};
+                }
+                
+            } catch (error) {
+                window.supplierData = {};
+                window.businessMetrics = {};
+            }
+        }
+        
+        // Initialize data when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeSupplierData);
+        } else {
+            initializeSupplierData();
+        }
+        </script>
+            
         <!-- Pending Status Warning Banner -->
         <% if (typeof isPending !== 'undefined' && isPending) { %>
         <div class="alert alert-warning alert-dismissible fade show m-0 rounded-0" role="alert" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border: none; border-bottom: 2px solid #f39c12;">
@@ -144,18 +221,12 @@
                             <div class="supplier-meta d-flex flex-wrap align-items-center gap-4 mb-4">
                                 <div class="rating-container d-flex align-items-center">
                                     <% 
-                                    // Get rating from various possible fields
-                                    let rating = supplier.averageRating || supplier.rating || supplier.overallRating || 0;
-                                    if (typeof rating === 'object' && rating.average) {
-                                        rating = rating.average;
-                                    }
+                                    // Get rating from businessMetrics (real calculated data)
+                                    let rating = businessMetrics?.averageRating || 0;
                                     rating = parseFloat(rating) || 0;
                                     
-                                    // Get review count
-                                    let reviewCount = supplier.totalReviews || supplier.reviewCount || 0;
-                                    if (typeof reviewCount === 'object' && reviewCount.total) {
-                                        reviewCount = reviewCount.total;
-                                    }
+                                    // Get review count from businessMetrics (real calculated data)
+                                    let reviewCount = businessMetrics?.totalReviews || 0;
                                     reviewCount = parseInt(reviewCount) || 0;
                                     
                                     // Calculate star display
@@ -206,43 +277,23 @@
                                 </div>
                             </div>
                             
-                            <% if (supplier && supplier.description && String(supplier.description).trim()) { %>
-                            <p class="supplier-description text-gray font-18 mb-4">
-                                <%= supplier.description %>
-                            </p>
-                            <% } %>
-                            
                             <div class="supplier-quick-stats d-flex flex-wrap gap-4">
+                                <!-- Real Product Count from Database -->
                                 <div class="stat-item text-center">
-                                    <div class="stat-number h3 text-heading mb-1"><%= supplierProducts.length %></div>
+                                    <div class="stat-number h3 text-heading mb-1"><%= (supplier.totalProducts || 0).toLocaleString() %></div>
                                     <div class="stat-label text-gray font-14"><%= typeof t === 'function' ? t('supplier.totalProducts') : 'Products' %></div>
                                 </div>
+                                
+                                <!-- Real Experience Years from Database -->
                                 <div class="stat-item text-center">
-                                    <% 
-                                    let yearsExp = businessMetrics ? businessMetrics.experienceYears : 0;
-                                    if (!yearsExp && supplier.businessStartDate) {
-                                        const currentYear = new Date().getFullYear();
-                                        const startYear = new Date(supplier.businessStartDate).getFullYear();
-                                        yearsExp = Math.max(0, currentYear - startYear);
-                                    }
-                                    if (!yearsExp && supplier.establishedYear) {
-                                        const currentYear = new Date().getFullYear();
-                                        yearsExp = Math.max(0, currentYear - supplier.establishedYear);
-                                    }
-                                    yearsExp = yearsExp || 0;
-                                    %>
-                                    <div class="stat-number h3 text-heading mb-1"><%= yearsExp %></div>
+                                    <div class="stat-number h3 text-heading mb-1"><%= supplier.establishedYear ? Math.max(0, new Date().getFullYear() - supplier.establishedYear) : 0 %></div>
                                     <div class="stat-label text-gray font-14"><%= typeof t === 'function' ? t('supplier.yearsExperience') : 'Years Experience' %></div>
                                 </div>
+                                
+                                <!-- Real Completion Rate from Database -->
                                 <div class="stat-item text-center">
-                                    <% 
-                                    let responseRate = businessMetrics ? businessMetrics.responseRate : 95;
-                                    if (!responseRate) {
-                                        responseRate = Math.floor(Math.random() * 21) + 80; // Random between 80-100 for demo
-                                    }
-                                    %>
-                                    <div class="stat-number h3 text-heading mb-1"><%= responseRate %>%</div>
-                                    <div class="stat-label text-gray font-14"><%= typeof t === 'function' ? t('supplier.responseRate') : 'Response Rate' %></div>
+                                    <div class="stat-number h3 text-heading mb-1"><%= (supplier.totalOrders && supplier.totalOrders > 0) ? Math.round((supplier.completedOrders || 0) / supplier.totalOrders * 100) : 0 %>%</div>
+                                    <div class="stat-label text-gray font-14"><%= typeof t === 'function' ? t('supplier.completionRate') : 'Completion Rate' %></div>
                                 </div>
                             </div>
                         </div>
@@ -655,7 +706,7 @@
                                             <div class="metric-icon text-primary mb-2">
                                                 <i class="las la-star"></i>
                                             </div>
-                                            <div class="metric-value h4 mb-1 "><%= supplier.averageRating ? supplier.averageRating.toFixed(1) : '0.0' %></div>
+                                            <div class="metric-value h4 mb-1 "><%= (supplier.averageRating || 0).toFixed(1) %></div>
                                             <div class="metric-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.avgRating') : 'Avg Rating' %></div>
                                         </div>
                                     </div>
@@ -663,10 +714,10 @@
                                     <div class="col-md-3 col-sm-6">
                                         <div class="performance-metric text-center p-3 rounded-3">
                                             <div class="metric-icon text-success mb-2">
-                                                <i class="las la-clock"></i>
+                                                <i class="las la-check-circle"></i>
                                             </div>
-                                            <div class="metric-value h4 mb-1 "><%= businessMetrics.responseRate %>%</div>
-                                            <div class="metric-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.responseRate') : 'Response Rate' %></div>
+                                            <div class="metric-value h4 mb-1 "><%= (supplier.totalOrders && supplier.totalOrders > 0) ? Math.round((supplier.completedOrders || 0) / supplier.totalOrders * 100) : 0 %>%</div>
+                                            <div class="metric-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.completionRate') : 'Completion Rate' %></div>
                                         </div>
                                     </div>
                                     
@@ -675,18 +726,18 @@
                                             <div class="metric-icon text-warning mb-2">
                                                 <i class="las la-shipping-fast"></i>
                                             </div>
-                                            <div class="metric-value h4 mb-1 "><%= businessMetrics.onTimeDelivery %>%</div>
-                                            <div class="metric-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.onTimeDelivery') : 'On-time Delivery' %></div>
+                                            <div class="metric-value h4 mb-1 "><%= (supplier.totalOrders || 0).toLocaleString() %></div>
+                                            <div class="metric-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.totalOrders') : 'Total Orders' %></div>
                                         </div>
                                     </div>
                                     
                                     <div class="col-md-3 col-sm-6">
                                         <div class="performance-metric text-center p-3 rounded-3">
                                             <div class="metric-icon text-info mb-2">
-                                                <i class="las la-medal"></i>
+                                                <i class="las la-eye"></i>
                                             </div>
-                                            <div class="metric-value h4 mb-1 "><%= businessMetrics.experienceYears %></div>
-                                            <div class="metric-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.yearsExp') : 'Years Exp.' %></div>
+                                            <div class="metric-value h4 mb-1 "><%= (supplier.profileViews || 0).toLocaleString() %></div>
+                                            <div class="metric-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.profileViews') : 'Profile Views' %></div>
                                         </div>
                                     </div>
                                 </div>
@@ -762,24 +813,51 @@
                                 </h3>
                                 
                                 <div class="insights-grid row g-3">
+                                    <!-- Total Orders -->
                                     <div class="col-md-4 col-sm-6">
                                         <div class="insight-card  p-3 rounded-3 text-center">
-                                            <div class="insight-number h5 text-primary mb-1"><%= supplier.totalOrders || 0 %></div>
+                                            <div class="insight-number h5 text-primary mb-1"><%= (supplier.totalOrders || 0).toLocaleString() %></div>
                                             <div class="insight-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.totalOrders') : 'Total Orders' %></div>
                                         </div>
                                     </div>
                                     
+                                    <!-- Completed Orders -->
                                     <div class="col-md-4 col-sm-6">
                                         <div class="insight-card  p-3 rounded-3 text-center">
-                                            <div class="insight-number h5 text-success mb-1"><%= supplier.completedOrders || 0 %></div>
+                                            <div class="insight-number h5 text-success mb-1"><%= (supplier.completedOrders || 0).toLocaleString() %></div>
                                             <div class="insight-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.completedOrders') : 'Completed Orders' %></div>
                                         </div>
                                     </div>
                                     
+                                    <!-- Active Orders -->
                                     <div class="col-md-4 col-sm-6">
                                         <div class="insight-card  p-3 rounded-3 text-center">
-                                            <div class="insight-number h5 text-warning mb-1"><%= supplier.totalReviews || 0 %></div>
-                                            <div class="insight-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.customerReviews') : 'Customer Reviews' %></div>
+                                            <div class="insight-number h5 text-info mb-1"><%= Math.max(0, (supplier.totalOrders || 0) - (supplier.completedOrders || 0)).toLocaleString() %></div>
+                                            <div class="insight-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.activeOrders') : 'Active Orders' %></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Total Reviews -->
+                                    <div class="col-md-4 col-sm-6">
+                                        <div class="insight-card  p-3 rounded-3 text-center">
+                                            <div class="insight-number h5 text-warning mb-1"><%= (supplier.totalReviews || 0).toLocaleString() %></div>
+                                            <div class="insight-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.totalReviews') : 'Total Reviews' %></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Profile Views -->
+                                    <div class="col-md-4 col-sm-6">
+                                        <div class="insight-card  p-3 rounded-3 text-center">
+                                            <div class="insight-number h5 text-secondary mb-1"><%= (supplier.profileViews || 0).toLocaleString() %></div>
+                                            <div class="insight-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.profileViews') : 'Profile Views' %></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Member Since -->
+                                    <div class="col-md-4 col-sm-6">
+                                        <div class="insight-card  p-3 rounded-3 text-center">
+                                            <div class="insight-number h5 text-dark mb-1"><%= supplier.createdAt ? new Date(supplier.createdAt).getFullYear() : 'N/A' %></div>
+                                            <div class="insight-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.memberSince') : 'Member Since' %></div>
                                         </div>
                                     </div>
                                 </div>
@@ -821,11 +899,11 @@
                                         <%= typeof t === 'function' ? t('supplier.actions.requestQuote') : 'Request Quote' %> (Coming Soon)
                                     </button>
                                     <% } else { %>
-                                    <!-- Active Supplier - Full Contact Options -->
-                                    <button class="btn btn-primary btn-lg w-100 mb-3 professional-btn" onclick="openInquiryModal()">
-                                        <i class="las la-envelope me-2 text-white"></i>
-                                        <%= typeof t === 'function' ? t('buttons.sendInquiry') : 'Send Inquiry' %>
-                                    </button>
+                                    <!-- Contact via Product Details -->
+                                    <a href="/all-product?supplier=<%= supplier ? supplier._id : '' %>" class="btn btn-primary btn-lg w-100 mb-3 professional-btn">
+                                        <i class="las la-search me-2 text-white"></i>
+                                        <%= typeof t === 'function' ? t('buttons.browseProducts') : 'Browse Products' %>
+                                    </a>
                                     
                                     <button class="btn btn-success btn-lg w-100 mb-3 professional-btn" data-supplier-id="<%= supplier ? supplier._id : '' %>" onclick="startChat(this.dataset.supplierId)">
                                         <i class="las la-comments me-2 text-white"></i>
@@ -1111,30 +1189,15 @@
 
 <!-- Professional Supplier Profile JavaScript -->
 <script src="/js/supplier-profile.js"></script>
-<script type="application/json" id="supplier-json"><%- JSON.stringify(supplier || {}) %></script>
+
+// Professional User Data Injection
+<script type="application/json" id="user-data">
+<%- JSON.stringify(user) %>
+</script>
+
 <script>
-    (function() {
-        try {
-            var el = document.getElementById('supplier-json');
-            window.supplierData = el ? JSON.parse(el.textContent) : {};
-        } catch (e) {
-            console.error('Failed to parse supplier data', e);
-            window.supplierData = {};
-        }
-    })();
-
-// Legacy compatibility and inline functionality
-function openContactModal() {
-    if (typeof supplierProfile !== 'undefined') {
-        supplierProfile.openContactModal();
-    } else {
-        const contactModal = new bootstrap.Modal(document.getElementById('contactModal'));
-        contactModal.show();
-    }
-}
-
+// Essential Functions for Supplier Profile
 function startChat(supplierId) {
-    
     // Check if user is authenticated
     if (!window.currentUser) {
         alert('Chat uchun tizimga kiring');
@@ -1142,8 +1205,7 @@ function startChat(supplierId) {
         return;
     }
 
-
-    // Check if user is distributor/buyer (correct logic for SLEX system - same as product details page)
+    // Check if user is distributor/buyer (correct logic for SLEX system)
     const isBuyer = window.currentUser && 
                     window.currentUser.role === 'company_admin' && 
                     (window.currentUser.companyType === 'distributor' || window.currentUser.companyType === 'buyer');
@@ -1173,152 +1235,17 @@ function startChat(supplierId) {
     window.location.href = redirectUrl;
 }
 
-function requestQuote() {
-    if (typeof supplierProfile !== 'undefined') {
-        supplierProfile.requestQuote();
-    } else {
-        const quoteModal = new bootstrap.Modal(document.getElementById('quoteModal'));
-        quoteModal.show();
-    }
-}
-
-function openQuoteModal() {
-    const quoteModal = new bootstrap.Modal(document.getElementById('quoteModal'));
-    quoteModal.show();
-}
-
-function submitQuoteRequest() {
-    const form = document.getElementById('quoteForm');
-    const formData = new FormData();
-    
-    // Collect all form data
-    formData.append('supplierId', '<%= supplier ? supplier._id : "" %>');
-    formData.append('name', document.getElementById('quoteName').value);
-    formData.append('email', document.getElementById('quoteEmail').value);
-    formData.append('phone', document.getElementById('quotePhone').value);
-    formData.append('company', document.getElementById('quoteCompany').value);
-    formData.append('productName', document.getElementById('quoteProductName').value);
-    formData.append('quantity', document.getElementById('quoteQuantity').value);
-    formData.append('targetPrice', document.getElementById('quoteTargetPrice').value);
-    formData.append('deliveryDate', document.getElementById('quoteDeliveryDate').value);
-    formData.append('deliveryLocation', document.getElementById('quoteDeliveryLocation').value);
-    formData.append('specifications', document.getElementById('quoteSpecifications').value);
-    formData.append('paymentTerms', document.getElementById('quotePaymentTerms').value);
-    formData.append('urgency', document.getElementById('quoteUrgency').value);
-    formData.append('type', 'quote_request');
-    
-    // Validate required fields
-    const requiredFields = ['quoteName', 'quoteEmail', 'quoteProductName', 'quoteQuantity'];
-    let isValid = true;
-    
-    requiredFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (!field.value.trim()) {
-            field.classList.add('is-invalid');
-            isValid = false;
-        } else {
-            field.classList.remove('is-invalid');
-        }
-    });
-    
-    if (!isValid) {
-        alert('Please fill in all required fields.');
-        return;
-    }
-    
-    // Here you would typically send the data to your backend
-    
-    // Show success message
-    alert('Your quote request has been sent successfully! The supplier will contact you soon.');
-    
-    // Close modal
-    const quoteModal = bootstrap.Modal.getInstance(document.getElementById('quoteModal'));
-    quoteModal.hide();
-    
-    // Reset form
-    form.reset();
-}
-
-function contactSupplier(productId) {
-    if (typeof supplierProfile !== 'undefined') {
-        supplierProfile.contactSupplier(productId);
-    } else {
-        document.getElementById('contactSubject').value = `Inquiry about Product ID: ${productId}`;
-        openContactModal();
-    }
-}
-
-function addToInquiry(productId) {
-    if (typeof supplierProfile !== 'undefined') {
-        supplierProfile.addToInquiry(productId);
-    } else {
-        alert('Product added to inquiry list.');
-    }
-}
-
-function submitInquiry() {
-    const form = document.getElementById('contactForm');
-    const formData = new FormData(form);
-    
-    // Add supplier ID
-    formData.append('supplierId', '<%= supplier ? supplier._id : "" %>');
-    
-    // Here you would typically send the data to your backend
-    
-    // Show success message
-    alert('Your inquiry has been sent successfully!');
-    
-    // Close modal
-    const contactModal = bootstrap.Modal.getInstance(document.getElementById('contactModal'));
-    contactModal.hide();
-    
-    // Reset form
-    form.reset();
-}
-
-function saveSupplier(supplierId) {
-    if (typeof supplierProfile !== 'undefined') {
-        supplierProfile.saveSupplier(supplierId);
-    } else {
-        alert('Supplier saved to favorites.');
-    }
-}
-
-function shareSupplier(supplierId) {
-    if (typeof supplierProfile !== 'undefined') {
-        supplierProfile.shareSupplier(supplierId);
-    } else {
-        if (navigator.share) {
-            navigator.share({
-                title: '<%= supplier.companyName %>',
-                text: 'Check out this supplier profile',
-                url: window.location.href
-            });
-        } else {
-            navigator.clipboard.writeText(window.location.href).then(() => {
-                alert('Supplier profile link copied to clipboard!');
-            });
-        }
-    }
-}
-
-function reportSupplier(supplierId) {
-    if (typeof supplierProfile !== 'undefined') {
-        supplierProfile.reportSupplier(supplierId);
-    } else {
-        const reason = prompt('Please provide a reason for reporting this supplier:');
-        if (reason) {
-            alert('Report submitted. Thank you for helping us maintain quality.');
-        }
-    }
-}
-
 function showAllProducts() {
     window.location.href = `/supplier/<%= supplier ? supplier._id : "" %>/products`;
 }
 
-// Inject user data from server
-window.currentUser = JSON.parse('<%-JSON.stringify(user || null)%>');
+// Initialize user data
+try {
+    const userScript = document.getElementById('user-data');
+    window.currentUser = userScript ? JSON.parse(userScript.textContent) : null;
+} catch (e) {
+    window.currentUser = null;
+}
 
 // Initialize tooltips if Bootstrap is available
 document.addEventListener('DOMContentLoaded', function() {
@@ -1331,175 +1258,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<!-- Professional Inquiry Modal -->
-<div class="modal fade" id="inquiryModal" tabindex="-1" aria-labelledby="inquiryModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="inquiryModalLabel">
-                    <i class="las la-envelope text-main me-2"></i>
-                    <%- typeof t === 'function' ? t('inquiry.modalTitle') : 'Professional Business Inquiry' %>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<%- typeof t === 'function' ? t('common.close') : 'Close' %>"></button>
-            </div>
-            <div class="modal-body">
-                <form id="inquiryForm" class="professional-inquiry-form">
-                    <!-- Basic Information -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="inquirySubject" class="form-label">
-                                <i class="las la-heading text-main me-1"></i>
-                                <%- typeof t === 'function' ? t('inquiry.subject') : 'Subject' %> *
-                            </label>
-                            <input type="text" class="form-control" id="inquirySubject" name="subject" 
-                                   placeholder="<%- typeof t === 'function' ? t('inquiry.subjectPlaceholder') : 'Brief description of your inquiry' %>" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="inquiryType" class="form-label">
-                                <i class="las la-tag text-main me-1"></i>
-                                <%- typeof t === 'function' ? t('inquiry.type') : 'Inquiry Type' %>
-                            </label>
-                            <select class="form-select" id="inquiryType" name="inquiryType">
-                                <option value="product_inquiry"><%- typeof t === 'function' ? t('inquiry.types.productInquiry') : 'Product Inquiry' %></option>
-                                <option value="quote_request"><%- typeof t === 'function' ? t('inquiry.types.quoteRequest') : 'Quote Request' %></option>
-                                <option value="bulk_order"><%- typeof t === 'function' ? t('inquiry.types.bulkOrder') : 'Bulk Order' %></option>
-                                <option value="custom_request"><%- typeof t === 'function' ? t('inquiry.types.customRequest') : 'Custom Request' %></option>
-                                <option value="partnership"><%- typeof t === 'function' ? t('inquiry.types.partnership') : 'Partnership' %></option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <!-- Product Information (Conditional) -->
-                    <div id="productSection" class="row mb-4" style="display: none;">
-                        <div class="col-md-6">
-                            <label for="productId" class="form-label">
-                                <i class="las la-box text-main me-1"></i>
-                                <%- typeof t === 'function' ? t('inquiry.product') : 'Product' %>
-                            </label>
-                            <select class="form-select" id="productId" name="productId">
-                                <option value=""><%- typeof t === 'function' ? t('inquiry.selectProduct') : 'Select Product' %></option>
-                                <!-- Products will be loaded dynamically -->
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="quantity" class="form-label">
-                                <i class="las la-sort-numeric-up text-main me-1"></i>
-                                <%- typeof t === 'function' ? t('inquiry.quantity') : 'Quantity' %>
-                            </label>
-                            <input type="number" class="form-control" id="quantity" name="quantity" 
-                                   placeholder="<%- typeof t === 'function' ? t('inquiry.quantityPlaceholder') : 'Qty' %>" min="1">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="unit" class="form-label">
-                                <i class="las la-ruler text-main me-1"></i>
-                                <%- typeof t === 'function' ? t('inquiry.unit') : 'Unit' %>
-                            </label>
-                            <select class="form-select" id="unit" name="unit">
-                                <option value="pieces"><%- typeof t === 'function' ? t('inquiry.units.pieces') : 'Pieces' %></option>
-                                <option value="kg"><%- typeof t === 'function' ? t('inquiry.units.kg') : 'Kilograms' %></option>
-                                <option value="tons"><%- typeof t === 'function' ? t('inquiry.units.tons') : 'Tons' %></option>
-                                <option value="liters"><%- typeof t === 'function' ? t('inquiry.units.liters') : 'Liters' %></option>
-                                <option value="meters"><%- typeof t === 'function' ? t('inquiry.units.meters') : 'Meters' %></option>
-                                <option value="boxes"><%- typeof t === 'function' ? t('inquiry.units.boxes') : 'Boxes' %></option>
-                                <option value="pallets"><%- typeof t === 'function' ? t('inquiry.units.pallets') : 'Pallets' %></option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Message -->
-                    <div class="mb-4">
-                        <label for="inquiryMessage" class="form-label">
-                            <i class="las la-comment text-main me-1"></i>
-                            <%- typeof t === 'function' ? t('inquiry.message') : 'Detailed Message' %> *
-                        </label>
-                        <textarea class="form-control" id="inquiryMessage" name="message" rows="5" 
-                                  placeholder="<%- typeof t === 'function' ? t('inquiry.messagePlaceholder') : 'Please provide detailed information about your inquiry, requirements, and any specific questions...' %>" required></textarea>
-                    </div>
-
-                    <!-- Business Details -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="urgency" class="form-label">
-                                <i class="las la-clock text-main me-1"></i>
-                                <%- typeof t === 'function' ? t('inquiry.urgency') : 'Urgency Level' %>
-                            </label>
-                            <select class="form-select" id="urgency" name="urgency">
-                                <option value="flexible"><%- typeof t === 'function' ? t('inquiry.urgencyLevels.flexible') : 'Flexible' %></option>
-                                <option value="within_month"><%- typeof t === 'function' ? t('inquiry.urgencyLevels.withinMonth') : 'Within Month' %></option>
-                                <option value="within_week"><%- typeof t === 'function' ? t('inquiry.urgencyLevels.withinWeek') : 'Within Week' %></option>
-                                <option value="immediate"><%- typeof t === 'function' ? t('inquiry.urgencyLevels.immediate') : 'Immediate' %></option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="shippingMethod" class="form-label">
-                                <i class="las la-shipping-fast text-main me-1"></i>
-                                <%- typeof t === 'function' ? t('inquiry.shippingMethod') : 'Preferred Shipping' %>
-                            </label>
-                            <select class="form-select" id="shippingMethod" name="shippingMethod">
-                                <option value="standard"><%- typeof t === 'function' ? t('inquiry.shippingMethods.standard') : 'Standard' %></option>
-                                <option value="express"><%- typeof t === 'function' ? t('inquiry.shippingMethods.express') : 'Express' %></option>
-                                <option value="freight"><%- typeof t === 'function' ? t('inquiry.shippingMethods.freight') : 'Freight' %></option>
-                                <option value="pickup"><%- typeof t === 'function' ? t('inquiry.shippingMethods.pickup') : 'Pickup' %></option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Budget Range -->
-                    <div class="mb-4">
-                        <label class="form-label">
-                            <i class="las la-dollar-sign text-main me-1"></i>
-                            <%- typeof t === 'function' ? t('inquiry.budgetRange') : 'Budget Range' %> (<%- typeof t === 'function' ? t('inquiry.optional') : 'Optional' %>)
-                        </label>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <input type="number" class="form-control" name="budgetMin" 
-                                       placeholder="<%- typeof t === 'function' ? t('inquiry.minBudget') : 'Minimum Budget' %>" min="0">
-                            </div>
-                            <div class="col-md-6">
-                                <input type="number" class="form-control" name="budgetMax" 
-                                       placeholder="<%- typeof t === 'function' ? t('inquiry.maxBudget') : 'Maximum Budget' %>" min="0">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Destination -->
-                    <div class="mb-4">
-                        <label for="destination" class="form-label">
-                            <i class="las la-map-marker-alt text-main me-1"></i>
-                            <%- typeof t === 'function' ? t('inquiry.deliveryDestination') : 'Delivery Destination' %>
-                        </label>
-                        <input type="text" class="form-control" id="destination" name="destination" 
-                               placeholder="<%- typeof t === 'function' ? t('inquiry.destinationPlaceholder') : 'City, Country' %>">
-                    </div>
-
-                    <!-- Special Requirements -->
-                    <div class="mb-4">
-                        <label for="specialRequirements" class="form-label">
-                            <i class="las la-clipboard-list text-main me-1"></i>
-                            <%- typeof t === 'function' ? t('inquiry.specialRequirements') : 'Special Requirements' %> (<%- typeof t === 'function' ? t('inquiry.optional') : 'Optional' %>)
-                        </label>
-                        <textarea class="form-control" id="specialRequirements" name="specialRequirements" rows="3" 
-                                  placeholder="<%- typeof t === 'function' ? t('inquiry.specialRequirementsPlaceholder') : 'Any special specifications, certifications, or requirements...' %>"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="las la-times me-1"></i>
-                    <%- typeof t === 'function' ? t('common.cancel') : 'Cancel' %>
-                </button>
-                <button type="submit" form="inquiryForm" class="btn btn-primary" id="submitInquiryBtn">
-                    <i class="las la-paper-plane me-1"></i>
-                    <span class="btn-text"><%- typeof t === 'function' ? t('inquiry.sendInquiry') : 'Send Inquiry' %></span>
-                    <span class="btn-loading" style="display: none;">
-                        <i class="las la-spinner la-spin me-1"></i>
-                        <%- typeof t === 'function' ? t('inquiry.sending') : 'Sending...' %>
-                    </span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Inquiry functionality removed - Use product details page instead -->
 
 <%- include('../partials/footer') %>
 
@@ -1606,8 +1366,8 @@ const ImageErrorHandler = {
     handleSuccess(img) {
         const originalSrc = img.dataset.originalSrc || img.src;
         
-        // Clear any retry tracking for successful images
-        if (this.retryCount.has(originalSrc)) {
+        // Clear any retry tracking for successful images - Safe check
+        if (this.retryCount && typeof this.retryCount.has === 'function' && this.retryCount.has(originalSrc)) {
             this.retryCount.delete(originalSrc);
         }
         
@@ -1631,376 +1391,7 @@ function handleImageSuccess(img) {
     ImageErrorHandler.handleSuccess(img);
 }
 
-// Inquiry Modal Functions
-function openInquiryModal() {
-       // Check if user is authenticated
-    if (!window.currentUser) {
-        const loginMessage = '<%- typeof t === "function" ? t("inquiry.loginRequired") : "Inquiry yuborish uchun tizimga kiring" %>';
-        alert(loginMessage);
-        window.location.href = '/login';
-        return;
-    }
-    
-    // Check if user is distributor/buyer
-    const isBuyer = window.currentUser && 
-                    window.currentUser.role === 'company_admin' && 
-                    (window.currentUser.companyType === 'distributor' || window.currentUser.companyType === 'buyer');
-    
-    if (!isBuyer) {
-        const permissionMessage = '<%- typeof t === "function" ? t("inquiry.permissionDenied") : "Faqat distribyutor/haridor kompaniyalar so\'rov yubora oladi" %>';
-        alert(permissionMessage);
-        return;
-    }
-    
-    // Show modal
-    const inquiryModal = new bootstrap.Modal(document.getElementById('inquiryModal'));
-    inquiryModal.show();
-    
-    // Load supplier products if available
-    loadSupplierProducts();
-}
 
-function loadSupplierProducts() {
-    // This function can be enhanced to load supplier products
-}
-
-function submitInquiry(event) {
-    // Prevent default form submission
-    event.preventDefault();
-    event.stopPropagation();
-    
-    
-    const form = event.target;
-    const formData = new FormData(form);
-    const submitBtn = document.getElementById('submitInquiryBtn');
-    const btnText = submitBtn.querySelector('.btn-text');
-    const btnLoading = submitBtn.querySelector('.btn-loading');
-    
-    // Show loading state
-    btnText.style.display = 'none';
-    btnLoading.style.display = 'inline-block';
-    submitBtn.disabled = true;
-    
-    // Prepare inquiry data
-    const inquiryData = {
-        supplierId: '<%= supplier ? supplier._id : "" %>',
-        type: formData.get('inquiryType'),
-        subject: formData.get('subject'),
-        message: formData.get('message'),
-        quantity: formData.get('quantity') || null,
-        unit: formData.get('unit') || null,
-        urgency: formData.get('urgency'),
-        shippingMethod: formData.get('shippingMethod'),
-        destination: formData.get('destination') || null,
-        specialRequirements: formData.get('specialRequirements') || null
-    };
-    
-    // Add budget range if provided
-    const budgetMin = formData.get('budgetMin');
-    const budgetMax = formData.get('budgetMax');
-    if (budgetMin || budgetMax) {
-        inquiryData.budgetRange = {
-            min: budgetMin ? parseFloat(budgetMin) : null,
-            max: budgetMax ? parseFloat(budgetMax) : null,
-            currency: 'USD'
-        };
-    }
-    
-    
-    // Send inquiry to backend
-    fetch('/buyer/api/inquiries', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify(inquiryData)
-    })
-    .then(response => {
-        return response.json();
-    })
-    .then(data => {
-        
-        if (data.success) {
-            // Show success message
-            const successMessage = '<%- typeof t === "function" ? t("inquiry.successMessage") : "✅ So\'rov muvaffaqiyatli yuborildi!" %>';
-            alert(successMessage);
-            
-            // Close modal
-            const inquiryModal = bootstrap.Modal.getInstance(document.getElementById('inquiryModal'));
-            if (inquiryModal) {
-                inquiryModal.hide();
-            }
-            
-            // Reset form
-            form.reset();
-            
-            // Redirect to messages page
-            setTimeout(() => {
-                window.location.href = `/buyer/messages?manufacturer=<%= supplier ? supplier._id : "" %>`;
-            }, 1000);
-        } else {
-            throw new Error(data.message || '<%- typeof t === "function" ? t("inquiry.failedToSend") : "Failed to send inquiry" %>');
-        }
-    })
-    .catch(error => {
-        console.error('❌ Error sending inquiry:', error);
-        const errorMessage = '<%- typeof t === "function" ? t("inquiry.errorMessage") : "❌ So\'rov yuborishda xatolik" %>: ' + error.message;
-        alert(errorMessage);
-    })
-    .finally(() => {
-        // Reset button state
-        btnText.style.display = 'inline-block';
-        btnLoading.style.display = 'none';
-        submitBtn.disabled = false;
-    });
-    
-    // Return false to prevent any default behavior
-    return false;
-}
-
-// Add form submit event listener
-document.addEventListener('DOMContentLoaded', function() {
-    
-    const inquiryForm = document.getElementById('inquiryForm');
-    if (inquiryForm) {
-        inquiryForm.addEventListener('submit', submitInquiry);
-        
-        // Also prevent default on form submit button click
-        const submitBtn = document.getElementById('submitInquiryBtn');
-        if (submitBtn) {
-            submitBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            });
-        }
-    } else {
-    }
-    
-    // Show/hide product section based on inquiry type
-    const inquiryTypeSelect = document.getElementById('inquiryType');
-    if (inquiryTypeSelect) {
-        inquiryTypeSelect.addEventListener('change', function() {
-            const productSection = document.getElementById('productSection');
-            // Show product section for product-related inquiries
-            if (this.value === 'product_inquiry' || this.value === 'quote_request') {
-                productSection.style.display = 'block';
-            } else {
-                productSection.style.display = 'none';
-            }
-        });
-    } else {
-    }
-    
-    // Add CSS for consistent form styling
-    const style = document.createElement('style');
-    style.textContent = `
-        .professional-inquiry-form .form-control,
-        .professional-inquiry-form .form-select {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            background-color: #ffffff;
-        }
-        
-        .professional-inquiry-form .form-control:focus,
-        .professional-inquiry-form .form-select:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-            outline: none;
-        }
-        
-        .professional-inquiry-form .form-label {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        .professional-inquiry-form .row {
-            margin-left: -8px;
-            margin-right: -8px;
-        }
-        
-        .professional-inquiry-form .col-md-3,
-        .professional-inquiry-form .col-md-6 {
-            padding-left: 8px;
-            padding-right: 8px;
-        }
-        
-        .professional-inquiry-form .mb-4 {
-            margin-bottom: 1.5rem !important;
-        }
-        
-        .professional-inquiry-form textarea.form-control {
-            resize: vertical;
-            min-height: 120px;
-        }
-        
-        .professional-inquiry-form .btn {
-            border-radius: 8px;
-            font-weight: 600;
-            padding: 12px 24px;
-            transition: all 0.3s ease;
-        }
-        
-        .professional-inquiry-form .btn-primary {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            border: none;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-        
-        .professional-inquiry-form .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-        }
-        
-        .professional-inquiry-form .btn-secondary {
-            background: #6b7280;
-            border: none;
-            box-shadow: 0 2px 8px rgba(107, 114, 128, 0.2);
-        }
-        
-        .professional-inquiry-form .btn-secondary:hover {
-            background: #4b5563;
-            transform: translateY(-1px);
-        }
-        
-        .professional-inquiry-form .modal-content {
-            border-radius: 16px;
-            border: none;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-        }
-        
-        .professional-inquiry-form .modal-header {
-            border-bottom: 1px solid #e5e7eb;
-            padding: 24px 32px 20px;
-            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-            border-radius: 16px 16px 0 0;
-        }
-        
-        .professional-inquiry-form .modal-body {
-            padding: 32px;
-        }
-        
-        .professional-inquiry-form .modal-footer {
-            border-top: 1px solid #e5e7eb;
-            padding: 20px 32px 24px;
-            background: #f9fafb;
-            border-radius: 0 0 16px 16px;
-        }
-        
-        .professional-inquiry-form .modal-title {
-            color: #1f2937;
-            font-weight: 700;
-            font-size: 20px;
-        }
-        
-        .professional-inquiry-form .text-main {
-            color: #3b82f6 !important;
-        }
-        
-        .professional-inquiry-form .form-control::placeholder {
-            color: #9ca3af;
-            font-size: 13px;
-        }
-        
-        .professional-inquiry-form .form-control:disabled {
-            background-color: #f3f4f6;
-            color: #6b7280;
-            cursor: not-allowed;
-        }
-        
-        .professional-inquiry-form .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        .professional-inquiry-form .btn-loading {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .professional-inquiry-form .btn-loading i {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .professional-inquiry-form .modal-body {
-                padding: 20px;
-            }
-            
-            .professional-inquiry-form .modal-header,
-            .professional-inquiry-form .modal-footer {
-                padding: 16px 20px;
-            }
-            
-            .professional-inquiry-form .col-md-3,
-            .professional-inquiry-form .col-md-6 {
-                margin-bottom: 16px;
-            }
-        }
-        
-        /* Fix for product section grid layout */
-        #productSection {
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
-        
-        #productSection .row {
-            margin: 0;
-            display: flex;
-            flex-wrap: wrap;
-        }
-        
-        #productSection .col-md-3,
-        #productSection .col-md-6 {
-            padding: 0 8px;
-            margin-bottom: 0;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* Ensure consistent spacing */
-        .professional-inquiry-form .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .professional-inquiry-form .form-group:last-child {
-            margin-bottom: 0;
-        }
-        
-        /* Additional grid fixes */
-        .professional-inquiry-form .row > [class*="col-"] {
-            margin-bottom: 0;
-        }
-        
-        .professional-inquiry-form .form-control,
-        .professional-inquiry-form .form-select {
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        /* Smooth transitions for all form elements */
-        .professional-inquiry-form * {
-            transition: all 0.3s ease;
-        }
-    `;
-    document.head.appendChild(style);
-});
-
-// Inject user data from server for chat functionality (same as product details page)
-window.currentUser = JSON.parse('<%-JSON.stringify(user || null)%>');
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {

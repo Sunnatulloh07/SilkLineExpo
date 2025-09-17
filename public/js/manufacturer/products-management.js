@@ -191,6 +191,20 @@
         // More actions dropdown handlers
         document.addEventListener('click', handleMoreActionsToggle);
 
+        // Close dropdowns on scroll to prevent positioning issues
+        window.addEventListener('scroll', () => {
+            document.querySelectorAll('.table-more-menu, .card-more-menu').forEach(m => {
+                m.classList.add('hidden');
+            });
+        }, { passive: true });
+
+        // Close dropdowns on window resize
+        window.addEventListener('resize', () => {
+            document.querySelectorAll('.table-more-menu, .card-more-menu').forEach(m => {
+                m.classList.add('hidden');
+            });
+        }, { passive: true });
+
     }
 
     /**
@@ -904,25 +918,84 @@
      * Handle more actions dropdown toggle
      */
     function handleMoreActionsToggle(event) {
-        const target = event.target.closest('.more-toggle');
+        // console.log('🔍 [products-management.js] handleMoreActionsToggle called', event.target);
+        const target = event.target.closest('.card-more-toggle, .table-action-btn.dropdown-toggle');
+        // console.log('🎯 [products-management.js] Target found:', target);
         
         if (target) {
             event.stopPropagation();
-            const menu = target.parentElement.querySelector('.more-menu');
+            let menu;
             
-            // Close all other menus
-            document.querySelectorAll('.more-menu').forEach(m => {
-                if (m !== menu) m.classList.add('hidden');
-            });
+            // Find the correct menu based on target type
+            if (target.classList.contains('card-more-toggle')) {
+                menu = target.parentElement.querySelector('.card-more-menu');
+            } else if (target.classList.contains('dropdown-toggle')) {
+                menu = target.parentElement.querySelector('.table-more-menu');
+            }
             
-            // Toggle current menu
-            menu.classList.toggle('hidden');
+            if (menu) {
+                // Close all other menus
+                document.querySelectorAll('.table-more-menu, .card-more-menu').forEach(m => {
+                    if (m !== menu) m.classList.add('hidden');
+                });
+                
+                // Check if menu was hidden before
+                const wasHidden = menu.classList.contains('hidden');
+                
+                // Toggle current menu
+                menu.classList.toggle('hidden');
+                
+                // Position dropdown outside container when showing
+                if (wasHidden) {
+                    if (target.classList.contains('card-more-toggle')) {
+                        positionCardDropdown(menu, target);
+                    } else {
+                        positionProductsDropdown(menu, target);
+                    }
+                }
+            }
         } else {
             // Close all menus when clicking outside
-            document.querySelectorAll('.more-menu').forEach(m => {
+            document.querySelectorAll('.table-more-menu, .card-more-menu').forEach(m => {
                 m.classList.add('hidden');
             });
         }
+    }
+
+    /**
+     * Position products dropdown outside container
+     */
+    function positionProductsDropdown(dropdown, toggleBtn) {
+        if (!dropdown || !toggleBtn) return;
+
+        // Get button position
+        const btnRect = toggleBtn.getBoundingClientRect();
+        const dropdownRect = dropdown.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+
+        // Calculate optimal position
+        let top = btnRect.bottom + 5;
+        let left = btnRect.right - 200; // dropdown min-width is 200px
+
+        // Adjust if dropdown goes below viewport
+        if (top + dropdownRect.height > viewportHeight) {
+            top = btnRect.top - dropdownRect.height - 5;
+        }
+
+        // Adjust if dropdown goes outside left edge
+        if (left < 10) {
+            left = 10;
+        }
+
+        // Adjust if dropdown goes outside right edge
+        if (left + 200 > viewportWidth - 10) {
+            left = viewportWidth - 210;
+        }
+
+        // Apply position
+        dropdown.style.top = `${top}px`;
+        dropdown.style.left = `${left}px`;
     }
 
     /**
@@ -1187,21 +1260,51 @@
     }
 
     /**
+     * Position card dropdown outside container
+     */
+    function positionCardDropdown(dropdown, toggleBtn) {
+        if (!dropdown || !toggleBtn) return;
+
+        const btnRect = toggleBtn.getBoundingClientRect();
+        const dropdownRect = dropdown.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+
+        let top = btnRect.bottom + 5;
+        let left = btnRect.right - 180; // card dropdown min-width is 180px
+
+        if (top + dropdownRect.height > viewportHeight) {
+            top = btnRect.top - dropdownRect.height - 5;
+        }
+
+        if (left < 10) {
+            left = 10;
+        }
+
+        if (left + 180 > viewportWidth - 10) {
+            left = viewportWidth - 190;
+        }
+
+        dropdown.style.top = `${top}px`;
+        dropdown.style.left = `${left}px`;
+    }
+
+    /**
      * Logger utility
      */
     const logger = {
         log: (message, data = null) => {
             if (data) {
-                console.log(`[Products] ${message}`, data);
+                // console.log(`[Products] ${message}`, data);
             } else {
-                console.log(`[Products] ${message}`);
+                // console.log(`[Products] ${message}`);
             }
         },
         error: (message, error = null) => {
             if (error) {
-                console.error(`[Products] ${message}`, error);
+                // console.error(`[Products] ${message}`, error);
             } else {
-                console.error(`[Products] ${message}`);
+                // console.error(`[Products] ${message}`);
             }
         },
         warn: (message, data = null) => {

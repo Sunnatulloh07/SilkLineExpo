@@ -1,4 +1,4 @@
-<%- include('./partials/header', { title: title || 'Xatolik', lng: lng || 'uz', user: user }) %>
+<%- include('./partials/header', { title: title || 'Xatolik', lng: lng, user: user }) %>
 <%- include('./partials/sidebar', { user: user, currentPage: 'error' }) %>
 
 <!-- Professional Error Page for Manufacturer Dashboard -->
@@ -190,5 +190,8 @@
     }
 }
 </style>
+
+<!-- Professional Unified Header Management -->
+<script src="/js/manufacturer/manufacturer-header.js"></script>
 
 <%- include('./partials/footer') %>

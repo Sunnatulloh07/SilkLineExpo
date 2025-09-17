@@ -305,10 +305,6 @@
   margin: 0;
 }
 
-.products-filters-actions {
-  display: flex;
-  gap: var(--space-3);
-}
 
 .products-filters-body {
   padding: var(--space-6);
@@ -558,6 +554,7 @@
   display: flex;
   gap: var(--space-3);
   align-items: center;
+  justify-content: end;
 }
 
 /* ===== DARK MODE SPECIFIC COMPONENTS ===== */

@@ -1,6 +1,18 @@
 
 // 🎯 PROFESSIONAL B2B CHAT APPLICATION
 // Note: window.B2BChat is initialized from EJS data in HTML
+
+// Global translation function for JavaScript
+window.getTranslation = function(key, fallback = '') {
+  if (typeof window.i18next !== 'undefined' && window.i18next.t) {
+    return window.i18next.t(key);
+  }
+  if (typeof window.t !== 'undefined') {
+    return window.t(key);
+  }
+  return fallback || key;
+};
+
 window.B2BChat = window.B2BChat || {
     // Fallback values if not initialized from EJS
     currentUser: { id: '', type: '', company: '' },
@@ -58,7 +70,8 @@ async function loadConversationMessages(page = 1, limit = 50) {
             window.B2BChat.inquiryData?.id : 
             window.B2BChat.orderData?.id;
         
-        if (!conversationId) {
+        
+        if (!conversationId || conversationId === 'null') {
             throw new Error('Conversation ID not found');
         }
         
@@ -133,8 +146,8 @@ async function loadConversationMessages(page = 1, limit = 50) {
                 }
             });
             
-            // Display messages in the chat
-            displayMessages(messages);
+            // Display messages in the chat - PRESERVE MIXED CONTENT
+            smartDisplayMessages(messages);
             
             // Store pagination info for potential infinite scroll
             window.B2BChat.pagination = pagination;
@@ -165,7 +178,33 @@ async function loadConversationMessages(page = 1, limit = 50) {
     }
 }
 
-// 💬 DISPLAY MESSAGES IN CHAT
+// 💬 SMART DISPLAY MESSAGES - PRESERVES MIXED CONTENT
+function smartDisplayMessages(messages) {
+    const messagesList = document.getElementById('messagesList');
+    if (!messagesList) return;
+    
+    // Check if messages are already displayed
+    const existingMessages = messagesList.querySelectorAll('.b2b-message-group');
+    
+    if (existingMessages.length === 0) {
+        // First load - display all messages with mixed content
+        displayMessages(messages);
+    } else {
+        // Subsequent loads - only add new messages
+        const currentCount = existingMessages.length;
+        if (messages.length > currentCount) {
+            const newMessages = messages.slice(currentCount);
+            newMessages.forEach(message => {
+                const isOwn = message.senderId?._id === window.B2BChat.currentUser.id;
+                const messageElement = createMessageElement(message, isOwn);
+                messagesList.appendChild(messageElement);
+            });
+            scrollToBottom();
+        }
+    }
+}
+
+// 💬 DISPLAY MESSAGES IN CHAT (ORIGINAL FUNCTION)
 function displayMessages(messages) {
     const messagesArea = document.getElementById('messagesArea');
     const emptyState = messagesArea.querySelector('.b2b-empty-state');
@@ -273,8 +312,10 @@ function handleProfessionalInputChange() {
     document.getElementById('charCount').textContent = length;
     const sendButton = document.getElementById('sendButton');
     const hasContent = input.value.trim().length > 0;
-    sendButton.disabled = !hasContent;
-    sendButton.className = `b2b-send-button ${hasContent ? 'active' : ''}`;
+    const hasFile = selectedFileForUpload !== null;
+    
+    sendButton.disabled = !(hasContent || hasFile);
+    sendButton.className = `b2b-send-button ${(hasContent || hasFile) ? 'active' : ''}`;
 }
 
 async function sendProfessionalMessage(event) {
@@ -283,8 +324,11 @@ async function sendProfessionalMessage(event) {
     const messageInput = document.getElementById('messageInput');
     const content = messageInput.value.trim();
     
-    if (!content) {
-        showProfessionalToast('Xabar bo\'sh bo\'lishi mumkin emas', 'error');
+    // Check if there's a selected file for upload
+    const hasFile = selectedFileForUpload !== null;
+    
+    if (!content && !hasFile) {
+        showProfessionalToast('Xabar yoki fayl tanlanishi kerak', 'error');
         return;
     }
     
@@ -302,13 +346,13 @@ async function sendProfessionalMessage(event) {
             window.B2BChat.inquiryData?.id : 
             window.B2BChat.orderData?.id;
         
-        if (!conversationId) {
+        if (!conversationId || conversationId === 'null') {
             throw new Error('Conversation ID not found');
         }
         
-        const messageData = {
-            content: content,
-            type: 'text'
+        let messageData = {
+            content: content || '',
+            type: hasFile ? (selectedFileForUpload.type === 'image' ? 'image' : 'file') : 'text'
         };
         
         // Add the appropriate ID field based on conversation type
@@ -318,6 +362,35 @@ async function sendProfessionalMessage(event) {
             messageData.orderId = conversationId;
         }
         
+        // If there's a file, upload it first
+        if (hasFile) {
+            const formData = new FormData();
+            formData.append('file', selectedFileForUpload.file);
+            
+            const uploadResponse = await fetch('/manufacturer/messages/api/upload', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+            
+            if (!uploadResponse.ok) {
+                throw new Error('File upload failed');
+            }
+            
+            const uploadResult = await uploadResponse.json();
+            
+            // Add attachment data to message
+            messageData.attachments = [{
+                originalName: selectedFileForUpload.file.name,
+                filename: uploadResult.data.attachment.fileName,
+                url: uploadResult.data.attachment.url,
+                size: selectedFileForUpload.file.size,
+                mimetype: selectedFileForUpload.file.type
+            }];
+        }
+        
+        
+        
         const response = await fetch('/manufacturer/messages/api/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -325,33 +398,30 @@ async function sendProfessionalMessage(event) {
             body: JSON.stringify(messageData)
         });
         
+        
         const result = await response.json();
+        
         
         if (result.success) {
             messageInput.value = '';
             messageInput.style.height = 'auto';
             document.getElementById('charCount').textContent = '0';
             
-            addProfessionalMessageToUI({
-                _id: result.messageId || Date.now(),
-                content: content,
-                senderId: {
-                    _id: window.B2BChat.currentUser.id,
-                    companyName: window.B2BChat.currentUser.company
-                },
-                createdAt: new Date(),
-                type: 'text',
-                status: 'sent'
-            }, true);
+            // Clear file preview and selected file
+            closeFilePreview();
+            selectedFileForUpload = null;
+            
+            // Add new message to chat without reloading all messages
+            addNewMessageToChat(result.data.message);
             
             scrollToBottom();
-            showProfessionalToast('Xabar muvaffaqiyatli yuborildi', 'success');
+            showProfessionalToast(getTranslation('manufacturer.messages.chat.messages.message_sent', 'Message sent successfully'), 'success');
         } else {
-            throw new Error(result.message || 'Xabar yuborishda xatolik');
+            throw new Error(result.message || getTranslation('manufacturer.messages.errors.send_message_error', 'Error sending message'));
         }
     } catch (error) {
         console.error('❌ Error sending message:', error);
-        showProfessionalToast('Failed to send message: ' + error.message, 'error');
+        showProfessionalToast(getTranslation('manufacturer.messages.errors.send_message_error', 'Error sending message') + ': ' + error.message, 'error');
     } finally {
         messageInput.disabled = false;
         sendButton.innerHTML = originalContent;
@@ -417,7 +487,7 @@ function addProfessionalMessageToUI(message, isOwn) {
                                 <i class="fas fa-clock"></i>
                                 <span>${messageTime.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</span>
                             </div>
-                            ${isOwn ? '<div class="b2b-message-status"><i class="fas fa-check status-sent" title="Sent"></i></div>' : ''}
+                            ${isOwn ? `<div class="b2b-message-status"><i class="fas fa-check status-sent" title="${getTranslation('manufacturer.messages.chat.messages.message_sent', 'Sent')}"></i></div>` : ''}
                         </div>
                     </div>
                 </div>
@@ -437,7 +507,7 @@ function addProfessionalMessageToUI(message, isOwn) {
                                 <i class="fas fa-clock"></i>
                                 <span>${messageTime.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</span>
                             </div>
-                            ${isOwn ? '<div class="b2b-message-status"><i class="fas fa-check status-sent" title="Sent"></i></div>' : ''}
+                            ${isOwn ? `<div class="b2b-message-status"><i class="fas fa-check status-sent" title="${getTranslation('manufacturer.messages.chat.messages.message_sent', 'Sent')}"></i></div>` : ''}
                         </div>
                     </div>
                 </div>
@@ -667,7 +737,6 @@ function escapeHtml(text) {
 
 // 🌐 PROFESSIONAL REAL-TIME FEATURES
 function initializeRealTimeFeatures() {
-    // WebSocket connection for real-time messaging (placeholder)
     if (typeof io !== 'undefined') {
         window.B2BChat.socket = io();
         window.B2BChat.socket.on('message', handleIncomingMessage);
@@ -676,11 +745,13 @@ function initializeRealTimeFeatures() {
         window.B2BChat.socket.on('message-read', updateMessageStatus);
     }
     
-    // Simulate real-time features for demo
-    setInterval(simulatePartnerActivity, 30000);
+    // Real-time features
     
-    // Auto-refresh messages every 30 seconds
+    // Auto-refresh messages every 30 seconds (ONLY for order conversations)
+    // For inquiry chats, disable auto-refresh to preserve mixed content
+    if (window.B2BChat.conversationType === 'order') {
     setInterval(refreshMessages, 30000);
+    }
 }
 
 function initializeNotificationSystem() {
@@ -708,7 +779,7 @@ function handleIncomingMessage(message) {
     // Show notification if page is not visible
     if (document.hidden) {
         showDesktopNotification(
-            `Yangi xabar ${message.senderId?.companyName || 'Biznes hamkor'} dan`,
+            `${getTranslation('manufacturer.messages.notifications.new_message', 'New message')} ${message.senderId?.companyName || getTranslation('manufacturer.messages.chat.header.partner_info', 'Business Partner')} ${getTranslation('manufacturer.messages.notifications.from', 'from')}`,
             message.content.substring(0, 100)
         );
     }
@@ -754,11 +825,11 @@ function showTypingIndicator(data) {
             <div class="b2b-typing-indicator">
                 <div class="b2b-message-avatar">
                     <img src="/assets/images/avatars/default-company.png" 
-                         alt="Partner" 
+                         alt="${getTranslation('manufacturer.messages.chat.header.partner_info', 'Business Partner')}" 
                          onerror="this.src='/assets/images/avatars/default.png'">
                 </div>
                 <div class="b2b-typing-content">
-                    <span>${window.B2BChat.partnerData.name} yozmoqda</span>
+                    <span>${window.B2BChat.partnerData.name} ${getTranslation('manufacturer.messages.chat.messages.typing', 'typing...')}</span>
                     <div class="b2b-typing-dots">
                         <div class="b2b-typing-dot"></div>
                         <div class="b2b-typing-dot"></div>
@@ -819,17 +890,30 @@ function playNotificationSound() {
 
 async function refreshMessages() {
     try {
-        const response = await fetch(`/manufacturer/messages/api/order/${window.B2BChat.orderData.id}/messages`, {
+        // Only refresh for order conversations, not inquiries
+        if (window.B2BChat.conversationType !== 'order') {
+            return;
+        }
+        
+        const conversationId = window.B2BChat.orderData?.id;
+        
+        if (!conversationId || conversationId === 'null') {
+            return;
+        }
+        
+        const response = await fetch(`/manufacturer/messages/api/order/${conversationId}/messages?page=1&limit=50`, {
             credentials: 'include'
         });
         
         if (response.ok) {
             const data = await response.json();
-            if (data.success && data.messages) {
-                updateMessagesDisplay(data.messages);
+            if (data.success && data.data && data.data.messages) {
+                // FIX: Use smart update that preserves mixed content
+                smartUpdateMessagesDisplay(data.data.messages);
             }
         }
     } catch (error) {
+        console.error('❌ Error refreshing messages:', error);
     }
 }
 
@@ -846,13 +930,242 @@ function updateMessagesDisplay(newMessages) {
     }
 }
 
-function simulatePartnerActivity() {
-    // Simulate partner online status updates
-    const partnerAvatar = document.querySelector('.b2b-partner-avatar::after');
-    if (partnerAvatar && Math.random() > 0.7) {
-        // Randomly show partner as active
+// 🎯 SMART UPDATE FUNCTION - PRESERVES MIXED CONTENT
+function smartUpdateMessagesDisplay(newMessages) {
+    const currentMessages = document.querySelectorAll('.b2b-message-group');
+    const currentCount = currentMessages.length;
+    
+    if (newMessages.length > currentCount) {
+        // Only add NEW messages, don't re-render existing ones
+        const messagesToAdd = newMessages.slice(currentCount);
+        
+        messagesToAdd.forEach(message => {
+            const isOwn = message.senderId?._id === window.B2BChat.currentUser.id;
+            
+            // Create new message element with mixed content support
+            const messageElement = createMessageElement(message, isOwn);
+            
+            // Add to messages list
+            const messagesList = document.getElementById('messagesList');
+            if (messagesList) {
+                messagesList.appendChild(messageElement);
+            }
+        });
+        
+        // Smooth scroll to bottom
+        scrollToBottom();
+        
+        // Log for debugging
+        console.log(`✅ Added ${messagesToAdd.length} new messages, preserved ${currentCount} existing messages`);
+        
+        // Visual indicator for mixed content preservation
+        if (messagesToAdd.length > 0) {
+            showProfessionalToast(`✅ Added ${messagesToAdd.length} new messages, mixed content preserved`, 'success');
+        }
+    } else {
+        // No new messages, preserve existing mixed content
+        console.log('✅ No new messages, mixed content preserved');
     }
 }
+
+// 🎯 CREATE MESSAGE ELEMENT WITH MIXED CONTENT SUPPORT
+function createMessageElement(message, isOwn) {
+    const messageGroup = document.createElement('div');
+    messageGroup.className = `b2b-message-group ${isOwn ? 'own' : 'partner'}`;
+    
+    // Get message content and attachments
+    const messageContent = message.content || '';
+    const hasContent = messageContent && messageContent.trim().length > 0;
+    const hasAttachments = message.attachments && message.attachments.length > 0;
+    const isMixedMessage = hasContent && hasAttachments;
+    
+    let messageHTML = '';
+    
+    if (isMixedMessage) {
+        // MIXED CONTENT MESSAGE
+        messageHTML = `
+            <div class="b2b-message-content">
+                <div class="b2b-message-bubble">
+                    <div class="b2b-mixed-message">
+                        ${hasContent ? `
+                            <div class="b2b-message-text-section">
+                                <div class="b2b-message-text">
+                                    ${messageContent.replace(/\n/g, '<br>')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${hasAttachments ? `
+                            <div class="b2b-attachments-grid">
+                                ${createAttachmentsHTML(message.attachments)}
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="b2b-message-footer">
+                        <div class="b2b-message-time">
+                            <i class="fas fa-clock"></i>
+                            <span>${new Date(message.createdAt).toLocaleString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                day: '2-digit',
+                                month: '2-digit'
+                            })}</span>
+                        </div>
+                        ${isOwn ? `
+                            <div class="b2b-message-status">
+                                <i class="fas fa-check-double status-read" title="Read"></i>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (hasAttachments) {
+        // ATTACHMENT ONLY MESSAGE
+        messageHTML = `
+            <div class="b2b-message-content">
+                <div class="b2b-message-bubble">
+                    <div class="b2b-attachments-grid">
+                        ${createAttachmentsHTML(message.attachments)}
+                    </div>
+                    <div class="b2b-message-footer">
+                        <div class="b2b-message-time">
+                            <i class="fas fa-clock"></i>
+                            <span>${new Date(message.createdAt).toLocaleString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                day: '2-digit',
+                                month: '2-digit'
+                            })}</span>
+                        </div>
+                        ${isOwn ? `
+                            <div class="b2b-message-status">
+                                <i class="fas fa-check-double status-read" title="Read"></i>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        // TEXT ONLY MESSAGE
+        messageHTML = `
+            <div class="b2b-message-content">
+                <div class="b2b-message-bubble">
+                    <div class="b2b-message-text">
+                        ${messageContent.replace(/\n/g, '<br>')}
+                    </div>
+                    <div class="b2b-message-footer">
+                        <div class="b2b-message-time">
+                            <i class="fas fa-clock"></i>
+                            <span>${new Date(message.createdAt).toLocaleString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                day: '2-digit',
+                                month: '2-digit'
+                            })}</span>
+                        </div>
+                        ${isOwn ? `
+                            <div class="b2b-message-status">
+                                <i class="fas fa-check-double status-read" title="Read"></i>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    messageGroup.innerHTML = messageHTML;
+    return messageGroup;
+}
+
+// 🎯 CREATE ATTACHMENTS HTML
+function createAttachmentsHTML(attachments) {
+    if (!attachments || attachments.length === 0) return '';
+    
+    const images = attachments.filter(att => {
+        const isImage = (att.mimetype && att.mimetype.startsWith('image/')) || 
+                       (att.mimeType && att.mimeType.startsWith('image/')) || 
+                       (att.originalName && /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(att.originalName));
+        return isImage;
+    });
+    
+    const files = attachments.filter(att => {
+        const isImage = (att.mimetype && att.mimetype.startsWith('image/')) || 
+                       (att.mimeType && att.mimeType.startsWith('image/')) || 
+                       (att.originalName && /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(att.originalName));
+        return !isImage;
+    });
+    
+    let html = '';
+    
+    // Images Grid
+    if (images.length > 0) {
+        html += '<div class="b2b-images-grid">';
+        images.forEach(image => {
+            html += `
+                <div class="b2b-image-attachment-grid">
+                    <img src="${image.url}" 
+                         alt="${image.originalName}" 
+                         onclick="openImageModal('${image.url}', '${image.originalName}')"
+                         onerror="handleChatImageError(this, '${image.url}', '${image.originalName}')">
+                    <div class="b2b-image-overlay">
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+    }
+    
+    // Files List
+    if (files.length > 0) {
+        html += '<div class="b2b-files-list">';
+        files.forEach(file => {
+            const fileExt = file.originalName.split('.').pop().toLowerCase();
+            let iconClass = 'fas fa-file-alt';
+            if (fileExt === 'pdf') iconClass = 'fas fa-file-pdf';
+            else if (['doc', 'docx'].includes(fileExt)) iconClass = 'fas fa-file-word';
+            else if (['xls', 'xlsx'].includes(fileExt)) iconClass = 'fas fa-file-excel';
+            else if (['zip', 'rar', '7z'].includes(fileExt)) iconClass = 'fas fa-file-archive';
+            else if (['mp4', 'avi', 'mov'].includes(fileExt)) iconClass = 'fas fa-file-video';
+            else if (['mp3', 'wav', 'flac'].includes(fileExt)) iconClass = 'fas fa-file-audio';
+            
+            html += `
+                <div class="b2b-file-attachment-grid">
+                    <div class="b2b-file-icon">
+                        <i class="${iconClass}"></i>
+                    </div>
+                    <div class="b2b-file-details">
+                        <h6>${file.originalName}</h6>
+                        <p>${(file.size / 1024).toFixed(1)} KB</p>
+                    </div>
+                    <div class="b2b-file-actions">
+                        <a href="${file.url}" download="${file.originalName}" class="b2b-file-download">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+    }
+    
+    return html;
+}
+
+// 🎯 ADD NEW MESSAGE TO CHAT WITHOUT RELOADING
+function addNewMessageToChat(message) {
+    const messagesList = document.getElementById('messagesList');
+    if (!messagesList) return;
+    
+    const isOwn = message.senderId?._id === window.B2BChat.currentUser.id;
+    const messageElement = createMessageElement(message, isOwn);
+    
+    messagesList.appendChild(messageElement);
+    scrollToBottom();
+}
+
 
 // 📎 TELEGRAM-STYLE FILE & ATTACHMENT SYSTEM
 function attachFile() { 
@@ -962,26 +1275,7 @@ function showFilePreview(file, type) {
                             </div>
                         </div>`
                     }
-                    <div class="b2b-file-metadata">
-                        <div class="b2b-file-details">
-                            <div class="b2b-detail-item">
-                                <span class="b2b-detail-label">Fayl nomi</span>
-                                <span class="b2b-detail-value">${file.name}</span>
-                            </div>
-                            <div class="b2b-detail-item">
-                                <span class="b2b-detail-label">Fayl hajmi</span>
-                                <span class="b2b-detail-value">${formatFileSize(file.size)}</span>
-                            </div>
-                            <div class="b2b-detail-item">
-                                <span class="b2b-detail-label">Fayl turi</span>
-                                <span class="b2b-detail-value">${file.type || 'Noma\'lum'}</span>
-                            </div>
-                            <div class="b2b-detail-item">
-                                <span class="b2b-detail-label">Oxirgi o'zgarish</span>
-                                <span class="b2b-detail-value">${new Date(file.lastModified).toLocaleDateString()}</span>
-                            </div>
-                        </div>
-                    </div>
+                    
                 </div>
                 <div class="b2b-modal-footer">
                     <button class="b2b-modal-btn b2b-modal-btn-secondary" onclick="closeFilePreview()">
@@ -1082,11 +1376,14 @@ async function confirmFileUpload() {
         // Show uploading toast
         showProfessionalToast(`Uploading "${file.name}"...`, 'info');
         
-        // Upload the file
-        await uploadAttachment(file, type);
+        // Upload the file first
+        const uploadResult = await uploadDirectly(file, type);
+        
+        // Create message with attachment after upload
+        await createMessageWithAttachment(uploadResult, file, type);
         
         // Show success message
-        showProfessionalToast(`${type === 'image' ? 'Rasm' : 'Fayl'} "${file.name}" muvaffaqiyatli yuklandi`, 'success');
+        showProfessionalToast(`${type === 'image' ? 'Rasm' : 'Fayl'} "${file.name}" muvaffaqiyatli yuklandi va yuborildi`, 'success');
         
         // Clear file input
         document.getElementById(type === 'image' ? 'imageInput' : 'fileInput').value = '';
@@ -1095,6 +1392,85 @@ async function confirmFileUpload() {
         console.error('Upload error:', error);
         showProfessionalToast(`"${file.name}" yuklashda xatolik: ${error.message}`, 'error');
     }
+}
+
+// Upload file directly without creating message
+async function uploadDirectly(file, type) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('orderId', window.B2BChat.orderData?.id || 'null');
+    formData.append('type', type);
+    
+    const response = await fetch('/manufacturer/messages/api/upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+    });
+    
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Upload failed');
+    }
+    
+    const result = await response.json();
+    if (!result.success) {
+        throw new Error(result.message || 'Upload failed');
+    }
+    
+    return result;
+}
+
+// Create message with attachment data
+async function createMessageWithAttachment(uploadResult, file, type) {
+    const conversationType = window.B2BChat.conversationType;
+    const conversationId = conversationType === 'inquiry' ? 
+        window.B2BChat.inquiryData?.id : 
+        window.B2BChat.orderData?.id;
+        
+    if (!conversationId || conversationId === 'null') {
+        throw new Error('Conversation ID not found');
+    }
+    
+    let messageData = {
+        content: '',
+        type: type === 'image' ? 'image' : 'file',
+        attachments: [{
+            originalName: file.name,
+            filename: uploadResult.data.attachment.fileName,
+            url: uploadResult.data.attachment.url,
+            size: file.size,
+            mimetype: file.type
+        }]
+    };
+    
+    // Add the appropriate ID field based on conversation type
+    if (conversationType === 'inquiry') {
+        messageData.inquiryId = conversationId;
+    } else {
+        messageData.orderId = conversationId;
+    }
+    
+    
+    const response = await fetch('/manufacturer/messages/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(messageData)
+    });
+    
+    if (!response.ok) {
+        throw new Error('Message creation failed');
+    }
+    
+    const result = await response.json();
+    if (!result.success) {
+        throw new Error(result.message || 'Message creation failed');
+    }
+    
+    // Add new message to chat without reloading
+    addNewMessageToChat(result.data.message);
+    
+    return result;
 }
 
 async function uploadAttachment(file, type) {
@@ -1239,7 +1615,9 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-function openImageModal(src, fileName) {
+// Make function globally accessible
+window.openImageModal = function(src, fileName) {
+    
     const modalHTML = `
         <div class="b2b-image-modal" id="imageModal" onclick="closeImageModal()">
             <div class="b2b-image-modal-content" onclick="event.stopPropagation()">
@@ -1250,24 +1628,42 @@ function openImageModal(src, fileName) {
                     </button>
                 </div>
                 <div class="b2b-image-modal-body">
-                    <img src="${src}" alt="${fileName}" onerror="handleImageModalError(this, '${src}', '${fileName}')">
-                </div>
-                <div class="b2b-image-modal-footer">
-                    <a href="${src}" download="${fileName}" class="b2b-action-btn primary" id="downloadLink">
-                        <i class="fas fa-download"></i> Download
-                    </a>
+                    <div class="b2b-image-container">
+                        <img src="${src}" alt="${fileName}" onerror="handleImageModalError(this, '${src}', '${fileName}')">
+                    </div>
+                    <div class="b2b-image-modal-footer">
+                        <a href="${src}" download="${fileName}" class="b2b-download-btn" id="downloadLink">
+                            <i class="fas fa-download"></i> Download Image
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     `;
     
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    try {
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        const modal = document.getElementById('imageModal');
+        if (modal) {
+            // Add keyboard support
+            const handleKeyPress = (event) => {
+                if (event.key === 'Escape') {
+                    closeImageModal();
+                    document.removeEventListener('keydown', handleKeyPress);
+                }
+            };
+            document.addEventListener('keydown', handleKeyPress);
+            
+        } else {
+            console.error('❌ Modal not found in DOM after insertion');
+        }
+    } catch (error) {
+        console.error('❌ Error inserting modal HTML:', error);
+    }
 }
 
 // Enhanced image error handler for modals - handles buyer vs manufacturer paths
 function handleImageModalError(img, originalSrc, fileName) {
-    console.warn('🚨 Image modal error for:', { originalSrc, fileName });
-    
     // Prevent infinite loops
     if (img.dataset.errorHandled) {
         console.warn('❌ Image modal: All fallback attempts failed');
@@ -1315,9 +1711,16 @@ function handleImageModalError(img, originalSrc, fileName) {
     }
 }
 
-function closeImageModal() {
+// Make function globally accessible
+window.closeImageModal = function() {
+    console.log('🚪 Closing image modal');
     const modal = document.getElementById('imageModal');
-    if (modal) modal.remove();
+    if (modal) {
+        modal.remove();
+        console.log('✅ Modal removed successfully');
+    } else {
+        console.warn('⚠️ Modal not found for removal');
+    }
 }
 
 // Enhanced image error handler for chat images - handles buyer vs manufacturer paths
@@ -1375,68 +1778,8 @@ function handleChatImageError(img, originalSrc, fileName) {
     }
 }
 
-// Force check all images after they load
-function forceCheckAllImages() {
-    const images = document.querySelectorAll('.b2b-image-attachment img');
-    
-    images.forEach((img) => {
-        // Force trigger onerror if image is broken
-        if (img.complete && img.naturalWidth === 0) {
-            if (img.onerror) {
-                img.onerror();
-            }
-        }
-    });
-}
 
-// Convert existing file attachments to images if they are image files
-function convertFilesToImages() {
-    const fileAttachments = document.querySelectorAll('.b2b-file-attachment');
-    
-    fileAttachments.forEach((fileEl) => {
-        const nameElement = fileEl.querySelector('.b2b-file-details h6');
-        const downloadLink = fileEl.querySelector('.b2b-file-actions a');
-        
-        if (nameElement && downloadLink) {
-            const fileName = nameElement.textContent;
-            const fileUrl = downloadLink.href;
-            
-            // Check if it's an image by extension
-            if (/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(fileName)) {
-                // Create image HTML
-                const imageHTML = `
-                    <div class="b2b-image-attachment">
-                        <img src="${fileUrl}" 
-                             alt="${fileName}" 
-                             onclick="openImageModal('${fileUrl}', '${fileName}')"
-                             onerror="handleChatImageError(this, '${fileUrl}', '${fileName}')">
-                        <div class="b2b-image-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                    </div>
-                `;
-                
-                // Replace file attachment with image
-                fileEl.outerHTML = imageHTML;
-            }
-        }
-    });
-}
 
-// Auto-check images periodically
-setTimeout(forceCheckAllImages, 2000);
-setTimeout(forceCheckAllImages, 5000);
-
-// Convert files to images after page load
-setTimeout(convertFilesToImages, 1000);
-setTimeout(convertFilesToImages, 3000);
-
-// Add manual trigger function for console
-window.fixImageDisplay = function() {
-    convertFilesToImages();
-    forceCheckAllImages();
-    return 'Image display fix completed!';
-};
 
 
 function formatText(format) {
@@ -1460,7 +1803,6 @@ function formatText(format) {
     handleProfessionalInputChange();
 }
 
-function insertEmoji() { showProfessionalToast('Emoji tanlash keladi', 'info'); }
 function showTemplates() { showProfessionalToast('Advanced template tanlash keladi', 'info'); }
 
 // 🚀 BUSINESS ACTIONS
@@ -1490,21 +1832,93 @@ function updateOrderStatus() {
 
 function generateQuote() { showProfessionalToast('Professional quote generation coming soon', 'info'); }
 function scheduleVideoCall() { showProfessionalToast('Video conferencing integration coming soon', 'info'); }
-function sendSample() { showProfessionalToast('Sample request system coming soon', 'info'); }
-function requestPayment() { showProfessionalToast('Payment request system coming soon', 'info'); }
 function exportChatHistory() { showProfessionalToast('Professional chat export coming soon', 'info'); }
-function initiateCall() { showProfessionalToast('Voice calling integration coming soon', 'info'); }
-function sendEmail() {
-    if (window.B2BChat.partner.email) {
-        const subject = window.B2BChat.conversationType === 'inquiry' ? 
-            `Regarding Inquiry #${window.B2BChat.inquiryData?.inquiryNumber || 'N/A'}` :
-            `Regarding Order #${window.B2BChat.orderData?.orderNumber || 'N/A'}`;
-        window.open(`mailto:${window.B2BChat.partner.email}?subject=${subject}`);
-    } else {
-        showProfessionalToast('Hamkor elektron pochta mavjud emas', 'warning');
+function viewProfile() { showProfessionalToast('Hamkor profili keladi', 'info'); }
+
+// 📞 CALL FUNCTIONALITY
+function initiateCall(phoneNumber) {
+    if (!phoneNumber) {
+        showProfessionalToast(window.t?.('manufacturer.messages.chat.no_phone_number', 'Phone number not available'), 'error');
+        return;
+    }
+    
+    // Clean phone number (remove spaces, dashes, etc.)
+    const cleanPhone = phoneNumber.replace(/[\s\-\(\)]/g, '');
+    
+    // Try to initiate call using tel: protocol
+    try {
+        window.location.href = `tel:${cleanPhone}`;
+        showProfessionalToast(window.t?.('manufacturer.messages.chat.calling', 'Initiating call...'), 'info');
+    } catch (error) {
+        console.error('Call initiation failed:', error);
+        showProfessionalToast(window.t?.('manufacturer.messages.chat.call_failed', 'Call initiation failed'), 'error');
     }
 }
-function viewProfile() { showProfessionalToast('Hamkor profili keladi', 'info'); }
+
+// 📧 EMAIL FUNCTIONALITY  
+function sendEmail(emailAddress) {
+    if (!emailAddress) {
+        showProfessionalToast(window.t?.('manufacturer.messages.chat.no_email_address', 'Email address not available'), 'error');
+        return;
+    }
+    
+    try {
+        // Try to open default email client
+        window.location.href = `mailto:${emailAddress}`;
+        showProfessionalToast(window.t?.('manufacturer.messages.chat.opening_email', 'Opening email client...'), 'info');
+    } catch (error) {
+        console.error('Email initiation failed:', error);
+        showProfessionalToast(window.t?.('manufacturer.messages.chat.email_failed', 'Email initiation failed'), 'error');
+    }
+}
+
+// 📦 SEND SAMPLE FUNCTIONALITY
+function sendSample() {
+    const messageInput = document.getElementById('messageInput');
+    
+    // Get current language from window or detect from document
+    const currentLang = window.i18next?.language || 
+                       (document.documentElement.lang) || 
+                       'uz';
+    
+    let sampleTemplate;
+    if (currentLang === 'en') {
+        sampleTemplate = 'Hello! In response to your inquiry, we would like to offer to send you a sample of our product. After reviewing the sample quality, you can place a full order. If you need additional information for sample delivery, please let us know. Thank you!';
+    } else {
+        sampleTemplate = 'Assalomu alaykum! Sizning so\'rovingizga javoban, biz mahsulotimizning namunasini yuborishni taklif qilmoqdamiz. Namuna sifatini ko\'rib chiqgandan so\'ng, to\'liq buyurtma berishingiz mumkin. Namuna yuborish uchun qo\'shimcha ma\'lumotlar kerak bo\'lsa, bizga xabar bering. Rahmat!';
+    }
+    
+    messageInput.value = sampleTemplate;
+    messageInput.focus();
+    handleProfessionalInputChange();
+    
+    const successMessage = currentLang === 'en' ? 'Sample template added' : 'Namuna shablon qo\'shildi';
+    showProfessionalToast(successMessage, 'success');
+}
+
+// 💰 REQUEST PAYMENT FUNCTIONALITY
+function requestPayment() {
+    const messageInput = document.getElementById('messageInput');
+    
+    // Get current language from window or detect from document
+    const currentLang = window.i18next?.language || 
+                       (document.documentElement.lang) || 
+                       'uz';
+    
+    let paymentTemplate;
+    if (currentLang === 'en') {
+        paymentTemplate = 'Hello! Your order is ready. To process payment, we are sending the following information:\n\n• Order Number: [ORDER_NUMBER]\n• Payment Amount: [AMOUNT]\n• Payment Method: [PAYMENT_METHOD]\n\nPlease review the payment details and confirm. If you have any questions, please contact us. Thank you!';
+    } else {
+        paymentTemplate = 'Assalomu alaykum! Buyurtmangiz tayyor bo\'ldi. To\'lovni amalga oshirish uchun quyidagi ma\'lumotlarni yuboramiz:\n\n• Buyurtma raqami: [ORDER_NUMBER]\n• To\'lov summasi: [AMOUNT]\n• To\'lov usuli: [PAYMENT_METHOD]\n\nTo\'lov ma\'lumotlarini tekshirib, tasdiqlashni so\'raymiz. Savollar bo\'lsa, bizga murojaat qiling. Rahmat!';
+    }
+    
+    messageInput.value = paymentTemplate;
+    messageInput.focus();
+    handleProfessionalInputChange();
+    
+    const successMessage = currentLang === 'en' ? 'Payment template added' : 'To\'lov shablon qo\'shildi';
+    showProfessionalToast(successMessage, 'success');
+}
 
 // 🎯 PROFESSIONAL TOAST SYSTEM
 function showProfessionalToast(message, type = 'info') {
@@ -1524,12 +1938,6 @@ function showProfessionalToast(message, type = 'info') {
 }
 
 // 🔄 LOAD PREFERENCES
-// 🌙 DARK MODE - LET DASHBOARD-INIT.JS HANDLE IT
-function initializeDarkModeSupport() {
-    // Dashboard-init.js handles all theme functionality
-    // This function exists for compatibility but does nothing
-    // Theme is managed by the main dashboard system
-}
 
 function loadSavedPreferences() {
     // Load sidebar collapse state

@@ -43,7 +43,7 @@ function loadOrders() {
             }
         })
         .catch(error => {
-            console.error('Error loading orders:', error);
+            // console.error('Error loading orders:', error);
         });
 }
 

@@ -1253,61 +1253,90 @@ class BuyerService {
             // Create conversation list - each manufacturer appears once
             const conversations = [];
             const processedManufacturers = new Set();
+            
+              const isGeneralMessagesPage = !currentManufacturerId;
+            const isSpecificManufacturerPage = !!currentManufacturerId;
 
-            // Process inquiries first (product chats)
+            // Process inquiries first (product chats) - Priority for product conversations
             for (const inquiry of inquiries) {
                 const manufacturerId = inquiry.supplier._id.toString();
-                if (!processedManufacturers.has(manufacturerId)) {
-                    processedManufacturers.add(manufacturerId);
-                    
-                    // Get messages for this inquiry
-                    const messages = await Message.find({ inquiryId: inquiry._id })
-                        .populate('senderId', 'companyName email')
-                        .populate('recipientId', 'companyName email')
-                        .sort({ createdAt: -1 })
-                        .lean();
-                    
-                    // Only add if there are messages
-                    if (messages.length > 0) {
-                        // Get unread count
-                        const unreadCount = await Message.countDocuments({
-                            inquiryId: inquiry._id,
-                            recipientId: buyerObjectId,
-                            status: { $in: ['sent', 'delivered'] }
-                        });
-                        
-                        conversations.push({
-                            _id: inquiry._id,
-                            type: 'product',
-                            manufacturer: inquiry.supplier,
-                            lastMessage: messages[0],
-                            unreadCount: unreadCount,
-                            isOnline: false,
-                            updatedAt: inquiry.updatedAt,
-                            orderNumber: null,
-                            orderStatus: null,
-                            orderAmount: null
-                        });
-                    }
-                }
-            }
-
-            // Process orders (order chats)
-            for (const order of orders) {
-                const manufacturerId = order.seller._id.toString();
-                if (!processedManufacturers.has(manufacturerId)) {
-                    processedManufacturers.add(manufacturerId);
-                }
                 
-                // Get messages for this order
-                const messages = await Message.find({ orderId: order._id })
+                // Check if this is the target manufacturer from URL
+                const isTargetManufacturer = isSpecificManufacturerPage && manufacturerId === currentManufacturerId;
+                
+                // Get messages for this inquiry first
+                const messages = await Message.find({ inquiryId: inquiry._id })
                     .populate('senderId', 'companyName email')
                     .populate('recipientId', 'companyName email')
                     .sort({ createdAt: -1 })
                     .lean();
                 
-                // Only add if there are messages
-                if (messages.length > 0) {
+                 if (isGeneralMessagesPage) {
+                    // General page: Only show conversations with actual messages
+                    if (messages.length === 0) {
+                        continue; // Skip conversations without messages
+                    }
+                } else if (isSpecificManufacturerPage) {
+                    // Specific manufacturer page: Show conversations with messages OR target manufacturer
+                    if (messages.length === 0 && !isTargetManufacturer) {
+                        continue; // Skip conversations without messages unless it's the target manufacturer
+                    }
+                }
+                
+                // Always process inquiries first (product chats have priority)
+                processedManufacturers.add(manufacturerId);
+                
+                // Get unread count
+                const unreadCount = await Message.countDocuments({
+                    inquiryId: inquiry._id,
+                    recipientId: buyerObjectId,
+                    status: { $in: ['sent', 'delivered'] }
+                });
+                
+                conversations.push({
+                    _id: inquiry._id,
+                    type: 'product',
+                    manufacturer: inquiry.supplier,
+                    lastMessage: messages.length > 0 ? messages[0] : null,
+                    unreadCount: unreadCount,
+                    isOnline: false,
+                    updatedAt: inquiry.updatedAt,
+                    orderNumber: null,
+                    orderStatus: null,
+                    orderAmount: null
+                });
+            }
+
+            // Process orders (order chats)
+            for (const order of orders) {
+                const manufacturerId = order.seller._id.toString();
+                
+                // Check if this manufacturer already has a conversation (inquiry or order)
+                if (!processedManufacturers.has(manufacturerId)) {
+                    processedManufacturers.add(manufacturerId);
+                    
+                    // Check if this is the target manufacturer from URL
+                    const isTargetManufacturer = isSpecificManufacturerPage && manufacturerId === currentManufacturerId;
+                    
+                    // Get messages for this order first
+                    const messages = await Message.find({ orderId: order._id })
+                        .populate('senderId', 'companyName email')
+                        .populate('recipientId', 'companyName email')
+                        .sort({ createdAt: -1 })
+                        .lean();
+                    
+                    if (isGeneralMessagesPage) {
+                        // General page: Only show conversations with actual messages
+                        if (messages.length === 0) {
+                            continue; // Skip conversations without messages
+                        }
+                    } else if (isSpecificManufacturerPage) {
+                        // Specific manufacturer page: Show conversations with messages OR target manufacturer
+                        if (messages.length === 0 && !isTargetManufacturer) {
+                            continue; // Skip conversations without messages unless it's the target manufacturer
+                        }
+                    }
+                    
                     // Get unread count
                     const unreadCount = await Message.countDocuments({
                         orderId: order._id,
@@ -1319,7 +1348,7 @@ class BuyerService {
                         _id: order._id,
                         type: 'order',
                         manufacturer: order.seller,
-                        lastMessage: messages[0],
+                        lastMessage: messages.length > 0 ? messages[0] : null,
                         unreadCount: unreadCount,
                         isOnline: false,
                         updatedAt: order.updatedAt,
@@ -1962,8 +1991,7 @@ class BuyerService {
      */
     async getProfileStats(buyerId) {
         try {
-            this.logger.log(`🔄 Fetching REAL profile stats for buyer: ${buyerId}`);
-            
+           
             // Optimized parallel database queries with proper indexing
             const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
             const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -4010,31 +4038,41 @@ class BuyerService {
             // Generate inquiry number
             const inquiryNumber = `INQ-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
 
-            // Create inquiry object
+            // Create simplified B2B inquiry object
             const inquiry = new (require('../models/Inquiry'))({
                 inquiryNumber,
-                type: inquiryData.type || 'product_inquiry',
+                type: inquiryData.inquiryType || inquiryData.type || 'product_inquiry',
                 inquirer: buyerId,
                 supplier: inquiryData.supplierId,
                 product: inquiryData.productId || null,
-                subject: inquiryData.subject,
+                subject: inquiryData.subject || `Product Inquiry - ${inquiryData.productName || 'General Inquiry'}`,
                 message: inquiryData.message,
-                requestedQuantity: inquiryData.quantity || null,
-                unit: inquiryData.unit || null,
-                customSpecifications: inquiryData.specifications || [],
-                budgetRange: inquiryData.budgetRange || null,
-                timeline: {
-                    urgency: inquiryData.urgency || 'flexible',
-                    requiredBy: inquiryData.requiredBy || null,
-                    deliveryDate: inquiryData.deliveryDate || null
-                },
-                shipping: {
-                    method: inquiryData.shippingMethod || 'standard',
-                    destination: inquiryData.destination || null,
-                    incoterms: inquiryData.incoterms || null
-                },
+                
+                // Product requirements (simplified)
+                requestedQuantity: inquiryData.requestedQuantity ? parseInt(inquiryData.requestedQuantity) : null,
+                unit: inquiryData.unit || 'pieces',
+                customSpecifications: inquiryData.customSpecifications || null,
+                
+                // Budget (simplified)
+                budgetMin: inquiryData.budgetMin ? parseFloat(inquiryData.budgetMin) : null,
+                budgetMax: inquiryData.budgetMax ? parseFloat(inquiryData.budgetMax) : null,
+                budgetCurrency: inquiryData.budgetCurrency || 'USD',
+                
+                // Timeline (simplified)
+                urgency: inquiryData.urgency || 'flexible',
+                requiredBy: inquiryData.requiredBy ? new Date(inquiryData.requiredBy) : null,
+                
+                // Shipping (simplified)
+                shippingMethod: inquiryData.shippingMethod || 'standard',
+                incoterms: inquiryData.incoterms || null,
+                deliveryAddress: inquiryData.deliveryAddress || null,
+                
+                // Status
+                status: 'open',
                 priority: inquiryData.priority || 'medium',
-                status: 'open'
+                
+                // Set expiry date (30 days from now)
+                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
             });
 
             // Save inquiry
