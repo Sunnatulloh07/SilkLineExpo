@@ -3,6 +3,19 @@
  * Professional B2B Profile Management System
  */
 
+// Translation helper function
+function getTranslation(key, fallback = '') {
+  try {
+    if (window.profileTranslations && window.profileTranslations[key]) {
+      return window.profileTranslations[key];
+    }
+    return fallback || key;
+  } catch (error) {
+    console.error('Translation error:', error);
+    return fallback || key;
+  }
+}
+
 // ====================================
 // 🎯 PROFILE PAGE CONTROLLER
 // ====================================
@@ -22,7 +35,6 @@ class ManufacturerProfile {
     this.initializeEventListeners();
     this.loadRecentData();
     
-    // console.log('✅ Manufacturer Profile initialized');
   }
 
   // ====================================
@@ -31,38 +43,58 @@ class ManufacturerProfile {
 
   async loadProfileData() {
     try {
+      // Show single page loading overlay
+      this.showPageLoading();
+      
       const response = await this.makeApiRequest('/manufacturer/profile/api/data', 'GET');
       
-      if (response.success) {
+      if (response.success && response.data) {
         this.profileData = response.data;
-        this.updateProfileStats(response.data.stats);
-        this.updatePerformanceMetrics(response.data.metrics);
         
-        // Update company information including logo
+        // Update all sections with real data from backend
+        this.updateProfileStats(response.data.stats || {});
+        this.updatePerformanceMetrics(response.data.metrics || {});
+        
         if (response.data.companyInfo) {
           this.updateCompanyInfo(response.data.companyInfo);
         }
         
-        // Update business information
         if (response.data.businessInfo) {
           this.updateBusinessInfo(response.data.businessInfo);
         }
         
-        // Update contact information
         if (response.data.contactInfo) {
           this.updateContactInfo(response.data.contactInfo);
         }
         
-        // Update production capabilities
         if (response.data.productionCapabilities) {
           this.updateProductionCapabilities(response.data.productionCapabilities);
         }
+        
+        // Load additional data
+        await this.loadRecentData();
+        
+        // Load chart data
+        await this.loadChartData();
+        
+        // Hide page loading
+        this.hidePageLoading();
+        
       } else {
-        throw new Error(response.message || 'Ma\'lumotlarni yuklashda xatolik');
+        throw new Error(response.message || getTranslation('manufacturer.profile.messages.error', 'Ma\'lumotlarni yuklashda xatolik'));
       }
     } catch (error) {
-      // console.error('Load profile data error:', error);
-      this.showToast('Profil ma\'lumotlarini yuklashda xatolik: ' + error.message, 'error');
+      console.error('❌ Load profile data error:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+        url: '/manufacturer/profile/api/data'
+      });
+      this.hidePageLoading();
+      this.showToast(getTranslation('manufacturer.profile.messages.error', 'Profil ma\'lumotlarini yuklashda xatolik') + ': ' + error.message, 'error');
+      
+      // Show fallback data
+      this.showFallbackData();
     }
   }
 
@@ -83,11 +115,13 @@ class ManufacturerProfile {
     try {
       const response = await this.makeApiRequest('/manufacturer/profile/api/recent-products', 'GET');
       
-      if (response.success) {
+      if (response.success && response.data) {
         this.renderRecentProducts(response.data);
+      } else {
+        this.showProductsError();
       }
     } catch (error) {
-      // console.error('Load recent products error:', error);
+      console.error('Load recent products error:', error);
       this.showProductsError();
     }
   }
@@ -96,12 +130,28 @@ class ManufacturerProfile {
     try {
       const response = await this.makeApiRequest('/manufacturer/profile/api/recent-orders', 'GET');
       
-      if (response.success) {
+      if (response.success && response.data) {
         this.renderRecentOrders(response.data);
+      } else {
+        this.showOrdersError();
       }
     } catch (error) {
-      // console.error('Load recent orders error:', error);
+      console.error('Load recent orders error:', error);
       this.showOrdersError();
+    }
+  }
+
+  async loadChartData() {
+    try {
+      // Load 6 months (180 days) of data by default
+      const response = await this.makeApiRequest('/manufacturer/profile/api/chart-data?period=180', 'GET');
+      
+      if (response.success && response.data) {
+        this.updatePerformanceChart(response.data);
+      }
+    } catch (error) {
+      console.error('❌ Load chart data error:', error);
+      // Chart will remain with empty data
     }
   }
 
@@ -115,13 +165,13 @@ class ManufacturerProfile {
 
     const ctx = chartCanvas.getContext('2d');
     
-    // Sample data - will be replaced with real data
+    // Empty chart data - will be populated with real 6-month data
     const chartData = {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      labels: ['', '', '', '', '', ''], // 6 months
       datasets: [
         {
           label: 'Sotuv ($)',
-          data: [12000, 19000, 15000, 25000, 22000, 30000],
+          data: [0, 0, 0, 0, 0, 0],
           borderColor: '#FF6A00',
           backgroundColor: 'rgba(255, 106, 0, 0.1)',
           borderWidth: 3,
@@ -130,7 +180,7 @@ class ManufacturerProfile {
         },
         {
           label: 'Buyurtmalar',
-          data: [45, 67, 52, 89, 76, 102],
+          data: [0, 0, 0, 0, 0, 0],
           borderColor: '#10b981',
           backgroundColor: 'rgba(16, 185, 129, 0.1)',
           borderWidth: 3,
@@ -224,72 +274,48 @@ class ManufacturerProfile {
     });
   }
 
-  updateChart(period) {
-    if (!this.performanceChart) return;
 
-    this.currentPeriod = period;
+
+  updatePerformanceChart(chartData) {
+    if (!this.performanceChart || !chartData) return;
     
-    // Load new data based on period
-    this.loadChartData(period).then(data => {
-      this.performanceChart.data.labels = data.labels;
-      this.performanceChart.data.datasets[0].data = data.sales;
-      this.performanceChart.data.datasets[1].data = data.orders;
-      this.performanceChart.update('active');
-    });
-  }
-
-  async loadChartData(period) {
-    try {
-      const response = await this.makeApiRequest(`/manufacturer/profile/api/chart-data?period=${period}`, 'GET');
-      
-      if (response.success) {
-        return response.data;
-      } else {
-        console.warn('Chart API failed, using empty data instead of sample data');
-        return this.getEmptyChartData(period);
-      }
-    } catch (error) {
-      // console.error('Load chart data error:', error);
-      console.warn('Using empty chart data instead of sample data');
-      return this.getEmptyChartData(period);
-    }
-  }
-
-  getEmptyChartData(period) {
-    // Return empty data structure when no real data is available
-    const emptyData = {
-      '7': {
-        labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
-        sales: [0, 0, 0, 0, 0, 0, 0],
-        orders: [0, 0, 0, 0, 0, 0, 0]
-      },
-      '30': {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-        sales: [0, 0, 0, 0],
-        orders: [0, 0, 0, 0]
-      },
-      '90': {
-        labels: ['Month 1', 'Month 2', 'Month 3'],
-        sales: [0, 0, 0],
-        orders: [0, 0, 0]
-      },
-      '365': {
-        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-        sales: [0, 0, 0, 0],
-        orders: [0, 0, 0, 0]
-      }
-    };
-
-    return emptyData[period] || emptyData['30'];
+    // Update chart with real data
+    this.performanceChart.data.labels = chartData.labels || [];
+    this.performanceChart.data.datasets[0].data = chartData.sales || [];
+    this.performanceChart.data.datasets[1].data = chartData.orders || [];
+    
+    this.performanceChart.update();
   }
 
   // ====================================
   // 🎨 UI UPDATES
   // ====================================
 
+  getStatusText(status) {
+    const statusMap = {
+      'active': 'Faol',
+      'draft': 'Qoralama',
+      'inactive': 'Nofaol',
+      'pending': 'Kutilmoqda'
+    };
+    return statusMap[status] || status;
+  }
+
+  getOrderStatusText(status) {
+    const statusMap = {
+      'pending': 'Kutilmoqda',
+      'processing': 'Jarayonda',
+      'confirmed': 'Tasdiqlangan',
+      'shipped': 'Yuborilgan',
+      'delivered': 'Yetkazib berilgan',
+      'completed': 'Tugallangan',
+      'cancelled': 'Bekor qilingan'
+    };
+    return statusMap[status] || status;
+  }
+
+
   updateProfileStats(stats) {
-    // console.log('📊 Updating profile stats:', stats);
-    
     // Update quick stats in hero section with proper formatting
     this.updateElement('totalProducts', stats.totalProducts || 0);
     this.updateElement('totalOrders', stats.totalOrders || 0);
@@ -302,20 +328,29 @@ class ManufacturerProfile {
       this.updateElement('totalRevenue', '$0');
     }
     
-    // Format rating with stars if rating exists
+    // Format rating with stars if rating exists, otherwise show 0 with no stars
     const rating = stats.averageRating || 0;
-    if (rating > 0) {
-      const ratingElement = document.getElementById('customerRating');
-      if (ratingElement) {
+    const ratingElement = document.getElementById('customerRating');
+    if (ratingElement) {
+      if (rating > 0) {
         ratingElement.innerHTML = `
           <span class="rating-value">${rating.toFixed(1)}</span>
           <div class="rating-stars">
             ${this.generateStarRating(rating)}
           </div>
         `;
+      } else {
+        ratingElement.innerHTML = `
+          <span class="rating-value">0.0</span>
+          <div class="rating-stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+          </div>
+        `;
       }
-    } else {
-      this.updateElement('customerRating', 'Hali baho berilmagan');
     }
     
     // Update completion rate if available
@@ -325,8 +360,6 @@ class ManufacturerProfile {
   }
 
   updatePerformanceMetrics(metrics) {
-    // console.log('📊 Updating performance metrics:', metrics);
-    
     // Update performance metrics with proper formatting
     this.updateElement('totalSales', this.formatCurrency(metrics.totalSales || 0));
     this.updateElement('completedOrders', metrics.completedOrders || 0);
@@ -415,13 +448,12 @@ class ManufacturerProfile {
 
   updateBusinessInfo(businessInfo) {
     try {
-      // console.log('📊 Updating business info:', businessInfo);
       
       // Update business license
-      this.updateElement('businessLicense', businessInfo.businessLicense || 'Belgilanmagan');
+      this.updateElement('businessLicense', businessInfo.businessLicense || getTranslation('manufacturer.profile.messages.notSpecified', 'Belgilanmagan'));
       
       // Update tax number
-      this.updateElement('taxNumber', businessInfo.taxNumber || 'Belgilanmagan');
+      this.updateElement('taxNumber', businessInfo.taxNumber || getTranslation('manufacturer.profile.messages.notSpecified', 'Belgilanmagan'));
       
       // Update employee count
       const employeeCountElement = document.getElementById('employeeCount');
@@ -433,12 +465,11 @@ class ManufacturerProfile {
       }
       
       // Update activity type (if element exists)
-      this.updateElement('activityType', businessInfo.activityType || 'Belgilanmagan');
+      this.updateElement('activityType', businessInfo.activityType || getTranslation('manufacturer.profile.messages.notSpecified', 'Belgilanmagan'));
       
       // Update annual revenue (if element exists)
-      this.updateElement('annualRevenue', businessInfo.annualRevenue || 'Belgilanmagan');
+      this.updateElement('annualRevenue', businessInfo.annualRevenue || getTranslation('manufacturer.profile.messages.notSpecified', 'Belgilanmagan'));
       
-      // console.log('✅ Business info updated successfully');
     } catch (error) {
       // console.error('❌ Error updating business info:', error);
     }
@@ -446,7 +477,6 @@ class ManufacturerProfile {
 
   updateContactInfo(contactInfo) {
     try {
-      // console.log('📊 Updating contact info:', contactInfo);
       
       // Update email
       const emailElement = document.getElementById('contactEmail');
@@ -454,7 +484,7 @@ class ManufacturerProfile {
         emailElement.href = `mailto:${contactInfo.email}`;
         emailElement.textContent = contactInfo.email;
       } else if (emailElement) {
-        emailElement.textContent = 'Belgilanmagan';
+        emailElement.textContent = getTranslation('manufacturer.profile.messages.notSpecified', 'Belgilanmagan');
         emailElement.href = '#';
       }
       
@@ -464,7 +494,7 @@ class ManufacturerProfile {
         phoneElement.href = `tel:${contactInfo.phone}`;
         phoneElement.textContent = contactInfo.phone;
       } else if (phoneElement) {
-        phoneElement.textContent = 'Belgilanmagan';
+        phoneElement.textContent = getTranslation('manufacturer.profile.messages.notSpecified', 'Belgilanmagan');
         phoneElement.href = '#';
       }
       
@@ -474,17 +504,16 @@ class ManufacturerProfile {
         websiteElement.href = contactInfo.website;
         websiteElement.textContent = contactInfo.website;
       } else if (websiteElement) {
-        websiteElement.textContent = 'Belgilanmagan';
+        websiteElement.textContent = getTranslation('manufacturer.profile.messages.notSpecified', 'Belgilanmagan');
         websiteElement.href = '#';
       }
       
       // Update address
       const addressElement = document.getElementById('contactAddress');
       if (addressElement) {
-        addressElement.textContent = contactInfo.fullAddress || contactInfo.address || 'Belgilanmagan';
+        addressElement.textContent = contactInfo.fullAddress || contactInfo.address || getTranslation('manufacturer.profile.messages.notSpecified', 'Belgilanmagan');
       }
       
-      // console.log('✅ Contact info updated successfully');
     } catch (error) {
       // console.error('❌ Error updating contact info:', error);
     }
@@ -492,7 +521,6 @@ class ManufacturerProfile {
 
   updateProductionCapabilities(capabilities) {
     try {
-      // console.log('📊 Updating production capabilities:', capabilities);
       
       const capabilitiesContainer = document.querySelector('.capabilities-grid');
       if (!capabilitiesContainer) {
@@ -514,12 +542,11 @@ class ManufacturerProfile {
         capabilitiesContainer.innerHTML = `
           <div class="no-capabilities">
             <i class="fas fa-info-circle"></i>
-            <p>Ishlab chiqarish imkoniyatlari haqida ma'lumot mavjud emas</p>
+            <p>${getTranslation('manufacturer.profile.messages.noCapabilities', 'Ishlab chiqarish imkoniyatlari haqida ma\'lumot mavjud emas')}</p>
           </div>
         `;
       }
       
-      // console.log('✅ Production capabilities updated successfully');
     } catch (error) {
       // console.error('❌ Error updating production capabilities:', error);
     }
@@ -549,17 +576,17 @@ class ManufacturerProfile {
   }
 
   renderRecentProducts(products) {
-    const container = document.getElementById('recentProductsList');
+    const container = document.getElementById('recent-products');
     if (!container) return;
 
     if (!products || products.length === 0) {
       container.innerHTML = `
         <div class="empty-state">
           <i class="fas fa-box-open"></i>
-          <p>Hozircha mahsulotlar yo'q</p>
+          <p>${getTranslation('manufacturer.profile.messages.noProducts', 'Hozircha mahsulotlar yo\'q')}</p>
           <a href="/manufacturer/products/add" class="orders-btn orders-btn-primary orders-btn-sm">
             <i class="fas fa-plus"></i>
-            Mahsulot Qo'shish
+            ${getTranslation('manufacturer.profile.messages.addProduct', 'Mahsulot Qo\'shish')}
           </a>
         </div>
       `;
@@ -567,15 +594,30 @@ class ManufacturerProfile {
     }
 
     const productsHtml = products.map(product => `
-      <div class="product-item">
-        <img src="${product.images?.[0] || '/assets/images/default-product.png'}" 
-             alt="${product.title}" class="product-image">
-        <div class="product-info">
-          <h5>${product.title}</h5>
-          <p>${product.category || 'Kategoriya ko\'rsatilmagan'}</p>
+      <div class="recent-item">
+        <div class="recent-item-image">
+          <img src="${product.images?.[0]?.url || '/assets/images/default-product.png'}" 
+               alt="${product.title}" class="item-image">
         </div>
-        <div class="product-price">
-          ${this.formatCurrency(product.price)}
+        <div class="recent-item-content">
+          <div class="recent-item-header">
+            <h4 class="item-title">${product.title}</h4>
+            <span class="item-status status-${product.status}">${this.getStatusText(product.status)}</span>
+          </div>
+          <div class="recent-item-details">
+            <div class="detail-row">
+              <span class="detail-label">Narx:</span>
+              <span class="detail-value">${this.formatCurrency(product.price)}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Zaxira:</span>
+              <span class="detail-value">${product.stock || 0} dona</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Yaratilgan:</span>
+              <span class="detail-value">${this.formatDate(product.createdAt)}</span>
+            </div>
+          </div>
         </div>
       </div>
     `).join('');
@@ -584,30 +626,43 @@ class ManufacturerProfile {
   }
 
   renderRecentOrders(orders) {
-    const container = document.getElementById('recentOrdersList');
+    const container = document.getElementById('recent-orders');
     if (!container) return;
 
     if (!orders || orders.length === 0) {
       container.innerHTML = `
         <div class="empty-state">
           <i class="fas fa-receipt"></i>
-          <p>Hozircha buyurtmalar yo'q</p>
+          <p>${getTranslation('manufacturer.profile.messages.noOrders', 'Hozircha buyurtmalar yo\'q')}</p>
         </div>
       `;
       return;
     }
 
     const ordersHtml = orders.map(order => `
-      <div class="order-item">
-        <div class="order-icon">
+      <div class="recent-item">
+        <div class="recent-item-icon">
           <i class="fas fa-shopping-cart"></i>
         </div>
-        <div class="order-info">
-          <h5>Buyurtma #${order.orderNumber}</h5>
-          <p>${order.customerName || 'Mijoz'} - ${this.formatDate(order.createdAt)}</p>
-        </div>
-        <div class="order-amount">
-          ${this.formatCurrency(order.totalAmount)}
+        <div class="recent-item-content">
+          <div class="recent-item-header">
+            <h4 class="item-title">Buyurtma #${order.orderNumber}</h4>
+            <span class="item-status status-${order.status}">${this.getOrderStatusText(order.status)}</span>
+          </div>
+          <div class="recent-item-details">
+            <div class="detail-row">
+              <span class="detail-label">Mijoz:</span>
+              <span class="detail-value">${order.buyer?.name || order.buyer?.companyName || 'Noma\'lum'}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Summa:</span>
+              <span class="detail-value">${this.formatCurrency(order.totalAmount)}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Sana:</span>
+              <span class="detail-value">${this.formatDate(order.createdAt)}</span>
+            </div>
+          </div>
         </div>
       </div>
     `).join('');
@@ -621,10 +676,10 @@ class ManufacturerProfile {
       container.innerHTML = `
         <div class="error-state">
           <i class="fas fa-exclamation-triangle"></i>
-          <p>Mahsulotlarni yuklashda xatolik</p>
+          <p>${getTranslation('manufacturer.profile.messages.productsError', 'Mahsulotlarni yuklashda xatolik')}</p>
           <button class="orders-btn orders-btn-outline orders-btn-sm" onclick="window.manufacturerProfile.loadRecentProducts()">
             <i class="fas fa-retry"></i>
-            Qayta Urinish
+            ${getTranslation('manufacturer.profile.messages.retry', 'Qayta Urinish')}
           </button>
         </div>
       `;
@@ -637,10 +692,10 @@ class ManufacturerProfile {
       container.innerHTML = `
         <div class="error-state">
           <i class="fas fa-exclamation-triangle"></i>
-          <p>Buyurtmalarni yuklashda xatolik</p>
+          <p>${getTranslation('manufacturer.profile.messages.ordersError', 'Buyurtmalarni yuklashda xatolik')}</p>
           <button class="orders-btn orders-btn-outline orders-btn-sm" onclick="window.manufacturerProfile.loadRecentOrders()">
             <i class="fas fa-retry"></i>
-            Qayta Urinish
+            ${getTranslation('manufacturer.profile.messages.retry', 'Qayta Urinish')}
           </button>
         </div>
       `;
@@ -753,15 +808,15 @@ class ManufacturerProfile {
     try {
       if (navigator.clipboard) {
         navigator.clipboard.writeText(urlInput.value).then(() => {
-          this.showToast('Profil havolasi nusxalandi', 'success');
+          this.showToast(getTranslation('manufacturer.profile.messages.copySuccess', 'Profil havolasi nusxalandi'), 'success');
         });
       } else {
         document.execCommand('copy');
-        this.showToast('Profil havolasi nusxalandi', 'success');
+        this.showToast(getTranslation('manufacturer.profile.messages.copySuccess', 'Profil havolasi nusxalandi'), 'success');
       }
     } catch (error) {
       // console.error('Copy URL error:', error);
-      this.showToast('Nusxalashda xatolik', 'error');
+      this.showToast(getTranslation('manufacturer.profile.messages.copyError', 'Nusxalashda xatolik'), 'error');
     }
   }
 
@@ -775,10 +830,10 @@ class ManufacturerProfile {
       link.href = canvas.toDataURL();
       link.click();
       
-      this.showToast('QR kod yuklab olindi', 'success');
+      this.showToast(getTranslation('manufacturer.profile.messages.downloadSuccess', 'QR kod yuklab olindi'), 'success');
     } catch (error) {
       // console.error('Download QR error:', error);
-      this.showToast('QR kod yuklab olishda xatolik', 'error');
+      this.showToast(getTranslation('manufacturer.profile.messages.downloadError', 'QR kod yuklab olishda xatolik'), 'error');
     }
   }
 
@@ -812,7 +867,7 @@ class ManufacturerProfile {
         <div class="modal-header">
           <h3 class="modal-title">
             <i class="fas fa-certificate"></i>
-            Sertifikat Qo'shish
+            ${getTranslation('manufacturer.profile.certifications.add', 'Sertifikat Qo\'shish')}
           </h3>
           <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
             <i class="fas fa-times"></i>
@@ -822,55 +877,55 @@ class ManufacturerProfile {
           <form id="addCertificationForm">
             <div class="settings-form-grid">
               <div class="settings-form-group">
-                <label class="settings-label">Sertifikat Nomi *</label>
+                <label class="settings-label">${getTranslation('manufacturer.profile.certifications.form.name', 'Sertifikat Nomi')} *</label>
                 <input type="text" name="name" class="settings-input" required 
-                       placeholder="Masalan: ISO 9001:2015">
+                       placeholder="${getTranslation('manufacturer.profile.certifications.form.placeholder.name', 'Masalan: ISO 9001:2015')}">
               </div>
               
               <div class="settings-form-group">
-                <label class="settings-label">Sertifikat Turi *</label>
+                <label class="settings-label">${getTranslation('manufacturer.profile.certifications.form.type', 'Sertifikat Turi')} *</label>
                 <select name="type" class="settings-select" required>
-                  <option value="">Tanlang...</option>
-                  <option value="quality">Sifat Menejmenti</option>
-                  <option value="environmental">Atrof Muhit</option>
-                  <option value="safety">Xavfsizlik</option>
-                  <option value="industry">Sanoat Standartlari</option>
-                  <option value="other">Boshqa</option>
+                  <option value="">${getTranslation('manufacturer.profile.certifications.form.placeholder.select', 'Tanlang...')}</option>
+                  <option value="quality">${getTranslation('manufacturer.profile.certifications.form.types.quality', 'Sifat Menejmenti')}</option>
+                  <option value="environmental">${getTranslation('manufacturer.profile.certifications.form.types.environmental', 'Atrof Muhit')}</option>
+                  <option value="safety">${getTranslation('manufacturer.profile.certifications.form.types.safety', 'Xavfsizlik')}</option>
+                  <option value="industry">${getTranslation('manufacturer.profile.certifications.form.types.industry', 'Sanoat Standartlari')}</option>
+                  <option value="other">${getTranslation('manufacturer.profile.certifications.form.types.other', 'Boshqa')}</option>
                 </select>
               </div>
               
               <div class="settings-form-group full-width">
-                <label class="settings-label">Tavsif</label>
+                <label class="settings-label">${getTranslation('manufacturer.profile.certifications.form.description', 'Tavsif')}</label>
                 <textarea name="description" class="settings-textarea" rows="3"
-                          placeholder="Sertifikat haqida qisqacha ma'lumot..."></textarea>
+                          placeholder="${getTranslation('manufacturer.profile.certifications.form.placeholder.description', 'Sertifikat haqida qisqacha ma\'lumot...')}"></textarea>
               </div>
               
               <div class="settings-form-group">
-                <label class="settings-label">Berilgan Sana</label>
+                <label class="settings-label">${getTranslation('manufacturer.profile.certifications.form.issuedDate', 'Berilgan Sana')}</label>
                 <input type="date" name="issuedDate" class="settings-input">
               </div>
               
               <div class="settings-form-group">
-                <label class="settings-label">Amal Qilish Muddati</label>
+                <label class="settings-label">${getTranslation('manufacturer.profile.certifications.form.expiryDate', 'Amal Qilish Muddati')}</label>
                 <input type="date" name="expiryDate" class="settings-input">
               </div>
               
               <div class="settings-form-group full-width">
-                <label class="settings-label">Sertifikat Fayli</label>
+                <label class="settings-label">${getTranslation('manufacturer.profile.certifications.form.certificate', 'Sertifikat Fayli')}</label>
                 <input type="file" name="certificate" class="settings-input" 
                        accept=".pdf,.jpg,.jpeg,.png">
-                <small class="settings-help">PDF, JPG, PNG formatlarida (maksimal 5MB)</small>
+                <small class="settings-help">${getTranslation('manufacturer.profile.certifications.form.help', 'PDF, JPG, PNG formatlarida (maksimal 5MB)')}</small>
               </div>
             </div>
           </form>
         </div>
         <div class="modal-actions">
           <button class="orders-btn orders-btn-secondary" onclick="this.closest('.modal-overlay').remove()">
-            Bekor Qilish
+            ${getTranslation('manufacturer.profile.messages.cancel', 'Bekor Qilish')}
           </button>
           <button class="orders-btn orders-btn-primary" onclick="window.manufacturerProfile.saveCertification()">
             <i class="fas fa-save"></i>
-            Saqlash
+            ${getTranslation('manufacturer.profile.messages.save', 'Saqlash')}
           </button>
         </div>
       </div>
@@ -897,7 +952,7 @@ class ManufacturerProfile {
       const data = await response.json();
 
       if (data.success) {
-        this.showToast('Sertifikat muvaffaqiyatli qo\'shildi', 'success');
+        this.showToast(getTranslation('manufacturer.profile.messages.certificateSuccess', 'Sertifikat muvaffaqiyatli qo\'shildi'), 'success');
         
         // Close modal
         const modal = form.closest('.modal-overlay');
@@ -908,11 +963,11 @@ class ManufacturerProfile {
         // Reload profile data
         this.loadProfileData();
       } else {
-        throw new Error(data.message || 'Sertifikat qo\'shishda xatolik');
+        throw new Error(data.message || getTranslation('manufacturer.profile.messages.certificateError', 'Sertifikat qo\'shishda xatolik'));
       }
     } catch (error) {
       // console.error('Save certification error:', error);
-      this.showToast('Sertifikat qo\'shishda xatolik: ' + error.message, 'error');
+      this.showToast(getTranslation('manufacturer.profile.messages.certificateError', 'Sertifikat qo\'shishda xatolik') + ': ' + error.message, 'error');
     }
   }
 
@@ -950,14 +1005,14 @@ class ManufacturerProfile {
       const data = await response.json();
 
       if (data.success) {
-        this.showToast(`${files.length} ta sertifikat muvaffaqiyatli yuklandi`, 'success');
+        this.showToast(`${files.length} ${getTranslation('manufacturer.profile.messages.uploadSuccess', 'ta sertifikat muvaffaqiyatli yuklandi')}`, 'success');
         this.loadProfileData();
       } else {
-        throw new Error(data.message || 'Sertifikat yuklashda xatolik');
+        throw new Error(data.message || getTranslation('manufacturer.profile.messages.uploadError', 'Sertifikat yuklashda xatolik'));
       }
     } catch (error) {
       // console.error('Upload certificate error:', error);
-      this.showToast('Sertifikat yuklashda xatolik: ' + error.message, 'error');
+      this.showToast(getTranslation('manufacturer.profile.messages.uploadError', 'Sertifikat yuklashda xatolik') + ': ' + error.message, 'error');
     }
   }
 
@@ -983,7 +1038,7 @@ class ManufacturerProfile {
   }
 
   formatDate(dateString) {
-    if (!dateString) return 'Sana ko\'rsatilmagan';
+    if (!dateString) return getTranslation('manufacturer.profile.labels.notSpecified', 'Sana ko\'rsatilmagan');
     
     const date = new Date(dateString);
     return date.toLocaleDateString('uz-UZ', {
@@ -1036,6 +1091,55 @@ class ManufacturerProfile {
       alert(message);
     }
   }
+
+  // ====================================
+  // 🔄 PAGE LOADING STATES
+  // ====================================
+
+  showPageLoading() {
+    const overlay = document.getElementById('pageLoadingOverlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      overlay.classList.remove('hidden');
+    }
+  }
+
+  hidePageLoading() {
+    const overlay = document.getElementById('pageLoadingOverlay');
+    if (overlay) {
+      overlay.classList.add('hidden');
+      setTimeout(() => {
+        overlay.style.display = 'none';
+      }, 300);
+    }
+  }
+
+  showFallbackData() {
+    // Show fallback data when real data fails to load
+    this.updateElement('companyName', getTranslation('manufacturer.profile.messages.notAvailable', 'Mavjud emas'));
+    this.updateElement('totalProducts', '0');
+    this.updateElement('totalOrders', '0');
+    this.updateElement('totalRevenue', '$0');
+    this.updateElement('averageRating', '0.0');
+    
+    // Show fallback message
+    const fallbackMessage = document.createElement('div');
+    fallbackMessage.className = 'fallback-message alert alert-warning';
+    fallbackMessage.innerHTML = `
+      <i class="fas fa-exclamation-triangle"></i>
+      ${getTranslation('manufacturer.profile.messages.error', 'Ma\'lumotlarni yuklashda xatolik yuz berdi. Sahifani yangilab ko\'ring.')}
+    `;
+    
+    const mainContent = document.querySelector('.admin-content');
+    if (mainContent) {
+      mainContent.insertBefore(fallbackMessage, mainContent.firstChild);
+    }
+  }
+
+  // ====================================
+  // 🔄 SECTION LOADING STATES
+  // ====================================
+
 }
 
 // ====================================
@@ -1060,7 +1164,7 @@ function closeModal(modalId) {
 // Export profile data
 function exportProfile() {
   if (!window.manufacturerProfile || !window.manufacturerProfile.profileData) {
-    alert('Profil ma\'lumotlari yuklanmagan');
+    alert(getTranslation('manufacturer.profile.messages.noData', 'Profil ma\'lumotlari yuklanmagan'));
     return;
   }
 
@@ -1083,14 +1187,14 @@ function exportProfile() {
   URL.revokeObjectURL(url);
   
   if (window.manufacturerProfile) {
-    window.manufacturerProfile.showToast('Profil ma\'lumotlari yuklab olindi', 'success');
+    window.manufacturerProfile.showToast(getTranslation('manufacturer.profile.messages.downloadSuccess', 'Profil ma\'lumotlari yuklab olindi'), 'success');
   }
 }
 
 // Share on social media
 function shareOnSocial(platform) {
   const profileUrl = encodeURIComponent(window.location.href);
-  const companyName = encodeURIComponent(document.querySelector('.company-name')?.textContent || 'Kompaniya');
+  const companyName = encodeURIComponent(document.querySelector('.company-name')?.textContent || getTranslation('manufacturer.profile.company.type', 'Kompaniya'));
   const text = encodeURIComponent(`${companyName} - Professional B2B Manufacturer`);
 
   let shareUrl = '';
@@ -1145,7 +1249,6 @@ document.head.appendChild(profileStyle);
 
 ManufacturerProfile.prototype.updateCompanyInfo = function(companyInfo) {
   try {
-    // console.log('📊 Updating company info:', companyInfo);
     
     // Update company logo
     if (companyInfo.logo || companyInfo.url) {
@@ -1154,7 +1257,6 @@ ManufacturerProfile.prototype.updateCompanyInfo = function(companyInfo) {
         const logoUrl = companyInfo.logo || companyInfo.url;
         // Add timestamp to prevent caching
         logoElement.src = logoUrl + '?t=' + Date.now();
-        // console.log('✅ Company logo updated:', logoUrl);
       }
     }
     
@@ -1176,6 +1278,9 @@ ManufacturerProfile.prototype.updateCompanyInfo = function(companyInfo) {
         companyEstablished.style.display = 'inline-flex';
       }
     }
+    
+    // Update company verification status
+    this.updateCompanyVerificationStatus(companyInfo.status, companyInfo.isVerified);
     
     // Update contact info
     if (companyInfo.email) {
@@ -1202,9 +1307,55 @@ ManufacturerProfile.prototype.updateCompanyInfo = function(companyInfo) {
       }
     }
     
-    // console.log('✅ Company info updated successfully');
     
   } catch (error) {
     // console.error('❌ Error updating company info:', error);
+  }
+};
+
+// ====================================
+// 🏢 COMPANY VERIFICATION STATUS
+// ====================================
+
+ManufacturerProfile.prototype.updateCompanyVerificationStatus = function(status, isVerified) {
+  try {
+    // Find the verification badge container
+    const verificationContainer = document.querySelector('.company-verification');
+    if (!verificationContainer) return;
+    
+    // Clear existing content
+    verificationContainer.innerHTML = '';
+    
+    // Create appropriate badge based on status
+    let badgeClass = 'verification-badge';
+    let iconClass = 'fas fa-clock';
+    let statusText = getTranslation('manufacturer.profile.verification.pending', 'Kutilmoqda');
+    
+    if (isVerified || status === 'active') {
+      badgeClass += ' verified';
+      iconClass = 'fas fa-check-circle';
+      statusText = getTranslation('manufacturer.profile.verification.verified', 'Tasdiqlangan');
+    } else if (status === 'pending') {
+      badgeClass += ' pending';
+      iconClass = 'fas fa-clock';
+      statusText = getTranslation('manufacturer.profile.verification.pending', 'Kutilmoqda');
+    } else if (status === 'inactive' || status === 'rejected') {
+      badgeClass += ' rejected';
+      iconClass = 'fas fa-times-circle';
+      statusText = getTranslation('manufacturer.profile.verification.rejected', 'Rad etilgan');
+    }
+    
+    // Create and insert the badge
+    const badgeElement = document.createElement('span');
+    badgeElement.className = badgeClass;
+    badgeElement.innerHTML = `
+      <i class="${iconClass}"></i>
+      ${statusText}
+    `;
+    
+    verificationContainer.appendChild(badgeElement);
+    
+  } catch (error) {
+    console.error('❌ Error updating verification status:', error);
   }
 };

@@ -18,18 +18,15 @@ class InquiryController {
     async showInquiriesPage(req, res) {
         try {
             const manufacturerId = req.user.userId;
-            // Get initial inquiries data
-            const inquiriesData = await this.getInquiriesData(manufacturerId, req.query);
-
-            // Get unread messages count
-            let unreadMessages = 0;
-            try {
-                const ManufacturerService = require('../services/ManufacturerService');
-                const manufacturerService = new ManufacturerService();
-                unreadMessages = await manufacturerService.getUnreadMessagesCount(manufacturerId);
-            } catch (error) {
-                unreadMessages = 0;
-            }
+            
+            // ✅ PROFESSIONAL: Mark all inquiries as read when visiting inquiries page
+            await this.markAllInquiriesAsReadForUser(manufacturerId);
+            
+            // Get initial inquiries data and unread messages count in parallel
+            const [inquiriesData, unreadMessages] = await Promise.all([
+                this.getInquiriesData(manufacturerId, req.query),
+                this.getUnreadMessagesCount(manufacturerId)
+            ]);
 
             res.render('manufacturer/inquiries/index', {
                 title: 'Biznes So\'rovlari',
@@ -49,6 +46,51 @@ class InquiryController {
                 title: 'Server Error',
                 message: 'Inquiries sahifasini yuklashda xatolik yuz berdi'
             });
+        }
+    }
+
+    /**
+     * Mark all inquiries as read for a specific user
+     * @param {string} manufacturerId - The manufacturer's user ID
+     * @returns {Promise<void>}
+     */
+    async markAllInquiriesAsReadForUser(manufacturerId) {
+        try {
+            const Inquiry = require('../models/Inquiry');
+            
+            // Update only unread inquiries to read status (excluding archived)
+            await Inquiry.updateMany(
+                {
+                    supplier: manufacturerId,
+                    status: { $ne: 'archived' },
+                    readByManufacturer: { $ne: true }
+                },
+                {
+                    $set: {
+                        readByManufacturer: true,
+                        readAt: new Date()
+                    }
+                }
+            );
+        } catch (error) {
+            this.logger.error('Error marking inquiries as read:', error);
+            // Don't throw error to prevent page load failure
+        }
+    }
+
+    /**
+     * Get unread messages count for a user
+     * @param {string} manufacturerId - The manufacturer's user ID
+     * @returns {Promise<number>}
+     */
+    async getUnreadMessagesCount(manufacturerId) {
+        try {
+            const ManufacturerService = require('../services/ManufacturerService');
+            const manufacturerService = new ManufacturerService();
+            return await manufacturerService.getUnreadMessagesCount(manufacturerId);
+        } catch (error) {
+            this.logger.error('Error getting unread messages count:', error);
+            return 0;
         }
     }
 

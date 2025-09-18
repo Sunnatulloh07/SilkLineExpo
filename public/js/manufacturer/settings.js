@@ -3,6 +3,21 @@
  * Professional B2B Settings Management System
  */
 
+// Translation function for settings page
+function getTranslation(key, fallback = '') {
+  try {
+    // Use server-side translations if available
+    if (window.settingsTranslations && window.settingsTranslations[key]) {
+      return window.settingsTranslations[key];
+    }
+    // Fallback to provided fallback or key
+    return fallback || key;
+  } catch (error) {
+    console.error('Translation error:', error);
+    return fallback || key;
+  }
+}
+
 // ====================================
 // 🎯 SETTINGS PAGE CONTROLLER
 // ====================================
@@ -178,7 +193,7 @@ class ManufacturerSettings {
     // Required field validation
     if (field.hasAttribute('required') && !value) {
       isValid = false;
-      errorMessage = 'Bu maydon majburiy';
+      errorMessage = getTranslation('manufacturer.settings.validation.required', 'Bu maydon majburiy');
     }
 
     // Email validation
@@ -186,7 +201,7 @@ class ManufacturerSettings {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(value)) {
         isValid = false;
-        errorMessage = 'Email manzil noto\'g\'ri formatda';
+        errorMessage = getTranslation('manufacturer.settings.validation.emailInvalid', 'Email manzil noto\'g\'ri formatda');
       }
     }
 
@@ -196,7 +211,7 @@ class ManufacturerSettings {
       const phoneRegex = /^\+\d{1,4}\d{6,14}$/;
       if (!phoneRegex.test(value)) {
         isValid = false;
-        errorMessage = 'Telefon raqam xalqaro formatda bo\'lishi kerak (+1234567890 dan +12345678901234 gacha)';
+        errorMessage = getTranslation('manufacturer.settings.validation.phoneInvalid', 'Telefon raqam xalqaro formatda bo\'lishi kerak (+1234567890 dan +12345678901234 gacha)');
       }
     }
 
@@ -206,7 +221,7 @@ class ManufacturerSettings {
         new URL(value);
       } catch {
         isValid = false;
-        errorMessage = 'Website manzil noto\'g\'ri formatda';
+        errorMessage = getTranslation('manufacturer.settings.validation.urlInvalid', 'Website manzil noto\'g\'ri formatda');
       }
     }
 
@@ -214,7 +229,7 @@ class ManufacturerSettings {
     if (fieldName === 'taxNumber' && value) {
       if (value.length < 6 || value.length > 20) {
         isValid = false;
-        errorMessage = 'Soliq raqami 6-20 belgi orasida bo\'lishi kerak';
+        errorMessage = getTranslation('manufacturer.settings.validation.taxNumberInvalid', 'Soliq raqami 6-20 belgi orasida bo\'lishi kerak');
       }
     }
 
@@ -222,12 +237,12 @@ class ManufacturerSettings {
     if (field.type === 'password' && fieldName === 'newPassword' && value) {
       if (value.length < 8) {
         isValid = false;
-        errorMessage = 'Parol kamida 8 belgi bo\'lishi kerak';
+        errorMessage = getTranslation('manufacturer.settings.validation.passwordTooShort', 'Parol kamida 8 belgi bo\'lishi kerak');
       }
       
       if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
         isValid = false;
-        errorMessage = 'Parol katta harf, kichik harf va raqam bo\'lishi kerak';
+        errorMessage = getTranslation('manufacturer.settings.validation.passwordComplexity', 'Parol katta harf, kichik harf va raqam bo\'lishi kerak');
       }
     }
 
@@ -236,7 +251,7 @@ class ManufacturerSettings {
       const newPassword = document.getElementById('newPassword')?.value;
       if (value !== newPassword) {
         isValid = false;
-        errorMessage = 'Parollar mos kelmaydi';
+        errorMessage = getTranslation('manufacturer.settings.validation.passwordsMismatch', 'Parollar mos kelmaydi');
       }
     }
 
@@ -244,7 +259,7 @@ class ManufacturerSettings {
     if (fieldName === 'newPassword' && value) {
       const confirmPassword = document.getElementById('confirmPassword');
       if (confirmPassword && confirmPassword.value && confirmPassword.value !== value) {
-        this.showFieldError(confirmPassword, 'Parollar mos kelmaydi');
+        this.showFieldError(confirmPassword, getTranslation('manufacturer.settings.validation.passwordsMismatch', 'Parollar mos kelmaydi'));
       } else if (confirmPassword && confirmPassword.value === value) {
         this.clearFieldError(confirmPassword);
       }
@@ -309,18 +324,18 @@ class ManufacturerSettings {
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
     if (!allowedTypes.includes(file.type)) {
-      this.showToast('Faqat rasm fayllari (JPEG, PNG, GIF, WebP) qo\'llaniladi', 'error');
+      this.showToast(getTranslation('manufacturer.settings.validation.fileTypeInvalid', 'Faqat rasm fayllari (JPEG, PNG, GIF, WebP) qo\'llaniladi'), 'error');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      this.showToast('Rasm hajmi 5MB dan oshmasligi kerak', 'error');
+      this.showToast(getTranslation('manufacturer.settings.validation.fileTooLarge', 'Rasm hajmi 5MB dan oshmasligi kerak'), 'error');
       return;
     }
 
     try {
-      this.showLoading('Logo yuklanmoqda va yangilanmoqda...');
+      this.showLoading(getTranslation('manufacturer.settings.messages.logoUploading', 'Logo yuklanmoqda va yangilanmoqda...'));
 
       // Create FormData
       const formData = new FormData();
@@ -358,7 +373,7 @@ class ManufacturerSettings {
           }, 300);
         }
 
-        this.showToast('Logo muvaffaqiyatli yangilandi! 🎉', 'success');
+        this.showToast(getTranslation('manufacturer.settings.messages.logoSuccess', 'Logo muvaffaqiyatli yangilandi! 🎉'), 'success');
         
         // Clear the file input to allow re-uploading the same file
         event.target.value = '';
@@ -367,16 +382,16 @@ class ManufacturerSettings {
         this.markAsDirty();
         
       } else {
-        throw new Error(data.error || data.message || 'Logo yuklashda xatolik');
+        throw new Error(data.error || data.message || getTranslation('manufacturer.settings.messages.error', 'Logo yuklashda xatolik'));
       }
     } catch (error) {
       // console.error('❌ Logo upload error:', error);
       
-      let errorMessage = 'Logo yuklashda xatolik';
+      let errorMessage = getTranslation('manufacturer.settings.messages.error', 'Logo yuklashda xatolik');
       if (error.message.includes('File too large')) {
-        errorMessage = 'Fayl hajmi juda katta (max 5MB)';
+        errorMessage = getTranslation('manufacturer.settings.validation.fileSizeError', 'Fayl hajmi juda katta (max 5MB)');
       } else if (error.message.includes('Invalid file type')) {
-        errorMessage = 'Noto\'g\'ri fayl turi';
+        errorMessage = getTranslation('manufacturer.settings.validation.fileTypeError', 'Noto\'g\'ri fayl turi');
       } else {
         errorMessage = error.message;
       }
@@ -504,7 +519,7 @@ class ManufacturerSettings {
     // console.log('📤 Company form data being sent:', formData);
     
     if (!this.validateTab('company-tab')) {
-      this.showToast('Iltimos, xatoliklarni tuzating', 'error');
+      this.showToast(getTranslation('manufacturer.settings.messages.error', 'Iltimos, xatoliklarni tuzating'), 'error');
       return;
     }
 
@@ -512,20 +527,20 @@ class ManufacturerSettings {
     const requiredFields = ['companyName', 'activityType', 'taxNumber'];
     for (const field of requiredFields) {
       if (!formData[field] || formData[field].trim() === '') {
-        this.showToast(`${field} majburiy maydon`, 'error');
+        this.showToast(getTranslation('manufacturer.settings.validation.required', `${field} majburiy maydon`), 'error');
         return;
       }
     }
 
     try {
-      this.showLoading('Kompaniya ma\'lumotlari saqlanmoqda...');
+      this.showLoading(getTranslation('manufacturer.settings.messages.saving', 'Kompaniya ma\'lumotlari saqlanmoqda...'));
 
       const response = await this.makeApiRequest('/manufacturer/settings/company', 'PUT', formData);
       
       // console.log('📥 Server response:', response);
 
       if (response.success) {
-        this.showToast('Kompaniya ma\'lumotlari muvaffaqiyatli saqlandi', 'success');
+        this.showToast(getTranslation('manufacturer.settings.messages.success', 'Kompaniya ma\'lumotlari muvaffaqiyatli saqlandi'), 'success');
         this.markAsClean();
         
         // Update form with saved data
@@ -647,7 +662,7 @@ class ManufacturerSettings {
     }
 
     try {
-      this.showLoading('Parol o\'zgartirilmoqda...');
+      this.showLoading(getTranslation('manufacturer.settings.messages.saving', 'Parol o\'zgartirilmoqda...'));
 
       const response = await this.makeApiRequest('/manufacturer/settings/change-password', 'PUT', {
         currentPassword,
@@ -655,18 +670,18 @@ class ManufacturerSettings {
       });
 
       if (response.success) {
-        this.showToast('Parol muvaffaqiyatli o\'zgartirildi', 'success');
+        this.showToast(getTranslation('manufacturer.settings.messages.success', 'Parol muvaffaqiyatli o\'zgartirildi'), 'success');
         
         // Clear password fields
         document.getElementById('currentPassword').value = '';
         document.getElementById('newPassword').value = '';
         document.getElementById('confirmPassword').value = '';
       } else {
-        throw new Error(response.message || 'Parol o\'zgartirishda xatolik');
+        throw new Error(response.message || getTranslation('manufacturer.settings.messages.error', 'Parol o\'zgartirishda xatolik'));
       }
     } catch (error) {
       // console.error('Change password error:', error);
-      this.showToast('Parol o\'zgartirishda xatolik: ' + error.message, 'error');
+      this.showToast(getTranslation('manufacturer.settings.messages.error', 'Parol o\'zgartirishda xatolik') + ': ' + error.message, 'error');
     } finally {
       this.hideLoading();
     }
@@ -1174,7 +1189,7 @@ class ManufacturerSettings {
     }
     
     // Show success message
-    this.showToast('Kuchli parol yaratildi va kiritildi!', 'success');
+      this.showToast(getTranslation('manufacturer.settings.messages.passwordGenerated', 'Kuchli parol yaratildi va kiritildi!'), 'success');
     
     // Mark as dirty
     this.markAsDirty();

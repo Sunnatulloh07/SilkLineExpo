@@ -17,18 +17,35 @@ body.profile-page-body {
   height: 100vh !important;
 }
 
-/* Disable scroll on parent containers for profile page */
-.profile-page .admin-layout {
-  overflow: hidden !important;
+/* Main layout container - no scroll */
+.admin-layout {
   height: 100vh !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: row !important;
 }
 
-/* Only admin-main should have scroll */
-.profile-page .admin-main {
+/* Sidebar - fixed width, no scroll */
+.admin-sidebar {
+  height: 100vh !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
+  flex-shrink: 0 !important;
+}
+
+/* Main content area - should have scroll */
+.admin-main {
+  flex: 1 !important;
   height: 100vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   content-visibility: auto !important;
+}
+
+/* Admin content wrapper - no additional scroll */
+.admin-content {
+  min-height: 100% !important;
+  overflow: visible !important;
 }
 
 
@@ -37,45 +54,16 @@ body.profile-page-body {
 .main-content,
 .main-content-wrapper,
 .profile-page {
-  max-width: 100vw;
-  overflow-x: hidden;
-  box-sizing: border-box;
-}
-
-/* Fix admin-main container for profile page */
-.admin-main {
-  max-width: calc(100vw - var(--sidebar-width, 280px));
-  width: calc(100vw - var(--sidebar-width, 280px));
-  overflow-x: hidden;
-  box-sizing: border-box;
-  content-visibility: auto !important;
-  min-inline-size: -webkit-fill-available;
-}
-
-.admin-content {
   max-width: 100%;
-  width: 100%;
   overflow-x: hidden;
   box-sizing: border-box;
 }
 
-/* Ensure all child elements respect container width */
-.profile-page *,
-.admin-content *,
-.admin-main * {
-  box-sizing: border-box;
-  max-width: 100%;
-}
 
-/* Prevent any element from causing horizontal scroll */
-.admin-main *,
-.admin-content *,
-.profile-hero-content *,
-.profile-content-grid *,
-.orders-header * {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
+
+
+
+
 
 /* ========================================
    📱 PROFILE HEADER RESPONSIVE FIXES
@@ -105,29 +93,6 @@ body.profile-page-body {
 .profile-overview-section {
   margin-bottom: 2rem;
 }
-/* 
-.profile-hero-card {
-  background: linear-gradient(135deg, var(--primary-color, #FF6A00) 0%, #ff8533 100%);
-  border-radius: 16px;
-  padding: 2rem;
-  color: white;
-  box-shadow: var(--shadow-lg, 0 10px 25px rgba(0, 0, 0, 0.1));
-  position: relative;
-  overflow: hidden;
-} */
-
-.profile-hero-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>');
-  background-size: 30px 30px;
-  transform: rotate(30deg);
-}
-
 .profile-hero-content {
   position: relative;
   z-index: 2;
@@ -189,6 +154,12 @@ body.profile-page-body {
   background: rgba(245, 158, 11, 0.2);
   color: #f59e0b;
   border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.verification-badge.rejected {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 /* ========================================
@@ -312,6 +283,15 @@ body.profile-page-body {
   max-width: 100%;
   overflow: hidden;
   box-sizing: border-box;
+  width: 100%;
+}
+
+/* Responsive grid for smaller screens */
+@media (max-width: 1200px) {
+  .profile-content-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 .profile-left-column,
@@ -319,6 +299,19 @@ body.profile-page-body {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .profile-left-column,
+  .profile-right-column {
+    gap: 1rem;
+  }
 }
 
 /* ========================================
@@ -1204,6 +1197,359 @@ body.profile-page-body {
 }
 
 /* ========================================
+   PAGE LOADING OVERLAY
+   ======================================== */
+
+.page-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.3s ease;
+}
+
+.page-loading-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.page-loading-content {
+  text-align: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 90%;
+}
+
+.page-loading-spinner {
+  margin-bottom: 1.5rem;
+}
+
+.page-loading-spinner i {
+  font-size: 3rem;
+  color: var(--primary-color);
+  animation: spin 1s linear infinite;
+}
+
+.page-loading-content h3 {
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.page-loading-content p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Dark theme support */
+.dark-theme .page-loading-overlay {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.dark-theme .page-loading-content {
+  background: var(--card-bg-dark, #1a1a2e);
+  color: var(--text-primary-dark, #f1f5f9);
+}
+
+.dark-theme .page-loading-content h3 {
+  color: var(--text-primary-dark, #f1f5f9);
+}
+
+.dark-theme .page-loading-content p {
+  color: var(--text-secondary-dark, #94a3b8);
+}
+
+/* ========================================
+   RECENT ITEMS SECTIONS
+   ======================================== */
+
+.recent-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.recent-item {
+  display: block;
+  width: 100%;
+  padding: 1.25rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  margin-bottom: 0.75rem;
+}
+
+.recent-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(255, 106, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.recent-item-image {
+  width: 100%;
+  height: 120px;
+  border-radius: 6px;
+  object-fit: cover;
+  margin-bottom: 1rem;
+  background: var(--bg-secondary);
+}
+
+.recent-item-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #FF6A00, #ff8533);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.recent-item-icon i {
+  font-size: 1.25rem;
+  color: #ffffff;
+}
+
+.recent-item-content {
+  width: 100%;
+}
+
+.recent-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.recent-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.recent-item-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.recent-item-status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.recent-item-status.active {
+  background: var(--success-light);
+  color: var(--success-color);
+}
+
+.recent-item-status.pending {
+  background: var(--warning-light);
+  color: var(--warning-color);
+}
+
+.recent-item-status.completed {
+  background: var(--info-light);
+  color: var(--info-color);
+}
+
+/* New vertical layout styles */
+.item-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.status-active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.status-draft {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.status-inactive {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.status-processing {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.status-confirmed {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.status-cancelled {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.recent-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.detail-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.recent-item-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.recent-item-amount {
+  font-weight: 600;
+  color: var(--success-color);
+  margin-left: 0.5rem;
+}
+
+/* Empty state for recent items */
+.recent-items-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+}
+
+.recent-items-empty i {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+}
+
+.recent-items-empty h4 {
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.recent-items-empty p {
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.recent-items-empty .btn {
+  margin-top: 1rem;
+}
+
+/* Section loading states */
+.section-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+}
+
+.section-loading .loading-spinner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-loading .fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Profile card action links */
+.profile-card-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.profile-card-action:hover {
+  color: var(--primary-dark);
+  text-decoration: none;
+}
+
+.profile-card-action i {
+  font-size: 0.75rem;
+  transition: transform 0.3s ease;
+}
+
+.profile-card-action:hover i {
+  transform: translateX(2px);
+}
+
+/* ========================================
    📱 RESPONSIVE DESIGN
    ======================================== */
 
@@ -1319,7 +1665,6 @@ body.profile-page-body {
   }
   
   .company-stats-quick {
-    flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
     min-width: auto;
@@ -1820,6 +2165,154 @@ body.sidebar-collapsed .profile-page .admin-main {
 [data-theme="dark"] .capability-item {
   background: var(--bg-elevated, #1e293b);
   border-color: var(--border-color, #334155);
+}
+
+/* ========================================
+   📱 COMPREHENSIVE RESPONSIVE DESIGN
+   ======================================== */
+
+/* Mobile First Responsive Design */
+@media (max-width: 768px) {
+  /* Profile hero content - stack vertically */
+  .profile-hero-content {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 1.5rem !important;
+  }
+  
+  .company-logo-section {
+    order: 1;
+  }
+  
+  .company-basic-info {
+    order: 2;
+  }
+  
+  /* Company stats - make smaller on mobile */
+  .stat-item {
+    padding: 0.75rem !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+  
+  .stat-value {
+    font-size: 1.25rem !important;
+  }
+  
+  .stat-label {
+    font-size: 0.75rem !important;
+  }
+  
+  /* Profile content grid - single column */
+  .profile-content-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  
+  /* Profile cards - full width */
+  .profile-card {
+    margin: 0 !important;
+  }
+  
+  /* Company meta - stack vertically */
+  .company-meta {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+  
+  /* Contact buttons - stack vertically */
+  .company-contact-quick {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  .contact-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* Tablet Responsive Design */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Profile hero content - adjust spacing */
+  .profile-hero-content {
+    gap: 2rem !important;
+  }
+  
+  /* Company stats - 2x2 grid */
+  .company-stats-quick {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1rem !important;
+  }
+  
+  /* Profile content grid - single column for better readability */
+  .profile-content-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+}
+
+/* Large Desktop Optimizations */
+@media (min-width: 1400px) {
+  /* Profile hero content - more spacing */
+  .profile-hero-content {
+    gap: 3rem !important;
+  }
+  
+  /* Profile content grid - maintain 2 columns */
+  .profile-content-grid {
+    grid-template-columns: minmax(300px, 40%) 1fr !important;
+    gap: 2rem !important;
+  }
+}
+
+/* Ultra-wide Screen Optimizations */
+@media (min-width: 1920px) {
+  .profile-content-grid {
+    grid-template-columns: minmax(350px, 35%) 1fr !important;
+    gap: 2.5rem !important;
+  }
+  
+  .profile-hero-content {
+    gap: 4rem !important;
+  }
+}
+
+/* ========================================
+   🔧 LAYOUT FIXES & OPTIMIZATIONS
+   ======================================== */
+
+/* Ensure proper scrolling behavior */
+.profile-page {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Fix any potential overflow issues */
+.profile-overview-section,
+.profile-content-grid,
+.profile-hero-card,
+.profile-card {
+  position: relative !important;
+  z-index: 1 !important;
+  padding: 1.2rem;
+}
+
+/* Ensure proper text wrapping */
+.profile-card-content,
+.profile-hero-content,
+.company-basic-info {
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto !important;
+}
+
+/* Fix any potential width issues */
+.profile-page * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 [data-theme="dark"] .capability-item:hover {

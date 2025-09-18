@@ -5016,7 +5016,7 @@
                   <%= t('supplier.contactSupplier') %>
                 </button>
                 
-                <a href="/supplier/<%= product.manufacturer._id %>" class="btn btn-outline-primary">
+                <a href="/supplier/<%= product.manufacturer._id %>" class="btn btn-outline-primary supplier-view-profile-btn">
                   <i class="fas fa-eye"></i>
                   <%= t('supplier.viewProfile') %>
                 </a>
@@ -6862,6 +6862,17 @@ document.addEventListener('DOMContentLoaded', function() {
     opacity: 0.7;
     cursor: not-allowed;
     transform: none !important;
+}
+
+.supplier-view-profile-btn {
+    background: hsl(var(--main)) !important;
+    border-color: hsl(var(--main)) !important;
+    color: hsl(var(--static-white)) !important;
+}
+
+.supplier-view-profile-btn:hover {
+    background: hsl(var(--main-l-200)) !important;
+    border-color: hsl(var(--main-l-200)) !important;
 }
 
 /* Toast Notifications */

@@ -967,59 +967,82 @@ class BuyerService {
     /**
      * Get buyer conversations - Updated to handle both Order and Inquiry contexts
      */
-    async getBuyerConversations(buyerId, filters = {}) {
+    async getBuyerConversations(buyerId, currentManufacturerId = null, filters = {}) {
         try {
             const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
             
-            // Get both orders and inquiries that have messages for this buyer
+            // ✅ YECHIM: Avval barcha buyer'ning order'larini olamiz
+            // Keyin ular orasidan xabarlar borini tekshiramiz
+            
+            // Get ALL orders where buyer is involved (not just those with messages)
+            const allBuyerOrders = await Order.find({
+                buyer: buyerObjectId
+            }).select('_id').lean();
+            
+            const allBuyerInquiries = await Inquiry.find({
+                inquirer: buyerObjectId
+            }).select('_id').lean();
+            
+            // Extract IDs
+            const allOrderIds = allBuyerOrders.map(order => order._id);
+            const allInquiryIds = allBuyerInquiries.map(inquiry => inquiry._id);
+            
+            // Order and inquiry counts processed
+            
+            if (allOrderIds.length === 0 && allInquiryIds.length === 0) {
+                return [];
+            }
+            
+            // Now check which orders/inquiries have messages
             const orderIdsWithMessages = await Message.distinct('orderId', {
-                $or: [
-                    { senderId: buyerObjectId },
-                    { recipientId: buyerObjectId }
-                ],
-                orderId: { $exists: true, $ne: null }
+                orderId: { $in: allOrderIds }
             });
 
             const inquiryIdsWithMessages = await Message.distinct('inquiryId', {
-                $or: [
-                    { senderId: buyerObjectId },
-                    { recipientId: buyerObjectId }
-                ],
-                inquiryId: { $exists: true, $ne: null }
+                inquiryId: { $in: allInquiryIds }
             });
 
-            if (orderIdsWithMessages.length === 0 && inquiryIdsWithMessages.length === 0) {
-                return [];
-            }
+            // If no messages yet, still show orders for potential conversation
+            // This ensures buyer can see all their orders, even without messages
 
-            // Get orders with their sellers
+            // Get orders with their sellers - Show ALL buyer orders, with or without messages
             let orders = [];
-            if (orderIdsWithMessages.length > 0) {
-            const orderQuery = {
-                _id: { $in: orderIdsWithMessages },
-                buyer: buyerObjectId
-            };
+            if (allOrderIds.length > 0) {
+                const orderQuery = {
+                    _id: { $in: allOrderIds },
+                    buyer: buyerObjectId
+                };
 
-            if (filters.search) {
-                orderQuery.$or = [
-                    { orderNumber: { $regex: filters.search, $options: 'i' } }
-                ];
-            }
+                // Filter by current manufacturer if provided
+                if (currentManufacturerId) {
+                    orderQuery.seller = new mongoose.Types.ObjectId(currentManufacturerId);
+                }
+
+                if (filters.search) {
+                    orderQuery.$or = [
+                        { orderNumber: { $regex: filters.search, $options: 'i' } }
+                    ];
+                }
 
                 orders = await Order.find(orderQuery)
-                .populate('seller', 'companyName email avatar companyLogo phone')
-                .sort({ updatedAt: -1 })
-                .limit(50)
-                .lean();
+                    .populate('seller', 'companyName email avatar companyLogo phone')
+                    .sort({ updatedAt: -1 })
+                    .limit(50)
+                    .lean();
             }
 
-            // Get inquiries with their suppliers
+            // Get inquiries with their suppliers - Show ALL buyer inquiries, with or without messages
             let inquiries = [];
-            if (inquiryIdsWithMessages.length > 0) {
+            if (allInquiryIds.length > 0) {
                 const inquiryQuery = {
-                    _id: { $in: inquiryIdsWithMessages },
+                    _id: { $in: allInquiryIds },
                     inquirer: buyerObjectId
                 };
+
+                // Filter by current manufacturer if provided
+                if (currentManufacturerId) {
+                    inquiryQuery.supplier = new mongoose.Types.ObjectId(currentManufacturerId);
+                }
 
                 if (filters.search) {
                     inquiryQuery.$or = [
@@ -1066,6 +1089,7 @@ class BuyerService {
                         continue;
                     }
 
+                    // Get latest message (may not exist for new orders)
                     const latestMessage = await Message.findOne({ 
                         orderId: order._id 
                     })
@@ -1073,37 +1097,50 @@ class BuyerService {
                     .populate('senderId', 'companyName')
                     .lean();
 
+                    // Count unread messages for buyer
                     const unreadCount = await Message.countDocuments({
                         orderId: order._id,
                         recipientId: buyerObjectId,
                         status: { $in: ['sent', 'delivered'] }
                     });
 
+                    // Determine conversation priority based on messages
+                    const hasMessages = !!latestMessage;
+                    const hasUnreadMessages = unreadCount > 0;
+
                     const conversation = {
                         id: order._id.toString(),
                         type: 'order',
                         orderId: order._id,
                         orderNumber: order.orderNumber || `ORD-${order._id.toString().substr(-6)}`,
-                        supplier: {
-                            id: order.seller._id,
-                            name: order.seller.companyName || 'Unknown Company',
+                        manufacturer: {
+                            _id: order.seller._id,
+                            companyName: order.seller.companyName || 'Unknown Company',
                             email: order.seller.email || '',
                             avatar: order.seller.avatar || '/assets/images/default-company.svg',
                             companyLogo: order.seller.companyLogo || null,
                             phone: order.seller.phone || null
                         },
                         lastMessage: {
-                            content: latestMessage ? latestMessage.content : 'No messages yet',
+                            content: latestMessage ? 
+                                (latestMessage.content.length > 50 ? 
+                                    latestMessage.content.substring(0, 50) + '...' : 
+                                    latestMessage.content) : 
+                                'Start conversation about this order',
                             timestamp: latestMessage ? latestMessage.createdAt : order.createdAt,
                             sender: latestMessage && latestMessage.senderId ? 
                                 (latestMessage.senderId.companyName || 'Unknown') : 'System',
                             type: latestMessage ? latestMessage.type : 'system'
                         },
                         unreadCount,
+                        hasMessages, // Flag to indicate if conversation has messages
+                        hasUnreadMessages, // Flag to indicate if there are unread messages
                         isOnline: false,
                         orderStatus: order.status || 'pending',
                         orderValue: order.totalAmount || 0,
-                        currency: order.currency || 'USD'
+                        currency: order.currency || 'USD',
+                        // Add sorting priority
+                        sortPriority: hasUnreadMessages ? 1 : (hasMessages ? 2 : 3)
                     };
 
                     conversations.push(conversation);
@@ -1120,6 +1157,7 @@ class BuyerService {
                         continue;
                     }
 
+                    // Get latest message (may not exist for new inquiries)
                     const latestMessage = await Message.findOne({ 
                         inquiryId: inquiry._id 
                     })
@@ -1127,37 +1165,50 @@ class BuyerService {
                     .populate('senderId', 'companyName')
                     .lean();
 
+                    // Count unread messages for buyer
                     const unreadCount = await Message.countDocuments({
                         inquiryId: inquiry._id,
                         recipientId: buyerObjectId,
                         status: { $in: ['sent', 'delivered'] }
                     });
 
+                    // Determine conversation priority based on messages
+                    const hasMessages = !!latestMessage;
+                    const hasUnreadMessages = unreadCount > 0;
+
                     const conversation = {
                         id: inquiry._id.toString(),
                         type: 'inquiry',
                         inquiryId: inquiry._id,
                         inquiryNumber: inquiry.inquiryNumber || `INQ-${inquiry._id.toString().substr(-6)}`,
-                        supplier: {
-                            id: inquiry.supplier._id,
-                            name: inquiry.supplier.companyName || 'Unknown Company',
+                        manufacturer: {
+                            _id: inquiry.supplier._id,
+                            companyName: inquiry.supplier.companyName || 'Unknown Company',
                             email: inquiry.supplier.email || '',
                             avatar: inquiry.supplier.avatar || '/assets/images/default-company.svg',
                             companyLogo: inquiry.supplier.companyLogo || null,
                             phone: inquiry.supplier.phone || null
                         },
                         lastMessage: {
-                            content: latestMessage ? latestMessage.content : inquiry.message || 'No messages yet',
+                            content: latestMessage ? 
+                                (latestMessage.content.length > 50 ? 
+                                    latestMessage.content.substring(0, 50) + '...' : 
+                                    latestMessage.content) : 
+                                (inquiry.message ? inquiry.message.substring(0, 50) + '...' : 'Start conversation about this inquiry'),
                             timestamp: latestMessage ? latestMessage.createdAt : inquiry.createdAt,
                             sender: latestMessage && latestMessage.senderId ? 
                                 (latestMessage.senderId.companyName || 'Unknown') : 'System',
                             type: latestMessage ? latestMessage.type : 'system'
                         },
                         unreadCount,
+                        hasMessages, // Flag to indicate if conversation has messages
+                        hasUnreadMessages, // Flag to indicate if there are unread messages
                         isOnline: false,
                         inquiryStatus: inquiry.status || 'open',
                         subject: inquiry.subject || 'Inquiry',
-                        priority: inquiry.priority || 'medium'
+                        priority: inquiry.priority || 'medium',
+                        // Add sorting priority
+                        sortPriority: hasUnreadMessages ? 1 : (hasMessages ? 2 : 3)
                     };
 
                     conversations.push(conversation);
@@ -1166,8 +1217,19 @@ class BuyerService {
                 }
             }
 
-            // Sort all conversations by last message timestamp
-            conversations.sort((a, b) => new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp));
+            // ✅ YANGI SORTING: Telegram-style sorting with unread messages priority
+            conversations.sort((a, b) => {
+                // Priority 1: Unread messages first
+                if (a.hasUnreadMessages && !b.hasUnreadMessages) return -1;
+                if (!a.hasUnreadMessages && b.hasUnreadMessages) return 1;
+                
+                // Priority 2: Conversations with messages vs without messages
+                if (a.hasMessages && !b.hasMessages) return -1;
+                if (!a.hasMessages && b.hasMessages) return 1;
+                
+                // Priority 3: Sort by timestamp within same category
+                return new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp);
+            });
 
             // Apply additional filters
             let filteredConversations = [...conversations];
@@ -1193,12 +1255,86 @@ class BuyerService {
                 );
             }
 
-            return filteredConversations;
+            // Conversation types processed before grouping
+
+            // ✅ YANGI: Group conversations by manufacturer to handle multiple conversation types
+            const groupedConversations = this.groupConversationsByManufacturer(filteredConversations);
+            
+            // Grouped conversations processed
+            
+            return groupedConversations;
 
         } catch (error) {
             this.logger.error('❌ Error getting buyer conversations:', error);
             throw error;
         }
+    }
+
+    /**
+     * Group conversations by manufacturer to handle multiple conversation types
+     * This allows showing separate Product Chat and Order Chat for same manufacturer
+     */
+    groupConversationsByManufacturer(conversations) {
+        const grouped = {};
+               
+        conversations.forEach(conversation => {
+            const manufacturerId = conversation.manufacturer._id;
+            const manufacturerName = conversation.manufacturer.companyName;
+            
+            // Create manufacturer group if not exists
+            if (!grouped[manufacturerId]) {
+                grouped[manufacturerId] = {
+                    _id: manufacturerId,
+                    manufacturer: {
+                        id: manufacturerId,
+                        name: manufacturerName,
+                        email: conversation.manufacturer.email,
+                        avatar: conversation.manufacturer.avatar,
+                        companyLogo: conversation.manufacturer.companyLogo,
+                        phone: conversation.manufacturer.phone
+                    },
+                    conversations: [],
+                    totalUnreadCount: 0,
+                    lastActivity: null,
+                    hasProductChat: false,
+                    hasOrderChats: []
+                };
+            }
+            
+            // Add conversation to manufacturer group
+            grouped[manufacturerId].conversations.push(conversation);
+            grouped[manufacturerId].totalUnreadCount += conversation.unreadCount || 0;
+            
+            // Track conversation types
+            if (conversation.type === 'product') {
+                grouped[manufacturerId].hasProductChat = true;
+            } else if (conversation.type === 'order') {
+                grouped[manufacturerId].hasOrderChats.push(conversation);
+            }
+            
+            // Update last activity (only if lastMessage exists)
+            if (conversation.lastMessage && conversation.lastMessage.timestamp) {
+                const conversationTime = new Date(conversation.lastMessage.timestamp);
+                if (!grouped[manufacturerId].lastActivity || conversationTime > new Date(grouped[manufacturerId].lastActivity)) {
+                    grouped[manufacturerId].lastActivity = conversation.lastMessage.timestamp;
+                }
+            }
+        });
+        
+        // Convert to array and sort
+        const result = Object.values(grouped);
+        
+        // Sort by last activity and unread count
+        result.sort((a, b) => {
+            // Priority 1: Unread messages first
+            if (a.totalUnreadCount > 0 && b.totalUnreadCount === 0) return -1;
+            if (a.totalUnreadCount === 0 && b.totalUnreadCount > 0) return 1;
+            
+            // Priority 2: Sort by last activity
+            return new Date(b.lastActivity) - new Date(a.lastActivity);
+        });
+        
+        return result;
     }
 
     /**
@@ -1236,6 +1372,8 @@ class BuyerService {
      */
     async getBuyerConversations(buyerId, currentManufacturerId = null, filters = {}) {
         try {
+            // Method call logged
+            
             const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
             
             // Get all orders for this buyer
@@ -1307,56 +1445,56 @@ class BuyerService {
                 });
             }
 
-            // Process orders (order chats)
+            // Process orders (order chats) - ALWAYS process ALL orders
             for (const order of orders) {
                 const manufacturerId = order.seller._id.toString();
                 
-                // Check if this manufacturer already has a conversation (inquiry or order)
-                if (!processedManufacturers.has(manufacturerId)) {
-                    processedManufacturers.add(manufacturerId);
-                    
-                    // Check if this is the target manufacturer from URL
-                    const isTargetManufacturer = isSpecificManufacturerPage && manufacturerId === currentManufacturerId;
-                    
-                    // Get messages for this order first
-                    const messages = await Message.find({ orderId: order._id })
-                        .populate('senderId', 'companyName email')
-                        .populate('recipientId', 'companyName email')
-                        .sort({ createdAt: -1 })
-                        .lean();
-                    
-                    if (isGeneralMessagesPage) {
-                        // General page: Only show conversations with actual messages
-                        if (messages.length === 0) {
-                            continue; // Skip conversations without messages
-                        }
-                    } else if (isSpecificManufacturerPage) {
-                        // Specific manufacturer page: Show conversations with messages OR target manufacturer
-                        if (messages.length === 0 && !isTargetManufacturer) {
-                            continue; // Skip conversations without messages unless it's the target manufacturer
-                        }
-                    }
-                    
-                    // Get unread count
-                    const unreadCount = await Message.countDocuments({
-                        orderId: order._id,
-                        recipientId: buyerObjectId,
-                        status: { $in: ['sent', 'delivered'] }
-                    });
-                    
-                    conversations.push({
-                        _id: order._id,
-                        type: 'order',
-                        manufacturer: order.seller,
-                        lastMessage: messages.length > 0 ? messages[0] : null,
-                        unreadCount: unreadCount,
-                        isOnline: false,
-                        updatedAt: order.updatedAt,
-                        orderNumber: order.orderNumber,
-                        orderStatus: order.status,
-                        orderAmount: order.totalAmount
-                    });
+                // ✅ SENIOR LOGIC: Always process orders, even if manufacturer has product chat
+                // Reason: One manufacturer can have BOTH product chat AND order chat
+                
+                // Check if this is the target manufacturer from URL
+                const isTargetManufacturer = isSpecificManufacturerPage && manufacturerId === currentManufacturerId;
+                
+                // Get messages for this order first
+                const messages = await Message.find({ orderId: order._id })
+                    .populate('senderId', 'companyName email')
+                    .populate('recipientId', 'companyName email')
+                    .sort({ createdAt: -1 })
+                    .lean();
+                
+                    // Order messages processed
+                
+                // ✅ SENIOR LOGIC: Order conversations visibility rules
+                // 1. If URL has manufacturer & order: ALWAYS show (even without messages)
+                // 2. If URL has only manufacturer: Show only if has messages
+                // 3. If general page: Show only if has messages
+                
+                const hasMessages = messages.length > 0;
+                const shouldShowOrder = hasMessages || isTargetManufacturer;
+                
+                if (!shouldShowOrder) {
+                    continue; // Skip this order
                 }
+                
+                // Get unread count
+                const unreadCount = await Message.countDocuments({
+                    orderId: order._id,
+                    recipientId: buyerObjectId,
+                    status: { $in: ['sent', 'delivered'] }
+                });
+                
+                conversations.push({
+                    _id: order._id,
+                    type: 'order',
+                    manufacturer: order.seller,
+                    lastMessage: messages.length > 0 ? messages[0] : null,
+                    unreadCount: unreadCount,
+                    isOnline: false,
+                    updatedAt: order.updatedAt,
+                    orderNumber: order.orderNumber,
+                    orderStatus: order.status,
+                    orderAmount: order.totalAmount
+                });
             }
 
             // Sort conversations by last activity
@@ -1385,7 +1523,10 @@ class BuyerService {
                  }
             }
 
-            return conversations;
+            // Group conversations by manufacturer
+            const groupedConversations = this.groupConversationsByManufacturer(conversations);
+
+            return groupedConversations;
 
         } catch (error) {
             this.logger.error('❌ Error getting conversations:', error);
@@ -1411,6 +1552,8 @@ class BuyerService {
 
             const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
             
+            // Method call logged
+            
             // Get both orders and inquiries that have messages for this buyer
             const orderIdsWithMessages = await Message.distinct('orderId', {
                 $or: [
@@ -1427,6 +1570,8 @@ class BuyerService {
                 ],
                 inquiryId: { $exists: true, $ne: null }
             });
+            
+            // Message counts processed
             
             // Get orders with their sellers
             let orders = [];
@@ -1515,9 +1660,9 @@ class BuyerService {
                         id: order._id.toString(),
                         orderId: order._id.toString(),
                         orderNumber: order.orderNumber || `ORD-${order._id.toString().substr(-6)}`,
-                        supplier: {
-                            id: order.seller._id,
-                            name: order.seller.companyName || 'Unknown Company',
+                        manufacturer: {
+                            _id: order.seller._id,
+                            companyName: order.seller.companyName || 'Unknown Company',
                             email: order.seller.email || '',
                             avatar: order.seller.avatar || '/assets/images/default-company.svg',
                             companyLogo: order.seller.companyLogo || null,
@@ -1591,9 +1736,9 @@ class BuyerService {
                         type: 'inquiry',
                         inquiryId: inquiry._id,
                         inquiryNumber: inquiry.inquiryNumber || `INQ-${inquiry._id.toString().substr(-6)}`,
-                        supplier: {
-                            id: inquiry.supplier._id,
-                            name: inquiry.supplier.companyName || 'Unknown Company',
+                        manufacturer: {
+                            _id: inquiry.supplier._id,
+                            companyName: inquiry.supplier.companyName || 'Unknown Company',
                             email: inquiry.supplier.email || '',
                             avatar: inquiry.supplier.avatar || '/assets/images/default-company.svg',
                             companyLogo: inquiry.supplier.companyLogo || null,
@@ -4085,8 +4230,8 @@ class BuyerService {
                 inquiryId: inquiry._id,
                 senderId: buyerId,
                 recipientId: inquiryData.supplierId,
-                message: inquiryData.message,
-                messageType: 'inquiry',
+                content: inquiryData.message,
+                type: 'text',
                 status: 'sent'
             });
 

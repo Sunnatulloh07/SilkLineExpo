@@ -509,7 +509,7 @@
                                 </h3>
                                 
                                 <div class="row g-4">
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 ">
                                         <div class="info-item">
                                             <strong><%= typeof t === 'function' ? t('supplier.businessType') : 'Business Type' %>:</strong>
                                             <div class="d-flex align-items-center mt-2">
@@ -848,7 +848,7 @@
                                     <!-- Profile Views -->
                                     <div class="col-md-4 col-sm-6">
                                         <div class="insight-card  p-3 rounded-3 text-center">
-                                            <div class="insight-number h5 text-secondary mb-1"><%= (supplier.profileViews || 0).toLocaleString() %></div>
+                                            <div class="insight-number h5 text-success mb-1"><%= (supplier.profileViews || 0).toLocaleString() %></div>
                                             <div class="insight-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.profileViews') : 'Profile Views' %></div>
                                         </div>
                                     </div>
@@ -856,7 +856,7 @@
                                     <!-- Member Since -->
                                     <div class="col-md-4 col-sm-6">
                                         <div class="insight-card  p-3 rounded-3 text-center">
-                                            <div class="insight-number h5 text-dark mb-1"><%= supplier.createdAt ? new Date(supplier.createdAt).getFullYear() : 'N/A' %></div>
+                                            <div class="insight-number h5 text-primary mb-1"><%= supplier.createdAt ? new Date(supplier.createdAt).getFullYear() : 'N/A' %></div>
                                             <div class="insight-label text-muted font-14"><%= typeof t === 'function' ? t('supplier.memberSince') : 'Member Since' %></div>
                                         </div>
                                     </div>
@@ -1190,7 +1190,7 @@
 <!-- Professional Supplier Profile JavaScript -->
 <script src="/js/supplier-profile.js"></script>
 
-// Professional User Data Injection
+
 <script type="application/json" id="user-data">
 <%- JSON.stringify(user) %>
 </script>

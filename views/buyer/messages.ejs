@@ -98,17 +98,16 @@
 }
 
 .conversation-item:hover {
-  background: #111827 !important;
+  background: hsl(var(--bs-gray-300)) !important;
 }
 
 .conversation-item.active {
   background: hsl(var(--main-l-100)) !important;
-  border-left: 3px solid #ff6a00;
+  border-left: 3px solid #ff6a00 !important;
+
 }
 
-[data-theme="dark"] .conversation-item.active {
-  background: hsl(var(--main-l-50)) !important;
-}
+
 
 .conversation-item.current-manufacturer {
   border-width: 2px !important;
@@ -207,7 +206,7 @@
    overflow-y: auto;
    overflow-x: hidden;
    width: 100%;
-   padding-right: 4px;
+   padding: 4px;
  }
 
 /* Main Chat Area - Right Panel Structure */
@@ -4434,6 +4433,14 @@ class ProfessionalBuyerMessages {
       
       if (data.success) {
         this.conversations = data.data.conversations;
+        
+        // ✅ DEBUG: Log conversation data structure (remove in production)
+        // console.log('🔍 Conversations data structure:', {
+        //   length: this.conversations.length,
+        //   firstItem: this.conversations[0],
+        //   isGrouped: this.conversations.length > 0 && this.conversations[0].manufacturer && this.conversations[0].conversations
+        // });
+        
         this.renderConversations();
         
         // Show search results count
@@ -4493,6 +4500,14 @@ class ProfessionalBuyerMessages {
       
       if (data.success) {
         this.conversations = data.data.conversations;
+        
+        // ✅ DEBUG: Log conversation data structure (remove in production)
+        // console.log('🔍 Load Conversations data structure:', {
+        //   length: this.conversations.length,
+        //   firstItem: this.conversations[0],
+        //   isGrouped: this.conversations.length > 0 && this.conversations[0].manufacturer && this.conversations[0].conversations
+        // });
+        
         this.renderConversations();
         
         // If we have current manufacturer from URL, keep header active
@@ -4752,6 +4767,9 @@ class ProfessionalBuyerMessages {
           // If messages exist, render them
           this.renderMessages();
         }
+        
+        // ✅ Load conversations to update sidebar
+        this.loadConversations();
         
         this.hideLoadingState('conversations');
         this.hideLoadingState('messages');
@@ -5173,6 +5191,121 @@ class ProfessionalBuyerMessages {
     this.setupConversationClickHandlers();
   }
 
+  // ✅ YANGI: Render grouped conversations by manufacturer
+  renderGroupedConversations() {
+    const conversationsList = document.querySelector('.conversations-list');
+    if (!conversationsList) return;
+
+    // Grouped conversations data processed
+
+    let conversationsHTML = '';
+
+    this.conversations.forEach((manufacturerGroup) => {
+      const manufacturer = manufacturerGroup.manufacturer;
+      const conversations = manufacturerGroup.conversations;
+      const totalUnreadCount = manufacturerGroup.totalUnreadCount;
+      
+      // Manufacturer object processed
+      
+      // Product Chat (if exists)
+      const productChat = conversations.find(conv => conv.type === 'product');
+      if (productChat) {
+        const isActive = this.currentConversationId === productChat.id && this.conversationType === 'inquiry';
+        const lastMessageText = productChat.lastMessage ? 
+          (productChat.lastMessage.content.length > 40 ? productChat.lastMessage.content.substring(0, 40) + '...' : productChat.lastMessage.content) : 
+          'Start product conversation';
+
+        conversationsHTML += `
+          <div class="conversation-item ${isActive ? 'active' : ''}" 
+               data-conversation-id="${productChat.id}"
+               data-manufacturer-id="${manufacturer.id}"
+               data-type="inquiry"
+               data-url="/buyer/messages?manufacturer=${manufacturer.id}">
+            <div class="conversation-content">
+              <div class="conversation-avatar">
+                ${manufacturer.companyLogo && manufacturer.companyLogo.url ? 
+                  `<img src="${manufacturer.companyLogo.url}" alt="${manufacturer.name || manufacturer.companyName || 'Unknown Company'}" class="avatar-img" onerror="handleLogoError(this)">` :
+                  `<img src="/assets/images/avatars/default-company.png" alt="${manufacturer.name || manufacturer.companyName || 'Unknown Company'}" class="avatar-img">`
+                }
+                <div class="conversation-status ${productChat.isOnline ? 'online' : 'offline'}"></div>
+              </div>
+              <div class="conversation-details">
+                <div class="conversation-header">
+                  <div class="conversation-title">
+                    <h4 class="conversation-name">${manufacturer.name || manufacturer.companyName || 'Unknown Company'}</h4>
+                    <div class="conversation-badges">
+                      <span class="chat-type-badge product-chat">Product Chat</span>
+                      ${productChat.unreadCount > 0 ? `<span class="unread-badge">${productChat.unreadCount}</span>` : ''}
+                    </div>
+                  </div>
+                  <span class="conversation-time">${productChat.lastMessage ? this.formatTime(productChat.lastMessage.createdAt) : 'No messages'}</span>
+                </div>
+                <div class="conversation-preview">
+                  <p class="last-message">${lastMessageText}</p>
+                  </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // ✅ DUPLICATE CODE REMOVED - Using first productChat block
+
+      // Order Chats
+      const orderChats = conversations.filter(conv => conv.type === 'order');
+      orderChats.forEach((orderChat) => {
+        const isActive = this.currentConversationId === orderChat._id && this.conversationType === 'order';
+        const lastMessageText = orderChat.lastMessage ? 
+          (orderChat.lastMessage.content.length > 40 ? orderChat.lastMessage.content.substring(0, 40) + '...' : orderChat.lastMessage.content) : 
+          'Start order conversation';
+
+        conversationsHTML += `
+          <div class="conversation-item ${isActive ? 'active' : ''}" 
+               data-conversation-id="${orderChat._id}"
+               data-manufacturer-id="${manufacturer.id}"
+               data-type="order"
+               data-url="/buyer/messages?manufacturer=${manufacturer.id}&order=${orderChat._id}">
+            <div class="conversation-content">
+              <div class="conversation-avatar">
+                ${manufacturer.companyLogo && manufacturer.companyLogo.url ? 
+                  `<img src="${manufacturer.companyLogo.url}" alt="${manufacturer.name || manufacturer.companyName || 'Unknown Company'}" class="avatar-img" onerror="handleLogoError(this)">` :
+                  `<img src="/assets/images/avatars/default-company.png" alt="${manufacturer.name || manufacturer.companyName || 'Unknown Company'}" class="avatar-img">`
+                }
+                <div class="conversation-status ${orderChat.isOnline ? 'online' : 'offline'}"></div>
+              </div>
+              <div class="conversation-details">
+                <div class="conversation-header">
+                  <div class="conversation-title">
+                    <h4 class="conversation-name">${manufacturer.name || manufacturer.companyName || 'Unknown Company'}</h4>
+                    <div class="conversation-badges">
+                      <span class="chat-type-badge order-chat">Order Chat</span>
+                      ${orderChat.unreadCount > 0 ? `<span class="unread-badge">${orderChat.unreadCount}</span>` : ''}
+                    </div>
+                  </div>
+                  <span class="conversation-time">${orderChat.lastMessage ? this.formatTime(orderChat.lastMessage.createdAt) : 'No messages'}</span>
+                </div>
+                <div class="conversation-preview">
+                  <p class="last-message">${lastMessageText}</p>
+                   <span class="status-badge ${orderChat.orderStatus || ''}">${orderChat.orderStatus ? this.formatStatus(orderChat.orderStatus) : ''}</span>
+                </div>  
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      conversationsHTML += `
+          </div>
+        </div>
+      `;
+    });
+
+    conversationsList.innerHTML = conversationsHTML;
+    
+    // Setup click handlers
+    this.setupConversationClickHandlers();
+  }
+
   // Render conversations in simple list format
   renderConversations() {
     const conversationsList = document.querySelector('.conversations-list');
@@ -5193,6 +5326,23 @@ class ProfessionalBuyerMessages {
       return;
     }
 
+    // ✅ YANGI: Check if conversations are grouped by manufacturer
+    // Backend returns grouped data with manufacturer and conversations properties
+    const isGrouped = this.conversations.length > 0 && 
+                     this.conversations[0].manufacturer && 
+                     this.conversations[0].conversations &&
+                     Array.isArray(this.conversations[0].conversations);
+    
+    // Grouping check processed
+    
+    if (isGrouped) {
+      // console.log('✅ Using grouped conversations render');
+      this.renderGroupedConversations();
+      return;
+    }
+    
+    // console.log('⚠️ Using simple conversations render');
+
     let conversationsHTML = '';
 
     this.conversations.forEach((conversation, index) => {
@@ -5201,7 +5351,7 @@ class ProfessionalBuyerMessages {
       const lastMessage = conversation.lastMessage;
       const lastMessageText = lastMessage ? 
         (lastMessage.content.length > 50 ? lastMessage.content.substring(0, 50) + '...' : lastMessage.content) : 
-        'No messages yet';
+        (conversation.hasMessages ? 'No messages yet' : 'Start conversation');
       
       // Determine chat type and icon
       const chatType = conversation.type === 'product' ? 'Product Chat' : `Order ${conversation.orderNumber}`;
@@ -5236,11 +5386,12 @@ class ProfessionalBuyerMessages {
               <div class="conversation-meta">
                 <span class="conversation-type">${chatType}</span>
                 ${conversation.unreadCount > 0 ? `<span class="unread-badge">${conversation.unreadCount}</span>` : ''}
+                ${!conversation.hasMessages ? `<span class="new-conversation-badge">New</span>` : ''}
               </div>
             </div>
             <div class="conversation-preview">
               <p class="last-message">${lastMessageText}</p>
-              <span class="message-time">${this.formatMessageTime(conversation.updatedAt)}</span>
+              <span class="message-time">${this.formatTime(conversation.updatedAt)}</span>
             </div>
           </div>
           <div class="conversation-arrow">
@@ -5279,11 +5430,17 @@ class ProfessionalBuyerMessages {
     const conversationType = conversationItem.dataset.type;
     const manufacturerId = conversationItem.dataset.manufacturerId;
     const orderId = conversationItem.dataset.orderId;
+    const conversationId = conversationItem.dataset.conversationId;
     
     // Update active state
     const allItems = document.querySelectorAll('.conversation-item');
     allItems.forEach(ci => ci.classList.remove('active'));
     conversationItem.classList.add('active');
+    
+    // ✅ Mark messages as read when clicking on conversation
+    if (conversationId && conversationType) {
+      this.markMessagesAsRead(conversationId, conversationType);
+    }
     
     // Navigate to the chat
     if (url) {
@@ -5295,143 +5452,7 @@ class ProfessionalBuyerMessages {
     }
   }
 
-  // Render conversations in sidebar
-  renderConversations() {
-    const conversationsList = document.querySelector('.conversations-list');
-    if (!conversationsList) return;
-
-
-
-    if (this.conversations.length === 0) {
-      conversationsList.innerHTML = `
-        <div class="no-conversations">
-          <div class="no-conversations-icon">
-            <i class="fas fa-comments"></i>
-        </div>
-          <h4>${window.messageTranslations.sidebar.noConversations}</h4>
-          <p>${window.messageTranslations.sidebar.noConversationsDesc}</p>
-      </div>
-    `;
-      return;
-    }
-
-
-
-    // Separate current manufacturer and other conversations
-    const currentManufacturerId = this.getCurrentManufacturerId();
-    const currentConversations = this.conversations.filter(conv => conv.manufacturer._id === currentManufacturerId);
-    const otherConversations = this.conversations.filter(conv => conv.manufacturer._id !== currentManufacturerId);
-
-    // Show current manufacturer at top if manufacturer is selected (regardless of message history)
-    const shouldShowCurrentAtTop = currentConversations.length > 0 && currentManufacturerId;
-
-
-
-    let conversationsHTML = '';
-
-    // Show current manufacturer conversations at top if manufacturer is selected
-    if (shouldShowCurrentAtTop) {
-      currentConversations.forEach((currentConversation, index) => {
-        conversationsHTML += `
-          <div class="conversation-item current-manufacturer ${currentConversation._id === this.currentConversationId ? 'active' : ''}" 
-               data-conversation-id="${currentConversation._id}"
-               data-conversation-index="${index}"
-               data-supplier-id="${currentConversation.manufacturer._id}"
-               data-type="${currentConversation.type || 'product'}"
-               data-manufacturer-id="${currentConversation.manufacturer._id}"
-               data-order-id="${currentConversation.type === 'order' ? currentConversation._id : ''}"
-               data-url="${currentConversation.type === 'order' ? `/buyer/messages?manufacturer=${currentConversation.manufacturer._id}&order=${currentConversation._id}` : `/buyer/messages?manufacturer=${currentConversation.manufacturer._id}`}">
-          <div class="conversation-content">
-            <div class="conversation-avatar">
-              ${currentConversation.manufacturer.companyLogo && currentConversation.manufacturer.companyLogo.url ? 
-                `<img src="${currentConversation.manufacturer.companyLogo.url}" alt="${currentConversation.manufacturer.companyName}" class="avatar-img" onerror="handleLogoError(this)">` :
-                currentConversation.manufacturer.avatar && currentConversation.manufacturer.avatar !== '/assets/images/default-company.svg' ?
-                  `<img src="${currentConversation.manufacturer.avatar}" alt="${currentConversation.manufacturer.companyName}" class="avatar-img" onerror="handleLogoError(this)">` :
-                  `<div class="logo-placeholder"><i class="fas fa-building"></i></div>`
-              }
-              <div class="conversation-status ${currentConversation.isOnline ? 'online' : 'offline'}"></div>
-            </div>
-            <div class="conversation-details">
-              <div class="conversation-header">
-                <div class="conversation-title">
-                  <h4 class="conversation-name">${currentConversation.manufacturer.companyName}</h4>
-                  <div class="conversation-badges">
-                    <span class="chat-type-badge ${currentConversation.type === 'product' ? 'product-chat' : 'order-chat'}">
-                      ${currentConversation.type === 'product' ? 'Product Chat' : `Order Chat`}
-                    </span>
-                    ${currentConversation.unreadCount > 0 ? `<span class="unread-badge">${currentConversation.unreadCount}</span>` : ''}
-                  </div>
-                </div>
-                <span class="conversation-time">${currentConversation.lastMessage ? this.formatTime(currentConversation.lastMessage.createdAt) : ''}</span>
-              </div>
-              <div class="conversation-preview">
-                <p class="last-message">${currentConversation.lastMessage ? this.formatLastMessageContent(currentConversation.lastMessage) : 'No messages yet'}</p>
-                ${currentConversation.unreadCount > 0 ? `<span class="unread-badge">${currentConversation.unreadCount}</span>` : ''}
-              </div>
-              <div class="conversation-meta">
-                <span class="order-info">${currentConversation.orderNumber || ''}</span>
-                <span class="status-badge ${currentConversation.orderStatus || ''}">${currentConversation.orderStatus ? this.formatStatus(currentConversation.orderStatus) : ''}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-      });
-    }
-
-    // Show other conversations (already filtered to exclude current manufacturer)
-    const conversationsToShow = otherConversations;
-    conversationsToShow.forEach((conv, index) => {
-      const isCurrent = false; // Current manufacturer is already shown at top if needed
-      conversationsHTML += `
-        <div class="conversation-item ${isCurrent ? 'current-manufacturer' : ''} ${conv._id === this.currentConversationId ? 'active' : ''}" 
-             data-conversation-id="${conv._id}"
-             data-conversation-index="${index}"
-             data-supplier-id="${conv.manufacturer._id}"
-             data-type="${conv.type || 'product'}"
-             data-manufacturer-id="${conv.manufacturer._id}"
-             data-order-id="${conv.type === 'order' ? conv._id : ''}"
-             data-url="${conv.type === 'order' ? `/buyer/messages?manufacturer=${conv.manufacturer._id}&order=${conv._id}` : `/buyer/messages?manufacturer=${conv.manufacturer._id}`}">
-          <div class="conversation-content">
-            <div class="conversation-avatar">
-              ${conv.manufacturer.companyLogo && conv.manufacturer.companyLogo.url ? 
-                `<img src="${conv.manufacturer.companyLogo.url}" alt="${conv.manufacturer.companyName}" class="avatar-img" onerror="handleLogoError(this)">` :
-                conv.manufacturer.avatar && conv.manufacturer.avatar !== '/assets/images/default-company.svg' ?
-                  `<img src="${conv.manufacturer.avatar}" alt="${conv.manufacturer.companyName}" class="avatar-img" onerror="handleLogoError(this)">` :
-                  `<div class="logo-placeholder"><i class="fas fa-building"></i></div>`
-              }
-              <div class="conversation-status ${conv.isOnline ? 'online' : 'offline'}"></div>
-            </div>
-            <div class="conversation-details">
-              <div class="conversation-header">
-                <div class="conversation-title">
-                  <h4 class="conversation-name">${conv.manufacturer.companyName}</h4>
-                  <div class="conversation-badges">
-                    <span class="chat-type-badge ${conv.type === 'product' ? 'product-chat' : 'order-chat'}">
-                      ${conv.type === 'product' ? 'Product Chat' : `Order Chat`}
-                    </span>
-                    ${conv.unreadCount > 0 ? `<span class="unread-badge">${conv.unreadCount}</span>` : ''}
-                  </div>
-                </div>
-                <span class="conversation-time">${conv.lastMessage ? this.formatTime(conv.lastMessage.createdAt) : ''}</span>
-              </div>
-              <div class="conversation-preview">
-                <p class="last-message">${conv.lastMessage ? this.formatLastMessageContent(conv.lastMessage) : 'No messages yet'}</p>
-                ${conv.unreadCount > 0 ? `<span class="last-message-unread-badge">${conv.unreadCount}</span>` : ''}
-              </div>
-              <div class="conversation-meta">
-                <span class="order-info">${conv.orderNumber || ''}</span>
-                <span class="status-badge ${conv.orderStatus || ''}">${conv.orderStatus ? this.formatStatus(conv.orderStatus) : ''}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    });
-
-    conversationsList.innerHTML = conversationsHTML;
-    this.setupConversationClickHandlers();
-  }
+  // ✅ DUPLICATE METHOD REMOVED - Using first renderConversations() method
 
 
   // Render empty conversations list (when there's an error or no data)
@@ -6497,6 +6518,29 @@ class ProfessionalBuyerMessages {
     }
   }
 
+  // Update specific conversation badge to show as read
+  updateConversationBadge(conversationId, conversationType) {
+    try {
+      // Find the specific conversation item
+      const conversationItem = document.querySelector(`[data-conversation-id="${conversationId}"]`);
+      if (conversationItem) {
+        // Remove unread badge from this specific conversation
+        const unreadBadge = conversationItem.querySelector('.unread-badge');
+        if (unreadBadge) {
+          unreadBadge.remove();
+        }
+        
+        // Update conversation item to show as read
+        conversationItem.classList.remove('unread');
+        conversationItem.classList.add('read');
+        
+        // Conversation badge updated
+      }
+    } catch (error) {
+      console.error('❌ Error updating conversation badge:', error);
+    }
+  }
+
   // Mark messages as read for specific conversation
   async markMessagesAsRead(conversationId, conversationType = 'order') {
     try {
@@ -6517,10 +6561,8 @@ class ProfessionalBuyerMessages {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          // Update conversations list to reflect read status
-          setTimeout(() => {
-            this.loadConversations();
-          }, 500);
+          // ✅ Update only the specific conversation's badge, not all conversations
+          this.updateConversationBadge(conversationId, conversationType);
           
           // Update navigation badge count
           this.updateNavigationBadge();
@@ -7366,7 +7408,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   .unread-badge {
-    background: hsl(var(--main));
+    background: #ef4444;
     color: white;
     font-size: 0.7rem;
     font-weight: 600;
@@ -7376,8 +7418,135 @@ document.addEventListener('DOMContentLoaded', function() {
     text-align: center;
   }
   
+  .new-conversation-badge {
+    background: hsl(var(--success));
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    text-transform: uppercase;
+    min-width: 18px;
+    text-align: center;
+  }
+  
   .manufacturer-chats {
     padding: 0.5rem;
+  }
+  
+  /* ✅ YANGI: Grouped conversations styles */
+  .manufacturer-group {
+    margin-bottom: 1rem;
+    border: 1px solid hsl(var(--border-color));
+    border-radius: 12px;
+    background: hsl(var(--card-bg));
+    overflow: hidden;
+  }
+  
+  .manufacturer-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: hsl(var(--section-bg));
+    border-bottom: 1px solid hsl(var(--border-color));
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .manufacturer-header:hover {
+    background: hsl(var(--hover-bg));
+  }
+  
+  .manufacturer-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  
+  .manufacturer-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .manufacturer-info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .manufacturer-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: hsl(var(--heading-color));
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .manufacturer-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .manufacturer-conversations-count {
+    font-size: 0.8rem;
+    color: hsl(var(--body-color));
+    opacity: 0.8;
+  }
+  
+  .manufacturer-conversations {
+    padding: 0;
+  }
+  
+  .manufacturer-conversations .conversation-item {
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    border-bottom: 1px solid hsl(var(--border-color));
+  }
+  
+ 
+  
+
+
+  .conversation-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: hsl(var(--heading-color));
+  }
+  
+  .conversation-title i {
+    color: hsl(var(--main));
+    width: 16px;
+  }
+  
+  .order-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  
+  .order-status {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: hsl(var(--info));
+    color: white;
+    text-transform: capitalize;
+  }
+  
+  .order-amount {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: hsl(var(--success));
   }
   
   .chat-item {
@@ -7490,15 +7659,9 @@ document.addEventListener('DOMContentLoaded', function() {
     background: var(--bs-white);
   }
 
-  .conversation-item:hover {
-    background: var(--bs-gray-50);
-    border-color: var(--bs-gray-300);
-  }
 
   .conversation-item.active {
     background: hsl(var(--main) / 0.1);
-    border-color: hsl(var(--main));
-    border-left: 6px solid hsl(var(--main));
     position: relative;
   }
 
@@ -7608,9 +7771,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   .chat-type-badge.product-chat {
-    background: hsl(var(--main) / 0.1);
-    color: hsl(var(--main));
-    border: 1px solid hsl(var(--main) / 0.2);
+    background: #fde9901f;
+    color: #efa244;
+    border: 1px solid #efa244;
   }
 
   .chat-type-badge.order-chat {
@@ -7620,29 +7783,21 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 
+
   /* Dark Mode Styles */
   [data-theme="light"] .conversation-item{
     background: transparent;
-    border-color: var(--bs-gray-700);
     color: var(--bs-light) !important;
+    border: 1px solid var(--bs-gray);
   } 
 
   /* Dark mode class-based styling */
   .dark-mode .conversation-item {
     background: var(--bs-dark);
-    border-color: var(--bs-gray-700);
   }
 
-  .dark-mode .conversation-item:hover {
-    background: var(--bs-gray-800);
-    border-color: var(--bs-gray-600);
-  }
+ 
 
-  .dark-mode .conversation-item.active {
-    background: hsl(var(--main) / 0.2);
-    border-color: hsl(var(--main));
-    border-left: 6px solid hsl(var(--main));
-  }
 
   .dark-mode .conversation-name {
     color: var(--bs-light);
@@ -7656,11 +7811,6 @@ document.addEventListener('DOMContentLoaded', function() {
     color: var(--bs-gray-500);
   }
 
-  .dark-mode .chat-type-badge.product-chat {
-    background: hsl(var(--main) / 0.2);
-    color: hsl(var(--main));
-    border-color: hsl(var(--main) / 0.3);
-  }
 
   .dark-mode .chat-type-badge.order-chat {
     background: hsl(var(--success) / 0.2);
@@ -7672,6 +7822,30 @@ document.addEventListener('DOMContentLoaded', function() {
   .dark-mode .unread-badge {
     background: hsl(var(--danger));
     color: white;
+  }
+  
+  .dark-mode .new-conversation-badge {
+    background: hsl(var(--success));
+    color: white;
+  }
+  
+  /* Dark mode for grouped conversations */
+  .dark-mode .manufacturer-group {
+    background: hsl(var(--card-bg));
+    border-color: hsl(var(--border-color));
+  }
+  
+  .dark-mode .manufacturer-header {
+    background: hsl(var(--section-bg));
+    border-color: hsl(var(--border-color));
+  }
+  
+  .dark-mode .manufacturer-name {
+    color: hsl(var(--heading-color));
+  }
+  
+  .dark-mode .manufacturer-conversations-count {
+    color: hsl(var(--body-color));
   }
   </style>
 <!-- Image Modal -->

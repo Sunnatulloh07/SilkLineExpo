@@ -2,11 +2,310 @@
 window.marketplaceData = {
     user: {
         id: '<%= user._id %>',
-        name: '<%= user.name || "User" %>',
-        companyName: '<%= user.companyName || "Company" %>'
+        name: '<%= user.name || t("manufacturer.analytics.defaults.user") %>',
+        companyName: '<%= user.companyName || t("manufacturer.analytics.defaults.company") %>'
     },
     currentPage: 'analytics'
 };
+
+// Translation function for analytics
+function getTranslation(key, fallback) {
+    if (window.t && typeof window.t === 'function') {
+        const translation = window.t(key);
+        return translation !== key ? translation : fallback;
+    }
+    return fallback;
+}
+
+// Simple CSV Export Function (Fallback)
+function exportCSV(data, filename) {
+    try {
+        const csvContent = data.map(row => 
+            row.map(cell => `"${cell}"`).join(',')
+        ).join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        return true;
+    } catch (error) {
+        console.error('❌ CSV export error:', error);
+        return false;
+    }
+}
+
+// Export Report Functionality
+function exportReport() {
+    try {
+        // Check if XLSX library is loaded
+        if (typeof XLSX === 'undefined') {
+            console.log('⚠️ XLSX library not loaded, using CSV fallback');
+            exportReportAsCSV();
+            return;
+        }
+        
+        
+        // Get current analytics data
+        const productData = window.productAnalyticsData;
+        const dashboardData = window.dashboardStatsData;
+        const businessData = window.businessIntelligenceData;
+        const productInfo = window.productInfo;
+        
+        
+        // Create Excel workbook
+        const workbook = XLSX.utils.book_new();
+        
+        // 1. Overview Sheet
+        const overviewData = [
+            [getTranslation('manufacturer.analytics.export.reportTitle', 'Analytics Report'), ''],
+            [getTranslation('manufacturer.analytics.export.generatedDate', 'Generated Date'), new Date().toLocaleDateString()],
+            [getTranslation('manufacturer.analytics.export.reportType', 'Report Type'), productInfo ? getTranslation('manufacturer.analytics.export.productAnalytics', 'Product Analytics') : getTranslation('manufacturer.analytics.export.businessAnalytics', 'Business Analytics')],
+            ['', ''],
+            [getTranslation('manufacturer.analytics.export.keyMetrics', 'Key Metrics'), ''],
+            [getTranslation('manufacturer.analytics.export.totalRevenue', 'Total Revenue'), productData?.totalRevenue || dashboardData?.overview?.totalRevenue || businessData?.totalRevenue || 0],
+            [getTranslation('manufacturer.analytics.export.totalOrders', 'Total Orders'), productData?.totalOrders || dashboardData?.overview?.totalOrders || businessData?.totalOrders || 0],
+            [getTranslation('manufacturer.analytics.export.totalCustomers', 'Total Customers'), productData?.totalCustomers || dashboardData?.overview?.activeCustomers || 0],
+            [getTranslation('manufacturer.analytics.export.totalProducts', 'Total Products'), dashboardData?.overview?.totalProducts || 0],
+            [getTranslation('manufacturer.analytics.export.conversionRate', 'Conversion Rate'), productData?.conversionRate || 0],
+            [getTranslation('manufacturer.analytics.export.revenueGrowth', 'Revenue Growth'), `${dashboardData?.overview?.revenueGrowth || 0}%`],
+            ['', ''],
+            [getTranslation('manufacturer.analytics.export.performanceMetrics', 'Performance Metrics'), ''],
+            [getTranslation('manufacturer.analytics.export.stockStatus', 'Stock Status'), productData?.stockStatus || getTranslation('manufacturer.analytics.export.notAvailable', 'N/A')],
+            [getTranslation('manufacturer.analytics.export.performanceScore', 'Performance Score'), productData?.performanceScore || 0],
+            [getTranslation('manufacturer.analytics.export.averageRating', 'Average Rating'), productData?.avgRating || 0],
+            [getTranslation('manufacturer.analytics.export.totalReviews', 'Total Reviews'), productData?.totalReviews || 0],
+            ['', ''],
+            [getTranslation('manufacturer.analytics.export.businessIntelligence', 'Business Intelligence'), ''],
+            [getTranslation('manufacturer.analytics.export.customerSatisfaction', 'Customer Satisfaction'), `${businessData?.performance?.customer_satisfaction || 0}%`],
+            [getTranslation('manufacturer.analytics.export.efficiency', 'Efficiency'), `${businessData?.performance?.efficiency || 0}%`],
+            [getTranslation('manufacturer.analytics.export.quality', 'Quality'), `${businessData?.performance?.quality || 0}%`],
+            [getTranslation('manufacturer.analytics.export.overallPerformance', 'Overall Performance'), `${businessData?.performance?.overall || 0}%`]
+        ];
+        
+        const overviewSheet = XLSX.utils.aoa_to_sheet(overviewData);
+        XLSX.utils.book_append_sheet(workbook, overviewSheet, 'Overview');
+        
+        // 2. Chart Data Sheet
+        const chartData = [
+            [getTranslation('manufacturer.analytics.export.chartData', 'Chart Data'), ''],
+            ['', ''],
+            [getTranslation('manufacturer.analytics.export.revenueTrend', 'Revenue Trend'), ''],
+            [getTranslation('manufacturer.analytics.export.period', 'Period'), getTranslation('manufacturer.analytics.export.revenue', 'Revenue')]
+        ];
+        
+        // Add revenue data
+        if (productData?.periodTrend) {
+            productData.periodTrend.forEach(item => {
+                chartData.push([item.label || item.date || 'N/A', item.revenue || 0]);
+            });
+        } else {
+            // No revenue data available
+            chartData.push([getTranslation('manufacturer.analytics.charts.noData', 'No data available'), 0]);
+        }
+        
+        chartData.push(['', '']);
+        chartData.push([getTranslation('manufacturer.analytics.export.ordersTrend', 'Orders Trend'), '']);
+        chartData.push([getTranslation('manufacturer.analytics.export.period', 'Period'), getTranslation('manufacturer.analytics.export.orders', 'Orders')]);
+        
+        // Add orders data
+        if (productData?.periodTrend) {
+            productData.periodTrend.forEach(item => {
+                chartData.push([item.label || item.date || 'N/A', item.orders || 0]);
+            });
+        } else {
+            // No orders data available
+            chartData.push([getTranslation('manufacturer.analytics.charts.noData', 'No data available'), 0]);
+        }
+        
+        const chartSheet = XLSX.utils.aoa_to_sheet(chartData);
+        XLSX.utils.book_append_sheet(workbook, chartSheet, 'Chart Data');
+        
+        // 3. Business Intelligence Sheet
+        if (businessData) {
+            const businessDataSheet = [
+                [getTranslation('manufacturer.analytics.export.businessIntelligence', 'Business Intelligence Data'), ''],
+                [getTranslation('manufacturer.analytics.export.generatedDate', 'Generated Date'), new Date().toLocaleDateString()],
+                ['', ''],
+                [getTranslation('manufacturer.analytics.export.performanceMetrics', 'Monthly Metrics'), ''],
+                [getTranslation('manufacturer.analytics.export.period', 'Period'), 'Value', 'Performance', 'Label']
+            ];
+            
+            if (businessData.monthlyMetrics && businessData.monthlyMetrics.length > 0) {
+                businessData.monthlyMetrics.forEach(item => {
+                    businessDataSheet.push([
+                        item.month || item.date || 'N/A',
+                        item.value || 0,
+                        item.performance || 0,
+                        item.label || 'N/A'
+                    ]);
+                });
+            }
+            
+            businessDataSheet.push(['', '', '', '']);
+            businessDataSheet.push([getTranslation('manufacturer.analytics.export.categoriesPerformance', 'Category Breakdown'), '', '', '']);
+            businessDataSheet.push(['Category', getTranslation('manufacturer.analytics.export.revenue', 'Revenue'), getTranslation('manufacturer.analytics.export.orders', 'Orders'), 'Percentage']);
+            
+            if (businessData.categoryBreakdown && businessData.categoryBreakdown.length > 0) {
+                businessData.categoryBreakdown.forEach(item => {
+                    businessDataSheet.push([
+                        item.name || 'N/A',
+                        item.revenue || 0,
+                        item.count || 0,
+                        `${item.percentage || 0}%`
+                    ]);
+                });
+            }
+            
+            const businessSheet = XLSX.utils.aoa_to_sheet(businessDataSheet);
+            XLSX.utils.book_append_sheet(workbook, businessSheet, 'Business Intelligence');
+        }
+        
+        // 4. Product Analytics Sheet (if available)
+        if (productData && productInfo) {
+            const productDataSheet = [
+                ['Product Analytics Data', ''],
+                ['Generated Date', new Date().toLocaleDateString()],
+                ['Product Name', productInfo.name || 'N/A'],
+                ['Product ID', productInfo._id || 'N/A'],
+                ['', ''],
+                ['Product Metrics', ''],
+                ['Total Revenue', productData.totalRevenue || 0],
+                ['Total Orders', productData.totalOrders || 0],
+                ['Total Customers', productData.totalCustomers || 0],
+                ['Conversion Rate', `${productData.conversionRate || 0}%`],
+                ['Revenue Growth', `${productData.revenueGrowth || 0}%`],
+                ['Order Growth', `${productData.orderGrowth || 0}%`],
+                ['Retention Rate', `${productData.retentionRate || 0}%`],
+                ['', ''],
+                ['Stock Information', ''],
+                ['Current Stock', productData.currentStock || 0],
+                ['Stock Turnover', productData.stockTurnover || 0],
+                ['Stock Status', productData.stockStatus || 'N/A'],
+                ['', ''],
+                ['Performance Metrics', ''],
+                ['Performance Score', productData.performanceScore || 0],
+                ['Average Order Value', productData.avgOrderValue || 0],
+                ['Average Quantity', productData.avgQuantityPerOrder || 0],
+                ['Average Rating', productData.avgRating || 0],
+                ['Total Reviews', productData.totalReviews || 0],
+                ['Product Age (Days)', productData.productAge || 0]
+            ];
+            
+            const productSheet = XLSX.utils.aoa_to_sheet(productDataSheet);
+            XLSX.utils.book_append_sheet(workbook, productSheet, 'Product Analytics');
+        }
+        
+        // 5. Dashboard Data Sheet
+        if (dashboardData) {
+            const dashboardDataSheet = [
+                ['Dashboard Data', ''],
+                ['Generated Date', new Date().toLocaleDateString()],
+                ['', ''],
+                ['Overview Metrics', ''],
+                ['Total Revenue', dashboardData.overview?.totalRevenue || 0],
+                ['Total Orders', dashboardData.overview?.totalOrders || 0],
+                ['Total Products', dashboardData.overview?.totalProducts || 0],
+                ['Active Customers', dashboardData.overview?.activeCustomers || 0],
+                ['Revenue Growth', `${dashboardData.overview?.revenueGrowth || 0}%`],
+                ['', ''],
+                ['Additional Metrics', ''],
+                ['Total Sales', dashboardData.totalSales || 0],
+                ['Active Orders', dashboardData.activeOrders || 0],
+                ['Inquiries', dashboardData.inquiries || 0]
+            ];
+            
+            const dashboardSheet = XLSX.utils.aoa_to_sheet(dashboardDataSheet);
+            XLSX.utils.book_append_sheet(workbook, dashboardSheet, 'Dashboard Data');
+        }
+        
+        // Generate filename
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        const reportType = productInfo ? 'Product-Analytics' : 'Business-Analytics';
+        const filename = `${reportType}-Report-${timestamp}.xlsx`;
+        
+        // Download the file
+        XLSX.writeFile(workbook, filename);
+        
+        // Show success message
+        if (window.showToast) {
+            window.showToast(getTranslation('manufacturer.analytics.export.success', 'Report exported successfully!'), 'success');
+        } else {
+            alert(getTranslation('manufacturer.analytics.export.success', 'Report exported successfully!'));
+        }
+        
+    } catch (error) {
+        const errorMessage = getTranslation('manufacturer.analytics.export.error', 'Failed to export report. Please try again.');
+        if (window.showToast) {
+            window.showToast(errorMessage, 'error');
+        } else {
+            alert(errorMessage);
+        }
+    }
+}
+
+// CSV Export Fallback Function
+function exportReportAsCSV() {
+    try {
+        // Get current analytics data
+        const productData = window.productAnalyticsData;
+        const dashboardData = window.dashboardStatsData;
+        const businessData = window.businessIntelligenceData;
+        const productInfo = window.productInfo;
+        
+        
+        // Create CSV data
+        const csvData = [
+            [getTranslation('manufacturer.analytics.export.reportTitle', 'Analytics Report'), ''],
+            [getTranslation('manufacturer.analytics.export.generatedDate', 'Generated Date'), new Date().toLocaleDateString()],
+            [getTranslation('manufacturer.analytics.export.reportType', 'Report Type'), productInfo ? getTranslation('manufacturer.analytics.export.productAnalytics', 'Product Analytics') : getTranslation('manufacturer.analytics.export.businessAnalytics', 'Business Analytics')],
+            ['', ''],
+            [getTranslation('manufacturer.analytics.export.keyMetrics', 'Key Metrics'), ''],
+            [getTranslation('manufacturer.analytics.export.totalRevenue', 'Total Revenue'), productData?.totalRevenue || dashboardData?.overview?.totalRevenue || 0],
+            [getTranslation('manufacturer.analytics.export.totalOrders', 'Total Orders'), productData?.totalOrders || dashboardData?.overview?.totalOrders || 0],
+            [getTranslation('manufacturer.analytics.export.totalCustomers', 'Total Customers'), productData?.totalCustomers || dashboardData?.overview?.activeCustomers || 0],
+            [getTranslation('manufacturer.analytics.export.conversionRate', 'Conversion Rate'), productData?.conversionRate || 0],
+            ['', ''],
+            [getTranslation('manufacturer.analytics.export.performanceMetrics', 'Performance Metrics'), ''],
+            [getTranslation('manufacturer.analytics.export.stockStatus', 'Stock Status'), productData?.stockStatus || getTranslation('manufacturer.analytics.export.notAvailable', 'N/A')],
+            [getTranslation('manufacturer.analytics.export.performanceScore', 'Performance Score'), productData?.performanceScore || 0],
+            [getTranslation('manufacturer.analytics.export.averageRating', 'Average Rating'), productData?.avgRating || 0],
+            [getTranslation('manufacturer.analytics.export.totalReviews', 'Total Reviews'), productData?.totalReviews || 0]
+        ];
+        
+        // Generate filename
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        const reportType = productInfo ? 'Product-Analytics' : 'Business-Analytics';
+        const filename = `${reportType}-Report-${timestamp}.csv`;
+        
+        // Export CSV
+        const success = exportCSV(csvData, filename);
+        
+        if (success) {
+            if (window.showToast) {
+                window.showToast(getTranslation('manufacturer.analytics.export.success', 'Report exported successfully as CSV!'), 'success');
+            } else {
+                alert(getTranslation('manufacturer.analytics.export.success', 'Report exported successfully as CSV!'));
+            }
+        } else {
+            throw new Error('CSV export failed');
+        }
+        
+    } catch (error) {
+        console.error('❌ CSV export error:', error);
+        if (window.showToast) {
+            window.showToast(getTranslation('manufacturer.analytics.export.error', 'Failed to export report. Please try again.'), 'error');
+        } else {
+            alert(getTranslation('manufacturer.analytics.export.error', 'Failed to export report. Please try again.'));
+        }
+    }
+}
 
 // Professional Analytics Data Initialization
 function initializeAnalyticsData() {
@@ -97,7 +396,7 @@ function formatKPINumbers() {
                 
                 // Add tooltip with original value if it was truncated
                 if (originalText !== newText) {
-                    element.title = `Aniq qiymat: ${originalText}`;
+                    element.title = `${getTranslation('manufacturer.analytics.tooltips.exactValue', 'Aniq qiymat')}: ${originalText}`;
                 }
             }
         }
@@ -408,8 +707,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize dashboard options (EXACT Dashboard Pattern)
     const dashboardOptions = {
         userId: '<%= typeof user !== "undefined" && user._id ? user._id : "" %>',
-        userName: '<%= typeof user !== "undefined" && user.name ? user.name.replace(/"/g, "&quot;") : "Manufacturer" %>',
-        companyName: '<%= typeof user !== "undefined" && user.companyName ? user.companyName.replace(/"/g, "&quot;") : "Manufacturing Company" %>',
+        userName: '<%= typeof user !== "undefined" && user.name ? user.name.replace(/"/g, "&quot;") : t("manufacturer.analytics.defaults.manufacturer") %>',
+        companyName: '<%= typeof user !== "undefined" && user.companyName ? user.companyName.replace(/"/g, "&quot;") : t("manufacturer.analytics.defaults.manufacturingCompany") %>',
         currentPage: 'analytics'
     };
     
@@ -576,6 +875,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize analytics data
     initializeAnalyticsData();
     
+    // Initialize Export Report functionality
+    const exportButton = document.getElementById('exportReport');
+    if (exportButton) {
+        exportButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            exportReport();
+        });
+    }
+    
     // Initialize Charts with ApexCharts (CSP Safe)
     function initializeChartsWithRetry(retryCount = 0) {
         const maxRetries = 3;
@@ -616,43 +924,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const dashboardData = window.dashboardStatsData;
         const businessData = window.businessIntelligenceData;
         
-
-
-        
         // REVENUE CHART - GUARANTEED TO SHOW (ApexCharts)
         const revenueElement = document.getElementById('revenueChart');
         
         if (revenueElement) {
             // Smart labeling based on data period
-            let revenueLabels = ['Dush', 'Sesh', 'Chor', 'Pay', 'Juma', 'Shan', 'Yak']; // 7 kun default
-            let revenueDataPoints = [10, 5, 15, 8, 12, 6, 20]; // Professional fallback - small numbers but visible
+            const daysTranslation = getTranslation('manufacturer.analytics.charts.labels.days', 'Mon,Tue,Wed,Thu,Fri,Sat,Sun');
+            let revenueLabels = Array.isArray(daysTranslation) ? daysTranslation : daysTranslation.split(','); // 7 days default
+            let revenueDataPoints = []; // Real data only
             
-            // Try to get real data if available (ALWAYS prioritize real data, even if 0)
-            if (productData && productData.weeklyTrend && productData.weeklyTrend.length > 0) {
-                // console.log('📊 Revenue Chart: Using real backend data', productData.weeklyTrend);
-                
+            // Use real data from backend (no fallbacks for professional analytics)
+            if (productData && productData.periodTrend && productData.periodTrend.length > 0) {
                 // Extract labels and data from backend response
-                revenueLabels = productData.weeklyTrend.map(item => item.label || item.date || 'N/A');
-                const realRevenueData = productData.weeklyTrend.map(item => {
-                     return item.revenue || item.amount || 0;
-                });
-                
-                // Check if all data is 0 - if so, mix with small fallback for visibility
-                const hasNonZeroData = realRevenueData.some(val => val > 0);
-                if (hasNonZeroData) {
-                    revenueDataPoints = realRevenueData;
-                } else {
-                    // Mix real 0 data with minimal visible fallback
-                    revenueDataPoints = realRevenueData.map((val, index) => val > 0 ? val : (index % 2 === 0 ? 1 : 0.5));
-                }
-                
-                // console.log('📊 Revenue Chart Labels:', revenueLabels);
-                // console.log('📊 Revenue Chart Data:', revenueDataPoints);
-            } else if (dashboardData && dashboardData.revenueChart && dashboardData.revenueChart.data) {
-                revenueDataPoints = dashboardData.revenueChart.data;
-                // console.log('📊 Revenue Chart: Using dashboard data fallback');
+                revenueLabels = productData.periodTrend.map(item => item.label || item.date || getTranslation('manufacturer.analytics.charts.notAvailable', 'N/A'));
+                revenueDataPoints = productData.periodTrend.map(item => item.revenue || 0);
             } else {
-                // console.log('📊 Revenue Chart: Using static fallback data');
+                // No data available - show empty chart with proper labels
+                revenueDataPoints = [];
             }
             
             try {
@@ -664,7 +952,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         toolbar: { show: false }
                     },
                     series: [{
-                        name: 'Daromad ($)',
+                        name: getTranslation('manufacturer.analytics.charts.series.revenue', 'Revenue ($)'),
                         data: revenueDataPoints
                     }],
                     xaxis: {
@@ -757,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     },
                     noData: {
-                        text: 'Ma\'lumot yuklanmoqda...',
+                        text: getTranslation('manufacturer.analytics.charts.noData', 'Data is loading...'),
                         align: 'center',
                         verticalAlign: 'middle',
                         offsetX: 0,
@@ -783,30 +1071,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (ordersElement) {
             // Smart labeling based on data period (sync with revenue chart)
-            let ordersLabels = ['Dush', 'Sesh', 'Chor', 'Pay', 'Juma', 'Shan', 'Yak']; // 7 kun default
-            let ordersDataPoints = [2, 1, 3, 2, 4, 1, 5]; // Professional fallback - small numbers but visible
+            const daysTranslation = getTranslation('manufacturer.analytics.charts.labels.days', 'Mon,Tue,Wed,Thu,Fri,Sat,Sun');
+            let ordersLabels = Array.isArray(daysTranslation) ? daysTranslation : daysTranslation.split(','); // 7 days default
+            let ordersDataPoints = []; // Real data only
             
-            // Try to get real data if available (ALWAYS prioritize real data, even if 0)
-            if (productData && productData.weeklyTrend && productData.weeklyTrend.length > 0) {
-                // console.log('📊 Orders Chart: Using real backend data', productData.weeklyTrend);
-                
-                // Extract labels and data from backend response (same as revenue chart)
-                ordersLabels = productData.weeklyTrend.map(item => item.label || item.date || 'N/A');
-                const realOrdersData = productData.weeklyTrend.map(item => item.orders || item.count || 0);
-                 
-                // Check if all data is 0 - if so, mix with small fallback for visibility
-                const hasNonZeroData = realOrdersData.some(val => val > 0);
-                if (hasNonZeroData) {
-                    ordersDataPoints = realOrdersData;
-                } else {
-                    // Mix real 0 data with minimal visible fallback
-                    ordersDataPoints = realOrdersData.map((val, index) => val > 0 ? val : (index % 3 === 0 ? 1 : 0));
-                }
-                
-                // console.log('📊 Orders Chart Labels:', ordersLabels);
-                // console.log('📊 Orders Chart Data:', ordersDataPoints);
+            // Use real data from backend (no fallbacks for professional analytics)
+            if (productData && productData.periodTrend && productData.periodTrend.length > 0) {
+                // Extract labels and data from backend response
+                ordersLabels = productData.periodTrend.map(item => item.label || item.date || getTranslation('manufacturer.analytics.charts.notAvailable', 'N/A'));
+                ordersDataPoints = productData.periodTrend.map(item => item.orders || 0);
             } else {
-                // console.log('📊 Orders Chart: Using static fallback data');
+                // No data available - show empty chart with proper labels
+                ordersDataPoints = [];
             }
             
             try {
@@ -818,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         toolbar: { show: false }
                     },
                     series: [{
-                        name: 'Buyurtmalar',
+                        name: getTranslation('manufacturer.analytics.charts.series.orders', 'Orders'),
                         data: ordersDataPoints
                     }],
                     xaxis: {
@@ -899,7 +1175,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     },
                     noData: {
-                        text: 'Ma\'lumot yuklanmoqda...',
+                        text: getTranslation('manufacturer.analytics.charts.noData', 'Data is loading...'),
                         align: 'center',
                         verticalAlign: 'middle',
                         offsetX: 0,
@@ -926,22 +1202,17 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (businessElement) {
             // Smart labeling based on data period (sync with product charts)
-            let businessLabels = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun']; // Default
-            let businessDataPoints = [25, 30, 35, 28, 40, 32]; // Professional fallback - moderate numbers
+            const monthsTranslation = getTranslation('manufacturer.analytics.charts.labels.months', 'Jan,Feb,Mar,Apr,May,Jun');
+            let businessLabels = Array.isArray(monthsTranslation) ? monthsTranslation : monthsTranslation.split(','); // Default
+            let businessDataPoints = []; // Real data only
             
             // Try to get real data if available
             if (businessData && businessData.monthlyMetrics && businessData.monthlyMetrics.length > 0) {
-                // console.log('📊 Business Chart: Using real backend data', businessData.monthlyMetrics);
-                
-                // Extract labels and data from backend response
-                businessLabels = businessData.monthlyMetrics.map(item => item.label || item.month || item.date || 'N/A');
+                businessLabels = businessData.monthlyMetrics.map(item => item.label || item.month || item.date || getTranslation('manufacturer.analytics.charts.notAvailable', 'N/A'));
                 businessDataPoints = businessData.monthlyMetrics.map(item => item.performance || item.value || 0);
                 
-                // console.log('📊 Business Chart Labels:', businessLabels);
-                // console.log('📊 Business Chart Data:', businessDataPoints);
-            } else {
-                // console.log('📊 Business Chart: Using static fallback data');
-            }
+               } else {
+           }
             
             try {
                 const businessOptions = {
@@ -952,7 +1223,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         toolbar: { show: false }
                     },
                     series: [{
-                        name: 'Biznes ko\'rsatkichlari',
+                        name: getTranslation('manufacturer.analytics.charts.series.businessMetrics', 'Business Metrics'),
                         data: businessDataPoints
                     }],
                     xaxis: {
@@ -1036,7 +1307,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     },
                     noData: {
-                        text: 'Ma\'lumot yuklanmoqda...',
+                        text: getTranslation('manufacturer.analytics.charts.noData', 'Data is loading...'),
                         align: 'center',
                         verticalAlign: 'middle',
                         offsetX: 0,
@@ -1157,7 +1428,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }],
                     noData: {
-                        text: 'Ma\'lumot yuklanmoqda...',
+                        text: getTranslation('manufacturer.analytics.charts.noData', 'Data is loading...'),
                         align: 'center',
                         verticalAlign: 'middle',
                         offsetX: 0,
@@ -1214,114 +1485,112 @@ document.addEventListener('DOMContentLoaded', function() {
         const productId = new URLSearchParams(window.location.search).get('product');
         if (!productId) return;
 
-        // console.log(`📊 Updating Revenue Chart for period: ${period} days`);
+        // Show loading state
+        const revenueChart = window.revenueChartInstance;
+        if (revenueChart) {
+            revenueChart.updateOptions({
+                series: [{ name: getTranslation('manufacturer.analytics.charts.series.revenue', 'Revenue ($)'), data: [] }],
+                xaxis: { categories: [] }
+            });
+        }
 
-        fetch(`/manufacturer/api/product-analytics/${productId}?period=${period}`)
+        // Fetch new data with period
+        fetch(`/manufacturer/analytics/api/product-data?productId=${productId}&period=${period}`)
             .then(response => response.json())
             .then(data => {
-                if (data.success && data.data && data.data.weeklyTrend) {
-                    const revenueChart = window.revenueChartInstance;
+                if (data.success && data.data && data.data.periodTrend) {
                     if (revenueChart) {
-                        // console.log('📊 Revenue Chart Update - Backend Data:', data.data.weeklyTrend);
-                        
-                        // Extract data and labels from enhanced backend response
-                        const newData = data.data.weeklyTrend.map(item => item.revenue || item.amount || 0);
-                        const newLabels = data.data.weeklyTrend.map(item => item.label || item.date || 'N/A');
-                        
-                        // Enhanced zero data handling for filtered results
-                        const hasNonZeroData = newData.some(val => val > 0);
-                        const enhancedData = hasNonZeroData ? newData : 
-                            newData.map((val, index) => val > 0 ? val : (index % 2 === 0 ? 1 : 0.5));
-                        
-                        // console.log('📊 Revenue Chart Update - Labels:', newLabels);
-                        // console.log('📊 Revenue Chart Update - Data:', enhancedData);
+                        // Extract data and labels from period-based response
+                        const newData = data.data.periodTrend.map(item => item.revenue || 0);
+                        const newLabels = data.data.periodTrend.map(item => item.label || item.date || 'N/A');
                         
                         revenueChart.updateOptions({
                             xaxis: { categories: newLabels },
-                            series: [{ name: 'Daromad ($)', data: enhancedData }]
+                            series: [{ name: getTranslation('manufacturer.analytics.charts.series.revenue', 'Revenue ($)'), data: newData }]
                         });
-                        
-                        // console.log('✅ Revenue chart updated successfully');
                     }
                 } else {
-                    // console.error('❌ Revenue chart update: Invalid response format');
+                    console.error('❌ Failed to load revenue chart data:', data);
                 }
             })
-              }
+            .catch(error => {
+                console.error('❌ Revenue chart update error:', error);
+            });
+    }
 
     // Update Orders Chart with filtered data (Enhanced Smart Labeling)
     function updateOrdersChart(period) {
         const productId = new URLSearchParams(window.location.search).get('product');
         if (!productId) return;
 
-        // console.log(`📊 Updating Orders Chart for period: ${period} days`);
+        // Show loading state
+        const ordersChart = window.ordersChartInstance;
+        if (ordersChart) {
+            ordersChart.updateOptions({
+                series: [{ name: getTranslation('manufacturer.analytics.charts.series.orders', 'Orders'), data: [] }],
+                xaxis: { categories: [] }
+            });
+        }
 
-        fetch(`/manufacturer/api/product-analytics/${productId}?period=${period}`)
+        // Fetch new data with period
+        fetch(`/manufacturer/analytics/api/product-data?productId=${productId}&period=${period}`)
             .then(response => response.json())
             .then(data => {
-                if (data.success && data.data && data.data.weeklyTrend) {
-                    const ordersChart = window.ordersChartInstance;
+                if (data.success && data.data && data.data.periodTrend) {
                     if (ordersChart) {
-                        // console.log('📊 Orders Chart Update - Backend Data:', data.data.weeklyTrend);
-                        
-                        // Extract data and labels from enhanced backend response
-                        const newData = data.data.weeklyTrend.map(item => item.orders || item.count || 0);
-                        const newLabels = data.data.weeklyTrend.map(item => item.label || item.date || 'N/A');
-                        
-                        // Enhanced zero data handling for filtered results
-                        const hasNonZeroData = newData.some(val => val > 0);
-                        const enhancedData = hasNonZeroData ? newData : 
-                            newData.map((val, index) => val > 0 ? val : (index % 3 === 0 ? 1 : 0));
-                        
-                        // console.log('📊 Orders Chart Update - Labels:', newLabels);
-                        // console.log('📊 Orders Chart Update - Data:', enhancedData);
+                        // Extract data and labels from period-based response
+                        const newData = data.data.periodTrend.map(item => item.orders || 0);
+                        const newLabels = data.data.periodTrend.map(item => item.label || item.date || 'N/A');
                         
                         ordersChart.updateOptions({
                             xaxis: { categories: newLabels },
-                            series: [{ name: 'Buyurtmalar', data: enhancedData }]
+                            series: [{ name: getTranslation('manufacturer.analytics.charts.series.orders', 'Orders'), data: newData }]
                         });
-                        
-                        // console.log('✅ Orders chart updated successfully');
                     }
                 } else {
-                    // console.error('❌ Orders chart update: Invalid response format');
+                    console.error('❌ Failed to load orders chart data:', data);
                 }
             })
-          }
+            .catch(error => {
+                console.error('❌ Orders chart update error:', error);
+            });
+    }
 
     // Update Business Chart with filtered data (Enhanced Smart Labeling)
     function updateBusinessChart(period) {
-        // console.log(`📊 Updating Business Chart for period: ${period} days`);
-        
-        fetch(`/manufacturer/api/business-analytics?period=${period}`)
+        // Show loading state
+        const businessChart = window.businessChartInstance;
+        if (businessChart) {
+            businessChart.updateOptions({
+                series: [{ name: getTranslation('manufacturer.analytics.charts.series.businessMetrics', 'Business Metrics'), data: [] }],
+                xaxis: { categories: [] }
+            });
+        }
+
+        // Fetch new data with period
+        fetch(`/manufacturer/analytics/api/business-data?period=${period}`)
             .then(response => response.json())
             .then(data => {
-                if (data.success && data.data && data.data.businessIntelligence && data.data.businessIntelligence.monthlyMetrics) {
-                    const businessChart = window.businessChartInstance;
+                if (data.success && data.data && data.data.monthlyMetrics) {
                     if (businessChart) {
-                        // console.log('📊 Business Chart Update - Backend Data:', data.data.businessIntelligence.monthlyMetrics);
-                        
-                        // Extract data and labels from enhanced backend response
-                        const monthlyMetrics = data.data.businessIntelligence.monthlyMetrics;
+                        // Extract data and labels from period-based response
+                        const monthlyMetrics = data.data.monthlyMetrics;
                         const newData = monthlyMetrics.map(item => item.performance || item.value || 0);
                         const newLabels = monthlyMetrics.map(item => item.label || item.month || item.date || 'N/A');
                         
-                        // console.log('📊 Business Chart Update - Labels:', newLabels);
-                        // console.log('📊 Business Chart Update - Data:', newData);
-                        
                         businessChart.updateOptions({
                             xaxis: { categories: newLabels },
-                            series: [{ name: 'Biznes ko\'rsatkichlari', data: newData }]
+                            series: [{ name: getTranslation('manufacturer.analytics.charts.series.businessMetrics', 'Business Metrics'), data: newData }]
                         });
-                        
-                        // console.log('✅ Business chart updated successfully');
                     }
                 } else {
-                    // console.error('❌ Business chart update: Invalid response format');
-                    // console.log('🔍 Response structure:', data);
+                    console.error('❌ Failed to load business chart data:', data);
                 }
             })
-            }
+            .catch(error => {
+                console.error('❌ Business chart update error:', error);
+            });
+    }
      
      // Analytics Controls (Real Integration)
      function setupAnalyticsControls() {
@@ -1333,15 +1602,7 @@ document.addEventListener('DOMContentLoaded', function() {
              });
          }
          
-         // Export Button
-         const exportBtn = document.getElementById('exportReport');
-         if (exportBtn) {
-             exportBtn.addEventListener('click', function() {
-                 const currentUrl = window.location.href;
-                 const exportUrl = currentUrl.replace('/analytics', '/api/export-report');
-                 window.open(exportUrl, '_blank');
-             });
-         }
+         // Export Button - handled by main exportReport function
      }
      
          // Initialize analytics controls

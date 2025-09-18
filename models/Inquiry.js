@@ -209,7 +209,18 @@ const inquirySchema = new mongoose.Schema({
   },
   
   // Expiry
-  expiresAt: Date
+  expiresAt: Date,
+  
+  // Read Status
+  readByManufacturer: {
+    type: Boolean,
+    default: false
+  },
+  readByBuyer: {
+    type: Boolean,
+    default: false
+  },
+  readAt: Date
   
 }, {
   timestamps: true

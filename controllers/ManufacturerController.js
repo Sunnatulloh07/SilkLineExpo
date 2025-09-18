@@ -1022,9 +1022,10 @@ class ManufacturerController {
                 page: parseInt(req.query.page) || 1,
                 limit: parseInt(req.query.limit) || 10,
                 type: req.query.type,
-                read: req.query.read
+                read: req.query.read,
+                unread: req.query.unread
             };
-            
+                       
             const notifications = await this.manufacturerService.getNotifications(manufacturerId, options);
             
             this.sendSuccess(res, notifications, 'Notifications retrieved successfully');
@@ -1933,7 +1934,7 @@ class ManufacturerController {
             let productInfo = null;
             if (productId) {
                 const [productAnalyticsResult, productInfoResult] = await Promise.all([
-                    this.manufacturerService.getProductAnalytics(productId, manufacturerId),
+                    this.manufacturerService.getProductAnalytics(productId, manufacturerId, period),
                     this.manufacturerService.getProductForEdit(productId, manufacturerId)
                 ]);
                 productAnalytics = productAnalyticsResult;
@@ -3294,6 +3295,83 @@ class ManufacturerController {
             res.status(500).json({
                 success: false,
                 error: 'Failed to load chart data',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Get product analytics data with period support
+     * GET /manufacturer/analytics/api/product-data
+     */
+    async getProductAnalyticsData(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const { productId, period = '30' } = req.query;
+            
+            if (!productId) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Product ID is required'
+                });
+            }
+
+            const periodNum = parseInt(period);
+            if (![7, 30, 90].includes(periodNum)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Period must be 7, 30, or 90 days'
+                });
+            }
+
+            const productAnalytics = await this.manufacturerService.getProductAnalytics(productId, manufacturerId, periodNum);
+
+            res.json({
+                success: true,
+                data: productAnalytics,
+                period: periodNum
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Get product analytics data error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to load product analytics data',
+                message: error.message
+            });
+        }
+    }
+
+    /**
+     * Get business analytics data with period support
+     * GET /manufacturer/analytics/api/business-data
+     */
+    async getBusinessAnalyticsData(req, res) {
+        try {
+            const manufacturerId = req.user.userId;
+            const { period = '30' } = req.query;
+            
+            const periodNum = parseInt(period);
+            if (![7, 30, 90].includes(periodNum)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Period must be 7, 30, or 90 days'
+                });
+            }
+
+            const businessIntelligence = await this.manufacturerService.getBusinessIntelligence(manufacturerId, periodNum);
+
+            res.json({
+                success: true,
+                data: businessIntelligence,
+                period: periodNum
+            });
+
+        } catch (error) {
+            this.logger.error('❌ Get business analytics data error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to load business analytics data',
                 message: error.message
             });
         }

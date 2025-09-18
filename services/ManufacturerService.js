@@ -2472,22 +2472,17 @@ class ManufacturerService {
           revenueGrowth: Math.round(revenueGrowth * 100) / 100,
           totalOrders: currentData.totalOrders,
           averageOrderValue: Math.round(currentData.avgOrderValue || 0),
-          customerSatisfaction: 4.7 // Would need rating system for real data
+          customerSatisfaction: 0 // No rating system available yet
         },
         sales: {
           newCustomers: customerData.newCustomers,
           repeatCustomers: customerData.repeatCustomers,
           customerRetention: Math.round(customerRetention * 100) / 100,
-          conversionRate: 12.4, // Would need inquiry/conversion tracking
-          salesCycle: 18.5 // Would need opportunity tracking
+          conversionRate: 0, // No inquiry/conversion tracking available yet
+          salesCycle: 0 // No opportunity tracking available yet
         },
-        channels: channels.length > 0 ? channels : [
-          { name: 'Direct Sales', revenue: currentData.totalRevenue * 0.6, percentage: 60.0, growth: 0 },
-          { name: 'Distributors', revenue: currentData.totalRevenue * 0.4, percentage: 40.0, growth: 0 }
-        ],
-        regions: regions.length > 0 ? regions : [
-          { name: 'Unknown', revenue: currentData.totalRevenue, growth: revenueGrowth }
-        ],
+        channels: channels.length > 0 ? channels : [],
+        regions: regions.length > 0 ? regions : [],
         products: products.length > 0 ? products : []
       };
 
@@ -4498,6 +4493,11 @@ class ManufacturerService {
         matchCriteria.read = options.read === 'true';
       }
 
+      // Handle unread filter (unread=true means read=false)
+      if (options.unread === 'true') {
+        matchCriteria.read = false;
+      }
+
       // Pagination settings
       const page = parseInt(options.page) || 1;
       const limit = parseInt(options.limit) || 10;
@@ -4510,7 +4510,9 @@ class ManufacturerService {
         recentOrders,
         recentPayments,
         lowStockProducts,
-        systemEvents
+        recentInquiries,
+        systemEvents,
+        unreadMessagesCount
       ] = await Promise.all([
         
         // 1. Recent orders as notifications
@@ -4538,7 +4540,8 @@ class ManufacturerService {
               totalAmount: 1,
               buyerCompany: '$buyerInfo.companyName',
               createdAt: 1,
-              updatedAt: 1
+              updatedAt: 1,
+              readBySeller: 1
             }
           },
           { $sort: { createdAt: -1 } },
@@ -4601,7 +4604,42 @@ class ManufacturerService {
           { $limit: 3 }
         ]),
 
-        // 4. System events (this would be from a system events collection if it exists)
+        // 4. Recent inquiries as notifications
+        Inquiry.aggregate([
+          {
+            $match: {
+              supplier: manufacturerObjectId,
+              createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } // Last 7 days
+            }
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'inquirer',
+              foreignField: '_id',
+              as: 'buyerInfo'
+            }
+          },
+          { $unwind: '$buyerInfo' },
+          {
+            $project: {
+              _id: 1,
+              inquiryNumber: 1,
+              type: 1,
+              subject: 1,
+              message: 1,
+              status: 1,
+              buyerCompany: '$buyerInfo.companyName',
+              buyerEmail: '$buyerInfo.email',
+              createdAt: 1,
+              readByManufacturer: 1
+            }
+          },
+          { $sort: { createdAt: -1 } },
+          { $limit: 10 }
+        ]),
+
+        // 5. System events (this would be from a system events collection if it exists)
         // For now, we'll create some based on business logic
         Promise.resolve([
           {
@@ -4609,7 +4647,8 @@ class ManufacturerService {
             title: 'Marketplace faoliyati',
             message: 'Sizning mahsulotlaringiz ko\'rishlar soni oshdi',
             createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
-            priority: 'low'
+            priority: 'low',
+            read: false // System notifications are always unread
           }
         ])
       ]);
@@ -4619,14 +4658,14 @@ class ManufacturerService {
 
       // Add order notifications
       recentOrders.forEach(order => {
-        const isRecent = (Date.now() - new Date(order.createdAt).getTime()) < (2 * 60 * 60 * 1000); // 2 hours
+        const isUnread = !order.readBySeller;
         notifications.push({
           id: `order_${order._id}`,
           type: 'order',
           title: 'Yangi buyurtma qabul qilindi',
           message: `${order.buyerCompany} dan $${order.totalAmount.toLocaleString()} lik buyurtma`,
           priority: order.totalAmount > 10000 ? 'high' : 'medium',
-          read: !isRecent, // Mark as unread if very recent
+          read: !isUnread, // Mark as read only if readBySeller is true
           createdAt: order.createdAt,
           actionUrl: `/manufacturer/orders/${order.orderNumber}`,
           metadata: {
@@ -4645,12 +4684,36 @@ class ManufacturerService {
           title: 'To\'lov qabul qilindi',
           message: `${payment.buyerCompany} dan $${payment.totalAmount.toLocaleString()} to\'lov muvaffaqiyatli qabul qilindi`,
           priority: 'medium',
-          read: true,
+          read: true, // Payment notifications are always read (already processed)
           createdAt: payment.updatedAt,
           actionUrl: `/manufacturer/payments/${payment.orderNumber}`,
           metadata: {
             orderId: payment._id,
             amount: payment.totalAmount
+          }
+        });
+      });
+
+      // Add inquiry notifications
+      recentInquiries.forEach(inquiry => {
+        const isRecent = (Date.now() - new Date(inquiry.createdAt).getTime()) < (2 * 60 * 60 * 1000); // 2 hours
+        const isUnread = !inquiry.readByManufacturer;
+        const readStatus = !isUnread;
+        notifications.push({
+          id: `inquiry_${inquiry._id}`,
+          type: 'inquiry',
+          title: 'Yangi so\'rov',
+          message: `${inquiry.buyerCompany} dan yangi so\'rov: ${inquiry.subject || inquiry.message?.substring(0, 50) + '...' || 'Umumiy so\'rov'}`,
+          priority: inquiry.type === 'bulk_order' ? 'high' : 'medium',
+          read: readStatus, // Mark as read only if readByManufacturer is true
+          createdAt: inquiry.createdAt,
+          actionUrl: `/manufacturer/inquiries/${inquiry._id}`,
+          metadata: {
+            inquiryId: inquiry._id,
+            inquiryNumber: inquiry.inquiryNumber,
+            buyerCompany: inquiry.buyerCompany,
+            buyerEmail: inquiry.buyerEmail,
+            type: inquiry.type
           }
         });
       });
@@ -4701,12 +4764,17 @@ class ManufacturerService {
         const readFilter = options.read === 'true';
         filteredNotifications = filteredNotifications.filter(n => n.read === readFilter);
       }
+      if (options.unread === 'true') {
+        filteredNotifications = filteredNotifications.filter(n => !n.read);
+      }
 
       // Apply pagination
       const totalItems = filteredNotifications.length;
       const totalPages = Math.ceil(totalItems / limit);
       const paginatedNotifications = filteredNotifications.slice(skip, skip + limit);
-      const unreadCount = notifications.filter(n => !n.read).length;
+      
+      // Calculate unread count based on filtered notifications
+      const unreadCount = options.unread === 'true' ? filteredNotifications.length : notifications.filter(n => !n.read).length;
 
       const result = {
         notifications: paginatedNotifications,
@@ -4720,13 +4788,15 @@ class ManufacturerService {
         },
         unreadCount: unreadCount,
         summary: {
-          total: notifications.length,
+          total: options.unread === 'true' ? filteredNotifications.length : notifications.length,
           unread: unreadCount,
           byType: {
-            order: notifications.filter(n => n.type === 'order').length,
-            payment: notifications.filter(n => n.type === 'payment').length,
-            inventory: notifications.filter(n => n.type === 'inventory').length,
-            system: notifications.filter(n => n.type === 'system').length
+            order: (options.unread === 'true' ? filteredNotifications : notifications).filter(n => n.type === 'order').length,
+            payment: (options.unread === 'true' ? filteredNotifications : notifications).filter(n => n.type === 'payment').length,
+            inventory: (options.unread === 'true' ? filteredNotifications : notifications).filter(n => n.type === 'inventory').length,
+            inquiry: (options.unread === 'true' ? filteredNotifications : notifications).filter(n => n.type === 'inquiry').length,
+            system: (options.unread === 'true' ? filteredNotifications : notifications).filter(n => n.type === 'system').length,
+            message: unreadMessagesCount || 0
           }
         }
       };
@@ -5767,7 +5837,8 @@ class ManufacturerService {
             createdAt: inquiry.createdAt,
           avatar: null,
             buyerId: inquiry.inquirer,
-            inquiryId: inquiry._id
+            inquiryId: inquiry._id,
+            readByManufacturer: inquiry.readByManufacturer || false
         };
       });
 
@@ -7584,57 +7655,59 @@ class ManufacturerService {
         try {
             const startTime = Date.now();
 
-            // Get manufacturer data
+            // Validate manufacturer ID
+            if (!ObjectId.isValid(manufacturerId)) {
+                throw new Error('Invalid manufacturer ID format');
+            }
+
+            // Get manufacturer data with comprehensive error handling
             const manufacturer = await User.findById(manufacturerId).lean();
             if (!manufacturer) {
                 throw new Error('Manufacturer not found');
             }
 
-            // Get statistics in parallel with error handling
-            const [productStats, orderStats, revenueStats] = await Promise.allSettled([
-                this.getProductStatistics(manufacturerId),
-                this.getOrderStatistics(manufacturerId),
-                this.getRevenueStatistics(manufacturerId)
+            // Validate manufacturer status
+            if (manufacturer.status === 'inactive') {
+                throw new Error('Manufacturer account is inactive');
+            }
+
+            // OPTIMIZED: Single comprehensive aggregation for all statistics
+            const [comprehensiveStats, additionalMetrics] = await Promise.allSettled([
+                this._getComprehensiveStatistics(manufacturerId),
+                this._getAdditionalMetrics(manufacturerId)
             ]);
 
-            // Process results with fallbacks
-            const productStatsData = productStats.status === 'fulfilled' ? productStats.value : { totalProducts: 0, activeProducts: 0 };
-            const orderStatsData = orderStats.status === 'fulfilled' ? orderStats.value : { totalOrders: 0, monthlyOrders: 0 };
-            const revenueStatsData = revenueStats.status === 'fulfilled' ? revenueStats.value : { totalRevenue: 0, monthlyRevenue: 0 };
-
-            // Get additional metrics with error handling
-            const [averageRating, completionRate, growthRate, customerRetention, performanceMetrics] = await Promise.allSettled([
-                this.getAverageRating(manufacturerId),
-                this.getCompletionRate(manufacturerId),
-                this.getGrowthRate(manufacturerId),
-                this.getCustomerRetention(manufacturerId),
-                this.getPerformanceMetrics(manufacturerId)
-            ]);
+            // Process comprehensive statistics
+            const statsData = comprehensiveStats.status === 'fulfilled' ? 
+                comprehensiveStats.value : 
+                this._getDefaultComprehensiveStats();
+                
+            const metricsData = additionalMetrics.status === 'fulfilled' ? 
+                additionalMetrics.value : 
+                this._getDefaultAdditionalMetrics();
 
             const profileData = {
                 stats: {
-                    totalProducts: productStatsData.totalProducts || 0,
-                    activeProducts: productStatsData.activeProducts || 0,
-                    totalOrders: orderStatsData.totalOrders || 0,
-                    totalRevenue: revenueStatsData.totalRevenue || 0,
-                    averageRating: averageRating.status === 'fulfilled' ? averageRating.value : 0,
-                    completionRate: completionRate.status === 'fulfilled' ? completionRate.value : 0
+                    totalProducts: statsData.totalProducts || 0,
+                    activeProducts: statsData.activeProducts || 0,
+                    totalOrders: statsData.totalOrders || 0,
+                    totalRevenue: statsData.totalRevenue || 0,
+                    averageRating: metricsData.averageRating || 0,
+                    completionRate: metricsData.completionRate || 0
                 },
                 metrics: {
-                    monthlyRevenue: revenueStatsData.monthlyRevenue || 0,
-                    monthlyOrders: orderStatsData.monthlyOrders || 0,
-                    growthRate: growthRate.status === 'fulfilled' ? growthRate.value : 0,
-                    customerRetention: customerRetention.status === 'fulfilled' ? customerRetention.value : 0,
+                    monthlyRevenue: statsData.monthlyRevenue || 0,
+                    monthlyOrders: statsData.monthlyOrders || 0,
+                    growthRate: metricsData.growthRate || 0,
+                    customerRetention: metricsData.customerRetention || 0,
                     // Performance metrics
-                    ...(performanceMetrics.status === 'fulfilled' ? performanceMetrics.value : {
-                        totalSales: revenueStatsData.totalRevenue || 0,
-                        completedOrders: orderStatsData.completedOrders || 0,
-                        responseTime: 24, // Default 24 hours
-                        totalReviews: await this.getTotalReviews(manufacturerId),
-                        salesChange: 0,
-                        ordersChange: 0,
-                        responseChange: 0
-                    })
+                    totalSales: statsData.totalRevenue || 0,
+                    completedOrders: statsData.completedOrders || 0,
+                    responseTime: metricsData.responseTime || 24,
+                    totalReviews: statsData.totalReviews || 0,
+                    salesChange: metricsData.salesChange || 0,
+                    ordersChange: metricsData.ordersChange || 0,
+                    responseChange: metricsData.responseChange || 0
                 },
                 companyInfo: {
                     name: manufacturer.companyName || '',
@@ -7651,7 +7724,10 @@ class ManufacturerService {
                     businessLicense: manufacturer.businessLicense || '',
                     taxNumber: manufacturer.taxNumber || '',
                     employeeCount: manufacturer.employeeCount || '',
-                    annualRevenue: manufacturer.annualRevenue || ''
+                    annualRevenue: manufacturer.annualRevenue || '',
+                    // Company status for verification badge
+                    status: manufacturer.status || 'pending',
+                    isVerified: manufacturer.status === 'active'
                 },
                 businessInfo: {
                     businessLicense: manufacturer.businessLicense || 'Belgilanmagan',
@@ -7677,11 +7753,9 @@ class ManufacturerService {
                 productionCapabilities: await this._getProductionCapabilities(manufacturerId)
             };
 
-            // Clear any cached data to ensure fresh results
-            this.clearUserCache(manufacturerId);
-            this.clearManufacturerCaches(manufacturerId);
-            
+            // OPTIMIZED: Don't clear cache unnecessarily - let it expire naturally
             this.trackPerformance('getProfileData', Date.now() - startTime, false);
+            
             return profileData;
 
         } catch (error) {
@@ -7690,25 +7764,323 @@ class ManufacturerService {
     }
 
     /**
+     * Get comprehensive statistics in a single optimized aggregation
+     * @private
+     * @param {string} manufacturerId - Manufacturer ID
+     * @returns {Object} Comprehensive statistics
+     */
+    async _getComprehensiveStatistics(manufacturerId) {
+        try {
+            const manufacturerObjectId = new ObjectId(manufacturerId);
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+            // Single comprehensive aggregation pipeline
+            const [productStats, orderStats, revenueStats] = await Promise.all([
+                // Product statistics
+                Product.aggregate([
+                    { $match: { manufacturer: manufacturerObjectId } },
+                    {
+                        $group: {
+                            _id: null,
+                            totalProducts: { $sum: 1 },
+                            activeProducts: { $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] } },
+                            draftProducts: { $sum: { $cond: [{ $eq: ['$status', 'draft'] }, 1, 0] } },
+                            inactiveProducts: { $sum: { $cond: [{ $eq: ['$status', 'inactive'] }, 1, 0] } },
+                            marketplaceProducts: { $sum: { $cond: [{ $eq: ['$visibility', 'public'] }, 1, 0] } },
+                            lowStockProducts: {
+                                $sum: {
+                                    $cond: [
+                                        { $lt: [{ $ifNull: ['$inventory.availableStock', 0] }, { $ifNull: ['$inventory.lowStockThreshold', 10] }] },
+                                        1, 0
+                                    ]
+                                }
+                            },
+                            averagePrice: { $avg: '$pricing.basePrice' },
+                            totalInventoryValue: {
+                                $sum: { $multiply: [{ $ifNull: ['$inventory.availableStock', 0] }, { $ifNull: ['$pricing.basePrice', 0] }] }
+                            }
+                        }
+                    }
+                ]),
+
+                // Order statistics
+                Order.aggregate([
+                    { $match: { seller: manufacturerObjectId } },
+                    {
+                        $group: {
+                            _id: null,
+                            totalOrders: { $sum: 1 },
+                            completedOrders: { $sum: { $cond: [{ $in: ['$status', ['processing', 'confirmed', 'completed', 'delivered']] }, 1, 0] } },
+                            monthlyOrders: {
+                                $sum: {
+                                    $cond: [
+                                        { $gte: ['$createdAt', startOfMonth] },
+                                        1, 0
+                                    ]
+                                }
+                            },
+                            lastMonthOrders: {
+                                $sum: {
+                                    $cond: [
+                                        { $and: [
+                                            { $gte: ['$createdAt', startOfLastMonth] },
+                                            { $lte: ['$createdAt', endOfLastMonth] }
+                                        ]},
+                                        1, 0
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                ]),
+
+                // Revenue statistics - Count all orders except pending/cancelled
+                Order.aggregate([
+                    { 
+                        $match: { 
+                            seller: manufacturerObjectId,
+                            status: { $in: ['processing', 'confirmed', 'completed', 'delivered'] } // Include processing orders in revenue
+                        } 
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            totalRevenue: { $sum: '$totalAmount' },
+                            monthlyRevenue: {
+                                $sum: {
+                                    $cond: [
+                                        { $gte: ['$createdAt', startOfMonth] },
+                                        '$totalAmount', 0
+                                    ]
+                                }
+                            },
+                            lastMonthRevenue: {
+                                $sum: {
+                                    $cond: [
+                                        { $and: [
+                                            { $gte: ['$createdAt', startOfLastMonth] },
+                                            { $lte: ['$createdAt', endOfLastMonth] }
+                                        ]},
+                                        '$totalAmount', 0
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                ])
+            ]);
+
+            // Process and combine results
+            const productData = productStats[0] || {};
+            const orderData = orderStats[0] || {};
+            const revenueData = revenueStats[0] || {};
+
+            // Debug logging for revenue calculation
+
+            return {
+                // Product statistics
+                totalProducts: productData.totalProducts || 0,
+                activeProducts: productData.activeProducts || 0,
+                draftProducts: productData.draftProducts || 0,
+                inactiveProducts: productData.inactiveProducts || 0,
+                marketplaceProducts: productData.marketplaceProducts || 0,
+                lowStockProducts: productData.lowStockProducts || 0,
+                averagePrice: productData.averagePrice || 0,
+                totalInventoryValue: productData.totalInventoryValue || 0,
+
+                // Order statistics
+                totalOrders: orderData.totalOrders || 0,
+                completedOrders: orderData.completedOrders || 0,
+                monthlyOrders: orderData.monthlyOrders || 0,
+                lastMonthOrders: orderData.lastMonthOrders || 0,
+
+                // Revenue statistics
+                totalRevenue: revenueData.totalRevenue || 0,
+                monthlyRevenue: revenueData.monthlyRevenue || 0,
+                lastMonthRevenue: revenueData.lastMonthRevenue || 0,
+
+                // Calculated metrics
+                orderGrowthRate: orderData.lastMonthOrders > 0 ? 
+                    ((orderData.monthlyOrders - orderData.lastMonthOrders) / orderData.lastMonthOrders * 100) : 0,
+                revenueGrowthRate: revenueData.lastMonthRevenue > 0 ? 
+                    ((revenueData.monthlyRevenue - revenueData.lastMonthRevenue) / revenueData.lastMonthRevenue * 100) : 0
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Error getting comprehensive statistics:', error);
+            return this._getDefaultComprehensiveStats();
+        }
+    }
+
+    /**
+     * Get additional metrics in parallel
+     * @private
+     * @param {string} manufacturerId - Manufacturer ID
+     * @returns {Object} Additional metrics
+     */
+    async _getAdditionalMetrics(manufacturerId) {
+        try {
+            const [averageRating, completionRate, growthRate, customerRetention, performanceMetrics] = await Promise.allSettled([
+                this.getAverageRating(manufacturerId),
+                this.getCompletionRate(manufacturerId),
+                this.getGrowthRate(manufacturerId),
+                this.getCustomerRetention(manufacturerId),
+                this.getPerformanceMetrics(manufacturerId)
+            ]);
+
+            return {
+                averageRating: averageRating.status === 'fulfilled' ? averageRating.value : 0,
+                completionRate: completionRate.status === 'fulfilled' ? completionRate.value : 0,
+                growthRate: growthRate.status === 'fulfilled' ? growthRate.value : 0,
+                customerRetention: customerRetention.status === 'fulfilled' ? customerRetention.value : 0,
+                ...(performanceMetrics.status === 'fulfilled' ? performanceMetrics.value : {
+                    responseTime: 24,
+                    salesChange: 0,
+                    ordersChange: 0,
+                    responseChange: 0
+                })
+            };
+
+        } catch (error) {
+            this.logger.error('❌ Error getting additional metrics:', error);
+            return this._getDefaultAdditionalMetrics();
+        }
+    }
+
+    /**
+     * Get default comprehensive statistics
+     * @private
+     * @returns {Object} Default comprehensive statistics
+     */
+    _getDefaultComprehensiveStats() {
+        return {
+            totalProducts: 0, activeProducts: 0, draftProducts: 0, inactiveProducts: 0,
+            marketplaceProducts: 0, lowStockProducts: 0, averagePrice: 0, totalInventoryValue: 0,
+            totalOrders: 0, completedOrders: 0, monthlyOrders: 0, lastMonthOrders: 0,
+            totalRevenue: 0, monthlyRevenue: 0, lastMonthRevenue: 0,
+            orderGrowthRate: 0, revenueGrowthRate: 0, totalReviews: 0
+        };
+    }
+
+    /**
+     * Get default additional metrics
+     * @private
+     * @returns {Object} Default additional metrics
+     */
+    _getDefaultAdditionalMetrics() {
+        return {
+            averageRating: 0, completionRate: 0, growthRate: 0, customerRetention: 0,
+            responseTime: 24, salesChange: 0, ordersChange: 0, responseChange: 0
+        };
+    }
+
+    /**
+     * Validate and sanitize statistics data
+     * @private
+     * @param {Object} stats - Statistics data
+     * @param {string} type - Type of statistics (product, order, revenue)
+     * @returns {Object} Validated and sanitized statistics
+     */
+    _validateAndSanitizeStats(stats, type) {
+        if (!stats || typeof stats !== 'object') {
+            return this._getDefaultStats(type);
+        }
+
+        const sanitized = {};
+        
+        // Common numeric fields
+        const numericFields = ['totalProducts', 'activeProducts', 'draftProducts', 'inactiveProducts', 
+                              'totalOrders', 'monthlyOrders', 'completedOrders', 'totalRevenue', 'monthlyRevenue'];
+        
+        numericFields.forEach(field => {
+            if (stats[field] !== undefined) {
+                const value = Number(stats[field]);
+                sanitized[field] = isNaN(value) ? 0 : Math.max(0, value);
+            }
+        });
+
+        // Type-specific validation
+        switch (type) {
+            case 'product':
+                sanitized.totalProducts = sanitized.totalProducts || 0;
+                sanitized.activeProducts = sanitized.activeProducts || 0;
+                break;
+            case 'order':
+                sanitized.totalOrders = sanitized.totalOrders || 0;
+                sanitized.completedOrders = sanitized.completedOrders || 0;
+                break;
+            case 'revenue':
+                sanitized.totalRevenue = sanitized.totalRevenue || 0;
+                sanitized.monthlyRevenue = sanitized.monthlyRevenue || 0;
+                break;
+        }
+
+        return sanitized;
+    }
+
+    /**
+     * Get default statistics for fallback
+     * @private
+     * @param {string} type - Type of statistics
+     * @returns {Object} Default statistics
+     */
+    _getDefaultStats(type) {
+        const defaults = {
+            product: { totalProducts: 0, activeProducts: 0, draftProducts: 0, inactiveProducts: 0 },
+            order: { totalOrders: 0, monthlyOrders: 0, completedOrders: 0 },
+            revenue: { totalRevenue: 0, monthlyRevenue: 0 }
+        };
+        return defaults[type] || {};
+    }
+
+    /**
      * Get recent products
      * @param {string} manufacturerId - Manufacturer ID
      * @param {number} limit - Number of products to fetch
      * @returns {Array} Recent products
      */
-    async getRecentProducts(manufacturerId, limit = 5) {
+    async getRecentProducts(manufacturerId, limit = 2) {
         try {
             const startTime = Date.now();
 
-            const products = await Product.find({ manufacturer: manufacturerId })
+            // Validate inputs
+            if (!ObjectId.isValid(manufacturerId)) {
+                throw new Error('Invalid manufacturer ID format');
+            }
+
+            if (limit < 1 || limit > 20) {
+                limit = 5; // Default to 5 if invalid limit
+            }
+
+            const products = await Product.find({ 
+                manufacturer: manufacturerId,
+                status: { $in: ['active', 'published', 'draft'] } // Include all relevant statuses
+            })
                 .sort({ createdAt: -1 })
                 .limit(limit)
-                .select('title images price stock status createdAt')
+                .select('title images price stock status createdAt category')
                 .lean();
 
+            // Sanitize and enhance product data
+            const sanitizedProducts = products.map(product => ({
+                _id: product._id,
+                title: product.title || 'Untitled Product',
+                images: product.images || [],
+                price: product.price || 0,
+                stock: product.stock || 0,
+                status: product.status || 'draft',
+                category: product.category || 'Uncategorized',
+                createdAt: product.createdAt
+            }));
+
             this.trackPerformance('getRecentProducts', Date.now() - startTime, false);
-            return products;
+            return sanitizedProducts;
 
         } catch (error) {
+            this.logger.error('❌ Error getting recent products:', error);
             // Return empty array on error to prevent page crash
             return [];
         }
@@ -7720,21 +8092,51 @@ class ManufacturerService {
      * @param {number} limit - Number of orders to fetch
      * @returns {Array} Recent orders
      */
-    async getRecentOrders(manufacturerId, limit = 5) {
+    async getRecentOrders(manufacturerId, limit = 2) {
         try {
             const startTime = Date.now();
+
+            // Validate inputs
+            if (!ObjectId.isValid(manufacturerId)) {
+                throw new Error('Invalid manufacturer ID format');
+            }
+
+            if (limit < 1 || limit > 20) {
+                limit = 5; // Default to 5 if invalid limit
+            }
 
             const orders = await Order.find({ seller: manufacturerId })
                 .sort({ createdAt: -1 })
                 .limit(limit)
-                .populate('buyer', 'name companyName avatar')
-                .select('orderNumber totalAmount status createdAt items')
+                .populate('buyer', 'name companyName avatar email phone')
+                .select('orderNumber totalAmount status createdAt items readBySeller paymentStatus shippingAddress')
                 .lean();
 
+            // Sanitize and enhance order data
+            const sanitizedOrders = orders.map(order => ({
+                _id: order._id,
+                orderNumber: order.orderNumber || `ORD-${order._id.toString().slice(-6)}`,
+                totalAmount: order.totalAmount || 0,
+                status: order.status || 'pending',
+                paymentStatus: order.paymentStatus || 'pending',
+                createdAt: order.createdAt,
+                readBySeller: order.readBySeller || false,
+                buyer: {
+                    name: order.buyer?.name || 'Unknown Buyer',
+                    companyName: order.buyer?.companyName || 'Unknown Company',
+                    avatar: order.buyer?.avatar || null,
+                    email: order.buyer?.email || '',
+                    phone: order.buyer?.phone || ''
+                },
+                items: order.items || [],
+                shippingAddress: order.shippingAddress || null
+            }));
+
             this.trackPerformance('getRecentOrders', Date.now() - startTime, false);
-            return orders;
+            return sanitizedOrders;
 
         } catch (error) {
+            this.logger.error('❌ Error getting recent orders:', error);
             // Return empty array on error to prevent page crash
             return [];
         }
@@ -7756,20 +8158,31 @@ class ManufacturerService {
             const startDate = new Date();
             startDate.setDate(endDate.getDate() - days);
 
-            // Get sales data for the period
+            // Determine grouping based on period
+            let dateFormat, groupInterval;
+            if (days <= 30) {
+                dateFormat = "%Y-%m-%d"; // Daily
+                groupInterval = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
+            } else if (days <= 90) {
+                dateFormat = "%Y-%W"; // Weekly
+                groupInterval = { $dateToString: { format: "%Y-%W", date: "$createdAt" } };
+            } else {
+                dateFormat = "%Y-%m"; // Monthly
+                groupInterval = { $dateToString: { format: "%Y-%m", date: "$createdAt" } };
+            }
+
+            // Get sales data for the period (same logic as main stats - exclude only pending/cancelled)
             const salesData = await Order.aggregate([
                 {
                     $match: {
                         seller: new ObjectId(manufacturerId),
                         createdAt: { $gte: startDate, $lte: endDate },
-                        status: { $in: ['completed', 'shipped', 'delivered'] }
+                        status: { $in: ['processing', 'confirmed', 'completed', 'delivered'] }
                     }
                 },
                 {
                     $group: {
-                        _id: {
-                            date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }
-                        },
+                        _id: { date: groupInterval },
                         revenue: { $sum: "$totalAmount" },
                         orders: { $sum: 1 }
                     }
@@ -7784,17 +8197,48 @@ class ManufacturerService {
             const sales = [];
             const orders = [];
 
-            // Generate date labels for the period
+            // Generate appropriate labels based on period
+            if (days <= 30) {
+                // Daily labels
             for (let i = 0; i < days; i++) {
                 const date = new Date(startDate);
                 date.setDate(startDate.getDate() + i);
                 const dateStr = date.toISOString().split('T')[0];
                 labels.push(dateStr);
 
-                // Find matching data or use 0
                 const dayData = salesData.find(d => d._id.date === dateStr);
                 sales.push(dayData ? dayData.revenue : 0);
                 orders.push(dayData ? dayData.orders : 0);
+                }
+            } else if (days <= 90) {
+                // Weekly labels
+                const weeks = Math.ceil(days / 7);
+                for (let i = 0; i < weeks; i++) {
+                    const date = new Date(startDate);
+                    date.setDate(startDate.getDate() + (i * 7));
+                    const year = date.getFullYear();
+                    const week = Math.ceil(((date - new Date(year, 0, 1)) / 86400000 + new Date(year, 0, 1).getDay() + 1) / 7);
+                    const weekKey = `${year}-${week.toString().padStart(2, '0')}`;
+                    labels.push(`Week ${week}`);
+
+                    const weekData = salesData.find(d => d._id.date === weekKey);
+                    sales.push(weekData ? weekData.revenue : 0);
+                    orders.push(weekData ? weekData.orders : 0);
+                }
+            } else {
+                // Monthly labels (6 months) - include current month
+                const months = 6; // Always 6 months for 180 days
+                for (let i = 0; i < months; i++) {
+                    const date = new Date(endDate); // Start from current date and go backwards
+                    date.setMonth(endDate.getMonth() - (months - 1 - i));
+                    const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                    const monthLabel = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                    labels.push(monthLabel);
+
+                    const monthData = salesData.find(d => d._id.date === monthKey);
+                    sales.push(monthData ? monthData.revenue : 0);
+                    orders.push(monthData ? monthData.orders : 0);
+                }
             }
 
             const chartData = {
@@ -7929,7 +8373,7 @@ class ManufacturerService {
                 return 0;
             }
 
-            // Method 1: Calculate from product ratings (weighted by review count)
+            // Method 1: Calculate company-wide average rating from ALL products
             let totalWeightedRating = 0;
             let totalReviews = 0;
 
@@ -7942,7 +8386,6 @@ class ManufacturerService {
 
             if (totalReviews > 0) {
                 const weightedAverage = totalWeightedRating / totalReviews;
-           
                 this.trackPerformance('getAverageRating', Date.now() - startTime);
                 return Math.round(weightedAverage * 10) / 10;
             }
@@ -8007,24 +8450,9 @@ class ManufacturerService {
                 this.logger.warn('⚠️ Comment model not available, skipping comment ratings');
             }
 
-            // Method 4: Fall back to order completion status as rating proxy
-            const completedOrders = await Order.countDocuments({
-                seller: manufacturerObjectId,
-                status: { $in: ['completed', 'delivered'] }
-            });
-            const totalOrders = await Order.countDocuments({ seller: manufacturerObjectId });
-            
-            if (totalOrders === 0) {
-           
+            // No fallback rating - return 0 if no real reviews exist
+            this.trackPerformance('getAverageRating', Date.now() - startTime);
                 return 0;
-            }
-            
-            // Convert completion rate to rating (completed orders get higher rating)
-            const completionRate = completedOrders / totalOrders;
-            const fallbackRating = Math.round((3.5 + (completionRate * 1.5)) * 10) / 10; // 3.5-5.0 range
-            
-           this.trackPerformance('getAverageRating', Date.now() - startTime);
-            return fallbackRating;
 
         } catch (error) {
             this.logger.error('❌ Error calculating average rating:', error);
@@ -8033,9 +8461,9 @@ class ManufacturerService {
     }
 
     /**
-     * Get total reviews count from products, company reviews, and comments
+     * Get total reviews count from ALL products (company-wide total)
      * @param {string} manufacturerId - Manufacturer ID
-     * @returns {number} Total reviews count
+     * @returns {number} Total reviews count from all products
      */
     async getTotalReviews(manufacturerId) {
         try {
@@ -8441,9 +8869,9 @@ class ManufacturerService {
         try {
             const startTime = Date.now();
 
-            // Get completed orders count and total sales
+            // Get completed orders count and total sales (same logic as main stats - exclude only pending/cancelled)
             const completedOrdersQuery = Order.aggregate([
-                { $match: { seller: new ObjectId(manufacturerId), status: { $in: ['completed', 'delivered'] } } },
+                { $match: { seller: new ObjectId(manufacturerId), status: { $in: ['processing', 'confirmed', 'completed', 'delivered'] } } },
                 {
                     $group: {
                         _id: null,
@@ -8456,22 +8884,33 @@ class ManufacturerService {
             // Get total reviews count using comprehensive method
             const totalReviews = await this.getTotalReviews(manufacturerId);
 
-            // Get response time (average time to first response on inquiries/messages)
+            // Get response time (average time to respond to inquiries in hours)
             let responseTime = 24; // Default 24 hours
             try {
-                const responseTimeQuery = await Message.aggregate([
-                    { $match: { receiver: new ObjectId(manufacturerId), isFirstResponse: true } },
+                // Try to get inquiry response times
+                const Inquiry = require('../models/Inquiry');
+                const responseTimeQuery = await Inquiry.aggregate([
+                    { 
+                        $match: { 
+                            manufacturer: new ObjectId(manufacturerId),
+                            status: { $in: ['responded', 'closed'] },
+                            respondedAt: { $exists: true }
+                        } 
+                    },
                     {
-                        $group: {
-                            _id: null,
-                            avgResponseTime: {
-                                $avg: {
+                        $project: {
+                            responseTimeHours: {
                                     $divide: [
-                                        { $subtract: ['$createdAt', '$inquiryCreatedAt'] },
+                                    { $subtract: ['$respondedAt', '$createdAt'] },
                                         1000 * 60 * 60 // Convert ms to hours
                                     ]
                                 }
                             }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            avgResponseTime: { $avg: '$responseTimeHours' }
                         }
                     }
                 ]);
@@ -8480,7 +8919,8 @@ class ManufacturerService {
                     responseTime = Math.round(responseTimeQuery[0].avgResponseTime);
                 }
             } catch (error) {
-                // Fallback if Message structure is different
+                // Fallback if Inquiry model is not available or different structure
+                this.logger.warn('⚠️ Could not calculate inquiry response time:', error.message);
             }
 
             // Get completed orders data
@@ -8500,7 +8940,7 @@ class ManufacturerService {
                     $match: {
                         seller: new ObjectId(manufacturerId),
                         createdAt: { $gte: currentMonthStart },
-                        status: { $in: ['completed', 'delivered'] }
+                        status: { $in: ['processing', 'confirmed', 'completed', 'delivered'] }
                     }
                 },
                 {
@@ -8518,7 +8958,7 @@ class ManufacturerService {
                     $match: {
                         seller: new ObjectId(manufacturerId),
                         createdAt: { $gte: lastMonthStart, $lte: lastMonthEnd },
-                        status: { $in: ['completed', 'delivered'] }
+                        status: { $in: ['processing', 'confirmed', 'completed', 'delivered'] }
                     }
                 },
                 {
@@ -8776,9 +9216,10 @@ class ManufacturerService {
      * Get product analytics with real data
      * @param {String} productId - Product MongoDB ObjectId
      * @param {String} manufacturerId - Manufacturer MongoDB ObjectId
+     * @param {Number} period - Period in days (7, 30, 90)
      * @returns {Object} Product analytics data
      */
-    async getProductAnalytics(productId, manufacturerId) {
+    async getProductAnalytics(productId, manufacturerId, period = 30) {
         try {
             // Validate IDs
             if (!ObjectId.isValid(productId) || !ObjectId.isValid(manufacturerId)) {
@@ -8788,70 +9229,407 @@ class ManufacturerService {
             const productObjectId = new ObjectId(productId);
             const manufacturerObjectId = new ObjectId(manufacturerId);
 
-            // Get product with analytics
+            // Get product with all necessary fields
             const product = await Product.findOne({
                 _id: productObjectId,
                 manufacturer: manufacturerObjectId
-            }).select('analytics businessMetrics name');
+            }).select('analytics businessMetrics name price stock averageRating totalReviews createdAt');
 
             if (!product) {
                 throw new Error('Product not found or access denied');
             }
 
-            // Use Product model analytics field (same as products page)
-            // This ensures consistency with products management page
-            const viewsCount = product.analytics?.views || 0;
-            const inquiriesCount = product.analytics?.inquiries || 0;
-            const ordersCount = product.analytics?.orders || 0;
-            const conversionRate = product.analytics?.conversionRate || 0;
-            
-            // Get real revenue from business metrics if available
-            const revenueAmount = product.businessMetrics?.totalRevenue || 0;
+            // Get real data from database using parallel queries
+            const [
+                realOrdersData,
+                realInquiriesData,
+                realRevenueData,
+                realCustomersData,
+                periodTrendData
+            ] = await Promise.all([
+                // Real orders data
+                Order.aggregate([
+                    { $unwind: '$items' },
+                    { 
+                        $match: { 
+                            'items.product': productObjectId,
+                            status: { $in: ['confirmed', 'processing', 'shipped', 'delivered', 'completed'] }
+                        } 
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            totalOrders: { $sum: 1 },
+                            totalQuantity: { $sum: '$items.quantity' },
+                            totalRevenue: { $sum: '$items.totalPrice' },
+                            avgOrderValue: { $avg: '$items.totalPrice' }
+                        }
+                    }
+                ]),
 
-            // Generate analytics data consistent with products page
-            const analytics = {
-                views: {
-                    total: viewsCount,
-                    thisMonth: Math.floor(viewsCount / 12),
-                    change: Math.floor(Math.random() * 21) - 10
-                },
-                inquiries: {
-                    total: inquiriesCount,
-                    thisMonth: Math.floor(inquiriesCount / 12),
-                    change: Math.floor(Math.random() * 21) - 10
-                },
-                orders: {
-                    total: ordersCount,
-                    thisMonth: Math.floor(ordersCount / 12),
-                    change: Math.floor(Math.random() * 21) - 10,
-                    totalOrders: ordersCount,
-                    totalRevenue: revenueAmount
-                },
-                revenue: {
-                    total: revenueAmount,
-                    thisMonth: Math.floor(revenueAmount / 12),
-                    change: Math.floor(Math.random() * 21) - 10
-                },
-                conversion: {
-                    rate: conversionRate,
-                    change: Math.floor(Math.random() * 21) - 10
-                }
+                // Real inquiries data
+                Inquiry.aggregate([
+                    { 
+                        $match: { 
+                            product: productObjectId,
+                            supplier: manufacturerObjectId
+                        } 
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            totalInquiries: { $sum: 1 },
+                            uniqueCustomers: { $addToSet: '$buyer' }
+                        }
+                    }
+                ]),
+
+                // Real revenue data from orders
+                Order.aggregate([
+                    { $unwind: '$items' },
+                    { 
+                        $match: { 
+                            'items.product': productObjectId,
+                            status: { $in: ['confirmed', 'processing', 'shipped', 'delivered', 'completed'] }
+                        } 
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            totalRevenue: { $sum: '$items.totalPrice' }
+                        }
+                    }
+                ]),
+
+                // Real customers data
+                Order.aggregate([
+                    { $unwind: '$items' },
+                    { 
+                        $match: { 
+                            'items.product': productObjectId,
+                            status: { $in: ['confirmed', 'processing', 'shipped', 'delivered', 'completed'] }
+                        } 
+                    },
+                    {
+                        $group: {
+                            _id: '$buyer',
+                            orderCount: { $sum: 1 },
+                            totalSpent: { $sum: '$items.totalPrice' }
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            uniqueCustomers: { $sum: 1 },
+                            totalOrders: { $sum: '$orderCount' }
+                        }
+                    }
+                ]),
+
+                // Period-based trend data for charts
+                this._generatePeriodTrend(productObjectId, period)
+            ]);
+
+            // Extract real data
+            const ordersData = realOrdersData[0] || { totalOrders: 0, totalQuantity: 0, totalRevenue: 0, avgOrderValue: 0 };
+            const inquiriesData = realInquiriesData[0] || { totalInquiries: 0, uniqueCustomers: [] };
+            const revenueData = realRevenueData[0] || { totalRevenue: 0 };
+            const customersData = realCustomersData[0] || { uniqueCustomers: 0, totalOrders: 0 };
+
+            // Calculate real metrics
+            const totalOrders = ordersData.totalOrders;
+            const totalRevenue = revenueData.totalRevenue;
+            const totalCustomers = customersData.uniqueCustomers;
+            const totalInquiries = inquiriesData.totalInquiries;
+            const avgOrderValue = ordersData.avgOrderValue || 0;
+            const avgQuantityPerOrder = totalOrders > 0 ? ordersData.totalQuantity / totalOrders : 0;
+
+            // Calculate conversion rate (inquiries to orders)
+            const conversionRate = totalInquiries > 0 ? Math.round((totalOrders / totalInquiries) * 100) : 0;
+
+            // Calculate growth rates (compare with previous period)
+            const previousPeriodStart = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+            const previousPeriodEnd = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+            const [previousOrdersData, previousRevenueData] = await Promise.all([
+                Order.aggregate([
+                    { $unwind: '$items' },
+                    { 
+                        $match: { 
+                            'items.product': productObjectId,
+                            createdAt: { $gte: previousPeriodStart, $lt: previousPeriodEnd },
+                            status: { $in: ['confirmed', 'processing', 'shipped', 'delivered', 'completed'] }
+                        } 
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            totalOrders: { $sum: 1 },
+                            totalRevenue: { $sum: '$items.totalPrice' }
+                        }
+                    }
+                ])
+            ]);
+
+            const previousOrders = previousOrdersData[0]?.totalOrders || 0;
+            const previousRevenue = previousOrdersData[0]?.totalRevenue || 0;
+
+            // Calculate growth percentages
+            const orderGrowth = previousOrders > 0 ? Math.round(((totalOrders - previousOrders) / previousOrders) * 100) : 0;
+            const revenueGrowth = previousRevenue > 0 ? Math.round(((totalRevenue - previousRevenue) / previousRevenue) * 100) : 0;
+
+            // Calculate retention rate (customers with multiple orders)
+            const retentionRate = totalCustomers > 0 ? Math.round((customersData.totalOrders / totalCustomers) * 100) : 0;
+
+            // Stock status calculation
+            const currentStock = product.stock || 0;
+            const stockStatus = currentStock > 10 ? 'healthy' : (currentStock > 0 ? 'low' : 'out');
+            const stockTurnover = totalOrders > 0 ? Math.round((totalOrders / Math.max(1, currentStock)) * 100) / 100 : 0;
+
+            // Performance score calculation (0-100)
+            const performanceScore = Math.min(100, Math.round(
+                (conversionRate * 0.3) + 
+                (Math.min(100, (totalRevenue / 1000)) * 0.3) + 
+                (Math.min(100, totalOrders * 10) * 0.2) + 
+                ((product.averageRating || 0) * 20 * 0.2)
+            ));
+
+            // Product age in days
+            const productAge = Math.floor((Date.now() - new Date(product.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+
+            // Return comprehensive analytics data
+            return {
+                // Core metrics
+                totalRevenue: totalRevenue,
+                totalOrders: totalOrders,
+                totalCustomers: totalCustomers,
+                totalInquiries: totalInquiries,
+                conversionRate: conversionRate,
+                
+                // Growth metrics
+                revenueGrowth: revenueGrowth,
+                orderGrowth: orderGrowth,
+                retentionRate: retentionRate,
+                
+                // Stock metrics
+                currentStock: currentStock,
+                stockStatus: stockStatus,
+                stockTurnover: stockTurnover,
+                
+                // Performance metrics
+                performanceScore: performanceScore,
+                avgOrderValue: avgOrderValue,
+                avgQuantityPerOrder: avgQuantityPerOrder,
+                avgRating: product.averageRating || 0,
+                totalReviews: product.totalReviews || 0,
+                productAge: productAge,
+                
+                // Chart data
+                periodTrend: periodTrendData || []
             };
 
-            return analytics;
-
         } catch (error) {
-            // Return fallback analytics
+            this.logger.error('❌ getProductAnalytics error:', error);
+            
+            // Return minimal fallback data
             return {
-                views: { total: 0, thisMonth: 0, change: 0 },
-                inquiries: { total: 0, thisMonth: 0, change: 0 },
-                orders: { total: 0, thisMonth: 0, change: 0, totalOrders: 0, totalRevenue: 0 },
-                revenue: { total: 0, thisMonth: 0, change: 0 },
-                conversion: { rate: 0, change: 0 }
+                totalRevenue: 0,
+                totalOrders: 0,
+                totalCustomers: 0,
+                totalInquiries: 0,
+                conversionRate: 0,
+                revenueGrowth: 0,
+                orderGrowth: 0,
+                retentionRate: 0,
+                currentStock: 0,
+                stockStatus: 'out',
+                stockTurnover: 0,
+                performanceScore: 0,
+                avgOrderValue: 0,
+                avgQuantityPerOrder: 0,
+                avgRating: 0,
+                totalReviews: 0,
+                productAge: 0,
+                periodTrend: []
             };
         }
     }
 
+
+    /**
+     * Generate period-based trend data for charts
+     * @param {ObjectId} productId - Product MongoDB ObjectId
+     * @param {Number} period - Period in days (7, 30, 90)
+     * @returns {Array} Trend data array
+     */
+    async _generatePeriodTrend(productId, period = 30) {
+        try {
+            const endDate = new Date();
+            const startDate = new Date(endDate.getTime() - (period * 24 * 60 * 60 * 1000));
+            
+            // Determine grouping interval based on period
+            let groupInterval;
+            let dateFormat;
+            
+            if (period <= 7) {
+                // 7 kunlik: Haftaning 7 kunini to'liq ko'rsatish
+                groupInterval = { $dayOfWeek: '$createdAt' };
+                dateFormat = '%A'; // Monday, Tuesday, etc.
+            } else if (period <= 30) {
+                // 30 kunlik: Haftalik ma'lumotlar (4-5 hafta)
+                groupInterval = { $week: '$createdAt' };
+                dateFormat = '%Y-W%U';
+            } else {
+                // 90 kunlik: Haftalik ma'lumotlar (12-13 hafta)
+                groupInterval = { $week: '$createdAt' };
+                dateFormat = '%Y-W%U';
+            }
+
+            // Get orders data for the period
+            const ordersData = await Order.aggregate([
+                { $unwind: '$items' },
+                { 
+                    $match: { 
+                        'items.product': productId,
+                        createdAt: { $gte: startDate, $lte: endDate },
+                        status: { $in: ['confirmed', 'processing', 'shipped', 'delivered', 'completed'] }
+                    } 
+                },
+                {
+                    $group: {
+                        _id: groupInterval,
+                        orders: { $sum: 1 },
+                        revenue: { $sum: '$items.totalPrice' },
+                        quantity: { $sum: '$items.quantity' },
+                        date: { $first: '$createdAt' }
+                    }
+                },
+                { $sort: { _id: 1 } }
+            ]);
+
+            // Get inquiries data for the period
+            const inquiriesData = await Inquiry.aggregate([
+                { 
+                    $match: { 
+                        product: productId,
+                        createdAt: { $gte: startDate, $lte: endDate }
+                    } 
+                },
+                {
+                    $group: {
+                        _id: groupInterval,
+                        inquiries: { $sum: 1 },
+                        date: { $first: '$createdAt' }
+                    }
+                },
+                { $sort: { _id: 1 } }
+            ]);
+
+            // Create date range for the period
+            const dateRange = [];
+            const currentDate = new Date(startDate);
+            
+            if (period <= 7) {
+                // 7 kunlik: Haftaning 7 kunini to'liq
+                for (let i = 1; i <= 7; i++) {
+                    const dayDate = new Date(currentDate);
+                    dayDate.setDate(currentDate.getDate() + (i - 1));
+                    dateRange.push(dayDate);
+                }
+            } else if (period <= 30) {
+                // 30 kunlik: Haftalik ma'lumotlar (4-5 hafta) - joriy haftadan boshlab
+                const startWeek = new Date(endDate);
+                startWeek.setDate(endDate.getDate() - endDate.getDay()); // Haftaning dushanbasiga
+                for (let i = 0; i < 5; i++) {
+                    const weekDate = new Date(startWeek);
+                    weekDate.setDate(startWeek.getDate() - (i * 7));
+                    dateRange.unshift(weekDate); // Oxiridan boshlab qo'shamiz
+                }
+            } else {
+                // 90 kunlik: Haftalik ma'lumotlar (12-13 hafta) - joriy haftadan boshlab
+                const startWeek = new Date(endDate);
+                startWeek.setDate(endDate.getDate() - endDate.getDay()); // Haftaning dushanbasiga
+                for (let i = 0; i < 13; i++) {
+                    const weekDate = new Date(startWeek);
+                    weekDate.setDate(startWeek.getDate() - (i * 7));
+                    dateRange.unshift(weekDate); // Oxiridan boshlab qo'shamiz
+                }
+            }
+
+            // Merge data and fill gaps
+            const trendData = dateRange.map(date => {
+                let dateKey;
+                if (period <= 7) {
+                    dateKey = date.getDay(); // 0-6 (Sunday-Saturday)
+                } else if (period <= 30) {
+                    dateKey = this._getWeekNumber(date);
+                } else {
+                    dateKey = this._getWeekNumber(date); // 90 kunlik ham haftalik
+                }
+                
+                const orderData = ordersData.find(d => d._id === dateKey) || { orders: 0, revenue: 0, quantity: 0 };
+                const inquiryData = inquiriesData.find(d => d._id === dateKey) || { inquiries: 0 };
+                
+                return {
+                    date: date.toISOString().split('T')[0],
+                    label: this._formatDateLabel(date, period),
+                    orders: orderData.orders,
+                    revenue: orderData.revenue,
+                    quantity: orderData.quantity,
+                    inquiries: inquiryData.inquiries
+                };
+            });
+
+            return trendData;
+
+        } catch (error) {
+            this.logger.error('❌ _generatePeriodTrend error:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Get day of year for date
+     * @param {Date} date - Date object
+     * @returns {Number} Day of year (1-366)
+     */
+    _getDayOfYear(date) {
+        const start = new Date(date.getFullYear(), 0, 0);
+        const diff = date - start;
+        const oneDay = 1000 * 60 * 60 * 24;
+        return Math.floor(diff / oneDay);
+    }
+
+    /**
+     * Get week number for date
+     * @param {Date} date - Date object
+     * @returns {Number} Week number
+     */
+    _getWeekNumber(date) {
+        const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+        const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+        return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    }
+
+    /**
+     * Format date label based on period
+     * @param {Date} date - Date object
+     * @param {Number} period - Period in days
+     * @returns {String} Formatted label
+     */
+    _formatDateLabel(date, period) {
+        if (period <= 7) {
+            // 7 kunlik: Haftaning kunlari
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            return days[date.getDay()];
+        } else if (period <= 30) {
+            // 30 kunlik: Hafta raqami
+            return `Week ${this._getWeekNumber(date)}`;
+        } else {
+            // 90 kunlik: Hafta raqami (ham haftalik)
+            return `Week ${this._getWeekNumber(date)}`;
+        }
+    }
 
     /**
      * Get product by ID with security check

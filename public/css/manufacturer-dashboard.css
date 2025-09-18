@@ -101,6 +101,12 @@
 
 .messages-badge {
   background: var(--color-primary) !important;
+  transition: opacity 0.2s ease, display 0.2s ease;
+  opacity: 0;
+}
+
+.messages-badge.show {
+  opacity: 1;
 }
 
 /* Dark Mode Colors */

@@ -764,7 +764,7 @@ router.patch('/:orderId/status',
             }
 
             const { orderId } = req.params;
-            const { status, note, notifyCustomer = false, reason, estimatedDeliveryDate } = req.body;
+            const { status, note, notifyCustomer = false, reason, estimatedDeliveryDate, version } = req.body;
             const manufacturerId = req.user?._id || req.user?.userId;
             const manufacturerName = req.user?.companyName || req.user?.name || 'Unknown';
 
@@ -794,6 +794,23 @@ router.patch('/:orderId/status',
                 });
             }
 
+            // ✅ PROFESSIONAL FIX: Version validation for optimistic locking
+            // Only validate version if it's provided and not null/undefined
+            if (version !== undefined && version !== null && version !== '') {
+                const providedVersion = parseInt(version);
+                const currentVersion = order.__v || 0;
+                
+                if (providedVersion !== currentVersion) {
+                    return res.status(409).json({
+                        success: false,
+                        message: 'Order was modified by another process. Please refresh and try again.',
+                        code: 'CONCURRENT_MODIFICATION',
+                        currentVersion: currentVersion,
+                        providedVersion: providedVersion
+                    });
+                }
+            }
+
             // Business Logic: Status Transition Validation
             const validTransitions = {
                 'draft': ['pending', 'cancelled'],
@@ -807,7 +824,7 @@ router.patch('/:orderId/status',
                 'in_transit': ['delivered'],
                 'delivered': ['completed'],
                 'completed': [],
-                'cancelled': ['pending'], // Allow reactivation
+                'cancelled': [], // ✅ FIX: Cancelled orders cannot transition to any other status
                 'refunded': [],
                 'disputed': ['cancelled', 'completed']
             };
@@ -937,7 +954,7 @@ router.patch('/:orderId/status',
                 { 
                     _id: orderId, 
                     seller: manufacturerId,
-                    version: order.__v // Optimistic locking
+                    __v: order.__v // ✅ FIX: Use __v field for optimistic locking
                 },
                 { 
                     $set: updateData,
@@ -1047,6 +1064,7 @@ router.patch('/:orderId/status',
                         orderNumber: updatedOrder.orderNumber,
                         status: updatedOrder.status,
                         previousStatus: currentStatus,
+                        __v: updatedOrder.__v, // ✅ PROFESSIONAL FIX: Include version for frontend
                         statusHistory: updatedOrder.statusHistory.slice(-5), // Last 5 status changes
                         updatedAt: updatedOrder.updatedAt,
                         timestamps: {

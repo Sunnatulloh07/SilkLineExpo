@@ -158,7 +158,7 @@
         <div class="header-dropdown">
           <button id="messagesBtn" class="header-action-btn" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.header.messages.tooltip') : 'Xabarlar' %>">
             <i class="fas fa-envelope"></i>
-            <span class="notification-badge messages-badge" id="messagesBadge">5</span>
+            <span class="notification-badge messages-badge" id="messagesBadge" style="display: none;">0</span>
           </button>
           
           <!-- Messages Dropdown -->
@@ -173,9 +173,6 @@
                 <i class="fas fa-spinner fa-spin"></i>
                 <p><%= typeof t !== 'undefined' ? t('admin.header.messages.loading') : 'Xabarlar yuklanmoqda...' %></p>
               </div>
-            </div>
-            <div class="dropdown-footer">
-              <a href="/manufacturer/messages" class="view-all-link"><%= typeof t !== 'undefined' ? t('admin.header.messages.view_all') : 'Barcha xabarlar' %></a>
             </div>
           </div>
         </div>
@@ -214,9 +211,6 @@
                   <span class="notification-time">30 <%= typeof t !== 'undefined' ? t('admin.header.common.time_ago.minutes') : 'daqiqa oldin' %></span>
                 </div>
               </div>
-            </div>
-            <div class="dropdown-footer">
-              <a href="/manufacturer/notifications" class="view-all-link"><%= typeof t !== 'undefined' ? t('admin.header.notifications.view_all') : 'Barcha bildirishnomalar' %></a>
             </div>
           </div>
         </div>

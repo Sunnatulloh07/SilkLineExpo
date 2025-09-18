@@ -1,4 +1,4 @@
-<%- include('../partials/header', { title: 'Sozlamalar', lng: lng, user: user }) %>
+<%- include('../partials/header', { title: t('manufacturer.settings.pageTitle'), lng: lng, user: user }) %>
 <%- include('../partials/sidebar', { user: user, currentPage: 'settings' }) %>
 
 <!-- Enhanced CSS Imports - Professional Settings Style -->
@@ -24,22 +24,22 @@
         <div class="orders-title-section">
           <h1 class="orders-main-title">
             <i class="fas fa-cog"></i>
-            Sozlamalar
+            <%= t('manufacturer.settings.pageTitle') %>
           </h1>
-          <p class="orders-subtitle">Kompaniya ma'lumotlari va tizim sozlamalarini boshqarish</p>
+          <p class="orders-subtitle"><%= t('manufacturer.settings.pageSubtitle') %></p>
         </div>
         <div class="orders-header-actions">
           <button class="orders-btn orders-btn-primary" id="saveAllSettingsBtn">
             <i class="fas fa-save"></i>
-            Barchasini Saqlash
+            <%= t('manufacturer.settings.actions.saveAll') %>
           </button>
           <button class="orders-btn orders-btn-outline" id="resetSettingsBtn">
             <i class="fas fa-undo"></i>
-            Qayta Tiklash
+            <%= t('manufacturer.settings.actions.reset') %>
           </button>
           <button class="orders-btn orders-btn-secondary" id="exportSettingsBtn">
             <i class="fas fa-download"></i>
-            Eksport
+            <%= t('manufacturer.settings.actions.export') %>
           </button>
         </div>
       </div>
@@ -50,27 +50,27 @@
       <div class="settings-tabs-container">
         <button class="settings-tab active" data-tab="company">
           <i class="fas fa-building"></i>
-          <span>Kompaniya</span>
+          <span><%= t('manufacturer.settings.tabs.company') %></span>
         </button>
         <button class="settings-tab" data-tab="contact">
           <i class="fas fa-address-book"></i>
-          <span>Aloqa</span>
+          <span><%= t('manufacturer.settings.tabs.contact') %></span>
         </button>
         <button class="settings-tab" data-tab="business">
           <i class="fas fa-briefcase"></i>
-          <span>Biznes</span>
+          <span><%= t('manufacturer.settings.tabs.business') %></span>
         </button>
         <button class="settings-tab" data-tab="security">
           <i class="fas fa-shield-alt"></i>
-          <span>Xavfsizlik</span>
+          <span><%= t('manufacturer.settings.tabs.security') %></span>
         </button>
         <button class="settings-tab" data-tab="preferences">
           <i class="fas fa-sliders-h"></i>
-          <span>Sozlamalar</span>
+          <span><%= t('manufacturer.settings.tabs.preferences') %></span>
         </button>
         <button class="settings-tab" data-tab="integrations">
           <i class="fas fa-plug"></i>
-          <span>Integratsiyalar</span>
+          <span><%= t('manufacturer.settings.tabs.integrations') %></span>
         </button>
       </div>
     </div>
@@ -85,9 +85,9 @@
             <div class="settings-section-header">
               <h3 class="settings-section-title">
                 <i class="fas fa-building"></i>
-                Kompaniya Ma'lumotlari
+                <%= t('manufacturer.settings.company.title') %>
               </h3>
-              <p class="settings-section-subtitle">Asosiy kompaniya ma'lumotlarini tahrirlang</p>
+              <p class="settings-section-subtitle"><%= t('manufacturer.settings.company.subtitle') %></p>
             </div>
             
             <!-- Form Messages Container -->
@@ -98,11 +98,11 @@
             <div class="settings-form-grid">
             <!-- Company Logo -->
             <div class="settings-form-group full-width">
-              <label class="settings-label">Kompaniya Logotipi</label>
+              <label class="settings-label"><%= t('manufacturer.settings.company.logo.title') %></label>
               <div class="logo-upload-container">
                 <div class="current-logo">
                   <img src="<%= (user.companyLogo && user.companyLogo.url) || '/assets/images/avatars/default-company.png' %>" 
-                       alt="<%= user.companyName || 'Company Logo' %>" 
+                       alt="<%= user.companyName || t('manufacturer.settings.company.logo.title') %>" 
                        id="currentLogoPreview"
                        onerror="this.onerror=null; this.src='/assets/images/avatars/default.png'">
                 </div>
@@ -110,16 +110,16 @@
                   <input type="file" id="logoUpload" accept="image/*" class="hidden">
                   <button type="button" class="orders-btn orders-btn-primary" id="logoUploadBtn">
                     <i class="fas fa-upload"></i>
-                    Logo Yangilash
+                    <%= t('manufacturer.settings.company.logo.update') %>
                   </button>
-                  <small class="logo-upload-help">JPG, PNG, GIF, WebP (max 5MB)</small>
+                  <small class="logo-upload-help"><%= t('manufacturer.settings.company.logo.help') %></small>
                 </div>
               </div>
             </div>
 
             <!-- Company Name -->
             <div class="settings-form-group">
-              <label class="settings-label" for="companyName">Kompaniya Nomi *</label>
+              <label class="settings-label" for="companyName"><%= t('manufacturer.settings.company.name.label') %></label>
               <input type="text" id="companyName" name="companyName" class="settings-input" 
                      value="<%= user.companyName || '' %>" 
                      required 
@@ -127,30 +127,30 @@
                      maxlength="200"
                      pattern="[a-zA-Z0-9\s\-&.,']+"
                      autocomplete="organization">
-              <small class="settings-help">Rasmiy kompaniya nomi (2-200 belgi)</small>
+              <small class="settings-help"><%= t('manufacturer.settings.company.name.help') %></small>
               <div class="field-error" style="display: none;"></div>
             </div>
 
             <!-- Activity Type -->
             <div class="settings-form-group">
-              <label class="settings-label" for="activityType">Faoliyat Turi *</label>
+              <label class="settings-label" for="activityType"><%= t('manufacturer.settings.company.activityType.label') %></label>
               <select id="activityType" name="activityType" class="settings-select" required>
-                <option value="">Tanlang...</option>
-                <option value="textiles_clothing" <%= user.activityType === 'textiles_clothing' ? 'selected' : '' %>>Tekstil va Kiyim</option>
-                <option value="food_beverages" <%= user.activityType === 'food_beverages' ? 'selected' : '' %>>Oziq-ovqat va Ichimliklar</option>
-                <option value="electronics" <%= user.activityType === 'electronics' ? 'selected' : '' %>>Elektronika</option>
-                <option value="machinery_equipment" <%= user.activityType === 'machinery_equipment' ? 'selected' : '' %>>Mashinasozlik</option>
-                <option value="chemicals" <%= user.activityType === 'chemicals' ? 'selected' : '' %>>Kimyo Sanoati</option>
-                <option value="agriculture" <%= user.activityType === 'agriculture' ? 'selected' : '' %>>Qishloq Xo'jaligi</option>
-                <option value="construction_materials" <%= user.activityType === 'construction_materials' ? 'selected' : '' %>>Qurilish Materiallari</option>
-                <option value="automotive" <%= user.activityType === 'automotive' ? 'selected' : '' %>>Avtomobil Sanoati</option>
-                <option value="other" <%= user.activityType === 'other' ? 'selected' : '' %>>Boshqa</option>
+                <option value=""><%= t('manufacturer.settings.company.activityType.select') %></option>
+                <option value="textiles_clothing" <%= user.activityType === 'textiles_clothing' ? 'selected' : '' %>><%= t('manufacturer.settings.company.activityType.options.textiles_clothing') %></option>
+                <option value="food_beverages" <%= user.activityType === 'food_beverages' ? 'selected' : '' %>><%= t('manufacturer.settings.company.activityType.options.food_beverages') %></option>
+                <option value="electronics" <%= user.activityType === 'electronics' ? 'selected' : '' %>><%= t('manufacturer.settings.company.activityType.options.electronics') %></option>
+                <option value="machinery_equipment" <%= user.activityType === 'machinery_equipment' ? 'selected' : '' %>><%= t('manufacturer.settings.company.activityType.options.machinery_equipment') %></option>
+                <option value="chemicals" <%= user.activityType === 'chemicals' ? 'selected' : '' %>><%= t('manufacturer.settings.company.activityType.options.chemicals') %></option>
+                <option value="agriculture" <%= user.activityType === 'agriculture' ? 'selected' : '' %>><%= t('manufacturer.settings.company.activityType.options.agriculture') %></option>
+                <option value="construction_materials" <%= user.activityType === 'construction_materials' ? 'selected' : '' %>><%= t('manufacturer.settings.company.activityType.options.construction_materials') %></option>
+                <option value="automotive" <%= user.activityType === 'automotive' ? 'selected' : '' %>><%= t('manufacturer.settings.company.activityType.options.automotive') %></option>
+                <option value="other" <%= user.activityType === 'other' ? 'selected' : '' %>><%= t('manufacturer.settings.company.activityType.options.other') %></option>
               </select>
             </div>
 
             <!-- Tax Number -->
             <div class="settings-form-group">
-              <label class="settings-label" for="taxNumber">Soliq Raqami *</label>
+              <label class="settings-label" for="taxNumber"><%= t('manufacturer.settings.company.taxNumber.label') %></label>
               <input type="text" id="taxNumber" name="taxNumber" class="settings-input" 
                      value="<%= user.taxNumber || '' %>" 
                      required 
@@ -158,66 +158,66 @@
                      maxlength="20"
                      pattern="[0-9]+"
                      autocomplete="tax-id">
-              <small class="settings-help">INN yoki soliq to'lovchi identifikatori (6-20 raqam)</small>
+              <small class="settings-help"><%= t('manufacturer.settings.company.taxNumber.help') %></small>
               <div class="field-error" style="display: none;"></div>
             </div>
 
             <!-- Established Year -->
             <div class="settings-form-group">
-              <label class="settings-label" for="establishedYear">Tashkil Etilgan Yil</label>
+              <label class="settings-label" for="establishedYear"><%= t('manufacturer.settings.company.establishedYear.label') %></label>
               <input type="number" id="establishedYear" name="establishedYear" class="settings-input" 
                      value="<%= user.establishedYear || '' %>" 
                      min="1900" 
                      max="<%= new Date().getFullYear() %>"
                      step="1"
                      autocomplete="bday-year">
-              <small class="settings-help">Kompaniya tashkil etilgan yil</small>
+              <small class="settings-help"><%= t('manufacturer.settings.company.establishedYear.help') %></small>
               <div class="field-error" style="display: none;"></div>
             </div>
 
             <!-- Employee Count -->
             <div class="settings-form-group">
-              <label class="settings-label" for="employeeCount">Xodimlar Soni</label>
+              <label class="settings-label" for="employeeCount"><%= t('manufacturer.settings.company.employeeCount.label') %></label>
               <select id="employeeCount" name="employeeCount" class="settings-select">
-                <option value="">Tanlang...</option>
-                <option value="1-10" <%= user.employeeCount === '1-10' ? 'selected' : '' %>>1-10</option>
-                <option value="11-50" <%= user.employeeCount === '11-50' ? 'selected' : '' %>>11-50</option>
-                <option value="51-200" <%= user.employeeCount === '51-200' ? 'selected' : '' %>>51-200</option>
-                <option value="201-500" <%= user.employeeCount === '201-500' ? 'selected' : '' %>>201-500</option>
-                <option value="500+" <%= user.employeeCount === '500+' ? 'selected' : '' %>>500+</option>
+                <option value=""><%= t('manufacturer.settings.company.employeeCount.select') %></option>
+                <option value="1-10" <%= user.employeeCount === '1-10' ? 'selected' : '' %>><%= t('manufacturer.settings.company.employeeCount.options.1-10') %></option>
+                <option value="11-50" <%= user.employeeCount === '11-50' ? 'selected' : '' %>><%= t('manufacturer.settings.company.employeeCount.options.11-50') %></option>
+                <option value="51-200" <%= user.employeeCount === '51-200' ? 'selected' : '' %>><%= t('manufacturer.settings.company.employeeCount.options.51-200') %></option>
+                <option value="201-500" <%= user.employeeCount === '201-500' ? 'selected' : '' %>><%= t('manufacturer.settings.company.employeeCount.options.201-500') %></option>
+                <option value="500+" <%= user.employeeCount === '500+' ? 'selected' : '' %>><%= t('manufacturer.settings.company.employeeCount.options.500+') %></option>
               </select>
             </div>
 
             <!-- Annual Revenue -->
             <div class="settings-form-group">
-              <label class="settings-label" for="annualRevenue">Yillik Aylanma</label>
+              <label class="settings-label" for="annualRevenue"><%= t('manufacturer.settings.company.annualRevenue.label') %></label>
               <select id="annualRevenue" name="annualRevenue" class="settings-select">
-                <option value="">Tanlang...</option>
-                <option value="under-100k" <%= user.annualRevenue === 'under-100k' ? 'selected' : '' %>>$100K dan kam</option>
-                <option value="100k-500k" <%= user.annualRevenue === '100k-500k' ? 'selected' : '' %>>$100K - $500K</option>
-                <option value="500k-1m" <%= user.annualRevenue === '500k-1m' ? 'selected' : '' %>>$500K - $1M</option>
-                <option value="1m-5m" <%= user.annualRevenue === '1m-5m' ? 'selected' : '' %>>$1M - $5M</option>
-                <option value="5m+" <%= user.annualRevenue === '5m+' ? 'selected' : '' %>>$5M dan ko'p</option>
+                <option value=""><%= t('manufacturer.settings.company.annualRevenue.select') %></option>
+                <option value="under-100k" <%= user.annualRevenue === 'under-100k' ? 'selected' : '' %>><%= t('manufacturer.settings.company.annualRevenue.options.under-100k') %></option>
+                <option value="100k-500k" <%= user.annualRevenue === '100k-500k' ? 'selected' : '' %>><%= t('manufacturer.settings.company.annualRevenue.options.100k-500k') %></option>
+                <option value="500k-1m" <%= user.annualRevenue === '500k-1m' ? 'selected' : '' %>><%= t('manufacturer.settings.company.annualRevenue.options.500k-1m') %></option>
+                <option value="1m-5m" <%= user.annualRevenue === '1m-5m' ? 'selected' : '' %>><%= t('manufacturer.settings.company.annualRevenue.options.1m-5m') %></option>
+                <option value="5m+" <%= user.annualRevenue === '5m+' ? 'selected' : '' %>><%= t('manufacturer.settings.company.annualRevenue.options.5m+') %></option>
               </select>
             </div>
 
             <!-- Company Description -->
             <div class="settings-form-group full-width">
-              <label class="settings-label" for="companyDescription">Kompaniya Tavsifi</label>
+              <label class="settings-label" for="companyDescription"><%= t('manufacturer.settings.company.description.label') %></label>
               <textarea id="companyDescription" name="companyDescription" class="settings-textarea" rows="4"
-                        placeholder="Kompaniyangiz haqida qisqacha ma'lumot, asosiy faoliyat yo'nalishlari va ustunliklar..."><%= user.description || '' %></textarea>
-              <small class="settings-help">Kompaniya haqida umumiy ma'lumot (maksimal 500 belgi)</small>
+                        placeholder="<%= t('manufacturer.settings.company.description.placeholder') %>"><%= user.description || '' %></textarea>
+              <small class="settings-help"><%= t('manufacturer.settings.company.description.help') %></small>
             </div>
           </div>
 
             <div class="settings-section-actions">
               <button type="submit" class="orders-btn orders-btn-primary" id="saveCompanyInfo">
                 <i class="fas fa-save"></i>
-                Saqlash
+                <%= t('manufacturer.settings.actions.save') %>
               </button>
               <button type="reset" class="orders-btn orders-btn-secondary">
                 <i class="fas fa-undo"></i>
-                Qayta Tiklash
+                <%= t('manufacturer.settings.actions.reset') %>
               </button>
             </div>
           </div>
@@ -231,9 +231,9 @@
             <div class="settings-section-header">
               <h3 class="settings-section-title">
                 <i class="fas fa-address-book"></i>
-                Aloqa Ma'lumotlari
+                <%= t('manufacturer.settings.contact.title') %>
               </h3>
-              <p class="settings-section-subtitle">Aloqa va ijtimoiy tarmoq ma'lumotlarini boshqaring</p>
+              <p class="settings-section-subtitle"><%= t('manufacturer.settings.contact.subtitle') %></p>
             </div>
             
             <!-- Form Messages Container -->
@@ -244,69 +244,69 @@
             <div class="settings-form-grid">
               <!-- Email -->
               <div class="settings-form-group">
-                <label class="settings-label" for="email">Email Manzil *</label>
+                <label class="settings-label" for="email"><%= t('manufacturer.settings.contact.email.label') %></label>
                 <input type="email" id="email" name="email" class="settings-input" 
                        value="<%= user.email || '' %>" 
                        required 
                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                        autocomplete="email">
-                <small class="settings-help">Asosiy email manzil</small>
+                <small class="settings-help"><%= t('manufacturer.settings.contact.email.help') %></small>
                 <div class="field-error" style="display: none;"></div>
               </div>
 
               <!-- Phone -->
               <div class="settings-form-group">
-                <label class="settings-label" for="phone">Telefon Raqami *</label>
+                <label class="settings-label" for="phone"><%= t('manufacturer.settings.contact.phone.label') %></label>
                 <input type="tel" id="phone" name="phone" class="settings-input" 
                        value="<%= user.phone || '' %>" 
                        required 
                        pattern="^\+\d{1,4}\d{6,14}$"
                        autocomplete="tel"
-                       placeholder="+1234567890">
-                <small class="settings-help">Xalqaro format: +1 (234) 567-8900, +998 90 123 45 67, +44 20 7946 0958</small>
+                       placeholder="<%= t('manufacturer.settings.contact.phone.placeholder') %>">
+                <small class="settings-help"><%= t('manufacturer.settings.contact.phone.help') %></small>
                 <div class="field-error" style="display: none;"></div>
               </div>
 
               <!-- Website -->
               <div class="settings-form-group">
-                <label class="settings-label" for="website">Website</label>
+                <label class="settings-label" for="website"><%= t('manufacturer.settings.contact.website.label') %></label>
                 <input type="url" id="website" name="website" class="settings-input" 
                        value="<%= user.website || '' %>" 
-                       placeholder="https://example.com"
+                       placeholder="<%= t('manufacturer.settings.contact.website.placeholder') %>"
                        pattern="https?://.*"
                        autocomplete="url">
-                <small class="settings-help">Kompaniya web sayti</small>
+                <small class="settings-help"><%= t('manufacturer.settings.contact.website.help') %></small>
                 <div class="field-error" style="display: none;"></div>
               </div>
 
               <!-- Address -->
               <div class="settings-form-group full-width">
-                <label class="settings-label" for="address">To'liq Manzil *</label>
+                <label class="settings-label" for="address"><%= t('manufacturer.settings.contact.address.label') %></label>
                 <textarea id="address" name="address" class="settings-textarea" rows="3" 
                           required 
                           minlength="10" 
                           maxlength="500"
                           autocomplete="street-address"><%= user.address || '' %></textarea>
-                <small class="settings-help">To'liq pochta manzili (10-500 belgi)</small>
+                <small class="settings-help"><%= t('manufacturer.settings.contact.address.help') %></small>
                 <div class="field-error" style="display: none;"></div>
               </div>
 
             <!-- Country -->
             <div class="settings-form-group">
-              <label class="settings-label" for="country">Mamlakat *</label>
+              <label class="settings-label" for="country"><%= t('manufacturer.settings.contact.country.label') %></label>
               <select id="country" name="country" class="settings-select" required>
-                <option value="">Tanlang...</option>
-                <option value="Uzbekistan" <%= user.country === 'Uzbekistan' ? 'selected' : '' %>>O'zbekiston</option>
-                <option value="Kazakhstan" <%= user.country === 'Kazakhstan' ? 'selected' : '' %>>Qozog'iston</option>
-                <option value="Kyrgyzstan" <%= user.country === 'Kyrgyzstan' ? 'selected' : '' %>>Qirg'iziston</option>
-                <option value="Tajikistan" <%= user.country === 'Tajikistan' ? 'selected' : '' %>>Tojikiston</option>
-                <option value="Turkmenistan" <%= user.country === 'Turkmenistan' ? 'selected' : '' %>>Turkmaniston</option>
+                <option value=""><%= t('manufacturer.settings.contact.country.select') %></option>
+                <option value="Uzbekistan" <%= user.country === 'Uzbekistan' ? 'selected' : '' %>><%= t('manufacturer.settings.contact.country.options.Uzbekistan') %></option>
+                <option value="Kazakhstan" <%= user.country === 'Kazakhstan' ? 'selected' : '' %>><%= t('manufacturer.settings.contact.country.options.Kazakhstan') %></option>
+                <option value="Kyrgyzstan" <%= user.country === 'Kyrgyzstan' ? 'selected' : '' %>><%= t('manufacturer.settings.contact.country.options.Kyrgyzstan') %></option>
+                <option value="Tajikistan" <%= user.country === 'Tajikistan' ? 'selected' : '' %>><%= t('manufacturer.settings.contact.country.options.Tajikistan') %></option>
+                <option value="Turkmenistan" <%= user.country === 'Turkmenistan' ? 'selected' : '' %>><%= t('manufacturer.settings.contact.country.options.Turkmenistan') %></option>
               </select>
             </div>
 
             <!-- City -->
             <div class="settings-form-group">
-              <label class="settings-label" for="city">Shahar *</label>
+              <label class="settings-label" for="city"><%= t('manufacturer.settings.contact.city.label') %></label>
               <input type="text" id="city" name="city" class="settings-input" 
                      value="<%= user.city || '' %>" required>
             </div>
@@ -316,13 +316,13 @@
           <div class="settings-subsection">
             <h4 class="settings-subsection-title">
               <i class="fas fa-share-alt"></i>
-              Ijtimoiy Tarmoqlar
+              <%= t('manufacturer.settings.contact.socialMedia.title') %>
             </h4>
             
             <div class="settings-form-grid">
               <!-- LinkedIn -->
               <div class="settings-form-group">
-                <label class="settings-label" for="linkedin">LinkedIn</label>
+                <label class="settings-label" for="linkedin"><%= t('manufacturer.settings.contact.socialMedia.linkedin') %></label>
                 <div class="input-with-icon">
                   <i class="fab fa-linkedin"></i>
                   <input type="url" id="linkedin" name="socialMedia.linkedin" class="settings-input" 
@@ -332,7 +332,7 @@
 
               <!-- Facebook -->
               <div class="settings-form-group">
-                <label class="settings-label" for="facebook">Facebook</label>
+                <label class="settings-label" for="facebook"><%= t('manufacturer.settings.contact.socialMedia.facebook') %></label>
                 <div class="input-with-icon">
                   <i class="fab fa-facebook"></i>
                   <input type="url" id="facebook" name="socialMedia.facebook" class="settings-input" 
@@ -342,7 +342,7 @@
 
               <!-- Instagram -->
               <div class="settings-form-group">
-                <label class="settings-label" for="instagram">Instagram</label>
+                <label class="settings-label" for="instagram"><%= t('manufacturer.settings.contact.socialMedia.instagram') %></label>
                 <div class="input-with-icon">
                   <i class="fab fa-instagram"></i>
                   <input type="url" id="instagram" name="socialMedia.instagram" class="settings-input" 
@@ -352,7 +352,7 @@
 
               <!-- Telegram -->
               <div class="settings-form-group">
-                <label class="settings-label" for="telegram">Telegram</label>
+                <label class="settings-label" for="telegram"><%= t('manufacturer.settings.contact.socialMedia.telegram') %></label>
                 <div class="input-with-icon">
                   <i class="fab fa-telegram"></i>
                   <input type="text" id="telegram" name="socialMedia.telegram" class="settings-input" 
@@ -365,11 +365,11 @@
             <div class="settings-section-actions">
               <button type="submit" class="orders-btn orders-btn-primary" id="saveContactInfo">
                 <i class="fas fa-save"></i>
-                Saqlash
+                <%= t('manufacturer.settings.actions.save') %>
               </button>
               <button type="reset" class="orders-btn orders-btn-secondary">
                 <i class="fas fa-undo"></i>
-                Qayta Tiklash
+                <%= t('manufacturer.settings.actions.reset') %>
               </button>
             </div>
           </div>
@@ -382,47 +382,47 @@
           <div class="settings-section-header">
             <h3 class="settings-section-title">
               <i class="fas fa-briefcase"></i>
-              Biznes Ma'lumotlari
+              <%= t('manufacturer.settings.business.title') %>
             </h3>
-            <p class="settings-section-subtitle">Biznes litsenziyalari va huquqiy ma'lumotlar</p>
+            <p class="settings-section-subtitle"><%= t('manufacturer.settings.business.subtitle') %></p>
           </div>
           
           <div class="settings-form-grid">
             <!-- Business License -->
             <div class="settings-form-group">
-              <label class="settings-label" for="businessLicense">Biznes Litsenziya</label>
+              <label class="settings-label" for="businessLicense"><%= t('manufacturer.settings.business.license.label') %></label>
               <input type="text" id="businessLicense" name="businessLicense" class="settings-input" 
                      value="<%= user.businessLicense || '' %>">
-              <small class="settings-help">Biznes faoliyati litsenziya raqami</small>
+              <small class="settings-help"><%= t('manufacturer.settings.business.license.help') %></small>
             </div>
 
             <!-- Company Type -->
             <div class="settings-form-group">
-              <label class="settings-label" for="companyType">Kompaniya Turi</label>
+              <label class="settings-label" for="companyType"><%= t('manufacturer.settings.business.type.label') %></label>
               <select id="companyType" name="companyType" class="settings-select" disabled>
-                <option value="manufacturer" <%= user.companyType === 'manufacturer' ? 'selected' : '' %>>Ishlab Chiqaruvchi</option>
-                <option value="distributor" <%= user.companyType === 'distributor' ? 'selected' : '' %>>Distribyutor</option>
+                <option value="manufacturer" <%= user.companyType === 'manufacturer' ? 'selected' : '' %>><%= t('manufacturer.settings.business.type.options.manufacturer') %></option>
+                <option value="distributor" <%= user.companyType === 'distributor' ? 'selected' : '' %>><%= t('manufacturer.settings.business.type.options.distributor') %></option>
               </select>
-              <small class="settings-help">Kompaniya turi o'zgartirib bo'lmaydi</small>
+              <small class="settings-help"><%= t('manufacturer.settings.business.type.help') %></small>
             </div>
 
             <!-- Status -->
             <div class="settings-form-group">
-              <label class="settings-label" for="status">Akkaunt Holati</label>
+              <label class="settings-label" for="status"><%= t('manufacturer.settings.business.status.label') %></label>
               <div class="status-display">
                 <span class="status-badge status-<%= user.status %>">
                   <% if (user.status === 'active') { %>
-                    <i class="fas fa-check-circle"></i> Faol
+                    <i class="fas fa-check-circle"></i> <%= t('manufacturer.settings.business.status.options.active') %>
                   <% } else if (user.status === 'pending') { %>
-                    <i class="fas fa-clock"></i> Kutilmoqda
+                    <i class="fas fa-clock"></i> <%= t('manufacturer.settings.business.status.options.pending') %>
                   <% } else if (user.status === 'blocked') { %>
-                    <i class="fas fa-ban"></i> Bloklangan
+                    <i class="fas fa-ban"></i> <%= t('manufacturer.settings.business.status.options.blocked') %>
                   <% } else if (user.status === 'suspended') { %>
-                    <i class="fas fa-pause"></i> To'xtatilgan
+                    <i class="fas fa-pause"></i> <%= t('manufacturer.settings.business.status.options.suspended') %>
                   <% } %>
                 </span>
               </div>
-              <small class="settings-help">Akkaunt holatini admin boshqaradi</small>
+              <small class="settings-help"><%= t('manufacturer.settings.business.status.help') %></small>
             </div>
           </div>
 
@@ -430,20 +430,20 @@
           <div class="settings-subsection">
             <h4 class="settings-subsection-title">
               <i class="fas fa-industry"></i>
-              Ishlab Chiqarish Imkoniyatlari
+              <%= t('manufacturer.settings.business.capabilities.title') %>
             </h4>
             
             <div class="capabilities-grid">
               <div class="capability-item">
                 <div class="capability-header">
                   <i class="fas fa-tshirt"></i>
-                  <h5>Tekstil Ishlab Chiqarish</h5>
+                  <h5><%= t('manufacturer.settings.business.capabilities.textile.title') %></h5>
                 </div>
                 <div class="capability-details">
                   <label class="checkbox-label">
                     <input type="checkbox" name="capabilities" value="textile_manufacturing">
                     <span class="checkmark"></span>
-                    Tekstil mahsulotlari ishlab chiqarish
+                    <%= t('manufacturer.settings.business.capabilities.textile.description') %>
                   </label>
                 </div>
               </div>
@@ -451,13 +451,13 @@
               <div class="capability-item">
                 <div class="capability-header">
                   <i class="fas fa-cut"></i>
-                  <h5>Kiyim Tikish</h5>
+                  <h5><%= t('manufacturer.settings.business.capabilities.garment.title') %></h5>
                 </div>
                 <div class="capability-details">
                   <label class="checkbox-label">
                     <input type="checkbox" name="capabilities" value="garment_manufacturing">
                     <span class="checkmark"></span>
-                    Kiyim-kechak tikish va dizayn
+                    <%= t('manufacturer.settings.business.capabilities.garment.description') %>
                   </label>
                 </div>
               </div>
@@ -465,13 +465,13 @@
               <div class="capability-item">
                 <div class="capability-header">
                   <i class="fas fa-palette"></i>
-                  <h5>Bo'yoq va Rang</h5>
+                  <h5><%= t('manufacturer.settings.business.capabilities.dyeing.title') %></h5>
                 </div>
                 <div class="capability-details">
                   <label class="checkbox-label">
                     <input type="checkbox" name="capabilities" value="dyeing_printing">
                     <span class="checkmark"></span>
-                    Bo'yoq va bosma ishlari
+                    <%= t('manufacturer.settings.business.capabilities.dyeing.description') %>
                   </label>
                 </div>
               </div>
@@ -479,13 +479,13 @@
               <div class="capability-item">
                 <div class="capability-header">
                   <i class="fas fa-medal"></i>
-                  <h5>Sifat Nazorati</h5>
+                  <h5><%= t('manufacturer.settings.business.capabilities.quality.title') %></h5>
                 </div>
                 <div class="capability-details">
                   <label class="checkbox-label">
                     <input type="checkbox" name="capabilities" value="quality_control">
                     <span class="checkmark"></span>
-                    Professional sifat nazorati
+                    <%= t('manufacturer.settings.business.capabilities.quality.description') %>
                   </label>
                 </div>
               </div>
@@ -493,13 +493,13 @@
               <div class="capability-item">
                 <div class="capability-header">
                   <i class="fas fa-shipping-fast"></i>
-                  <h5>Tezkor Yetkazib Berish</h5>
+                  <h5><%= t('manufacturer.settings.business.capabilities.delivery.title') %></h5>
                 </div>
                 <div class="capability-details">
                   <label class="checkbox-label">
                     <input type="checkbox" name="capabilities" value="fast_delivery">
                     <span class="checkmark"></span>
-                    Tezkor yetkazib berish xizmati
+                    <%= t('manufacturer.settings.business.capabilities.delivery.description') %>
                   </label>
                 </div>
               </div>
@@ -507,13 +507,13 @@
               <div class="capability-item">
                 <div class="capability-header">
                   <i class="fas fa-tools"></i>
-                  <h5>Maxsus Buyurtma</h5>
+                  <h5><%= t('manufacturer.settings.business.capabilities.custom.title') %></h5>
                 </div>
                 <div class="capability-details">
                   <label class="checkbox-label">
                     <input type="checkbox" name="capabilities" value="custom_orders">
                     <span class="checkmark"></span>
-                    Maxsus buyurtmalar qabul qilish
+                    <%= t('manufacturer.settings.business.capabilities.custom.description') %>
                   </label>
                 </div>
               </div>
@@ -523,7 +523,7 @@
           <div class="settings-section-actions">
             <button type="button" class="orders-btn orders-btn-primary" id="saveBusinessInfo">
               <i class="fas fa-save"></i>
-              Saqlash
+              <%= t('manufacturer.settings.actions.save') %>
             </button>
           </div>
         </div>
@@ -535,21 +535,21 @@
           <div class="settings-section-header">
             <h3 class="settings-section-title">
               <i class="fas fa-shield-alt"></i>
-              Xavfsizlik Sozlamalari
+              <%= t('manufacturer.settings.security.title') %>
             </h3>
-            <p class="settings-section-subtitle">Parol va xavfsizlik parametrlarini boshqaring</p>
+            <p class="settings-section-subtitle"><%= t('manufacturer.settings.security.subtitle') %></p>
           </div>
           
           <!-- Password Change Section -->
           <div class="settings-subsection">
             <h4 class="settings-subsection-title">
               <i class="fas fa-key"></i>
-              Parol O'zgartirish
+              <%= t('manufacturer.settings.security.password.title') %>
             </h4>
             
             <div class="settings-form-grid">
               <div class="settings-form-group">
-                <label class="settings-label" for="currentPassword">Joriy Parol *</label>
+                <label class="settings-label" for="currentPassword"><%= t('manufacturer.settings.security.password.current.label') %></label>
                 <div class="password-input-container">
                   <input type="password" id="currentPassword" name="currentPassword" class="settings-input password-input"
                          required
@@ -559,12 +559,12 @@
                     <i class="fas fa-eye"></i>
                   </button>
                 </div>
-                <small class="settings-help">Hozirgi parolingizni kiriting</small>
+                <small class="settings-help"><%= t('manufacturer.settings.security.password.current.help') %></small>
                 <div class="field-error" style="display: none;"></div>
               </div>
 
               <div class="settings-form-group">
-                <label class="settings-label" for="newPassword">Yangi Parol *</label>
+                <label class="settings-label" for="newPassword"><%= t('manufacturer.settings.security.password.new.label') %></label>
                 <div class="password-input-container">
                   <input type="password" id="newPassword" name="newPassword" class="settings-input password-input"
                          required
@@ -578,7 +578,7 @@
                     <i class="fas fa-magic"></i>
                   </button>
                 </div>
-                <small class="settings-help">Kamida 8 belgi, katta va kichik harflar, raqam yoki <strong>Magic button</strong> ni bosing</small>
+                <small class="settings-help"><%= t('manufacturer.settings.security.password.new.help') %></small>
                 <div class="password-strength" id="passwordStrength" style="display: none;">
                   <div class="password-strength-bar"></div>
                 </div>
@@ -586,7 +586,7 @@
               </div>
 
               <div class="settings-form-group">
-                <label class="settings-label" for="confirmPassword">Parolni Tasdiqlang *</label>
+                <label class="settings-label" for="confirmPassword"><%= t('manufacturer.settings.security.password.confirm.label') %></label>
                 <div class="password-input-container">
                   <input type="password" id="confirmPassword" name="confirmPassword" class="settings-input password-input"
                          required
@@ -596,7 +596,7 @@
                     <i class="fas fa-eye"></i>
                   </button>
                 </div>
-                <small class="settings-help">Yangi parolni qayta kiriting</small>
+                <small class="settings-help"><%= t('manufacturer.settings.security.password.confirm.help') %></small>
                 <div class="field-error" style="display: none;"></div>
               </div>
             </div>
@@ -604,7 +604,7 @@
             <div class="settings-form-actions">
               <button type="button" class="orders-btn orders-btn-primary" id="changePasswordBtn">
                 <i class="fas fa-key"></i>
-                Parolni O'zgartirish
+                <%= t('manufacturer.settings.security.password.change') %>
               </button>
             </div>
           </div>
@@ -613,13 +613,13 @@
           <div class="settings-subsection">
             <h4 class="settings-subsection-title">
               <i class="fas fa-mobile-alt"></i>
-              Ikki Faktorli Tasdiqlash
+              <%= t('manufacturer.settings.security.twoFactor.title') %>
             </h4>
             
             <div class="security-option">
               <div class="security-option-info">
-                <h5>SMS Tasdiqlash</h5>
-                <p>Kirishda telefon raqamingizga tasdiqlash kodi yuboriladi</p>
+                <h5><%= t('manufacturer.settings.security.twoFactor.sms.title') %></h5>
+                <p><%= t('manufacturer.settings.security.twoFactor.sms.description') %></p>
               </div>
               <div class="security-option-toggle">
                 <label class="toggle-switch">
@@ -631,8 +631,8 @@
 
             <div class="security-option">
               <div class="security-option-info">
-                <h5>Email Tasdiqlash</h5>
-                <p>Kirishda email manzilingizga tasdiqlash kodi yuboriladi</p>
+                <h5><%= t('manufacturer.settings.security.twoFactor.email.title') %></h5>
+                <p><%= t('manufacturer.settings.security.twoFactor.email.description') %></p>
               </div>
               <div class="security-option-toggle">
                 <label class="toggle-switch">
@@ -647,7 +647,7 @@
           <div class="settings-subsection">
             <h4 class="settings-subsection-title">
               <i class="fas fa-clock"></i>
-              Sessiya Boshqaruvi
+              <%= t('manufacturer.settings.security.session.title') %>
             </h4>
             
             <div class="sessions-list">
@@ -655,15 +655,15 @@
                 <div class="session-info">
                   <div class="session-device">
                     <i class="fas fa-desktop"></i>
-                    <span>Joriy Sessiya - Chrome Browser</span>
+                    <span><%= t('manufacturer.settings.security.session.current') %></span>
                   </div>
                   <div class="session-details">
                     <span class="session-ip">IP: 192.168.1.100</span>
-                    <span class="session-time">Oxirgi faollik: 2 daqiqa oldin</span>
+                    <span class="session-time"><%= t('manufacturer.settings.security.session.lastActivity') %></span>
                   </div>
                 </div>
                 <div class="session-actions">
-                  <span class="session-status active">Faol</span>
+                  <span class="session-status active"><%= t('manufacturer.settings.security.session.active') %></span>
                 </div>
               </div>
 
@@ -671,17 +671,17 @@
                 <div class="session-info">
                   <div class="session-device">
                     <i class="fas fa-mobile-alt"></i>
-                    <span>Mobile App - Android</span>
+                    <span><%= t('manufacturer.settings.security.session.mobile') %></span>
                   </div>
                   <div class="session-details">
                     <span class="session-ip">IP: 192.168.1.105</span>
-                    <span class="session-time">Oxirgi faollik: 1 soat oldin</span>
+                    <span class="session-time"><%= t('manufacturer.settings.security.session.lastActivityMobile') %></span>
                   </div>
                 </div>
                 <div class="session-actions">
                   <button class="orders-btn orders-btn-sm orders-btn-danger">
                     <i class="fas fa-sign-out-alt"></i>
-                    Chiqarish
+                    <%= t('manufacturer.settings.security.session.logout') %>
                   </button>
                 </div>
               </div>
@@ -690,7 +690,7 @@
             <div class="settings-form-actions">
               <button type="button" class="orders-btn orders-btn-danger" id="logoutAllSessionsBtn">
                 <i class="fas fa-sign-out-alt"></i>
-                Barcha Qurilmalardan Chiqish
+                <%= t('manufacturer.settings.security.session.logoutAll') %>
               </button>
             </div>
           </div>
@@ -703,59 +703,59 @@
           <div class="settings-section-header">
             <h3 class="settings-section-title">
               <i class="fas fa-sliders-h"></i>
-              Foydalanuvchi Sozlamalari
+              <%= t('manufacturer.settings.preferences.title') %>
             </h3>
-            <p class="settings-section-subtitle">Interfeys va bildirishnoma sozlamalarini sozlang</p>
+            <p class="settings-section-subtitle"><%= t('manufacturer.settings.preferences.subtitle') %></p>
           </div>
           
           <!-- Interface Preferences -->
           <div class="settings-subsection">
             <h4 class="settings-subsection-title">
               <i class="fas fa-desktop"></i>
-              Interfeys Sozlamalari
+              <%= t('manufacturer.settings.preferences.interface.title') %>
             </h4>
             
             <div class="settings-form-grid">
               <div class="settings-form-group">
-                <label class="settings-label" for="language">Til</label>
+                <label class="settings-label" for="language"><%= t('manufacturer.settings.preferences.interface.language.label') %></label>
                 <select id="language" name="language" class="settings-select">
-                  <option value="uz">O'zbekcha</option>
-                  <option value="ru">Русский</option>
-                  <option value="en">English</option>
+                  <option value="uz"><%= t('manufacturer.settings.preferences.interface.language.options.uz') %></option>
+                  <option value="ru"><%= t('manufacturer.settings.preferences.interface.language.options.ru') %></option>
+                  <option value="en"><%= t('manufacturer.settings.preferences.interface.language.options.en') %></option>
                 </select>
               </div>
 
               <div class="settings-form-group">
-                <label class="settings-label" for="timezone">Vaqt Zonasi</label>
+                <label class="settings-label" for="timezone"><%= t('manufacturer.settings.preferences.interface.timezone.label') %></label>
                 <select id="timezone" name="timezone" class="settings-select">
-                  <option value="Asia/Tashkent">Toshkent (UTC+5)</option>
-                  <option value="Asia/Almaty">Almaty (UTC+6)</option>
-                  <option value="Asia/Bishkek">Bishkek (UTC+6)</option>
+                  <option value="Asia/Tashkent"><%= t('manufacturer.settings.preferences.interface.timezone.options.Asia/Tashkent') %></option>
+                  <option value="Asia/Almaty"><%= t('manufacturer.settings.preferences.interface.timezone.options.Asia/Almaty') %></option>
+                  <option value="Asia/Bishkek"><%= t('manufacturer.settings.preferences.interface.timezone.options.Asia/Bishkek') %></option>
                 </select>
               </div>
 
               <div class="settings-form-group">
-                <label class="settings-label" for="dateFormat">Sana Formati</label>
+                <label class="settings-label" for="dateFormat"><%= t('manufacturer.settings.preferences.interface.dateFormat.label') %></label>
                 <select id="dateFormat" name="dateFormat" class="settings-select">
-                  <option value="DD.MM.YYYY">31.12.2024</option>
-                  <option value="MM/DD/YYYY">12/31/2024</option>
-                  <option value="YYYY-MM-DD">2024-12-31</option>
+                  <option value="DD.MM.YYYY"><%= t('manufacturer.settings.preferences.interface.dateFormat.options.DD.MM.YYYY') %></option>
+                  <option value="MM/DD/YYYY"><%= t('manufacturer.settings.preferences.interface.dateFormat.options.MM/DD/YYYY') %></option>
+                  <option value="YYYY-MM-DD"><%= t('manufacturer.settings.preferences.interface.dateFormat.options.YYYY-MM-DD') %></option>
                 </select>
               </div>
 
               <div class="settings-form-group">
-                <label class="settings-label" for="currency">Valyuta</label>
+                <label class="settings-label" for="currency"><%= t('manufacturer.settings.preferences.interface.currency.label') %></label>
                 <select id="currency" name="currency" class="settings-select">
-                  <option value="USD">USD ($)</option>
-                  <option value="UZS">UZS (so'm)</option>
-                  <option value="EUR">EUR (€)</option>
+                  <option value="USD"><%= t('manufacturer.settings.preferences.interface.currency.options.USD') %></option>
+                  <option value="UZS"><%= t('manufacturer.settings.preferences.interface.currency.options.UZS') %></option>
+                  <option value="EUR"><%= t('manufacturer.settings.preferences.interface.currency.options.EUR') %></option>
                 </select>
               </div>
             </div>
 
             <!-- Theme Settings -->
             <div class="theme-settings">
-              <h5>Mavzu Sozlamalari</h5>
+              <h5><%= t('manufacturer.settings.preferences.interface.theme.title') %></h5>
               <div class="theme-options">
                 <label class="theme-option">
                   <input type="radio" name="dashboard-theme" value="light" checked>
@@ -763,7 +763,7 @@
                     <div class="theme-header"></div>
                     <div class="theme-body"></div>
                   </div>
-                  <span>Yorug'</span>
+                  <span><%= t('manufacturer.settings.preferences.interface.theme.options.light') %></span>
                 </label>
 
                 <label class="theme-option">
@@ -772,7 +772,7 @@
                     <div class="theme-header"></div>
                     <div class="theme-body"></div>
                   </div>
-                  <span>Qorong'i</span>
+                  <span><%= t('manufacturer.settings.preferences.interface.theme.options.dark') %></span>
                 </label>
 
                 <label class="theme-option">
@@ -781,7 +781,7 @@
                     <div class="theme-header"></div>
                     <div class="theme-body"></div>
                   </div>
-                  <span>Avto</span>
+                  <span><%= t('manufacturer.settings.preferences.interface.theme.options.auto') %></span>
                 </label>
               </div>
             </div>
@@ -791,19 +791,19 @@
           <div class="settings-subsection">
             <h4 class="settings-subsection-title">
               <i class="fas fa-bell"></i>
-              Bildirishnoma Sozlamalari
+              <%= t('manufacturer.settings.preferences.notifications.title') %>
             </h4>
             
             <div class="notification-settings">
               <div class="notification-category">
-                <h5>Buyurtmalar</h5>
+                <h5><%= t('manufacturer.settings.preferences.notifications.orders.title') %></h5>
                 <div class="notification-options">
                   <label class="notification-option">
                     <input type="checkbox" name="notifications" value="new_order_email" checked>
                     <span class="checkmark"></span>
                     <div class="notification-info">
-                      <span class="notification-title">Yangi buyurtma - Email</span>
-                      <small>Yangi buyurtma kelganda email yuborish</small>
+                      <span class="notification-title"><%= t('manufacturer.settings.preferences.notifications.orders.newOrderEmail.title') %></span>
+                      <small><%= t('manufacturer.settings.preferences.notifications.orders.newOrderEmail.description') %></small>
                     </div>
                   </label>
 
@@ -811,8 +811,8 @@
                     <input type="checkbox" name="notifications" value="new_order_sms">
                     <span class="checkmark"></span>
                     <div class="notification-info">
-                      <span class="notification-title">Yangi buyurtma - SMS</span>
-                      <small>Yangi buyurtma kelganda SMS yuborish</small>
+                      <span class="notification-title"><%= t('manufacturer.settings.preferences.notifications.orders.newOrderSms.title') %></span>
+                      <small><%= t('manufacturer.settings.preferences.notifications.orders.newOrderSms.description') %></small>
                     </div>
                   </label>
 
@@ -820,22 +820,22 @@
                     <input type="checkbox" name="notifications" value="order_status_email" checked>
                     <span class="checkmark"></span>
                     <div class="notification-info">
-                      <span class="notification-title">Buyurtma holati - Email</span>
-                      <small>Buyurtma holati o'zgarganda email yuborish</small>
+                      <span class="notification-title"><%= t('manufacturer.settings.preferences.notifications.orders.orderStatusEmail.title') %></span>
+                      <small><%= t('manufacturer.settings.preferences.notifications.orders.orderStatusEmail.description') %></small>
                     </div>
                   </label>
                 </div>
               </div>
 
               <div class="notification-category">
-                <h5>So'rovlar</h5>
+                <h5><%= t('manufacturer.settings.preferences.notifications.inquiries.title') %></h5>
                 <div class="notification-options">
                   <label class="notification-option">
                     <input type="checkbox" name="notifications" value="new_inquiry_email" checked>
                     <span class="checkmark"></span>
                     <div class="notification-info">
-                      <span class="notification-title">Yangi so'rov - Email</span>
-                      <small>Yangi so'rov kelganda email yuborish</small>
+                      <span class="notification-title"><%= t('manufacturer.settings.preferences.notifications.inquiries.newInquiryEmail.title') %></span>
+                      <small><%= t('manufacturer.settings.preferences.notifications.inquiries.newInquiryEmail.description') %></small>
                     </div>
                   </label>
 
@@ -843,22 +843,22 @@
                     <input type="checkbox" name="notifications" value="inquiry_response_email">
                     <span class="checkmark"></span>
                     <div class="notification-info">
-                      <span class="notification-title">So'rov javobi - Email</span>
-                      <small>So'rovga javob kelganda email yuborish</small>
+                      <span class="notification-title"><%= t('manufacturer.settings.preferences.notifications.inquiries.inquiryResponseEmail.title') %></span>
+                      <small><%= t('manufacturer.settings.preferences.notifications.inquiries.inquiryResponseEmail.description') %></small>
                     </div>
                   </label>
                 </div>
               </div>
 
               <div class="notification-category">
-                <h5>Tizim</h5>
+                <h5><%= t('manufacturer.settings.preferences.notifications.system.title') %></h5>
                 <div class="notification-options">
                   <label class="notification-option">
                     <input type="checkbox" name="notifications" value="system_updates_email">
                     <span class="checkmark"></span>
                     <div class="notification-info">
-                      <span class="notification-title">Tizim yangilanishlari - Email</span>
-                      <small>Tizim yangilanishlari haqida xabar berish</small>
+                      <span class="notification-title"><%= t('manufacturer.settings.preferences.notifications.system.systemUpdatesEmail.title') %></span>
+                      <small><%= t('manufacturer.settings.preferences.notifications.system.systemUpdatesEmail.description') %></small>
                     </div>
                   </label>
 
@@ -866,8 +866,8 @@
                     <input type="checkbox" name="notifications" value="marketing_email">
                     <span class="checkmark"></span>
                     <div class="notification-info">
-                      <span class="notification-title">Marketing xabarlari - Email</span>
-                      <small>Yangiliklar va marketing xabarlarini olish</small>
+                      <span class="notification-title"><%= t('manufacturer.settings.preferences.notifications.system.marketingEmail.title') %></span>
+                      <small><%= t('manufacturer.settings.preferences.notifications.system.marketingEmail.description') %></small>
                     </div>
                   </label>
                 </div>
@@ -878,7 +878,7 @@
           <div class="settings-section-actions">
             <button type="button" class="orders-btn orders-btn-primary" id="savePreferences">
               <i class="fas fa-save"></i>
-              Saqlash
+              <%= t('manufacturer.settings.actions.save') %>
             </button>
           </div>
         </div>
@@ -890,16 +890,16 @@
           <div class="settings-section-header">
             <h3 class="settings-section-title">
               <i class="fas fa-plug"></i>
-              Integratsiyalar
+              <%= t('manufacturer.settings.integrations.title') %>
             </h3>
-            <p class="settings-section-subtitle">Tashqi xizmatlar va API ulanishlarini boshqaring</p>
+            <p class="settings-section-subtitle"><%= t('manufacturer.settings.integrations.subtitle') %></p>
           </div>
           
           <!-- Payment Integrations -->
           <div class="settings-subsection">
             <h4 class="settings-subsection-title">
               <i class="fas fa-credit-card"></i>
-              To'lov Tizimlari
+              <%= t('manufacturer.settings.integrations.payment.title') %>
             </h4>
             
             <div class="integration-list">
@@ -909,15 +909,15 @@
                     <img src="/assets/images/integrations/payme.svg" alt="Payme">
                   </div>
                   <div class="integration-details">
-                    <h5>Payme</h5>
-                    <p>O'zbekistondagi eng keng tarqalgan to'lov tizimi</p>
+                    <h5><%= t('manufacturer.settings.integrations.payment.payme.name') %></h5>
+                    <p><%= t('manufacturer.settings.integrations.payment.payme.description') %></p>
                   </div>
                 </div>
                 <div class="integration-status">
-                  <span class="status-badge status-warning">Sozlanmagan</span>
+                  <span class="status-badge status-warning"><%= t('manufacturer.settings.integrations.payment.status.notConfigured') %></span>
                   <button class="orders-btn orders-btn-outline orders-btn-sm">
                     <i class="fas fa-cog"></i>
-                    Sozlash
+                    <%= t('manufacturer.settings.integrations.payment.actions.configure') %>
                   </button>
                 </div>
               </div>
@@ -928,15 +928,15 @@
                     <img src="/assets/images/integrations/click.svg" alt="Click">
                   </div>
                   <div class="integration-details">
-                    <h5>Click</h5>
-                    <p>Tezkor va xavfsiz to'lov yechimlari</p>
+                    <h5><%= t('manufacturer.settings.integrations.payment.click.name') %></h5>
+                    <p><%= t('manufacturer.settings.integrations.payment.click.description') %></p>
                   </div>
                 </div>
                 <div class="integration-status">
-                  <span class="status-badge status-success">Ulantirilgan</span>
+                  <span class="status-badge status-success"><%= t('manufacturer.settings.integrations.payment.status.connected') %></span>
                   <button class="orders-btn orders-btn-outline orders-btn-sm">
                     <i class="fas fa-cog"></i>
-                    Sozlamalar
+                    <%= t('manufacturer.settings.integrations.payment.actions.settings') %>
                   </button>
                 </div>
               </div>
@@ -947,15 +947,15 @@
                     <img src="/assets/images/integrations/uzcard.svg" alt="UzCard">
                   </div>
                   <div class="integration-details">
-                    <h5>UzCard</h5>
-                    <p>Milliy to'lov kartalar tizimi</p>
+                    <h5><%= t('manufacturer.settings.integrations.payment.uzcard.name') %></h5>
+                    <p><%= t('manufacturer.settings.integrations.payment.uzcard.description') %></p>
                   </div>
                 </div>
                 <div class="integration-status">
-                  <span class="status-badge status-warning">Sozlanmagan</span>
+                  <span class="status-badge status-warning"><%= t('manufacturer.settings.integrations.payment.status.notConfigured') %></span>
                   <button class="orders-btn orders-btn-outline orders-btn-sm">
                     <i class="fas fa-cog"></i>
-                    Sozlash
+                    <%= t('manufacturer.settings.integrations.payment.actions.configure') %>
                   </button>
                 </div>
               </div>
@@ -966,7 +966,7 @@
           <div class="settings-subsection">
             <h4 class="settings-subsection-title">
               <i class="fas fa-shipping-fast"></i>
-              Yetkazib Berish Xizmatlari
+              <%= t('manufacturer.settings.integrations.shipping.title') %>
             </h4>
             
             <div class="integration-list">
@@ -976,15 +976,15 @@
                     <img src="/assets/images/integrations/express24.svg" alt="Express24">
                   </div>
                   <div class="integration-details">
-                    <h5>Express24</h5>
-                    <p>Tezkor yetkazib berish xizmati</p>
+                    <h5><%= t('manufacturer.settings.integrations.shipping.express24.name') %></h5>
+                    <p><%= t('manufacturer.settings.integrations.shipping.express24.description') %></p>
                   </div>
                 </div>
                 <div class="integration-status">
-                  <span class="status-badge status-success">Ulantirilgan</span>
+                  <span class="status-badge status-success"><%= t('manufacturer.settings.integrations.shipping.status.connected') %></span>
                   <button class="orders-btn orders-btn-outline orders-btn-sm">
                     <i class="fas fa-cog"></i>
-                    Sozlamalar
+                    <%= t('manufacturer.settings.integrations.shipping.actions.settings') %>
                   </button>
                 </div>
               </div>
@@ -995,15 +995,15 @@
                     <img src="/assets/images/integrations/dhl.svg" alt="DHL">
                   </div>
                   <div class="integration-details">
-                    <h5>DHL Express</h5>
-                    <p>Xalqaro yetkazib berish xizmati</p>
+                    <h5><%= t('manufacturer.settings.integrations.shipping.dhl.name') %></h5>
+                    <p><%= t('manufacturer.settings.integrations.shipping.dhl.description') %></p>
                   </div>
                 </div>
                 <div class="integration-status">
-                  <span class="status-badge status-warning">Sozlanmagan</span>
+                  <span class="status-badge status-warning"><%= t('manufacturer.settings.integrations.shipping.status.notConfigured') %></span>
                   <button class="orders-btn orders-btn-outline orders-btn-sm">
                     <i class="fas fa-cog"></i>
-                    Sozlash
+                    <%= t('manufacturer.settings.integrations.shipping.actions.configure') %>
                   </button>
                 </div>
               </div>
@@ -1014,7 +1014,7 @@
           <div class="settings-subsection">
             <h4 class="settings-subsection-title">
               <i class="fas fa-comments"></i>
-              Aloqa Tizimlari
+              <%= t('manufacturer.settings.integrations.communication.title') %>
             </h4>
             
             <div class="integration-list">
@@ -1024,15 +1024,15 @@
                     <i class="fab fa-telegram"></i>
                   </div>
                   <div class="integration-details">
-                    <h5>Telegram Bot</h5>
-                    <p>Telegram orqali bildirishnomalar va aloqa</p>
+                    <h5><%= t('manufacturer.settings.integrations.communication.telegram.name') %></h5>
+                    <p><%= t('manufacturer.settings.integrations.communication.telegram.description') %></p>
                   </div>
                 </div>
                 <div class="integration-status">
-                  <span class="status-badge status-success">Ulantirilgan</span>
+                  <span class="status-badge status-success"><%= t('manufacturer.settings.integrations.communication.status.connected') %></span>
                   <button class="orders-btn orders-btn-outline orders-btn-sm">
                     <i class="fas fa-cog"></i>
-                    Sozlamalar
+                    <%= t('manufacturer.settings.integrations.communication.actions.settings') %>
                   </button>
                 </div>
               </div>
@@ -1043,15 +1043,15 @@
                     <i class="fas fa-envelope"></i>
                   </div>
                   <div class="integration-details">
-                    <h5>Email Service</h5>
-                    <p>SMTP email xizmati sozlamalari</p>
+                    <h5><%= t('manufacturer.settings.integrations.communication.email.name') %></h5>
+                    <p><%= t('manufacturer.settings.integrations.communication.email.description') %></p>
                   </div>
                 </div>
                 <div class="integration-status">
-                  <span class="status-badge status-success">Ulantirilgan</span>
+                  <span class="status-badge status-success"><%= t('manufacturer.settings.integrations.communication.status.connected') %></span>
                   <button class="orders-btn orders-btn-outline orders-btn-sm">
                     <i class="fas fa-cog"></i>
-                    Sozlamalar
+                    <%= t('manufacturer.settings.integrations.communication.actions.settings') %>
                   </button>
                 </div>
               </div>
@@ -1062,50 +1062,50 @@
           <div class="settings-subsection">
             <h4 class="settings-subsection-title">
               <i class="fas fa-key"></i>
-              API Kalitlari
+              <%= t('manufacturer.settings.integrations.api.title') %>
             </h4>
             
             <div class="api-keys-list">
               <div class="api-key-item">
                 <div class="api-key-info">
-                  <h5>SLEX API Key</h5>
-                  <p>Asosiy API kaliti - tashqi tizimlar uchun</p>
+                  <h5><%= t('manufacturer.settings.integrations.api.slex.name') %></h5>
+                  <p><%= t('manufacturer.settings.integrations.api.slex.description') %></p>
                   <code>slex_api_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code>
                 </div>
                 <div class="api-key-actions">
                   <button class="orders-btn orders-btn-outline orders-btn-sm" id="regenerateApiKey">
                     <i class="fas fa-sync"></i>
-                    Yangisini Yaratish
+                    <%= t('manufacturer.settings.integrations.api.actions.regenerate') %>
                   </button>
                   <button class="orders-btn orders-btn-secondary orders-btn-sm" id="copyApiKey">
                     <i class="fas fa-copy"></i>
-                    Nusxalash
+                    <%= t('manufacturer.settings.integrations.api.actions.copy') %>
                   </button>
                 </div>
               </div>
 
               <div class="api-permissions">
-                <h5>API Ruxsatlari</h5>
+                <h5><%= t('manufacturer.settings.integrations.api.permissions.title') %></h5>
                 <div class="permission-list">
                   <label class="permission-item">
                     <input type="checkbox" checked disabled>
                     <span class="checkmark"></span>
-                    <span>Mahsulotlarni o'qish</span>
+                    <span><%= t('manufacturer.settings.integrations.api.permissions.readProducts') %></span>
                   </label>
                   <label class="permission-item">
                     <input type="checkbox" checked>
                     <span class="checkmark"></span>
-                    <span>Mahsulotlarni yozish</span>
+                    <span><%= t('manufacturer.settings.integrations.api.permissions.writeProducts') %></span>
                   </label>
                   <label class="permission-item">
                     <input type="checkbox" checked>
                     <span class="checkmark"></span>
-                    <span>Buyurtmalarni o'qish</span>
+                    <span><%= t('manufacturer.settings.integrations.api.permissions.readOrders') %></span>
                   </label>
                   <label class="permission-item">
                     <input type="checkbox">
                     <span class="checkmark"></span>
-                    <span>Buyurtmalarni boshqarish</span>
+                    <span><%= t('manufacturer.settings.integrations.api.permissions.manageOrders') %></span>
                   </label>
                 </div>
               </div>
@@ -1115,7 +1115,7 @@
           <div class="settings-section-actions">
             <button type="button" class="orders-btn orders-btn-primary" id="saveIntegrations">
               <i class="fas fa-save"></i>
-              Saqlash
+              <%= t('manufacturer.settings.actions.save') %>
             </button>
           </div>
         </div>
@@ -1150,6 +1150,40 @@
 
 <!-- Professional Unified Header Management -->
 <script src="/js/manufacturer/manufacturer-header.js"></script>
+
+<!-- Settings Translations Script -->
+<script type="application/json" id="settings-translations">
+{
+  "manufacturer.settings.validation.required": "<%= t('manufacturer.settings.validation.required') %>",
+  "manufacturer.settings.validation.emailInvalid": "<%= t('manufacturer.settings.validation.emailInvalid') %>",
+  "manufacturer.settings.validation.phoneInvalid": "<%= t('manufacturer.settings.validation.phoneInvalid') %>",
+  "manufacturer.settings.validation.urlInvalid": "<%= t('manufacturer.settings.validation.urlInvalid') %>",
+  "manufacturer.settings.validation.taxNumberInvalid": "<%= t('manufacturer.settings.validation.taxNumberInvalid') %>",
+  "manufacturer.settings.validation.passwordTooShort": "<%= t('manufacturer.settings.validation.passwordTooShort') %>",
+  "manufacturer.settings.validation.passwordComplexity": "<%= t('manufacturer.settings.validation.passwordComplexity') %>",
+  "manufacturer.settings.validation.passwordsMismatch": "<%= t('manufacturer.settings.validation.passwordsMismatch') %>",
+  "manufacturer.settings.validation.fileTypeInvalid": "<%= t('manufacturer.settings.validation.fileTypeInvalid') %>",
+  "manufacturer.settings.validation.fileTooLarge": "<%= t('manufacturer.settings.validation.fileTooLarge') %>",
+  "manufacturer.settings.validation.fileSizeError": "<%= t('manufacturer.settings.validation.fileSizeError') %>",
+  "manufacturer.settings.validation.fileTypeError": "<%= t('manufacturer.settings.validation.fileTypeError') %>",
+  "manufacturer.settings.messages.loading": "<%= t('manufacturer.settings.messages.loading') %>",
+  "manufacturer.settings.messages.saving": "<%= t('manufacturer.settings.messages.saving') %>",
+  "manufacturer.settings.messages.success": "<%= t('manufacturer.settings.messages.success') %>",
+  "manufacturer.settings.messages.error": "<%= t('manufacturer.settings.messages.error') %>",
+  "manufacturer.settings.messages.logoUploading": "<%= t('manufacturer.settings.messages.logoUploading') %>",
+  "manufacturer.settings.messages.logoSuccess": "<%= t('manufacturer.settings.messages.logoSuccess') %>",
+  "manufacturer.settings.messages.passwordGenerated": "<%= t('manufacturer.settings.messages.passwordGenerated') %>",
+  "manufacturer.settings.passwordStrength.weak": "<%= t('manufacturer.settings.passwordStrength.weak') %>",
+  "manufacturer.settings.passwordStrength.fair": "<%= t('manufacturer.settings.passwordStrength.fair') %>",
+  "manufacturer.settings.passwordStrength.good": "<%= t('manufacturer.settings.passwordStrength.good') %>",
+  "manufacturer.settings.passwordStrength.strong": "<%= t('manufacturer.settings.passwordStrength.strong') %>"
+}
+</script>
+
+<script>
+  // Pass server-side translations to client-side for settings
+  window.settingsTranslations = JSON.parse(document.getElementById('settings-translations').textContent);
+</script>
 
 <!-- JavaScript -->
 <script src="/js/manufacturer/settings.js"></script>

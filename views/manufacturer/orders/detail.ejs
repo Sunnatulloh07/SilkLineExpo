@@ -1505,7 +1505,7 @@
                 <div class="info-row">
                   <div class="info-item">
                     <span class="info-label"><%= t('manufacturer.orders.detail.order_info.order_number') %></span>
-                    <span class="info-value order-number">#<%= order.orderNumber || order._id.toString().slice(-8).toUpperCase() %></span>
+                    <span class="info-value order-number" data-order-version="<%= order.__v || 0 %>">#<%= order.orderNumber || order._id.toString().slice(-8).toUpperCase() %></span>
                   </div>
                   <div class="info-item">
                     <span class="info-label"><%= t('manufacturer.orders.detail.order_info.type') %></span>

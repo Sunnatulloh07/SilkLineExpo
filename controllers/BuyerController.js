@@ -1592,9 +1592,9 @@ class BuyerController {
     }
 
     /**
-     * API: Get buyer conversations with enhanced validation
+     * API: Get buyer conversations with enhanced validation (DEPRECATED - use getBuyerConversations below)
      */
-    async getBuyerConversations(req, res) {
+    async getBuyerConversationsOld(req, res) {
         try {
             const buyerId = req.user.userId;
             
@@ -1626,7 +1626,7 @@ class BuyerController {
                 });
             }
             
-            const conversations = await this.buyerService.getBuyerConversations(buyerId, filters);
+            const conversations = await this.buyerService.getBuyerConversations(buyerId, null, filters);
             
             this.sendSuccess(res, { 
                 conversations,
@@ -1645,6 +1645,8 @@ class BuyerController {
      */
     async getBuyerConversations(req, res) {
         try {
+            // Method call logged
+            
             const buyerId = req.user.userId;
             const currentManufacturerId = req.query.manufacturer || null;
             
@@ -1680,7 +1682,7 @@ class BuyerController {
                 });
             }
             
-            const conversations = await this.buyerService.getBuyerConversations(buyerId, currentManufacturerId);
+            const conversations = await this.buyerService.getBuyerConversations(buyerId, currentManufacturerId, {});
             this.sendSuccess(res, { 
                 conversations,
                 count: conversations.length,

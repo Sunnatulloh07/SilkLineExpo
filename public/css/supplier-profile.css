@@ -470,6 +470,13 @@
   transition: var(--supplier-transition); 
   padding: 0.75rem;
   border-radius: var(--supplier-radius-sm);
+  background: var(--dark-black-three);
+  border: 1px solid hsl(var(--border-color));
+}
+
+[data-theme='dark'] .info-item {
+  background: var(--supplier-card-hover);
+  border-color: hsl(var(--border-color));
 }
 
 .info-item:hover { 
@@ -970,6 +977,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 10px;
+  color: hsl(var(--main)) !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid hsl(var(--border-color));
   background: hsl(var(--white));
@@ -1064,6 +1072,7 @@
 
 .contact-info .info-item:hover {
   background: var(--dark-black-three); 
+  color: hsl(var(--gray-50)) !important;
   transform: translateX(8px);
   border-color: hsl(var(--main) / 0.2);
 }
@@ -1111,13 +1120,13 @@
   padding: 1rem; 
   border-radius: 12px; 
   transition: var(--supplier-transition);
-  border: 1px solid transparent;
+  border: 1px solid  hsl(var(--success) / 0.3);
 }
 
 .trust-item:hover { 
-  background: var(--dark-black-three); 
   transform: translateX(8px);
   border-color: hsl(var(--success) / 0.3);
+  color: hsl(var(--info)) !important;
 }
 
 .trust-item i { 
@@ -1129,6 +1138,7 @@
 
 .trust-item:hover i {
   transform: var(--supplier-scale-hover);
+  color: hsl(var(--success) / 1) !important;
 }
 
 .trust-item span {

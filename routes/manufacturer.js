@@ -219,6 +219,12 @@ const boundMethods = {
   getChartData: ManufacturerController.getChartData.bind(
     ManufacturerController
   ),
+  getProductAnalyticsData: ManufacturerController.getProductAnalyticsData.bind(
+    ManufacturerController
+  ),
+  getBusinessAnalyticsData: ManufacturerController.getBusinessAnalyticsData.bind(
+    ManufacturerController
+  ),
 
   // Support methods
   showSupport: ManufacturerController.showSupport.bind(
@@ -771,6 +777,13 @@ router.post("/api/orders/mark-read", validateManufacturerApiAccess, MessagingCon
 // ===== INQUIRIES API ROUTES =====
 router.post("/api/inquiries/mark-all-read", validateManufacturerApiAccess, MessagingController.markAllInquiriesAsRead);
 router.post("/api/inquiries/mark-read", validateManufacturerApiAccess, MessagingController.markInquiryAsRead);
+
+// ===== NOTIFICATIONS API ROUTES =====
+router.post("/api/notifications/mark-all-read", validateManufacturerApiAccess, MessagingController.markAllNotificationsAsRead);
+
+// ===== ANALYTICS API ROUTES =====
+router.get("/analytics/api/product-data", validateManufacturerApiAccess, boundMethods.getProductAnalyticsData);
+router.get("/analytics/api/business-data", validateManufacturerApiAccess, boundMethods.getBusinessAnalyticsData);
 
 // ===== MARKETPLACE API ROUTES =====
 // Include marketplace specific routes

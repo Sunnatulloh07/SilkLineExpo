@@ -1,4 +1,4 @@
-<%- include('../partials/header', { title: 'Kompaniya Profili', lng: lng, user: user }) %>
+<%- include('../partials/header', { title: t('manufacturer.profile.pageTitle'), lng: lng, user: user }) %>
 <%- include('../partials/sidebar', { user: user, currentPage: 'profile' }) %>
 
 <!-- Enhanced CSS Imports - Professional Profile Style -->
@@ -19,8 +19,19 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
 <!-- Main Content -->
-<main class="admin-main profile-page">
-  <div class="admin-content">
+<main class="admin-main">
+  <div class="admin-content profile-page">
+    
+    <!-- Single Page Loading State -->
+    <div id="pageLoadingOverlay" class="page-loading-overlay">
+      <div class="page-loading-content">
+        <div class="page-loading-spinner">
+          <i class="fas fa-spinner fa-spin"></i>
+        </div>
+        <h3><%= t('manufacturer.profile.messages.loading', 'Ma\'lumot yuklanmoqda...') %></h3>
+        <p><%= t('manufacturer.profile.messages.loadingSubtext', 'Profil ma\'lumotlari yuklanmoqda') %></p>
+      </div>
+    </div>
     
     <!-- Professional Profile Header -->
     <div class="orders-header animate-fade-in">
@@ -28,23 +39,9 @@
         <div class="orders-title-section">
           <h1 class="orders-main-title">
             <i class="fas fa-user-circle"></i>
-            Kompaniya Profili
+            <%= t('manufacturer.profile.pageTitle') %>
           </h1>
-          <p class="orders-subtitle">Kompaniya ma'lumotlari va biznes ko'rsatkichlari</p>
-        </div>
-        <div class="orders-header-actions">
-          <button class="orders-btn orders-btn-primary" id="editProfileBtn">
-            <i class="fas fa-edit"></i>
-            Tahrirlash
-          </button>
-          <button class="orders-btn orders-btn-outline" id="shareProfileBtn">
-            <i class="fas fa-share"></i>
-            Profil Ulashish
-          </button>
-          <button class="orders-btn orders-btn-secondary" id="printProfileBtn">
-            <i class="fas fa-print"></i>
-            Chop Etish
-          </button>
+          <p class="orders-subtitle"><%= t('manufacturer.profile.pageSubtitle') %></p>
         </div>
       </div>
     </div>
@@ -56,7 +53,7 @@
           <div class="company-logo-section">
             <div class="company-logo-container">
               <img src="<%= (user.companyLogo && user.companyLogo.url) || '/assets/images/avatars/default-company.png' %>" 
-                   alt="<%= user.companyName || 'Company Logo' %>" 
+                   alt="<%= user.companyName || t('manufacturer.profile.company.logo') %>" 
                    class="company-logo"
                    id="companyLogo"
                    onerror="this.onerror=null; this.src='/assets/images/avatars/default.png'">
@@ -65,12 +62,12 @@
               <% if (user.status === 'active') { %>
                 <span class="verification-badge verified">
                   <i class="fas fa-check-circle"></i>
-                  Tasdiqlangan
+                  <%= t('manufacturer.profile.verification.verified') %>
                 </span>
               <% } else { %>
                 <span class="verification-badge pending">
                   <i class="fas fa-clock"></i>
-                  Kutilmoqda
+                  <%= t('manufacturer.profile.verification.pending') %>
                 </span>
               <% } %>
             </div>
@@ -81,7 +78,7 @@
             <div class="company-meta">
               <span class="company-type">
                 <i class="fas fa-industry"></i>
-                Ishlab Chiqaruvchi
+                <%= t('manufacturer.profile.company.type') %>
               </span>
               <span class="company-location">
                 <i class="fas fa-map-marker-alt"></i>
@@ -89,7 +86,7 @@
               </span>
               <span class="company-established" id="companyEstablished" style="display: none;">
                 <i class="fas fa-calendar"></i>
-                <span id="establishedYear">-</span> yildan beri
+                <span id="establishedYear">-</span> <%= t('manufacturer.profile.company.established') %>
               </span>
             </div>
             <div class="company-contact-quick">
@@ -103,27 +100,27 @@
               </a>
               <a href="#" target="_blank" class="contact-btn website" id="heroWebsite" style="display: none;">
                 <i class="fas fa-globe"></i>
-                Website
+                <%= t('manufacturer.profile.contact.website') %>
               </a>
             </div>
           </div>
 
-          <div class="company-stats-quick">
+            <div class="company-stats-quick">
             <div class="stat-item">
               <div class="stat-value" id="totalProducts">0</div>
-              <div class="stat-label">Mahsulotlar</div>
+              <div class="stat-label"><%= t('manufacturer.profile.company.stats.products') %></div>
             </div>
             <div class="stat-item">
               <div class="stat-value" id="totalOrders">0</div>
-              <div class="stat-label">Buyurtmalar</div>
+              <div class="stat-label"><%= t('manufacturer.profile.company.stats.orders') %></div>
             </div>
             <div class="stat-item">
               <div class="stat-value" id="totalRevenue">$0</div>
-              <div class="stat-label">Daromad</div>
+              <div class="stat-label"><%= t('manufacturer.profile.company.stats.revenue') %></div>
             </div>
             <div class="stat-item">
               <div class="stat-value" id="customerRating">0.0</div>
-              <div class="stat-label">Reyting</div>
+              <div class="stat-label"><%= t('manufacturer.profile.company.stats.rating') %></div>
             </div>
           </div>
         </div>
@@ -141,30 +138,30 @@
           <div class="profile-card-header">
             <h3 class="profile-card-title">
               <i class="fas fa-briefcase"></i>
-              Biznes Ma'lumotlari
+              <%= t('manufacturer.profile.business.title') %>
             </h3>
           </div>
           <div class="profile-card-content">
             <div class="info-grid">
               <div class="info-item">
-                <label>Faoliyat Turi:</label>
+                <label><%= t('manufacturer.profile.business.activityType') %>:</label>
                 <span class="activity-type" id="activityType">
                   <i class="fas fa-industry"></i> -
                 </span>
               </div>
 
               <div class="info-item">
-                <label>Biznes Litsenziya:</label>
+                <label><%= t('manufacturer.profile.business.license') %>:</label>
                 <span id="businessLicense">-</span>
               </div>
 
               <div class="info-item">
-                <label>Soliq Raqami:</label>
+                <label><%= t('manufacturer.profile.business.taxNumber') %>:</label>
                 <span id="taxNumber">-</span>
               </div>
 
               <div class="info-item">
-                <label>Xodimlar Soni:</label>
+                <label><%= t('manufacturer.profile.business.employeeCount') %>:</label>
                 <span class="employee-count" id="employeeCount">
                   <i class="fas fa-users"></i>
                   -
@@ -172,7 +169,7 @@
               </div>
 
               <div class="info-item">
-                <label>Yillik Aylanma:</label>
+                <label><%= t('manufacturer.profile.business.annualRevenue') %>:</label>
                 <span class="annual-revenue" id="annualRevenue">
                   <i class="fas fa-dollar-sign"></i>
                   -
@@ -187,7 +184,7 @@
           <div class="profile-card-header">
             <h3 class="profile-card-title">
               <i class="fas fa-industry"></i>
-              Ishlab Chiqarish Imkoniyatlari
+              <%= t('manufacturer.profile.capabilities.title') %>
             </h3>
           </div>
           <div class="profile-card-content">
@@ -197,8 +194,8 @@
                   <i class="fas fa-tshirt"></i>
                 </div>
                 <div class="capability-info">
-                  <h5>Tekstil Ishlab Chiqarish</h5>
-                  <p>Yuqori sifatli tekstil mahsulotlari</p>
+                  <h5><%= t('manufacturer.profile.capabilities.textile.title') %></h5>
+                  <p><%= t('manufacturer.profile.capabilities.textile.description') %></p>
                 </div>
                 <div class="capability-status">
                   <i class="fas fa-check-circle text-success"></i>
@@ -210,8 +207,8 @@
                   <i class="fas fa-cut"></i>
                 </div>
                 <div class="capability-info">
-                  <h5>Kiyim Tikish</h5>
-                  <p>Professional kiyim tikish xizmatlari</p>
+                  <h5><%= t('manufacturer.profile.capabilities.garment.title') %></h5>
+                  <p><%= t('manufacturer.profile.capabilities.garment.description') %></p>
                 </div>
                 <div class="capability-status">
                   <i class="fas fa-check-circle text-success"></i>
@@ -223,8 +220,8 @@
                   <i class="fas fa-palette"></i>
                 </div>
                 <div class="capability-info">
-                  <h5>Bo'yoq va Rang</h5>
-                  <p>Rang berish va bosma ishlari</p>
+                  <h5><%= t('manufacturer.profile.capabilities.dyeing.title') %></h5>
+                  <p><%= t('manufacturer.profile.capabilities.dyeing.description') %></p>
                 </div>
                 <div class="capability-status">
                   <i class="fas fa-check-circle text-success"></i>
@@ -236,8 +233,8 @@
                   <i class="fas fa-medal"></i>
                 </div>
                 <div class="capability-info">
-                  <h5>Sifat Nazorati</h5>
-                  <p>ISO standartlari bo'yicha nazorat</p>
+                  <h5><%= t('manufacturer.profile.capabilities.quality.title') %></h5>
+                  <p><%= t('manufacturer.profile.capabilities.quality.description') %></p>
                 </div>
                 <div class="capability-status">
                   <i class="fas fa-check-circle text-success"></i>
@@ -249,8 +246,8 @@
                   <i class="fas fa-shipping-fast"></i>
                 </div>
                 <div class="capability-info">
-                  <h5>Tezkor Yetkazib Berish</h5>
-                  <p>O'z vaqtida yetkazib berish kafolati</p>
+                  <h5><%= t('manufacturer.profile.capabilities.delivery.title') %></h5>
+                  <p><%= t('manufacturer.profile.capabilities.delivery.description') %></p>
                 </div>
                 <div class="capability-status">
                   <i class="fas fa-check-circle text-success"></i>
@@ -262,8 +259,8 @@
                   <i class="fas fa-tools"></i>
                 </div>
                 <div class="capability-info">
-                  <h5>Maxsus Buyurtma</h5>
-                  <p>Individual talablar bo'yicha</p>
+                  <h5><%= t('manufacturer.profile.capabilities.custom.title') %></h5>
+                  <p><%= t('manufacturer.profile.capabilities.custom.description') %></p>
                 </div>
                 <div class="capability-status">
                   <i class="fas fa-check-circle text-success"></i>
@@ -278,7 +275,7 @@
           <div class="profile-card-header">
             <h3 class="profile-card-title">
               <i class="fas fa-address-book"></i>
-              Aloqa Ma'lumotlari
+              <%= t('manufacturer.profile.contact.title') %>
             </h3>
           </div>
           <div class="profile-card-content">
@@ -288,7 +285,7 @@
                   <i class="fas fa-envelope"></i>
                 </div>
                 <div class="contact-details">
-                  <label>Email:</label>
+                  <label><%= t('manufacturer.profile.contact.email') %>:</label>
                   <a href="#" id="contactEmail">-</a>
                 </div>
               </div>
@@ -298,7 +295,7 @@
                   <i class="fas fa-phone"></i>
                 </div>
                 <div class="contact-details">
-                  <label>Telefon:</label>
+                  <label><%= t('manufacturer.profile.contact.phone') %>:</label>
                   <a href="#" id="contactPhone">-</a>
                 </div>
               </div>
@@ -308,7 +305,7 @@
                   <i class="fas fa-globe"></i>
                 </div>
                 <div class="contact-details">
-                  <label>Website:</label>
+                  <label><%= t('manufacturer.profile.contact.website') %>:</label>
                   <a href="#" target="_blank" id="contactWebsite">-</a>
                 </div>
               </div>
@@ -318,7 +315,7 @@
                   <i class="fas fa-map-marker-alt"></i>
                 </div>
                 <div class="contact-details">
-                  <label>Manzil:</label>
+                  <label><%= t('manufacturer.profile.contact.address') %>:</label>
                   <address id="contactAddress">-</address>
                 </div>
               </div>
@@ -327,7 +324,7 @@
             <!-- Social Media Links -->
             <% if (user.socialMedia && (user.socialMedia.linkedin || user.socialMedia.facebook || user.socialMedia.instagram || user.socialMedia.telegram)) { %>
               <div class="social-media-section">
-                <h5>Ijtimoiy Tarmoqlar</h5>
+                <h5><%= t('manufacturer.profile.contact.socialMedia') %></h5>
                 <div class="social-links">
                   <% if (user.socialMedia.linkedin) { %>
                     <a href="<%= user.socialMedia.linkedin %>" target="_blank" class="social-link linkedin">
@@ -364,15 +361,8 @@
           <div class="profile-card-header">
             <h3 class="profile-card-title">
               <i class="fas fa-chart-line"></i>
-              Ish Ko'rsatkichlari
+              <%= t('manufacturer.profile.performance.title') %>
             </h3>
-            <div class="profile-card-actions">
-              <select class="period-selector">
-                <option value="30">So'nggi 30 kun</option>
-                <option value="90">So'nggi 3 oy</option>
-                <option value="365">So'nggi 1 yil</option>
-              </select>
-            </div>
           </div>
           <div class="profile-card-content">
             <div class="metrics-grid">
@@ -382,7 +372,7 @@
                 </div>
                 <div class="metric-details">
                   <div class="metric-value" id="totalSales">$0</div>
-                  <div class="metric-label">Umumiy Sotuv</div>
+                  <div class="metric-label"><%= t('manufacturer.profile.performance.metrics.totalSales') %></div>
                   <div class="metric-change positive">
                     <i class="fas fa-arrow-up"></i>
                     <span id="salesChange">+0%</span>
@@ -396,7 +386,7 @@
                 </div>
                 <div class="metric-details">
                   <div class="metric-value" id="completedOrders">0</div>
-                  <div class="metric-label">Tugallangan Buyurtmalar</div>
+                  <div class="metric-label"><%= t('manufacturer.profile.performance.metrics.completedOrders') %></div>
                   <div class="metric-change positive">
                     <i class="fas fa-arrow-up"></i>
                     <span id="ordersChange">+0%</span>
@@ -410,9 +400,9 @@
                 </div>
                 <div class="metric-details">
                   <div class="metric-value" id="averageRating">0.0</div>
-                  <div class="metric-label">O'rtacha Reyting</div>
+                  <div class="metric-label"><%= t('manufacturer.profile.performance.metrics.averageRating') %></div>
                   <div class="metric-reviews">
-                    <span id="totalReviews">0</span> ta baholash
+                    <span id="totalReviews">0</span> <%= t('manufacturer.profile.performance.metrics.reviews') %>
                   </div>
                 </div>
               </div>
@@ -423,7 +413,7 @@
                 </div>
                 <div class="metric-details">
                   <div class="metric-value" id="responseTime">0h</div>
-                  <div class="metric-label">O'rtacha Javob Vaqti</div>
+                  <div class="metric-label"><%= t('manufacturer.profile.performance.metrics.responseTime') %></div>
                   <div class="metric-change positive">
                     <i class="fas fa-arrow-down"></i>
                     <span id="responseChange">-0%</span>
@@ -439,113 +429,40 @@
           </div>
         </div>
 
-
-
-        <!-- Certifications Card -->
+        <!-- Recent Products Card -->
         <div class="profile-card">
           <div class="profile-card-header">
             <h3 class="profile-card-title">
-              <i class="fas fa-certificate"></i>
-              Sertifikatlar va Litsenziyalar
+              <i class="fas fa-box"></i>
+              <%= t('manufacturer.profile.recentProducts.title') %>
             </h3>
-            <button class="orders-btn orders-btn-outline orders-btn-sm" id="addCertificationBtn">
-              <i class="fas fa-plus"></i>
-              Qo'shish
-            </button>
+            <a href="/manufacturer/products" class="profile-card-action">
+              <%= t('manufacturer.profile.recentProducts.viewAll') %>
+              <i class="fas fa-arrow-right"></i>
+            </a>
           </div>
           <div class="profile-card-content">
-            <div class="certifications-list">
-              <div class="certification-item">
-                <div class="certification-icon">
-                  <i class="fas fa-award"></i>
-                </div>
-                <div class="certification-details">
-                  <h5>ISO 9001:2015</h5>
-                  <p>Sifat menejmenti tizimi</p>
-                  <small>Muddati: 2026 yil dekabrgacha</small>
-                </div>
-                <div class="certification-status">
-                  <span class="status-badge status-success">Faol</span>
-                </div>
-              </div>
-
-              <div class="certification-item">
-                <div class="certification-icon">
-                  <i class="fas fa-leaf"></i>
-                </div>
-                <div class="certification-details">
-                  <h5>OEKO-TEX Standard 100</h5>
-                  <p>Ekologik toza tekstil standartlari</p>
-                  <small>Muddati: 2025 yil mart</small>
-                </div>
-                <div class="certification-status">
-                  <span class="status-badge status-success">Faol</span>
-                </div>
-              </div>
-
-              <div class="certification-item">
-                <div class="certification-icon">
-                  <i class="fas fa-shield-alt"></i>
-                </div>
-                <div class="certification-details">
-                  <h5>CE Marking</h5>
-                  <p>Evropa Ittifoqi standartlariga muvofiqlik</p>
-                  <small>Muddati: Cheklanmagan</small>
-                </div>
-                <div class="certification-status">
-                  <span class="status-badge status-success">Faol</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="certifications-actions">
-              <button class="orders-btn orders-btn-outline" id="uploadCertificateBtn">
-                <i class="fas fa-upload"></i>
-                Sertifikat Yuklash
-              </button>
+            <div id="recent-products" class="recent-items-list">
+              <!-- Products will be loaded here -->
             </div>
           </div>
         </div>
 
-        <!-- Company Timeline Card -->
+        <!-- Recent Orders Card -->
         <div class="profile-card">
           <div class="profile-card-header">
             <h3 class="profile-card-title">
-              <i class="fas fa-history"></i>
-              Kompaniya Tarixi
+              <i class="fas fa-shopping-cart"></i>
+              <%= t('manufacturer.profile.recentOrders.title') %>
             </h3>
+            <a href="/manufacturer/orders" class="profile-card-action">
+              <%= t('manufacturer.profile.recentOrders.viewAll') %>
+              <i class="fas fa-arrow-right"></i>
+            </a>
           </div>
           <div class="profile-card-content">
-            <div class="timeline">
-              <div class="timeline-item" id="timelineEstablished" style="display: none;">
-                <div class="timeline-date">
-                  <span id="timelineEstablishedYear">-</span>
-                </div>
-                <div class="timeline-content">
-                  <h5>Kompaniya Tashkil Etilgan</h5>
-                    <p><span id="timelineCompanyName">-</span> kompaniyasi rasmiy ravishda tashkil etildi</p>
-                  </div>
-                </div>
-
-              <div class="timeline-item">
-                <div class="timeline-date">
-                  <span>2023</span>
-                </div>
-                <div class="timeline-content">
-                  <h5>ISO 9001 Sertifikati</h5>
-                  <p>Sifat menejmenti tizimi bo'yicha xalqaro sertifikat olindi</p>
-                </div>
-              </div>
-
-              <div class="timeline-item">
-                <div class="timeline-date">
-                  <span>2024</span>
-                </div>
-                <div class="timeline-content">
-                  <h5>SLEX Platformasiga Qo'shilish</h5>
-                  <p>B2B marketplace platformasida rasmiy ravishda ro'yxatdan o'tdi</p>
-                </div>
-              </div>
+            <div id="recent-orders" class="recent-items-list">
+              <!-- Orders will be loaded here -->
             </div>
           </div>
         </div>
@@ -560,7 +477,7 @@
     <div class="modal-header">
       <h3 class="modal-title">
         <i class="fas fa-share"></i>
-        Profil Ulashish
+        <%= t('manufacturer.profile.share.title') %>
       </h3>
       <button class="modal-close" onclick="closeModal('shareProfileModal')">
         <i class="fas fa-times"></i>
@@ -569,24 +486,24 @@
     <div class="modal-body">
       <div class="share-options">
         <div class="share-url-section">
-          <label>Profil Havolasi:</label>
+          <label><%= t('manufacturer.profile.share.url') %>:</label>
           <div class="url-input-group">
             <input type="text" id="profileUrl" value="https://slex.uz/manufacturer/<%= user._id %>" readonly>
             <button class="orders-btn orders-btn-outline" id="copyUrlBtn">
               <i class="fas fa-copy"></i>
-              Nusxalash
+              <%= t('manufacturer.profile.actions.copy') %>
             </button>
           </div>
         </div>
 
         <div class="qr-code-section">
-          <h5>QR Kod:</h5>
+          <h5><%= t('manufacturer.profile.share.qrCode') %>:</h5>
           <div class="qr-code-container">
             <canvas id="qrCodeCanvas" width="200" height="200"></canvas>
           </div>
           <button class="orders-btn orders-btn-outline" id="downloadQrBtn">
             <i class="fas fa-download"></i>
-            QR Kodni Yuklab Olish
+            <%= t('manufacturer.profile.share.downloadQr') %>
           </button>
         </div>
       </div>
@@ -609,6 +526,209 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- JavaScript -->
 <script src="/js/chart.min.js"></script>
 <script src="/js/qrcode.min.js"></script>
+
+<!-- Profile Translations -->
+<script type="application/json" id="profile-translations">
+<%- JSON.stringify({
+  // Page titles and actions
+  pageTitle: t('manufacturer.profile.pageTitle'),
+  pageSubtitle: t('manufacturer.profile.pageSubtitle'),
+  actions: {
+    edit: t('manufacturer.profile.actions.edit'),
+    share: t('manufacturer.profile.actions.share'),
+    print: t('manufacturer.profile.actions.print'),
+    add: t('manufacturer.profile.actions.add'),
+    upload: t('manufacturer.profile.actions.upload'),
+    copy: t('manufacturer.profile.actions.copy'),
+    download: t('manufacturer.profile.actions.download')
+  },
+  // Verification status
+  verification: {
+    verified: t('manufacturer.profile.verification.verified'),
+    pending: t('manufacturer.profile.verification.pending')
+  },
+  // Company info
+  company: {
+    type: t('manufacturer.profile.company.type'),
+    stats: {
+      products: t('manufacturer.profile.company.stats.products'),
+      orders: t('manufacturer.profile.company.stats.orders'),
+      revenue: t('manufacturer.profile.company.stats.revenue'),
+      rating: t('manufacturer.profile.company.stats.rating')
+    },
+    established: t('manufacturer.profile.company.established')
+  },
+  // Business info
+  business: {
+    title: t('manufacturer.profile.business.title'),
+    activityType: t('manufacturer.profile.business.activityType'),
+    license: t('manufacturer.profile.business.license'),
+    taxNumber: t('manufacturer.profile.business.taxNumber'),
+    employeeCount: t('manufacturer.profile.business.employeeCount'),
+    annualRevenue: t('manufacturer.profile.business.annualRevenue')
+  },
+  // Capabilities
+  capabilities: {
+    title: t('manufacturer.profile.capabilities.title'),
+    textile: {
+      title: t('manufacturer.profile.capabilities.textile.title'),
+      description: t('manufacturer.profile.capabilities.textile.description')
+    },
+    garment: {
+      title: t('manufacturer.profile.capabilities.garment.title'),
+      description: t('manufacturer.profile.capabilities.garment.description')
+    },
+    dyeing: {
+      title: t('manufacturer.profile.capabilities.dyeing.title'),
+      description: t('manufacturer.profile.capabilities.dyeing.description')
+    },
+    quality: {
+      title: t('manufacturer.profile.capabilities.quality.title'),
+      description: t('manufacturer.profile.capabilities.quality.description')
+    },
+    delivery: {
+      title: t('manufacturer.profile.capabilities.delivery.title'),
+      description: t('manufacturer.profile.capabilities.delivery.description')
+    },
+    custom: {
+      title: t('manufacturer.profile.capabilities.custom.title'),
+      description: t('manufacturer.profile.capabilities.custom.description')
+    }
+  },
+  // Contact info
+  contact: {
+    title: t('manufacturer.profile.contact.title'),
+    email: t('manufacturer.profile.contact.email'),
+    phone: t('manufacturer.profile.contact.phone'),
+    website: t('manufacturer.profile.contact.website'),
+    address: t('manufacturer.profile.contact.address'),
+    socialMedia: t('manufacturer.profile.contact.socialMedia')
+  },
+  // Performance metrics
+  performance: {
+    title: t('manufacturer.profile.performance.title'),
+    periods: {
+      '30days': t('manufacturer.profile.performance.periods.30days'),
+      '90days': t('manufacturer.profile.performance.periods.90days'),
+      '365days': t('manufacturer.profile.performance.periods.365days')
+    },
+    metrics: {
+      totalSales: t('manufacturer.profile.performance.metrics.totalSales'),
+      completedOrders: t('manufacturer.profile.performance.metrics.completedOrders'),
+      averageRating: t('manufacturer.profile.performance.metrics.averageRating'),
+      responseTime: t('manufacturer.profile.performance.metrics.responseTime'),
+      reviews: t('manufacturer.profile.performance.metrics.reviews')
+    },
+    chart: {
+      sales: t('manufacturer.profile.performance.chart.sales'),
+      orders: t('manufacturer.profile.performance.chart.orders')
+    }
+  },
+  // Certifications
+  certifications: {
+    title: t('manufacturer.profile.certifications.title'),
+    upload: t('manufacturer.profile.certifications.upload'),
+    add: t('manufacturer.profile.certifications.add'),
+    status: {
+      active: t('manufacturer.profile.certifications.status.active')
+    },
+    examples: {
+      iso9001: {
+        name: t('manufacturer.profile.certifications.examples.iso9001.name'),
+        description: t('manufacturer.profile.certifications.examples.iso9001.description'),
+        validUntil: t('manufacturer.profile.certifications.examples.iso9001.validUntil')
+      },
+      oekotex: {
+        name: t('manufacturer.profile.certifications.examples.oekotex.name'),
+        description: t('manufacturer.profile.certifications.examples.oekotex.description'),
+        validUntil: t('manufacturer.profile.certifications.examples.oekotex.validUntil')
+      },
+      ce: {
+        name: t('manufacturer.profile.certifications.examples.ce.name'),
+        description: t('manufacturer.profile.certifications.examples.ce.description'),
+        validUntil: t('manufacturer.profile.certifications.examples.ce.validUntil')
+      }
+    },
+    form: {
+      name: t('manufacturer.profile.certifications.form.name'),
+      type: t('manufacturer.profile.certifications.form.type'),
+      description: t('manufacturer.profile.certifications.form.description'),
+      issuedDate: t('manufacturer.profile.certifications.form.issuedDate'),
+      expiryDate: t('manufacturer.profile.certifications.form.expiryDate'),
+      certificate: t('manufacturer.profile.certifications.form.certificate'),
+      types: {
+        quality: t('manufacturer.profile.certifications.form.types.quality'),
+        environmental: t('manufacturer.profile.certifications.form.types.environmental'),
+        safety: t('manufacturer.profile.certifications.form.types.safety'),
+        industry: t('manufacturer.profile.certifications.form.types.industry'),
+        other: t('manufacturer.profile.certifications.form.types.other')
+      },
+      help: t('manufacturer.profile.certifications.form.help'),
+      placeholder: {
+        name: t('manufacturer.profile.certifications.form.placeholder.name'),
+        description: t('manufacturer.profile.certifications.form.placeholder.description'),
+        select: t('manufacturer.profile.certifications.form.placeholder.select')
+      }
+    }
+  },
+  // Timeline
+  timeline: {
+    title: t('manufacturer.profile.timeline.title'),
+    established: t('manufacturer.profile.timeline.established'),
+    establishedDescription: t('manufacturer.profile.timeline.establishedDescription'),
+    iso9001: t('manufacturer.profile.timeline.iso9001'),
+    iso9001Description: t('manufacturer.profile.timeline.iso9001Description'),
+    slexJoin: t('manufacturer.profile.timeline.slexJoin'),
+    slexJoinDescription: t('manufacturer.profile.timeline.slexJoinDescription')
+  },
+  // Share modal
+  share: {
+    title: t('manufacturer.profile.share.title'),
+    url: t('manufacturer.profile.share.url'),
+    qrCode: t('manufacturer.profile.share.qrCode'),
+    downloadQr: t('manufacturer.profile.share.downloadQr')
+  },
+  // Messages
+  messages: {
+    loading: t('manufacturer.profile.messages.loading'),
+    error: t('manufacturer.profile.messages.error'),
+    noData: t('manufacturer.profile.messages.noData'),
+    notAvailable: t('manufacturer.profile.messages.notAvailable'),
+    notSpecified: t('manufacturer.profile.messages.notSpecified'),
+    noProducts: t('manufacturer.profile.messages.noProducts'),
+    noOrders: t('manufacturer.profile.messages.noOrders'),
+    noCapabilities: t('manufacturer.profile.messages.noCapabilities'),
+    addProduct: t('manufacturer.profile.messages.addProduct'),
+    retry: t('manufacturer.profile.messages.retry'),
+    productsError: t('manufacturer.profile.messages.productsError'),
+    ordersError: t('manufacturer.profile.messages.ordersError'),
+    copySuccess: t('manufacturer.profile.messages.copySuccess'),
+    copyError: t('manufacturer.profile.messages.copyError'),
+    downloadSuccess: t('manufacturer.profile.messages.downloadSuccess'),
+    downloadError: t('manufacturer.profile.messages.downloadError'),
+    certificateSuccess: t('manufacturer.profile.messages.certificateSuccess'),
+    certificateError: t('manufacturer.profile.messages.certificateError'),
+    uploadSuccess: t('manufacturer.profile.messages.uploadSuccess'),
+    uploadError: t('manufacturer.profile.messages.uploadError'),
+    cancel: t('manufacturer.profile.messages.cancel'),
+    save: t('manufacturer.profile.messages.save')
+  },
+  // Labels
+  labels: {
+    order: t('manufacturer.profile.labels.order'),
+    customer: t('manufacturer.profile.labels.customer'),
+    category: t('manufacturer.profile.labels.category'),
+    notSpecified: t('manufacturer.profile.labels.notSpecified'),
+    never: t('manufacturer.profile.labels.never')
+  }
+}) %>
+</script>
+
+<script>
+  // Make translations available globally
+  window.profileTranslations = JSON.parse(document.getElementById('profile-translations').textContent);
+</script>
+
 <script src="/js/manufacturer/profile.js"></script>
 
 <%- include('../partials/footer') %>

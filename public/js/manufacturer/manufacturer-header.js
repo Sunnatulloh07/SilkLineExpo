@@ -351,57 +351,47 @@ class ManufacturerHeader {
 
     async updateNotificationsBadge() {
         try {
-            // Get total count from inquiries and orders
-            const [inquiriesResponse, ordersResponse] = await Promise.all([
-                fetch('/manufacturer/api/recent-inquiries?limit=50'),
-                fetch('/manufacturer/api/orders?limit=50')
-            ]);
+            // FIX: Use API unreadCount instead of calculating
+            const notificationsResponse = await fetch('/manufacturer/api/notifications?unread=true');
+            const notificationsData = await notificationsResponse.json();
             
-            const inquiriesData = await inquiriesResponse.json();
-            const ordersData = await ordersResponse.json();
-            
-            let inquiries = inquiriesData.success ? (inquiriesData.data || inquiriesData.inquiries || []) : [];
-            let orders = ordersData.success ? (ordersData.data || ordersData.orders || []) : [];
-            
-            // Filter only unread items
-            inquiries = inquiries.filter(inquiry => !inquiry.readByManufacturer && inquiry.status !== 'archived');
-            orders = orders.filter(order => !order.readBySeller && order.status !== 'archived');
-            
-            const inquiriesCount = inquiries.length;
-            const ordersCount = orders.length;
-            const totalCount = inquiriesCount + ordersCount;
-            
+            if (notificationsData.success && notificationsData.data) {
+                const totalCount = notificationsData.data.unreadCount || 0;
+                
+                // Update header notification badge
             this.updateNotificationBadge(totalCount);
+                
+                // ✅ CRITICAL: Update sidebar menu badges
+                this.updateSidebarMenuBadges(notificationsData.data);
+            } else {
+                // Fallback: hide all badges
+                this.updateNotificationBadge(0);
+                this.hideAllSidebarBadges();
+            }
         } catch (error) {
-            // console.error('Error updating notifications badge:', error);
+            console.error('Error updating notifications badge:', error);
+            // Fallback: hide all badges on error
+            this.updateNotificationBadge(0);
         }
     }
 
     async loadInquiriesAndOrders() {
         try {
-            // Load inquiries
-            const inquiriesResponse = await fetch('/manufacturer/api/recent-inquiries?limit=10');
-            const inquiriesData = await inquiriesResponse.json();
+            // FIX: Use same API call as badge to ensure consistency
+            const notificationsResponse = await fetch('/manufacturer/api/notifications?unread=true&limit=10');
+            const notificationsData = await notificationsResponse.json();
             
-            // Load recent orders
-            const ordersResponse = await fetch('/manufacturer/api/orders?limit=10');
-            const ordersData = await ordersResponse.json();
+            let notifications = notificationsData.success ? (notificationsData.data?.notifications || []) : [];
             
-            // Extract data from responses
-            let inquiries = inquiriesData.success ? (inquiriesData.data || inquiriesData.inquiries || []) : [];
-            let orders = ordersData.success ? (ordersData.data || ordersData.orders || []) : [];
+            // Don't filter here since API already returns unread only
+            // notifications = notifications.filter(notification => !notification.read);
             
-            // Filter only unread items
-            inquiries = inquiries.filter(inquiry => !inquiry.readByManufacturer && inquiry.status !== 'archived');
-            orders = orders.filter(order => !order.readBySeller && order.status !== 'archived');
+            // Limit to 6 items total (3 inquiries + 3 orders)
+            notifications = notifications.slice(0, 6);
             
-            // Limit to 3 items each
-            inquiries = inquiries.slice(0, 3);
-            orders = orders.slice(0, 3);
-            
-            this.renderInquiriesAndOrders(inquiries, orders);
+            this.renderInquiriesAndOrders(notifications);
         } catch (error) {
-            // console.error('Error loading inquiries and orders:', error);
+            console.error('Error loading inquiries and orders:', error);
         }
     }
 
@@ -454,16 +444,32 @@ class ManufacturerHeader {
         return icons[type] || 'bell';
     }
 
-    renderInquiriesAndOrders(inquiries, orders) {
+    renderInquiriesAndOrders(notifications) {
         const container = document.getElementById('notificationsContent');
         if (!container) {
             return;
         }
 
+        // FIX: Use notifications data instead of separate inquiries and orders
+        if (!notifications || notifications.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>${this.getTranslation('admin.header.notifications.no_notifications', 'Hozircha yangi xabarlar yo\'q')}</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Group notifications by type
+        const inquiries = notifications.filter(n => n.type === 'inquiry');
+        const orders = notifications.filter(n => n.type === 'order');
+        const otherNotifications = notifications.filter(n => !['inquiry', 'order'].includes(n.type));
+
         let content = '';
 
         // Add inquiries section
-        if (inquiries && inquiries.length > 0) {
+        if (inquiries.length > 0) {
             content += `
                 <div class="notifications-section">
                     <h5 class="section-title">
@@ -472,17 +478,16 @@ class ManufacturerHeader {
                     </h5>
             `;
             
-            inquiries.forEach(inquiry => {
-                const isUnread = !inquiry.readByManufacturer && inquiry.status !== 'archived';
+            inquiries.forEach(notification => {
                 content += `
-                    <div class="notification-item inquiry-item ${isUnread ? 'unread' : ''}" data-item-id="${inquiry._id || inquiry.id}" data-item-type="inquiry">
+                    <div class="notification-item inquiry-item ${!notification.read ? 'unread' : ''}" data-item-id="${notification.metadata?.inquiryId || notification.id}" data-item-type="inquiry" data-action-url="${notification.actionUrl || '/manufacturer/inquiries'}">
                         <div class="notification-icon info">
                             <i class="fas fa-envelope"></i>
                         </div>
                         <div class="notification-content">
-                            <h4 class="notification-title">${inquiry.subject || inquiry.title || this.getTranslation('admin.header.notifications.new_inquiry', 'Yangi so\'rov')}</h4>
-                            <p class="notification-text">${inquiry.message || inquiry.description || this.getTranslation('admin.header.notifications.inquiry_sent', 'So\'rov yuborildi')}</p>
-                            <span class="notification-time">${this.formatTime(inquiry.createdAt)}</span>
+                            <h4 class="notification-title">${notification.title}</h4>
+                            <p class="notification-text">${notification.message}</p>
+                            <span class="notification-time">${this.formatTime(notification.createdAt)}</span>
                         </div>
                     </div>
                 `;
@@ -492,7 +497,7 @@ class ManufacturerHeader {
         }
 
         // Add orders section
-        if (orders && orders.length > 0) {
+        if (orders.length > 0) {
             content += `
                 <div class="notifications-section">
                     <h5 class="section-title">
@@ -501,17 +506,16 @@ class ManufacturerHeader {
                     </h5>
             `;
             
-            orders.forEach(order => {
-                const isUnread = !order.readBySeller && order.status !== 'archived';
+            orders.forEach(notification => {
                 content += `
-                    <div class="notification-item order-item ${isUnread ? 'unread' : ''}" data-item-id="${order._id || order.id}" data-item-type="order">
+                    <div class="notification-item order-item ${!notification.read ? 'unread' : ''}" data-item-id="${notification.metadata?.orderId || notification.id}" data-item-type="order" data-action-url="${notification.actionUrl || '/manufacturer/orders'}">
                         <div class="notification-icon order">
                             <i class="fas fa-shopping-cart"></i>
                         </div>
                         <div class="notification-content">
-                            <h4 class="notification-title">${this.getTranslation('admin.header.notifications.order_number', 'Buyurtma')} #${order.orderNumber || order._id}</h4>
-                            <p class="notification-text">${order.status || this.getTranslation('admin.header.notifications.new_order', 'Yangi buyurtma')}</p>
-                            <span class="notification-time">${this.formatTime(order.createdAt)}</span>
+                            <h4 class="notification-title">${notification.title}</h4>
+                            <p class="notification-text">${notification.message}</p>
+                            <span class="notification-time">${this.formatTime(notification.createdAt)}</span>
                         </div>
                     </div>
                 `;
@@ -520,26 +524,43 @@ class ManufacturerHeader {
             content += '</div>';
         }
 
-        // If no content, show empty state
-        if (!content) {
-            content = `
-                <div class="empty-state">
-                    <i class="fas fa-bell-slash"></i>
-                    <p>${this.getTranslation('admin.header.notifications.no_notifications', 'Hozircha yangi xabarlar yo\'q')}</p>
+        // Add other notifications section
+        if (otherNotifications.length > 0) {
+            content += `
+                <div class="notifications-section">
+                    <h5 class="section-title">
+                        <i class="fas fa-bell text-info"></i>
+                        ${this.getTranslation('admin.header.notifications.other_notifications', 'Boshqa Bildirishnomalar')} (${otherNotifications.length})
+                    </h5>
+            `;
+            
+            otherNotifications.forEach(notification => {
+                content += `
+                    <div class="notification-item other-item ${!notification.read ? 'unread' : ''}" data-item-id="${notification.id}" data-item-type="${notification.type}" data-action-url="${notification.actionUrl || '#'}">
+                        <div class="notification-icon ${notification.type}">
+                            <i class="fas fa-${this.getNotificationIcon(notification.type)}"></i>
+                        </div>
+                        <div class="notification-content">
+                            <h4 class="notification-title">${notification.title}</h4>
+                            <p class="notification-text">${notification.message}</p>
+                            <span class="notification-time">${this.formatTime(notification.createdAt)}</span>
+                        </div>
                 </div>
             `;
+            });
+            
+            content += '</div>';
         }
 
         // Add Mark All as Read button if there are unread items
-        const unreadInquiries = inquiries.filter(inquiry => !inquiry.readByManufacturer && inquiry.status !== 'archived');
-        const unreadOrders = orders.filter(order => !order.readBySeller && order.status !== 'archived');
+        const unreadCount = notifications.filter(n => !n.read).length;
         
-        if (unreadInquiries.length > 0 || unreadOrders.length > 0) {
+        if (unreadCount > 0) {
             content += `
                 <div class="mark-all-read-section">
                     <button class="btn btn-sm btn-outline-primary mark-all-read-btn" onclick="window.markAllNotificationsRead()">
                         <i class="fas fa-check-double"></i>
-                        ${this.getTranslation('admin.header.notifications.mark_all_read', 'Barchasini o\'qilgan deb belgilash')} (${unreadInquiries.length + unreadOrders.length})
+                        ${this.getTranslation('admin.header.notifications.mark_all_read', 'Barchasini o\'qilgan deb belgilash')} (${unreadCount})
                     </button>
                 </div>
             `;
@@ -551,67 +572,289 @@ class ManufacturerHeader {
         const notificationItems = container.querySelectorAll('.notification-item');
         notificationItems.forEach((item, index) => {
             item.addEventListener('click', async () => {
-                const itemType = item.classList.contains('inquiry-item') ? 'inquiry' : 'order';
-                const itemId = item.dataset.itemId;
+                const notificationData = this.extractNotificationData(item);
                 
                 // Add loading state
                 item.classList.add('loading');
                 
                 try {
                     // Mark individual item as read
-                    if (itemType === 'inquiry') {
-                        const response = await fetch('/manufacturer/api/inquiries/mark-read', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ inquiryId: itemId })
-                        });
-                        
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                        }
-                        
-                        const result = await response.json();
-                        if (result.success) {
-                            // Remove unread class and update badge
-                            item.classList.remove('unread');
-                            this.updateNotificationsBadge();
-                        }
-                    } else if (itemType === 'order') {
-                        const response = await fetch('/manufacturer/api/orders/mark-read', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ orderId: itemId })
-                        });
-                        
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                        }
-                        
-                        const result = await response.json();
-                        if (result.success) {
-                            // Remove unread class and update badge
-                            item.classList.remove('unread');
-                            this.updateNotificationsBadge();
-                        }
-                    }
+                    await this.markNotificationAsRead(notificationData);
                     
-                    // Redirect after marking as read
-                    if (itemType === 'inquiry') {
-                        window.location.href = '/manufacturer/inquiries';
-                    } else if (itemType === 'order') {
-                        window.location.href = '/manufacturer/orders';
-                    }
+                    // Update UI
+                    this.updateNotificationItemUI(item);
+                    
+                    // Navigate to appropriate page
+                    this.navigateToNotificationPage(notificationData);
+                    
                 } catch (error) {
-                    // console.error('Error marking item as read:', error);
-                    // Still redirect even if marking as read fails
-                    if (itemType === 'inquiry') {
-                        window.location.href = '/manufacturer/inquiries';
-                    } else if (itemType === 'order') {
-                        window.location.href = '/manufacturer/orders';
-                    }
+                    console.error('Error handling notification click:', error);
+                    // Still navigate even if marking as read fails
+                    this.navigateToNotificationPage(notificationData);
                 }
             });
         });
+    }
+
+    /**
+     * Extract notification data from DOM element
+     * @param {HTMLElement} item - The notification item element
+     * @returns {Object} Notification data
+     */
+    extractNotificationData(item) {
+        const itemType = item.classList.contains('inquiry-item') ? 'inquiry' : 
+                        item.classList.contains('order-item') ? 'order' : 'other';
+        
+        return {
+            type: itemType,
+            id: item.dataset.itemId,
+            actionUrl: item.dataset.actionUrl,
+            element: item
+        };
+    }
+
+    /**
+     * Mark notification as read via API
+     * @param {Object} notificationData - The notification data
+     * @returns {Promise<void>}
+     */
+    async markNotificationAsRead(notificationData) {
+        const { type, id } = notificationData;
+        
+        const apiEndpoints = {
+            inquiry: '/manufacturer/api/inquiries/mark-read',
+            order: '/manufacturer/api/orders/mark-read',
+            other: '/manufacturer/api/notifications/mark-read'
+        };
+        
+        const requestBodies = {
+            inquiry: { inquiryId: id },
+            order: { orderId: id },
+            other: { notificationId: id }
+        };
+        
+        const endpoint = apiEndpoints[type];
+        const body = requestBodies[type];
+        
+        if (!endpoint) {
+            throw new Error(`Unknown notification type: ${type}`);
+        }
+        
+        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to mark notification as read');
+        }
+    }
+
+    /**
+     * Update notification item UI after marking as read
+     * @param {HTMLElement} item - The notification item element
+     */
+    updateNotificationItemUI(item) {
+                            item.classList.remove('unread');
+        item.classList.remove('loading');
+        // This will update both header and sidebar badges
+                            this.updateNotificationsBadge();
+    }
+
+    /**
+     * Navigate to appropriate page based on notification data
+     * @param {Object} notificationData - The notification data
+     */
+    navigateToNotificationPage(notificationData) {
+        const { actionUrl, type, id } = notificationData;
+        
+        // Professional notification navigation logic
+        const defaultUrls = {
+            inquiry: '/manufacturer/inquiries', // General inquiries page
+            order: '/manufacturer/orders',      // General orders page
+            other: '#'
+        };
+        
+        // ✅ CRITICAL FIX: Always use default URLs for notifications, ignore actionUrl
+        // Notifications should go to general pages, not specific IDs
+        // This ensures proper separation between notifications and messages navigation
+        const targetUrl = defaultUrls[type] || '#';
+        
+        
+        if (targetUrl !== '#') {
+            window.location.href = targetUrl;
+        }
+    }
+
+    /**
+     * Update sidebar menu badges based on notification data
+     * @param {Object} notificationData - The notification data from API
+     */
+    updateSidebarMenuBadges(notificationData) {
+        try {
+            // Validate input data
+            if (!this.isValidNotificationData(notificationData)) {
+                console.warn('Invalid notification data provided to updateSidebarMenuBadges');
+                return;
+            }
+            
+            const { summary } = notificationData;
+            const { byType } = summary;
+            
+            // Configuration-driven badge updates
+            const badgeConfig = this.getSidebarBadgeConfig();
+            
+            Object.entries(badgeConfig).forEach(([menuType, config]) => {
+                const count = byType[config.notificationType] || 0;
+                this.updateSidebarBadge(menuType, count);
+            });
+            
+                } catch (error) {
+            console.error('Error updating sidebar badges:', error);
+            // Fallback: hide all badges on error
+            this.hideAllSidebarBadges();
+        }
+    }
+
+    /**
+     * Get sidebar badge configuration
+     * @returns {Object} Badge configuration object
+     */
+    getSidebarBadgeConfig() {
+        return {
+            inquiries: {
+                notificationType: 'inquiry',
+                badgeClass: 'badge-info',
+                href: '/manufacturer/inquiries'
+            },
+            orders: {
+                notificationType: 'order',
+                badgeClass: 'badge-danger',
+                href: '/manufacturer/orders'
+            },
+            messages: {
+                notificationType: 'message',
+                badgeClass: 'badge-primary',
+                href: '/manufacturer/messages'
+            }
+        };
+    }
+
+    /**
+     * Validate notification data structure
+     * @param {Object} notificationData - The notification data to validate
+     * @returns {boolean} True if valid, false otherwise
+     */
+    isValidNotificationData(notificationData) {
+        return notificationData && 
+               notificationData.summary && 
+               notificationData.summary.byType &&
+               typeof notificationData.summary.byType === 'object';
+    }
+
+    /**
+     * Hide all sidebar badges
+     */
+    hideAllSidebarBadges() {
+        try {
+            const badgeConfig = this.getSidebarBadgeConfig();
+            Object.keys(badgeConfig).forEach(menuType => {
+                this.updateSidebarBadge(menuType, 0);
+            });
+        } catch (error) {
+            console.error('Error hiding all sidebar badges:', error);
+        }
+    }
+
+    /**
+     * Update specific sidebar badge
+     * @param {string} menuType - The menu type (inquiries, orders, messages)
+     * @param {number} count - The badge count
+     */
+    updateSidebarBadge(menuType, count) {
+        try {
+            // Validate inputs
+            if (!menuType || typeof count !== 'number' || count < 0) {
+                console.warn(`Invalid parameters for updateSidebarBadge: menuType=${menuType}, count=${count}`);
+                return;
+            }
+            
+            // Get badge configuration
+            const badgeConfig = this.getSidebarBadgeConfig();
+            const config = badgeConfig[menuType];
+            
+            if (!config) {
+                console.warn(`Unknown menu type: ${menuType}`);
+                return;
+            }
+            
+            // Find the sidebar menu item
+            const menuItem = document.querySelector(`a[href="${config.href}"]`);
+            
+            if (!menuItem) {
+                console.warn(`Menu item not found for: ${config.href}`);
+                return;
+            }
+            
+            // Find or create badge element
+            let badge = menuItem.querySelector('.nav-badge');
+            
+            if (count > 0) {
+                if (!badge) {
+                    // Create new badge with proper configuration
+                    badge = this.createSidebarBadge(config.badgeClass);
+                    menuItem.appendChild(badge);
+                }
+                
+                // Update badge content and visibility
+                this.updateBadgeContent(badge, count);
+                
+            } else if (badge) {
+                // Hide badge if count is 0
+                this.hideBadge(badge);
+            }
+            
+        } catch (error) {
+            console.error(`Error updating ${menuType} sidebar badge:`, error);
+        }
+    }
+
+    /**
+     * Create a new sidebar badge element
+     * @param {string} badgeClass - The CSS class for the badge
+     * @returns {HTMLElement} The created badge element
+     */
+    createSidebarBadge(badgeClass) {
+        const badge = document.createElement('span');
+        badge.className = `nav-badge ${badgeClass}`;
+        badge.setAttribute('aria-label', 'Notification count');
+        return badge;
+    }
+
+    /**
+     * Update badge content and make it visible
+     * @param {HTMLElement} badge - The badge element
+     * @param {number} count - The count to display
+     */
+    updateBadgeContent(badge, count) {
+        badge.textContent = count;
+        badge.style.display = 'inline-block';
+        badge.setAttribute('aria-label', `${count} unread notifications`);
+    }
+
+    /**
+     * Hide a badge element
+     * @param {HTMLElement} badge - The badge element to hide
+     */
+    hideBadge(badge) {
+        badge.style.display = 'none';
+        badge.removeAttribute('aria-label');
     }
 
     /**
@@ -651,15 +894,23 @@ class ManufacturerHeader {
     getTranslation(key, fallback = '') {
         // Try to get translation from global i18next
         if (typeof window.i18next !== 'undefined' && window.i18next.t) {
-            return window.i18next.t(key);
+            const translation = window.i18next.t(key);
+            // If translation is the same as key, it means translation not found
+            if (translation !== key) {
+                return translation;
+            }
         }
         
         // Try to get translation from global t function
         if (typeof window.t !== 'undefined') {
-            return window.t(key);
+            const translation = window.t(key);
+            // If translation is the same as key, it means translation not found
+            if (translation !== key) {
+                return translation;
+            }
         }
         
-        // Return fallback
+        // Return fallback if available, otherwise return key
         return fallback || key;
     }
 
@@ -688,10 +939,10 @@ class ManufacturerHeader {
                 if (data.data && data.data.chatPreviews && Array.isArray(data.data.chatPreviews)) {
                     messages = data.data.chatPreviews.map(chat => ({
                         id: chat.id,
-                        sender: chat.companyName || 'Unknown',
-                        content: chat.lastMessage || 'No message',
+                        sender: chat.companyName || this.getTranslation('admin.header.messages.unknown_sender', 'Noma\'lum'),
+                        content: chat.lastMessage || this.getTranslation('admin.header.messages.no_message', 'Xabar yo\'q'),
                         time: this.formatTime(chat.lastMessageTime),
-                        orderNumber: 'N/A',
+                        orderNumber: this.getTranslation('admin.header.messages.not_available', 'Mavjud emas'),
                         isUnread: chat.isUnread || false
                     }));
                 }
@@ -742,32 +993,14 @@ class ManufacturerHeader {
             return;
         }
 
-        // Add Mark All as Read button
-        const markAllReadButton = `
-            <div class="mark-all-read-section">
-                <button class="btn btn-sm btn-outline-primary mark-all-read-btn" onclick="window.markAllMessagesRead()">
-                    <i class="fas fa-check-double"></i>
-                    ${this.getTranslation('admin.header.messages.mark_all_read_btn', 'Barchasini o\'qilgan deb belgilash')}
-                </button>
-            </div>
-        `;
-
-        // Render dynamic messages
-        const messagesHTML = messages.map(message => `
-            <div class="message-item ${message.isUnread ? 'unread' : ''}" data-message-id="${message.id}">
-                <div class="message-avatar-placeholder">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="message-content">
-                    <h4 class="message-sender">${message.sender}</h4>
-                    <p class="message-text">${message.content}</p>
-                    <span class="message-time">${message.time}</span>
-                    ${message.orderNumber !== 'N/A' ? `<small class="message-order">${this.getTranslation('admin.header.messages.order_prefix', 'Buyurtma')}: ${message.orderNumber}</small>` : ''}
-                </div>
-            </div>
-        `).join('');
+     
+        // Render dynamic messages with proper data attributes
+        const messagesHTML = messages.map(message => {
+            const messageData = this.extractMessageData(message);
+            return this.createMessageHTML(messageData);
+        }).join('');
         
-        container.innerHTML = markAllReadButton + messagesHTML;
+        container.innerHTML = messagesHTML;
 
         // Add click handlers for messages
         const messageItems = container.querySelectorAll('.message-item');
@@ -775,6 +1008,10 @@ class ManufacturerHeader {
         messageItems.forEach((item, index) => {
             item.addEventListener('click', async () => {
                 const messageId = item.dataset.messageId;
+                const messageType = item.dataset.messageType;
+                const orderId = item.dataset.orderId;
+                const inquiryId = item.dataset.inquiryId;
+                
                 
                 // Add loading state
                 item.classList.add('loading');
@@ -798,15 +1035,274 @@ class ManufacturerHeader {
                         this.updateSidebarMessagesBadge();
                     }
                     
-                    // Navigate to messages page
-                    window.location.href = '/manufacturer/messages';
+                    // ✅ CRITICAL: Navigate to specific conversation based on type
+                    this.navigateToMessageConversation(messageType, orderId, inquiryId);
+                    
                 } catch (error) {
-                    // console.error('Error marking message as read:', error);
+                    console.error('Error marking message as read:', error);
                     // Still navigate even if marking as read fails
-                    window.location.href = '/manufacturer/messages';
+                    this.navigateToMessageConversation(messageType, orderId, inquiryId);
                 }
             });
         });
+    }
+
+    /**
+     * Extract and validate message data for rendering
+     * @param {Object} message - The raw message object
+     * @returns {Object} Processed message data
+     */
+    extractMessageData(message) {
+        const messageConfig = this.getMessageConfig();
+        
+        return {
+            id: message.id || '',
+            type: this.validateMessageType(message.type) || messageConfig.defaultType,
+            orderId: message.orderId || '',
+            inquiryId: message.inquiryId || '',
+            sender: message.sender || this.getTranslation('admin.header.messages.unknown_sender', 'Noma\'lum'),
+            content: message.content || this.getTranslation('admin.header.messages.no_message', 'Xabar yo\'q'),
+            time: message.time || this.getTranslation('admin.header.messages.not_available', 'Mavjud emas'),
+            orderNumber: this.processOrderNumber(message.orderNumber),
+            isUnread: Boolean(message.isUnread)
+        };
+    }
+
+    /**
+     * Process and clean order number data
+     * @param {any} orderNumber - The raw order number
+     * @returns {string} Processed order number
+     */
+    processOrderNumber(orderNumber) {
+        // If orderNumber is null, undefined, or empty, return empty string
+        if (!orderNumber) {
+            return '';
+        }
+        
+        // Convert to string and trim
+        const processedOrderNumber = String(orderNumber).trim();
+        
+        // If it's empty after processing, return empty string
+        if (!processedOrderNumber) {
+            return '';
+        }
+        
+        // Return the processed order number
+        return processedOrderNumber;
+    }
+
+    /**
+     * Create HTML for a single message item
+     * @param {Object} messageData - The processed message data
+     * @returns {string} HTML string for the message item
+     */
+    createMessageHTML(messageData) {
+        const { id, type, orderId, inquiryId, sender, content, time, orderNumber, isUnread } = messageData;
+        
+        const unreadClass = isUnread ? 'unread' : '';
+        const orderInfo = this.createOrderInfoHTML(orderNumber);
+        
+        return `
+            <div class="message-item ${unreadClass}" 
+                 data-message-id="${id}" 
+                 data-message-type="${type}" 
+                 data-order-id="${orderId}" 
+                 data-inquiry-id="${inquiryId}">
+                <div class="message-avatar-placeholder">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="message-content">
+                    <h4 class="message-sender">${sender}</h4>
+                    <p class="message-text">${content}</p>
+                    <span class="message-time">${time}</span>
+                    ${orderInfo}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Create order information HTML if available
+     * @param {string} orderNumber - The order number
+     * @returns {string} HTML string for order info
+     */
+    createOrderInfoHTML(orderNumber) {
+        const orderPrefix = this.getTranslation('admin.header.messages.order_prefix', 'Buyurtma');
+        
+        // Professional validation: check if orderNumber is valid and meaningful
+        if (this.isValidOrderNumber(orderNumber)) {
+            return `<small class="message-order">${orderPrefix}: ${orderNumber}</small>`;
+        }
+        return '';
+    }
+
+    /**
+     * Validate if order number is meaningful and should be displayed
+     * @param {any} orderNumber - The order number to validate
+     * @returns {boolean} True if order number is valid and meaningful
+     */
+    isValidOrderNumber(orderNumber) {
+        // Check for null, undefined, empty string, or whitespace-only
+        if (!orderNumber || typeof orderNumber !== 'string') {
+            return false;
+        }
+        
+        // Trim whitespace and check if empty after trimming
+        const trimmedOrderNumber = orderNumber.trim();
+        if (!trimmedOrderNumber) {
+            return false;
+        }
+        
+        // Check against common "not available" values
+        const notAvailableValues = [
+            'N/A',
+            'n/a', 
+            'NA',
+            'na',
+            'null',
+            'undefined',
+            'Mavjud emas',
+            'mavjud emas',
+            'Not Available',
+            'not available',
+            'N/A',
+            'N/A',
+            '-',
+            '--',
+            '...',
+            'N/A',
+            'N/A'
+        ];
+        
+        // Check if order number matches any "not available" pattern
+        if (notAvailableValues.includes(trimmedOrderNumber.toLowerCase())) {
+            return false;
+        }
+        
+        // Check if it's a meaningful order number (contains alphanumeric characters)
+        const hasAlphanumeric = /[a-zA-Z0-9]/.test(trimmedOrderNumber);
+        if (!hasAlphanumeric) {
+            return false;
+        }
+        
+        // Check minimum length (order numbers should be at least 3 characters)
+        if (trimmedOrderNumber.length < 3) {
+            return false;
+        }
+        
+        return true;
+    }
+
+    /**
+     * Get message configuration
+     * @returns {Object} Message configuration object
+     */
+    getMessageConfig() {
+        return {
+            defaultType: 'inquiry',
+            validTypes: ['inquiry', 'order'],
+            fallbackUrl: '/manufacturer/messages'
+        };
+    }
+
+    /**
+     * Validate message type
+     * @param {string} type - The message type to validate
+     * @returns {string|null} Valid type or null
+     */
+    validateMessageType(type) {
+        const config = this.getMessageConfig();
+        return config.validTypes.includes(type) ? type : null;
+    }
+
+    /**
+     * Navigate to specific message conversation based on type
+     * @param {string} messageType - The message type (inquiry, order)
+     * @param {string} orderId - The order ID (if applicable)
+     * @param {string} inquiryId - The inquiry ID (if applicable)
+     */
+    navigateToMessageConversation(messageType, orderId, inquiryId) {
+        try {
+            // Validate inputs
+            if (!this.isValidNavigationInput(messageType, orderId, inquiryId)) {
+                console.warn('Invalid navigation input provided');
+                this.navigateToFallback();
+                return;
+            }
+            
+            // Get target URL using configuration-driven approach
+            const targetUrl = this.buildConversationUrl(messageType, orderId, inquiryId);
+            
+            // Navigate to the target URL
+            window.location.href = targetUrl;
+            
+        } catch (error) {
+            console.error('Error navigating to message conversation:', error);
+            this.navigateToFallback();
+        }
+    }
+
+    /**
+     * Validate navigation input parameters
+     * @param {string} messageType - The message type
+     * @param {string} orderId - The order ID
+     * @param {string} inquiryId - The inquiry ID
+     * @returns {boolean} True if valid, false otherwise
+     */
+    isValidNavigationInput(messageType, orderId, inquiryId) {
+        const config = this.getMessageConfig();
+        
+        // At least one ID should be provided
+        if (!orderId && !inquiryId) {
+            return false;
+        }
+        
+        // If type is provided, it should be valid
+        if (messageType && !config.validTypes.includes(messageType)) {
+            return false;
+        }
+        
+        return true;
+    }
+
+    /**
+     * Build conversation URL based on message data
+     * @param {string} messageType - The message type
+     * @param {string} orderId - The order ID
+     * @param {string} inquiryId - The inquiry ID
+     * @returns {string} The target URL
+     */
+    buildConversationUrl(messageType, orderId, inquiryId) {
+        const config = this.getMessageConfig();
+        
+        // Priority-based URL building
+        if (messageType === 'order' && orderId) {
+            return `/manufacturer/messages/order/${orderId}`;
+        }
+        
+        if (messageType === 'inquiry' && inquiryId) {
+            return `/manufacturer/messages/inquiry/${inquiryId}`;
+        }
+        
+        // Fallback logic based on available IDs
+        if (orderId) {
+            return `/manufacturer/messages/order/${orderId}`;
+        }
+        
+        if (inquiryId) {
+            return `/manufacturer/messages/inquiry/${inquiryId}`;
+        }
+        
+        // Ultimate fallback
+        return config.fallbackUrl;
+    }
+
+    /**
+     * Navigate to fallback URL
+     */
+    navigateToFallback() {
+        const config = this.getMessageConfig();
+        window.location.href = config.fallbackUrl;
     }
 
     /**
@@ -836,11 +1332,20 @@ class ManufacturerHeader {
                     }
                 }
                 
-                // Also update header badge
+                // Also update header badge - FIX: Prevent initial flash
                 const headerBadge = document.getElementById('messagesBadge');
                 if (headerBadge) {
+                    // Set count first
                     headerBadge.textContent = data.count || 0;
-                    headerBadge.style.display = data.count > 0 ? 'flex' : 'none';
+                    
+                    // Then set visibility to prevent flash
+                    if (data.count > 0) {
+                        headerBadge.style.display = 'flex';
+                        headerBadge.classList.add('show');
+                    } else {
+                        headerBadge.style.display = 'none';
+                        headerBadge.classList.remove('show');
+                    }
                 }
                 
             }
@@ -926,32 +1431,46 @@ window.addEventListener('pageshow', function(event) {
 // Global functions for onclick handlers
 window.markAllNotificationsRead = async function() {
     try {
-        // Mark only orders and inquiries as read (not messages)
-        const [ordersResult, inquiriesResult] = await Promise.all([
+        // Mark orders, inquiries, and notifications as read
+        const [ordersResult, inquiriesResult, notificationsResult] = await Promise.all([
             fetch('/manufacturer/api/orders/mark-all-read', { method: 'POST' }),
-            fetch('/manufacturer/api/inquiries/mark-all-read', { method: 'POST' })
+            fetch('/manufacturer/api/inquiries/mark-all-read', { method: 'POST' }),
+            fetch('/manufacturer/api/notifications/mark-all-read', { method: 'POST' })
         ]);
         
         const ordersData = await ordersResult.json();
         const inquiriesData = await inquiriesResult.json();
+        const notificationsData = await notificationsResult.json();
         
-        // Refresh notifications data only
+        // Refresh all notification data
         if (window.manufacturerHeader) {
-            window.manufacturerHeader.loadInquiriesAndOrders();
-            window.manufacturerHeader.updateNotificationsBadge();
+            // Force refresh all notification data
+            await Promise.all([
+                window.manufacturerHeader.loadInquiriesAndOrders(),
+                window.manufacturerHeader.updateNotificationsBadge(), // This now updates sidebar badges too
+                window.manufacturerHeader.updateSidebarMessagesBadge()
+            ]);
         }
         
-        // Show success message
-        const totalUpdated = (ordersData.updatedCount || 0) + (inquiriesData.updatedCount || 0);
+        // Show success message using toast instead of alert
+        const totalUpdated = (ordersData.updatedCount || 0) + (inquiriesData.updatedCount || 0) + (notificationsData.updatedCount || 0);
         if (totalUpdated > 0) {
-            alert(`✅ ${totalUpdated} ta bildirishnoma o'qilgan deb belgilandi!\n\n• Buyurtmalar: ${ordersData.updatedCount || 0}\n• So'rovlar: ${inquiriesData.updatedCount || 0}`);
+            const successMsg = window.manufacturerHeader?.getTranslation('admin.header.common.success.notifications_marked_read', 'Barcha bildirishnomalar o\'qilgan deb belgilandi') || 'Barcha bildirishnomalar o\'qilgan deb belgilandi';
+            if (typeof showToast === 'function') {
+                showToast(successMsg, 'success');
+            }
         } else {
-            alert('ℹ️ Barcha bildirishnomalar allaqachon o\'qilgan!');
+            const alreadyReadMsg = window.manufacturerHeader?.getTranslation('admin.header.common.success.all_already_read', 'Barcha bildirishnomalar allaqachon o\'qilgan') || 'Barcha bildirishnomalar allaqachon o\'qilgan';
+            if (typeof showToast === 'function') {
+                showToast(alreadyReadMsg, 'info');
+            }
         }
         
     } catch (error) {
-        // console.error('Failed to mark notifications as read:', error);
-        alert('Xatolik yuz berdi!');
+        console.error('Failed to mark notifications as read:', error);
+        if (typeof showToast === 'function') {
+            showToast(window.manufacturerHeader?.getTranslation('admin.header.common.errors.general_error', 'Xatolik yuz berdi') || 'Xatolik yuz berdi', 'error');
+        }
     }
 };
 
@@ -969,17 +1488,19 @@ window.markAllMessagesRead = async function() {
             
             // Show success message
             if (data.updatedCount > 0) {
-                alert(`✅ ${data.updatedCount} ta xabar o'qilgan deb belgilandi!`);
+                const successMsg = window.manufacturerHeader?.getTranslation('admin.header.common.success.messages_marked_read', 'ta xabar o\'qilgan deb belgilandi!') || 'ta xabar o\'qilgan deb belgilandi!';
+                alert(`✅ ${data.updatedCount} ${successMsg}`);
             } else {
-                alert('ℹ️ Barcha xabarlar allaqachon o\'qilgan!');
+                const alreadyReadMsg = window.manufacturerHeader?.getTranslation('admin.header.common.success.all_messages_read', 'Barcha xabarlar allaqachon o\'qilgan!') || 'Barcha xabarlar allaqachon o\'qilgan!';
+                alert(`ℹ️ ${alreadyReadMsg}`);
             }
         } else {
             // console.error('API error:', data.error);
-            alert('Xatolik yuz berdi!');
+            alert(window.manufacturerHeader?.getTranslation('admin.header.common.errors.general_error', 'Xatolik yuz berdi!') || 'Xatolik yuz berdi!');
         }
     } catch (error) {
         // console.error('Failed to mark messages as read:', error);
-        alert('Xatolik yuz berdi!');
+        alert(window.manufacturerHeader?.getTranslation('admin.header.common.errors.general_error', 'Xatolik yuz berdi!') || 'Xatolik yuz berdi!');
     }
 };
 

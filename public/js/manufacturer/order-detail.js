@@ -256,15 +256,34 @@ class OrderDetailManager {
             return;
         }
 
+        // ✅ PROFESSIONAL FIX: Validate status transition on frontend
+        if (!this.isValidStatusTransition(currentStatus, newStatus)) {
+            const validTransitions = this.getValidTransitions(currentStatus);
+            window.showToast(`Noto'g'ri holat o'tishi: '${currentStatus}' dan '${newStatus}' ga. Ruxsat etilgan: ${validTransitions.join(', ')}`, 'error');
+            // Revert select value
+            statusSelect.value = currentStatus;
+            return;
+        }
+
         try {
             this.showLoading('status-update');
 
+            // ✅ PROFESSIONAL FIX: Get current order version for optimistic locking
+            const versionElement = document.querySelector('[data-order-version]');
+            const currentVersion = versionElement?.dataset.orderVersion;
+            
+            // ✅ PROFESSIONAL FIX: Only send version if it exists and is valid
+            const requestBody = { status: newStatus };
+            if (currentVersion !== undefined && currentVersion !== null && currentVersion !== '') {
+                requestBody.version = parseInt(currentVersion);
+            }
+            
             const response = await fetch(`/api/manufacturer/orders/${this.orderId}/status`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ status: newStatus })
+                body: JSON.stringify(requestBody)
             });
 
             const data = await response.json();
@@ -273,10 +292,25 @@ class OrderDetailManager {
                 statusSelect.dataset.currentStatus = newStatus;
                 this.updateStatusBadges(newStatus);
                 this.markAsSaved();
+                
+                // ✅ PROFESSIONAL FIX: Update order version after successful update
+                if (data.order && data.order.__v !== undefined) {
+                    const versionElement = document.querySelector('[data-order-version]');
+                    if (versionElement) {
+                        versionElement.dataset.orderVersion = data.order.__v;
+                    }
+                }
+                
                 window.showToast('Buyurtma holati muvaffaqiyatli yangilandi', 'success');
-                console.log('✅ Order status updated successfully');
             } else {
-                throw new Error(data.message || 'Failed to update status');
+                // Handle specific error cases
+                if (data.code === 'INVALID_STATUS_TRANSITION') {
+                    window.showToast(`Noto'g'ri holat o'tishi: ${data.message}`, 'error');
+                } else if (data.code === 'CONCURRENT_MODIFICATION') {
+                    window.showToast('Buyurtma boshqa jarayon tomonidan o\'zgartirilgan. Sahifani yangilang.', 'warning');
+                } else {
+                    throw new Error(data.message || 'Failed to update status');
+                }
             }
         } catch (error) {
             console.error('❌ Error updating order status:', error);
@@ -286,6 +320,59 @@ class OrderDetailManager {
         } finally {
             this.hideLoading('status-update');
         }
+    }
+
+    /**
+     * Validate status transition based on business rules
+     * @param {string} currentStatus - Current order status
+     * @param {string} newStatus - New order status
+     * @returns {boolean} True if transition is valid
+     */
+    isValidStatusTransition(currentStatus, newStatus) {
+        const validTransitions = {
+            'draft': ['pending', 'cancelled'],
+            'pending': ['confirmed', 'cancelled'],
+            'confirmed': ['processing', 'cancelled'],
+            'processing': ['manufacturing', 'cancelled'],
+            'manufacturing': ['ready_to_ship', 'cancelled'],
+            'ready_to_ship': ['shipped', 'cancelled'],
+            'shipped': ['out_for_delivery', 'in_transit', 'delivered'],
+            'out_for_delivery': ['delivered'],
+            'in_transit': ['delivered'],
+            'delivered': ['completed'],
+            'completed': [],
+            'cancelled': [], // ✅ FIX: Cancelled orders cannot transition to any other status
+            'refunded': [],
+            'disputed': ['cancelled', 'completed']
+        };
+
+        return validTransitions[currentStatus]?.includes(newStatus) || false;
+    }
+
+    /**
+     * Get valid transitions for current status
+     * @param {string} currentStatus - Current order status
+     * @returns {Array} Array of valid transition statuses
+     */
+    getValidTransitions(currentStatus) {
+        const validTransitions = {
+            'draft': ['pending', 'cancelled'],
+            'pending': ['confirmed', 'cancelled'],
+            'confirmed': ['processing', 'cancelled'],
+            'processing': ['manufacturing', 'cancelled'],
+            'manufacturing': ['ready_to_ship', 'cancelled'],
+            'ready_to_ship': ['shipped', 'cancelled'],
+            'shipped': ['out_for_delivery', 'in_transit', 'delivered'],
+            'out_for_delivery': ['delivered'],
+            'in_transit': ['delivered'],
+            'delivered': ['completed'],
+            'completed': [],
+            'cancelled': [], // ✅ FIX: Cancelled orders cannot transition to any other status
+            'refunded': [],
+            'disputed': ['cancelled', 'completed']
+        };
+
+        return validTransitions[currentStatus] || [];
     }
 
     updateStatusBadges(newStatus) {

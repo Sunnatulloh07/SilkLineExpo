@@ -1,38 +1,40 @@
 <%- include('../partials/header', { title: title, lng: lng, user: user }) %>
 <%- include('../partials/sidebar', { user: user, currentPage: 'analytics' }) %>
 <link rel="stylesheet" href="/css/manufacturer/manufacture-analytics.css">
+
+
 <!-- Main Content -->
 <main class="admin-main">
   <div class="admin-content">
 
     <!-- Analytics Page Header -->
     <div class="marketplace-header animate-fade-in">
-      <div class="header-content">
+      <div class="header-content" style="display: flex; justify-content: space-between; align-items: start;">
         <div class="header-title-section">
           <h1 class="page-title">
             <i class="fas fa-chart-line"></i>
             <% if (productInfo) { %>
-              Mahsulot tahlili - <%= productInfo.name || 'Mahsulot' %>
+              <%= t('manufacturer.analytics.productAnalyticsTitle') %>
             <% } else { %>
-              Biznes tahlili
+              <%= t('manufacturer.analytics.pageTitle') %>
             <% } %>
           </h1>
           <p class="page-subtitle">
             <% if (productInfo) { %>
-              <%= productInfo.name || 'Mahsulot' %> uchun batafsil analitik ma'lumotlar
+              <%= productInfo.name || t('manufacturer.products.name') %> <%= t('manufacturer.analytics.productSubtitle') %>
             <% } else { %>
-              Biznesingiz bo'yicha to'liq analitik ko'rsatkichlar
+              <%= t('manufacturer.analytics.pageSubtitle') %>
             <% } %>
           </p>
         </div>
         <div class="header-actions">
-          <button class="btn-outline" id="refreshAnalytics">
+          <button type="button" class="btn-outline" id="refreshAnalytics">
             <i class="fas fa-sync-alt"></i>
-            Yangilash
+            <%= t('manufacturer.analytics.actions.refresh') %>
           </button>
-          <button class="btn-primary" id="exportReport">
+          <button type="button" class="btn-primary" id="exportReport">
             <i class="fas fa-download"></i>
-            Hisobot yuklash
+            <%= t('manufacturer.analytics.actions.exportReport') %>
           </button>
         </div>
       </div>
@@ -59,24 +61,24 @@
           <!-- Total Revenue -->
           <div class="stat-card success animate-fade-in">
             <div class="stat-header">
-              <h3 class="stat-title">Umumiy daromad</h3>
+              <h3 class="stat-title"><%= t('manufacturer.analytics.kpi.totalRevenue') %></h3>
               <div class="stat-icon success">
                 <i class="fas fa-dollar-sign"></i>
               </div>
             </div>
             <div class="stat-value">
-              <span class="metric-value">$<%= productAnalytics.totalRevenue || 0 %></span>
+              <span class="metric-value"><%= t('manufacturer.analytics.units.currency') %><%= productAnalytics.totalRevenue || 0 %></span>
             </div>
             <div class="stat-change <%= (productAnalytics.revenueGrowth || 0) >= 0 ? 'positive' : 'negative' %>">
               <i class="fas fa-arrow-<%= (productAnalytics.revenueGrowth || 0) >= 0 ? 'up' : 'down' %>"></i>
-              <%= (productAnalytics.revenueGrowth || 0) >= 0 ? '+' : '' %><%= productAnalytics.revenueGrowth || 0 %>% <%= (productAnalytics.revenueGrowth || 0) >= 0 ? 'o\'sish' : 'pasayish' %>
+              <%= (productAnalytics.revenueGrowth || 0) >= 0 ? '+' : '' %><%= productAnalytics.revenueGrowth || 0 %>% <%= (productAnalytics.revenueGrowth || 0) >= 0 ? t('manufacturer.analytics.trends.growth') : t('manufacturer.analytics.trends.decline') %>
             </div>
           </div>
 
           <!-- Total Orders -->
           <div class="stat-card info animate-fade-in">
             <div class="stat-header">
-              <h3 class="stat-title">Umumiy buyurtmalar</h3>
+              <h3 class="stat-title"><%= t('manufacturer.analytics.kpi.totalOrders') %></h3>
               <div class="stat-icon info">
                 <i class="fas fa-shopping-cart"></i>
               </div>
@@ -86,14 +88,14 @@
             </div>
             <div class="stat-change <%= (productAnalytics.orderGrowth || 0) >= 0 ? 'positive' : 'negative' %>">
               <i class="fas fa-arrow-<%= (productAnalytics.orderGrowth || 0) >= 0 ? 'up' : 'down' %>"></i>
-              <%= (productAnalytics.orderGrowth || 0) >= 0 ? '+' : '' %><%= productAnalytics.orderGrowth || 0 %>% <%= (productAnalytics.orderGrowth || 0) >= 0 ? 'o\'sish' : 'pasayish' %>
+              <%= (productAnalytics.orderGrowth || 0) >= 0 ? '+' : '' %><%= productAnalytics.orderGrowth || 0 %>% <%= (productAnalytics.orderGrowth || 0) >= 0 ? t('manufacturer.analytics.trends.growth') : t('manufacturer.analytics.trends.decline') %>
             </div>
           </div>
 
           <!-- Total Customers -->
           <div class="stat-card warning animate-fade-in">
             <div class="stat-header">
-              <h3 class="stat-title">Mijozlar soni</h3>
+              <h3 class="stat-title"><%= t('manufacturer.analytics.kpi.totalCustomers') %></h3>
               <div class="stat-icon warning">
                 <i class="fas fa-users"></i>
               </div>
@@ -103,24 +105,24 @@
             </div>
             <div class="stat-change <%= (productAnalytics.retentionRate || 0) >= 50 ? 'positive' : ((productAnalytics.retentionRate || 0) >= 25 ? 'neutral' : 'negative') %>">
               <i class="fas fa-<%= (productAnalytics.retentionRate || 0) >= 50 ? 'arrow-up' : ((productAnalytics.retentionRate || 0) >= 25 ? 'minus' : 'arrow-down') %>"></i>
-              <%= productAnalytics.retentionRate || 0 %>% saqlanish
+              <%= productAnalytics.retentionRate || 0 %>% <%= t('manufacturer.analytics.kpi.retentionRate') %>
             </div>
           </div>
 
           <!-- Conversion Rate -->
           <div class="stat-card primary animate-fade-in">
             <div class="stat-header">
-              <h3 class="stat-title">Konversiya darajasi</h3>
+              <h3 class="stat-title"><%= t('manufacturer.analytics.kpi.conversionRate') %></h3>
               <div class="stat-icon primary">
                 <i class="fas fa-percentage"></i>
               </div>
             </div>
             <div class="stat-value">
-              <span class="metric-value"><%= productAnalytics.conversionRate || 0 %>%</span>
+              <span class="metric-value"><%= productAnalytics.conversionRate || 0 %><%= t('manufacturer.analytics.units.percentage') %></span>
             </div>
             <div class="stat-change positive">
               <i class="fas fa-arrow-up"></i>
-              Yaxshi holat
+              <%= t('manufacturer.analytics.trends.goodStatus') %>
             </div>
           </div>
 
@@ -132,12 +134,12 @@
           <!-- Revenue Chart -->
           <div class="chart-card animate-fade-in">
             <div class="chart-header">
-              <h3 class="chart-title">Daromad tendentsiyasi</h3>
+              <h3 class="chart-title"><%= t('manufacturer.analytics.charts.revenueTrend') %></h3>
               <div class="chart-actions">
                 <select class="form-select form-select-sm" id="revenueChartPeriod">
-                  <option value="7">7 kun</option>
-                  <option value="30" selected>30 kun</option>
-                  <option value="90">90 kun</option>
+                  <option value="7"><%= t('manufacturer.analytics.charts.periods.7days') %></option>
+                  <option value="30" selected><%= t('manufacturer.analytics.charts.periods.30days') %></option>
+                  <option value="90"><%= t('manufacturer.analytics.charts.periods.90days') %></option>
                 </select>
               </div>
             </div>
@@ -149,12 +151,12 @@
           <!-- Orders Chart -->
           <div class="chart-card animate-fade-in">
             <div class="chart-header">
-              <h3 class="chart-title">Buyurtmalar tendentsiyasi</h3>
+              <h3 class="chart-title"><%= t('manufacturer.analytics.charts.ordersTrend') %></h3>
               <div class="chart-actions">
                 <select class="form-select form-select-sm" id="ordersChartPeriod">
-                  <option value="7">7 kun</option>
-                  <option value="30" selected>30 kun</option>
-                  <option value="90">90 kun</option>
+                  <option value="7"><%= t('manufacturer.analytics.charts.periods.7days') %></option>
+                  <option value="30" selected><%= t('manufacturer.analytics.charts.periods.30days') %></option>
+                  <option value="90"><%= t('manufacturer.analytics.charts.periods.90days') %></option>
                 </select>
               </div>
             </div>
@@ -162,7 +164,6 @@
               <div id="ordersChart" style="height: 300px;"></div>
             </div>
           </div>
-
         </div>
 
         <!-- Performance Metrics -->
@@ -173,22 +174,22 @@
             <div class="metric-header">
               <h4 class="metric-title">
                 <i class="fas fa-boxes"></i>
-                Zaxira holati
+                <%= t('manufacturer.analytics.metrics.stockStatus') %>
               </h4>
             </div>
             <div class="metric-body">
               <div class="metric-row">
-                <span class="metric-label">Joriy zaxira:</span>
+                <span class="metric-label"><%= t('manufacturer.analytics.metrics.currentStock') %>:</span>
                 <span class="metric-value-sm"><%= productAnalytics.currentStock || 0 %></span>
               </div>
               <div class="metric-row">
-                <span class="metric-label">Zaxira aylanishi:</span>
-                <span class="metric-value-sm"><%= productAnalytics.stockTurnover || 0 %>x</span>
+                <span class="metric-label"><%= t('manufacturer.analytics.metrics.stockTurnover') %>:</span>
+                <span class="metric-value-sm"><%= productAnalytics.stockTurnover || 0 %><%= t('manufacturer.analytics.units.multiplier') %></span>
               </div>
               <div class="metric-row">
-                <span class="metric-label">Status:</span>
+                <span class="metric-label"><%= t('manufacturer.analytics.metrics.status') %>:</span>
                 <span class="badge badge-<%= productAnalytics.stockStatus === 'healthy' ? 'success' : 'warning' %>">
-                  <%= productAnalytics.stockStatus === 'healthy' ? 'Sog\'lom' : 'Kam' %>
+                  <%= productAnalytics.stockStatus === 'healthy' ? t('manufacturer.analytics.metrics.healthy') : t('manufacturer.analytics.metrics.low') %>
                 </span>
               </div>
             </div>
@@ -199,22 +200,22 @@
             <div class="metric-header">
               <h4 class="metric-title">
                 <i class="fas fa-tachometer-alt"></i>
-                Performance ball
+                <%= t('manufacturer.analytics.metrics.performanceScore') %>
               </h4>
             </div>
             <div class="metric-body">
               <div class="performance-score">
                 <div class="score-circle">
                   <span class="score-value"><%= productAnalytics.performanceScore || 0 %></span>
-                  <span class="score-max">/100</span>
+                  <span class="score-max"><%= t('manufacturer.analytics.units.scoreMax') %></span>
                 </div>
               </div>
               <div class="metric-row">
-                <span class="metric-label">O'rtacha buyurtma:</span>
-                <span class="metric-value-sm">$<%= productAnalytics.avgOrderValue || 0 %></span>
+                <span class="metric-label"><%= t('manufacturer.analytics.metrics.avgOrderValue') %>:</span>
+                <span class="metric-value-sm"><%= t('manufacturer.analytics.units.currency') %><%= productAnalytics.avgOrderValue || 0 %></span>
               </div>
               <div class="metric-row">
-                <span class="metric-label">O'rtacha miqdor:</span>
+                <span class="metric-label"><%= t('manufacturer.analytics.metrics.avgQuantity') %>:</span>
                 <span class="metric-value-sm"><%= productAnalytics.avgQuantityPerOrder || 0 %></span>
               </div>
             </div>
@@ -225,7 +226,7 @@
             <div class="metric-header">
               <h4 class="metric-title">
                 <i class="fas fa-star"></i>
-                Reyting tahlili
+                <%= t('manufacturer.analytics.metrics.ratingAnalysis') %>
               </h4>
             </div>
             <div class="metric-body">
@@ -240,12 +241,12 @@
                 </div>
               </div>
               <div class="metric-row">
-                <span class="metric-label">Umumiy sharhlar:</span>
+                <span class="metric-label"><%= t('manufacturer.analytics.metrics.totalReviews') %>:</span>
                 <span class="metric-value-sm"><%= productAnalytics.totalReviews || 0 %></span>
               </div>
               <div class="metric-row">
-                <span class="metric-label">Mahsulot yoshi:</span>
-                <span class="metric-value-sm"><%= productAnalytics.productAge || 0 %> kun</span>
+                <span class="metric-label"><%= t('manufacturer.analytics.metrics.productAge') %>:</span>
+                <span class="metric-value-sm"><%= productAnalytics.productAge || 0 %> <%= t('manufacturer.products.units.days') %></span>
               </div>
             </div>
           </div>
@@ -261,7 +262,7 @@
           <!-- Total Revenue -->
           <div class="stat-card success animate-fade-in">
             <div class="stat-header">
-              <h3 class="stat-title">Umumiy daromad</h3>
+              <h3 class="stat-title"><%= t('manufacturer.analytics.kpi.totalRevenue') %></h3>
               <div class="stat-icon success">
                 <i class="fas fa-dollar-sign"></i>
               </div>
@@ -269,18 +270,18 @@
             <div class="stat-value">
               <span class="metric-value">
                 <% if (dashboardStats && dashboardStats.overview && dashboardStats.overview.totalRevenue) { %>
-                  $<%= dashboardStats.overview.totalRevenue.toLocaleString() %>
+                  <%= t('manufacturer.analytics.units.currency') %><%= dashboardStats.overview.totalRevenue.toLocaleString() %>
                 <% } else { %>
-                  $0
+                  <%= t('manufacturer.analytics.units.currency') %>0
                 <% } %>
               </span>
             </div>
             <div class="stat-change <%= (dashboardStats && dashboardStats.overview && dashboardStats.overview.revenueGrowth || 0) >= 0 ? 'positive' : 'negative' %>">
               <i class="fas fa-arrow-<%= (dashboardStats && dashboardStats.overview && dashboardStats.overview.revenueGrowth || 0) >= 0 ? 'up' : 'down' %>"></i>
               <% if (dashboardStats && dashboardStats.overview && dashboardStats.overview.revenueGrowth !== undefined) { %>
-                <%= (dashboardStats.overview.revenueGrowth || 0) >= 0 ? '+' : '' %><%= dashboardStats.overview.revenueGrowth %>% <%= (dashboardStats.overview.revenueGrowth || 0) >= 0 ? 'o\'sish' : 'pasayish' %>
+                <%= (dashboardStats.overview.revenueGrowth || 0) >= 0 ? '+' : '' %><%= dashboardStats.overview.revenueGrowth %>% <%= (dashboardStats.overview.revenueGrowth || 0) >= 0 ? t('manufacturer.analytics.trends.growth') : t('manufacturer.analytics.trends.decline') %>
               <% } else { %>
-                O'sish tendentsiyasi
+                <%= t('manufacturer.analytics.trends.growthTrend') %>
               <% } %>
             </div>
           </div>
@@ -288,7 +289,7 @@
           <!-- Total Products -->
           <div class="stat-card info animate-fade-in">
             <div class="stat-header">
-              <h3 class="stat-title">Mahsulotlar soni</h3>
+              <h3 class="stat-title"><%= t('manufacturer.analytics.kpi.totalProducts') %></h3>
               <div class="stat-icon info">
                 <i class="fas fa-box"></i>
               </div>
@@ -305,9 +306,9 @@
             <div class="stat-change neutral">
               <i class="fas fa-minus"></i>
               <% if (dashboardStats && dashboardStats.overview && dashboardStats.overview.totalProducts > 0) { %>
-                Faol mahsulotlar
+                <%= t('manufacturer.analytics.status.activeProducts') %>
               <% } else { %>
-                Barqaror
+                <%= t('manufacturer.analytics.status.stable') %>
               <% } %>
             </div>
           </div>
@@ -315,7 +316,7 @@
           <!-- Total Orders -->
           <div class="stat-card warning animate-fade-in">
             <div class="stat-header">
-              <h3 class="stat-title">Buyurtmalar</h3>
+              <h3 class="stat-title"><%= t('manufacturer.analytics.kpi.totalOrders') %></h3>
               <div class="stat-icon warning">
                 <i class="fas fa-shopping-cart"></i>
               </div>
@@ -332,9 +333,9 @@
             <div class="stat-change <%= (dashboardStats && dashboardStats.overview && dashboardStats.overview.totalOrders || 0) > 0 ? 'positive' : 'neutral' %>">
               <i class="fas fa-<%= (dashboardStats && dashboardStats.overview && dashboardStats.overview.totalOrders || 0) > 0 ? 'arrow-up' : 'minus' %>"></i>
               <% if (dashboardStats && dashboardStats.overview && dashboardStats.overview.totalOrders > 0) { %>
-                Faol buyurtmalar
+                <%= t('manufacturer.analytics.status.activeOrders') %>
               <% } else { %>
-                Buyurtma yo'q
+                <%= t('manufacturer.analytics.status.noOrders') %>
               <% } %>
             </div>
           </div>
@@ -342,7 +343,7 @@
           <!-- Active Customers -->
           <div class="stat-card primary animate-fade-in">
             <div class="stat-header">
-              <h3 class="stat-title">Faol mijozlar</h3>
+              <h3 class="stat-title"><%= t('manufacturer.analytics.status.activeCustomers') %></h3>
               <div class="stat-icon primary">
                 <i class="fas fa-users"></i>
               </div>
@@ -359,9 +360,9 @@
             <div class="stat-change <%= (dashboardStats && dashboardStats.overview && dashboardStats.overview.activeCustomers || 0) > 0 ? 'positive' : 'neutral' %>">
               <i class="fas fa-<%= (dashboardStats && dashboardStats.overview && dashboardStats.overview.activeCustomers || 0) > 0 ? 'arrow-up' : 'minus' %>"></i>
               <% if (dashboardStats && dashboardStats.overview && dashboardStats.overview.activeCustomers > 0) { %>
-                <%= dashboardStats.overview.activeCustomers %> faol mijoz
+                <%= dashboardStats.overview.activeCustomers %> <%= t('manufacturer.analytics.status.activeCustomer') %>
               <% } else { %>
-                Mijoz yo'q
+                <%= t('manufacturer.analytics.status.noCustomers') %>
               <% } %>
             </div>
           </div>
@@ -374,12 +375,12 @@
           <!-- Business Performance Chart -->
           <div class="chart-card animate-fade-in">
             <div class="chart-header">
-              <h3 class="chart-title">Biznes performance</h3>
+              <h3 class="chart-title"><%= t('manufacturer.analytics.charts.businessPerformance') %></h3>
               <div class="chart-actions">
                 <select class="form-select form-select-sm" id="businessChartPeriod">
-                  <option value="7">7 kun</option>
-                  <option value="30" selected>30 kun</option>
-                  <option value="90">90 kun</option>
+                  <option value="7"><%= t('manufacturer.analytics.charts.periods.7days') %></option>
+                  <option value="30" selected><%= t('manufacturer.analytics.charts.periods.30days') %></option>
+                  <option value="90"><%= t('manufacturer.analytics.charts.periods.90days') %></option>
                 </select>
               </div>
             </div>
@@ -391,7 +392,7 @@
           <!-- Categories Performance -->
           <div class="chart-card animate-fade-in">
             <div class="chart-header">
-              <h3 class="chart-title">Kategoriyalar performance</h3>
+              <h3 class="chart-title"><%= t('manufacturer.analytics.charts.categoriesPerformance') %></h3>
             </div>
             <div class="chart-body">
               <div id="categoriesChart" style="height: 300px;"></div>
@@ -407,8 +408,8 @@
               <i class="fas fa-info-circle"></i>
             </div>
             <div class="info-text">
-              <h4>Mahsulot tahlili uchun</h4>
-              <p>Alohida mahsulot bo'yicha batafsil tahlil ko'rish uchun Marketplace sahifasidan mahsulotning "Statistika" tugmasini bosing.</p>
+              <h4><%= t('manufacturer.analytics.info.productAnalysisTitle') %></h4>
+              <p><%= t('manufacturer.analytics.info.productAnalysisDescription') %></p>
             </div>
           </div>
         </div>
@@ -427,6 +428,10 @@
 <!-- ApexCharts (Local - CSP Safe) -->
 <script src="/assets/js/apexchart.js"></script>
 
+<!-- XLSX Library for Excel Export (Local - CSP Safe) -->
+<script src="/assets/js/xlsx.full.min.js"></script>
+
+
 <!-- Dashboard JS Files (EXACT Marketplace Pattern) -->
 <script src="/js/manufacturer/dashboard-init.js"></script>
 <script src="/js/manufacturer/manufacturer-header.js"></script>
@@ -437,8 +442,8 @@
      data-has-product="<%= productInfo ? 'true' : 'false' %>"
      data-product-id="<%= productInfo ? productInfo._id : '' %>"
      data-user-id="<%= user._id %>"
-     data-user-name="<%= user.name || 'User' %>"
-     data-company-name="<%= user.companyName || 'Company' %>">
+     data-user-name="<%= user.name || t('manufacturer.analytics.defaults.user') %>"
+     data-company-name="<%= user.companyName || t('manufacturer.analytics.defaults.company') %>">
   
   <% if (productInfo && productAnalytics) { %>
   <script type="application/json" id="product-analytics-json"><%- JSON.stringify(productAnalytics) %></script>
@@ -454,6 +459,73 @@
   <% } %>
   
 </div>
+
+<!-- Analytics Translations Script -->
+<script type="application/json" id="analytics-translations">
+{
+  "manufacturer.analytics.charts.labels.days": "<%= t('manufacturer.analytics.charts.labels.days') %>",
+  "manufacturer.analytics.charts.labels.months": "<%= t('manufacturer.analytics.charts.labels.months') %>",
+  "manufacturer.analytics.charts.series.revenue": "<%= t('manufacturer.analytics.charts.series.revenue') %>",
+  "manufacturer.analytics.charts.series.orders": "<%= t('manufacturer.analytics.charts.series.orders') %>",
+  "manufacturer.analytics.charts.series.businessMetrics": "<%= t('manufacturer.analytics.charts.series.businessMetrics') %>",
+  "manufacturer.analytics.charts.noData": "<%= t('manufacturer.analytics.charts.noData') %>",
+  "manufacturer.analytics.charts.notAvailable": "<%= t('manufacturer.analytics.charts.notAvailable') %>",
+  "manufacturer.analytics.tooltips.exactValue": "<%= t('manufacturer.analytics.tooltips.exactValue') %>",
+  "manufacturer.analytics.export.success": "<%= t('manufacturer.analytics.export.success') %>",
+  "manufacturer.analytics.export.error": "<%= t('manufacturer.analytics.export.error') %>",
+  "manufacturer.analytics.export.reportTitle": "<%= t('manufacturer.analytics.export.reportTitle') %>",
+  "manufacturer.analytics.export.generatedDate": "<%= t('manufacturer.analytics.export.generatedDate') %>",
+  "manufacturer.analytics.export.reportType": "<%= t('manufacturer.analytics.export.reportType') %>",
+  "manufacturer.analytics.export.productAnalytics": "<%= t('manufacturer.analytics.export.productAnalytics') %>",
+  "manufacturer.analytics.export.businessAnalytics": "<%= t('manufacturer.analytics.export.businessAnalytics') %>",
+  "manufacturer.analytics.export.keyMetrics": "<%= t('manufacturer.analytics.export.keyMetrics') %>",
+  "manufacturer.analytics.export.performanceMetrics": "<%= t('manufacturer.analytics.export.performanceMetrics') %>",
+  "manufacturer.analytics.export.businessIntelligence": "<%= t('manufacturer.analytics.export.businessIntelligence') %>",
+  "manufacturer.analytics.export.chartData": "<%= t('manufacturer.analytics.export.chartData') %>",
+  "manufacturer.analytics.export.revenueTrend": "<%= t('manufacturer.analytics.export.revenueTrend') %>",
+  "manufacturer.analytics.export.ordersTrend": "<%= t('manufacturer.analytics.export.ordersTrend') %>",
+  "manufacturer.analytics.export.categoriesPerformance": "<%= t('manufacturer.analytics.export.categoriesPerformance') %>",
+  "manufacturer.analytics.export.period": "<%= t('manufacturer.analytics.export.period') %>",
+  "manufacturer.analytics.export.revenue": "<%= t('manufacturer.analytics.export.revenue') %>",
+  "manufacturer.analytics.export.orders": "<%= t('manufacturer.analytics.export.orders') %>",
+  "manufacturer.analytics.export.businessMetrics": "<%= t('manufacturer.analytics.export.businessMetrics') %>",
+  "manufacturer.analytics.export.customerSatisfaction": "<%= t('manufacturer.analytics.export.customerSatisfaction') %>",
+  "manufacturer.analytics.export.efficiency": "<%= t('manufacturer.analytics.export.efficiency') %>",
+  "manufacturer.analytics.export.quality": "<%= t('manufacturer.analytics.export.quality') %>",
+  "manufacturer.analytics.export.overallPerformance": "<%= t('manufacturer.analytics.export.overallPerformance') %>",
+  "manufacturer.analytics.export.stockStatus": "<%= t('manufacturer.analytics.export.stockStatus') %>",
+  "manufacturer.analytics.export.performanceScore": "<%= t('manufacturer.analytics.export.performanceScore') %>",
+  "manufacturer.analytics.export.averageRating": "<%= t('manufacturer.analytics.export.averageRating') %>",
+  "manufacturer.analytics.export.totalReviews": "<%= t('manufacturer.analytics.export.totalReviews') %>",
+  "manufacturer.analytics.export.totalRevenue": "<%= t('manufacturer.analytics.export.totalRevenue') %>",
+  "manufacturer.analytics.export.totalOrders": "<%= t('manufacturer.analytics.export.totalOrders') %>",
+  "manufacturer.analytics.export.totalCustomers": "<%= t('manufacturer.analytics.export.totalCustomers') %>",
+  "manufacturer.analytics.export.totalProducts": "<%= t('manufacturer.analytics.export.totalProducts') %>",
+  "manufacturer.analytics.export.conversionRate": "<%= t('manufacturer.analytics.export.conversionRate') %>",
+  "manufacturer.analytics.export.revenueGrowth": "<%= t('manufacturer.analytics.export.revenueGrowth') %>",
+  "manufacturer.analytics.export.notAvailable": "<%= t('manufacturer.analytics.export.notAvailable') %>"
+}
+</script>
+
+<script>
+  // Pass server-side translations to client-side for analytics
+  window.analyticsTranslations = JSON.parse(document.getElementById('analytics-translations').textContent);
+  
+  // Override window.t function for analytics
+  window.t = function(key, fallback = '') {
+    try {
+      // Use server-side translations
+      if (window.analyticsTranslations && window.analyticsTranslations[key]) {
+        return window.analyticsTranslations[key];
+      }
+      // Fallback to provided fallback or key
+      return fallback || key;
+    } catch (error) {
+      console.error('Translation error:', error);
+      return fallback || key;
+    }
+  };
+</script>
 
 <!-- Professional Analytics JavaScript -->
  <script src="/js/manufacturer/manufacture-analytics.js"></script>
