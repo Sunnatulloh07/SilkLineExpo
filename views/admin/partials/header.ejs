@@ -79,7 +79,7 @@
           <input 
             type="text" 
             id="headerSearch"
-            placeholder="<%= typeof t !== 'undefined' ? t('admin.header.search_placeholder') : 'Qidirish...' %>"
+            placeholder="Qidirish..."
             autocomplete="off"
           >
         </div>
@@ -88,60 +88,15 @@
       <!-- Right Section -->
       <div class="header-right">
         
-        <!-- Language Selector (Production Style) -->
-        <div class="language-selector-wrapper">
-          <% 
-            const currentLang = typeof lng !== 'undefined' ? lng : 'uz';
-            const langConfig = {
-              'uz': { flag: '🇺🇿', name: 'O\'zbekcha', code: 'UZ' },
-              'en': { flag: '🇺🇸', name: 'English', code: 'EN' },
-              'ru': { flag: '🇷🇺', name: 'Русский', code: 'RU' },
-              'tr': { flag: '🇹🇷', name: 'Türkçe', code: 'TR' },
-              'fa': { flag: '🇮🇷', name: 'فارسی', code: 'FA' },
-              'zh': { flag: '🇨🇳', name: '中文', code: 'ZH' }
-            };
-            const current = langConfig[currentLang] || langConfig['uz'];
-          %>
-          
-          <div class="language-dropdown">
-            <button id="languageToggle" class="language-btn" 
-                    data-tooltip="<%= typeof t !== 'undefined' ? t('admin.header.change_language') : 'Tilni o\'zgartirish' %>">
-              <span class="lang-flag current-lang-flag"><%= current.flag %></span>
-              <i class="fas fa-chevron-down lang-chevron"></i>
-            </button>
-            
-            <div id="languageMenu" class="language-menu hidden">
-              <div class="language-menu-header">
-                <span class="menu-title">
-                  <%= typeof t !== 'undefined' ? t('admin.header.select_language') : 'Tilni tanlang' %>
-                </span>
-              </div>
-              <div class="language-options">
-                <% Object.entries(langConfig).forEach(([code, config]) => { %>
-                  <button class="language-option <%= currentLang === code ? 'active' : '' %>" 
-                          data-lang="<%= code %>"
-                          data-name="<%= config.name %>">
-                    <span class="option-flag"><%= config.flag %></span>
-                    <span class="option-name"><%= config.name %></span>
-                    <span class="option-code"><%= config.code %></span>
-                    <% if (currentLang === code) { %>
-                      <i class="fas fa-check option-check"></i>
-                    <% } %>
-                  </button>
-                <% }); %>
-              </div>
-            </div>
-          </div>
-        </div>
         
         <!-- Theme Toggle -->
-        <button id="themeToggle" class="header-action-btn" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.header.toggle_theme') : 'Rejimni o\'zgartirish' %>">
+        <button id="themeToggle" class="header-action-btn" data-tooltip="Rejimni o\'zgartirish">
           <i class="fas fa-moon theme-icon"></i>
         </button>
         
         <!-- Messages -->
         <div class="header-dropdown">
-          <button id="messagesBtn" class="header-action-btn" data-tooltip="Messages">
+          <button id="messagesBtn" class="header-action-btn" data-tooltip="Xabarlar">
             <i class="fas fa-envelope"></i>
             <span class="notification-badge" id="messagesBadge" style="display: none;">0</span>
           </button>
@@ -149,18 +104,18 @@
           <!-- Messages Dropdown -->
           <div id="messagesDropdown" class="dropdown-menu messages-dropdown hidden">
             <div class="dropdown-header">
-              <span class="dropdown-title">Messages</span>
-              <button class="btn-sm btn-ghost" onclick="markAllMessagesRead()">Mark all read</button>
+              <span class="dropdown-title">Xabarlar</span>
+              <button class="btn-sm btn-ghost" onclick="markAllMessagesRead()">Hammasini o'qilgan deb belgilash</button>
             </div>
             <div class="dropdown-content" id="messagesContainer">
               <!-- Dynamic content loaded via JavaScript -->
               <div class="messages-loading">
                 <div class="loading-spinner"></div>
-                <span>Loading messages...</span>
+                <span>Xabarlar yuklanmoqda...</span>
               </div>
             </div>
             <div class="dropdown-footer">
-              <a href="/admin/messages" class="btn-sm btn-primary">View All Messages</a>
+              <a href="/admin/messages" class="btn-sm btn-primary">Barcha xabarlarni ko'rish</a>
             </div>
           </div>
         </div>
@@ -184,11 +139,11 @@
               <!-- Dynamic content loaded via JavaScript -->
               <div class="notifications-loading">
                 <div class="loading-spinner"></div>
-                <span>Loading notifications...</span>
+                <span>Bildirishnomalar yuklanmoqda...</span>
               </div>
             </div>
             <div class="dropdown-footer">
-              <a href="/admin/notifications" class="btn-sm btn-primary">View All Notifications</a>
+              <a href="/admin/notifications" class="btn-sm btn-primary">Barcha bildirishnomalarni ko'rish</a>
             </div>
           </div>
         </div>
@@ -210,7 +165,7 @@
                 </div>
                 <div class="user-details">
                   <div class="user-name">
-                    <%= typeof admin !== 'undefined' && admin.name ? admin.name : 'Admin User' %>
+                    <%= typeof admin !== 'undefined' && admin.name ? admin.name : 'Admin foydalanuvchi' %>
                   </div>
                   <div class="user-email">
                     <%= typeof admin !== 'undefined' && admin.email ? admin.email : 'admin@slex.uz' %>
@@ -225,24 +180,24 @@
             <div class="dropdown-content">
               <a href="/admin/profile" class="dropdown-item">
                 <i class="fas fa-user dropdown-icon"></i>
-                <span><%= typeof t !== 'undefined' ? t('admin.header.profile') : 'Profil' %></span>
+                <span>Profil</span>
               </a>
               
               <a href="/admin/settings" class="dropdown-item">
                 <i class="fas fa-cog dropdown-icon"></i>
-                <span><%= typeof t !== 'undefined' ? t('admin.header.settings') : 'Sozlamalar' %></span>
+                <span>Sozlamalar</span>
               </a>
               
               <a href="/admin/help" class="dropdown-item">
                 <i class="fas fa-question-circle dropdown-icon"></i>
-                <span><%= typeof t !== 'undefined' ? t('admin.header.help_support') : 'Yordam' %></span>
+                <span>Yordam</span>
               </a>
               
               <div class="dropdown-divider"></div>
               
               <a href="/auth/logout" class="dropdown-item danger">
                 <i class="fas fa-sign-out-alt dropdown-icon"></i>
-                <span><%= typeof t !== 'undefined' ? t('admin.header.logout') : 'Chiqish' %></span>
+                <span>Chiqish</span>
               </a>
             </div>
           </div>

@@ -4426,17 +4426,6 @@ select.form-control[multiple] option:checked {
   display: none;
 }
 
-.toggle-label {
-  display: block;
-  width: 56px;
-  height: 32px;
-  background: var(--categories-border-secondary);
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-}
 
 .toggle-slider {
   position: absolute;
@@ -4450,10 +4439,6 @@ select.form-control[multiple] option:checked {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.professional-toggle:checked + .toggle-label {
-  background: var(--categories-primary);
-  box-shadow: 0 0 0 2px var(--categories-primary-light);
-}
 
 .professional-toggle:checked + .toggle-label .toggle-slider {
   transform: translateX(24px);

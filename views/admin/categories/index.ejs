@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
-    <title>Categories Management - SLEX Admin Dashboard</title>
+    <title>Kategoriyalar boshqaruvi - SLEX Admin Dashboard</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
@@ -42,13 +42,13 @@
 <body class="admin-layout theme-transition">
 
     <%- include('../partials/header', { 
-        title: 'Categories Management - SLEX Admin Dashboard',
+        title: 'Kategoriyalar boshqaruvi - SLEX Admin Dashboard',
         lng: typeof currentLang !== 'undefined' ? currentLang : 'uz',
         admin: admin, 
         user: user,
         breadcrumb: [
-            { title: 'Dashboard', url: '/admin' },
-            { title: 'Categories' }
+            { title: 'Boshqaruv paneli', url: '/admin' },
+            { title: 'Kategoriyalar' }
         ]
     }) %>
     
@@ -72,24 +72,24 @@
                         <div class="page-title-section">
                             <h1 class="page-title">
                                 <i class="las la-folder-open text-primary"></i>
-                                Categories Management
+                                Kategoriyalar boshqaruvi
                             </h1>
                             <p class="page-subtitle">
-                                Comprehensive category hierarchy management with multi-language support, advanced analytics, and business intelligence
+                                Kengaytirilgan analitika va biznes ma'lumotlari bilan to'liq kategoriyalar boshqaruvi
                             </p>
                         </div>
                         <div class="page-actions">
                             <button class="btn btn-outline-primary" onclick="exportCategories()">
                                 <i class="las la-download"></i>
-                                Export Data
+                                Ma'lumotlarni eksport qilish
                             </button>
                             <button class="btn btn-outline-secondary" onclick="refreshData()">
                                 <i class="las la-sync-alt"></i>
-                                Refresh
+                                Yangilash
                             </button>
                             <button class="btn btn-primary" onclick="openCreateCategoryModal()">
                                 <i class="las la-plus"></i>
-                                Add Category
+                                Kategoriya qo'shish
                             </button>
                         </div>
                     </div>
@@ -104,7 +104,7 @@
                             </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="totalCategoriesCount"><%= statistics?.overview?.total || 0 %></div>
-                                <div class="stat-label">Total Categories</div>
+                                <div class="stat-label">Jami kategoriyalar</div>
                                 <div class="stat-trend positive">
                                     <i class="las la-arrow-up"></i>
                                     +<%= statistics?.growth?.growthRate || 0 %>%
@@ -120,7 +120,7 @@
                             </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="activeCategoriesCount"><%= statistics?.overview?.active || 0 %></div>
-                                <div class="stat-label">Active Categories</div>
+                                <div class="stat-label">Faol kategoriyalar</div>
                                 <div class="stat-trend positive">
                                     <i class="las la-arrow-up"></i>
                                     +5%
@@ -136,7 +136,7 @@
                             </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="totalProductsCount"><%= statistics?.businessMetrics?.totalProducts || 0 %></div>
-                                <div class="stat-label">Total Products</div>
+                                <div class="stat-label">Jami mahsulotlar</div>
                                 <div class="stat-trend positive">
                                     <i class="las la-arrow-up"></i>
                                     +18%
@@ -152,7 +152,7 @@
                             </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="totalRevenueCount">$<%= statistics?.businessMetrics?.totalRevenue ? Math.round(statistics.businessMetrics.totalRevenue).toLocaleString() : '0' %></div>
-                                <div class="stat-label">Total Revenue</div>
+                                <div class="stat-label">Jami daromad</div>
                                 <div class="stat-trend positive">
                                     <i class="las la-arrow-up"></i>
                                     +22%
@@ -169,27 +169,27 @@
                     <div class="tabs-navigation">
                         <button class="tab-item active" data-status="" data-tab="all">
                             <i class="las la-list"></i>
-                            All Categories
+                            Barcha kategoriyalar
                             <span class="tab-badge" id="allCategoriesTab"><%= statistics?.overview?.total || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="active" data-tab="active">
                             <i class="las la-check-circle"></i>
-                            Active
+                            Faol
                             <span class="tab-badge success" id="activeCategoriesTab"><%= statistics?.overview?.active || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="draft" data-tab="draft">
                             <i class="las la-edit"></i>
-                            Draft
+                            Qoralama
                             <span class="tab-badge secondary" id="draftCategoriesTab"><%= statistics?.overview?.draft || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="inactive" data-tab="inactive">
                             <i class="las la-pause"></i>
-                            Inactive
+                            Faol emas
                             <span class="tab-badge warning" id="inactiveCategoriesTab"><%= statistics?.overview?.inactive || 0 %></span>
                         </button>
                         <button class="tab-item" data-level="0" data-tab="root">
                             <i class="las la-sitemap"></i>
-                            Root Categories
+                            Asosiy kategoriyalar
                             <span class="tab-badge info" id="rootCategoriesTab">0</span>
                         </button>
                     </div>
@@ -199,80 +199,80 @@
                         <div class="filters-header">
                             <h3 class="filters-title">
                                 <i class="las la-filter"></i>
-                                Advanced Filters
+                                Kengaytirilgan filtrlash
                             </h3>
                             <div class="filter-actions">
                                 <button class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()">
                                     <i class="las la-times"></i>
-                                    Clear
+                                    Tozalash
                                 </button>
                                 <button class="btn btn-primary btn-sm" onclick="applyFilters()">
                                     <i class="las la-search"></i>
-                                    Search
+                                    Qidirish
                                 </button>
                             </div>
                         </div>
                         
                         <div class="filters-grid">
                             <div class="filter-group">
-                                <label class="filter-label">Search Categories</label>
+                                <label class="filter-label">Kategoriyalarni qidirish</label>
                                 <div class="search-input">
                                     <i class="las la-search search-icon"></i>
-                                    <input type="text" class="filter-input" id="searchInput" placeholder="Category name, description, slug...">
+                                    <input type="text" class="filter-input" id="searchInput" placeholder="Kategoriya nomi, tavsifi, slug...">
                                 </div>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Category Level</label>
+                                <label class="filter-label">Kategoriya darajasi</label>
                                 <select class="filter-input" id="levelFilter">
-                                    <option value="">All Levels</option>
-                                    <option value="0">Root Categories (Level 0)</option>
-                                    <option value="1">Level 1</option>
-                                    <option value="2">Level 2</option>
-                                    <option value="3">Level 3</option>
-                                    <option value="4">Level 4</option>
-                                    <option value="5">Level 5</option>
+                                    <option value="">Barcha darajalar</option>
+                                    <option value="0">Asosiy kategoriyalar (0-darajali)</option>
+                                    <option value="1">1-darajali</option>
+                                    <option value="2">2-darajali</option>
+                                    <option value="3">3-darajali</option>
+                                    <option value="4">4-darajali</option>
+                                    <option value="5">5-darajali</option>
                                 </select>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Parent Category</label>
+                                <label class="filter-label">Ota kategoriya</label>
                                 <select class="filter-input" id="parentCategoryFilter">
-                                    <option value="">All Categories</option>
+                                    <option value="">Barcha kategoriyalar</option>
                                     <!-- Populated dynamically -->
                                 </select>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Featured Status</label>
+                                <label class="filter-label">Tavsiya etilgan holat</label>
                                 <select class="filter-input" id="featuredFilter">
-                                    <option value="">All Categories</option>
-                                    <option value="true">Featured Only</option>
-                                    <option value="false">Not Featured</option>
+                                    <option value="">Barcha kategoriyalar</option>
+                                    <option value="true">Faqat tavsiya etilgan</option>
+                                    <option value="false">Tavsiya etilmagan</option>
                                 </select>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Product Count</label>
+                                <label class="filter-label">Mahsulot soni</label>
                                 <select class="filter-input" id="productCountFilter">
-                                    <option value="">All Categories</option>
-                                    <option value="0">No Products</option>
-                                    <option value="1-10">1-10 Products</option>
-                                    <option value="11-50">11-50 Products</option>
-                                    <option value="51-100">51-100 Products</option>
-                                    <option value="100+">100+ Products</option>
+                                    <option value="">Barcha kategoriyalar</option>
+                                    <option value="0">Mahsulotlar yo'q</option>
+                                    <option value="1-10">1-10 mahsulot</option>
+                                    <option value="11-50">11-50 mahsulot</option>
+                                    <option value="51-100">51-100 mahsulot</option>
+                                    <option value="100+">100+ mahsulot</option>
                                 </select>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Date Created</label>
+                                <label class="filter-label">Yaratilgan sana</label>
                                 <select class="filter-input" id="dateRangeFilter">
-                                    <option value="">All Time</option>
-                                    <option value="today">Today</option>
-                                    <option value="week">This Week</option>
-                                    <option value="month">This Month</option>
-                                    <option value="quarter">This Quarter</option>
-                                    <option value="year">This Year</option>
+                                    <option value="">Barcha vaqt</option>
+                                    <option value="today">Bugun</option>
+                                    <option value="week">Bu hafta</option>
+                                    <option value="month">Bu oy</option>
+                                    <option value="quarter">Bu chorak</option>
+                                    <option value="year">Bu yil</option>
                                 </select>
                             </div>
                         </div>
@@ -283,27 +283,27 @@
                         <div class="table-header">
                             <div class="table-title">
                                 <i class="las la-table"></i>
-                                Categories Catalog
-                                <span class="result-count" id="tableResultsCount">(0 results)</span>
+                                Kategoriyalar katalogi
+                                <span class="result-count" id="tableResultsCount">(0 natija)</span>
                             </div>
                             
                             <div class="bulk-actions hidden" id="bulkActions">
-                                <span class="selected-count" id="selectedCount">0 selected</span>
+                                <span class="selected-count" id="selectedCount">0 tanlangan</span>
                                 <button class="btn btn-success btn-sm" onclick="bulkActivateCategories()" id="bulkActivateBtn">
                                     <i class="las la-check"></i>
-                                    Activate
+                                    Faollashtirish
                                 </button>
                                 <button class="btn btn-warning btn-sm" onclick="bulkFeatureCategories()" id="bulkFeatureBtn">
                                     <i class="las la-star"></i>
-                                    Feature
+                                    Tavsiya qilish
                                 </button>
                                 <button class="btn btn-info btn-sm" onclick="bulkExportCategories()" id="bulkExportBtn">
                                     <i class="las la-download"></i>
-                                    Export
+                                    Eksport
                                 </button>
                                 <button class="btn btn-danger btn-sm" onclick="bulkArchiveCategories()" id="bulkArchiveBtn">
                                     <i class="las la-archive"></i>
-                                    Archive
+                                    Arxivlash
                                 </button>
                             </div>
                         </div>
@@ -324,20 +324,15 @@
                                             </th>
                                             <th class="th-category" data-column="category" onclick="sortTable('name')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Category Information</span>
+                                                    <span class="th-label">Kategoriya ma'lumotlari</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
                                                 </div>
                                             </th>
-                                            <th class="th-hierarchy" data-column="hierarchy">
-                                                <div class="th-content">
-                                                    <span class="th-label">Hierarchy</span>
-                                                </div>
-                                            </th>
                                             <th class="th-products" data-column="products" onclick="sortTable('metrics.totalProducts')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Products & Analytics</span>
+                                                    <span class="th-label">Mahsulotlar va analitika</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -345,12 +340,12 @@
                                             </th>
                                             <th class="th-business" data-column="business">
                                                 <div class="th-content">
-                                                    <span class="th-label">Business Metrics</span>
+                                                    <span class="th-label">Biznes ko'rsatkichlari</span>
                                                 </div>
                                             </th>
                                             <th class="th-status" data-column="status" onclick="sortTable('status')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Status</span>
+                                                    <span class="th-label">Holat</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -358,7 +353,7 @@
                                             </th>
                                             <th class="th-date" data-column="date" onclick="sortTable('createdAt')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Created</span>
+                                                    <span class="th-label">Yaratilgan</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -366,7 +361,7 @@
                                             </th>
                                             <th class="th-actions" data-column="actions">
                                                 <div class="th-content">
-                                                    <span class="th-label">Actions</span>
+                                                    <span class="th-label">Amallar</span>
                                                 </div>
                                             </th>
                                         </tr>
@@ -386,7 +381,7 @@
                             <div class="table-loading-overlay" id="tableLoadingOverlay">
                                 <div class="loading-content">
                                     <div class="modern-spinner"></div>
-                                    <p class="loading-text">Loading categories...</p>
+                                    <p class="loading-text">Kategoriyalar yuklanmoqda...</p>
                                 </div>
                             </div>
 
@@ -396,11 +391,11 @@
                                     <div class="empty-state-icon">
                                         <i class="las la-folder-open"></i>
                                     </div>
-                                    <h3 class="empty-state-title">No Categories Found</h3>
-                                    <p class="empty-state-description">No categories match your current filter criteria.</p>
+                                    <h3 class="empty-state-title">Kategoriyalar topilmadi</h3>
+                                    <p class="empty-state-description">Hozirgi filtr mezonlaringizga mos kategoriyalar yo'q.</p>
                                     <button class="btn btn-primary" onclick="clearAllFilters()">
                                         <i class="las la-refresh"></i>
-                                        Reset Filters
+                                        Filtrlarni qayta tiklash
                                     </button>
                                 </div>
                             </div>
@@ -410,7 +405,7 @@
                     <!-- Pagination Section -->
                     <div class="pagination-section" id="paginationSection">
                         <div class="pagination-info">
-                            Showing <span id="paginationStart">0</span>-<span id="paginationEnd">0</span> of <span id="paginationTotal">0</span> categories
+                            <span id="paginationStart">0</span>-<span id="paginationEnd">0</span> ko'rsatilmoqda (jami <span id="paginationTotal">0</span> ta kategoriya)
                         </div>
                         <div class="pagination-controls" id="paginationControls">
                             <!-- Pagination buttons will be generated here -->
@@ -427,7 +422,7 @@
             <div class="spinner-border text-primary mb-3" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <div class="loading-text" id="loadingText">Processing...</div>
+            <div class="loading-text" id="loadingText">Qayta ishlanmoqda...</div>
         </div>
     </div>
 
@@ -453,8 +448,6 @@
 
     // Global category management functions
     function openCreateCategoryModal() {
-        // Implementation for creating new category
-        console.log('Opening create category modal...');
         if (window.categoriesManager) {
             window.categoriesManager.showCreateModal();
         }

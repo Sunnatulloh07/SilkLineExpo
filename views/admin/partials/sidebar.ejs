@@ -12,93 +12,93 @@
       <!-- Dashboard Section -->
       <div class="nav-section">
         <div class="nav-section-title">
-          <%= typeof t !== 'undefined' ? t('admin.nav.overview') : 'Overview' %>
+          Umumiy ko'rinish
         </div>
 
-        <a href="/admin/dashboard" class="nav-item <%= currentPage === 'dashboard' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.dashboard') : 'Dashboard' %>">
+        <a href="/admin/dashboard" class="nav-item <%= currentPage === 'dashboard' ? 'active' : '' %>" data-tooltip="Boshqaruv paneli">
           <i class="fas fa-chart-pie nav-icon"></i>
-          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.dashboard') : 'Dashboard' %></span>
+          <span class="nav-text">Boshqaruv paneli</span>
         </a>
 
-        <a href="/admin/analytics" class="nav-item <%= currentPage === 'analytics' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.analytics') : 'Analytics' %>">
+        <a href="/admin/analytics" class="nav-item <%= currentPage === 'analytics' ? 'active' : '' %>" data-tooltip="Analitika">
           <i class="fas fa-chart-line nav-icon"></i>
-          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.analytics') : 'Analytics' %></span>
+          <span class="nav-text">Analitika</span>
         </a>
       </div>
 
       <!-- Management Section -->
       <div class="nav-section">
         <div class="nav-section-title">
-          <%= typeof t !== 'undefined' ? t('admin.nav.management') : 'Management' %>
+          Boshqaruv
         </div>
 
-        <a href="/admin/users" class="nav-item <%= currentPage === 'users' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.users') : 'Users' %>">
+        <a href="/admin/users" class="nav-item <%= currentPage === 'users' ? 'active' : '' %>" data-tooltip="Foydalanuvchilar">
           <i class="fas fa-users nav-icon"></i>
-          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.users') : 'Users' %></span>
+          <span class="nav-text">Foydalanuvchilar</span>
           <% if (typeof stats !== 'undefined' && stats.pendingApprovals > 0) { %>
             <span class="nav-badge badge-danger"><%= stats.pendingApprovals %></span>
           <% } %>
         </a>
 
-        <a href="/admin/categories" class="nav-item <%= currentPage === 'categories' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.categories') : 'Categories' %>">
+        <a href="/admin/categories" class="nav-item <%= currentPage === 'categories' ? 'active' : '' %>" data-tooltip="Kategoriyalar">
           <i class="fas fa-list nav-icon"></i>
-          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.categories') : 'Categories' %></span>
+          <span class="nav-text">Kategoriyalar</span>
         </a>
-        <a href="/admin/products" class="nav-item <%= currentPage === 'products' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.products') : 'Products' %>">
+        <a href="/admin/products" class="nav-item <%= currentPage === 'products' ? 'active' : '' %>" data-tooltip="Mahsulotlar">
           <i class="fas fa-box nav-icon"></i>
-          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.products') : 'Products' %></span>
+          <span class="nav-text">Mahsulotlar</span>
         </a>
 
-        <a href="/admin/orders" class="nav-item <%= currentPage === 'orders' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.orders') : 'Orders' %>">
+        <a href="/admin/orders" class="nav-item <%= currentPage === 'orders' ? 'active' : '' %>" data-tooltip="Buyurtmalar">
           <i class="fas fa-shopping-cart nav-icon"></i>
-          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.orders') : 'Orders' %></span>
+          <span class="nav-text">Buyurtmalar</span>
         </a>
       </div>
 
       <!-- Support Section -->
       <div class="nav-section">
         <div class="nav-section-title">
-          <%= typeof t !== 'undefined' ? t('admin.nav.support') : 'Support' %>
+          Qo'llab-quvvatlash
         </div>
 
-        <a href="/admin/support/tickets" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.support_tickets') : 'Support Tickets' %>">
+        <a href="/admin/support/tickets" class="nav-item" data-tooltip="Qo'llab-quvvatlash so'rovlari">
           <i class="fas fa-headset nav-icon"></i>
-          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.support_tickets') : 'Support Tickets' %></span>
+          <span class="nav-text">Qo'llab-quvvatlash so'rovlari</span>
           <% if (typeof stats !== 'undefined' && stats.openTickets > 0) { %>
             <span class="nav-badge badge-warning"><%= stats.openTickets %></span>
           <% } %>
         </a>
 
-        <a href="/admin/reports" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.reports') : 'Reports' %>">
+        <a href="/admin/reports" class="nav-item" data-tooltip="Hisobotlar">
           <i class="fas fa-file-alt nav-icon"></i>
-          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.reports') : 'Reports' %></span>
+          <span class="nav-text">Hisobotlar</span>
         </a>
       </div>
 
       <!-- System Section -->
       <div class="nav-section">
         <div class="nav-section-title">
-          <%= typeof t !== 'undefined' ? t('admin.nav.system') : 'System' %>
+          Tizim
         </div>
 
-        <a href="/admin/settings" class="nav-item <%= currentPage === 'settings' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.settings') : 'Settings' %>">
+        <a href="/admin/settings" class="nav-item <%= currentPage === 'settings' ? 'active' : '' %>" data-tooltip="Sozlamalar">
           <i class="fas fa-cog nav-icon"></i>
-          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.settings') : 'Settings' %></span>
+          <span class="nav-text">Sozlamalar</span>
         </a>
 
-        <a href="/admin/profile" class="nav-item <%= currentPage === 'profile' ? 'active' : '' %>" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.profile') : 'Profile' %>">
+        <a href="/admin/profile" class="nav-item <%= currentPage === 'profile' ? 'active' : '' %>" data-tooltip="Profil">
           <i class="fas fa-user-circle nav-icon"></i>
-          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.profile') : 'Profile' %></span>
+          <span class="nav-text">Profil</span>
         </a>
 
-        <a href="/admin/system/security" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.security') : 'Security' %>">
+        <a href="/admin/system/security" class="nav-item" data-tooltip="Xavfsizlik">
           <i class="fas fa-shield-alt nav-icon"></i>
-          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.security') : 'Security' %></span>
+          <span class="nav-text">Xavfsizlik</span>
         </a>
 
-        <a href="/admin/system/logs" class="nav-item" data-tooltip="<%= typeof t !== 'undefined' ? t('admin.nav.system_logs') : 'System Logs' %>">
+        <a href="/admin/system/logs" class="nav-item" data-tooltip="Tizim jurnallari">
           <i class="fas fa-file-code nav-icon"></i>
-          <span class="nav-text"><%= typeof t !== 'undefined' ? t('admin.nav.system_logs') : 'System Logs' %></span>
+          <span class="nav-text">Tizim jurnallari</span>
         </a>
       </div>
     </nav>

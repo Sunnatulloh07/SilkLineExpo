@@ -131,8 +131,6 @@ class CategoryController {
         name: req.body.name?.trim(),
         slug: req.body.slug?.trim(),
         description: req.body.description?.trim(),
-        shortDescription: req.body.shortDescription?.trim(),
-        parentCategory: req.body.parentCategory || null,
         icon: req.body.icon?.trim() || 'las la-folder',
         color: req.body.color?.trim() || '#3B82F6',
         translations: req.body.translations || {},
@@ -351,10 +349,28 @@ class CategoryController {
         .trim()
         .isLength({ min: 10, max: 1000 })
         .withMessage('Description is required and must be between 10 and 1000 characters'),
-      body('parentCategory')
+      body('icon')
         .optional()
-        .isMongoId()
-        .withMessage('Invalid parent category ID')
+        .trim()
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Icon must be between 1 and 50 characters'),
+      body('color')
+        .optional()
+        .trim()
+        .matches(/^#[0-9A-F]{6}$/i)
+        .withMessage('Color must be a valid hex color code'),
+      body('isActive')
+        .optional()
+        .isBoolean()
+        .withMessage('isActive must be a boolean value'),
+      body('isVisible')
+        .optional()
+        .isBoolean()
+        .withMessage('isVisible must be a boolean value'),
+      body('isFeatured')
+        .optional()
+        .isBoolean()
+        .withMessage('isFeatured must be a boolean value')
     ];
   }
 

@@ -73,7 +73,6 @@ class ProductsManagement {
         // Restore state from URL parameters
         this.restoreState();
         
-        console.log('🚀 Products Management System initialized successfully');
     }
 
     /**
@@ -312,7 +311,6 @@ class ProductsManagement {
             tab: this.currentTab 
         });
         
-        console.log('🔍 Search performed with filters:', this.activeFilters);
     }
 
     /**
@@ -330,21 +328,17 @@ class ProductsManagement {
             
             const queryParams = this.buildQueryParams();
             const fullUrl = `${this.endpoints.products}?${queryParams}`;
-            console.log('🔍 Fetching products from:', fullUrl);
             
             const response = await this.fetchWithRetry(fullUrl);
             
             if (!response.ok) {
-                console.error('❌ HTTP Error:', response.status, response.statusText);
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
             const response_data = await response.json();
-            console.log('📊 API Response received:', response_data);
             
             // Handle wrapped response structure
             const data = response_data.success ? response_data.data : response_data;
-            console.log('📦 Extracted data:', data);
             
             // Validate response structure
             if (!data || !data.pagination || !data.products) {
@@ -352,13 +346,12 @@ class ProductsManagement {
                     hasData: !!data,
                     hasPagination: !!(data && data.pagination),
                     hasProducts: !!(data && data.products),
-                    dataKeys: data ? Object.keys(data) : 'No data',
+                    dataKeys: data ? Object.keys(data) : 'Ma\'lumot yo\'q',
                     response_data 
                 });
-                throw new Error('Invalid API response structure');
+                throw new Error('Noto\'g\'ri API javob struktura');
             }
             
-            console.log(`📊 Processing ${data.products.length} products for rendering`);
             
             // Update state with fallbacks
             this.totalProducts = data.pagination.total || data.pagination.totalCount || 0;
@@ -375,12 +368,11 @@ class ProductsManagement {
             this.updateTabCounts(data.statistics);
             
             if (!silent) {
-                this.showSuccess(`Loaded ${data.products.length} products successfully`);
+                this.showSuccess(`${data.products.length} ta mahsulot muvaffaqiyatli yuklandi`);
             }
             
         } catch (error) {
-            console.error('❌ Error loading products:', error);
-            this.showError('Failed to load products. Please try again.');
+            this.showError('Mahsulotlarni yuklashda xatolik. Qayta urinib ko\'ring.');
             this.renderEmptyState('error');
         } finally {
             this.isLoading = false;
@@ -469,12 +461,11 @@ class ProductsManagement {
         this.updateBrowserState();
         
         // Show feedback
-        this.showSuccess('All filters cleared');
+        this.showSuccess('Barcha filtrlar tozalandi');
         
         // Track event
         this.trackEvent('filters_cleared', { tab: this.currentTab });
         
-        console.log('🧹 All filters cleared');
     }
 
     /**
@@ -490,7 +481,7 @@ class ProductsManagement {
     refreshData() {
         this.loadProducts();
         this.updateTabCounts();
-        this.showSuccess('Data refreshed');
+        this.showSuccess('Ma\'lumotlar yangilandi');
     }
 
     /**
@@ -550,10 +541,10 @@ class ProductsManagement {
                     <div class="mobile-product-info">
                         ${this.renderProductImage(product)}
                         <div class="mobile-product-details">
-                            <h4 class="mobile-product-name">${this.escapeHtml(product.name || 'N/A')}</h4>
+                            <h4 class="mobile-product-name">${this.escapeHtml(product.name || 'Noma\'lum')}</h4>
                             <div class="mobile-product-badges">
-                                ${product.isFeatured ? '<span class="badge badge-featured"><i class="las la-star"></i>Featured</span>' : ''}
-                                ${product.isPromoted ? '<span class="badge badge-promoted"><i class="las la-fire"></i>Promoted</span>' : ''}
+                                ${product.isFeatured ? '<span class="badge badge-featured"><i class="las la-star"></i>Tavsiya etilgan</span>' : ''}
+                                ${product.isPromoted ? '<span class="badge badge-promoted"><i class="las la-fire"></i>Targ\'ib qilingan</span>' : ''}
                             </div>
                         </div>
                     </div>
@@ -561,37 +552,37 @@ class ProductsManagement {
                 </div>
                 
                 <div class="mobile-card-content">
-                    <p class="mobile-product-description">${this.escapeHtml(product.shortDescription || product.description || 'No description available')}</p>
+                    <p class="mobile-product-description">${this.escapeHtml(product.shortDescription || product.description || 'Tavsif mavjud emas')}</p>
                     
                     <div class="mobile-info-grid">
                         <div class="mobile-info-item">
-                            <span class="mobile-info-label">Manufacturer:</span>
-                            <span class="mobile-info-value">${this.escapeHtml(product.manufacturerInfo?.companyName || 'N/A')}</span>
+                            <span class="mobile-info-label">Ishlab chiqaruvchi:</span>
+                            <span class="mobile-info-value">${this.escapeHtml(product.manufacturerInfo?.companyName || 'Noma\'lum')}</span>
                         </div>
                         <div class="mobile-info-item">
-                            <span class="mobile-info-label">Category:</span>
+                            <span class="mobile-info-label">Kategoriya:</span>
                             ${this.renderCategoryBadge(product)}
                         </div>
                         <div class="mobile-info-item">
-                            <span class="mobile-info-label">Price:</span>
+                            <span class="mobile-info-label">Narx:</span>
                             <span class="mobile-price-value">$${this.formatPrice(product.pricing?.basePrice || 0)} ${product.pricing?.currency || 'USD'}</span>
                         </div>
                         <div class="mobile-info-item">
-                            <span class="mobile-info-label">Stock:</span>
+                            <span class="mobile-info-label">Qoldiq:</span>
                             <div class="mobile-stock-info">
                                 <div class="stock-status ${this.getStockStatus(product)}">
                                     <div class="stock-indicator"></div>
                                     <span class="stock-text">${this.getStockStatusText(product)}</span>
                                 </div>
-                                <span class="stock-quantity">${product.inventory?.availableStock || 0} ${product.inventory?.unit || 'pcs'}</span>
+                                <span class="stock-quantity">${product.inventory?.availableStock || 0} ${product.inventory?.unit || 'dona'}</span>
                             </div>
                         </div>
                         <div class="mobile-info-item">
-                            <span class="mobile-info-label">Status:</span>
+                            <span class="mobile-info-label">Holat:</span>
                             ${this.renderStatusBadge(product.status)}
                         </div>
                         <div class="mobile-info-item">
-                            <span class="mobile-info-label">Added:</span>
+                            <span class="mobile-info-label">Qo'shilgan:</span>
                             <span class="mobile-info-value">${this.formatDate(product.createdAt)}</span>
                         </div>
                     </div>
@@ -625,15 +616,15 @@ class ProductsManagement {
                         </div>
                         <div class="product-details">
                             <div class="product-name-container">
-                                <h4 class="product-name">${this.escapeHtml(product.name || 'N/A')}</h4>
+                                <h4 class="product-name">${this.escapeHtml(product.name || 'Noma\'lum')}</h4>
                                 <div class="product-badges">
-                                    ${product.isFeatured ? '<span class="badge badge-featured"><i class="las la-star"></i>Featured</span>' : ''}
-                                    ${product.isPromoted ? '<span class="badge badge-promoted"><i class="las la-fire"></i>Promoted</span>' : ''}
+                                    ${product.isFeatured ? '<span class="badge badge-featured"><i class="las la-star"></i>Tavsiya etilgan</span>' : ''}
+                                    ${product.isPromoted ? '<span class="badge badge-promoted"><i class="las la-fire"></i>Targ\'ib qilingan</span>' : ''}
                                 </div>
                             </div>
-                            <p class="product-description">${this.escapeHtml(product.shortDescription || product.description || 'No description available')}</p>
+                            <p class="product-description">${this.escapeHtml(product.shortDescription || product.description || 'Tavsif mavjud emas')}</p>
                             <div class="product-meta">
-                                <span class="product-sku">${product.sku || 'No SKU'}</span>
+                                <span class="product-sku">${product.sku || 'SKU yo\'q'}</span>
                                 ${this.renderCategoryBadge(product)}
                             </div>
                         </div>
@@ -642,14 +633,14 @@ class ProductsManagement {
                 <td class="td-manufacturer">
                     <div class="manufacturer-info-cell">
                         <div class="manufacturer-header">
-                            <div class="manufacturer-name">${this.escapeHtml(product.manufacturerInfo?.companyName || 'N/A')}</div>
+                            <div class="manufacturer-name">${this.escapeHtml(product.manufacturerInfo?.companyName || 'Noma\'lum')}</div>
                             <div class="manufacturer-rating">
                                 ${this.renderTrustScore(product.manufacturerInfo?.trustScore || 0)}
                             </div>
                         </div>
                         <div class="manufacturer-location">
                             ${this.renderCountryFlag(product.manufacturerInfo?.country)}
-                            <span class="country-name">${this.escapeHtml(product.manufacturerInfo?.country || 'N/A')}</span>
+                            <span class="country-name">${this.escapeHtml(product.manufacturerInfo?.country || 'Noma\'lum')}</span>
                         </div>
                         <div class="manufacturer-contact">
                             ${product.manufacturerInfo?.email ? `<span class="contact-email">${this.escapeHtml(product.manufacturerInfo.email)}</span>` : ''}
@@ -664,8 +655,8 @@ class ProductsManagement {
                         </div>
                         <div class="certification-info">
                             ${product.certifications?.length ? 
-                                `<span class="certification-count"><i class="las la-certificate"></i>${product.certifications.length} Certified</span>` : 
-                                '<span class="no-certification">No Certifications</span>'
+                                `<span class="certification-count"><i class="las la-certificate"></i>${product.certifications.length} Sertifikatlangan</span>` : 
+                                '<span class="no-certification">Sertifikatlar yo\'q</span>'
                             }
                         </div>
                         <div class="quality-score">
@@ -683,7 +674,7 @@ class ProductsManagement {
                             </div>
                             <div class="price-details">
                                 ${product.pricing?.discount ? `<span class="price-discount">-${product.pricing.discount}%</span>` : ''}
-                                <span class="price-unit">per ${product.inventory?.unit || 'pcs'}</span>
+                                <span class="price-unit">${product.inventory?.unit || 'dona'} uchun</span>
                             </div>
                         </div>
                         <div class="stock-container">
@@ -693,7 +684,7 @@ class ProductsManagement {
                             </div>
                             <div class="stock-quantity">
                                 <span class="stock-number">${product.inventory?.availableStock || 0}</span>
-                                <span class="stock-unit">${product.inventory?.unit || 'pcs'}</span>
+                                <span class="stock-unit">${product.inventory?.unit || 'dona'}</span>
                             </div>
                         </div>
                     </div>
@@ -702,7 +693,7 @@ class ProductsManagement {
                     <div class="status-cell">
                         ${this.renderStatusBadge(product.status)}
                         <div class="status-details">
-                            <small class="status-updated">Updated ${this.getTimeAgo(product.lastModifiedAt || product.createdAt)}</small>
+                            <small class="status-updated">Yangilangan ${this.getTimeAgo(product.lastModifiedAt || product.createdAt)}</small>
                         </div>
                     </div>
                 </td>
@@ -714,11 +705,11 @@ class ProductsManagement {
                         </div>
                         <div class="metrics-details">
                             <div class="metric-item">
-                                <span class="metric-label">Views:</span>
+                                <span class="metric-label">Ko'rishlar:</span>
                                 <span class="metric-value">${product.businessMetrics?.viewCount || 0}</span>
                             </div>
                             <div class="metric-item">
-                                <span class="metric-label">Orders:</span>
+                                <span class="metric-label">Buyurtmalar:</span>
                                 <span class="metric-value">${product.businessMetrics?.orderCount || 0}</span>
                             </div>
                         </div>
@@ -746,7 +737,7 @@ class ProductsManagement {
      */
     renderProductImage(product) {
         const imageUrl = product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url;
-        const productName = product.name || 'Unknown Product';
+        const productName = product.name || 'Noma\'lum mahsulot';
         const initials = this.getInitials(productName);
         
         return `
@@ -765,11 +756,11 @@ class ProductsManagement {
      */
     renderStatusBadge(status) {
         const statusConfig = {
-            active: { icon: 'check-circle', label: 'Active' },
-            draft: { icon: 'edit', label: 'Draft' },
-            inactive: { icon: 'pause', label: 'Inactive' },
-            discontinued: { icon: 'times-circle', label: 'Discontinued' },
-            out_of_stock: { icon: 'exclamation-triangle', label: 'Out of Stock' }
+            active: { icon: 'check-circle', label: 'Faol' },
+            draft: { icon: 'edit', label: 'Loyiha' },
+            inactive: { icon: 'pause', label: 'Nofaol' },
+            discontinued: { icon: 'times-circle', label: 'To\'xtatilgan' },
+            out_of_stock: { icon: 'exclamation-triangle', label: 'Tugagan' }
         };
         
         const config = statusConfig[status] || { icon: 'question', label: status };
@@ -801,30 +792,30 @@ class ProductsManagement {
                     <div class="category-info">
                         <span class="category-name">${this.escapeHtml(product.categoryName)}</span>
                         ${product.subcategoryName ? `<span class="subcategory-name">${this.escapeHtml(product.subcategoryName)}</span>` : ''}
-                        <span class="category-level">Level ${categoryLevel}</span>
+                        <span class="category-level">Daraja ${categoryLevel}</span>
                     </div>
                 </div>
             `;
         } else if (product.legacyCategory) {
             // Legacy category system support
             const categoryLabels = {
-                food_beverages: 'Food & Beverages',
-                textiles_clothing: 'Textiles & Clothing',
-                electronics: 'Electronics',
-                machinery_equipment: 'Machinery & Equipment',
-                chemicals: 'Chemicals',
-                agriculture: 'Agriculture',
-                construction_materials: 'Construction Materials',
-                automotive: 'Automotive',
-                pharmaceuticals: 'Pharmaceuticals',
-                other: 'Other'
+                food_beverages: 'Oziq-ovqat va ichimliklar',
+                textiles_clothing: 'To\'qimachilik va kiyim',
+                electronics: 'Elektronika',
+                machinery_equipment: 'Texnika va uskunalar',
+                chemicals: 'Kimyo sanoati',
+                agriculture: 'Qishloq xo\'jaligi',
+                construction_materials: 'Qurilish materiallari',
+                automotive: 'Avtomobil sanoati',
+                pharmaceuticals: 'Farmatsevtika',
+                other: 'Boshqa'
             };
             
             const label = categoryLabels[product.legacyCategory] || product.legacyCategory;
             return `<div class="category-badge legacy-category ${product.legacyCategory}">${this.escapeHtml(label)}</div>`;
         } else {
             // Fallback for products without category
-            return `<div class="category-badge no-category">Uncategorized</div>`;
+            return `<div class="category-badge no-category">Noma\'lum</div>`;
         }
     }
 
@@ -861,22 +852,22 @@ class ProductsManagement {
                 <div class="actions-menu" id="actions-${product._id}">
                     <button class="action-item" onclick="window.productsManager.viewProduct('${product._id}')">
                         <i class="las la-eye"></i>
-                        View Details
+                        Tafsilotlarni ko'rish
                     </button>
                     <button class="action-item" onclick="window.productsManager.editProduct('${product._id}')">
                         <i class="las la-edit"></i>
-                        Edit Product
+                        Mahsulotni tahrirlash
                     </button>
                     <div class="action-divider"></div>
                     ${this.getProductStatusActions(product)}
                     <div class="action-divider"></div>
                     <button class="action-item ${product.isPromoted ? 'warning' : 'success'}" onclick="window.productsManager.togglePromoted('${product._id}', ${!product.isPromoted})">
                         <i class="las la-${product.isPromoted ? 'star-half-alt' : 'star'}"></i>
-                        ${product.isPromoted ? 'Remove Promotion' : 'Promote Product'}
+                        ${product.isPromoted ? 'Targ\'ibni olib tashlash' : 'Mahsulotni targ\'ib qilish'}
                     </button>
                     <button class="action-item danger" onclick="window.productsManager.deleteProduct('${product._id}')">
                         <i class="las la-trash"></i>
-                        Delete Product
+                        Mahsulotni o'chirish
                     </button>
                 </div>
             </div>
@@ -894,7 +885,7 @@ class ProductsManagement {
                 actions.push(`
                     <button class="action-item success" onclick="window.productsManager.activateProduct('${product._id}')">
                         <i class="las la-check"></i>
-                        Activate Product
+                        Mahsulotni faollashtirish
                     </button>
                 `);
                 break;
@@ -903,11 +894,11 @@ class ProductsManagement {
                 actions.push(`
                     <button class="action-item warning" onclick="window.productsManager.deactivateProduct('${product._id}')">
                         <i class="las la-pause"></i>
-                        Deactivate Product
+                        Mahsulotni deaktivlashtirish
                     </button>
                     <button class="action-item danger" onclick="window.productsManager.discontinueProduct('${product._id}')">
                         <i class="las la-times-circle"></i>
-                        Discontinue Product
+                        Mahsulotni to'xtatish
                     </button>
                 `);
                 break;
@@ -916,7 +907,7 @@ class ProductsManagement {
                 actions.push(`
                     <button class="action-item success" onclick="window.productsManager.activateProduct('${product._id}')">
                         <i class="las la-check"></i>
-                        Activate Product
+                        Mahsulotni faollashtirish
                     </button>
                 `);
                 break;
@@ -925,7 +916,7 @@ class ProductsManagement {
                 actions.push(`
                     <button class="action-item success" onclick="window.productsManager.activateProduct('${product._id}')">
                         <i class="las la-redo"></i>
-                        Reactivate Product
+                        Mahsulotni qayta faollashtirish
                     </button>
                 `);
                 break;
@@ -948,11 +939,11 @@ class ProductsManagement {
     getStockStatusText(product) {
         const status = this.getStockStatus(product);
         const statusTexts = {
-            'in-stock': 'In Stock',
-            'low-stock': 'Low Stock',
-            'out-of-stock': 'Out of Stock'
+            'in-stock': 'Yetarli',
+            'low-stock': 'Kam',
+            'out-of-stock': 'Tugagan'
         };
-        return statusTexts[status] || 'Unknown';
+        return statusTexts[status] || 'Noma\'lum';
     }
 
     getTrustLevel(score) {
@@ -969,13 +960,13 @@ class ProductsManagement {
 
     getBusinessTypeLabel(type) {
         const types = {
-            manufacturer: 'Manufacturer',
-            distributor: 'Distributor',
-            wholesaler: 'Wholesaler',
-            retailer: 'Retailer',
-            standard: 'Standard'
+            manufacturer: 'Ishlab chiqarish',
+            distributor: 'Tarqatish',
+            wholesaler: 'Ulgurji savdo',
+            retailer: 'Chakana savdo',
+            standard: 'Standart'
         };
-        return types[type] || 'Standard';
+        return types[type] || 'Standart';
     }
 
     formatPrice(price) {
@@ -1000,19 +991,19 @@ class ProductsManagement {
     }
 
     getTimeAgo(dateString) {
-        if (!dateString) return 'N/A';
+        if (!dateString) return 'Noma\'lum';
         
         const date = new Date(dateString);
         const now = new Date();
         const diffTime = Math.abs(now - date);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        if (diffDays === 1) return 'today';
-        if (diffDays === 2) return 'yesterday';
-        if (diffDays <= 7) return `${diffDays - 1} days ago`;
-        if (diffDays <= 30) return `${Math.ceil((diffDays - 1) / 7)} weeks ago`;
+        if (diffDays === 1) return 'bugun';
+        if (diffDays === 2) return 'bugun oldin'; 
+        if (diffDays <= 7) return `${diffDays - 1} kun oldin`;
+        if (diffDays <= 30) return `${Math.ceil((diffDays - 1) / 7)} hafta oldin`;
         
-        return `${Math.ceil(diffDays / 30)} months ago`;
+        return `${Math.ceil(diffDays / 30)} oy oldin`;
     }
 
     renderTrustScore(score) {
@@ -1039,12 +1030,10 @@ class ProductsManagement {
 
     // Product action methods
     viewProduct(productId) {
-        console.log('👁️ View product:', productId);
         this.showProductDetailsModal(productId);
     }
 
     editProduct(productId) {
-        console.log('✏️ Edit product:', productId);
         this.showProductEditModal(productId);
     }
 
@@ -1058,8 +1047,8 @@ class ProductsManagement {
 
     async discontinueProduct(productId) {
         const confirmed = await this.confirmAction(
-            'Discontinue Product',
-            'Are you sure you want to discontinue this product?',
+            'Mahsulotni to\'xtatish',
+            'Bu mahsulotni to\'xtatishni xohlaysizmi?',
             'danger'
         );
         
@@ -1070,8 +1059,8 @@ class ProductsManagement {
 
     async deleteProduct(productId) {
         const confirmed = await this.confirmAction(
-            'Delete Product',
-            'Are you sure you want to delete this product? This action can be undone.',
+            'Mahsulotni o\'chirish',
+            'Bu mahsulotni o\'chirishni xohlaysizmi? Bu amalni bekor qilish mumkin.',
             'danger'
         );
         
@@ -1106,7 +1095,7 @@ class ProductsManagement {
             
             const result = await response.json();
             
-            this.showSuccess(`Product ${status} successfully`);
+            this.showSuccess(`Mahsulot ${status} muvaffaqiyatli`);
             this.loadProducts(true);
             this.updateTabCounts();
             
@@ -1118,8 +1107,7 @@ class ProductsManagement {
             this.trackEvent('product_status_update', { status, productId });
             
         } catch (error) {
-            console.error(`❌ Error updating product status:`, error);
-            this.showError(`Failed to update product status. Please try again.`);
+            this.showError(`Mahsulot holatini yangilashda xatolik. Qayta urinib ko\'ring.`);
         } finally {
             this.hideLoading();
         }
@@ -1147,7 +1135,7 @@ class ProductsManagement {
             
             const result = await response.json();
             
-            this.showSuccess(`Product ${action}ed successfully`);
+            this.showSuccess(`Mahsulot ${action} muvaffaqiyatli`);
             this.loadProducts(true);
             this.updateTabCounts();
             
@@ -1159,8 +1147,7 @@ class ProductsManagement {
             this.trackEvent('product_action', { action, productId });
             
         } catch (error) {
-            console.error(`❌ Error ${action}ing product:`, error);
-            this.showError(`Failed to ${action} product. Please try again.`);
+            this.showError(`Mahsulotni ${action} qilishda xatolik. Qayta urinib ko\'ring.`);
         } finally {
             this.hideLoading();
         }
@@ -1171,14 +1158,14 @@ class ProductsManagement {
         if (this.selectedProducts.size === 0) return;
         
         const actionLabels = {
-            activate: 'Activate',
-            promote: 'Promote', 
-            delete: 'Delete'
+            activate: 'Faollashtirish',
+            promote: 'Targ\'ib qilish', 
+            delete: 'O\'chirish'
         };
         
         const confirmed = await this.confirmAction(
-            `Bulk ${actionLabels[action] || action}`,
-            `Are you sure you want to ${action} ${this.selectedProducts.size} selected products?`,
+            `Ommaviy ${actionLabels[action] || action}`,
+            `${this.selectedProducts.size} ta tanlangan mahsulotni ${actionLabels[action] || action}ni xohlaysizmi?`,
             action === 'delete' ? 'danger' : 'success'
         );
         
@@ -1223,14 +1210,13 @@ class ProductsManagement {
             const filename = `products_export_${new Date().toISOString().split('T')[0]}.xlsx`;
             
             this.downloadFile(url, filename);
-            this.showSuccess(`${productIds.length} products exported successfully`);
+            this.showSuccess(`${productIds.length} ta mahsulot muvaffaqiyatli eksport qilindi`);
             
             // Track export
             this.trackEvent('bulk_export', { count: productIds.length });
             
         } catch (error) {
-            console.error('❌ Error exporting products:', error);
-            this.showError('Failed to export products. Please try again.');
+            this.showError('Mahsulotlarni eksport qilishda xatolik. Qayta urinib ko\'ring.');
         } finally {
             this.hideLoading();
         }
@@ -1261,7 +1247,7 @@ class ProductsManagement {
             
             const result = await response.json();
             
-            this.showSuccess(`${productIds.length} products ${action}ed successfully`);
+            this.showSuccess(`${productIds.length} ta mahsulot ${action} muvaffaqiyatli`);
             this.loadProducts(true);
             this.updateTabCounts();
             this.clearSelection();
@@ -1270,8 +1256,7 @@ class ProductsManagement {
             this.trackEvent('bulk_action', { action, count: productIds.length });
             
         } catch (error) {
-            console.error(`❌ Error performing bulk ${action}:`, error);
-            this.showError(`Failed to ${action} products. Please try again.`);
+            this.showError(`Mahsulotlarni ${action} qilishda xatolik. Qayta urinib ko\'ring.`);
         } finally {
             this.hideLoading();
         }
@@ -1294,14 +1279,13 @@ class ProductsManagement {
             const filename = `products_export_${this.currentTab}_${new Date().toISOString().split('T')[0]}.xlsx`;
             
             this.downloadFile(url, filename);
-            this.showSuccess('Products exported successfully');
+            this.showSuccess('Mahsulotlar muvaffaqiyatli eksport qilindi');
             
             // Track export
             this.trackEvent('export_products', { tab: this.currentTab, filters: this.activeFilters });
             
         } catch (error) {
-            console.error('❌ Error exporting products:', error);
-            this.showError('Failed to export products. Please try again.');
+            this.showError('Mahsulotlarni eksport qilishda xatolik. Qayta urinib ko\'ring.');
         } finally {
             this.hideLoading();
         }
@@ -1318,16 +1302,16 @@ class ProductsManagement {
     }
 
     formatDate(dateString) {
-        if (!dateString) return 'N/A';
+        if (!dateString) return 'Noma\'lum';
         
         const date = new Date(dateString);
         const now = new Date();
         const diffTime = Math.abs(now - date);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        if (diffDays === 1) return 'Today';
-        if (diffDays === 2) return 'Yesterday';
-        if (diffDays <= 7) return `${diffDays - 1} days ago`;
+        if (diffDays === 1) return 'Bugun';
+        if (diffDays === 2) return 'Bugun oldin';
+        if (diffDays <= 7) return `${diffDays - 1} kun oldin`;
         
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
@@ -1456,13 +1440,13 @@ class ProductsManagement {
         const messages = {
             empty: {
                 icon: 'las la-boxes',
-                title: 'No products found',
-                description: 'No products match your current filters. Try adjusting your search criteria.'
+                title: 'Mahsulotlar topilmadi',
+                description: 'Hozirgi filtr mezonlaringizga mos mahsulotlar yo\'q.'
             },
             error: {
                 icon: 'las la-exclamation-triangle',
-                title: 'Error loading products',
-                description: 'There was a problem loading products. Please try again.'
+                title: 'Mahsulotlarni yuklashda xatolik',
+                description: 'Mahsulotlarni yuklashda muammo yuz berdi. Qayta urinib ko\'ring.'
             }
         };
         
@@ -1476,8 +1460,8 @@ class ProductsManagement {
                         <h3 class="empty-title">${message.title}</h3>
                         <p class="empty-description">${message.description}</p>
                         ${type === 'error' ? 
-                            '<button class="btn btn-primary" onclick="window.productsManager.loadProducts()">Try Again</button>' : 
-                            '<button class="btn btn-outline-primary" onclick="window.productsManager.clearAllFilters()">Clear Filters</button>'
+                            '<button class="btn btn-primary" onclick="window.productsManager.loadProducts()">Qayta urinish</button>' : 
+                            '<button class="btn btn-outline-primary" onclick="window.productsManager.clearAllFilters()">Filtrlarni tozalash</button>'
                         }
                     </div>
                 </td>
@@ -1507,7 +1491,7 @@ class ProductsManagement {
                     onclick="window.productsManager.goToPage(${currentPage - 1})"
                     ${currentPage === 1 ? 'disabled' : ''}>
                 <i class="las la-chevron-left"></i>
-                <span class="d-none d-md-inline">Previous</span>
+                <span class="d-none d-md-inline">Oldingi</span>
             </button>
         `;
         
@@ -1552,7 +1536,7 @@ class ProductsManagement {
             <button class="page-btn ${currentPage === totalPages ? 'disabled' : ''}" 
                     onclick="window.productsManager.goToPage(${currentPage + 1})"
                     ${currentPage === totalPages ? 'disabled' : ''}>
-                <span class="d-none d-md-inline">Next</span>
+                <span class="d-none d-md-inline">Keyingi</span>
                 <i class="las la-chevron-right"></i>
             </button>
         `;
@@ -1763,16 +1747,16 @@ class ProductsManagement {
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
                         <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); display: flex; align-items: center; justify-content: center;">
                             <i class="las la-exclamation-triangle" style="color: ${typeColors[type] || typeColors.warning}; font-size: 1.5rem;"></i>
-                        </div>
+                        </div>  
                         <h3 style="margin: 0; color: #374151; font-size: 1.25rem; font-weight: 600;">${title}</h3>
                     </div>
                     <p style="color: #6B7280; margin: 0 0 24px 0; line-height: 1.5;">${message}</p>
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
                         <button id="cancelBtn" style="padding: 8px 16px; border: 1px solid #D1D5DB; background: white; color: #374151; border-radius: 6px; cursor: pointer; font-weight: 500;">
-                            Cancel
+                            Bekor qilish
                         </button>
                         <button id="confirmBtn" style="padding: 8px 16px; border: none; background: ${typeColors[type] || typeColors.warning}; color: white; border-radius: 6px; cursor: pointer; font-weight: 500;">
-                            Confirm
+                            Tasdiqlash
                         </button>
                     </div>
                 </div>
@@ -1881,7 +1865,6 @@ class ProductsManagement {
     }
 
     trackEvent(event, data = {}) {
-        console.log('📊 Analytics:', event, data);
         
         if (typeof gtag !== 'undefined') {
             gtag('event', event, {
@@ -1906,7 +1889,6 @@ class ProductsManagement {
                     }
                 });
                 
-                console.log('🔐 Request made with token:', token ? 'Present' : 'Missing');
                 
                 if (response.ok || response.status < 500) {
                     return response;
@@ -1951,13 +1933,11 @@ class ProductsManagement {
 
     // Modal placeholder methods
     showProductDetailsModal(productId) {
-        console.log('TODO: Implement product details modal for product:', productId);
-        this.showToast('Product details modal - Coming soon!', 'info');
+        this.showToast('Mahsulot ma\'lumotlarini ko\'rish modalini yuklashda xatolik', 'info');
     }
 
     showProductEditModal(productId) {
-        console.log('TODO: Implement product edit modal for product:', productId);
-        this.showToast('Product edit modal - Coming soon!', 'info');
+        this.showToast('Mahsulot tahrirlash modalini yuklashda xatolik', 'info');
     }
 
     // Theme management for products page
@@ -1979,14 +1959,12 @@ class ProductsManagement {
         // Listen for theme changes from the main dashboard
         window.addEventListener('themeChanged', (event) => {
             const newTheme = event.detail.theme;
-            console.log('Products page received theme change:', newTheme);
             this.updateModalTheme();
         });
 
         // Listen for storage events (theme changes from other tabs)
         window.addEventListener('storage', (event) => {
             if (event.key === 'dashboard-theme') {
-                console.log('Products page received theme change from storage:', event.newValue);
                 this.updateModalTheme();
             }
         });
@@ -1999,7 +1977,6 @@ class ProductsManagement {
      * Show create product modal
      */
     async showCreateModal() {
-        console.log('🎨 Opening create product modal...');
         
         try {
             // Create and show modal
@@ -2017,10 +1994,8 @@ class ProductsManagement {
                 modal.classList.add('show');
             }, 10);
             
-            console.log('✅ Create product modal opened successfully');
         } catch (error) {
-            console.error('❌ Error opening create modal:', error);
-            this.showError('Failed to open create product modal');
+            this.showError('Mahsulot yaratish modalini ochishda xatolik');
         }
     }
 
@@ -2035,7 +2010,7 @@ class ProductsManagement {
                 <div class="modal-header">
                     <h2 class="modal-title">
                         <i class="las la-plus-circle"></i>
-                        Add New Product
+                        Yangi mahsulot qo'shish
                     </h2>
                     <button type="button" class="modal-close" onclick="this.closest('.product-modal-overlay').remove()">
                         <i class="las la-times"></i>
@@ -2050,48 +2025,48 @@ class ProductsManagement {
                             <div class="section-header">
                                 <h3 class="section-title">
                                     <i class="las la-info-circle"></i>
-                                    Basic Information
+                                    Asosiy ma'lumotlar
                                 </h3>
                             </div>
                             
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label class="form-label required">Product Name</label>
+                                    <label class="form-label required">Mahsulot nomi</label>
                                     <input type="text" name="name" class="form-control" required 
-                                           placeholder="Enter product name" maxlength="200">
+                                           placeholder="Mahsulot nomini kiriting" maxlength="200">
                                     <div class="form-feedback"></div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label class="form-label required">Category</label>
+                                    <label class="form-label required">Kategoriya</label>
                                     <select name="category" class="form-control" required>
-                                        <option value="">Select Category</option>
-                                        <option value="food_beverages">Food & Beverages</option>
-                                        <option value="textiles_clothing">Textiles & Clothing</option>
-                                        <option value="electronics">Electronics</option>
-                                        <option value="machinery_equipment">Machinery & Equipment</option>
-                                        <option value="chemicals">Chemicals</option>
-                                        <option value="agriculture">Agriculture</option>
-                                        <option value="construction_materials">Construction Materials</option>
-                                        <option value="automotive">Automotive</option>
-                                        <option value="pharmaceuticals">Pharmaceuticals</option>
-                                        <option value="other">Other</option>
+                                        <option value="">Kategoriyani tanlang</option>
+                                        <option value="food_beverages">Oziq-ovqat va ichimliklar</option>
+                                        <option value="textiles_clothing">To'qimachilik va kiyim</option>
+                                        <option value="electronics">Elektronika</option>
+                                        <option value="machinery_equipment">Mashina va uskunalar</option>
+                                        <option value="chemicals">Kimyoviy mahsulotlar</option>
+                                        <option value="agriculture">Qishloq xo'jaligi</option>
+                                        <option value="construction_materials">Qurilish materiallari</option>
+                                        <option value="automotive">Avtomobil</option>
+                                        <option value="pharmaceuticals">Farmatsevtika</option>
+                                        <option value="other">Boshqa</option>
                                     </select>
                                     <div class="form-feedback"></div>
                                 </div>
                             </div>
                             
                             <div class="form-group">
-                                <label class="form-label required">Description</label>
+                                <label class="form-label required">Tavsif</label>
                                 <textarea name="description" class="form-control" rows="4" required 
-                                          placeholder="Provide detailed product description" maxlength="2000"></textarea>
+                                          placeholder="Batafsil mahsulot tavsifini kiriting" maxlength="2000"></textarea>
                                 <div class="form-feedback"></div>
                             </div>
                             
                             <div class="form-group">
-                                <label class="form-label">Short Description</label>
+                                <label class="form-label">Qisqa tavsif</label>
                                 <textarea name="shortDescription" class="form-control" rows="2" 
-                                          placeholder="Brief product summary (optional)" maxlength="500"></textarea>
+                                          placeholder="Qisqa mahsulot xulosasi (ixtiyoriy)" maxlength="500"></textarea>
                                 <div class="form-feedback"></div>
                             </div>
                         </div>
@@ -2101,29 +2076,29 @@ class ProductsManagement {
                             <div class="section-header">
                                 <h3 class="section-title">
                                     <i class="las la-industry"></i>
-                                    Manufacturer Information
+                                    Ishlab chiqaruvchi ma'lumotlari
                                 </h3>
                             </div>
                             
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label class="form-label required">Manufacturer Name</label>
+                                    <label class="form-label required">Ishlab chiqaruvchi nomi</label>
                                     <input type="text" name="manufacturerName" class="form-control" required 
-                                           placeholder="Enter manufacturer name">
+                                           placeholder="Ishlab chiqaruvchi nomini kiriting">
                                     <div class="form-feedback"></div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label class="form-label required">Country</label>
+                                    <label class="form-label required">Mamlakat</label>
                                     <select name="country" class="form-control" required>
-                                        <option value="">Select Country</option>
-                                        <option value="Uzbekistan">🇺🇿 Uzbekistan</option>
-                                        <option value="Kazakhstan">🇰🇿 Kazakhstan</option>
-                                        <option value="China">🇨🇳 China</option>
-                                        <option value="Tajikistan">🇹🇯 Tajikistan</option>
-                                        <option value="Turkmenistan">🇹🇲 Turkmenistan</option>
-                                        <option value="Afghanistan">🇦🇫 Afghanistan</option>
-                                        <option value="Kyrgyzstan">🇰🇬 Kyrgyzstan</option>
+                                        <option value="">Mamlakatni tanlang</option>
+                                        <option value="Uzbekistan">🇺🇿 O'zbekiston</option>
+                                        <option value="Kazakhstan">🇰🇿 Qozog'iston</option>
+                                        <option value="China">🇨🇳 Xitoy</option>
+                                        <option value="Tajikistan">🇹🇯 Tojikiston</option>
+                                        <option value="Turkmenistan">🇹🇲 Turkmaniston</option>
+                                        <option value="Afghanistan">🇦🇫 Afg'oniston</option>
+                                        <option value="Kyrgyzstan">🇰🇬 Qirg'iziston</option>
                                     </select>
                                     <div class="form-feedback"></div>
                                 </div>
@@ -2135,48 +2110,48 @@ class ProductsManagement {
                             <div class="section-header">
                                 <h3 class="section-title">
                                     <i class="las la-dollar-sign"></i>
-                                    Pricing & Inventory
+                                    Narx va qoldiq
                                 </h3>
                             </div>
                             
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label class="form-label required">Base Price (USD)</label>
+                                    <label class="form-label required">Asosiy narx (USD)</label>
                                     <input type="number" name="basePrice" class="form-control" required 
                                            min="0" step="0.01" placeholder="0.00">
                                     <div class="form-feedback"></div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label class="form-label">Currency</label>
+                                    <label class="form-label">Valyuta</label>
                                     <select name="currency" class="form-control">
-                                        <option value="USD" selected>USD - US Dollar</option>
-                                        <option value="UZS">UZS - Uzbek Som</option>
-                                        <option value="KZT">KZT - Kazakhstani Tenge</option>
-                                        <option value="CNY">CNY - Chinese Yuan</option>
-                                        <option value="EUR">EUR - Euro</option>
+                                        <option value="USD" selected>USD - AQSH dollari</option>
+                                        <option value="UZS">UZS - O'zbek so'mi</option>
+                                        <option value="KZT">KZT - Qozog'iston tenge</option>
+                                        <option value="CNY">CNY - Xitoy yuani</option>
+                                        <option value="EUR">EUR - Yevro</option>
                                     </select>
                                     <div class="form-feedback"></div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label class="form-label required">Stock Quantity</label>
+                                    <label class="form-label required">Qoldiq miqdori</label>
                                     <input type="number" name="stockQuantity" class="form-control" required 
                                            min="0" placeholder="0">
                                     <div class="form-feedback"></div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label class="form-label required">Unit of Measurement</label>
+                                    <label class="form-label required">O'lchov birligi</label>
                                     <select name="unit" class="form-control" required>
-                                        <option value="">Select Unit</option>
-                                        <option value="piece">Piece</option>
-                                        <option value="kg">Kilogram</option>
-                                        <option value="ton">Ton</option>
-                                        <option value="liter">Liter</option>
-                                        <option value="meter">Meter</option>
-                                        <option value="box">Box</option>
-                                        <option value="carton">Carton</option>
+                                        <option value="">Birlikni tanlang</option>
+                                        <option value="piece">Dona</option>
+                                        <option value="kg">Kilogramm</option>
+                                        <option value="ton">Tonna</option>
+                                        <option value="liter">Litr</option>
+                                        <option value="meter">Metr</option>
+                                        <option value="box">Quti</option>
+                                        <option value="carton">Karton</option>
                                         <option value="pallet">Pallet</option>
                                     </select>
                                     <div class="form-feedback"></div>
@@ -2185,16 +2160,16 @@ class ProductsManagement {
                             
                             <div class="form-grid grid-2">
                                 <div class="form-group">
-                                    <label class="form-label">Minimum Order Quantity</label>
+                                    <label class="form-label">Minimal buyurtma miqdori</label>
                                     <input type="number" name="minOrderQuantity" class="form-control" 
                                            min="1" value="1" placeholder="1">
                                     <div class="form-feedback"></div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label class="form-label">Maximum Order Quantity</label>
+                                    <label class="form-label">Maksimal buyurtma miqdori</label>
                                     <input type="number" name="maxOrderQuantity" class="form-control" 
-                                           min="1" placeholder="Unlimited">
+                                           min="1" placeholder="Cheksiz">
                                     <div class="form-feedback"></div>
                                 </div>
                             </div>
@@ -2205,7 +2180,7 @@ class ProductsManagement {
                             <div class="section-header">
                                 <h3 class="section-title">
                                     <i class="las la-cog"></i>
-                                    Product Settings
+                                    Mahsulot sozlamalari
                                 </h3>
                             </div>
                             
@@ -2215,8 +2190,8 @@ class ProductsManagement {
                                         <input type="checkbox" name="isActive" value="true" checked>
                                         <span class="setting-toggle"></span>
                                         <span class="setting-text">
-                                            <strong>Active Product</strong>
-                                            <small>Product will be visible to buyers</small>
+                                            <strong>Faol mahsulot</strong>
+                                            <small>Mahsulot xaridorlarga ko'rinadi</small>
                                         </span>
                                     </label>
                                 </div>
@@ -2226,8 +2201,8 @@ class ProductsManagement {
                                         <input type="checkbox" name="isFeatured" value="true">
                                         <span class="setting-toggle"></span>
                                         <span class="setting-text">
-                                            <strong>Featured Product</strong>
-                                            <small>Show in featured products section</small>
+                                            <strong>Tavsiya etilgan mahsulot</strong>
+                                            <small>Tavsiya etilgan mahsulotlar bo'limida ko'rsatish</small>
                                         </span>
                                     </label>
                                 </div>
@@ -2237,8 +2212,8 @@ class ProductsManagement {
                                         <input type="checkbox" name="allowBackorders" value="true">
                                         <span class="setting-toggle"></span>
                                         <span class="setting-text">
-                                            <strong>Allow Backorders</strong>
-                                            <small>Accept orders when out of stock</small>
+                                            <strong>Qoldiq tugaganda buyurtma qabul qilish</strong>
+                                            <small>Qoldiq tugaganda ham buyurtmalarni qabul qilish</small>
                                         </span>
                                     </label>
                                 </div>
@@ -2249,11 +2224,11 @@ class ProductsManagement {
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" onclick="this.closest('.product-modal-overlay').remove()">
                             <i class="las la-times"></i>
-                            Cancel
+                            Bekor qilish
                         </button>
                         <button type="submit" class="btn btn-primary">
                             <i class="las la-save"></i>
-                            Create Product
+                            Mahsulot yaratish
                         </button>
                     </div>
                 </form>
@@ -2296,12 +2271,11 @@ class ProductsManagement {
      * Handle product creation
      */
     async handleProductCreation(form, modal) {
-        console.log('🚀 Starting product creation process...');
         
         try {
             // Validate form
             if (!this.validateProductForm(form)) {
-                this.showError('Please fix the validation errors before submitting');
+                this.showError('Yuborishdan oldin validatsiya xatolarini tuzating');
                 return;
             }
             
@@ -2310,7 +2284,6 @@ class ProductsManagement {
             
             // Collect form data
             const formData = this.collectProductFormData(form);
-            console.log('📋 Collected form data:', formData);
             
             // Submit to backend
             const response = await fetch(this.endpoints.products, {
@@ -2323,26 +2296,23 @@ class ProductsManagement {
             });
             
             const result = await response.json();
-            console.log('📡 Server response:', result);
             
             if (result.success) {
                 // Success - close modal and refresh table
                 modal.remove();
-                this.showSuccess('Product created successfully!');
+                this.showSuccess('Mahsulot muvaffaqiyatli yaratildi!');
                 await this.loadProducts(true);
                 
                 // Update theme for any remaining modals
                 this.updateModalTheme();
                 
-                console.log('✅ Product created successfully:', result.data.product);
             } else {
                 // Handle validation errors
                 this.handleProductServerErrors(result, form);
             }
             
         } catch (error) {
-            console.error('❌ Error creating product:', error);
-            this.showError('Failed to create product. Please try again.');
+            this.showError('Mahsulot yaratishda xatolik. Qayta urinib ko\'ring.');
         } finally {
             this.setProductModalLoadingState(false);
         }
@@ -2357,7 +2327,7 @@ class ProductsManagement {
 
         requiredFields.forEach(field => {
             if (!field.value.trim()) {
-                this.showFieldError(field, 'This field is required');
+                this.showFieldError(field, 'Bu maydon majburiy');
                 isValid = false;
             } else {
                 this.clearFieldError(field);
@@ -2405,7 +2375,7 @@ class ProductsManagement {
                 }
             });
         } else {
-            this.showError(result.message || 'Failed to create product');
+            this.showError(result.message || 'Mahsulot yaratishda xatolik');
         }
     }
 
@@ -2421,11 +2391,11 @@ class ProductsManagement {
 
         if (loading) {
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="las la-spinner animate-spin"></i> Creating...';
+            submitBtn.innerHTML = '<i class="las la-spinner animate-spin"></i> Mahsulot yaratish...';
             cancelBtn.disabled = true;
         } else {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="las la-save"></i> Create Product';
+            submitBtn.innerHTML = '<i class="las la-save"></i> Mahsulot yaratish';
             cancelBtn.disabled = false;
         }
     }
@@ -2467,7 +2437,6 @@ class ProductsManagement {
         window.removeEventListener('popstate', this.restoreState);
         document.removeEventListener('visibilitychange', this.loadProducts);
         
-        console.log('🧹 Products Management System destroyed');
     }
 }
 
@@ -2485,13 +2454,10 @@ window.bulkPromoteProducts = () => window.productsManager?.bulkPromoteProducts()
 window.bulkDeleteProducts = () => window.productsManager?.bulkDeleteProducts();
 window.bulkExportProducts = () => window.productsManager?.bulkExportProducts();
 window.openCreateProductModal = () => {
-    console.log('TODO: Implement create product modal');
-    window.productsManager?.showToast('Create product modal - Coming soon!', 'info');
+    window.productsManager?.showToast('Mahsulot yaratish modalini yuklashda xatolik', 'info');
 };
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
     window.productsManager?.destroy();
 });
-
-console.log('✅ Products Management JavaScript loaded successfully');

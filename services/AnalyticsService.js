@@ -761,7 +761,7 @@ class AnalyticsService {
         activities.push({
           type: 'user',
           icon: 'fas fa-user-plus',
-          text: `New user registered: ${user.fullName}`,
+          text: `Yangi foydalanuvchi ro\'yxatdan o\'tgan: ${user.fullName}`,
           time: this.getTimeAgo(user.createdAt),
           timestamp: user.createdAt
         });
@@ -771,7 +771,7 @@ class AnalyticsService {
         activities.push({
           type: 'order',
           icon: 'fas fa-shopping-cart',
-          text: `New order #${order.orderNumber} - $${order.totalAmount}`,
+          text: `Yangi buyurtma #${order.orderNumber} - $${order.totalAmount}`,
           time: this.getTimeAgo(order.createdAt),
           timestamp: order.createdAt
         });
@@ -863,10 +863,10 @@ class AnalyticsService {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
     
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    return `${days} day${days > 1 ? 's' : ''} ago`;
+    if (minutes < 1) return 'To\'g\'ir';
+    if (minutes < 60) return `${minutes} daqiyqa${minutes > 1 ? 's' : ''} avval`;
+    if (hours < 24) return `${hours} soat${hours > 1 ? 's' : ''} avval`;
+    return `${days} kun${days > 1 ? 's' : ''} avval`;
   }
   
   /**
@@ -874,7 +874,7 @@ class AnalyticsService {
    */
   async cacheAnalytics(timeRange, data) {
     try {
-      const period = timeRange === '7d' ? 'weekly' : timeRange === '30d' ? 'monthly' : 'quarterly';
+      const period = timeRange === '7d' ? 'haftalik' : timeRange === '30d' ? 'oylik' : 'yillik';
       
       await AnalyticsData.findOneAndUpdate(
         { period, date: new Date() },
@@ -897,7 +897,7 @@ class AnalyticsService {
    */
   async getCachedAnalytics(timeRange) {
     try {
-      const period = timeRange === '7d' ? 'weekly' : timeRange === '30d' ? 'monthly' : 'quarterly';
+      const period = timeRange === '7d' ? 'haftalik' : timeRange === '30d' ? 'oylik' : 'yillik';
       const cached = await AnalyticsData.findOne({ period }).sort({ date: -1 });
       
       return cached;

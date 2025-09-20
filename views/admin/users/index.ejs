@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
-    <title>User Management - SLEX Admin Dashboard</title>
+    <title>Foydalanuvchilar boshqaruvi - SLEX Admin Dashboard</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
@@ -36,13 +36,13 @@
 <body class="admin-layout theme-transition" data-theme="light">
 
     <%- include('../partials/header', { 
-        title: 'User Management - SLEX Admin Dashboard',
+        title: 'Foydalanuvchilar boshqaruvi - SLEX Admin Dashboard',
         lng: typeof currentLang !== 'undefined' ? currentLang : 'uz',
         admin: admin, 
         user: user,
         breadcrumb: [
-            { title: 'Dashboard', url: '/admin' },
-            { title: 'Users' }
+            { title: 'Boshqaruv paneli', url: '/admin' },
+            { title: 'Foydalanuvchilar' }
         ]
     }) %>
 
@@ -66,24 +66,24 @@
                         <div class="page-title-section">
                             <h1 class="page-title">
                                 <i class="las la-building text-primary"></i>
-                        Company & User Management
+                        Kompaniya va foydalanuvchi boshqaruvi
                     </h1>
                             <p class="page-subtitle">
-                                Comprehensive company and user management system with advanced filtering, bulk operations, and real-time analytics
+                                Kengaytirilgan filtrlash, ommaviy amallar va real-time analitika bilan to'liq kompaniya va foydalanuvchi boshqaruvi tizimi
                             </p>
                 </div>
                         <div class="page-actions">
                     <button class="btn btn-outline-primary" onclick="exportUsers()">
                                 <i class="las la-download"></i>
-                                Export Data
+                                Ma'lumotlarni eksport qilish
                             </button>
                             <button class="btn btn-outline-secondary" onclick="refreshData()">
                                 <i class="las la-sync-alt"></i>
-                                Refresh
+                                Yangilash
                     </button>
                             <button class="btn btn-primary" onclick="openCreateUserModal()">
                                 <i class="las la-plus"></i>
-                                Add User
+                                Foydalanuvchi qo'shish
                     </button>
                         </div>
                 </div>
@@ -98,7 +98,7 @@
       </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="totalUsersCount"><%= statistics?.total || 0 %></div>
-                                <div class="stat-label">Total Users</div>
+                                <div class="stat-label">Jami foydalanuvchilar</div>
                                 <div class="stat-trend positive">
           <i class="las la-arrow-up"></i>
           +12%
@@ -114,7 +114,7 @@
       </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="activeUsersCount"><%= statistics?.statuses?.find(s => s.label === 'active')?.count || 0 %></div>
-                                <div class="stat-label">Active Users</div>
+                                <div class="stat-label">Faol foydalanuvchilar</div>
                                 <div class="stat-trend positive">
           <i class="las la-arrow-up"></i>
           +8%
@@ -130,7 +130,7 @@
       </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="pendingUsersCount"><%= statistics?.statuses?.find(s => s.label === 'pending')?.count || 0 %></div>
-                                <div class="stat-label">Pending Approval</div>
+                                <div class="stat-label">Kutilayotgan tasdiqlar</div>
                                 <div class="stat-trend neutral">
           <i class="las la-minus"></i>
           0%
@@ -146,7 +146,7 @@
       </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="blockedUsersCount"><%= statistics?.statuses?.find(s => s.label === 'blocked')?.count || 0 %></div>
-                                <div class="stat-label">Blocked Users</div>
+                                <div class="stat-label">Bloklangan foydalanuvchilar</div>
                                 <div class="stat-trend negative">
           <i class="las la-arrow-down"></i>
           -5%
@@ -164,41 +164,41 @@
                         <!-- Overview Tab -->
                         <button class="tab-item active" data-status="" data-tab="all">
                             <i class="las la-list"></i>
-                            All Companies
+                            Barcha kompaniyalar
                             <span class="tab-badge" id="allUsersTab"><%= statistics?.total || 0 %></span>
                         </button>
                         
                         <!-- Status Tabs -->
                         <button class="tab-item" data-status="pending" data-tab="pending">
                             <i class="las la-clock"></i>
-                            Pending Approval
+                            Tasdiqlash kutilmoqda
                             <span class="tab-badge warning" id="pendingUsersTab"><%= statistics?.statuses?.find(s => s.label === 'pending')?.count || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="active" data-tab="active">
                             <i class="las la-check-circle"></i>
-                            Active Companies
+                            Faol kompaniyalar
                             <span class="tab-badge success" id="activeUsersTab"><%= statistics?.statuses?.find(s => s.label === 'active')?.count || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="blocked" data-tab="blocked">
                             <i class="las la-ban"></i>
-                            Blocked Companies
+                            Bloklangan kompaniyalar
                             <span class="tab-badge danger" id="blockedUsersTab"><%= statistics?.statuses?.find(s => s.label === 'blocked')?.count || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="suspended" data-tab="suspended">
                             <i class="las la-pause"></i>
-                            Suspended
+                            To'xtatilgan
                             <span class="tab-badge secondary" id="suspendedUsersTab"><%= statistics?.statuses?.find(s => s.label === 'suspended')?.count || 0 %></span>
                         </button>
                         
                         <!-- Company Type Tabs -->
                         <button class="tab-item" data-companytype="manufacturer" data-tab="manufacturers">
                             <i class="las la-industry"></i>
-                            Manufacturers
+                            Ishlab chiqaruvchilar
                             <span class="tab-badge info" id="manufacturersTab">0</span>
                         </button>
                         <button class="tab-item" data-companytype="distributor" data-tab="distributors">
                             <i class="las la-truck"></i>
-                            Distributors
+                            Tarqatuvchilar
                             <span class="tab-badge info" id="distributorsTab">0</span>
                         </button>
                     </div>
@@ -208,98 +208,98 @@
                         <div class="filters-header">
                             <h3 class="filters-title">
                                 <i class="las la-filter"></i>
-                                Advanced Filters
+                                Kengaytirilgan filtrlash
                             </h3>
                             <div class="filter-actions">
                                 <button class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()">
                                     <i class="las la-times"></i>
-                                    Clear
+                                    Tozalash
                                 </button>
                                 <button class="btn btn-primary btn-sm" onclick="applyFilters()">
                                     <i class="las la-search"></i>
-                                    Search
+                                    Qidirish
                                 </button>
                             </div>
                         </div>
                         
                         <div class="filters-grid">
                             <div class="filter-group">
-                                <label class="filter-label">Search Users</label>
+                                <label class="filter-label">Foydalanuvchilarni qidirish</label>
                                 <div class="search-input">
                                     <i class="las la-search search-icon"></i>
-                                    <input type="text" class="filter-input" id="searchInput" placeholder="Company name, email, phone, tax number...">
+                                    <input type="text" class="filter-input" id="searchInput" placeholder="Kompaniya nomi, email, telefon, STIR...">
                                 </div>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Country</label>
+                                <label class="filter-label">Mamlakat</label>
                                 <select class="filter-input" id="countryFilter">
-                                    <option value="">All Countries</option>
-                                    <option value="Uzbekistan">Uzbekistan</option>
-                                    <option value="Kazakhstan">Kazakhstan</option>
-                                    <option value="China">China</option>
-                                    <option value="Tajikistan">Tajikistan</option>
-                                    <option value="Turkmenistan">Turkmenistan</option>
-                                    <option value="Afghanistan">Afghanistan</option>
-                                    <option value="Kyrgyzstan">Kyrgyzstan</option>
+                                    <option value="">Barcha mamlakatlar</option>
+                                    <option value="Uzbekistan">O'zbekiston</option>
+                                    <option value="Kazakhstan">Qozog'iston</option>
+                                    <option value="China">Xitoy</option>
+                                    <option value="Tajikistan">Tojikiston</option>
+                                    <option value="Turkmenistan">Turkmaniston</option>
+                                    <option value="Afghanistan">Afg'oniston</option>
+                                    <option value="Kyrgyzstan">Qirg'iziston</option>
                                 </select>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Company Type</label>
+                                <label class="filter-label">Kompaniya turi</label>
                                 <select class="filter-input" id="companyTypeFilter">
-                                    <option value="">All Types</option>
-                                    <option value="manufacturer">Manufacturer</option>
-                                    <option value="distributor">Distributor</option>
+                                    <option value="">Barcha turlar</option>
+                                    <option value="manufacturer">Ishlab chiqaruvchi</option>
+                                    <option value="distributor">Tarqatuvchi</option>
                                 </select>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Activity Type</label>
+                                <label class="filter-label">Faoliyat turi</label>
                                 <select class="filter-input" id="activityTypeFilter">
-                                    <option value="">All Activities</option>
-                                    <option value="food_beverages">Food & Beverages</option>
-                                    <option value="textiles_clothing">Textiles & Clothing</option>
-                                    <option value="electronics">Electronics</option>
-                                    <option value="machinery_equipment">Machinery & Equipment</option>
-                                    <option value="chemicals">Chemicals</option>
-                                    <option value="agriculture">Agriculture</option>
-                                    <option value="construction_materials">Construction Materials</option>
-                                    <option value="automotive">Automotive</option>
-                                    <option value="pharmaceuticals">Pharmaceuticals</option>
-                                    <option value="other">Other</option>
+                                    <option value="">Barcha faoliyatlar</option>
+                                    <option value="food_beverages">Oziq-ovqat va ichimliklar</option>
+                                    <option value="textiles_clothing">To'qimachilik va kiyim</option>
+                                    <option value="electronics">Elektronika</option>
+                                    <option value="machinery_equipment">Mashina va uskunalar</option>
+                                    <option value="chemicals">Kimyoviy mahsulotlar</option>
+                                    <option value="agriculture">Qishloq xo'jaligi</option>
+                                    <option value="construction_materials">Qurilish materiallari</option>
+                                    <option value="automotive">Avtomobil</option>
+                                    <option value="pharmaceuticals">Farmatsevtika</option>
+                                    <option value="other">Boshqa</option>
                                 </select>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Registration Date</label>
+                                <label class="filter-label">Ro'yxatdan o'tish sanasi</label>
                                 <select class="filter-input" id="dateRangeFilter">
-                                    <option value="">All Time</option>
-                                    <option value="today">Today</option>
-                                    <option value="week">This Week</option>
-                                    <option value="month">This Month</option>
-                                    <option value="quarter">This Quarter</option>
-                                    <option value="year">This Year</option>
+                                    <option value="">Barcha vaqt</option>
+                                    <option value="today">Bugun</option>
+                                    <option value="week">Bu hafta</option>
+                                    <option value="month">Bu oy</option>
+                                    <option value="quarter">Bu chorak</option>
+                                    <option value="year">Bu yil</option>
                                 </select>
   </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Company Size</label>
+                                <label class="filter-label">Kompaniya hajmi</label>
                                 <select class="filter-input" id="companySizeFilter">
-                                    <option value="">All Sizes</option>
-                                    <option value="1-10">Small (1-10 employees)</option>
-                                    <option value="11-50">Medium (11-50 employees)</option>
-                                    <option value="51-200">Large (51-200 employees)</option>
-                                    <option value="201-500">Enterprise (201-500 employees)</option>
-                                    <option value="500+">Corporation (500+ employees)</option>
+                                    <option value="">Barcha hajmlar</option>
+                                    <option value="1-10">Kichik (1-10 xodim)</option>
+                                    <option value="11-50">O'rta (11-50 xodim)</option>
+                                    <option value="51-200">Katta (51-200 xodim)</option>
+                                    <option value="201-500">Korporatsiya (201-500 xodim)</option>
+                                    <option value="500+">Yirik korporatsiya (500+ xodim)</option>
                                 </select>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Annual Revenue</label>
+                                <label class="filter-label">Yillik daromad</label>
                                 <select class="filter-input" id="revenueFilter">
-                                    <option value="">All Revenue Ranges</option>
-                                    <option value="under-100k">Under $100K</option>
+                                    <option value="">Barcha daromad diapazonlari</option>
+                                    <option value="under-100k">$100K dan kam</option>
                                     <option value="100k-500k">$100K - $500K</option>
                                     <option value="500k-1m">$500K - $1M</option>
                                     <option value="1m-5m">$1M - $5M</option>
@@ -308,23 +308,23 @@
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Established Year</label>
+                                <label class="filter-label">Tashkil etilgan yil</label>
                                 <select class="filter-input" id="establishedFilter">
-                                    <option value="">All Years</option>
-                                    <option value="2020-2024">2020-2024 (New)</option>
-                                    <option value="2015-2019">2015-2019 (Recent)</option>
-                                    <option value="2010-2014">2010-2014 (Established)</option>
-                                    <option value="2000-2009">2000-2009 (Mature)</option>
-                                    <option value="before-2000">Before 2000 (Legacy)</option>
+                                    <option value="">Barcha yillar</option>
+                                    <option value="2020-2024">2020-2024 (Yangi)</option>
+                                    <option value="2015-2019">2015-2019 (Yaqinda)</option>
+                                    <option value="2010-2014">2010-2014 (Tashkil etilgan)</option>
+                                    <option value="2000-2009">2000-2009 (Yetuk)</option>
+                                    <option value="before-2000">2000 yildan oldin (Eski)</option>
                                 </select>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Email Status</label>
+                                <label class="filter-label">Email holati</label>
                                 <select class="filter-input" id="emailVerifiedFilter">
-                                    <option value="">All Companies</option>
-                                    <option value="true">Email Verified</option>
-                                    <option value="false">Email Not Verified</option>
+                                    <option value="">Barcha kompaniyalar</option>
+                                    <option value="true">Email tasdiqlangan</option>
+                                    <option value="false">Email tasdiqlanmagan</option>
         </select>
       </div>
                         </div>
@@ -335,27 +335,27 @@
                         <div class="table-header">
                             <div class="table-title">
                                 <i class="las la-table"></i>
-                                Users Directory
-                                <span class="result-count" id="tableResultsCount">(0 results)</span>
+                                Foydalanuvchilar katalogi
+                                <span class="result-count" id="tableResultsCount">(0 natija)</span>
       </div>
                             
                             <div class="bulk-actions hidden" id="bulkActions">
-                                <span class="selected-count" id="selectedCount">0 selected</span>
+                                <span class="selected-count" id="selectedCount">0 tanlangan</span>
                                 <button class="btn btn-success btn-sm" onclick="bulkApproveUsers()" id="bulkApproveBtn">
                                     <i class="las la-check"></i>
-                                    Approve
+                                    Tasdiqlash
                                 </button>
                                 <button class="btn btn-warning btn-sm" onclick="bulkBlockUsers()" id="bulkBlockBtn">
                                     <i class="las la-ban"></i>
-                                    Block
+                                    Bloklash
                                 </button>
                                 <button class="btn btn-info btn-sm" onclick="bulkExportUsers()" id="bulkExportBtn">
                                     <i class="las la-download"></i>
-                                    Export
+                                    Eksport
         </button>
                                 <button class="btn btn-danger btn-sm" onclick="bulkDeleteUsers()" id="bulkDeleteBtn">
                                     <i class="las la-trash"></i>
-                                    Delete
+                                    O'chirish
         </button>
       </div>
     </div>
@@ -376,7 +376,7 @@
             </th>
                                             <th class="th-company" data-column="company" onclick="sortTable('company')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Company</span>
+                                                    <span class="th-label">Kompaniya</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -384,22 +384,22 @@
                                             </th>
                                             <th class="th-contact" data-column="contact">
                                                 <div class="th-content">
-                                                    <span class="th-label">Contact</span>
+                                                    <span class="th-label">Aloqa</span>
                 </div>
                                             </th>
                                             <th class="th-business" data-column="business">
                                                 <div class="th-content">
-                                                    <span class="th-label">Business</span>
+                                                    <span class="th-label">Biznes</span>
                 </div>
                                             </th>
                                             <th class="th-location" data-column="location">
                                                 <div class="th-content">
-                                                    <span class="th-label">Location</span>
+                                                    <span class="th-label">Manzil</span>
               </div>
                                             </th>
                                             <th class="th-status" data-column="status" onclick="sortTable('status')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Status</span>
+                                                    <span class="th-label">Holat</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -407,12 +407,12 @@
                                             </th>
                                             <th class="th-metrics" data-column="metrics">
                                                 <div class="th-content">
-                                                    <span class="th-label">Metrics</span>
+                                                    <span class="th-label">Ko'rsatkichlar</span>
               </div>
                                             </th>
                                             <th class="th-date" data-column="date" onclick="sortTable('createdAt')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Joined</span>
+                                                    <span class="th-label">Qo'shilgan</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
               </span>
@@ -420,7 +420,7 @@
                                             </th>
                                             <th class="th-actions" data-column="actions">
                                                 <div class="th-content">
-                                                    <span class="th-label">Actions</span>
+                                                    <span class="th-label">Amallar</span>
               </div>
                                             </th>
           </tr>
@@ -440,7 +440,7 @@
                             <div class="table-loading-overlay" id="tableLoadingOverlay">
                                 <div class="loading-content">
                                     <div class="modern-spinner"></div>
-                                    <p class="loading-text">Loading users...</p>
+                                    <p class="loading-text">Foydalanuvchilar yuklanmoqda...</p>
                                 </div>
                             </div>
 
@@ -450,11 +450,11 @@
                                     <div class="empty-state-icon">
                                         <i class="las la-users"></i>
                                     </div>
-                                    <h3 class="empty-state-title">No Users Found</h3>
-                                    <p class="empty-state-description">No users match your current filter criteria.</p>
+                                    <h3 class="empty-state-title">Foydalanuvchilar topilmadi</h3>
+                                    <p class="empty-state-description">Hozirgi filtr mezonlaringizga mos foydalanuvchilar yo'q.</p>
                                     <button class="btn btn-primary" onclick="clearAllFilters()">
                                         <i class="las la-refresh"></i>
-                                        Reset Filters
+                                        Filtrlarni tozalash
                                     </button>
                                 </div>
                             </div>
@@ -464,7 +464,7 @@
                     <!-- Pagination Section -->
                     <div class="pagination-section" id="paginationSection">
                         <div class="pagination-info">
-                            Showing <span id="paginationStart">0</span>-<span id="paginationEnd">0</span> of <span id="paginationTotal">0</span> users
+                            <span id="paginationStart">0</span>-<span id="paginationEnd">0</span> ko'rsatilmoqda (jami <span id="paginationTotal">0</span> ta foydalanuvchi)
                         </div>
                         <div class="pagination-controls" id="paginationControls">
                             <!-- Pagination buttons will be generated here -->
@@ -479,9 +479,9 @@
     <div class="loading-overlay d-none" id="loadingOverlay">
         <div class="loading-content">
             <div class="spinner-border text-primary mb-3" role="status">
-                <span class="visually-hidden">Loading...</span>
+                <span class="visually-hidden">Yuklanmoqda...</span>
             </div>
-            <div class="loading-text" id="loadingText">Processing...</div>
+            <div class="loading-text" id="loadingText">Qayta ishlanmoqda...</div>
   </div>
 </div>
 
@@ -680,34 +680,34 @@
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="approveUserModalLabel">
                     <i class="las la-check-circle"></i>
-                    Approve User Account
+                    Foydalanuvchi hisobini tasdiqlash
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Yopish"></button>
             </div>
             <div class="modal-body">
                 <div class="user-info-section mb-3">
-                    <h6 class="text-muted mb-2">User Information</h6>
+                    <h6 class="text-muted mb-2">Foydalanuvchi ma'lumotlari</h6>
                     <div id="approveUserInfo" class="user-details-card">
                         <!-- User details will be populated here -->
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="approveUserNotes" class="form-label">Notes (Optional)</label>
+                    <label for="approveUserNotes" class="form-label">Eslatmalar (Ixtiyoriy)</label>
                     <textarea class="form-control" id="approveUserNotes" rows="3" 
-                              placeholder="Add any notes about this approval..."></textarea>
+                              placeholder="Bu tasdiqlash haqida qandaydir eslatmalar qo'shing..."></textarea>
                 </div>
                 
                 <div class="alert alert-info mt-3">
                     <i class="las la-info-circle"></i>
-                    <strong>Action:</strong> This will approve the user account and grant access to the platform.
+                    <strong>Amal:</strong> Bu foydalanuvchi hisobini tasdiqlaydi va platformaga kirish imkonini beradi.
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
                 <button type="button" class="btn btn-success" id="confirmApproveUser">
                     <i class="las la-check"></i>
-                    Approve User
+                    Foydalanuvchini tasdiqlash 
                 </button>
             </div>
         </div>
@@ -721,35 +721,35 @@
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="blockUserModalLabel">
                     <i class="las la-ban"></i>
-                    Block User Account
+                    Foydalanuvchi hisobini bloklash
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Yopish"></button>
             </div>
             <div class="modal-body">
                 <div class="user-info-section mb-3">
-                    <h6 class="text-muted mb-2">User Information</h6>
+                    <h6 class="text-muted mb-2">Foydalanuvchi ma'lumotlari</h6>
                     <div id="blockUserInfo" class="user-details-card">
                         <!-- User details will be populated here -->
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="blockUserReason" class="form-label">Reason for Blocking <span class="text-danger">*</span></label>
+                    <label for="blockUserReason" class="form-label">Bloklash sababi <span class="text-danger">*</span></label>
                     <textarea class="form-control" id="blockUserReason" rows="3" required
-                              placeholder="Please provide a detailed reason for blocking this user..."></textarea>
-                    <div class="form-text">Minimum 10 characters required</div>
+                              placeholder="Bu foydalanuvchini bloklash uchun batafsil sabab kiriting..."></textarea>
+                    <div class="form-text">Kamida 10 ta belgi talab qilinadi</div>
                 </div>
                 
                 <div class="alert alert-warning mt-3">
                     <i class="las la-exclamation-triangle"></i>
-                    <strong>Warning:</strong> This will block the user from accessing the platform. They will be notified via email.
+                    <strong>Ogohlantirish:</strong> Bu foydalanuvchini platformaga kirishdan bloklaydi. Ular email orqali xabardor qilinadi.
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
                 <button type="button" class="btn btn-danger" id="confirmBlockUser">
                     <i class="las la-ban"></i>
-                    Block User
+                    Foydalanuvchini bloklash
                 </button>
             </div>
         </div>
@@ -763,13 +763,13 @@
             <div class="modal-header bg-warning text-dark">
                 <h5 class="modal-title" id="suspendUserModalLabel">
                     <i class="las la-pause-circle"></i>
-                    Suspend User Account
+                    Foydalanuvchi hisobini to'xtatish
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
             </div>
             <div class="modal-body">
                 <div class="user-info-section mb-3">
-                    <h6 class="text-muted mb-2">User Information</h6>
+                    <h6 class="text-muted mb-2">Foydalanuvchi ma'lumotlari</h6>
                     <div id="suspendUserInfo" class="user-details-card">
                         <!-- User details will be populated here -->
                     </div>
@@ -778,37 +778,37 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="suspendUserDuration" class="form-label">Suspension Duration</label>
+                            <label for="suspendUserDuration" class="form-label">To'xtatish muddati</label>
                             <select class="form-select" id="suspendUserDuration">
-                                <option value="7">7 Days</option>
-                                <option value="14">14 Days</option>
-                                <option value="30" selected>30 Days</option>
-                                <option value="60">60 Days</option>
-                                <option value="90">90 Days</option>
-                                <option value="permanent">Permanent</option>
+                                <option value="7">7 kun</option>
+                                <option value="14">14 kun</option>
+                                <option value="30" selected>30 kun</option>
+                                <option value="60">60 kun</option>
+                                <option value="90">90 kun</option>
+                                <option value="permanent">Doimiy</option>
                             </select>
                         </div>
                     </div>
                     <div class="col-md-12 mt-3">
                         <div class="form-group">
-                            <label for="suspendUserReason" class="form-label">Reason for Suspension <span class="text-danger">*</span></label>
+                            <label for="suspendUserReason" class="form-label">To'xtatish sababi <span class="text-danger">*</span></label>
                             <textarea class="form-control" id="suspendUserReason" rows="3" required
-                                      placeholder="Please provide a detailed reason for suspending this user..."></textarea>
-                            <div class="form-text">Minimum 10 characters required</div>
+                                      placeholder="Bu foydalanuvchini to'xtatish uchun batafsil sabab kiriting..."></textarea>
+                            <div class="form-text">Kamida 10 ta belgi talab qilinadi</div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="alert alert-warning mt-3">
                     <i class="las la-clock"></i>
-                    <strong>Action:</strong> This will temporarily suspend the user account. They will be notified and can appeal the decision.
+                    <strong>Amal:</strong> Bu foydalanuvchi hisobini vaqtincha to'xtatadi. Ular xabardor qilinadi va qarorni shikoyat qilishlari mumkin.
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
                 <button type="button" class="btn btn-warning" id="confirmSuspendUser">
                     <i class="las la-pause"></i>
-                    Suspend User
+                    Foydalanuvchini to'xtatish
                 </button>
             </div>
         </div>
@@ -822,34 +822,34 @@
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="activateUserModalLabel">
                     <i class="las la-play-circle"></i>
-                    Activate User Account
+                    Foydalanuvchi hisobini faollashtirish
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Yopish"></button>
             </div>
             <div class="modal-body">
                 <div class="user-info-section mb-3">
-                    <h6 class="text-muted mb-2">User Information</h6>
+                    <h6 class="text-muted mb-2">Foydalanuvchi ma'lumotlari</h6>
                     <div id="activateUserInfo" class="user-details-card">
                         <!-- User details will be populated here -->
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="activateUserNotes" class="form-label">Notes (Optional)</label>
+                    <label for="activateUserNotes" class="form-label">Eslatmalar (Ixtiyoriy)</label>
                     <textarea class="form-control" id="activateUserNotes" rows="3" 
-                              placeholder="Add any notes about this activation..."></textarea>
+                              placeholder="Bu faollashtirish haqida qandaydir eslatmalar qo'shing..."></textarea>
                 </div>
                 
                 <div class="alert alert-success mt-3">
                     <i class="las la-check-circle"></i>
-                    <strong>Action:</strong> This will reactivate the user account and restore full access to the platform.
+                    <strong>Amal:</strong> Bu foydalanuvchi hisobini qayta faollashtiradi va platformaga to'liq kirish imkonini tiklaydi.
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
                 <button type="button" class="btn btn-success" id="confirmActivateUser">
                     <i class="las la-play"></i>
-                    Activate User
+                    Foydalanuvchini faollashtirish
                 </button>
             </div>
         </div>
@@ -863,42 +863,42 @@
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="deleteUserModalLabel">
                     <i class="las la-trash"></i>
-                    Delete User Account
+                    Foydalanuvchi hisobini o'chirish
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Yopish"></button>
             </div>
             <div class="modal-body">
                 <div class="user-info-section mb-3">
-                    <h6 class="text-muted mb-2">User Information</h6>
+                    <h6 class="text-muted mb-2">Foydalanuvchi ma'lumotlari</h6>
                     <div id="deleteUserInfo" class="user-details-card">
                         <!-- User details will be populated here -->
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="deleteUserReason" class="form-label">Reason for Deletion <span class="text-danger">*</span></label>
+                    <label for="deleteUserReason" class="form-label">O'chirish sababi <span class="text-danger">*</span></label>
                     <textarea class="form-control" id="deleteUserReason" rows="3" required
-                              placeholder="Please provide a detailed reason for deleting this user..."></textarea>
-                    <div class="form-text">Minimum 10 characters required</div>
+                              placeholder="Bu foydalanuvchini o'chirish uchun batafsil sabab kiriting..."></textarea>
+                    <div class="form-text">Kamida 10 ta belgi talab qilinadi</div>
                 </div>
                 
                 <div class="form-check mt-3">
                     <input class="form-check-input" type="checkbox" id="confirmDeleteAction" required>
                     <label class="form-check-label text-danger" for="confirmDeleteAction">
-                        <strong>I understand that this action cannot be undone</strong>
+                        <strong>Men bu amalni bekor qilib bo'lmasligini tushunaman</strong>
                     </label>
                 </div>
                 
                 <div class="alert alert-danger mt-3">
                     <i class="las la-exclamation-triangle"></i>
-                    <strong>Warning:</strong> This will permanently delete the user account and all associated data. This action cannot be undone.
+                    <strong>Ogohlantirish:</strong> Bu foydalanuvchi hisobini va barcha bog'liq ma'lumotlarni butunlay o'chiradi. Bu amalni bekor qilib bo'lmaydi.
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
                 <button type="button" class="btn btn-danger" id="confirmDeleteUser">
                     <i class="las la-trash"></i>
-                    Delete User
+                    Foydalanuvchini o'chirish
                 </button>
             </div>
         </div>
@@ -914,34 +914,34 @@
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="bulkApproveModalLabel">
                     <i class="las la-check-circle"></i>
-                    Bulk Approve Users
+                    Foydalanuvchilarni ommaviy tasdiqlash
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Yopish"></button>
             </div>
             <div class="modal-body">
                 <div class="selected-users-section mb-3">
-                    <h6 class="text-muted mb-2">Selected Users (<span id="bulkApproveCount">0</span>)</h6>
+                    <h6 class="text-muted mb-2">Tanlangan foydalanuvchilar (<span id="bulkApproveCount">0</span>)</h6>
                     <div id="bulkApproveUsersList" class="selected-users-list">
                         <!-- Selected users will be populated here -->
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="bulkApproveNotes" class="form-label">Notes (Optional)</label>
+                    <label for="bulkApproveNotes" class="form-label">Eslatmalar (Ixtiyoriy)</label>
                     <textarea class="form-control" id="bulkApproveNotes" rows="3" 
-                              placeholder="Add any notes about this bulk approval..."></textarea>
+                              placeholder="Bu ommaviy tasdiqlash haqida qandaydir eslatmalar qo'shing..."></textarea>
                 </div>
                 
                 <div class="alert alert-info mt-3">
                     <i class="las la-info-circle"></i>
-                    <strong>Action:</strong> This will approve all selected user accounts and grant them access to the platform.
+                    <strong>Amal:</strong> Bu barcha tanlangan foydalanuvchi hisoblarini tasdiqlaydi va ularga platformaga kirish imkonini beradi.
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
                 <button type="button" class="btn btn-success" id="confirmBulkApprove">
                     <i class="las la-check"></i>
-                    Approve All Users
+                    Barcha foydalanuvchilarni tasdiqlash
                 </button>
             </div>
         </div>
@@ -955,35 +955,35 @@
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="bulkBlockModalLabel">
                     <i class="las la-ban"></i>
-                    Bulk Block Users
+                    Foydalanuvchilarni ommaviy bloklash
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Yopish"></button>
             </div>
             <div class="modal-body">
                 <div class="selected-users-section mb-3">
-                    <h6 class="text-muted mb-2">Selected Users (<span id="bulkBlockCount">0</span>)</h6>
+                    <h6 class="text-muted mb-2">Tanlangan foydalanuvchilar (<span id="bulkBlockCount">0</span>)</h6>
                     <div id="bulkBlockUsersList" class="selected-users-list">
                         <!-- Selected users will be populated here -->
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="bulkBlockReason" class="form-label">Reason for Blocking <span class="text-danger">*</span></label>
+                    <label for="bulkBlockReason" class="form-label">Bloklash sababi <span class="text-danger">*</span></label>
                     <textarea class="form-control" id="bulkBlockReason" rows="3" required
-                              placeholder="Please provide a detailed reason for blocking these users..."></textarea>
-                    <div class="form-text">Minimum 10 characters required</div>
+                              placeholder="Bu foydalanuvchilarni bloklash uchun batafsil sabab kiriting..."></textarea>
+                    <div class="form-text">Kamida 10 ta belgi talab qilinadi</div>
                 </div>
                 
                 <div class="alert alert-warning mt-3">
                     <i class="las la-exclamation-triangle"></i>
-                    <strong>Warning:</strong> This will block all selected users from accessing the platform. They will be notified via email.
+                    <strong>Ogohlantirish:</strong> Bu barcha tanlangan foydalanuvchilarni platformaga kirishdan bloklaydi. Ular email orqali xabardor qilinadi.
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
                 <button type="button" class="btn btn-danger" id="confirmBulkBlock">
                     <i class="las la-ban"></i>
-                    Block All Users
+                    Barcha foydalanuvchilarni bloklash
                 </button>
             </div>
         </div>
@@ -997,13 +997,13 @@
             <div class="modal-header bg-warning text-dark">
                 <h5 class="modal-title" id="bulkSuspendModalLabel">
                     <i class="las la-pause-circle"></i>
-                    Bulk Suspend Users
+                    Foydalanuvchilarni ommaviy to'xtatish
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
             </div>
             <div class="modal-body">
                 <div class="selected-users-section mb-3">
-                    <h6 class="text-muted mb-2">Selected Users (<span id="bulkSuspendCount">0</span>)</h6>
+                    <h6 class="text-muted mb-2">Tanlangan foydalanuvchilar (<span id="bulkSuspendCount">0</span>)</h6>
                     <div id="bulkSuspendUsersList" class="selected-users-list">
                         <!-- Selected users will be populated here -->
                     </div>
@@ -1012,37 +1012,37 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="bulkSuspendDuration" class="form-label">Suspension Duration</label>
+                            <label for="bulkSuspendDuration" class="form-label">To'xtatish muddati</label>
                             <select class="form-select" id="bulkSuspendDuration">
-                                <option value="7">7 Days</option>
-                                <option value="14">14 Days</option>
-                                <option value="30" selected>30 Days</option>
-                                <option value="60">60 Days</option>
-                                <option value="90">90 Days</option>
-                                <option value="permanent">Permanent</option>
+                                <option value="7">7 kun</option>
+                                <option value="14">14 kun</option>
+                                <option value="30" selected>30 kun</option>
+                                <option value="60">60 kun</option>
+                                <option value="90">90 kun</option>
+                                <option value="permanent">Doimiy</option>
                             </select>
                         </div>
                     </div>
                     <div class="col-md-12 mt-3">
                         <div class="form-group">
-                            <label for="bulkSuspendReason" class="form-label">Reason for Suspension <span class="text-danger">*</span></label>
+                            <label for="bulkSuspendReason" class="form-label">To'xtatish sababi <span class="text-danger">*</span></label>
                             <textarea class="form-control" id="bulkSuspendReason" rows="3" required
-                                      placeholder="Please provide a detailed reason for suspending these users..."></textarea>
-                            <div class="form-text">Minimum 10 characters required</div>
+                                      placeholder="Bu foydalanuvchilarni to'xtatish uchun batafsil sabab kiriting..."></textarea>
+                            <div class="form-text">Kamida 10 ta belgi talab qilinadi</div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="alert alert-warning mt-3">
                     <i class="las la-clock"></i>
-                    <strong>Action:</strong> This will temporarily suspend all selected user accounts. They will be notified and can appeal the decision.
+                    <strong>Amal:</strong> Bu barcha tanlangan foydalanuvchi hisoblarini vaqtincha to'xtatadi. Ular xabardor qilinadi va qarorni shikoyat qilishlari mumkin.
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
                 <button type="button" class="btn btn-warning" id="confirmBulkSuspend">
                     <i class="las la-pause"></i>
-                    Suspend All Users
+                    Barcha foydalanuvchilarni to'xtatish
                 </button>
             </div>
         </div>

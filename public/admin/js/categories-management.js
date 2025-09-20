@@ -22,8 +22,6 @@ class CategoriesManagement {
         this.totalItems = 0;
         this.filters = {
             status: '',
-            level: '',
-            parentCategory: '',
             search: '',
             featured: '',
             productCount: '',
@@ -41,7 +39,6 @@ class CategoriesManagement {
         this.endpoints = {
             categories: '/admin/api/categories',
             statistics: '/admin/api/categories/statistics',
-            hierarchy: '/admin/api/categories/hierarchy',
             bulk: '/admin/api/categories/bulk',
             export: '/admin/api/categories/export',
             analytics: '/admin/api/categories/{id}/analytics'
@@ -112,7 +109,7 @@ class CategoriesManagement {
             
         } catch (error) {
             console.error('❌ Error initializing Categories Management:', error);
-            this.showError('Failed to initialize categories management system');
+            this.showError('Kategoriyalar boshqaruvi tizimini ishga tushirishda xatolik');
         }
     }
 
@@ -199,34 +196,7 @@ class CategoriesManagement {
     /**
      * Load parent categories for filter dropdown
      */
-    async loadParentCategories() {
-        try {
-            const response = await this.makeRequest(`${this.endpoints.hierarchy}?language=en`);
-            if (response.success && this.parentCategoryFilter) {
-                this.populateParentCategoryFilter(response.data);
-            }
-        } catch (error) {
-            console.error('Error loading parent categories:', error);
-        }
-    }
 
-    /**
-     * Populate parent category filter dropdown
-     */
-    populateParentCategoryFilter(hierarchy, level = 0) {
-        if (!this.parentCategoryFilter) return;
-
-        hierarchy.forEach(category => {
-            const option = document.createElement('option');
-            option.value = category._id;
-            option.textContent = '  '.repeat(level) + category.name;
-            this.parentCategoryFilter.appendChild(option);
-
-            if (category.children && category.children.length > 0) {
-                this.populateParentCategoryFilter(category.children, level + 1);
-            }
-        });
-    }
 
     /**
      * Load initial data
@@ -262,11 +232,11 @@ class CategoriesManagement {
                 this.renderCategories();
                 this.updateResultsCount();
             } else {
-                throw new Error(response.error || 'Failed to load categories');
+                throw new Error(response.error || 'Kategoriyalarni yuklashda xatolik');
             }
         } catch (error) {
             console.error('Error loading categories:', error);
-            this.showError('Failed to load categories');
+            this.showError('Kategoriyalarni yuklashda xatolik');
             this.renderEmptyState();
         } finally {
             this.isLoading = false;
@@ -391,11 +361,11 @@ class CategoriesManagement {
                             <div class="category-name-container">
                                 <h4 class="category-name">${this.escapeHtml(category.name || 'N/A')}</h4>
                                 <div class="category-badges">
-                                    ${category.settings?.isFeatured ? '<span class="badge badge-featured"><i class="las la-star"></i>Featured</span>' : ''}
-                                    ${category.status === 'active' ? '<span class="badge badge-success">Active</span>' : 
-                                      category.status === 'inactive' ? '<span class="badge badge-warning">Inactive</span>' : 
-                                      category.status === 'draft' ? '<span class="badge badge-secondary">Draft</span>' : 
-                                      '<span class="badge badge-danger">Archived</span>'}
+                                    ${category.settings?.isFeatured ? '<span class="badge badge-featured"><i class="las la-star"></i>Taniqli</span>' : ''}
+                                    ${category.status === 'active' ? '<span class="badge badge-success">Faol</span>' : 
+                                      category.status === 'inactive' ? '<span class="badge badge-warning">Nofaol</span>' : 
+                                      category.status === 'draft' ? '<span class="badge badge-secondary">Loyiha</span>' : 
+                                      '<span class="badge badge-danger">Arxivlangan</span>'}
                                 </div>
                             </div>
                             <p class="category-description">${this.escapeHtml(category.shortDescription || category.description || '').substring(0, 100)}${(category.description?.length > 100) ? '...' : ''}</p>
@@ -407,28 +377,10 @@ class CategoriesManagement {
                                 ${category.parentCategoryName ? `
                                     <span class="meta-item">
                                         <i class="las la-sitemap"></i>
-                                        Parent: ${category.parentCategoryName}
+                                        Ota: ${category.parentCategoryName}
                                     </span>
                                 ` : ''}
                             </div>
-                        </div>
-                    </div>
-                </td>
-                <td class="td-hierarchy">
-                    <div class="hierarchy-info">
-                        <div class="level-indicator">
-                            <span class="level-badge level-${category.level}">
-                                Level ${category.level}
-                            </span>
-                        </div>
-                        <div class="hierarchy-path">
-                            ${category.path ? this.escapeHtml(category.path) : 'Root'}
-                        </div>
-                        <div class="hierarchy-stats">
-                            <span class="stat-item">
-                                <i class="las la-layer-group"></i>
-                                ${category.level === 0 ? 'Root Category' : `Child of Level ${category.level - 1}`}
-                            </span>
                         </div>
                     </div>
                 </td>
@@ -437,11 +389,11 @@ class CategoriesManagement {
                         <div class="product-counts">
                             <div class="count-item primary">
                                 <span class="count-value">${category.productStats?.total || 0}</span>
-                                <span class="count-label">Total Products</span>
+                                <span class="count-label">Jami mahsulotlar</span>
                             </div>
                             <div class="count-item success">
                                 <span class="count-value">${category.productStats?.active || 0}</span>
-                                <span class="count-label">Active</span>
+                                <span class="count-label">Faol</span>
                             </div>
                         </div>
                         <div class="analytics-chart">
@@ -449,7 +401,7 @@ class CategoriesManagement {
                                 <div class="progress-bar" style="width: ${category.productStats?.total > 0 ? (category.productStats.active / category.productStats.total * 100) : 0}%"></div>
                             </div>
                             <span class="progress-label">
-                                ${category.productStats?.total > 0 ? Math.round(category.productStats.active / category.productStats.total * 100) : 0}% Active
+                                ${category.productStats?.total > 0 ? Math.round(category.productStats.active / category.productStats.total * 100) : 0}% Faol
                             </span>
                         </div>
                     </div>
@@ -458,16 +410,16 @@ class CategoriesManagement {
                     <div class="business-metrics">
                         <div class="revenue-info">
                             <span class="revenue-value">$${(category.productStats?.revenue || 0).toLocaleString()}</span>
-                            <span class="revenue-label">Total Revenue</span>
+                            <span class="revenue-label">Jami daromad</span>
                         </div>
                         <div class="business-stats">
                             <div class="stat-row">
                                 <i class="las la-chart-line text-success"></i>
-                                <span>Growth: +${category.metrics?.monthlyGrowth || 0}%</span>
+                                <span>O'sish: +${category.metrics?.monthlyGrowth || 0}%</span>
                             </div>
                             <div class="stat-row">
                                 <i class="las la-star text-warning"></i>
-                                <span>Score: ${category.metrics?.popularityScore || 0}/100</span>
+                                <span>Ball: ${category.metrics?.popularityScore || 0}/100</span>
                             </div>
                         </div>
                     </div>
@@ -481,11 +433,11 @@ class CategoriesManagement {
                         <div class="status-details">
                             <span class="detail-item ${category.settings?.isActive ? 'text-success' : 'text-muted'}">
                                 <i class="las ${category.settings?.isActive ? 'la-check-circle' : 'la-times-circle'}"></i>
-                                ${category.settings?.isActive ? 'Active' : 'Inactive'}
+                                ${category.settings?.isActive ? 'Faol' : 'Nofaol'}
                             </span>
                             <span class="detail-item ${category.settings?.isVisible ? 'text-info' : 'text-muted'}">
                                 <i class="las ${category.settings?.isVisible ? 'la-eye' : 'la-eye-slash'}"></i>
-                                ${category.settings?.isVisible ? 'Visible' : 'Hidden'}
+                                ${category.settings?.isVisible ? 'Ko\'rinadi' : 'Yashirin'}
                             </span>
                         </div>
                     </div>
@@ -499,7 +451,7 @@ class CategoriesManagement {
                         <div class="date-details">
                             <span class="detail-item">
                                 <i class="las la-user"></i>
-                                ${category.creatorName || 'Unknown'}
+                                ${category.creatorName || 'Noma\'lum'}
                             </span>
                             <span class="detail-item">
                                 <i class="las la-clock"></i>
@@ -510,36 +462,36 @@ class CategoriesManagement {
                 </td>
                 <td class="td-actions">
                     <div class="action-buttons">
-                        <button class="btn-action btn-view" onclick="window.categoriesManager.viewCategory('${category._id}')" title="View Details">
+                        <button class="btn-action btn-view" onclick="window.categoriesManager.viewCategory('${category._id}')" title="Tafsilotlarni ko'rish">
                             <i class="las la-eye"></i>
                         </button>
-                        <button class="btn-action btn-edit" onclick="window.categoriesManager.editCategory('${category._id}')" title="Edit Category">
+                        <button class="btn-action btn-edit" onclick="window.categoriesManager.editCategory('${category._id}')" title="Kategoriyani tahrirlash">
                             <i class="las la-edit"></i>
                         </button>
-                        <button class="btn-action btn-analytics" onclick="window.categoriesManager.viewAnalytics('${category._id}')" title="View Analytics">
+                        <button class="btn-action btn-analytics" onclick="window.categoriesManager.viewAnalytics('${category._id}')" title="Analitikani ko'rish">
                             <i class="las la-chart-bar"></i>
                         </button>
                         <div class="category-dropdown" data-category-id="${category._id}">
-                            <button class="btn-action btn-more" data-dropdown-trigger="${category._id}" title="More Actions">
+                            <button class="btn-action btn-more" data-dropdown-trigger="${category._id}" title="Ko'proq amallar">
                                 <i class="las la-ellipsis-v"></i>
                             </button>
                             <ul class="category-dropdown-menu" data-dropdown-menu="${category._id}">
                                 <li><a class="dropdown-item" href="#" data-action="toggle-status" data-category-id="${category._id}">
                                     <i class="las ${category.settings?.isActive ? 'la-pause' : 'la-play'}"></i>
-                                    ${category.settings?.isActive ? 'Deactivate' : 'Activate'}
+                                    ${category.settings?.isActive ? 'Deaktivlashtirish' : 'Faollashtirish'}
                                 </a></li>
                                 <li><a class="dropdown-item" href="#" data-action="toggle-feature" data-category-id="${category._id}">
                                     <i class="las ${category.settings?.isFeatured ? 'la-star-o' : 'la-star'}"></i>
-                                    ${category.settings?.isFeatured ? 'Unfeature' : 'Feature'}
+                                    ${category.settings?.isFeatured ? 'Taniqli qilmaslik' : 'Taniqli qilish'}
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="#" data-action="duplicate" data-category-id="${category._id}">
                                     <i class="las la-copy"></i>
-                                    Duplicate
+                                    Nusxalash
                                 </a></li>
                                 <li><a class="dropdown-item text-danger" href="#" data-action="archive" data-category-id="${category._id}">
                                     <i class="las la-archive"></i>
-                                    Archive
+                                    Arxivlash
                                 </a></li>
                             </ul>
                         </div>
@@ -581,7 +533,7 @@ class CategoriesManagement {
                         <div class="category-title">
                             <h4 class="category-name">${this.escapeHtml(category.name || 'N/A')}</h4>
                             <div class="category-badges">
-                                ${category.settings?.isFeatured ? '<span class="badge badge-featured"><i class="las la-star"></i>Featured</span>' : ''}
+                                ${category.settings?.isFeatured ? '<span class="badge badge-featured"><i class="las la-star"></i>Taniqli</span>' : ''}
                             </div>
                         </div>
                     </div>
@@ -591,11 +543,11 @@ class CategoriesManagement {
                     <div class="category-stats">
                         <div class="stat-item">
                             <i class="las la-layer-group"></i>
-                            <span>Level ${category.level}</span>
+                            <span>Daraja ${category.level}</span>
                         </div>
                         <div class="stat-item">
                             <i class="las la-boxes"></i>
-                            <span>${category.productStats?.total || 0} Products</span>
+                            <span>${category.productStats?.total || 0} Mahsulot</span>
                         </div>
                         <div class="stat-item">
                             <i class="las la-dollar-sign"></i>
@@ -610,7 +562,7 @@ class CategoriesManagement {
                         </span>
                         <span class="meta-creator">
                             <i class="las la-user"></i>
-                            ${category.creatorName || 'Unknown'}
+                            ${category.creatorName || 'Noma\'lum'}
                         </span>
                     </div>
                 </div>
@@ -761,8 +713,6 @@ class CategoriesManagement {
     clearAllFilters() {
         this.filters = {
             status: '',
-            level: '',
-            parentCategory: '',
             search: '',
             featured: '',
             productCount: '',
@@ -916,24 +866,28 @@ class CategoriesManagement {
      */
     async viewCategory(categoryId) {
         // Implementation for viewing category details
-        this.showNotification('Category details view - To be implemented', 'info');
+        this.showNotification('Kategoriya tafsilotlari ko\'rinishi - amalga oshirilishi kerak', 'info');
     }
 
     async editCategory(categoryId) {
-        // Implementation for editing category
-        this.showNotification('Category edit modal - To be implemented', 'info');
+        try {
+            await this.showEditModal(categoryId);
+        } catch (error) {
+            console.error('Error opening edit modal:', error);
+            this.showError('Kategoriya tahrirlash modali ochishda xatolik');
+        }
     }
 
     async viewAnalytics(categoryId) {
         try {
             const response = await this.makeRequest(this.endpoints.analytics.replace('{id}', categoryId));
             if (response.success) {
-                this.showNotification('Category analytics loaded successfully', 'success');
+                this.showNotification('Kategoriya analitikasi muvaffaqiyatli yuklandi', 'success');
                 // Implementation for showing analytics modal/page
             }
         } catch (error) {
             console.error('Error loading analytics:', error);
-            this.showError('Failed to load category analytics');
+            this.showError('Kategoriya analitikasini yuklashda xatolik');
         }
     }
 
@@ -954,13 +908,13 @@ class CategoriesManagement {
             });
 
             if (response.success) {
-                this.showNotification(`Category ${action}d successfully`, 'success');
+                this.showNotification(`Kategoriya muvaffaqiyatli ${action} qilindi`, 'success');
                 await this.loadCategories();
                 await this.loadStatistics();
             }
         } catch (error) {
             console.error('Error toggling category status:', error);
-            this.showError('Failed to update category status');
+            this.showError('Kategoriya holatini yangilashda xatolik');
         }
     }
 
@@ -981,22 +935,22 @@ class CategoriesManagement {
             });
 
             if (response.success) {
-                this.showNotification(`Category ${action}d successfully`, 'success');
+                this.showNotification(`Kategoriya muvaffaqiyatli ${action} qilindi`, 'success');
                 await this.loadCategories();
                 await this.loadStatistics();
             }
         } catch (error) {
             console.error('Error toggling feature status:', error);
-            this.showError('Failed to update feature status');
+            this.showError('Taniqli holatini yangilashda xatolik');
         }
     }
 
     async duplicateCategory(categoryId) {
-        this.showNotification('Category duplication - To be implemented', 'info');
+        this.showNotification('Kategoriya nusxalash - amalga oshirilishi kerak', 'info');
     }
 
     async archiveCategory(categoryId) {
-        if (!confirm('Are you sure you want to archive this category?')) return;
+        if (!confirm('Bu kategoriyani arxivlashni xohlaysizmi?')) return;
 
         try {
             const response = await this.makeRequest(`${this.endpoints.bulk}`, {
@@ -1004,18 +958,18 @@ class CategoriesManagement {
                 body: JSON.stringify({
                     categoryIds: [categoryId],
                     action: 'archive',
-                    reason: 'Category archived by admin'
+                    reason: 'Kategoriya admin tomonidan arxivlandi'
                 })
             });
 
             if (response.success) {
-                this.showNotification('Category archived successfully', 'success');
+                this.showNotification('Kategoriya muvaffaqiyatli arxivlandi', 'success');
                 await this.loadCategories();
                 await this.loadStatistics();
             }
         } catch (error) {
             console.error('Error archiving category:', error);
-            this.showError('Failed to archive category');
+            this.showError('Kategoriyani arxivlashda xatolik');
         }
     }
 
@@ -1025,11 +979,11 @@ class CategoriesManagement {
     async bulkAction(action) {
         const selectedIds = Array.from(this.selectedCategories);
         if (selectedIds.length === 0) {
-            this.showError('Please select categories first');
+            this.showError('Avval kategoriyalarni tanlang');
             return;
         }
 
-        const confirmMessage = `Are you sure you want to ${action} ${selectedIds.length} selected categories?`;
+        const confirmMessage = `${selectedIds.length} ta tanlangan kategoriyani ${action} qilishni xohlaysizmi?`;
         if (!confirm(confirmMessage)) return;
 
         try {
@@ -1043,7 +997,7 @@ class CategoriesManagement {
             });
 
             if (response.success) {
-                this.showNotification(`${selectedIds.length} categories ${action}d successfully`, 'success');
+                this.showNotification(`${selectedIds.length} ta kategoriya muvaffaqiyatli ${action} qilindi`, 'success');
                 this.selectedCategories.clear();
                 this.updateBulkActionsVisibility();
                 await this.loadCategories();
@@ -1051,7 +1005,7 @@ class CategoriesManagement {
             }
         } catch (error) {
             console.error(`Error in bulk ${action}:`, error);
-            this.showError(`Failed to ${action} selected categories`);
+            this.showError(`Tanlangan kategoriyalarni ${action} qilishda xatolik`);
         }
     }
 
@@ -1072,10 +1026,10 @@ class CategoriesManagement {
             });
 
             window.open(url, '_blank');
-            this.showNotification('Export started successfully', 'success');
+            this.showNotification('Eksport muvaffaqiyatli boshlandi', 'success');
         } catch (error) {
             console.error('Error in bulk export:', error);
-            this.showError('Failed to export categories');
+            this.showError('Kategoriyalarni eksport qilishda xatolik');
         }
     }
 
@@ -1083,11 +1037,7 @@ class CategoriesManagement {
      * Modal operations
      */
     async showCreateModal() {
-        
         try {
-            // Load parent categories for dropdown
-            await this.loadParentCategoriesForModal();
-            
             // Create and show modal
             const modal = this.createCategoryModal();
             document.body.appendChild(modal);
@@ -1105,25 +1055,57 @@ class CategoriesManagement {
             
         } catch (error) {
             console.error('❌ Error opening create modal:', error);
-            this.showError('Failed to open create category modal');
+            this.showError('Kategoriya yaratish modali ochishda xatolik');
         }
     }
 
     /**
-     * Load parent categories for modal dropdown
+     * Show edit category modal
      */
-    async loadParentCategoriesForModal() {
+    async showEditModal(categoryId) {
         try {
-            const response = await fetch(`${this.endpoints.categories}?status=active&level=lt:3&pageSize=100`);
-            if (!response.ok) throw new Error('Failed to load parent categories');
+            // Load category data
+            const categoryData = await this.loadCategoryData(categoryId);
             
-            const result = await response.json();
-            this.parentCategories = result.data?.categories || [];
+            // Create and show modal with category data
+            const modal = this.createCategoryModal(categoryData);
+            document.body.appendChild(modal);
+            
+            // Initialize modal functionality
+            this.initializeModalFeatures(modal);
+            
+            // Apply current theme to modal
+            this.updateModalTheme();
+            
+            // Show modal with animation
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+            
         } catch (error) {
-            console.error('Error loading parent categories:', error);
-            this.parentCategories = [];
+            console.error('❌ Error opening edit modal:', error);
+            this.showError('Kategoriya tahrirlash modali ochishda xatolik');
         }
     }
+
+    /**
+     * Load category data for editing
+     */
+    async loadCategoryData(categoryId) {
+        try {
+            const response = await fetch(`${this.endpoints.categories}/${categoryId}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            return result.data || result;
+        } catch (error) {
+            console.error('Error loading category data:', error);
+            throw error;
+        }
+    }
+
 
     /**
      * Create PROFESSIONAL category modal - Senior Engineer Level
@@ -1134,44 +1116,445 @@ class CategoriesManagement {
      * - Real-time validation and feedback
      * - Responsive design patterns
      * - Progressive disclosure UX
+     * - Scrollable content with proper overflow handling
      */
-    createCategoryModal() {
+    createCategoryModal(categoryData = null) {
         const modal = document.createElement('div');
         modal.className = 'professional-modal-overlay';
         modal.setAttribute('role', 'dialog');
         modal.setAttribute('aria-labelledby', 'modalTitle');
         modal.setAttribute('aria-modal', 'true');
+        modal.onclick = (event) => {
+            if (event.target === modal) {
+                modal.remove();
+            }
+        };
         
-        modal.innerHTML = this.generateProfessionalModalHTML();
+        // Add CSS styles for scrollable modal
+        this.addModalStyles();
+        
+        modal.innerHTML = this.generateProfessionalModalHTML(categoryData);
         return modal;
+    }
+
+    /**
+     * Add professional modal styles with scroll functionality
+     */
+    addModalStyles() {
+        if (document.getElementById('categoryModalStyles')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'categoryModalStyles';
+        style.textContent = `
+            .professional-modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.6);
+                backdrop-filter: blur(8px);
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                cursor: pointer;
+            }
+            
+            .professional-modal-overlay .professional-modal {
+                cursor: default;
+            }
+            
+            .professional-modal-overlay.show {
+                opacity: 1;
+                visibility: visible;
+            }
+            
+            .professional-modal {
+                background: var(--bg-card, #ffffff);
+                border-radius: 16px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                width: 90%;
+                max-width: 900px;
+                max-height: 90vh;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                transform: scale(0.9) translateY(20px);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .professional-modal-overlay.show .professional-modal {
+                transform: scale(1) translateY(0);
+            }
+            
+            .modal-header {
+                padding: 24px 32px;
+                border-bottom: 1px solid var(--border-color, #e5e7eb);
+                flex-shrink: 0;
+                background: var(--bg-primary, #ffffff);
+            }
+            
+            .modal-progress-bar {
+                padding: 16px 32px;
+                border-bottom: 1px solid var(--border-color, #e5e7eb);
+                flex-shrink: 0;
+                background: var(--bg-secondary, #f9fafb);
+            }
+            
+            .modal-content-container {
+                flex: 1;
+                overflow-y: auto;
+                overflow-x: hidden;
+                padding: 0;
+                max-height: calc(90vh - 200px);
+                scrollbar-width: thin;
+                scrollbar-color: var(--color-primary, #3b82f6) transparent;
+            }
+            
+            .modal-content-container::-webkit-scrollbar {
+                width: 6px;
+            }
+            
+            .modal-content-container::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .modal-content-container::-webkit-scrollbar-thumb {
+                background: var(--color-primary, #3b82f6);
+                border-radius: 3px;
+            }
+            
+            .modal-content-container::-webkit-scrollbar-thumb:hover {
+                background: var(--color-primary-dark, #2563eb);
+            }
+            
+            .form-content {
+                padding: 32px;
+            }
+            
+            .form-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 24px;
+            }
+            
+            .professional-input.error,
+            .professional-textarea.error {
+                border-color: var(--color-danger, #ef4444);
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+            }
+            
+            .input-feedback.error {
+                color: var(--color-danger, #ef4444);
+                font-size: 12px;
+                margin-top: 4px;
+            }
+            
+            /* Form Styles */
+            .form-fields {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+            
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .form-label {
+                font-weight: 600;
+                color: var(--text-primary, #1f2937);
+                font-size: 14px;
+            }
+            
+            .form-label.required::after {
+                content: ' *';
+                color: var(--color-danger, #ef4444);
+            }
+            
+            .form-input,
+            .form-select,
+            .form-textarea {
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid var(--border-color, #e5e7eb);
+                border-radius: 8px;
+                font-size: 14px;
+                transition: all 0.2s ease;
+                background: var(--bg-input, #ffffff);
+            }
+            
+            .form-input:focus,
+            .form-select:focus,
+            .form-textarea:focus {
+                outline: none;
+                border-color: var(--color-primary, #3b82f6);
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+            
+            .form-input.error,
+            .form-textarea.error {
+                border-color: var(--color-danger, #ef4444);
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+            }
+            
+            .field-help {
+                font-size: 12px;
+                color: var(--text-secondary, #6b7280);
+                margin-top: 4px;
+            }
+            
+            /* Color Picker */
+            .color-input-group {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            
+            .color-picker {
+                width: 50px;
+                height: 40px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+            
+            /* Toggle Switches */
+            .toggle-group {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .toggle-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            
+            .toggle-label {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                cursor: pointer;
+                width: 100%;
+            }
+            
+            .toggle-input {
+                display: none;
+            }
+            
+            .toggle-slider {
+                width: 44px;
+                height: 24px;
+                background: var(--border-color, #e5e7eb);
+                border-radius: 12px;
+                position: relative;
+                transition: all 0.2s ease;
+            }
+            
+            .toggle-slider::before {
+                content: '';
+                position: absolute;
+                width: 20px;
+                height: 20px;
+                background: white;
+                border-radius: 50%;
+                top: 2px;
+                left: 2px;
+                transition: all 0.2s ease;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            
+            .toggle-input:checked + .toggle-slider {
+                background: var(--color-primary, #3b82f6);
+            }
+            
+            .toggle-input:checked + .toggle-slider::before {
+                transform: translateX(20px);
+            }
+            
+            .toggle-text {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+            
+            .toggle-text strong {
+                font-size: 14px;
+                color: var(--text-primary, #1f2937);
+            }
+            
+            .toggle-text small {
+                font-size: 12px;
+                color: var(--text-secondary, #6b7280);
+            }
+            
+            /* Button Styles */
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                text-decoration: none;
+            }
+            
+            .btn-primary {
+                background: var(--color-primary, #3b82f6);
+                color: white;
+            }
+            
+            .btn-primary:hover {
+                background: var(--color-primary-dark, #2563eb);
+                transform: translateY(-1px);
+            }
+            
+            .btn-secondary {
+                background: var(--bg-secondary, #f9fafb);
+                color: var(--text-primary, #1f2937);
+                border: 1px solid var(--border-color, #e5e7eb);
+            }
+            
+            .btn-secondary:hover {
+                background: var(--border-color, #e5e7eb);
+            }
+            
+            /* Modal Close Buttons */
+            .modal-close {
+                background: none;
+                border: none;
+                color: var(--text-secondary, #6b7280);
+                cursor: pointer;
+                padding: 8px;
+                border-radius: 6px;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 32px;
+            }
+            
+            .modal-close:hover {
+                background: var(--color-danger-light, #fef2f2);
+                color: var(--color-danger, #ef4444);
+                transform: scale(1.1);
+            }
+            
+            .modal-minimize {
+                background: none;
+                border: none;
+                color: var(--text-secondary, #6b7280);
+                cursor: pointer;
+                padding: 8px;
+                border-radius: 6px;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 32px;
+                margin-right: 8px;
+            }
+            
+            .modal-minimize:hover {
+                background: var(--color-warning-light, #fffbeb);
+                color: var(--color-warning, #f59e0b);
+                transform: scale(1.1);
+            }
+            
+            .btn-loading {
+                display: none;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .btn-spinner {
+                width: 16px;
+                height: 16px;
+                border: 2px solid transparent;
+                border-top: 2px solid currentColor;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            
+            .modal-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 24px 32px;
+                border-top: 1px solid var(--border-color, #e5e7eb);
+                background: var(--bg-primary, #ffffff);
+            }
+            
+            .modal-footer {
+                padding: 24px 32px;
+                border-top: 1px solid var(--border-color, #e5e7eb);
+                flex-shrink: 0;
+                background: var(--bg-primary, #ffffff);
+            }
+            
+            @media (max-width: 768px) {
+                .professional-modal {
+                    width: 95%;
+                    max-height: 95vh;
+                    margin: 16px;
+                }
+                
+                .modal-content-container {
+                    max-height: calc(95vh - 180px);
+                }
+                
+                .form-step {
+                    padding: 24px 20px;
+                }
+                
+                .modal-header,
+                .modal-footer {
+                    padding: 20px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     /**
      * Generate comprehensive professional modal HTML
      */
-    generateProfessionalModalHTML() {
+    generateProfessionalModalHTML(categoryData = null) {
+        const isEditMode = categoryData !== null;
+        const modalType = isEditMode ? 'category-edit' : 'category-create';
+        const title = isEditMode ? 'Kategoriyani tahrirlash' : 'Yangi kategoriya yaratish';
+        const subtitle = isEditMode ? 'Mavjud kategoriya ma\'lumotlarini yangilang' : 'Marketplaceingiz uchun to\'liq kategoriya tuzilmasini yarating';
+        
         return `
-            <div class="professional-modal" data-modal-type="category-create">
-                ${this.generateModalHeader()}
+            <div class="professional-modal" data-modal-type="${modalType}" data-category-id="${categoryData?.id || ''}">
+                ${this.generateModalHeader(title, subtitle)}
                 
-                <div class="modal-progress-bar">
-                    <div class="progress-track">
-                        <div class="progress-fill" data-progress="0"></div>
-                    </div>
-                    <div class="progress-steps">
-                        <div class="step active" data-step="1">Basic</div>
-                        <div class="step" data-step="2">Design</div>
-                        <div class="step" data-step="3">Settings</div>
-                        <div class="step" data-step="4">Review</div>
-                    </div>
-                </div>
 
-                <form class="professional-form" id="createCategoryForm" novalidate>
+                <form class="professional-form" id="${isEditMode ? 'editCategoryForm' : 'createCategoryForm'}" novalidate>
                     <div class="modal-content-container">
-                        ${this.generateFormSteps()}
+                        ${this.generateFormSteps(categoryData)}
                     </div>
                     
-                    ${this.generateModalFooter()}
+                    ${this.generateModalFooter(isEditMode)}
                 </form>
                 
                 <!-- Professional Loading Overlay -->
@@ -1181,7 +1564,7 @@ class CategoriesManagement {
                         <div class="spinner-ring"></div>
                         <div class="spinner-ring"></div>
                     </div>
-                    <div class="loading-text">Processing your request...</div>
+                    <div class="loading-text">So'rovingiz qayta ishlanmoqda...</div>
                 </div>
             </div>
         `;
@@ -1190,26 +1573,23 @@ class CategoriesManagement {
     /**
      * Generate professional modal header
      */
-    generateModalHeader() {
+    generateModalHeader(title = 'Yangi kategoriya yaratish', subtitle = 'Marketplaceingiz uchun to\'liq kategoriya tuzilmasini yarating') {
         return `
             <div class="modal-header professional-header">
                 <div class="header-content">
                     <div class="header-icon-wrapper">
                         <div class="header-icon">
-                            <i class="las la-plus-circle"></i>
+                            <i class="las la-${title.includes('tahrirlash') ? 'edit' : 'plus-circle'}"></i>
                         </div>
                         <div class="icon-pulse"></div>
                     </div>
                     <div class="header-text">
-                        <h2 class="modal-title" id="modalTitle">Create New Category</h2>
-                        <p class="modal-subtitle">Build a comprehensive category structure for your marketplace</p>
+                        <h2 class="modal-title" id="modalTitle">${title}</h2>
+                        <p class="modal-subtitle">${subtitle}</p>
                     </div>
                 </div>
                 <div class="header-actions">
-                    <button type="button" class="modal-minimize" title="Minimize" aria-label="Minimize modal">
-                        <i class="las la-minus"></i>
-                    </button>
-                    <button type="button" class="modal-close" title="Close" aria-label="Close modal">
+                    <button type="button" class="modal-close" title="Yopish" aria-label="Modali yopish">
                         <i class="las la-times"></i>
                     </button>
                 </div>
@@ -1220,402 +1600,115 @@ class CategoriesManagement {
     /**
      * Generate multi-step form with professional UX
      */
-    generateFormSteps() {
+    generateFormSteps(categoryData = null) {
         return `
-            <!-- Step 1: Basic Information -->
-            <div class="form-step active" data-step="1">
-                <div class="step-header">
-                    <h3 class="step-title">
-                        <i class="las la-info-circle"></i>
-                        Basic Information
-                    </h3>
-                    <p class="step-description">Essential details about your category</p>
-                </div>
-                
-                <div class="professional-form-grid">
-                    <div class="form-group-enhanced required">
-                        <label for="categoryName" class="professional-label">
-                            <span class="label-text">Category Name</span>
-                            <span class="label-required">*</span>
+            <div class="form-content">
+                <div class="form-fields">
+                    <div class="form-group">
+                        <label for="categoryName" class="form-label required">
+                            Kategoriya nomi
                         </label>
-                        <div class="input-wrapper">
-                            <input type="text" id="categoryName" name="name" class="professional-input" 
-                                   placeholder="e.g., Electronics, Food & Beverages" 
-                                   autocomplete="off" spellcheck="true" required
-                                   data-validation="required|min:2|max:100">
-                            <div class="input-icon">
-                                <i class="las la-tag"></i>
-                            </div>
-                            <div class="input-feedback"></div>
-                        </div>
-                        <div class="field-help">Choose a clear, descriptive name that represents your category</div>
+                        <input type="text" id="categoryName" name="name" class="form-input" 
+                               placeholder="masalan, Elektronika, Oziq-ovqat va ichimliklar" 
+                               value="${categoryData?.name || ''}"
+                               required>
+                        <div class="field-help">Kategoriyangizni ifodalovchi aniq va tavsiflovchi nom tanlang</div>
                     </div>
                     
-                    <div class="form-group-enhanced">
-                        <label for="categorySlug" class="professional-label">
-                            <span class="label-text">URL Slug</span>
-                            <span class="label-status">Auto-generated</span>
+                    <div class="form-group">
+                        <label for="categorySlug" class="form-label">
+                            URL slug
                         </label>
-                        <div class="input-wrapper">
-                            <input type="text" id="categorySlug" name="slug" class="professional-input" 
-                                   placeholder="auto-generated-from-name" readonly tabindex="-1">
-                            <div class="input-icon">
-                                <i class="las la-link"></i>
-                            </div>
-                        </div>
-                        <div class="field-help">URL-friendly version automatically created from name</div>
+                        <input type="text" id="categorySlug" name="slug" class="form-input" 
+                               placeholder="nomdan-avtomatik-yaratiladi" 
+                               value="${categoryData?.slug || ''}"
+                               readonly>
+                        <div class="field-help">URL uchun mos versiya nomdan avtomatik yaratiladi</div>
                     </div>
                     
-                    <div class="form-group-enhanced required full-width">
-                        <label for="categoryDescription" class="professional-label">
-                            <span class="label-text">Description</span>
-                            <span class="label-required">*</span>
-                            <span class="character-counter" data-target="categoryDescription">0/1000</span>
+                    <div class="form-group">
+                        <label for="categoryDescription" class="form-label required">
+                            Tavsif
                         </label>
-                        <div class="textarea-wrapper">
-                            <textarea id="categoryDescription" name="description" class="professional-textarea" 
-                                      placeholder="Provide a comprehensive description that helps users understand what products belong in this category..."
-                                      rows="4" maxlength="1000" required
-                                      data-validation="required|min:10|max:1000"></textarea>
-                            <div class="textarea-tools">
-                                <button type="button" class="text-tool" title="Bold" data-tool="bold">
-                                    <i class="las la-bold"></i>
-                                </button>
-                                <button type="button" class="text-tool" title="Italic" data-tool="italic">
-                                    <i class="las la-italic"></i>
-                                </button>
-                                <button type="button" class="text-tool" title="Clear" data-tool="clear">
-                                    <i class="las la-eraser"></i>
-                                </button>
-                            </div>
-                            <div class="input-feedback"></div>
-                        </div>
-                        <div class="field-help">Detailed description for SEO and user understanding</div>
+                        <textarea id="categoryDescription" name="description" class="form-textarea bg-transparent" 
+                                  placeholder="Foydalanuvchilarga ushbu kategoriyaga qaysi mahsulotlar tegishli ekanligini tushunishga yordam beradigan to'liq tavsif kiriting..."
+                                  rows="4" required>${categoryData?.description || ''}</textarea>
+                        <div class="field-help">SEO va foydalanuvchi tushunishi uchun batafsil tavsif</div>
                     </div>
                     
-                    <div class="form-group-enhanced full-width">
-                        <label for="categoryShortDescription" class="professional-label">
-                            <span class="label-text">Short Description</span>
-                            <span class="character-counter" data-target="categoryShortDescription">0/200</span>
-                        </label>
-                        <div class="textarea-wrapper">
-                            <textarea id="categoryShortDescription" name="shortDescription" class="professional-textarea" 
-                                      placeholder="Brief summary for category listings and previews..." 
-                                      rows="2" maxlength="200"
-                                      data-validation="max:200"></textarea>
-                            <div class="input-feedback"></div>
-                        </div>
-                        <div class="field-help">Concise summary displayed in category listings</div>
-                    </div>
-                </div>
-            </div>
             
-            <!-- Step 2: Design & Hierarchy -->
-            <div class="form-step" data-step="2">
-                <div class="step-header">
-                    <h3 class="step-title">
-                        <i class="las la-palette"></i>
-                        Design & Structure
-                    </h3>
-                    <p class="step-description">Visual design and category hierarchy</p>
-                </div>
-                
-                <div class="professional-form-grid">
-                    <div class="form-group-enhanced">
-                        <label class="professional-label">
-                            <span class="label-text">Parent Category</span>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="categoryIcon" class="form-label">
+                                Kategoriya ikonkasi
                         </label>
-                        <div class="select-wrapper">
-                            <select id="parentCategory" name="parentCategory" class="professional-select">
-                                <option value="">🏠 Root Category (Top Level)</option>
-                                ${this.generateParentCategoryOptions()}
-                            </select>
-                            <div class="select-icon">
-                                <i class="las la-chevron-down"></i>
-                            </div>
-                        </div>
-                        <div class="field-help">Choose parent category or leave as root level</div>
+                            <input type="text" id="categoryIcon" name="icon" class="form-input" 
+                                   value="${categoryData?.icon || 'las la-folder'}" 
+                                   placeholder="las la-folder">
+                            <div class="field-help">Line Awesome ikonka klassi</div>
                     </div>
                     
-                    <div class="form-group-enhanced">
-                        <label for="sortOrder" class="professional-label">
-                            <span class="label-text">Sort Order</span>
+                        <div class="form-group">
+                            <label for="categoryColor" class="form-label">
+                                Brend rangi
                         </label>
-                        <div class="input-wrapper">
-                            <input type="number" id="sortOrder" name="sortOrder" class="professional-input" 
-                                   min="0" max="999" value="0" placeholder="0"
-                                   data-validation="numeric|min:0|max:999">
-                            <div class="input-icon">
-                                <i class="las la-sort-numeric-up"></i>
-                            </div>
-                            <div class="input-feedback"></div>
-                        </div>
-                        <div class="field-help">Lower numbers appear first in listings (0-999)</div>
-                    </div>
-                    
-                    <div class="form-group-enhanced">
-                        <label class="professional-label">
-                            <span class="label-text">Category Icon</span>
-                        </label>
-                        <div class="icon-selector-professional">
-                            <div class="icon-input-wrapper">
-                                <input type="text" id="categoryIcon" name="icon" class="professional-input" 
-                                       value="las la-folder" placeholder="las la-folder"
-                                       data-validation="icon">
-                                <div class="input-icon">
-                                    <i class="las la-icons"></i>
-                                </div>
-                            </div>
-                            <div class="icon-preview-professional">
-                                <div class="icon-display" id="iconPreview">
-                                    <i class="las la-folder"></i>
-                                </div>
-                            </div>
-                            <button type="button" class="icon-browser-btn" data-action="browse-icons">
-                                <i class="las la-search"></i>
-                                Browse Icons
-                            </button>
-                        </div>
-                        <div class="field-help">Line Awesome icon class for visual identification</div>
-                    </div>
-                    
-                    <div class="form-group-enhanced">
-                        <label class="professional-label">
-                            <span class="label-text">Brand Color</span>
-                        </label>
-                        <div class="color-selector-professional">
                             <div class="color-input-group">
-                                <input type="color" id="categoryColor" name="color" class="professional-color-picker" value="#3B82F6">
-                                <input type="text" id="categoryColorText" class="professional-input color-text" value="#3B82F6">
+                                <input type="color" id="categoryColor" name="color" class="color-picker" 
+                                       value="${categoryData?.color || '#3B82F6'}">
+                                <input type="text" id="categoryColorText" class="form-input" 
+                                       value="${categoryData?.color || '#3B82F6'}">
                             </div>
-                            <div class="color-presets">
-                                <button type="button" class="color-preset" data-color="#3B82F6" style="background:#3B82F6" title="Blue"></button>
-                                <button type="button" class="color-preset" data-color="#10B981" style="background:#10B981" title="Green"></button>
-                                <button type="button" class="color-preset" data-color="#F59E0B" style="background:#F59E0B" title="Orange"></button>
-                                <button type="button" class="color-preset" data-color="#EF4444" style="background:#EF4444" title="Red"></button>
-                                <button type="button" class="color-preset" data-color="#8B5CF6" style="background:#8B5CF6" title="Purple"></button>
-                                <button type="button" class="color-preset" data-color="#06B6D4" style="background:#06B6D4" title="Cyan"></button>
-                            </div>
-                        </div>
-                        <div class="field-help">Primary color for category identification and theming</div>
+                            <div class="field-help">Kategoriya identifikatsiyasi uchun rang</div>
                     </div>
                 </div>
                 
-                <!-- Live Preview -->
-                <div class="category-preview-panel">
-                    <h4 class="preview-title">
-                        <i class="las la-eye"></i>
-                        Live Preview
-                    </h4>
-                    <div class="category-preview-card" id="categoryPreview">
-                        <div class="preview-icon">
-                            <i class="las la-folder"></i>
-                        </div>
-                        <div class="preview-content">
-                            <h5 class="preview-name">Category Name</h5>
-                            <p class="preview-description">Category description will appear here...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Step 3: Advanced Settings -->
-            <div class="form-step" data-step="3">
-                <div class="step-header">
-                    <h3 class="step-title">
-                        <i class="las la-cogs"></i>
-                        Advanced Settings
-                    </h3>
-                    <p class="step-description">Configure category behavior and permissions</p>
-                </div>
-                
-                <div class="settings-professional-grid">
-                    <div class="settings-section">
-                        <h4 class="settings-section-title">
-                            <i class="las la-toggle-on"></i>
-                            Visibility & Status
-                        </h4>
-                        
-                        <div class="professional-toggle-group">
-                            <div class="professional-toggle-item">
-                                <div class="toggle-wrapper">
-                                    <input type="checkbox" id="isActive" name="isActive" class="professional-toggle" checked>
-                                    <label for="isActive" class="toggle-label">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                                <div class="toggle-content">
-                                    <div class="toggle-title">Active Status</div>
-                                    <div class="toggle-description">Category is active and functional</div>
-                                </div>
-                                <div class="toggle-status" data-toggle="isActive">
-                                    <span class="status-indicator active"></span>
-                                    <span class="status-text">Active</span>
-                                </div>
-                            </div>
-                            
-                            <div class="professional-toggle-item">
-                                <div class="toggle-wrapper">
-                                    <input type="checkbox" id="isVisible" name="isVisible" class="professional-toggle" checked>
-                                    <label for="isVisible" class="toggle-label">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                                <div class="toggle-content">
-                                    <div class="toggle-title">Public Visibility</div>
-                                    <div class="toggle-description">Show in public category listings</div>
-                                </div>
-                                <div class="toggle-status" data-toggle="isVisible">
-                                    <span class="status-indicator active"></span>
-                                    <span class="status-text">Visible</span>
-                                </div>
-                            </div>
-                            
-                            <div class="professional-toggle-item">
-                                <div class="toggle-wrapper">
-                                    <input type="checkbox" id="isFeatured" name="isFeatured" class="professional-toggle">
-                                    <label for="isFeatured" class="toggle-label">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                                <div class="toggle-content">
-                                    <div class="toggle-title">Featured Category</div>
-                                    <div class="toggle-description">Highlight in featured sections</div>
-                                </div>
-                                <div class="toggle-status" data-toggle="isFeatured">
-                                    <span class="status-indicator inactive"></span>
-                                    <span class="status-text">Normal</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="settings-section">
-                        <h4 class="settings-section-title">
-                            <i class="las la-shield-alt"></i>
-                            Business Rules
-                        </h4>
-                        
-                        <div class="business-rules-grid">
-                            <div class="form-group-enhanced">
-                                <label class="professional-label">
-                                    <span class="label-text">Allowed Company Types</span>
+                    <div class="form-group">
+                        <label class="form-label">
+                            Kategoriya holati
+                        </label>
+                        <div class="toggle-group">
+                            <div class="toggle-item">
+                                <input type="checkbox" id="isActive" name="isActive" class="toggle-input" 
+                                       ${categoryData?.settings?.isActive !== false ? 'checked' : ''}>
+                                <label for="isActive" class="toggle-label">
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-text">
+                                        <strong>Faol holat</strong>
+                                        <small>Kategoriya faol va ishlaydi</small>
+                                    </span>
                                 </label>
-                                <div class="multi-select-wrapper">
-                                    <div class="multi-select-tags" id="companyTypeTags"></div>
-                                    <select id="allowedCompanyTypes" name="allowedCompanyTypes" class="professional-multi-select" multiple>
-                                        <option value="manufacturer" selected>🏭 Manufacturer</option>
-                                        <option value="distributor" selected>📦 Distributor</option>
-                                        <option value="wholesaler">🏪 Wholesaler</option>
-                                        <option value="retailer">🛍️ Retailer</option>
-                                        <option value="trading_company">🤝 Trading Company</option>
-                                    </select>
-                                </div>
-                                <div class="field-help">Select which company types can list products in this category</div>
-                            </div>
-                            
-                            <div class="form-group-enhanced">
-                                <label for="minimumOrderQuantity" class="professional-label">
-                                    <span class="label-text">Minimum Order Quantity</span>
-                                </label>
-                                <div class="input-wrapper">
-                                    <input type="number" id="minimumOrderQuantity" name="minimumOrderQuantity" 
-                                           class="professional-input" min="1" value="1"
-                                           data-validation="numeric|min:1">
-                                    <div class="input-icon">
-                                        <i class="las la-calculator"></i>
-                                    </div>
-                                    <div class="input-suffix">units</div>
-                                    <div class="input-feedback"></div>
-                                </div>
-                                <div class="field-help">Default minimum order quantity for products</div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Step 4: Review & Confirmation -->
-            <div class="form-step" data-step="4">
-                <div class="step-header">
-                    <h3 class="step-title">
-                        <i class="las la-check-circle"></i>
-                        Review & Create
-                    </h3>
-                    <p class="step-description">Review your category details before creating</p>
-                </div>
-                
-                <div class="review-panel">
-                    <div class="review-sections">
-                        <div class="review-section">
-                            <h4 class="review-section-title">Basic Information</h4>
-                            <div class="review-items" id="reviewBasic">
-                                <!-- Populated by JavaScript -->
-                            </div>
-                        </div>
-                        
-                        <div class="review-section">
-                            <h4 class="review-section-title">Design & Structure</h4>
-                            <div class="review-items" id="reviewDesign">
-                                <!-- Populated by JavaScript -->
-                            </div>
-                        </div>
-                        
-                        <div class="review-section">
-                            <h4 class="review-section-title">Settings & Rules</h4>
-                            <div class="review-items" id="reviewSettings">
-                                <!-- Populated by JavaScript -->
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="final-preview">
-                        <h4 class="preview-title">Final Category Preview</h4>
-                        <div class="final-category-card" id="finalPreview">
-                            <!-- Populated by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-            </div>
         `;
     }
+
 
     /**
      * Generate professional modal footer
      */
-    generateModalFooter() {
+    generateModalFooter(isEditMode = false) {
+        const submitButtonId = isEditMode ? 'updateCategoryBtn' : 'createCategoryBtn';
+        const submitButtonText = isEditMode ? 'Kategoriyani yangilash' : 'Kategoriya yaratish';
+        const submitButtonIcon = isEditMode ? 'la-save' : 'la-plus';
+        const loadingText = isEditMode ? 'Yangilanmoqda...' : 'Yaratilmoqda...';
+        
         return `
-            <div class="modal-footer professional-footer">
+            <div class="modal-footer">
                 <div class="footer-left">
-                    <button type="button" class="btn-professional btn-secondary modal-close-action">
+                    <button type="button" class="btn btn-secondary modal-close-action">
                         <i class="las la-times"></i>
-                        <span>Cancel</span>
+                        <span>Bekor qilish</span>
                     </button>
-                </div>
-                
-                <div class="footer-center">
-                    <div class="step-indicator">
-                        <span class="current-step">1</span> of <span class="total-steps">4</span>
-                    </div>
                 </div>
                 
                 <div class="footer-right">
-                    <button type="button" class="btn-professional btn-outline" id="prevStepBtn" disabled>
-                        <i class="las la-chevron-left"></i>
-                        <span>Previous</span>
-                    </button>
-                    
-                    <button type="button" class="btn-professional btn-primary" id="nextStepBtn">
-                        <span class="btn-text">Next</span>
-                        <i class="las la-chevron-right"></i>
-                    </button>
-                    
-                    <button type="submit" class="btn-professional btn-success" id="createCategoryBtn" style="display: none;">
-                        <i class="las la-plus"></i>
-                        <span class="btn-text">Create Category</span>
+                    <button type="submit" class="btn btn-primary" id="${submitButtonId}">
+                        <i class="las ${submitButtonIcon}"></i>
+                        <span class="btn-text">${submitButtonText}</span>
                         <span class="btn-loading">
                             <div class="btn-spinner"></div>
-                            <span>Creating...</span>
+                            <span>${loadingText}</span>
                         </span>
                     </button>
                 </div>
@@ -1628,7 +1721,7 @@ class CategoriesManagement {
      */
     generateParentCategoryOptions() {
         if (!this.parentCategories || this.parentCategories.length === 0) {
-            return '<option value="" disabled style="color: #999; font-style: italic;">📂 No parent categories available</option>';
+            return '<option value="" disabled style="color: #999; font-style: italic;">📂 Ota kategoriya mavjud emas</option>';
         }
         
         return this.parentCategories.map(category => {
@@ -1664,7 +1757,7 @@ class CategoriesManagement {
     generateLanguageForms() {
         const languages = [
             { code: 'uz', name: "O'zbek" },
-            { code: 'en', name: 'English' },
+            { code: 'en', name: 'Ingliz tili' },
             { code: 'ru', name: 'Русский' },
             { code: 'tr', name: 'Türkçe' },
             { code: 'fa', name: 'فارسی' },
@@ -1675,15 +1768,15 @@ class CategoriesManagement {
             <div class="lang-content ${index === 0 ? 'active' : ''}" data-lang="${lang.code}">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="name_${lang.code}" class="form-label">Name (${lang.name})</label>
+                        <label for="name_${lang.code}" class="form-label">Nomi (${lang.name})</label>
                         <input type="text" id="name_${lang.code}" name="translations.${lang.code}.name" 
-                               class="form-control" placeholder="Category name in ${lang.name}">
+                               class="form-control" placeholder="${lang.name} tilida kategoriya nomi">
                     </div>
                     
                     <div class="form-group full-width">
-                        <label for="description_${lang.code}" class="form-label">Description (${lang.name})</label>
+                        <label for="description_${lang.code}" class="form-label">Tavsif (${lang.name})</label>
                         <textarea id="description_${lang.code}" name="translations.${lang.code}.description" 
-                                  class="form-control" rows="3" placeholder="Description in ${lang.name}"></textarea>
+                                  class="form-control" rows="3" placeholder="${lang.name} tilida tavsif"></textarea>
                     </div>
                 </div>
             </div>
@@ -1694,6 +1787,12 @@ class CategoriesManagement {
      * Initialize modal features and event listeners
      */
     initializeModalFeatures(modal) {
+        
+        // Setup ESC key to close modal
+        this.setupModalKeyboardEvents(modal);
+        
+        // Setup modal close events
+        this.setupModalCloseEvents(modal);
         
         // Auto-generate slug from name
         this.setupSlugGeneration(modal);
@@ -1713,6 +1812,90 @@ class CategoriesManagement {
         // Setup form submission
         this.setupFormSubmission(modal);
         
+        
+    }
+
+    /**
+     * Setup modal keyboard events (ESC to close)
+     */
+    setupModalKeyboardEvents(modal) {
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                modal.remove();
+                document.removeEventListener('keydown', handleKeyDown);
+            }
+        };
+        
+        document.addEventListener('keydown', handleKeyDown);
+        
+        // Clean up event listener when modal is removed
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.removedNodes.forEach((node) => {
+                    if (node === modal || (node.nodeType === 1 && node.contains(modal))) {
+                        document.removeEventListener('keydown', handleKeyDown);
+                        observer.disconnect();
+                    }
+                });
+            });
+        });
+        
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    /**
+     * Setup modal close events
+     */
+    setupModalCloseEvents(modal) {
+        // Close button in header
+        const closeBtn = modal.querySelector('.modal-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.remove();
+            });
+        }
+        
+        // Minimize button in header
+        const minimizeBtn = modal.querySelector('.modal-minimize');
+        if (minimizeBtn) {
+            minimizeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+                // You can implement minimize functionality here
+                // For now, we'll just hide the modal
+            });
+        }
+        
+        // Cancel button in footer
+        const cancelBtn = modal.querySelector('.modal-close-action');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                modal.remove();
+            });
+        }
+    }
+
+    /**
+     * Show field error
+     */
+    showFieldError(field, message) {
+        const feedback = field.parentNode.querySelector('.input-feedback');
+        if (feedback) {
+            feedback.textContent = message;
+            feedback.classList.add('error');
+        }
+        field.classList.add('error');
+    }
+
+    /**
+     * Clear field error
+     */
+    clearFieldError(field) {
+        const feedback = field.parentNode.querySelector('.input-feedback');
+        if (feedback) {
+            feedback.textContent = '';
+            feedback.classList.remove('error');
+        }
+        field.classList.remove('error');
     }
 
     /**
@@ -1791,7 +1974,7 @@ class CategoriesManagement {
      */
     setupColorPicker(modal) {
         const colorPicker = modal.querySelector('#categoryColor');
-        const colorText = modal.querySelector('.color-text');
+        const colorText = modal.querySelector('#categoryColorText');
         
         if (colorPicker && colorText) {
             colorPicker.addEventListener('input', (e) => {
@@ -1833,7 +2016,7 @@ class CategoriesManagement {
             errorMessage = `${this.getFieldLabel(field)} is required`;
         } else if (field.type === 'email' && value && !this.isValidEmail(value)) {
             isValid = false;
-            errorMessage = 'Please enter a valid email address';
+            errorMessage = 'To\'g\'ri email manzilini kiriting';
         } else if (field.name === 'slug' && value && !this.isValidSlug(value)) {
             isValid = false;
             errorMessage = 'Slug can only contain lowercase letters, numbers, and hyphens';
@@ -1893,12 +2076,74 @@ class CategoriesManagement {
      * Setup form submission
      */
     setupFormSubmission(modal) {
-        const form = modal.querySelector('#createCategoryForm');
+        const createForm = modal.querySelector('#createCategoryForm');
+        const editForm = modal.querySelector('#editCategoryForm');
         
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await this.handleCategoryCreation(form, modal);
-        });
+        if (createForm) {
+            createForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.handleCategoryCreation(createForm, modal);
+            });
+        }
+        
+        if (editForm) {
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.handleCategoryUpdate(editForm, modal);
+            });
+        }
+    }
+
+    /**
+     * Handle category update
+     */
+    async handleCategoryUpdate(form, modal) {
+        try {
+            // Validate form
+            if (!this.validateForm(form)) {
+                this.showError('Yuborishdan oldin validatsiya xatolarini tuzating');
+                return;
+            }
+            
+            // Show loading state
+            this.setModalLoadingState(true);
+            
+            // Collect form data
+            const formData = this.collectFormData(form);
+            const categoryId = modal.querySelector('[data-category-id]').getAttribute('data-category-id');
+            
+            // Submit to backend
+            const response = await fetch(`${this.endpoints.categories}/${categoryId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Success - close modal and refresh table
+                modal.remove();
+                this.showNotification('Kategoriya muvaffaqiyatli yangilandi!', 'success');
+                await this.refreshData();
+                
+                // Update theme for any remaining modals
+                this.updateModalTheme();
+                
+            } else {
+                // Handle validation errors
+                this.handleServerErrors(result, form);
+            }
+            
+        } catch (error) {
+            console.error('Error updating category:', error);
+            this.showError('Kategoriyani yangilashda xatolik. Qayta urinib ko\'ring.');
+        } finally {
+            this.setModalLoadingState(false);
+        }
     }
 
     /**
@@ -1909,7 +2154,7 @@ class CategoriesManagement {
         try {
             // Validate form
             if (!this.validateForm(form)) {
-                this.showError('Please fix the validation errors before submitting');
+                this.showError('Yuborishdan oldin validatsiya xatolarini tuzating');
                 return;
             }
             
@@ -1934,7 +2179,7 @@ class CategoriesManagement {
             if (result.success) {
                 // Success - close modal and refresh table
                 modal.remove();
-                this.showNotification('Category created successfully!', 'success');
+                this.showNotification('Kategoriya muvaffaqiyatli yaratildi!', 'success');
                 await this.refreshData();
                 
                 // Update theme for any remaining modals
@@ -1947,7 +2192,7 @@ class CategoriesManagement {
             
         } catch (error) {
             console.error('❌ Error creating category:', error);
-            this.showError('Failed to create category. Please try again.');
+            this.showError('Kategoriya yaratishda xatolik. Qayta urinib ko\'ring.');
         } finally {
             this.setModalLoadingState(false);
         }
@@ -2031,10 +2276,6 @@ class CategoriesManagement {
             name: data.name,
             slug: data.slug,
             description: data.description,
-            shortDescription: data.shortDescription || '',
-            
-            // Hierarchy
-            parentCategory: data.parentCategory || null,
             
             // Visual
             icon: data.icon || 'las la-folder',
@@ -2052,10 +2293,10 @@ class CategoriesManagement {
             
             // Settings
             settings: {
-                isActive: data.isActive || false,
-                isVisible: data.isVisible || false,
+                isActive: data.isActive !== false, // Default to true
+                isVisible: data.isVisible !== false, // Default to true
                 isFeatured: data.isFeatured || false,
-                allowProducts: data.allowProducts || false,
+                allowProducts: data.allowProducts !== false, // Default to true
                 sortOrder: parseInt(data.sortOrder) || 0
             },
             
@@ -2100,7 +2341,7 @@ class CategoriesManagement {
                 }
             });
         } else {
-            this.showError(result.message || 'Validation failed');
+            this.showError(result.message || 'Validatsiya xatoligi');
         }
     }
 
@@ -2125,10 +2366,10 @@ class CategoriesManagement {
             this.selectedCategories.clear();
             this.updateBulkActionsVisibility();
             await this.loadInitialData();
-            this.showNotification('Data refreshed successfully', 'success');
+            this.showNotification('Ma\'lumotlar muvaffaqiyatli yangilandi', 'success');
         } catch (error) {
             console.error('Error refreshing data:', error);
-            this.showError('Failed to refresh data');
+            this.showError('Ma\'lumotlarni yangilashda xatolik');
         }
     }
 
@@ -2147,10 +2388,10 @@ class CategoriesManagement {
             });
 
             window.open(url, '_blank');
-            this.showNotification('Export started successfully', 'success');
+            this.showNotification('Eksport muvaffaqiyatli boshlandi', 'success');
         } catch (error) {
             console.error('Error exporting categories:', error);
-            this.showError('Failed to export categories');
+            this.showError('Kategoriyalarni eksport qilishda xatolik');
         }
     }
 
@@ -2292,17 +2533,17 @@ class CategoriesManagement {
     }
 
     getRelativeTime(dateString) {
-        if (!dateString) return 'Unknown';
+        if (!dateString) return 'Noma\'lum';
         const date = new Date(dateString);
         const now = new Date();
         const diffTime = Math.abs(now - date);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        if (diffDays === 1) return 'Yesterday';
-        if (diffDays < 7) return `${diffDays} days ago`;
-        if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
-        if (diffDays < 365) return `${Math.ceil(diffDays / 30)} months ago`;
-        return `${Math.ceil(diffDays / 365)} years ago`;
+        if (diffDays === 1) return 'Kecha';
+        if (diffDays < 7) return `${diffDays} kun oldin`;    
+        if (diffDays < 30) return `${Math.ceil(diffDays / 7)} hafta oldin`;
+        if (diffDays < 365) return `${Math.ceil(diffDays / 30)} oy oldin`;
+        return `${Math.ceil(diffDays / 365)} yil oldin`;
     }
 
     getStatusIcon(status) {

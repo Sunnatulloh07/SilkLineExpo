@@ -82,7 +82,7 @@ class SLEXDashboard {
               // Circuit breaker closed - proceeding with messages/notifications setup
       this.setupMessagesAndNotifications();
     } else {
-      console.log('🚫 Skipping messages/notifications initialization - circuit breaker open');
+      console.log('🚫 Xabarlar/bildirishnomalar sozlamalari o\'tkazilmayapti - circuit breaker ochiq');
       this.showCircuitBreakerMessage();
     }
     
@@ -203,8 +203,6 @@ class SLEXDashboard {
     // Show loading state
     this.showLanguageLoading();
     
-    // Update button immediately for better UX
-    this.updateLanguageButton(langCode, langName);
     
     // Store language like PUBLIC PAGES (only i18next cookie)
     this.currentLanguage = langCode;
@@ -234,7 +232,7 @@ class SLEXDashboard {
       if (response.ok) {
         return response.json();
       }
-      throw new Error('Backend language change failed');
+      throw new Error('Backend tilini o\'zgartirishda xatolik');
     })
     .then(data => {
       // Reload admin dashboard with language parameter
@@ -243,7 +241,7 @@ class SLEXDashboard {
       }, 300);
     })
     .catch(error => {
-      console.warn('⚠️ Backend failed, using PUBLIC PAGES STYLE routing:', error);
+      console.warn('⚠️ Backend muvaffaqiyatsiz, UMUMIY SAHIFALAR uslubida routing ishlatilmoqda:', error);
       // Fallback to unified API routing (GUARANTEED TO WORK)
       setTimeout(() => {
         window.location.href = languageUrl;
@@ -379,7 +377,7 @@ class SLEXDashboard {
         
         // CHECK CIRCUIT BREAKER BEFORE LOADING MESSAGES
         if (this.isCircuitBreakerOpen()) {
-          console.log('🚫 Skipping messages load - circuit breaker open');
+          console.log('🚫 Xabarlar yuklanmayapti - circuit breaker ochiq');
           this.showCircuitBreakerMessage();
           return;
         }
@@ -395,7 +393,7 @@ class SLEXDashboard {
         e.preventDefault();
         e.stopPropagation();
         
-        console.log('🔔 Notification button clicked - opening dropdown');
+        console.log('🔔 Bildirishnoma tugmasi bosildi - dropdown ochilmoqda');
         
         // Always open dropdown, but only load data if circuit breaker is closed
         this.toggleDropdown(notificationDropdown);
@@ -504,7 +502,7 @@ class SLEXDashboard {
   async loadMessages() {
     const messagesContainer = document.getElementById('messagesContainer');
     if (!messagesContainer) {
-      console.warn('Messages container not found');
+      console.warn('Xabarlar konteyneri topilmadi');
       return;
     }
 
@@ -517,12 +515,12 @@ class SLEXDashboard {
         this.renderMessages(response.data);
         this.updateMessagesBadge(response.data);
       } else {
-        throw new Error(response.message || 'Failed to load messages');
+        throw new Error(response.message || 'Xabarlarni yuklashda xatolik');
       }
     } catch (error) {
-      console.error('❌ Messages loading failed:', error);
-      this.showErrorState(messagesContainer, 'Failed to load messages', 'messages');
-      this.showToast('error', 'Could not load messages. Please try again.');
+      console.error('❌ Xabarlar yuklashda xatolik:', error);
+      this.showErrorState(messagesContainer, 'Xabarlarni yuklashda xatolik', 'messages');
+      this.showToast('error', 'Xabarlarni yuklashda xatolik. Qayta urinib ko\'ring.');
     }
   }
 
@@ -533,13 +531,13 @@ class SLEXDashboard {
   renderMessages(messages) {
     const messagesContainer = document.getElementById('messagesContainer');
     if (!messagesContainer) {
-      console.warn('Messages container not found');
+      console.warn('Xabarlar konteyneri topilmadi');
       return;
     }
 
     // Handle empty state
     if (!messages || messages.length === 0) {
-      messagesContainer.innerHTML = this.getEmptyStateHTML('messages', 'No messages found', 'fa-inbox');
+      messagesContainer.innerHTML = this.getEmptyStateHTML('messages', 'Xabarlar topilmadi', 'fa-inbox');
       return;
     }
 
@@ -578,10 +576,10 @@ class SLEXDashboard {
           <div class="message-preview">${this.escapeHTML(message.preview)}</div>
           <div class="message-time">${timeText}</div>
         </div>
-        ${isUnread ? '<div class="unread-indicator" title="Unread message"></div>' : ''}
+        ${isUnread ? '<div class="unread-indicator" title="O\'qilmagan xabar"></div>' : ''}
         <div class="message-actions">
           <button class="btn-icon" onclick="event.stopPropagation(); markMessageAsRead('${message.id}')" 
-                  title="Mark as read" ${!isUnread ? 'style="display:none"' : ''}>
+                  title="O'qilgan deb belgilash" ${!isUnread ? 'style="display:none"' : ''}>
             <i class="fas fa-check"></i>
           </button>
         </div>
@@ -636,7 +634,7 @@ class SLEXDashboard {
   async loadNotifications() {
     const notificationsContainer = document.getElementById('notificationsContainer');
     if (!notificationsContainer) {
-      console.warn('Notifications container not found');
+      console.warn('Bildirishnomalar konteyneri topilmadi');
       return;
     }
 
@@ -649,12 +647,12 @@ class SLEXDashboard {
         this.renderNotifications(response.data);
         this.updateNotificationBadge(response.data);
       } else {
-        throw new Error(response.message || 'Failed to load notifications');
+        throw new Error(response.message || 'Bildirishnomalarni yuklashda xatolik');
       }
     } catch (error) {
-      console.error('❌ Notifications loading failed:', error);
-      this.showErrorState(notificationsContainer, 'Failed to load notifications', 'notifications');
-      this.showToast('error', 'Could not load notifications. Please try again.');
+      console.error('❌ Bildirishnomalar yuklashda xatolik:', error);
+      this.showErrorState(notificationsContainer, 'Bildirishnomalarni yuklashda xatolik', 'notifications');
+      this.showToast('error', 'Bildirishnomalarni yuklashda xatolik. Qayta urinib ko\'ring.');
     }
   }
 
@@ -664,11 +662,11 @@ class SLEXDashboard {
   showFallbackNotifications() {
     const notificationsContainer = document.getElementById('notificationsContainer');
     if (!notificationsContainer) {
-      console.warn('Notifications container not found');
+      console.warn('Bildirishnomalar konteyneri topilmadi');
       return;
     }
 
-    console.log('📝 Showing fallback notifications');
+    console.log('📝 Fallback bildirishnomalar ko\'rsatilmoqda');
     
     const fallbackNotifications = [
       {
@@ -711,13 +709,13 @@ class SLEXDashboard {
   renderNotifications(notifications) {
     const notificationsContainer = document.getElementById('notificationsContainer');
     if (!notificationsContainer) {
-      console.warn('Notifications container not found');
+      console.warn('Bildirishnomalar konteyneri topilmadi');
       return;
     }
 
     // Handle empty state
     if (!notifications || notifications.length === 0) {
-      notificationsContainer.innerHTML = this.getEmptyStateHTML('notifications', 'No notifications found', 'fa-bell-slash');
+      notificationsContainer.innerHTML = this.getEmptyStateHTML('notifications', 'Bildirishnomalar topilmadi', 'fa-bell-slash');
       return;
     }
 
@@ -756,15 +754,15 @@ class SLEXDashboard {
           <div class="notification-text">${this.escapeHTML(notification.message)}</div>
           <div class="notification-time">${timeText}</div>
         </div>
-        ${isUnread ? '<div class="unread-indicator" title="Unread notification"></div>' : ''}
+        ${isUnread ? '<div class="unread-indicator" title="O\'qilmagan bildirishnoma"></div>' : ''}
         <div class="notification-actions">
           <button class="btn-icon" onclick="event.stopPropagation(); markNotificationAsRead('${notification.id}')" 
-                  title="Mark as read" ${!isUnread ? 'style="display:none"' : ''}>
+                  title="O'qilgan deb belgilash" ${!isUnread ? 'style="display:none"' : ''}>
             <i class="fas fa-check"></i>
           </button>
           ${notification.actionUrl ? `
             <button class="btn-icon" onclick="event.stopPropagation(); window.open('${notification.actionUrl}', '_blank')" 
-                    title="Open link">
+                    title="Havolani ochish">
               <i class="fas fa-external-link-alt"></i>
             </button>
           ` : ''}
@@ -850,11 +848,11 @@ class SLEXDashboard {
           window.location.href = '/admin/system/security';
           break;
         default:
-          this.showToast('info', 'Notification processed successfully');
+          this.showToast('info', 'Bildirishnoma muvaffaqiyatli qayta ishlandi');
       }
     } catch (error) {
-      console.error('Handle notification click error:', error);
-      this.showToast('error', 'Could not process notification');
+      console.error('Bildirishnoma bosish xatoligi:', error);
+      this.showToast('error', 'Bildirishnomani qayta ishlash mumkin emas');
     }
   }
 
@@ -895,14 +893,14 @@ class SLEXDashboard {
 
       if (response.success) {
         this.updateMessageReadStatus(messageId, true);
-        this.showToast('success', 'Message marked as read');
+        this.showToast('success', 'Xabar o\'qilgan deb belgilandi');
         return true;
       } else {
-        throw new Error(response.message || 'Failed to mark message as read');
+        throw new Error(response.message || 'Xabarni o\'qilgan deb belgilashda xatolik');
       }
     } catch (error) {
-      console.error('❌ Mark message read failed:', error);
-      this.showToast('error', 'Could not mark message as read');
+      console.error('❌ Xabarni o\'qilgan deb belgilashda xatolik:', error);
+      this.showToast('error', 'Xabarni o\'qilgan deb belgilash mumkin emas');
       return false;
     }
   }
@@ -920,14 +918,14 @@ class SLEXDashboard {
 
       if (response.success) {
         this.updateNotificationReadStatus(notificationId, true);
-        this.showToast('success', 'Notification marked as read');
+        this.showToast('success', 'Bildirishnoma o\'qilgan deb belgilandi');
         return true;
       } else {
-        throw new Error(response.message || 'Failed to mark notification as read');
+        throw new Error(response.message || 'Bildirishnomani o\'qilgan deb belgilashda xatolik');
       }
     } catch (error) {
-      console.error('❌ Mark notification read failed:', error);
-      this.showToast('error', 'Could not mark notification as read');
+      console.error('❌ Bildirishnomani o\'qilgan deb belgilashda xatolik:', error);
+      this.showToast('error', 'Bildirishnomani o\'qilgan deb belgilash mumkin emas');
       return false;
     }
   }
@@ -952,7 +950,7 @@ class SLEXDashboard {
     } else if (!isRead && !indicator) {
       const newIndicator = document.createElement('div');
       newIndicator.className = 'unread-indicator';
-      newIndicator.title = 'Unread message';
+      newIndicator.title = 'O\'qilmagan xabar';
       messageItem.appendChild(newIndicator);
     }
 
@@ -986,7 +984,7 @@ class SLEXDashboard {
     } else if (!isRead && !indicator) {
       const newIndicator = document.createElement('div');
       newIndicator.className = 'unread-indicator';
-      newIndicator.title = 'Unread notification';
+      newIndicator.title = 'O\'qilmagan bildirishnoma';
       notificationItem.appendChild(newIndicator);
     }
 
@@ -1035,7 +1033,7 @@ class SLEXDashboard {
   }
 
   formatMessageTime(timestamp) {
-    if (!timestamp) return 'Unknown time';
+    if (!timestamp) return 'Noma\'lum vaqt';
     
     const now = new Date();
     const time = new Date(timestamp);
@@ -1048,7 +1046,7 @@ class SLEXDashboard {
     if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
     if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
     if (minutes > 0) return `${minutes} min ago`;
-    return 'Just now';
+    return 'Hozir';
   }
 
   // ===============================================
@@ -1081,7 +1079,7 @@ class SLEXDashboard {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error(`API Request failed for ${url}:`, error);
+      console.error(`${url} uchun API so\'rovi muvaffaqiyatsiz:`, error);
       throw error;
     }
   }
@@ -1201,7 +1199,7 @@ class SLEXDashboard {
       // Handle different message types
       switch (messageType) {
         case 'system':
-          this.showToast('info', 'System message details will be shown here');
+          this.showToast('info', 'Tizim xabari tafsilotlari bu yerda ko\'rsatiladi');
           break;
         case 'support':
           window.open('/admin/support/messages/' + messageId, '_blank');
@@ -1210,11 +1208,11 @@ class SLEXDashboard {
           window.location.href = '/admin/compliance/documents';
           break;
         default:
-          this.showToast('info', 'Message opened successfully');
+          this.showToast('info', 'Xabar muvaffaqiyatli ochildi');
       }
     } catch (error) {
-      console.error('Handle message click error:', error);
-      this.showToast('error', 'Could not open message');
+      console.error('Xabar bosish xatoligi:', error);
+      this.showToast('error', 'Xabarni ochish mumkin emas');
     }
   }
 
@@ -1416,9 +1414,9 @@ class SLEXDashboard {
         });
 
       } catch (error) {
-        console.error('Chart initialization error:', error);
+        console.error('Diagramma ishga tushirish xatoligi:', error);
         this.hideChartLoading();
-        this.showChartError('Failed to load chart data');
+        this.showChartError('Diagramma ma\'lumotlarini yuklashda xatolik');
       }
     }, 500); // Small delay to ensure DOM is ready
   }
@@ -1539,26 +1537,26 @@ class SLEXDashboard {
           const filterButton = document.querySelector('.btn-filter');
           if (filterButton) {
             const filterNames = {
-              all: 'All Activity',
-              registrations: 'Registrations',
-              approvals: 'Approvals',
-              system: 'System Events',
-              today: 'Today Only'
+              all: 'Barcha faoliyat',
+              registrations: 'Ro\'yxatdan o\'tishlar',
+              approvals: 'Tasdiqlashlar',
+              system: 'Tizim hodisalari',
+              today: 'Faqat bugun'
             };
-            filterButton.innerHTML = `<i class="fas fa-filter"></i> ${filterNames[filterType] || 'Filter'}`;
+            filterButton.innerHTML = `<i class="fas fa-filter"></i> ${filterNames[filterType] || 'Filtr'}`;
           }
         } else {
-          throw new Error(result.message || 'Failed to filter activity');
+          throw new Error(result.message || 'Faoliyatni filtrlashda xatolik');
         }
       } else {
-        throw new Error('Network error');
+        throw new Error('Tarmoq xatoligi');
       }
     } catch (error) {
-      console.error('Activity filter error:', error);
+      console.error('Faollik filtri xatoligi:', error);
       activityContainer.innerHTML = `
         <div class="activity-error">
           <i class="fas fa-exclamation-triangle"></i>
-          <span>Failed to load activity data</span>
+          <span>Faollik ma'lumotlarini yuklashda xatolik</span>
         </div>
       `;
     }
@@ -1585,12 +1583,12 @@ class SLEXDashboard {
         </div>
         <div class="activity-content">
           <div class="activity-text">
-            <strong>${activity.companyName || activity.title || 'System'}</strong> 
-            ${activity.description || activity.action || 'performed an action'}
+            <strong>${activity.companyName || activity.title || 'Tizim'}</strong> 
+            ${activity.description || activity.action || 'amal bajarildi'}
           </div>
           <div class="activity-meta">
             <span class="activity-badge ${this.getActivityBadgeClass(activity.type)}">
-              ${activity.type || 'ACTIVITY'}
+              ${activity.type || 'FAOLIYAT'}
             </span>
             <span data-timestamp="${activity.timestamp || activity.createdAt}">
               ${this.formatActivityTime(activity.timestamp || activity.createdAt)}
@@ -1615,7 +1613,7 @@ class SLEXDashboard {
   }
 
   formatActivityTime(timestamp) {
-    if (!timestamp) return 'Unknown time';
+    if (!timestamp) return 'Noma\'lum vaqt';
     
     const now = new Date();
     const time = new Date(timestamp);
@@ -1628,7 +1626,7 @@ class SLEXDashboard {
     if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
     if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
     if (minutes > 0) return `${minutes} min ago`;
-    return 'Just now';
+    return 'Hozir';
   }
 
   async viewAllActivity() {
@@ -1672,11 +1670,11 @@ class SLEXDashboard {
           await this.updateChart(chartData);
         }
       } else {
-        throw new Error('Failed to fetch filtered data');
+        throw new Error('Filtrlangan ma\'lumotlarni olishda xatolik');
       }
     } catch (error) {
-      console.error('Chart filter error:', error);
-      this.showChartError('Failed to filter chart data');
+      console.error('Diagramma filtri xatoligi:', error);
+      this.showChartError('Diagramma ma\'lumotlarini filtrlashda xatolik');
     } finally {
       this.hideChartLoading();
     }
@@ -1692,7 +1690,7 @@ class SLEXDashboard {
       const period = document.getElementById('chartPeriodFilter')?.value || '90';
       await this.filterChartData(period);
     } catch (error) {
-      console.error('Chart refresh error:', error);
+      console.error('Diagramma yangilash xatoligi:', error);
     } finally {
       if (refreshBtn) {
         refreshBtn.classList.remove('loading');
@@ -1712,15 +1710,15 @@ class SLEXDashboard {
     return {
       series: [
         {
-          name: 'Total Users',
+          name: 'Jami foydalanuvchilar',
           data: [30, 40, 35, 50, 49, 60, 70, 91, 125, 140, 160, 180]
         },
         {
-          name: 'Active Users', 
+          name: 'Faol foydalanuvchilar', 
           data: [20, 30, 25, 40, 39, 50, 60, 81, 105, 120, 140, 160]
         }
       ],
-      categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      categories: ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
     };
   }
 
@@ -1731,23 +1729,23 @@ class SLEXDashboard {
 
     const monthlyData = stats.trends.monthlyRegistrations;
     const categories = monthlyData.map(item => {
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return monthNames[item._id.month - 1] || `Month ${item._id.month}`;
+      const monthNames = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 
+                         'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+      return monthNames[item._id.month - 1] || `Oy ${item._id.month}`;
     });
 
     return {
       series: [
         {
-          name: 'Total Registrations',
+          name: 'Jami ro\'yxatdan o\'tishlar',
           data: monthlyData.map(item => item.total || 0)
         },
         {
-          name: 'Approved Users',
+          name: 'Tasdiqlangan foydalanuvchilar',
           data: monthlyData.map(item => item.approved || 0)
         },
         {
-          name: 'Pending Approval',
+          name: 'Tasdiqlash kutilmoqda',
           data: monthlyData.map(item => (item.total || 0) - (item.approved || 0))
         }
       ],
@@ -1772,7 +1770,7 @@ class SLEXDashboard {
       chartContainer.innerHTML = `
         <div class="chart-loading">
           <div class="loading-spinner"></div>
-          <span>Loading analytics...</span>
+          <span>Analitika yuklanmoqda...</span>
         </div>
       `;
     }
@@ -1800,7 +1798,7 @@ class SLEXDashboard {
   startRealTimeUpdates() {
     // CHECK CIRCUIT BREAKER BEFORE STARTING
     if (this.isCircuitBreakerOpen()) {
-      console.log('🚫 Dashboard: Cannot start updates - circuit breaker open');
+      console.log('🚫 Dashboard: Yangilanishlarni boshlash mumkin emas - circuit breaker ochiq');
       this.handleCircuitBreakerState();
       return;
     }
@@ -1819,10 +1817,10 @@ class SLEXDashboard {
     // Main dashboard data refresh every 5 minutes - WITH CIRCUIT BREAKER CHECK
     this.dashboardRefreshInterval = setInterval(() => {
       if (!this.isCircuitBreakerOpen()) {
-        console.log('⏰ 5-minute auto-refresh triggered');
+        console.log('⏰ 5 daqiqalik avtomatik yangilanish ishga tushdi');
         this.updateDashboardData(); // Full dashboard refresh, not fast update
       } else {
-        console.log('🚫 Skipping 5-minute refresh - circuit breaker open');
+        console.log('🚫 5 daqiqalik yangilanish o\'tkazib yuborilmoqda - circuit breaker ochiq');
         this.handleCircuitBreakerState();
       }
     }, 300000); // 5 minutes = 300,000 ms
@@ -1833,7 +1831,7 @@ class SLEXDashboard {
         this.loadMessages();
         this.loadNotifications();
       } else {
-        console.log('🚫 Skipping notification updates - circuit breaker open');
+        console.log('🚫 Bildirishnoma yangilanishlari o\'tkazib yuborilmoqda - circuit breaker ochiq');
         this.handleCircuitBreakerState();
       }
     }, 120000); // 2 minutes = 120,000 ms
@@ -1843,7 +1841,7 @@ class SLEXDashboard {
 
   async updateDashboardData() {
     try {
-      console.log('🔄 Standard dashboard data update starting...');
+      console.log('🔄 Standart dashboard ma\'lumotlari yangilanishi boshlanmoqda...');
       
       const response = await fetch('/admin/api/dashboard-stats', {
         headers: {
@@ -1875,15 +1873,15 @@ class SLEXDashboard {
           
           // Dashboard UI updated with real data
         } else {
-          console.warn('⚠️ Backend returned unsuccessful response:', result);
+          console.warn('⚠️ Backend muvaffaqiyatsiz javob qaytardi:', result);
         }
       } else {
-        console.error('❌ HTTP error:', response.status, response.statusText);
-        this.showDataError('Failed to fetch dashboard data. Please check your connection.');
+        console.error('❌ HTTP xatoligi:', response.status, response.statusText);
+        this.showDataError('Dashboard ma\'lumotlarini olishda xatolik. Ulanishni tekshiring.');
       }
     } catch (error) {
-      console.error('❌ Dashboard update error:', error);
-      this.showDataError('Network error while updating dashboard data.');
+      console.error('❌ Dashboard yangilanish xatoligi:', error);
+      this.showDataError('Dashboard ma\'lumotlarini yangilashda tarmoq xatoligi.');
     }
   }
 
@@ -1911,9 +1909,9 @@ class SLEXDashboard {
     errorToast.className = 'alert alert-warning';
     errorToast.style.cssText = 'position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 300px;';
     errorToast.innerHTML = `
-      <strong>Data Update Error:</strong><br>
+      <strong>Ma'lumot yangilash xatoligi:</strong><br>
       ${message}<br>
-      <small>Showing last known data. Retrying automatically...</small>
+      <small>Oxirgi ma'lum ma'lumotlar ko'rsatilmoqda. Avtomatik qayta urinilmoqda...</small>
     `;
     
     document.body.appendChild(errorToast);
@@ -2001,12 +1999,12 @@ class SLEXDashboard {
       <div class="activity-avatar">${initial}</div>
       <div class="activity-content">
         <div class="activity-text">
-          <strong>${activity.companyName || 'New User'}</strong> 
+          <strong>${activity.companyName || 'Yangi foydalanuvchi'}</strong> 
           ${this.getActivityText(activity.status)}
         </div>
         <div class="activity-meta">
           <span class="activity-badge ${statusBadge.class}">
-            ${activity.country || 'USER'}
+            ${activity.country || 'FOYDALANUVCHI'}
           </span>
           <span data-timestamp="${activity.createdAt}">
             ${timeAgo}
@@ -2020,24 +2018,24 @@ class SLEXDashboard {
 
   getStatusBadge(status) {
     const badges = {
-      'active': { class: 'badge-success', text: 'ACTIVE' },
-      'blocked': { class: 'badge-warning', text: 'PENDING' },
-      'suspended': { class: 'badge-danger', text: 'SUSPENDED' },
-      'rejected': { class: 'badge-danger', text: 'REJECTED' }
+      'active': { class: 'badge-success', text: 'FAOL' },
+      'blocked': { class: 'badge-warning', text: 'KUTILMOQDA' },
+      'suspended': { class: 'badge-danger', text: 'TO\'XTATILGAN' },
+      'rejected': { class: 'badge-danger', text: 'RAD ETILGAN' }
     };
     
-    return badges[status] || { class: 'badge-primary', text: 'USER' };
+    return badges[status] || { class: 'badge-primary', text: 'FOYDALANUVCHI' };
   }
 
   getActivityText(status) {
     const texts = {
-      'active': 'registered and was approved',
-      'blocked': 'registered and awaiting approval',
-      'suspended': 'account was suspended',
-      'rejected': 'registration was rejected'
+      'active': 'ro\'yxatdan o\'tdi va tasdiqlandi',
+      'blocked': 'ro\'yxatdan o\'tdi va tasdiqlash kutilmoqda',
+      'suspended': 'hisob to\'xtatildi',
+      'rejected': 'ro\'yxatdan o\'tish rad etildi'
     };
     
-    return texts[status] || 'registered';
+    return texts[status] || 'ro\'yxatdan o\'tdi';
   }
 
   getTimeAgo(dateString) {
@@ -2247,16 +2245,16 @@ class SLEXDashboard {
           if (userId) {
              self.viewUserDetails(userId);
           } else {
-            console.error('❌ No userId provided for view action');
-            self.showToast('Error: No user ID provided', 'error');
+            console.error('❌ Ko\'rish amali uchun userId berilmagan');
+            self.showToast('Xatolik: Foydalanuvchi ID berilmagan', 'error');
           }
           break;
         case 'approve':
           if (userId) {
             self.quickApproveUser(userId);
           } else {
-            console.error('❌ No userId provided for approve action');
-            self.showToast('Error: No user ID provided', 'error');
+            console.error('❌ Tasdiqlash amali uchun userId berilmagan');
+            self.showToast('Xatolik: Foydalanuvchi ID berilmagan', 'error');
           }
           break;
         case 'reject':
@@ -2264,7 +2262,7 @@ class SLEXDashboard {
            self.quickRejectUser(userId);
           } else {
             console.error('❌ No userId provided for reject action');
-            self.showToast('Error: No user ID provided', 'error');
+            self.showToast('Xatolik: Foydalanuvchi ID berilmagan', 'error');
           }
           break;
         case 'delete':
@@ -2272,7 +2270,7 @@ class SLEXDashboard {
             self.deleteUserRequest(userId);
           } else {
             console.error('❌ No userId provided for delete action');
-            self.showToast('Error: No user ID provided', 'error');
+            self.showToast('Xatolik: Foydalanuvchi ID berilmagan', 'error');
           }
           break;
         case 'bulk-approve':
@@ -2398,7 +2396,7 @@ class SLEXDashboard {
       }
     } catch (error) {
       console.error('Quick action error:', error);
-      this.showActionError(element, 'Action failed');
+      this.showActionError(element, 'Amal bajarilmadi');
     } finally {
       this.hideActionLoading(element);
     }
@@ -2416,13 +2414,13 @@ class SLEXDashboard {
       });
       
       if (response.ok) {
-        this.showNotification('All pending approvals processed successfully', 'success');
+        this.showNotification('Barcha kutilayotgan tasdiqlashlar muvaffaqiyatli qayta ishlandi', 'success');
         this.updateDashboardData();
       } else {
-        throw new Error('Failed to process approvals');
+        throw new Error('Tasdiqlashlarni qayta ishlashda xatolik');
       }
     } catch (error) {
-      this.showNotification('Failed to process approvals', 'error');
+      this.showNotification('Tasdiqlashlarni qayta ishlashda xatolik', 'error');
     } finally {
       this.hideLoading();
     }
@@ -2686,43 +2684,7 @@ class SLEXDashboard {
     }
   }
 
-  updateLanguageButton(langCode, langName) {
-    const langConfig = {
-      'uz': { flag: '🇺🇿', name: 'O\'zbekcha', code: 'UZ' },
-      'en': { flag: '🇺🇸', name: 'English', code: 'EN' },
-      'ru': { flag: '🇷🇺', name: 'Русский', code: 'RU' },
-      'tr': { flag: '🇹🇷', name: 'Türkçe', code: 'TR' },
-      'fa': { flag: '🇮🇷', name: 'فارسی', code: 'FA' },
-      'zh': { flag: '🇨🇳', name: '中文', code: 'ZH' }
-    };
 
-    const current = langConfig[langCode] || langConfig['uz'];
-    
-    // Update button display
-    const flagElement = document.querySelector('.lang-flag');
-    const codeElement = document.querySelector('.lang-code');
-    
-    if (flagElement) flagElement.textContent = current.flag;
-    if (codeElement) codeElement.textContent = current.code;
-
-    // Update active state in menu
-    document.querySelectorAll('.language-option').forEach(option => {
-      const optionLang = option.getAttribute('data-lang');
-      const checkIcon = option.querySelector('.option-check');
-      
-      if (optionLang === langCode) {
-        option.classList.add('active');
-        if (!checkIcon) {
-          option.insertAdjacentHTML('beforeend', '<i class="fas fa-check option-check"></i>');
-        }
-      } else {
-        option.classList.remove('active');
-        if (checkIcon) {
-          checkIcon.remove();
-        }
-      }
-    });
-  }
 
   // Generate mock chart data if real data not available
   generateMockChartData() {
@@ -2777,7 +2739,7 @@ class SLEXDashboard {
       }
     } catch (error) {
       console.error('Quick action error:', error);
-      this.showActionError(element, 'Action failed');
+      this.showActionError(element, 'Amal bajarilmadi');
     } finally {
       this.hideActionLoading(element);
     }
@@ -2802,13 +2764,13 @@ class SLEXDashboard {
           // Show approval modal or redirect to pending page
           this.showPendingApprovalsModal(result.data);
         } else {
-          this.showToast('No pending approvals found', 'info');
+          this.showToast('Kutilayotgan tasdiqlashlar topilmadi', 'info');
         }
       } else {
-        throw new Error('Failed to fetch pending approvals');
+        throw new Error('Kutilayotgan tasdiqlashlarni olishda xatolik');
       }
     } catch (error) {
-      this.showToast('Failed to load pending approvals', 'error');
+      this.showToast('Kutilayotgan tasdiqlashlarni yuklashda xatolik', 'error');
       throw error;
     }
   }
@@ -2839,7 +2801,7 @@ class SLEXDashboard {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         
-        this.showToast('Dashboard data exported successfully', 'success');
+        this.showToast('Dashboard ma\'lumotlari muvaffaqiyatli eksport qilindi', 'success');
       } else {
         throw new Error('Export failed');
       }
@@ -2859,7 +2821,7 @@ class SLEXDashboard {
       <div class="modal-overlay" id="pendingApprovalsModal">
         <div class="modal-content">
           <div class="modal-header">
-            <h3>Pending Approvals (${pendingUsers.length})</h3>
+            <h3>Kutilayotgan tasdiqlar (${pendingUsers.length})</h3>
             <button class="modal-close" onclick="closePendingModal()">
               <i class="fas fa-times"></i>
             </button>
@@ -2873,15 +2835,15 @@ class SLEXDashboard {
                     <div class="pending-email">${user.email}</div>
                     <div class="pending-meta">
                       <span class="pending-country">${user.country}</span>
-                      <span class="pending-days">${user.daysPending} days ago</span>
+                      <span class="pending-days">${user.daysPending} kun oldin</span>
                     </div>
                   </div>
                   <div class="pending-actions">
                     <button class="btn-approve" onclick="approveUser('${user.id}')">
-                      <i class="fas fa-check"></i> Approve
+                      <i class="fas fa-check"></i> Tasdiqlash
                     </button>
                     <button class="btn-reject" onclick="rejectUser('${user.id}')">
-                      <i class="fas fa-times"></i> Reject
+                      <i class="fas fa-times"></i> Rad etish
                     </button>
                   </div>
                 </div>
@@ -2889,8 +2851,8 @@ class SLEXDashboard {
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn-secondary" onclick="closePendingModal()">Close</button>
-            <a href="/admin/users?status=pending" class="btn-primary">View All</a>
+            <button class="btn-secondary" onclick="closePendingModal()">Yopish</button>
+            <a href="/admin/users?status=pending" class="btn-primary">Barcha ko'rish</a>
           </div>
         </div>
       </div>
@@ -3168,7 +3130,7 @@ class SLEXDashboard {
     messagesContainer.innerHTML = `
       <div class="messages-loading">
         <div class="loading-spinner"></div>
-        <span>Loading messages...</span>
+        <span>Xabarlar yuklanmoqda...</span>
       </div>
     `;
 
@@ -3254,7 +3216,7 @@ class SLEXDashboard {
       notificationContainer.innerHTML = `
         <div class="notification-empty">
           <i class="fas fa-bell-slash"></i>
-          <span>No notifications</span>
+          <span>Xabarlar mavjud emas</span>
         </div>
       `;
       return;
@@ -3287,7 +3249,7 @@ class SLEXDashboard {
       messagesContainer.innerHTML = `
         <div class="messages-empty">
           <i class="fas fa-inbox"></i>
-          <span>No messages</span>
+          <span>Xabarlar mavjud emas</span>
         </div>
       `;
     }
@@ -3326,11 +3288,11 @@ class SLEXDashboard {
 
       if (response.ok) {
         this.loadMessages(); // Refresh
-        this.showToast('All messages marked as read', 'success');
+        this.showToast('Foydalanuvchilar xabarlarini o\'qilgan deb belgilandi', 'success');
       }
     } catch (error) {
       console.error('Mark all messages read error:', error);
-      this.showToast('Failed to mark messages as read', 'error');
+      this.showToast('Foydalanuvchilar xabarlarini o\'qishga xatolik', 'error');
     }
   }
 
@@ -3519,8 +3481,8 @@ class SLEXDashboard {
         bulkRejectBtn.disabled = true;
         
         // Reset button text
-        bulkApproveBtn.innerHTML = '<i class="fas fa-check-double"></i> Bulk Approve';
-        bulkRejectBtn.innerHTML = '<i class="fas fa-times-circle"></i> Bulk Reject';
+        bulkApproveBtn.innerHTML = '<i class="fas fa-check-double"></i> Ommaviy tasdiqlash';
+        bulkRejectBtn.innerHTML = '<i class="fas fa-times-circle"></i> Ommaviy rad etish';
       }
     }
   }
@@ -3539,21 +3501,6 @@ class SLEXDashboard {
       this.toggleSelectAll(checkbox);
     };
 
-    window.viewUserDetails = (userId) => {
-      this.viewUserDetails(userId);
-    };
-
-    window.quickApproveUser = (userId) => {
-      this.quickApproveUser(userId);
-    };
-
-    window.quickRejectUser = (userId) => {
-      this.quickRejectUser(userId);
-    };
-
-    window.deleteUserRequest = (userId) => {
-      this.deleteUserRequest(userId);
-    };
   }
 
   setupTableActions() {
@@ -3596,24 +3543,24 @@ class SLEXDashboard {
       const userRow = document.querySelector(`[data-user-id="${userId}"]`);
       return {
         id: userId,
-        companyName: userRow?.querySelector('.company-name')?.textContent || 'Unknown Company',
-        email: userRow?.querySelector('.email-text')?.textContent || 'Unknown Email'
+        companyName: userRow?.querySelector('.company-name')?.textContent || 'Noma\'lum kompaniya',
+        email: userRow?.querySelector('.email-text')?.textContent || 'Noma\'lum email'
       };
     });
 
     // Show professional bulk approval confirmation modal
     const result = await this.showConfirmationModal({
       type: 'bulk',
-      title: 'Bulk Approve Users',
-      message: `Are you sure you want to approve ${selectedUsers.length} user registrations? All selected users will receive approval emails and gain access to the platform.`,
+      title: 'Barcha tanlangan foydalanuvchilarni tasdiqlash',
+      message: `Siz barcha tanlangan foydalanuvchilarni tasdiqlashni xohlaysizmi? Barcha tanlangan foydalanuvchilar tasdiqlovchi xabarlarini oladi va platformaga kirishga ruxsat oladi.`,
       details: [
-        { label: 'Selected Users', value: `${selectedUsers.length} users` },
-        { label: 'Action', value: 'Approve all selected registrations' },
-        { label: 'Notification', value: 'Users will receive approval emails' },
-        { label: 'Access', value: 'Users will gain platform access immediately' }
+        { label: 'Tanlangan foydalanuvchilar', value: `${selectedUsers.length} foydalanuvchilar` },
+        { label: 'Amal', value: 'Barcha tanlangan ro\'yxatdan o\'tishlarni tasdiqlash' },
+        { label: 'Xabar', value: 'Foydalanuvchilar tasdiqlovchi xabarlarini oladi' },
+        { label: 'Ruxsat', value: 'Foydalanuvchilar platformaga kirishga ruxsat oladi' }
       ],
-      confirmText: `Approve ${selectedUsers.length} Users`,
-      cancelText: 'Cancel',
+      confirmText: `Barcha tanlangan foydalanuvchilarni tasdiqlash ${selectedUsers.length} ta`,
+      cancelText: 'Bekor qilish',
       confirmClass: 'success'
     });
 
@@ -3642,15 +3589,15 @@ class SLEXDashboard {
         if (result.success) {
           const successCount = result.successful || 0;
           const failedCount = result.failed || 0;
-          let message = `${successCount} users approved successfully`;
+          let message = `${successCount} foydalanuvchilar muvaffaqiyatli tasdiqlandi`;
           if (failedCount > 0) {
-            message += `, ${failedCount} failed`;
+            message += `, ${failedCount} xatolik`;
           }
           this.showBulkActionFeedback(message, 'success');
           this.removeBulkProcessedRows(selectedUsers);
           this.updateDashboardData();
         } else {
-          throw new Error(result.message || 'Bulk approval failed');
+          throw new Error(result.message || 'Barcha tanlangan foydalanuvchilarni tasdiqlashda xatolik');
         }
       } else {
         const errorText = await response.text();
@@ -3658,7 +3605,7 @@ class SLEXDashboard {
       }
     } catch (error) {
       console.error('Bulk approve error:', error);
-      this.showBulkActionFeedback(`Failed to approve users: ${error.message}`, 'error');
+      this.showBulkActionFeedback(`Barcha tanlangan foydalanuvchilarni tasdiqlashda xatolik: ${error.message}`, 'error');
     } finally {
       // Re-enable bulk buttons
       if (bulkApproveBtn) bulkApproveBtn.disabled = false;
@@ -3670,7 +3617,7 @@ class SLEXDashboard {
     const selectedUsers = this.getSelectedUserIds();
     
     if (selectedUsers.length === 0) {
-      this.showToast('No users selected', 'warning');
+      this.showToast('Foydalanuvchilar tanlanmadi', 'warning');
       return;
     }
 
@@ -3679,31 +3626,31 @@ class SLEXDashboard {
       const userRow = document.querySelector(`[data-user-id="${userId}"]`);
       return {
         id: userId,
-        companyName: userRow?.querySelector('.company-name')?.textContent || 'Unknown Company',
-        email: userRow?.querySelector('.email-text')?.textContent || 'Unknown Email'
+        companyName: userRow?.querySelector('.company-name')?.textContent || 'Noma\'lum kompaniya',
+        email: userRow?.querySelector('.email-text')?.textContent || 'Noma\'lum email'
       };
     });
 
     // Show professional bulk rejection modal with input
     const result = await this.showConfirmationModal({
       type: 'reject',
-      title: 'Bulk Reject Users',
-      message: `Please provide a detailed reason for rejecting ${selectedUsers.length} user registrations. All selected users will receive rejection emails with your explanation.`,
+      title: 'Barcha tanlangan foydalanuvchilarni rad etish',
+      message: `Batafsil tushuntirish kiriting ${selectedUsers.length} foydalanuvchi ro\'yxatdan o\'tishlarni rad etish. Barcha tanlangan foydalanuvchilar rad etish xabarlarini oladi.`,
       details: [
-        { label: 'Selected Users', value: `${selectedUsers.length} users` },
-        { label: 'Action', value: 'Reject all selected registrations' },
-        { label: 'Notification', value: 'Users will receive rejection emails' },
-        { label: 'Reason Required', value: 'Must provide detailed explanation' }
+        { label: 'Tanlangan foydalanuvchilar', value: `${selectedUsers.length} foydalanuvchilar` },
+        { label: 'Amal', value: 'Barcha tanlangan ro\'yxatdan o\'tishlarni rad etish' },
+        { label: 'Xabar', value: 'Foydalanuvchilar rad etish xabarlarini oladi' },
+        { label: 'Sabab', value: 'Batafsil tushuntirish kiritish kerak' }
       ],
-      confirmText: `Reject ${selectedUsers.length} Users`,
-      cancelText: 'Cancel',
+      confirmText: `Barcha tanlangan foydalanuvchilarni rad etish ${selectedUsers.length} ta`,
+      cancelText: 'Bekor qilish',
       confirmClass: 'danger',
       requireInput: true,
-      inputLabel: 'Rejection Reason (for all selected users)',
-      inputPlaceholder: 'Please provide a detailed reason for bulk rejection (minimum 10 characters)...',
+      inputLabel: 'Rad etish sababi (barcha tanlangan foydalanuvchilar uchun)',
+      inputPlaceholder: 'Please provide a detail  ed reason for bulk rejection (minimum 10 characters)...',
       inputValidation: (value) => {
         if (!value || value.trim().length < 10) {
-          return { valid: false, message: 'Rejection reason must be at least 10 characters long' };
+          return { valid: false, message: 'Rad etish sababi kamida 10 ta belgidan iborat bo\'lishi kerak' };
         }
         return { valid: true };
       }
@@ -3717,7 +3664,7 @@ class SLEXDashboard {
     if (bulkApproveBtn) bulkApproveBtn.disabled = true;
     if (bulkRejectBtn) bulkRejectBtn.disabled = true;
 
-    this.showBulkActionFeedback('Processing bulk rejection...', 'info');
+    this.showBulkActionFeedback('Barcha tanlangan foydalanuvchilarni rad etishda xolati...', 'info');
 
     try {
       const response = await fetch('/admin/api/users/bulk-reject', {
@@ -3737,23 +3684,22 @@ class SLEXDashboard {
         if (result.success) {
           const successCount = result.successful || 0;
           const failedCount = result.failed || 0;
-          let message = `${successCount} users rejected successfully`;
+          let message = `${successCount} foydalanuvchilar muvaffaqiyatli rad etildi`;
           if (failedCount > 0) {
-            message += `, ${failedCount} failed`;
+            message += `, ${failedCount} xatolik`;
           }
           this.showBulkActionFeedback(message, 'success');
           this.removeBulkProcessedRows(selectedUsers);
           this.updateDashboardData();
         } else {
-          throw new Error(result.message || 'Bulk rejection failed');
+            throw new Error(result.message || 'Barcha tanlangan foydalanuvchilarni rad etishda xatolik');
         }
       } else {
         const errorText = await response.text();
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
-      console.error('Bulk reject error:', error);
-      this.showBulkActionFeedback(`Failed to reject users: ${error.message}`, 'error');
+      this.showBulkActionFeedback(`Foydalanuvchilarni rad etishda xatolik: ${error.message}`, 'error');
     } finally {
       // Re-enable bulk buttons
       if (bulkApproveBtn) bulkApproveBtn.disabled = false;
@@ -3778,15 +3724,14 @@ class SLEXDashboard {
         if (result.success) {
           this.showProfessionalUserDetailsModal(result.data);
         } else {
-          throw new Error(result.message || 'Failed to load user details');
+          throw new Error(result.message || 'Foydalanuvchi ma\'lumotlarini yuklashda xatolik');
         }
       } else {
         const errorText = await response.text();
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
-      console.error('View user details error:', error);
-      this.showToast(`Failed to load user details: ${error.message}`, 'error');
+      this.showToast(`Foydalanuvchi ma\'lumotlarini yuklashda xatolik: ${error.message}`, 'error');
     } finally {
       this.hideActionLoading(viewBtn);
     }
@@ -3795,22 +3740,22 @@ class SLEXDashboard {
   async quickApproveUser(userId) {
     // Get user data for modal
     const userRow = document.querySelector(`[data-user-id="${userId}"]`);
-    const companyName = userRow?.querySelector('.company-name')?.textContent || 'Unknown Company';
-    const email = userRow?.querySelector('.email-text')?.textContent || 'Unknown Email';
-    const country = userRow?.querySelector('.country-badge')?.textContent || 'Unknown Country';
+    const companyName = userRow?.querySelector('.company-name')?.textContent || 'Noma\'lum kompaniya';
+    const email = userRow?.querySelector('.email-text')?.textContent || 'Noma\'lum email';
+    const country = userRow?.querySelector('.country-badge')?.textContent || 'Noma\'lum mamlakat';
 
     // Show professional confirmation modal
     const result = await this.showConfirmationModal({
       type: 'approve',
-      title: 'Approve User Registration',
-      message: 'Are you sure you want to approve this user registration? The user will receive an approval email and gain access to the platform.',
+      title: 'Foydalanuvchini tasdiqlash',
+      message: 'Siz bu foydalanuvchini tasdiqlashni xohlaysizmi? Bu foydalanuvchi tasdiqlovchi xabarlarini oladi va platformaga kirishga ruxsat oladi.',
       details: [
-        { label: 'Company Name', value: companyName },
-        { label: 'Email Address', value: email },
-        { label: 'Country', value: country }
+        { label: 'Kompaniya nomi', value: companyName },
+        { label: 'Email manzili', value: email },
+        { label: 'Mamlakat', value: country }
       ],
-      confirmText: 'Approve User',
-      cancelText: 'Cancel',
+      confirmText: 'Foydalanuvchini tasdiqlash',
+      cancelText: 'Bekor qilish',
       confirmClass: 'success'
     });
 
@@ -3831,19 +3776,18 @@ class SLEXDashboard {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          this.showToast(`User "${companyName}" approved successfully`, 'success');
+          this.showToast(`Foydalanuvchi "${companyName}" muvaffaqiyatli tasdiqlandi`, 'success');
           this.removeTableRow(userId);
           this.updateDashboardData();
         } else {
-          throw new Error(result.message || 'Approval failed');
+          throw new Error(result.message || 'Tasdiqlashda xatolik');
         }
       } else {
         const errorText = await response.text();
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
-      console.error('Quick approve error:', error);
-      this.showToast(`Failed to approve user: ${error.message}`, 'error');
+      this.showToast(`Foydalanuvchini tasdiqlashda xatolik: ${error.message}`, 'error');
     } finally {
       this.hideActionLoading(approveBtn);
     }
@@ -3852,29 +3796,29 @@ class SLEXDashboard {
   async quickRejectUser(userId) {
     // Get user data for modal
     const userRow = document.querySelector(`[data-user-id="${userId}"]`);
-    const companyName = userRow?.querySelector('.company-name')?.textContent || 'Unknown Company';
-    const email = userRow?.querySelector('.email-text')?.textContent || 'Unknown Email';
-    const country = userRow?.querySelector('.country-badge')?.textContent || 'Unknown Country';
+    const companyName = userRow?.querySelector('.company-name')?.textContent || 'Noma\'lum kompaniya';
+    const email = userRow?.querySelector('.email-text')?.textContent || 'Noma\'lum email';
+    const country = userRow?.querySelector('.country-badge')?.textContent || 'Noma\'lum mamlakat';
 
     // Show professional rejection modal with input
     const result = await this.showConfirmationModal({
       type: 'reject',
-      title: 'Reject User Registration',
-      message: 'Please provide a detailed reason for rejecting this user registration. The user will receive an email with your explanation.',
+      title: 'Foydalanuvchini rad etish',
+      message: 'Batafsil tushuntirish kiriting foydalanuvchini rad etish. Foydalanuvchi rad etish xabarlarini oladi.',
       details: [
-        { label: 'Company Name', value: companyName },
-        { label: 'Email Address', value: email },
-        { label: 'Country', value: country }
+        { label: 'Kompaniya nomi', value: companyName },
+        { label: 'Email manzili', value: email },
+        { label: 'Mamlakat', value: country }
       ],
-      confirmText: 'Reject User',
-      cancelText: 'Cancel',
+      confirmText: 'Foydalanuvchini rad etish',
+      cancelText: 'Bekor qilish',
       confirmClass: 'danger',
       requireInput: true,
-      inputLabel: 'Rejection Reason',
-      inputPlaceholder: 'Please provide a detailed reason for rejection (minimum 10 characters)...',
+      inputLabel: 'Rad etish sababi',
+      inputPlaceholder: 'Batafsil tushuntirish kiriting (minimum 10 ta belgidan iborat)...',
       inputValidation: (value) => {
         if (!value || value.trim().length < 10) {
-          return { valid: false, message: 'Rejection reason must be at least 10 characters long' };
+          return { valid: false, message: 'Rad etish sababi kamida 10 ta belgidan iborat bo\'lishi kerak' };
         }
         return { valid: true };
       }
@@ -3898,19 +3842,18 @@ class SLEXDashboard {
       if (response.ok) {
         const apiResult = await response.json();
         if (apiResult.success) {
-          this.showToast(`User "${companyName}" rejected successfully`, 'success');
+          this.showToast(`Foydalanuvchi "${companyName}" muvaffaqiyatli rad etildi`, 'success');
           this.removeTableRow(userId);
           this.updateDashboardData();
         } else {
-          throw new Error(apiResult.message || 'Rejection failed');
+            throw new Error(apiResult.message || 'Rad etishda xatolik');
         }
       } else {
         const errorText = await response.text();
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
-      console.error('Quick reject error:', error);
-      this.showToast(`Failed to reject user: ${error.message}`, 'error');
+      this.showToast(`Foydalanuvchini rad etishda xatolik: ${error.message}`, 'error');
     } finally {
       this.hideActionLoading(rejectBtn);
     }
@@ -3919,23 +3862,23 @@ class SLEXDashboard {
   async deleteUserRequest(userId) {
     // Get user data for modal
     const userRow = document.querySelector(`[data-user-id="${userId}"]`);
-    const companyName = userRow?.querySelector('.company-name')?.textContent || 'Unknown Company';
-    const email = userRow?.querySelector('.email-text')?.textContent || 'Unknown Email';
-    const country = userRow?.querySelector('.country-badge')?.textContent || 'Unknown Country';
+    const companyName = userRow?.querySelector('.company-name')?.textContent || 'Noma\'lum kompaniya';
+    const email = userRow?.querySelector('.email-text')?.textContent || 'Noma\'lum email';
+    const country = userRow?.querySelector('.country-badge')?.textContent || 'Noma\'lum mamlakat';
 
     // Show professional deletion confirmation modal
     const result = await this.showConfirmationModal({
       type: 'delete',
-      title: 'Delete User Request',
-      message: 'Are you sure you want to permanently delete this user registration request? This action cannot be undone and the user will not be notified.',
+      title: 'Foydalanuvchi so\'rovini o\'chirish',
+      message: 'Bu foydalanuvchi ro\'yxatdan o\'tish so\'rovini butunlay o\'chirishni xohlaysizmi? Bu amalni bekor qilib bo\'lmaydi va foydalanuvchiga xabar berilmaydi.',
       details: [
-        { label: 'Company Name', value: companyName },
-        { label: 'Email Address', value: email },
-        { label: 'Country', value: country },
-        { label: 'Warning', value: 'This action is permanent and cannot be reversed' }
+        { label: 'Kompaniya nomi', value: companyName },
+        { label: 'Email manzili', value: email },
+        { label: 'Mamlakat', value: country },
+        { label: 'Ogohlantirish', value: 'Bu amal doimiy va bekor qilib bo\'lmaydi' }
       ],
-      confirmText: 'Delete Request',
-      cancelText: 'Cancel',
+      confirmText: 'So\'rovni o\'chirish',
+      cancelText: 'Bekor qilish',
       confirmClass: 'danger'
     });
 
@@ -3956,19 +3899,18 @@ class SLEXDashboard {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          this.showToast(`User request for "${companyName}" deleted successfully`, 'success');
+          this.showToast(`Foydalanuvchi so\'rovini o\'chirish muvaffaqiyatli amalga oshirildi`, 'success');
           this.removeTableRow(userId);
           this.updateDashboardData();
         } else {
-          throw new Error(result.message || 'Deletion failed');
+          throw new Error(result.message || 'O\'chirishda xatolik');
         }
       } else {
         const errorText = await response.text();
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (error) {
-      console.error('Delete user error:', error);
-      this.showToast(`Failed to delete user request: ${error.message}`, 'error');
+      this.showToast(`Foydalanuvchi so\'rovini o\'chirishda xatolik: ${error.message}`, 'error');
     } finally {
       this.hideActionLoading(deleteBtn);
     }
@@ -4007,7 +3949,7 @@ class SLEXDashboard {
         section.innerHTML = `
           <div class="pending-approvals-empty">
             <i class="fas fa-check-circle"></i>
-            <span>All pending approvals have been processed!</span>
+            <span>Barcha kutayotgan tasdiqlar amalga oshirildi!</span>
           </div>
         `;
       }
@@ -4048,7 +3990,7 @@ class SLEXDashboard {
       <div class="modal-overlay" id="userDetailsModal">
         <div class="modal-content user-details-modal">
           <div class="modal-header">
-            <h3>User Details</h3>
+            <h3>Foydalanuvchi ma\'lumotlari</h3>
             <button class="modal-close" onclick="closeUserDetailsModal()">
               <i class="fas fa-times"></i>
             </button>
@@ -4056,44 +3998,44 @@ class SLEXDashboard {
           <div class="modal-body">
             <div class="user-details-grid">
               <div class="detail-section">
-                <h4>Company Information</h4>
+                <h4>Kompaniya ma\'lumotlari</h4>
                 <div class="detail-item">
-                  <span class="detail-label">Company Name:</span>
-                  <span class="detail-value">${userData.companyName || 'N/A'}</span>
+                  <span class="detail-label">Kompaniya nomi:</span>
+                  <span class="detail-value">${userData.companyName || 'Mavjud emas'}</span>
                 </div>
                 <div class="detail-item">
-                  <span class="detail-label">Business Type:</span>
-                  <span class="detail-value">${userData.businessType || 'N/A'}</span>
+                  <span class="detail-label">Biznes turi:</span>
+                  <span class="detail-value">${userData.businessType || 'Mavjud emas'}</span>
                 </div>
                 <div class="detail-item">
-                  <span class="detail-label">Country:</span>
-                  <span class="detail-value">${userData.country || 'N/A'}</span>
+                  <span class="detail-label">Mamlakat:</span>
+                  <span class="detail-value">${userData.country || 'Mavjud emas'}</span>
                 </div>
               </div>
               <div class="detail-section">
-                <h4>Contact Information</h4>
+                <h4>Bog\'lanish ma\'lumotlari</h4>
                 <div class="detail-item">
-                  <span class="detail-label">Email:</span>
+                  <span class="detail-label">Email manzili:</span>
                   <span class="detail-value">${userData.email}</span>
                 </div>
                 <div class="detail-item">
-                  <span class="detail-label">Registration Date:</span>
+                  <span class="detail-label">Ro\'yxatdan o\'tish sanasi:</span>
                   <span class="detail-value">${new Date(userData.createdAt).toLocaleDateString()}</span>
                 </div>
                 <div class="detail-item">
-                  <span class="detail-label">Days Pending:</span>
+                  <span class="detail-label">Kutayotgan kunlar:</span>
                   <span class="detail-value">${userData.daysPending || 0} days</span>
                 </div>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn-secondary" onclick="closeUserDetailsModal()">Close</button>
+            <button class="btn-secondary" onclick="closeUserDetailsModal()">Yopish</button>
             <button class="btn-approve" onclick="quickApproveUserFromModal('${userData.id}')">
-              <i class="fas fa-check"></i> Approve
+              <i class="fas fa-check"></i> Tasdiqlash
             </button>
             <button class="btn-reject" onclick="quickRejectUserFromModal('${userData.id}')">
-              <i class="fas fa-times"></i> Reject
+              <i class="fas fa-times"></i> Rad etish
             </button>
           </div>
         </div>
@@ -4103,20 +4045,6 @@ class SLEXDashboard {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
 
     // Add global functions
-    window.closeUserDetailsModal = () => {
-      const modal = document.getElementById('userDetailsModal');
-      if (modal) modal.remove();
-    };
-
-    window.quickApproveUserFromModal = (userId) => {
-      window.closeUserDetailsModal();
-      this.quickApproveUser(userId);
-    };
-
-    window.quickRejectUserFromModal = (userId) => {
-      window.closeUserDetailsModal();
-      this.quickRejectUser(userId);
-    };
 
     // Close modal on overlay click
     const modal = document.getElementById('userDetailsModal');
@@ -4365,8 +4293,8 @@ class SLEXDashboard {
                 ${this.getCompanyInitials(user.companyName)}
               </div>
               <div class="user-details-modal-header-info">
-                <h2>${this.escapeHTML(user.companyName || 'Unknown Company')}</h2>
-                <p>${this.escapeHTML(user.email || 'No email provided')}</p>
+                <h2>${this.escapeHTML(user.companyName || 'Noma\'lum kompaniya')}</h2>
+                <p>${this.escapeHTML(user.email || 'Email berilmagan')}</p>
               </div>
             </div>
             <button class="user-details-modal-close" onclick="closeUserDetailsModal()">
@@ -4377,16 +4305,16 @@ class SLEXDashboard {
           <div class="user-details-modal-body">
             <div class="user-details-tabs">
               <button class="user-details-tab active" onclick="switchUserDetailsTab('overview')">
-                <i class="fas fa-info-circle"></i> Overview
+                <i class="fas fa-info-circle"></i> Umumiy ma'lumotlar
               </button>
               <button class="user-details-tab" onclick="switchUserDetailsTab('company')">
-                <i class="fas fa-building"></i> Company Info
+                <i class="fas fa-building"></i> Kompaniya ma'lumotlari
               </button>
               <button class="user-details-tab" onclick="switchUserDetailsTab('contact')">
-                <i class="fas fa-address-book"></i> Contact Details
+                <i class="fas fa-address-book"></i> Aloqa ma'lumotlari
               </button>
               <button class="user-details-tab" onclick="switchUserDetailsTab('activity')">
-                <i class="fas fa-chart-line"></i> Activity
+                <i class="fas fa-chart-line"></i> Harakatlar
               </button>
             </div>
 
@@ -4394,9 +4322,9 @@ class SLEXDashboard {
             <div class="user-details-tab-content active" id="overview-tab">
               <div class="user-details-grid">
                 <div class="user-details-section">
-                  <h4><i class="fas fa-user-circle"></i> Registration Status</h4>
+                  <h4><i class="fas fa-user-circle"></i> Ro'yxatdan o'tish holati</h4>
                   <div class="user-details-item">
-                    <span class="user-details-label">Current Status:</span>
+                    <span class="user-details-label">Hozirgi holat:</span>
                     <span class="user-details-value">
                       <span class="user-details-status-badge ${user.status || 'pending'}">
                         ${(user.status || 'pending').toUpperCase()}
@@ -4404,41 +4332,41 @@ class SLEXDashboard {
                     </span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Registration Date:</span>
+                    <span class="user-details-label">Ro'yxatdan o'tish sanasi:</span>
                     <span class="user-details-value">${registrationDate.toLocaleDateString('en-US', { 
                       year: 'numeric', month: 'long', day: 'numeric' 
                     })}</span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Days Pending:</span>
+                    <span class="user-details-label">Kutayotgan kunlar:</span>
                     <span class="user-details-value">${daysPending} days</span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Profile Completeness:</span>
+                    <span class="user-details-label">Profil to'liqligi:</span>
                     <span class="user-details-value">${profileCompleteness}%</span>
                   </div>
                 </div>
 
                 <div class="user-details-section">
-                  <h4><i class="fas fa-chart-pie"></i> Account Metrics</h4>
+                  <h4><i class="fas fa-chart-pie"></i> Hisob ko'rsatkichlari</h4>
                   <div class="user-details-item">
-                    <span class="user-details-label">Email Verified:</span>
+                    <span class="user-details-label">Email tasdiqlangan:</span>
                     <span class="user-details-value">
-                      ${user.emailVerified ? '✅ Yes' : '❌ No'}
+                      ${user.emailVerified ? '✅ Ha' : '❌ Yo\'q'}
                     </span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Last Login:</span>
+                    <span class="user-details-label">Oxirgi tizimga kirish:</span>
                     <span class="user-details-value">
-                      ${user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
+                      ${user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Hech qachon'}
                     </span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Login Attempts:</span>
+                    <span class="user-details-label">Kirish urinishlari:</span>
                     <span class="user-details-value">${user.loginAttempts || 0}</span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Account Age:</span>
+                    <span class="user-details-label">Hisob yoshi:</span>
                     <span class="user-details-value">${daysPending} days</span>
                   </div>
                 </div>
@@ -4449,42 +4377,42 @@ class SLEXDashboard {
             <div class="user-details-tab-content" id="company-tab">
               <div class="user-details-grid">
                 <div class="user-details-section">
-                  <h4><i class="fas fa-building"></i> Company Information</h4>
+                  <h4><i class="fas fa-building"></i> Kompaniya ma'lumotlari</h4>
                   <div class="user-details-item">
-                    <span class="user-details-label">Company Name:</span>
-                    <span class="user-details-value">${this.escapeHTML(user.companyName || 'N/A')}</span>
+                    <span class="user-details-label">Kompaniya nomi:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.companyName || 'Mavjud emas')}</span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Business Type:</span>
-                    <span class="user-details-value">${this.escapeHTML(user.businessType || 'N/A')}</span>
+                    <span class="user-details-label">Biznes turi:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.businessType || 'Mavjud emas')}</span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Activity Type:</span>
-                    <span class="user-details-value">${this.escapeHTML(user.activityType || 'N/A')}</span>
+                    <span class="user-details-label">Faoliyat turi:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.activityType || 'Mavjud emas')}</span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Company Type:</span>
-                    <span class="user-details-value">${this.escapeHTML(user.companyType || 'N/A')}</span>
+                    <span class="user-details-label">Kompaniya turi:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.companyType || 'Mavjud emas')}</span>
                   </div>
                 </div>
 
                 <div class="user-details-section">
-                  <h4><i class="fas fa-globe"></i> Location & Legal</h4>
+                  <h4><i class="fas fa-globe"></i> Manzil va huquqiy ma'lumotlar</h4>
                   <div class="user-details-item">
-                    <span class="user-details-label">Country:</span>
-                    <span class="user-details-value">${this.escapeHTML(user.country || 'N/A')}</span>
+                    <span class="user-details-label">Davlat:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.country || 'Mavjud emas')}</span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">City:</span>
-                    <span class="user-details-value">${this.escapeHTML(user.city || 'N/A')}</span>
+                    <span class="user-details-label">Shahar:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.city || 'Mavjud emas')}</span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Address:</span>
-                    <span class="user-details-value">${this.escapeHTML(user.address || 'N/A')}</span>
+                    <span class="user-details-label">Manzil:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.address || 'Mavjud emas')}</span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Tax Number:</span>
-                    <span class="user-details-value">${this.escapeHTML(user.taxNumber || 'N/A')}</span>
+                    <span class="user-details-label">Soliq raqami:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.taxNumber || 'Mavjud emas')}</span>
                   </div>
                 </div>
               </div>
@@ -4494,29 +4422,29 @@ class SLEXDashboard {
             <div class="user-details-tab-content" id="contact-tab">
               <div class="user-details-grid">
                 <div class="user-details-section">
-                  <h4><i class="fas fa-envelope"></i> Contact Information</h4>
+                  <h4><i class="fas fa-envelope"></i> Aloqa ma'lumotlari</h4>
                   <div class="user-details-item">
-                    <span class="user-details-label">Email Address:</span>
+                    <span class="user-details-label">Email manzil:</span>
                     <span class="user-details-value">
                       <a href="mailto:${user.email}" style="color: #667eea; text-decoration: none;">
-                        ${this.escapeHTML(user.email || 'N/A')}
+                        ${this.escapeHTML(user.email || 'Mavjud emas')}
                       </a>
                     </span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Phone Number:</span>
+                    <span class="user-details-label">Telefon raqam:</span>
                     <span class="user-details-value">
-                      ${user.phone ? `<a href="tel:${user.phone}" style="color: #667eea; text-decoration: none;">${this.escapeHTML(user.phone)}</a>` : 'N/A'}
+                      ${user.phone ? `<a href="tel:${user.phone}" style="color: #667eea; text-decoration: none;">${this.escapeHTML(user.phone)}</a>` : 'Mavjud emas'}
                     </span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Contact Person:</span>
-                    <span class="user-details-value">${this.escapeHTML(user.contactPerson || 'N/A')}</span>
+                    <span class="user-details-label">Aloqa shaxsi:</span>
+                    <span class="user-details-value">${this.escapeHTML(user.contactPerson || 'Mavjud emas')}</span>
                   </div>
                   <div class="user-details-item">
-                    <span class="user-details-label">Website:</span>
+                    <span class="user-details-label">Veb-sayt:</span>
                     <span class="user-details-value">
-                      ${user.website ? `<a href="${user.website}" target="_blank" style="color: #667eea; text-decoration: none;">${this.escapeHTML(user.website)}</a>` : 'N/A'}
+                      ${user.website ? `<a href="${user.website}" target="_blank" style="color: #667eea; text-decoration: none;">${this.escapeHTML(user.website)}</a>` : 'Mavjud emas'}
                     </span>
                   </div>
                 </div>
@@ -4525,7 +4453,7 @@ class SLEXDashboard {
                   <h4><i class="fas fa-comments"></i> Communication Preferences</h4>
                   <div class="user-details-item">
                     <span class="user-details-label">Preferred Language:</span>
-                    <span class="user-details-value">${this.escapeHTML(user.preferredLanguage || 'English')}</span>
+                    <span class="user-details-value">${this.escapeHTML(user.preferredLanguage || 'Ingliz tili')}</span>
                   </div>
                   <div class="user-details-item">
                     <span class="user-details-label">Time Zone:</span>
@@ -4571,7 +4499,7 @@ class SLEXDashboard {
                     <div class="user-details-timeline-item">
                       <div class="user-details-timeline-date">${new Date(user.rejectedAt).toLocaleDateString()}</div>
                       <div class="user-details-timeline-event">Account Rejected</div>
-                      <div class="user-details-timeline-description">Reason: ${this.escapeHTML(user.rejectionReason || 'No reason provided')}</div>
+                      <div class="user-details-timeline-description">Sabab: ${this.escapeHTML(user.rejectionReason || 'Sabab berilmagan')}</div>
                     </div>
                   ` : ''}
                 </div>
@@ -4581,14 +4509,14 @@ class SLEXDashboard {
 
           <div class="user-details-modal-footer">
             <button class="user-details-modal-btn secondary" onclick="closeUserDetailsModal()">
-              <i class="fas fa-times"></i> Close
+              <i class="fas fa-times"></i> Yopish
             </button>
             ${user.status === 'pending' ? `
               <button class="user-details-modal-btn success" onclick="approveUserFromModal('${user._id || user.id}')">
-                <i class="fas fa-check"></i> Approve User
+                <i class="fas fa-check"></i> Tasdiqlash
               </button>
               <button class="user-details-modal-btn danger" onclick="rejectUserFromModal('${user._id || user.id}')">
-                <i class="fas fa-times"></i> Reject User
+                <i class="fas fa-times"></i> Rad etish
               </button>
             ` : ''}
           </div>
@@ -4631,33 +4559,6 @@ class SLEXDashboard {
       document.getElementById(`${tabName}-tab`).classList.add('active');
     };
 
-    // Action functions
-    window.approveUserFromModal = (userId) => {
-      window.closeUserDetailsModal();
-      this.quickApproveUser(userId);
-    };
-
-    window.rejectUserFromModal = (userId) => {
-      window.closeUserDetailsModal();
-      this.quickRejectUser(userId);
-    };
-
-    // Close modal on overlay click
-    const modal = document.getElementById('userDetailsModal');
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        window.closeUserDetailsModal();
-      }
-    });
-
-    // Close modal on escape key
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        window.closeUserDetailsModal();
-        document.removeEventListener('keydown', handleEscape);
-      }
-    };
-    document.addEventListener('keydown', handleEscape);
   }
 
   /**
@@ -4737,138 +4638,15 @@ document.addEventListener('DOMContentLoaded', () => {
  * View user details with professional modal
  * @param {string} userId - User ID
  */
-window.viewUserDetails = async function(userId) {
-  try {
-    
-    // Show loading state
-    if (window.SLEXDashboard) {
-      window.SLEXDashboard.showToast('info', 'Loading user details...');
-    }
-    
-    const response = await fetch(`/admin/api/users/${userId}/details`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      if (result.success) {
-        showUserDetailsModal(result.data);
-      } else {
-        throw new Error(result.message || 'Failed to load user details');
-      }
-    } else {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-  } catch (error) {
-    console.error('❌ View user details failed:', error);
-    
-    if (window.SLEXDashboard) {
-      window.SLEXDashboard.showToast('error', 'Could not load user details: ' + error.message);
-    } else {
-      alert('Failed to load user details: ' + error.message);
-    }
-  }
-};
 
 /**
  * Show professional user details modal
  * @param {Object} data - User data object
  */
-function showUserDetailsModal(data) {
-  const user = data.user;
-  const stats = data.statistics || {};
-  
-  const modalHTML = `
-    <div id="userDetailsModal" class="modal-overlay" onclick="closeUserDetailsModal()">
-      <div class="modal-content user-details-modal" onclick="event.stopPropagation()">
-        <div class="modal-header">
-          <h3>User Details</h3>
-          <button class="modal-close" onclick="closeUserDetailsModal()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="user-details-grid">
-            <div class="user-info-section">
-              <h4>Company Information</h4>
-              <div class="info-row">
-                <span class="label">Company Name:</span>
-                <span class="value">${user.companyName || 'N/A'}</span>
-              </div>
-              <div class="info-row">
-                <span class="label">Business Type:</span>
-                <span class="value">${user.businessType || 'N/A'}</span>
-              </div>
-              <div class="info-row">
-                <span class="label">Country:</span>
-                <span class="value">${user.country || 'N/A'}</span>
-              </div>
-              <div class="info-row">
-                <span class="label">Email:</span>
-                <span class="value">${user.email || 'N/A'}</span>
-              </div>
-            </div>
-            <div class="user-stats-section">
-              <h4>Statistics</h4>
-              <div class="info-row">
-                <span class="label">Registration Date:</span>
-                <span class="value">${new Date(user.createdAt).toLocaleDateString()}</span>
-              </div>
-              <div class="info-row">
-                <span class="label">Status:</span>
-                <span class="value status-${user.status}">${user.status}</span>
-              </div>
-              <div class="info-row">
-                <span class="label">Days Pending:</span>
-                <span class="value">${calculateDaysPending(user.createdAt)} days</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" onclick="closeUserDetailsModal()">Close</button>
-          <button class="btn btn-success" onclick="quickApproveUser('${user._id}'); closeUserDetailsModal();">
-            <i class="fas fa-check"></i> Approve
-          </button>
-          <button class="btn btn-danger" onclick="quickRejectUser('${user._id}'); closeUserDetailsModal();">
-            <i class="fas fa-times"></i> Reject
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  // Remove existing modal if any
-  const existingModal = document.getElementById('userDetailsModal');
-  if (existingModal) {
-    existingModal.remove();
-  }
-  
-  // Add modal to body
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
-  
-  // Add CSS animation
-  setTimeout(() => {
-    const modal = document.getElementById('userDetailsModal');
-    if (modal) {
-      modal.classList.add('modal-show');
-    }
-  }, 10);
-}
 
 /**
  * Close user details modal
  */
-window.closeUserDetailsModal = function() {
-  const modal = document.getElementById('userDetailsModal');
-  if (modal) {
-    modal.classList.add('modal-hide');
-    setTimeout(() => modal.remove(), 300);
-  }
-};
 
 /**
  * Calculate days pending
@@ -4886,65 +4664,6 @@ function calculateDaysPending(createdAt) {
  * Quick approve user with professional feedback
  * @param {string} userId - User ID
  */
-window.quickApproveUser = async function(userId) {
-  // Professional confirmation dialog
-  if (!showConfirmDialog('Approve User', 'Are you sure you want to approve this user?', 'success')) {
-    return;
-  }
-  
-  try {
-    
-    // Show loading state
-    if (window.SLEXDashboard) {
-      window.SLEXDashboard.showToast('info', 'Approving user...');
-    }
-    
-    const response = await fetch(`/admin/api/users/${userId}/approve`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify({ 
-        notes: 'Approved via dashboard quick action',
-        timestamp: new Date().toISOString()
-      })
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      if (result.success) {
-        
-        // Professional UI updates
-        updateUserRowStatus(userId, 'approved');
-        updateDashboardStats();
-        
-        if (window.SLEXDashboard) {
-          window.SLEXDashboard.showToast('success', `User approved successfully! Company: ${result.data.companyName}`);
-        } else {
-          alert('User approved successfully!');
-        }
-        
-        // Smooth reload after delay
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      } else {
-        throw new Error(result.message || 'Approval failed');
-      }
-    } else {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-  } catch (error) {
-    console.error('❌ User approval failed:', error);
-    
-    if (window.SLEXDashboard) {
-      window.SLEXDashboard.showToast('error', 'Could not approve user: ' + error.message);
-    } else {
-      alert('Failed to approve user: ' + error.message);
-    }
-  }
-  };
 
 /**
  * Show professional confirmation dialog
@@ -4974,7 +4693,7 @@ function updateUserRowStatus(userId, status) {
   const statusBadge = userRow.querySelector('.status-badge');
   if (statusBadge) {
     statusBadge.className = `status-badge ${status}`;
-    statusBadge.innerHTML = `<i class="fas fa-${status === 'approved' ? 'check' : 'times'}"></i> ${status}`;
+    statusBadge.innerHTML = `<i class="fas fa-${status === 'approved' ? 'check' : 'times'}"></i> ${status === 'approved' ? 'tasdiqlangan' : 'kutilmoqda'}`;
   }
   
   // Disable action buttons
@@ -5021,270 +4740,18 @@ function updateDashboardStats() {
  * Quick reject user with professional feedback
  * @param {string} userId - User ID
  */
-window.quickRejectUser = async function(userId) {
-  const reason = prompt('Please provide a reason for rejection (minimum 10 characters):');
-  if (!reason || reason.trim().length < 10) {
-    alert('Rejection reason must be at least 10 characters long');
-    return;
-  }
-  
-  try {
-    const response = await fetch(`/admin/api/users/${userId}/reject`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify({ reason: reason.trim() })
-    });
 
-    if (response.ok) {
-      const result = await response.json();
-      if (result.success) {
-        alert('User rejected successfully!');
-        // Reload page to update stats
-        window.location.reload();
-      } else {
-        throw new Error(result.message);
-      }
-    } else {
-      throw new Error('Failed to reject user');
-    }
-  } catch (error) {
-    console.error('Reject user error:', error);
-    alert('Failed to reject user: ' + error.message);
-  }
-};
 
-window.deleteUserRequest = async function(userId) {
-  if (!confirm('Are you sure you want to delete this user request? This action cannot be undone.')) return;
-  
-  try {
-    const response = await fetch(`/admin/api/users/${userId}/delete`, {
-      method: 'DELETE',
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    });
 
-    if (response.ok) {
-      const result = await response.json();
-      if (result.success) {
-        alert('User request deleted successfully!');
-        // Reload page to update stats
-        window.location.reload();
-      } else {
-        throw new Error(result.error);
-      }
-    } else {
-      throw new Error('Failed to delete user request');
-    }
-  } catch (error) {
-    console.error('Delete user error:', error);
-    alert('Failed to delete user: ' + error.message);
-  }
-};
 
-window.bulkApproveSelected = async function() {
-  const selectedIds = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
-  
-  if (selectedIds.length === 0) {
-    alert('Please select users to approve');
-    return;
-  }
-
-  if (!confirm(`Are you sure you want to approve ${selectedIds.length} selected users?`)) return;
-  
-  try {
-    const response = await fetch('/admin/api/users/bulk-approve', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify({ userIds: selectedIds })
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      if (result.success) {
-        alert(`${result.data.successful} users approved successfully!`);
-        // Reload page to update stats
-        window.location.reload();
-      } else {
-        throw new Error(result.error);
-      }
-    } else {
-      throw new Error('Failed to bulk approve users');
-    }
-  } catch (error) {
-    console.error('Bulk approve error:', error);
-    alert('Failed to approve users: ' + error.message);
-  }
-};
-
-window.bulkRejectSelected = async function() {
-  const selectedIds = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
-  
-  if (selectedIds.length === 0) {
-    alert('Please select users to reject');
-    return;
-  }
-
-  const reason = prompt('Please provide a reason for rejection (minimum 10 characters):');
-  if (!reason || reason.trim().length < 10) {
-    alert('Rejection reason must be at least 10 characters long');
-    return;
-  }
-
-  if (!confirm(`Are you sure you want to reject ${selectedIds.length} selected users?`)) return;
-  
-  try {
-    const response = await fetch('/admin/api/users/bulk-reject', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify({ userIds: selectedIds, reason: reason.trim() })
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      if (result.success) {
-        alert(`${result.data.successful} users rejected successfully!`);
-        // Reload page to update stats
-        window.location.reload();
-      } else {
-        throw new Error(result.error);
-      }
-    } else {
-      throw new Error('Failed to bulk reject users');
-    }
-  } catch (error) {
-    console.error('Bulk reject error:', error);
-    alert('Failed to reject users: ' + error.message);
-  }
-};
-
-window.toggleSelectAll = function(selectAllCheckbox) {
-  const userCheckboxes = document.querySelectorAll('.user-checkbox');
-  userCheckboxes.forEach(checkbox => {
-    checkbox.checked = selectAllCheckbox.checked;
-  });
-};
 
 /**
  * Mark all messages as read with professional feedback
  */
-window.markAllMessagesRead = async function() {
-  try {
-    
-    if (window.SLEXDashboard) {
-      window.SLEXDashboard.showToast('info', 'Marking all messages as read...');
-    }
-    
-    const response = await fetch('/admin/api/messages/mark-all-read', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      if (result.success) {
-        
-        // Update UI immediately
-        document.querySelectorAll('.message-item.unread').forEach(item => {
-          item.classList.remove('unread');
-          item.classList.add('read');
-          const indicator = item.querySelector('.unread-indicator');
-          if (indicator) indicator.remove();
-        });
-        
-        // Update badge
-        const messagesBadge = document.getElementById('messagesBadge');
-        if (messagesBadge) {
-          messagesBadge.style.display = 'none';
-        }
-        
-        if (window.SLEXDashboard) {
-          window.SLEXDashboard.showToast('success', 'All messages marked as read successfully');
-        } else {
-          alert('All messages marked as read');
-        }
-      } else {
-        throw new Error(result.message || 'Failed to mark messages as read');
-      }
-    } else {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-  } catch (error) {
-    console.error('❌ Mark all messages read failed:', error);
-    
-    if (window.SLEXDashboard) {
-      window.SLEXDashboard.showToast('error', 'Could not mark all messages as read: ' + error.message);
-    } else {
-      alert('Failed to mark all messages as read: ' + error.message);
-    }
-  }
-};
 
 /**
  * Mark all notifications as read with professional feedback
  */
-window.markAllNotificationsRead = async function() {
-  try {
-    
-    if (window.SLEXDashboard) {
-      window.SLEXDashboard.showToast('info', 'Marking all notifications as read...');
-    }
-    
-    const response = await fetch('/admin/api/notifications/mark-all-read', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      if (result.success) {
-        
-        // Update UI immediately
-        document.querySelectorAll('.notification-item.unread').forEach(item => {
-          item.classList.remove('unread');
-          item.classList.add('read');
-          const indicator = item.querySelector('.unread-indicator');
-          if (indicator) indicator.remove();
-        });
-        
-        // Update badge
-        const notificationsBadge = document.querySelector('#notificationBtn .notification-badge');
-        if (notificationsBadge) {
-          notificationsBadge.style.display = 'none';
-        }
-        
-        if (window.SLEXDashboard) {
-          window.SLEXDashboard.showToast('success', 'All notifications marked as read successfully');
-        }
-      } else {
-        throw new Error(result.message || 'Failed to mark notifications as read');
-      }
-    } else {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-  } catch (error) {
-    console.error('❌ Mark all notifications read failed:', error);
-    
-    if (window.SLEXDashboard) {
-      window.SLEXDashboard.showToast('error', 'Could not mark all notifications as read: ' + error.message);
-    }
-  }
-};
 
 /**
  * Global function to mark individual message as read
@@ -5332,8 +4799,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorBanner = document.createElement('div');
     errorBanner.innerHTML = `
       <div class="alert alert-danger" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
-        <strong>Dashboard Error:</strong> ${error.message}<br>
-        <small>Please refresh the page or contact support.</small>
+        <strong>Dashboard xatoligi:</strong> ${error.message}<br>
+        <small>Sahifani yangilang yoki yordamga murojaat qiling.</small>
       </div>
     `;
     document.body.appendChild(errorBanner);
@@ -5688,7 +5155,7 @@ class AdminHeaderDropdownFix {
     const messagesContainer = document.getElementById('messagesContainer');
     
     if (!messagesContainer) {
-      console.warn('Messages container not found');
+      console.warn('Xabarlar konteyneri topilmadi');
       return;
     }
 
@@ -5696,7 +5163,7 @@ class AdminHeaderDropdownFix {
     messagesContainer.innerHTML = `
       <div class="messages-loading">
         <div class="loading-spinner"></div>
-        <span>Loading messages...</span>
+        <span>Xabarlar yuklanmoqda...</span>
       </div>
     `;
 
@@ -5712,13 +5179,13 @@ class AdminHeaderDropdownFix {
       }
 
     } catch (error) {
-      console.error('❌ Messages loading failed:', error);
+      console.error('❌ Xabarlar yuklashda xatolik:', error);
       messagesContainer.innerHTML = `
         <div class="error-state">
           <i class="fas fa-exclamation-triangle"></i>
-          <p>Failed to load messages</p>
+          <p>Xabarlar yuklashda xatolik</p>
           <button onclick="window.adminHeaderDropdownFix.loadMessages()" class="btn-retry">
-            Try Again
+            Qayta urinib ko'ring
           </button>
         </div>
       `;
@@ -5729,7 +5196,7 @@ class AdminHeaderDropdownFix {
     const notificationsContainer = document.getElementById('notificationsContainer');
     
     if (!notificationsContainer) {
-      console.warn('Notifications container not found');
+      console.warn('Bildirishnomalar konteyneri topilmadi');
       return;
     }
 
@@ -5737,7 +5204,7 @@ class AdminHeaderDropdownFix {
     notificationsContainer.innerHTML = `
       <div class="notifications-loading">
         <div class="loading-spinner"></div>
-        <span>Loading notifications...</span>
+        <span>Yuklanmoqda...</span>
       </div>
     `;
 
@@ -5753,13 +5220,13 @@ class AdminHeaderDropdownFix {
       }
 
     } catch (error) {
-      console.error('❌ Notifications loading failed:', error);
+      console.error('❌ Bildirishnomalar yuklashda xatolik:', error);
       notificationsContainer.innerHTML = `
         <div class="error-state">
           <i class="fas fa-exclamation-triangle"></i>
-          <p>Failed to load notifications</p>
+          <p>Bildirishnomalar yuklashda xatolik</p>
           <button onclick="window.adminHeaderDropdownFix.loadNotifications()" class="btn-retry">
-            Try Again
+            Qayta urinib ko'ring
           </button>
         </div>
       `;
@@ -5778,7 +5245,7 @@ class AdminHeaderDropdownFix {
       messagesContainer.innerHTML = `
         <div class="empty-state">
           <i class="fas fa-inbox"></i>
-          <p>No messages found</p>
+          <p>Xabarlar topilmadi</p>
         </div>
       `;
       return;
@@ -5796,7 +5263,7 @@ class AdminHeaderDropdownFix {
       notificationsContainer.innerHTML = `
         <div class="empty-state">
           <i class="fas fa-bell-slash"></i>
-          <p>No notifications found</p>
+          <p>Bildirishnomalar topilmadi</p>
         </div>
       `;
       return;

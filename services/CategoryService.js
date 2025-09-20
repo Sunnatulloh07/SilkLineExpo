@@ -40,8 +40,7 @@ class CategoryService {
       const query = {};
       
       if (status) query.status = status;
-      if (level !== '') query.level = parseInt(level);
-      if (parentCategory) query.parentCategory = parentCategory;
+      // All categories are at root level (no hierarchy)
       if (isActive !== '') query['settings.isActive'] = isActive === 'true';
       if (isFeatured !== '') query['settings.isFeatured'] = isFeatured === 'true';
       
@@ -62,14 +61,6 @@ class CategoryService {
       // Execute aggregation pipeline for comprehensive data
       const pipeline = [
         { $match: query },
-        {
-          $lookup: {
-            from: 'categories',
-            localField: 'parentCategory',
-            foreignField: '_id',
-            as: 'parentInfo'
-          }
-        },
         {
           $lookup: {
             from: 'users',
@@ -150,8 +141,6 @@ class CategoryService {
           },
           filters: {
             status,
-            level,
-            parentCategory,
             search,
             sortBy,
             sortOrder
@@ -295,17 +284,6 @@ class CategoryService {
    */
   static async createCategory(adminId, categoryData) {
     try {
-      // Validate parent category if provided
-      if (categoryData.parentCategory) {
-        const parentCategory = await Category.findById(categoryData.parentCategory);
-        if (!parentCategory) {
-          throw new Error('Parent category not found');
-        }
-        if (parentCategory.level >= 4) {
-          throw new Error('Maximum category depth exceeded');
-        }
-      }
-
       // Generate slug if not provided
       if (!categoryData.slug) {
         categoryData.slug = categoryData.name
@@ -325,9 +303,25 @@ class CategoryService {
       }
       categoryData.slug = finalSlug;
 
-      // Create category
+      // Create category with simplified structure
       const category = new Category({
-        ...categoryData,
+        name: categoryData.name,
+        slug: finalSlug,
+        description: categoryData.description,
+        icon: categoryData.icon || 'las la-folder',
+        color: categoryData.color || '#3B82F6',
+        translations: categoryData.translations || {},
+        seo: categoryData.seo || {},
+        settings: {
+          isActive: categoryData.settings?.isActive !== false,
+          isVisible: categoryData.settings?.isVisible !== false,
+          isFeatured: categoryData.settings?.isFeatured === true,
+          allowProducts: categoryData.settings?.allowProducts !== false,
+          requireApproval: categoryData.settings?.requireApproval === true,
+          sortOrder: parseInt(categoryData.settings?.sortOrder) || 0
+        },
+        businessRules: categoryData.businessRules || {},
+        content: categoryData.content || {},
         createdBy: adminId,
         lastModifiedBy: adminId
       });
@@ -336,14 +330,6 @@ class CategoryService {
       category.addAuditLog('created', adminId, categoryData, 'Category created by admin');
 
       await category.save();
-
-      // Update parent category metrics if exists
-      if (category.parentCategory) {
-        const parentCategory = await Category.findById(category.parentCategory);
-        if (parentCategory) {
-          await parentCategory.updateMetrics();
-        }
-      }
 
       return {
         success: true,

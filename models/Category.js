@@ -40,67 +40,35 @@ const categorySchema = new mongoose.Schema({
     maxlength: [1000, 'Description cannot exceed 1000 characters']
   },
   
-  shortDescription: {
-    type: String,
-    trim: true,
-    maxlength: [200, 'Short description cannot exceed 200 characters']
-  },
 
   // Multi-language Support
   translations: {
     uz: {
       name: { type: String, trim: true },
-      description: { type: String, trim: true },
-      shortDescription: { type: String, trim: true }
+      description: { type: String, trim: true }
     },
     en: {
       name: { type: String, trim: true },
-      description: { type: String, trim: true },
-      shortDescription: { type: String, trim: true }
+      description: { type: String, trim: true }
     },
     ru: {
       name: { type: String, trim: true },
-      description: { type: String, trim: true },
-      shortDescription: { type: String, trim: true }
+      description: { type: String, trim: true }
     },
     tr: {
       name: { type: String, trim: true },
-      description: { type: String, trim: true },
-      shortDescription: { type: String, trim: true }
+      description: { type: String, trim: true }
     },
     fa: {
       name: { type: String, trim: true },
-      description: { type: String, trim: true },
-      shortDescription: { type: String, trim: true }
+      description: { type: String, trim: true }
     },
     zh: {
       name: { type: String, trim: true },
-      description: { type: String, trim: true },
-      shortDescription: { type: String, trim: true }
+      description: { type: String, trim: true }
     }
   },
 
-  // Hierarchical Structure
-  parentCategory: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category',
-    default: null,
-    index: true
-  },
-  
-  level: {
-    type: Number,
-    default: 0,
-    min: [0, 'Level cannot be negative'],
-    max: [5, 'Maximum category depth is 5'],
-    index: true
-  },
-  
-  path: {
-    type: String,
-    default: '',
-    index: true
-  },
   
   // Visual Representation
   icon: {
@@ -293,15 +261,15 @@ categorySchema.virtual('products', {
 });
 
 categorySchema.virtual('fullPath').get(function() {
-  return this.path ? `${this.path}/${this.slug}` : this.slug;
+  return this.slug; // No hierarchy, so just the slug
 });
 
 categorySchema.virtual('isRootCategory').get(function() {
-  return this.level === 0 && !this.parentCategory;
+  return true; // All categories are root categories
 });
 
 categorySchema.virtual('hasChildren').get(function() {
-  return this.metrics.totalSubcategories > 0;
+  return false; // No hierarchy, so no children
 });
 
 // Pre-save Middleware
@@ -317,28 +285,14 @@ categorySchema.pre('save', async function(next) {
         .trim('-');
     }
 
-    // Set level and path based on parent
-    if (this.parentCategory) {
-      const parent = await this.constructor.findById(this.parentCategory);
-      if (parent) {
-        this.level = parent.level + 1;
-        this.path = parent.path ? `${parent.path}/${parent.slug}` : parent.slug;
-        
-        // Validate maximum depth
-        if (this.level > 5) {
-          throw new Error('Maximum category depth of 5 levels exceeded');
-        }
-      }
-    } else {
-      this.level = 0;
-      this.path = '';
-    }
+    // All categories are at root level (no hierarchy)
+    this.level = 0;
+    this.path = '';
 
     // Set default translations
     if (!this.translations.en.name) {
       this.translations.en.name = this.name;
       this.translations.en.description = this.description;
-      this.translations.en.shortDescription = this.shortDescription;
     }
 
     next();
@@ -362,28 +316,17 @@ categorySchema.statics.findBySlug = function(slug) {
 
 categorySchema.statics.findRootCategories = function() {
   return this.find({
-    level: 0,
-    parentCategory: null,
     status: 'active',
     'settings.isVisible': true
   }).sort({ 'settings.sortOrder': 1, name: 1 });
 };
 
-categorySchema.statics.buildHierarchy = async function(parentId = null, level = 0) {
-  const categories = await this.find({
-    parentCategory: parentId,
+categorySchema.statics.buildHierarchy = async function() {
+  // Since all categories are at root level, just return flat list
+  return await this.find({
     status: 'active',
     'settings.isVisible': true
   }).sort({ 'settings.sortOrder': 1, name: 1 });
-
-  const result = [];
-  for (const category of categories) {
-    const categoryObj = category.toObject();
-    categoryObj.children = await this.buildHierarchy(category._id, level + 1);
-    result.push(categoryObj);
-  }
-  
-  return result;
 };
 
 // Instance Methods

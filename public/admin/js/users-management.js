@@ -148,7 +148,7 @@ class UsersManagement {
             }
         } catch (error) {
             console.error('❌ Execute dropdown action error:', error);
-            this.showNotification('Action failed. Please try again.', 'error');
+            this.showNotification('Amal bajarilmadi. Qayta urinib ko\'ring.', 'error');
         }
     }
 
@@ -575,7 +575,7 @@ class UsersManagement {
             // Validate response structure
             if (!data || !data.pagination || !data.users) {
                 console.error('❌ Invalid response structure:', { data, response_data });
-                throw new Error('Invalid API response structure');
+                throw new Error('Noto\'g\'ri API javob struktura');
             }
             
             // Update state with fallbacks
@@ -593,12 +593,12 @@ class UsersManagement {
             this.updateTabCounts(data.statistics);  
             
             if (!silent) {
-                this.showSuccess(`Loaded ${data.users.length} users successfully`);
+                this.showSuccess(`${data.users.length} ta foydalanuvchi muvaffaqiyatli yuklandi`);
             }
             
         } catch (error) {
             console.error('❌ Error loading users:', error);
-            this.showError('Failed to load users. Please try again.');
+            this.showError('Foydalanuvchilarni yuklashda xatolik. Qayta urinib ko\'ring.');
             this.renderEmptyState('error');
         } finally {
             this.isLoading = false;
@@ -690,7 +690,7 @@ class UsersManagement {
         this.updateBrowserState();
         
         // Show feedback
-        this.showSuccess('All filters cleared');
+        this.showSuccess('Barcha filtrlar tozalandi');
         
         // Track event
         this.trackEvent('filters_cleared', { tab: this.currentTab });
@@ -710,7 +710,7 @@ class UsersManagement {
     refreshData() {
         this.loadUsers();
         this.updateTabCounts();
-        this.showSuccess('Data refreshed');
+        this.showSuccess('Ma\'lumotlar yangilandi');
     }
 
     /**
@@ -787,17 +787,17 @@ class UsersManagement {
                 
                 <div class="mobile-card-info">
                     <div class="mobile-card-row">
-                        <span class="mobile-card-label">Status</span>
+                        <span class="mobile-card-label">Holat</span>
                         <span class="mobile-card-value">${this.renderProfessionalStatusBadge(user.status)}</span>
                     </div>
                     
                     <div class="mobile-card-row">
-                        <span class="mobile-card-label">Business Type</span>
+                        <span class="mobile-card-label">Biznes turi</span>
                         <span class="mobile-card-value">${this.renderProfessionalBusinessBadge(user)}</span>
                     </div>
                     
                     <div class="mobile-card-row">
-                        <span class="mobile-card-label">Location</span>
+                        <span class="mobile-card-label">Manzil</span>
                         <span class="mobile-card-value">
                             <div class="professional-location">
                                 ${this.renderProfessionalCountryFlag(user.locationInfo?.country)}
@@ -807,7 +807,7 @@ class UsersManagement {
                     </div>
                     
                     <div class="mobile-card-row">
-                        <span class="mobile-card-label">Profile</span>
+                        <span class="mobile-card-label">Profil</span>
                         <span class="mobile-card-value">
                             <div class="professional-progress">
                                 <div class="professional-progress-bar">
@@ -819,7 +819,7 @@ class UsersManagement {
                     </div>
                     
                     <div class="mobile-card-row">
-                        <span class="mobile-card-label">Joined</span>
+                        <span class="mobile-card-label">Qo'shilgan</span>
                         <span class="mobile-card-value">
                             <div class="professional-date ${this.getDateClass(user.createdAt)}">${this.formatDate(user.createdAt)}</div>
                         </span>
@@ -926,7 +926,7 @@ class UsersManagement {
      */
     renderProfessionalAvatar(user) {
         const logoUrl = user.companyLogo?.url || user.companyInfo?.logo;
-        const companyName = user.companyName || user.companyInfo?.name || 'Unknown';
+        const companyName = user.companyName || user.companyInfo?.name || 'Noma\'lum';
         const initials = this.getInitials(companyName);
         
         return `
@@ -997,7 +997,7 @@ class UsersManagement {
                 <button 
                     class="action-btn" 
                     onclick="window.toggleSmartDropdown('${user._id}', event)"
-                    title="Actions"
+                    title="Amallar"
                     aria-expanded="false"
                     aria-haspopup="true">
                     <i class="las la-ellipsis-h"></i>
@@ -1011,12 +1011,12 @@ class UsersManagement {
                     <!-- View Actions -->
                     <div class="action-item" onclick="window.viewCompanyProfile('${user._id}')" role="menuitem">
                         <i class="las la-eye action-icon-primary"></i>
-                        <span>View Company Profile</span>
+                        <span>Kompaniya profilini ko'rish</span>
                     </div>
                     
                     <div class="action-item" onclick="window.editCompanyInfo('${user._id}')" role="menuitem">
                         <i class="las la-edit action-icon-warning"></i>
-                        <span>Edit Company Info</span>
+                        <span>Kompaniya ma'lumotlarini tahrirlash</span>
                     </div>
                     
                     <div class="action-divider"></div>
@@ -1024,12 +1024,12 @@ class UsersManagement {
                     <!-- Business Actions -->
                     <div class="action-item" onclick="window.viewCompanyProducts('${user._id}')" role="menuitem">
                         <i class="las la-box action-icon-success"></i>
-                        <span>View Products</span>
+                        <span>Mahsulotlarni ko'rish</span>
                     </div>
                     
                     <div class="action-item" onclick="window.viewCompanyOrders('${user._id}')" role="menuitem">
                         <i class="las la-clipboard-list action-icon-info"></i>
-                        <span>View Orders</span>
+                        <span>Buyurtmalarni ko'rish</span>
                     </div>
                     
                     <div class="action-divider"></div>
@@ -1047,7 +1047,7 @@ class UsersManagement {
                     <!-- Danger Actions -->
                     <div class="action-item danger-action" onclick="window.deleteCompany('${user._id}')" role="menuitem">
                         <i class="las la-trash action-icon-danger"></i>
-                        <span>Delete Company</span>
+                        <span>Kompaniyani o'chirish</span>
                     </div>
                 </div>
             </div>
@@ -1065,90 +1065,90 @@ class UsersManagement {
             case 'pending':
                 actions.push({
                     handler: 'approveCompany',
-                    text: 'Approve Company',
+                    text: 'Kompaniyani tasdiqlash',
                     icon: 'la-check',
                     iconClass: 'action-icon-success',
                     class: 'success-action',
-                    tooltip: 'Approve this company account'
+                    tooltip: 'Bu kompaniya hisobini tasdiqlash'
                 });
                 actions.push({
                     handler: 'rejectCompany',
-                    text: 'Reject Company',
+                    text: 'Kompaniyani rad etish',
                     icon: 'la-times',
                     iconClass: 'action-icon-danger',
                     class: 'danger-action',
-                    tooltip: 'Reject this company application'
+                    tooltip: 'Bu kompaniya arizasini rad etish'
                 });
                 break;
                 
             case 'active':
                 actions.push({
                     handler: 'suspendCompany',
-                    text: 'Suspend Company',
+                    text: 'Kompaniyani to\'xtatish',
                     icon: 'la-pause',
                     iconClass: 'action-icon-warning',
                     class: 'warning-action',
-                    tooltip: 'Temporarily suspend this company'
+                    tooltip: 'Bu kompaniyani vaqtincha to\'xtatish'
                 });
                 actions.push({
                     handler: 'blockCompany',
-                    text: 'Block Company',
+                    text: 'Kompaniyani bloklash',
                     icon: 'la-ban',
                     iconClass: 'action-icon-danger',
                     class: 'danger-action',
-                    tooltip: 'Block this company from accessing the platform'
+                    tooltip: 'Bu kompaniyani platformaga kirishdan bloklash'
                 });
                 break;
                 
             case 'suspended':
                 actions.push({
                     handler: 'activateCompany',
-                    text: 'Activate Company',
+                    text: 'Kompaniyani faollashtirish',
                     icon: 'la-play',
                     iconClass: 'action-icon-success',
                     class: 'success-action',
-                    tooltip: 'Reactivate this suspended company'
+                    tooltip: 'To\'xtatilgan bu kompaniyani qayta faollashtirish'
                 });
                 actions.push({
                     handler: 'blockCompany',
-                    text: 'Block Company',
+                    text: 'Kompaniyani bloklash',
                     icon: 'la-ban',
                     iconClass: 'action-icon-danger',
                     class: 'danger-action',
-                    tooltip: 'Block this company from accessing the platform'
+                    tooltip: 'Bu kompaniyani platformaga kirishdan bloklash'
                 });
                 break;
                 
             case 'blocked':
                 actions.push({
                     handler: 'unblockCompany',
-                    text: 'Unblock Company',
+                    text: 'Kompaniyani blokdan chiqarish',
                     icon: 'la-check',
                     iconClass: 'action-icon-success',
                     class: 'success-action',
-                    tooltip: 'Unblock this company and restore access'
+                    tooltip: 'Bu kompaniyani blokdan chiqarish va kirishni tiklash'
                 });
                 break;
                 
             case 'rejected':
                 actions.push({
                     handler: 'approveCompany',
-                    text: 'Approve Company',
+                    text: 'Kompaniyani tasdiqlash',
                     icon: 'la-check',
                     iconClass: 'action-icon-success',
                     class: 'success-action',
-                    tooltip: 'Approve this previously rejected company'
+                    tooltip: 'Ilgari rad etilgan bu kompaniyani tasdiqlash'
                 });
                 break;
                 
             case 'deleted':
                 actions.push({
                     handler: 'restoreCompany',
-                    text: 'Restore Company',
+                    text: 'Kompaniyani tiklash',
                     icon: 'la-undo',
                     iconClass: 'action-icon-info',
                     class: 'info-action',
-                    tooltip: 'Restore this deleted company'
+                    tooltip: 'O\'chirilgan bu kompaniyani tiklash'
                 });
                 break;
         }
@@ -1175,28 +1175,28 @@ class UsersManagement {
             case 'active':
                 return {
                     action: 'suspendCompany',
-                    text: 'Suspend Company',
+                    text: 'Kompaniyani to\'xtatish',
                     icon: 'la-pause',
                     class: 'text-warning'
                 };
             case 'blocked':
                 return {
                     action: 'activateCompany',
-                    text: 'Activate Company',
+                    text: 'Kompaniyani faollashtirish',
                     icon: 'la-check-circle',
                     class: 'text-success'
                 };
             case 'suspended':
                 return {
                     action: 'activateCompany',
-                    text: 'Activate Company',
+                    text: 'Kompaniyani faollashtirish',
                     icon: 'la-play',
                     class: 'text-success'
                 };
             default:
                 return {
                     action: 'blockCompany',
-                    text: 'Block Company',
+                    text: 'Kompaniyani bloklash',
                     icon: 'la-ban',
                     class: 'text-danger'
                 };
@@ -1373,21 +1373,21 @@ class UsersManagement {
      * Delete company with confirmation
      */
     async deleteCompany(userId) {
-        if (!confirm('Are you sure you want to delete this company? This action cannot be undone.')) return;
+        if (!confirm('Bu kompaniyani o\'chirishni xohlaysizmi? Bu amalni bekor qilib bo\'lmaydi.')) return;
         
         try {
             this.showTableLoading();
             const response = await this.makeRequest(`/admin/api/users/${userId}`, 'DELETE');
             
             if (response.success) {
-                this.showNotification('Company deleted successfully', 'success');
+                this.showNotification('Kompaniya muvaffaqiyatli o\'chirildi', 'success');
                 this.refreshData();
             } else {
                 throw new Error(response.message);
             }
         } catch (error) {
             console.error('❌ Delete company error:', error);
-            this.showNotification('Failed to delete company', 'error');
+            this.showNotification('Kompaniyani o\'chirishda xatolik', 'error');
         } finally {
             this.hideTableLoading();
         }
@@ -1398,10 +1398,10 @@ class UsersManagement {
      */
     formatStatusText(status) {
         const statusMap = {
-            'pending': 'Pending',
-            'active': 'Active',
-            'blocked': 'Blocked',
-            'suspended': 'Suspended'
+            'pending': 'Kutilmoqda',
+            'active': 'Faol',
+            'blocked': 'Bloklangan',
+            'suspended': 'To\'xtatilgan'
         };
         return statusMap[status] || status;
     }
@@ -1426,7 +1426,7 @@ class UsersManagement {
      */
     renderUserAvatar(user) {
         const logoUrl = user.companyInfo?.logo;
-        const companyName = user.companyInfo?.name || 'Unknown';
+        const companyName = user.companyInfo?.name || 'Noma\'lum';
         const initials = this.getInitials(companyName);
         
         return `
@@ -1445,10 +1445,10 @@ class UsersManagement {
      */
     renderStatusBadge(status) {
         const statusConfig = {
-            pending: { icon: 'clock', label: 'Pending' },
-            active: { icon: 'check-circle', label: 'Active' },
-            blocked: { icon: 'ban', label: 'Blocked' },
-            suspended: { icon: 'pause', label: 'Suspended' }
+            pending: { icon: 'clock', label: 'Kutilmoqda' },
+            active: { icon: 'check-circle', label: 'Faol' },
+            blocked: { icon: 'ban', label: 'Bloklangan' },
+            suspended: { icon: 'pause', label: 'To\'xtatilgan' }
         };
         
         const config = statusConfig[status] || { icon: 'question', label: status };
@@ -1505,18 +1505,18 @@ class UsersManagement {
                 <div class="actions-menu" id="actions-${user._id}">
                     <button class="action-item" onclick="usersManagement.viewUser('${user._id}')">
                         <i class="las la-eye"></i>
-                        View Details
+                        Tafsilotlarni ko'rish
                     </button>
                     <button class="action-item" onclick="usersManagement.editUser('${user._id}')">
                         <i class="las la-edit"></i>
-                        Edit User
+                        Foydalanuvchini tahrirlash
                     </button>
                     <div class="action-divider"></div>
                     ${this.getUserStatusActions(user)}
                     <div class="action-divider"></div>
                     <button class="action-item danger" onclick="usersManagement.deleteUser('${user._id}')">
                         <i class="las la-trash"></i>
-                        Delete User
+                        Foydalanuvchini o'chirish
                     </button>
                 </div>
             </div>
@@ -1534,11 +1534,11 @@ class UsersManagement {
                 actions.push(`
                     <button class="action-item success" onclick="usersManagement.approveUser('${user._id}')">
                         <i class="las la-check"></i>
-                        Approve User
+                        Foydalanuvchini tasdiqlash
                     </button>
                     <button class="action-item danger" onclick="usersManagement.rejectUser('${user._id}')">
                         <i class="las la-times"></i>
-                        Reject User
+                        Foydalanuvchini rad etish
                     </button>
                 `);
                 break;
@@ -1547,11 +1547,11 @@ class UsersManagement {
                 actions.push(`
                     <button class="action-item" onclick="usersManagement.suspendUser('${user._id}')">
                         <i class="las la-pause"></i>
-                        Suspend User
+                        Foydalanuvchini to'xtatish
                     </button>
                     <button class="action-item danger" onclick="usersManagement.blockUser('${user._id}')">
                         <i class="las la-ban"></i>
-                        Block User
+                        Foydalanuvchini bloklash
                     </button>
                 `);
                 break;
@@ -1560,7 +1560,7 @@ class UsersManagement {
                 actions.push(`
                     <button class="action-item success" onclick="usersManagement.unblockUser('${user._id}')">
                         <i class="las la-check"></i>
-                        Unblock User
+                        Foydalanuvchini blokdan chiqarish
                     </button>
                 `);
                 break;
@@ -1569,11 +1569,11 @@ class UsersManagement {
                 actions.push(`
                     <button class="action-item success" onclick="usersManagement.activateUser('${user._id}')">
                         <i class="las la-play"></i>
-                        Activate User
+                        Foydalanuvchini faollashtirish
                     </button>
                     <button class="action-item danger" onclick="usersManagement.blockUser('${user._id}')">
                         <i class="las la-ban"></i>
-                        Block User
+                        Foydalanuvchini bloklash
                     </button>
                 `);
                 break;
@@ -1629,23 +1629,23 @@ class UsersManagement {
             const emptyStateButton = emptyState.querySelector('button');
             
             if (type === 'error') {
-                if (emptyStateTitle) emptyStateTitle.textContent = 'Error Loading Users';
-                if (emptyStateDescription) emptyStateDescription.textContent = 'There was a problem loading users. Please try again.';
+                if (emptyStateTitle) emptyStateTitle.textContent = 'Foydalanuvchilarni yuklashda xatolik';
+                if (emptyStateDescription) emptyStateDescription.textContent = 'Foydalanuvchilarni yuklashda muammo yuz berdi. Qayta urinib ko\'ring.';
                 if (emptyStateIcon) {
                     emptyStateIcon.className = 'las la-exclamation-triangle';
                 }
                 if (emptyStateButton) {
-                    emptyStateButton.innerHTML = '<i class="las la-refresh"></i> Try Again';
+                    emptyStateButton.innerHTML = '<i class="las la-refresh"></i> Qayta urinish';
                     emptyStateButton.onclick = () => this.loadUsers();
                 }
             } else {
-                if (emptyStateTitle) emptyStateTitle.textContent = 'No Users Found';
-                if (emptyStateDescription) emptyStateDescription.textContent = 'No users match your current filter criteria.';
+                if (emptyStateTitle) emptyStateTitle.textContent = 'Foydalanuvchilar topilmadi';
+                if (emptyStateDescription) emptyStateDescription.textContent = 'Hozirgi filtr mezonlaringizga mos foydalanuvchilar yo\'q.';
                 if (emptyStateIcon) {
                     emptyStateIcon.className = 'las la-users';
                 }
                 if (emptyStateButton) {
-                    emptyStateButton.innerHTML = '<i class="las la-refresh"></i> Reset Filters';
+                    emptyStateButton.innerHTML = '<i class="las la-refresh"></i> Filtrlarni tozalash';
                     emptyStateButton.onclick = () => this.clearAllFilters();
                 }
             }
@@ -1958,7 +1958,7 @@ class UsersManagement {
             }
         } catch (error) {
             console.error('Error viewing user:', error);
-            this.showError('Failed to load user details');
+            this.showError('Foydalanuvchi tafsilotlarini yuklashda xatolik');
         }
     }
 
@@ -1975,7 +1975,7 @@ class UsersManagement {
             }
         } catch (error) {
             console.error('Error loading user for edit:', error);
-            this.showError('Failed to load user data for editing');
+            this.showError('Tahrirlash uchun foydalanuvchi ma\'lumotlarini yuklashda xatolik');
         }
     }
 
@@ -1987,7 +1987,7 @@ class UsersManagement {
             await this.showApproveUserModal(userId);
         } catch (error) {
             console.error('❌ Error showing approve user modal:', error);
-            this.showError('Failed to open approval modal. Please try again.');
+            this.showError('Tasdiqlash oynasini ochishda xatolik. Qayta urinib ko\'ring.');
         }
     }
 
@@ -1995,7 +1995,7 @@ class UsersManagement {
      * Reject user
      */
     async rejectUser(userId) {
-        const reason = await this.promptForReason('Rejection Reason', 'Please provide a reason for rejection:');
+        const reason = await this.promptForReason('Rad etish sababi', 'Rad etish sababini kiriting:');
         
         if (reason) {
             await this.performUserAction(userId, 'reject', { reason });
@@ -2010,7 +2010,7 @@ class UsersManagement {
             await this.showBlockUserModal(userId);
         } catch (error) {
             console.error('❌ Error showing block user modal:', error);
-            this.showError('Failed to open block modal. Please try again.');
+            this.showError('Bloklash oynasini ochishda xatolik. Qayta urinib ko\'ring.');
         }
     }
 
@@ -2021,8 +2021,8 @@ class UsersManagement {
         try {
             // For unblock, we can use a simple confirmation since it's a positive action
             const confirmed = await this.confirmAction(
-                'Unblock User',
-                'Are you sure you want to unblock this user? They will regain access to the platform.',
+                'Foydalanuvchini blokdan chiqarish',
+                'Bu foydalanuvchini blokdan chiqarishni xohlaysizmi? Ular platformaga qayta kirish huquqini oladi.',
                 'unblock'
             );
             
@@ -2031,7 +2031,7 @@ class UsersManagement {
             }
         } catch (error) {
             console.error('❌ Error unblocking user:', error);
-            this.showError('Failed to unblock user. Please try again.');
+            this.showError('Foydalanuvchini blokdan chiqarishda xatolik. Qayta urinib ko\'ring.');
         }
     }
 
@@ -2043,7 +2043,7 @@ class UsersManagement {
             await this.showSuspendUserModal(userId);
         } catch (error) {
             console.error('❌ Error showing suspend user modal:', error);
-            this.showError('Failed to open suspend modal. Please try again.');
+            this.showError('To\'xtatish oynasini ochishda xatolik. Qayta urinib ko\'ring.');
         }
     }
 
@@ -2055,7 +2055,7 @@ class UsersManagement {
             await this.showActivateUserModal(userId);
         } catch (error) {
             console.error('❌ Error showing activate user modal:', error);
-            this.showError('Failed to open activate modal. Please try again.');
+            this.showError('Faollashtirish oynasini ochishda xatolik. Qayta urinib ko\'ring.');
         }
     }
 
@@ -2067,7 +2067,7 @@ class UsersManagement {
             await this.showDeleteUserModal(userId);
         } catch (error) {
             console.error('❌ Error showing delete user modal:', error);
-            this.showError('Failed to open delete modal. Please try again.');
+            this.showError('O\'chirish oynasini ochishda xatolik. Qayta urinib ko\'ring.');
         }
     }
 
@@ -2077,8 +2077,8 @@ class UsersManagement {
     async restoreUser(userId) {
         try {
             const confirmed = await this.confirmAction(
-                'Restore User',
-                'Are you sure you want to restore this deleted user? They will regain access to the platform.',
+                'Foydalanuvchini tiklash',
+                'Bu o\'chirilgan foydalanuvchini tiklashni xohlaysizmi? Ular platformaga qayta kirish huquqini oladi.',
                 'restore'
             );
             
@@ -2087,7 +2087,7 @@ class UsersManagement {
             }
         } catch (error) {
             console.error('❌ Error restoring user:', error);
-            this.showError('Failed to restore user. Please try again.');
+            this.showError('Foydalanuvchini tiklashda xatolik. Qayta urinib ko\'ring.');
         }
     }
 
@@ -2097,18 +2097,18 @@ class UsersManagement {
     async rejectUser(userId) {
         try {
             const reason = await this.promptForReason(
-                'Reject User Application', 
-                'Please provide a detailed reason for rejecting this application:'
+                'Foydalanuvchi arizasini rad etish', 
+                'Bu arizani rad etish uchun batafsil sabab kiriting:'
             );
             
             if (reason && reason.length >= 10) {
                 await this.performUserAction(userId, 'reject', { reason });
             } else if (reason) {
-                this.showError('Rejection reason must be at least 10 characters long.');
+                this.showError('Rad etish sababi kamida 10 ta belgidan iborat bo\'lishi kerak.');
             }
         } catch (error) {
             console.error('❌ Error rejecting user:', error);
-            this.showError('Failed to reject user. Please try again.');
+            this.showError('Foydalanuvchini rad etishda xatolik. Qayta urinib ko\'ring.');
         }
     }
 
@@ -2157,18 +2157,18 @@ class UsersManagement {
             
             // Show success message
             const actionMessages = {
-                'approve': 'User approved successfully',
-                'reject': 'User rejected successfully',
-                'block': 'User blocked successfully',
-                'unblock': 'User unblocked successfully',
-                'suspend': 'User suspended successfully',
-                'activate': 'User activated successfully',
-                'delete': 'User deleted successfully',
-                'restore': 'User restored successfully',
-                'permanent-delete': 'User permanently deleted'
+                'approve': 'Foydalanuvchi muvaffaqiyatli tasdiqlandi',
+                'reject': 'Foydalanuvchi muvaffaqiyatli rad etildi',
+                'block': 'Foydalanuvchi muvaffaqiyatli bloklandi',
+                'unblock': 'Foydalanuvchi muvaffaqiyatli blokdan chiqarildi',
+                'suspend': 'Foydalanuvchi muvaffaqiyatli to\'xtatildi',
+                'activate': 'Foydalanuvchi muvaffaqiyatli faollashtirildi',
+                'delete': 'Foydalanuvchi muvaffaqiyatli o\'chirildi',
+                'restore': 'Foydalanuvchi muvaffaqiyatli tiklandi',
+                'permanent-delete': 'Foydalanuvchi butunlay o\'chirildi'
             };
             
-            this.showSuccess(actionMessages[action] || `User ${action}ed successfully`);
+            this.showSuccess(actionMessages[action] || `Foydalanuvchi muvaffaqiyatli ${action} qilindi`);
             
             // Reload users and update UI
             this.loadUsers(true);
@@ -2185,7 +2185,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error(`❌ Error ${action}ing user:`, error);
-            this.showError(error.message || `Failed to ${action} user. Please try again.`);
+            this.showError(error.message || `Foydalanuvchini ${action} qilishda xatolik. Qayta urinib ko\'ring.`);
             
             // Track failed action
             this.trackEvent('user_action', { action, userId, success: false, error: error.message });
@@ -2205,8 +2205,8 @@ class UsersManagement {
         if (this.selectedUsers.size === 0) return;
         
         const confirmed = await this.confirmAction(
-            'Bulk Approve',
-            `Are you sure you want to approve ${this.selectedUsers.size} selected users?`,
+            'Ommaviy tasdiqlash',
+            `Are you sure you want to approv ${this.selectedUsers.size} selected users?`,
             'approve'
         );
         
@@ -2218,10 +2218,10 @@ class UsersManagement {
     /**
      * Bulk block users
      */
-    async bulkBlockUsers() {
+    async bulkBlockUsers()  {
         if (this.selectedUsers.size === 0) return;
         
-        const reason = await this.promptForReason('Bulk Block', 'Please provide a reason for blocking:');
+        const reason = await this.promptForReason('Ommaviy bloklash', 'Bloklash sababini kiriting:');
         
         if (reason) {
             await this.performBulkAction('block', { reason });
@@ -2235,7 +2235,7 @@ class UsersManagement {
         if (this.selectedUsers.size === 0) return;
         
         const confirmed = await this.confirmAction(
-            'Bulk Delete',
+            'Ommaviy o\'chirish',
             `Are you sure you want to delete ${this.selectedUsers.size} selected users? This action can be undone.`,
             'delete'
         );
@@ -2272,14 +2272,14 @@ class UsersManagement {
             const filename = `users_export_${new Date().toISOString().split('T')[0]}.xlsx`;
             
             this.downloadFile(url, filename);
-            this.showSuccess(`${userIds.length} users exported successfully`);
+            this.showSuccess(`${userIds.length} ta foydalanuvchi muvaffaqiyatli eksport qilindi`);
             
             // Track export
             this.trackEvent('bulk_export', { count: userIds.length });
             
         } catch (error) {
             console.error('❌ Error exporting users:', error);
-            this.showError('Failed to export users. Please try again.');
+            this.showError('Foydalanuvchilarni eksport qilishda xatolik. Qayta urinib ko\'ring.');
         } finally {
             this.hideLoading();
         }
@@ -2313,7 +2313,7 @@ class UsersManagement {
             
             const result = await response.json();
             
-            this.showSuccess(`${userIds.length} users ${action}ed successfully`);
+            this.showSuccess(`${userIds.length} ta foydalanuvchi muvaffaqiyatli ${action} qilindi`);
             this.loadUsers(true); // Reload users
             this.updateTabCounts(); // Update counts
             this.clearSelection(); // Clear selection
@@ -2323,7 +2323,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error(`❌ Error performing bulk ${action}:`, error);
-            this.showError(`Failed to ${action} users. Please try again.`);
+            this.showError(`Foydalanuvchilarni ${action} qilishda xatolik. Qayta urinib ko\'ring.`);
         } finally {
             this.hideLoading();
         }
@@ -2350,14 +2350,14 @@ class UsersManagement {
             const filename = `users_export_${this.currentTab}_${new Date().toISOString().split('T')[0]}.xlsx`;
             
             this.downloadFile(url, filename);
-            this.showSuccess('Users exported successfully');
+            this.showSuccess('Foydalanuvchilar muvaffaqiyatli eksport qilindi');
             
             // Track export
             this.trackEvent('export_users', { tab: this.currentTab, filters: this.activeFilters });
             
         } catch (error) {
             console.error('❌ Error exporting users:', error);
-            this.showError('Failed to export users. Please try again.');
+            this.showError('Foydalanuvchilarni eksport qilishda xatolik. Qayta urinib ko\'ring.');
         } finally {
             this.hideLoading();
         }
@@ -2414,9 +2414,9 @@ class UsersManagement {
         const diffTime = Math.abs(now - date);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        if (diffDays === 1) return 'Today';
-        if (diffDays === 2) return 'Yesterday';
-        if (diffDays <= 7) return `${diffDays - 1} days ago`;
+        if (diffDays === 1) return 'Bugun   ';
+        if (diffDays === 2) return 'Kecha';
+        if (diffDays <= 7) return `${diffDays - 1} kun oldin`;
         
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
@@ -2617,10 +2617,10 @@ class UsersManagement {
                     <p style="color: #6B7280; margin: 0 0 24px 0; line-height: 1.5;">${message}</p>
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
                         <button id="cancelBtn" style="padding: 8px 16px; border: 1px solid #D1D5DB; background: white; color: #374151; border-radius: 6px; cursor: pointer; font-weight: 500;">
-                            Cancel
+                            Bekor qilish
                         </button>
                         <button id="confirmBtn" style="padding: 8px 16px; border: none; background: ${typeColors[type] || typeColors.warning}; color: white; border-radius: 6px; cursor: pointer; font-weight: 500;">
-                            Confirm
+                            Tasdiqlash
                         </button>
                     </div>
                 </div>
@@ -2677,10 +2677,10 @@ class UsersManagement {
                              maxlength="500"></textarea>
                     <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;">
                         <button id="cancelBtn" style="padding: 8px 16px; border: 1px solid #D1D5DB; background: white; color: #374151; border-radius: 6px; cursor: pointer; font-weight: 500;">
-                            Cancel
+                            Bekor qilish
                         </button>
                         <button id="submitBtn" style="padding: 8px 16px; border: none; background: #3B82F6; color: white; border-radius: 6px; cursor: pointer; font-weight: 500;">
-                            Submit
+                            Yuborish
                         </button>
                     </div>
                 </div>
@@ -2918,7 +2918,7 @@ class UsersManagement {
                 <div class="modal-header">
                     <div class="modal-title">
                         <i class="las la-user"></i>
-                        User Details
+                        Foydalanuvchi tafsilotlari
                     </div>
                     <button class="modal-close" onclick="this.closest('.professional-modal-overlay').remove()">
                         <i class="las la-times"></i>
@@ -2945,10 +2945,10 @@ class UsersManagement {
                         
                         <div class="user-details-sections">
                             <div class="details-section">
-                                <h4><i class="las la-building"></i> Company Information</h4>
+                                <h4><i class="las la-building"></i> Kompaniya ma'lumotlari</h4>
                                 <div class="details-grid">
                                     <div class="detail-item">
-                                        <label>Company Name</label>
+                                        <label>Kompaniya nomi</label>
                                         <span>${this.escapeHtml(user.companyInfo?.name || 'N/A')}</span>
                                     </div>
                                     <div class="detail-item">
@@ -3043,11 +3043,11 @@ class UsersManagement {
                 
                 <div class="modal-footer">
                     <button class="btn btn-outline-secondary" onclick="this.closest('.professional-modal-overlay').remove()">
-                        Close
+                        Yopish
                     </button>
                     <button class="btn btn-primary" onclick="usersManagement.editUser('${user._id}'); this.closest('.professional-modal-overlay').remove();">
                         <i class="las la-edit"></i>
-                        Edit User
+                        Foydalanuvchini tahrirlash
                     </button>
                 </div>
             </div>
@@ -3083,7 +3083,7 @@ class UsersManagement {
                 <div class="modal-header">
                     <div class="modal-title">
                         <i class="las la-edit"></i>
-                        Edit User
+                        Foydalanuvchini tahrirlash
                     </div>
                     <button class="modal-close" onclick="this.closest('.professional-modal-overlay').remove()">
                         <i class="las la-times"></i>
@@ -3262,7 +3262,7 @@ class UsersManagement {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
-            this.showSuccess('User updated successfully');
+            this.showSuccess('Foydalanuvchi muvaffaqiyatli yangilandi');
             this.loadUsers(true); // Reload users
             
             // Close modal
@@ -3353,7 +3353,7 @@ class UsersManagement {
             const userData = await this.getUserData(userId);
             
             if (!userData.success) {
-                throw new Error(userData.message || 'Failed to fetch company data');
+                throw new Error(userData.message || 'Kompaniya ma\'lumotlarini olishda xatolik');
             }
             
             const company = userData.data.user;
@@ -3361,7 +3361,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error('❌ View company profile error:', error);
-            this.showNotification('Failed to load company profile', 'error');
+            this.showNotification('Kompaniya profilini yuklashda xatolik', 'error');
         } finally {
             this.hideTableLoading();
         }
@@ -3377,7 +3377,7 @@ class UsersManagement {
             const userData = await this.getUserData(userId);
             
             if (!userData.success) {
-                throw new Error(userData.message || 'Failed to fetch company data');
+                throw new Error(userData.message || 'Kompaniya ma\'lumotlarini olishda xatolik');
             }
             
             const company = userData.data.user;
@@ -3385,7 +3385,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error('❌ Edit company error:', error);
-            this.showNotification('Failed to load company information', 'error');
+            this.showNotification('Kompaniya ma\'lumotlarini yuklashda xatolik', 'error');
         } finally {
             this.hideTableLoading();
         }
@@ -3402,7 +3402,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error('❌ View products error:', error);
-            this.showNotification('Failed to open products page', 'error');
+            this.showNotification('Mahsulotlar sahifasini ochishda xatolik', 'error');
         }
     }
 
@@ -3417,7 +3417,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error('❌ View orders error:', error);
-            this.showNotification('Failed to open orders page', 'error');
+            this.showNotification('Buyurtmalar sahifasini ochishda xatolik', 'error');
         }
     }
 
@@ -3425,21 +3425,21 @@ class UsersManagement {
      * Approve company
      */
     async approveCompany(userId) {
-        if (!confirm('Are you sure you want to approve this company?')) return;
+        if (!confirm('Bu kompaniyani tasdiqlashni xohlaysizmi?')) return;
         
         try {
             this.showTableLoading();
             const response = await this.makeRequest(`/admin/api/users/${userId}/approve`, 'PUT');
             
             if (response.success) {
-                this.showNotification('Company approved successfully', 'success');
+                this.showNotification('Kompaniya muvaffaqiyatli tasdiqlandi', 'success');
                 this.refreshData();
             } else {
                 throw new Error(response.message);
             }
         } catch (error) {
             console.error('❌ Approve company error:', error);
-            this.showNotification('Failed to approve company', 'error');
+            this.showNotification('Kompaniyani tasdiqlashda xatolik', 'error');
         } finally {
             this.hideTableLoading();
         }
@@ -3449,21 +3449,21 @@ class UsersManagement {
      * Suspend company
      */
     async suspendCompany(userId) {
-        if (!confirm('Are you sure you want to suspend this company?')) return;
+        if (!confirm('Bu kompaniyani to\'xtatishni xohlaysizmi?')) return;
         
         try {
             this.showTableLoading();
             const response = await this.makeRequest(`/admin/api/users/${userId}/suspend`, 'PUT');
             
             if (response.success) {
-                this.showNotification('Company suspended successfully', 'success');
+                this.showNotification('Kompaniya muvaffaqiyatli to\'xtatildi', 'success');
                 this.refreshData();
             } else {
                 throw new Error(response.message);
             }
         } catch (error) {
             console.error('❌ Suspend company error:', error);
-            this.showNotification('Failed to suspend company', 'error');
+            this.showNotification('Kompaniyani to\'xtatishda xatolik', 'error');
         } finally {
             this.hideTableLoading();
         }
@@ -3473,21 +3473,21 @@ class UsersManagement {
      * Activate company
      */
     async activateCompany(userId) {
-        if (!confirm('Are you sure you want to activate this company?')) return;
+        if (!confirm('Bu kompaniyani faollashtirishni xohlaysizmi?')) return;
         
         try {
             this.showTableLoading();
             const response = await this.makeRequest(`/admin/api/users/${userId}/activate`, 'PUT');
             
             if (response.success) {
-                this.showNotification('Company activated successfully', 'success');
+                this.showNotification('Kompaniya muvaffaqiyatli faollashtirildi', 'success');
                 this.refreshData();
             } else {
                 throw new Error(response.message);
             }
         } catch (error) {
             console.error('❌ Activate company error:', error);
-            this.showNotification('Failed to activate company', 'error');
+            this.showNotification('Kompaniyani faollashtirishda xatolik', 'error');
         } finally {
             this.hideTableLoading();
         }
@@ -3497,21 +3497,21 @@ class UsersManagement {
      * Block company
      */
     async blockCompany(userId) {
-        if (!confirm('Are you sure you want to block this company?')) return;
+        if (!confirm('Bu kompaniyani bloklashni xohlaysizmi?')) return;
         
         try {
             this.showTableLoading();
             const response = await this.makeRequest(`/admin/api/users/${userId}/block`, 'PUT');
             
             if (response.success) {
-                this.showNotification('Company blocked successfully', 'success');
+                this.showNotification('Kompaniya muvaffaqiyatli bloklandi', 'success');
                 this.refreshData();
             } else {
                 throw new Error(response.message);
             }
         } catch (error) {
             console.error('❌ Block company error:', error);
-            this.showNotification('Failed to block company', 'error');
+            this.showNotification('Kompaniyani bloklashda xatolik', 'error');
         } finally {
             this.hideTableLoading();
         }
@@ -3632,7 +3632,7 @@ class UsersManagement {
                 
                 <div class="modal-footer">
                     <button class="btn btn-secondary" onclick="this.closest('.professional-modal-overlay').remove()">
-                        Close
+                        Yopish
                     </button>
                     <button class="btn btn-primary" onclick="usersManagement.editCompanyInfo('${company._id}')">
                         <i class="las la-edit"></i> Edit Company
@@ -3802,7 +3802,7 @@ class UsersManagement {
             const response = await this.makeRequest(`/admin/api/users/${userId}`, 'PUT', data);
             
             if (response.success) {
-                this.showNotification('Company information updated successfully', 'success');
+                this.showNotification('Kompaniya ma\'lumotlari muvaffaqiyatli yangilandi', 'success');
                 document.querySelector('.company-edit-modal')?.remove();
                 this.refreshData();
             } else {
@@ -3810,7 +3810,7 @@ class UsersManagement {
             }
         } catch (error) {
             console.error('❌ Update company error:', error);
-            this.showNotification('Failed to update company information', 'error');
+            this.showNotification('Kompaniya ma\'lumotlarini yangilashda xatolik', 'error');
         } finally {
             this.hideTableLoading();
         }
@@ -3849,9 +3849,9 @@ class UsersManagement {
                 link.click();
                 document.body.removeChild(link);
                 
-                this.showNotification(`Exported ${response.data.totalRecords || 0} companies successfully`, 'success');
+                this.showNotification(`${response.data.totalRecords || 0} ta kompaniya muvaffaqiyatli eksport qilindi`, 'success');
             } else {
-                throw new Error(response.message || 'Export failed');
+                throw new Error(response.message || 'Eksport qilishda xatolik');
             }
             
             // Track analytics
@@ -3863,7 +3863,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error('❌ Export companies error:', error);
-            this.showNotification('Failed to export companies', 'error');
+            this.showNotification('Kompaniyalarni eksport qilishda xatolik', 'error');
         } finally {
             this.hideTableLoading();
         }
@@ -3901,7 +3901,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error('❌ Error showing approve modal:', error);
-            this.showNotification('Failed to load user details', 'error');
+            this.showNotification('Foydalanuvchi tafsilotlarini yuklashda xatolik', 'error');
         }
     }
 
@@ -3928,7 +3928,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error('❌ Error showing block modal:', error);
-            this.showNotification('Failed to load user details', 'error');
+            this.showNotification('Foydalanuvchi tafsilotlarini yuklashda xatolik', 'error');
         }
     }
 
@@ -3955,7 +3955,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error('❌ Error showing suspend modal:', error);
-            this.showNotification('Failed to load user details', 'error');
+            this.showNotification('Foydalanuvchi tafsilotlarini yuklashda xatolik', 'error');
         }
     }
 
@@ -3983,7 +3983,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error('❌ Error showing activate modal:', error);
-            this.showNotification('Failed to load user details', 'error');
+            this.showNotification('Foydalanuvchi tafsilotlarini yuklashda xatolik', 'error');
         }
     }
 
@@ -4010,7 +4010,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error('❌ Error showing delete modal:', error);
-            this.showNotification('Failed to load user details', 'error');
+            this.showNotification('Foydalanuvchi tafsilotlarini yuklashda xatolik', 'error');
         }
     }
 
@@ -4033,7 +4033,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error('❌ Error showing reject modal:', error);
-            this.showNotification('Failed to load user details', 'error');
+            this.showNotification('Foydalanuvchi tafsilotlarini yuklashda xatolik', 'error');
         }
     }
 
@@ -4098,7 +4098,7 @@ class UsersManagement {
             
         } catch (error) {
             console.error('❌ Error fetching user details:', error);
-            this.showNotification('Failed to load user details', 'error');
+            this.showNotification('Foydalanuvchi tafsilotlarini yuklashda xatolik', 'error');
             return null;
         }
     }
@@ -4125,15 +4125,15 @@ class UsersManagement {
             
             if (data.success) {
                 modal.hide();
-                this.showNotification('User approved successfully!', 'success');
+                this.showNotification('Foydalanuvchi muvaffaqiyatli tasdiqlandi!', 'success');
                 this.loadUsers(); // Refresh table
             } else {
-                throw new Error(data.error || 'Failed to approve user');
+                throw new Error(data.error || 'Foydalanuvchini tasdiqlashda xatolik');
             }
             
         } catch (error) {
             console.error('❌ Error approving user:', error);
-            this.showNotification(error.message || 'Failed to approve user', 'error');
+            this.showNotification(error.message || 'Foydalanuvchini tasdiqlashda xatolik', 'error');
         } finally {
             this.hideLoading();
         }
@@ -4166,15 +4166,15 @@ class UsersManagement {
             
             if (data.success) {
                 modal.hide();
-                this.showNotification('User blocked successfully!', 'success');
+                this.showNotification('Foydalanuvchi muvaffaqiyatli bloklandi!', 'success');
                 this.loadUsers();
             } else {
-                throw new Error(data.error || 'Failed to block user');
+                throw new Error(data.error || 'Foydalanuvchini bloklashda xatolik');
             }
             
         } catch (error) {
             console.error('❌ Error blocking user:', error);
-            this.showNotification(error.message || 'Failed to block user', 'error');
+            this.showNotification(error.message || 'Foydalanuvchini bloklashda xatolik', 'error');
         } finally {
             this.hideLoading();
         }
@@ -4208,15 +4208,15 @@ class UsersManagement {
             
             if (data.success) {
                 modal.hide();
-                this.showNotification('User suspended successfully!', 'success');
+                this.showNotification('Foydalanuvchi muvaffaqiyatli to\'xtatildi!', 'success');
                 this.loadUsers();
             } else {
-                throw new Error(data.error || 'Failed to suspend user');
+                throw new Error(data.error || 'Foydalanuvchini to\'xtatishda xatolik');
             }
             
         } catch (error) {
             console.error('❌ Error suspending user:', error);
-            this.showNotification(error.message || 'Failed to suspend user', 'error');
+            this.showNotification(error.message || 'Foydalanuvchini to\'xtatishda xatolik', 'error');
         } finally {
             this.hideLoading();
         }
@@ -4473,7 +4473,7 @@ class UsersManagement {
         try {
             const selectedUsers = Array.from(this.selectedUsers);
             if (selectedUsers.length === 0) {
-                this.showNotification('Please select users to delete', 'warning');
+                this.showNotification('O\'chirish uchun foydalanuvchilarni tanlang', 'warning');
                 return;
             }
 

@@ -1,11 +1,11 @@
 <%- include('../partials/header', { 
-    title: 'Orders Management - SLEX Admin Dashboard',
+    title: 'Buyurtmalar boshqaruvi - SLEX Admin Dashboard',
     lng: typeof currentLang !== 'undefined' ? currentLang : 'uz',
     admin: admin, 
     user: user,
     breadcrumb: [
-        { title: 'Dashboard', url: '/admin' },
-        { title: 'Orders' }
+        { title: 'Boshqaruv paneli', url: '/admin' },
+        { title: 'Buyurtmalar' }
     ]
 }) %>
 
@@ -34,24 +34,24 @@
                         <div class="page-title-section">
                             <h1 class="page-title">
                                 <i class="las la-shopping-cart text-primary"></i>
-                                Orders Management
+                                Buyurtmalar boshqaruvi
                             </h1>
                             <p class="page-subtitle">
-                                Comprehensive B2B order management with advanced tracking, payment processing, and logistics coordination
+                                Keng qamrovli B2B buyurtma boshqaruvi, ilg'or kuzatish, to'lov jarayoni va logistika koordinatsiyasi bilan
                             </p>
                         </div>
                         <div class="page-actions">
                             <button class="btn btn-outline-primary" onclick="exportOrders()">
                                 <i class="las la-download"></i>
-                                Export Data
+                                Ma'lumotlarni eksport qilish
                             </button>
                             <button class="btn btn-outline-secondary" onclick="refreshData()">
                                 <i class="las la-sync-alt"></i>
-                                Refresh
+                                Yangilash
                             </button>
                             <button class="btn btn-primary" onclick="openCreateOrderModal()">
                                 <i class="las la-plus"></i>
-                                Create Order
+                                Buyurtma yaratish
                             </button>
                         </div>
                     </div>
@@ -66,7 +66,7 @@
                             </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="totalOrdersCount"><%= statistics?.total || 0 %></div>
-                                <div class="stat-label">Total Orders</div>
+                                <div class="stat-label">Jami buyurtmalar</div>
                                 <div class="stat-trend positive">
                                     <i class="las la-arrow-up"></i>
                                     +12%
@@ -82,7 +82,7 @@
                             </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="completedOrdersCount"><%= statistics?.statusCounts?.completed || 0 %></div>
-                                <div class="stat-label">Completed Orders</div>
+                                <div class="stat-label">Tugallangan buyurtmalar</div>
                                 <div class="stat-trend positive">
                                     <i class="las la-arrow-up"></i>
                                     +8%
@@ -98,7 +98,7 @@
                             </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="pendingOrdersCount"><%= statistics?.statusCounts?.pending || 0 %></div>
-                                <div class="stat-label">Pending Orders</div>
+                                <div class="stat-label">Kutilayotgan buyurtmalar</div>
                                 <div class="stat-trend negative">
                                     <i class="las la-arrow-down"></i>
                                     -5%
@@ -114,7 +114,7 @@
                             </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="totalRevenue">$<%= statistics?.totalRevenue ? Math.round(statistics.totalRevenue).toLocaleString() : '0' %></div>
-                                <div class="stat-label">Total Revenue</div>
+                                <div class="stat-label">Jami daromad</div>
                                 <div class="stat-trend positive">
                                     <i class="las la-arrow-up"></i>
                                     +15%
@@ -131,32 +131,32 @@
                     <div class="tabs-navigation">
                         <button class="tab-item active" data-status="" data-tab="all">
                             <i class="las la-list"></i>
-                            All Orders
+                                Barcha buyurtmalar
                             <span class="tab-badge" id="allOrdersTab"><%= statistics?.total || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="pending" data-tab="pending">
                             <i class="las la-clock"></i>
-                            Pending
+                                Kutilmoqda
                             <span class="tab-badge warning" id="pendingOrdersTab"><%= statistics?.statusCounts?.pending || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="confirmed" data-tab="confirmed">
                             <i class="las la-check"></i>
-                            Confirmed
+                                Tasdiqlangan
                             <span class="tab-badge success" id="confirmedOrdersTab"><%= statistics?.statusCounts?.confirmed || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="processing" data-tab="processing">
                             <i class="las la-cog"></i>
-                            Processing
+                                Jarayonda
                             <span class="tab-badge info" id="processingOrdersTab"><%= statistics?.statusCounts?.processing || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="shipped" data-tab="shipped">
                             <i class="las la-shipping-fast"></i>
-                            Shipped
+                                Yuborilgan
                             <span class="tab-badge primary" id="shippedOrdersTab"><%= statistics?.statusCounts?.shipped || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="completed" data-tab="completed">
                             <i class="las la-check-double"></i>
-                            Completed
+                                Tugallangan
                             <span class="tab-badge success" id="completedOrdersTab"><%= statistics?.statusCounts?.completed || 0 %></span>
                         </button>
                     </div>
@@ -166,33 +166,33 @@
                         <div class="filters-header">
                             <h3 class="filters-title">
                                 <i class="las la-filter"></i>
-                                Advanced Filters
+                                Ilg'or filtrlash
                             </h3>
                             <div class="filter-actions">
                                 <button class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()">
                                     <i class="las la-times"></i>
-                                    Clear
+                                    Tozalash
                                 </button>
                                 <button class="btn btn-primary btn-sm" onclick="applyFilters()">
                                     <i class="las la-search"></i>
-                                    Search
+                                    Qidirish
                                 </button>
                             </div>
                         </div>
                         
                         <div class="filters-grid">
                             <div class="filter-group">
-                                <label class="filter-label">Search Orders</label>
+                                <label class="filter-label">Buyurtmalarni qidirish</label>
                                 <div class="search-input">
                                     <i class="las la-search search-icon"></i>
-                                    <input type="text" class="filter-input" id="searchInput" placeholder="Order number, buyer, seller...">
+                                    <input type="text" class="filter-input" id="searchInput" placeholder="Buyurtma raqami, xaridor, sotuvchi...">
                                 </div>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Buyer Country</label>
+                                <label class="filter-label">Xaridor mamlakat</label>
                                 <select class="filter-input" id="countryFilter">
-                                    <option value="">All Countries</option>
+                                    <option value="">Barcha mamlakatlar</option>
                                     <option value="Uzbekistan">Uzbekistan</option>
                                     <option value="Kazakhstan">Kazakhstan</option>
                                     <option value="China">China</option>
@@ -204,9 +204,9 @@
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Order Value (USD)</label>
+                                <label class="filter-label">Buyurtma qiymati (USD)</label>
                                 <select class="filter-input" id="valueRangeFilter">
-                                    <option value="">All Values</option>
+                                    <option value="">Barcha qiymatlar</option>
                                     <option value="0-1000">$0 - $1,000</option>
                                     <option value="1000-5000">$1,000 - $5,000</option>
                                     <option value="5000-25000">$5,000 - $25,000</option>
@@ -216,36 +216,36 @@
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Payment Status</label>
+                                <label class="filter-label">To'lov holati</label>
                                 <select class="filter-input" id="paymentStatusFilter">
-                                    <option value="">All Payment Status</option>
-                                    <option value="pending">Pending Payment</option>
-                                    <option value="partial">Partially Paid</option>
-                                    <option value="paid">Fully Paid</option>
-                                    <option value="overdue">Overdue</option>
+                                    <option value="">Barcha to'lov holatlari</option>
+                                    <option value="pending">To'lov kutilmoqda</option>
+                                    <option value="partial">Qisman to'langan</option>
+                                    <option value="paid">To'liq to'langan</option>
+                                    <option value="overdue">Muddati o'tgan</option>
                                 </select>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Date Range</label>
+                                <label class="filter-label">Sana oralig'i</label>
                                 <select class="filter-input" id="dateRangeFilter">
-                                    <option value="">All Time</option>
-                                    <option value="today">Today</option>
-                                    <option value="week">This Week</option>
-                                    <option value="month">This Month</option>
-                                    <option value="quarter">This Quarter</option>
-                                    <option value="year">This Year</option>
+                                    <option value="">Barcha vaqt</option>
+                                    <option value="today">Bugun</option>
+                                    <option value="week">Bu hafta</option>
+                                    <option value="month">Bu oy</option>
+                                    <option value="quarter">Bu chorak</option>
+                                    <option value="year">Bu yil</option>
                                 </select>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Shipping Method</label>
+                                <label class="filter-label">Yetkazib berish usuli</label>
                                 <select class="filter-input" id="shippingFilter">
-                                    <option value="">All Methods</option>
-                                    <option value="air_freight">Air Freight</option>
-                                    <option value="sea_freight">Sea Freight</option>
-                                    <option value="land_transport">Land Transport</option>
-                                    <option value="express">Express Delivery</option>
+                                    <option value="">Barcha usullar</option>
+                                    <option value="air_freight">Havo yuk tashish</option>
+                                    <option value="sea_freight">Dengiz yuk tashish</option>
+                                    <option value="land_transport">Quruqlik transporti</option>
+                                    <option value="express">Tezkor yetkazib berish</option>
                                 </select>
                             </div>
                         </div>
@@ -256,27 +256,27 @@
                         <div class="table-header">
                             <div class="table-title">
                                 <i class="las la-table"></i>
-                                Orders Catalog
-                                <span class="result-count" id="tableResultsCount">(0 results)</span>
+                                Buyurtmalar katalogi
+                                <span class="result-count" id="tableResultsCount">(0 natija)</span>
                             </div>
                             
                             <div class="bulk-actions hidden" id="bulkActions">
-                                <span class="selected-count" id="selectedCount">0 selected</span>
+                                <span class="selected-count" id="selectedCount">0 tanlangan</span>
                                 <button class="btn btn-success btn-sm" onclick="bulkConfirmOrders()" id="bulkConfirmBtn">
                                     <i class="las la-check"></i>
-                                    Confirm
+                                    Tasdiqlash
                                 </button>
                                 <button class="btn btn-info btn-sm" onclick="bulkShipOrders()" id="bulkShipBtn">
                                     <i class="las la-shipping-fast"></i>
-                                    Ship
+                                    Yuborish
                                 </button>
                                 <button class="btn btn-primary btn-sm" onclick="bulkExportOrders()" id="bulkExportBtn">
                                     <i class="las la-download"></i>
-                                    Export
+                                    Eksport
                                 </button>
                                 <button class="btn btn-danger btn-sm" onclick="bulkCancelOrders()" id="bulkCancelBtn">
                                     <i class="las la-times"></i>
-                                    Cancel
+                                    Bekor qilish
                                 </button>
                             </div>
                         </div>
@@ -297,7 +297,7 @@
                                             </th>
                                             <th class="th-order" data-column="order" onclick="sortTable('orderNumber')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Order Information</span>
+                                                    <span class="th-label">Buyurtma ma'lumotlari</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -305,17 +305,17 @@
                                             </th>
                                             <th class="th-parties" data-column="parties">
                                                 <div class="th-content">
-                                                    <span class="th-label">Buyer & Seller</span>
+                                                    <span class="th-label">Xaridor va sotuvchi</span>
                                                 </div>
                                             </th>
                                             <th class="th-items" data-column="items">
                                                 <div class="th-content">
-                                                    <span class="th-label">Order Items</span>
+                                                    <span class="th-label">Buyurtma elementlari</span>
                                                 </div>
                                             </th>
                                             <th class="th-value" data-column="value" onclick="sortTable('totalAmount')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Order Value</span>
+                                                    <span class="th-label">Buyurtma qiymati</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -323,7 +323,7 @@
                                             </th>
                                             <th class="th-status" data-column="status" onclick="sortTable('status')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Status</span>
+                                                    <span class="th-label">Holat</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -331,12 +331,12 @@
                                             </th>
                                             <th class="th-payment" data-column="payment">
                                                 <div class="th-content">
-                                                    <span class="th-label">Payment</span>
+                                                    <span class="th-label">To'lov</span>
                                                 </div>
                                             </th>
                                             <th class="th-date" data-column="date" onclick="sortTable('createdAt')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Order Date</span>
+                                                    <span class="th-label">Buyurtma sanasi</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -344,7 +344,7 @@
                                             </th>
                                             <th class="th-actions" data-column="actions">
                                                 <div class="th-content">
-                                                    <span class="th-label">Actions</span>
+                                                    <span class="th-label">Amallar</span>
                                                 </div>
                                             </th>
                                         </tr>
@@ -364,7 +364,7 @@
                             <div class="table-loading-overlay" id="tableLoadingOverlay">
                                 <div class="loading-content">
                                     <div class="modern-spinner"></div>
-                                    <p class="loading-text">Loading orders...</p>
+                                    <p class="loading-text">Buyurtmalar yuklanmoqda...</p>
                                 </div>
                             </div>
 
@@ -374,11 +374,11 @@
                                     <div class="empty-state-icon">
                                         <i class="las la-shopping-cart"></i>
                                     </div>
-                                    <h3 class="empty-state-title">No Orders Found</h3>
-                                    <p class="empty-state-description">No orders match your current filter criteria.</p>
+                                    <h3 class="empty-state-title">Buyurtmalar topilmadi</h3>
+                                    <p class="empty-state-description">Hozirgi filtr mezonlaringizga mos buyurtmalar yo'q.</p>
                                     <button class="btn btn-primary" onclick="clearAllFilters()">
                                         <i class="las la-refresh"></i>
-                                        Reset Filters
+                                        Filtrlarni qayta tiklash
                                     </button>
                                 </div>
                             </div>
@@ -388,7 +388,7 @@
                     <!-- Pagination Section -->
                     <div class="pagination-section" id="paginationSection">
                         <div class="pagination-info">
-                            Showing <span id="paginationStart">0</span>-<span id="paginationEnd">0</span> of <span id="paginationTotal">0</span> orders
+                            <span id="paginationStart">0</span>-<span id="paginationEnd">0</span> ko'rsatilmoqda (jami <span id="paginationTotal">0</span> buyurtma)
                         </div>
                         <div class="pagination-controls" id="paginationControls">
                             <!-- Pagination buttons will be generated here -->
@@ -403,7 +403,7 @@
     <div class="loading-overlay hidden" id="loadingOverlay">
         <div class="loading-content">
             <div class="modern-spinner"></div>
-            <div class="loading-text" id="loadingText">Processing...</div>
+            <div class="loading-text" id="loadingText">Qayta ishlanmoqda...</div>
         </div>
     </div>
 
@@ -419,30 +419,26 @@
 
 <!-- Orders Management Configuration -->
 <script>
-    // Set debug mode
-    window.DEBUG_MODE = <%= JSON.stringify(process.env.NODE_ENV !== 'production') %>;
-    
-    // Initialize Orders Management
+   // Initialize Orders Management
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof OrdersManagement !== 'undefined') {
             try {
                 window.ordersManager = new OrdersManagement();
                 window.ordersManager.init();
             } catch (error) {
-                console.error('Failed to initialize Orders Management:', error);
+                console.error('Buyurtmalar boshqaruvini ishga tushirishda xatolik:', error);
             }
         } else {
-            console.error('OrdersManagement class not found');
+            console.error('OrdersManagement sinfi topilmadi');
         }
     });
 
     // Global order management functions
     function openCreateOrderModal() {
-        if (window.DEBUG_MODE) console.log('Opening create order modal...');
         if (window.ordersManager) {
             window.ordersManager.showCreateModal();
         } else {
-            console.error('Orders manager not initialized');
+            console.error('Buyurtmalar boshqaruvchisi ishga tushirilmagan');
         }
     }
 

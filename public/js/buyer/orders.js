@@ -88,7 +88,7 @@ function setupEventListeners() {
     if (newOrderBtn) {
         newOrderBtn.addEventListener('click', function() {
             // In a real implementation, this would open a new order modal or redirect
-            alert('New order functionality would be implemented here');
+            alert('Yangi buyurtma funksiyasi amalga oshirilishi kerak');
         });
     }
 }

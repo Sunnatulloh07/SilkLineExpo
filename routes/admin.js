@@ -94,7 +94,6 @@ const boundMethods = {
   createCategory: CategoryController.createCategory.bind(CategoryController),
   updateCategory: CategoryController.updateCategory.bind(CategoryController),
   deleteCategory: CategoryController.deleteCategory.bind(CategoryController),
-  getCategoryHierarchy: CategoryController.getCategoryHierarchy.bind(CategoryController),
   bulkUpdateCategories: CategoryController.bulkUpdateCategories.bind(CategoryController),
   exportCategories: CategoryController.exportCategories.bind(CategoryController),
   getCategoryAnalytics: CategoryController.getCategoryAnalytics.bind(CategoryController),
@@ -243,7 +242,6 @@ router.get('/api/companies', boundMethods.getAllCompaniesAPI);
 // Category Management APIs with validation
 router.get('/api/categories', boundMethods.getAllCategoriesAPI);
 router.get('/api/categories/statistics', boundMethods.getCategoryStatistics);
-router.get('/api/categories/hierarchy', boundMethods.getCategoryHierarchy);
 router.post('/api/categories', 
   CategoryControllerClass.getCreateCategoryValidationRules(), 
   handleValidationErrors,

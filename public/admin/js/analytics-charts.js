@@ -65,7 +65,7 @@ class AnalyticsCharts {
         this.startRealTimeUpdates();
         } catch (error) {
             console.error('Analytics initialization error:', error);
-            this.showErrorState('Failed to load analytics data');
+            this.showErrorState('Analitika ma\'lumotlarini yuklashda xatolik');
         }
     }
 
@@ -116,7 +116,7 @@ class AnalyticsCharts {
             
         } catch (error) {
             console.error('❌ Error fetching analytics data:', error);
-            this.showErrorState('Failed to load analytics data');
+            this.showErrorState('Analitika ma\'lumotlarini yuklashda xatolik');
             throw error;
         }
     }
@@ -314,7 +314,7 @@ class AnalyticsCharts {
             // Return fallback data if API fails
             return {
                 series: [0, 0, 0, 0],
-                labels: ['Active Users', 'Blocked Users', 'Pending Approval', 'Suspended Users']
+                labels: ['Faol foydalanuvchilar', 'Bloklangan foydalanuvchilar', 'Tasdiqlash kutilmoqda', 'To\'xtatilgan foydalanuvchilar']
             };
         }
     }
@@ -447,7 +447,7 @@ class AnalyticsCharts {
         const options = {
             ...this.chartOptions,
             series: data.series || [{
-                name: 'Revenue',
+                name: 'Daromad',
                 data: data.chartData || []
             }],
             chart: {
@@ -555,7 +555,7 @@ class AnalyticsCharts {
                 type: 'donut',
                 height: 350
             },
-            labels: data.labels || ['Active Users', 'Inactive Users', 'Pending Approval', 'Blocked Users'],
+            labels: data.labels || ['Faol foydalanuvchilar', 'Faol emas foydalanuvchilar', 'Tasdiqlash kutilmoqda', 'Bloklangan foydalanuvchilar'],
             colors: ['#10B981', '#F59E0B', '#3B82F6', '#EF4444'],
             legend: {
                 position: 'bottom',
@@ -594,7 +594,7 @@ class AnalyticsCharts {
                             total: {
                                 show: true,
                                 showAlways: true,
-                                label: 'Total Users',
+                                label: 'Jami foydalanuvchilar',
                                 fontSize: '14px',
                                 fontWeight: 600,
                                 // Fix: Remove this.getTextColor() context issue
@@ -649,11 +649,11 @@ class AnalyticsCharts {
             ...this.chartOptions,
             series: [
                 {
-                    name: 'Revenue',
+                    name: 'Daromad',
                     data: revenueData
                 },
                 {
-                    name: 'Orders',
+                    name: 'Buyurtmalar',
                     data: ordersData
                 }
             ],
@@ -690,7 +690,7 @@ class AnalyticsCharts {
             yaxis: [
                 {
                     title: {
-                        text: 'Revenue ($)',
+                        text: 'Daromad ($)',
                         style: {
                             color: this.getTextColor()
                         }
@@ -707,7 +707,7 @@ class AnalyticsCharts {
                 {
                     opposite: true,
                     title: {
-                        text: 'Orders',
+                        text: 'Buyurtmalar',
                         style: {
                             color: this.getTextColor()
                         }
@@ -806,7 +806,7 @@ class AnalyticsCharts {
                             total: {
                                 show: true,
                                 showAlways: true,
-                                label: 'Total Users',
+                                label: 'Jami foydalanuvchilar',
                                 fontSize: '14px',
                                 fontWeight: 600,
                                 color: '#64748B',
@@ -874,10 +874,10 @@ class AnalyticsCharts {
                     this.initializeRevenueChart(revenueData);
                     
                     // Revenue chart updated with filter
-                    this.showToast(`Revenue chart updated for ${filter}`, 'success');
+                    this.showToast(`${filter} uchun daromad diagrammasi yangilandi`, 'success');
                 } catch (error) {
                     console.error('❌ Error updating revenue chart:', error);
-                    this.showToast('Failed to update chart', 'error');
+                    this.showToast('Diagrammani yangilashda xatolik', 'error');
                 } finally {
                     // Remove loading state
                     if (revenueChart) {
@@ -900,10 +900,10 @@ class AnalyticsCharts {
                 try {
                     // Refresh ALL data to ensure consistency
                     await this.fetchAllAnalyticsData();
-                    this.showToast(`Data updated for ${e.target.value}`, 'success');
+                    this.showToast(`${e.target.value} uchun ma'lumotlar yangilandi`, 'success');
                 } catch (error) {
                     console.error('❌ Error updating time range:', error);
-                    this.showToast('Failed to update data', 'error');
+                    this.showToast('Ma\'lumotlarni yangilashda xatolik', 'error');
                 }
             });
         }
@@ -1021,10 +1021,10 @@ class AnalyticsCharts {
         try {
             this.showLoadingState();
             await this.fetchAllAnalyticsData();
-            this.showToast('Analytics data refreshed successfully', 'success');
+            this.showToast('Analitika ma\'lumotlari muvaffaqiyatli yangilandi', 'success');
         } catch (error) {
             console.error('Error refreshing charts:', error);
-            this.showToast('Failed to refresh analytics data', 'error');
+            this.showToast('Analitika ma\'lumotlarini yangilashda xatolik', 'error');
         }
     }
 
@@ -1037,7 +1037,7 @@ class AnalyticsCharts {
             this.initializeRevenueChart(revenueData);
         } catch (error) {
             console.error('Error refreshing revenue chart:', error);
-            this.showToast('Failed to refresh revenue data', 'error');
+            this.showToast('Daromad ma\'lumotlarini yangilashda xatolik', 'error');
         }
     }
 
@@ -1089,17 +1089,17 @@ class AnalyticsCharts {
      */
     async exportAnalytics() {
         try {
-            this.showToast('Preparing analytics report...', 'info');
+            this.showToast('Analitika hisoboti tayyorlanmoqda...', 'info');
             
             // In a real implementation, this would call a backend API
             // to generate a PDF or Excel report
             setTimeout(() => {
-                this.showToast('Analytics report exported successfully!', 'success');
+                this.showToast('Analitika hisoboti muvaffaqiyatli eksport qilindi!', 'success');
             }, 2000);
             
         } catch (error) {
             console.error('Export error:', error);
-            this.showToast('Failed to export analytics', 'error');
+            this.showToast('Analitikani eksport qilishda xatolik', 'error');
         }
     }
 
@@ -1137,7 +1137,7 @@ class AnalyticsCharts {
                 console.error('❌ Realtime update error:', error);
                 // Don't spam users with too many error toasts
                 if (!this.lastErrorToast || Date.now() - this.lastErrorToast > 60000) {
-                    this.showToast('Real-time data update failed', 'warning');
+                    this.showToast('Real-time ma\'lumot yangilanishi muvaffaqiyatsiz', 'warning');
                     this.lastErrorToast = Date.now();
                 }
             }
@@ -1198,14 +1198,14 @@ class AnalyticsCharts {
         
         // Show loading skeletons for metrics
         document.querySelectorAll('[data-metric]').forEach(el => {
-            if (!el.textContent.includes('Loading')) {
-                el.textContent = 'Loading...';
+            if (!el.textContent.includes('Yuklanmoqda')) {
+                el.textContent = 'Yuklanmoqda...';
             }
         });
         
         // Show loading for trend indicators
         document.querySelectorAll('[data-growth]').forEach(el => {
-            el.innerHTML = '<i class="las la-spinner la-spin"></i> Loading...';
+            el.innerHTML = '<i class="las la-spinner la-spin"></i> Yuklanmoqda...';
         });
     }
 
@@ -1350,7 +1350,7 @@ function exportAnalytics() {
         exportBtn.disabled = false;
         
         // Show success message
-        showToast('Analytics report exported successfully!', 'success');
+        showToast('Analitika hisoboti muvaffaqiyatli eksport qilindi!', 'success');
     }, 2000);
 }
 
@@ -1373,20 +1373,20 @@ function refreshAnalytics() {
         }
         
         // Show success message
-        showToast('Analytics data refreshed!', 'success');
+        showToast('Analitika ma\'lumotlari yangilandi!', 'success');
     }, 1500);
 }
 
 function pauseRealtime() {    
     const pauseBtn = document.querySelector('button[onclick="pauseRealtime()"]');
-    const isCurrentlyPaused = pauseBtn.textContent.trim().includes('Resume');
+    const isCurrentlyPaused = pauseBtn.textContent.trim().includes('Davom etish');
     
     if (isCurrentlyPaused) {
-        pauseBtn.innerHTML = '<i class="las la-pause"></i> Pause';
-        showToast('Real-time updates resumed', 'info');
+        pauseBtn.innerHTML = '<i class="las la-pause"></i> To\'xtatish';
+        showToast('Real-time yangilanishlar davom etmoqda', 'info');
     } else {
-        pauseBtn.innerHTML = '<i class="las la-play"></i> Resume';
-        showToast('Real-time updates paused', 'warning');
+        pauseBtn.innerHTML = '<i class="las la-play"></i> Davom etish';
+        showToast('Real-time yangilanishlar to\'xtatildi', 'warning');
     }
 }
 
@@ -1488,7 +1488,7 @@ function initializeThemeToggle() {
             window.analyticsCharts.updateThemeForAllCharts(newTheme);
         }
         
-        showToast(`Switched to ${newTheme} mode`, 'info');
+        showToast(`${newTheme} rejimiga o'tildi`, 'info');
     });
 }
 

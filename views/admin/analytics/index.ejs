@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics Dashboard - SLEX Admin</title>
+    <title>Analitika Dashboard - SLEX Admin</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,10 +27,10 @@
             <!-- Header -->
             <%- include('../partials/header', { 
                 user: user, 
-                title: 'Analytics Dashboard',
+                title: 'Analitika Dashboard',
                 breadcrumb: [
-                    { title: 'Dashboard', url: '/admin' },
-                    { title: 'Analytics' }
+                    { title: 'Boshqaruv paneli', url: '/admin' },
+                    { title: 'Analitika' }
                 ],
                 currentLang: typeof currentLang !== 'undefined' ? currentLang : 'uz'
             }) %>
@@ -44,27 +44,27 @@
                             <div class="page-title-section">
                                 <h1 class="page-title">
                                     <i class="las la-chart-line"></i>
-                                    Analytics Dashboard
+                                    Analitika Dashboard
                                 </h1>
-                                <p class="page-subtitle">Advanced analytics and insights for your B2B marketplace</p>
+                                <p class="page-subtitle">B2B marketplace uchun ilg'or analitika va tahlillar</p>
                             </div>
                             
                             <div class="page-actions">
                                 <div class="time-range-selector">
                                     <select id="timeRange" class="form-select">
-                                        <option value="7d">Last 7 Days</option>
-                                        <option value="30d" selected>Last 30 Days</option>
-                                        <option value="90d">Last 90 Days</option>
-                                        <option value="1y">Last Year</option>
+                                        <option value="7d">Oxirgi 7 kun</option>
+                                        <option value="30d" selected>Oxirgi 30 kun</option>
+                                        <option value="90d">Oxirgi 90 kun</option>
+                                        <option value="1y">Oxirgi yil</option>
                                     </select>
                                 </div>
                                 <button class="btn btn-outline-primary" onclick="exportAnalytics()">
                                     <i class="las la-download"></i>
-                                    Export Report
+                                    Hisobotni eksport qilish
                                 </button>
                                 <button class="btn btn-primary" onclick="refreshAnalytics()">
                                     <i class="las la-sync-alt"></i>
-                                    Refresh Data
+                                    Ma'lumotlarni yangilash
                                 </button>
                             </div>
                         </div>
@@ -79,11 +79,11 @@
                                     <i class="las la-dollar-sign"></i>
                                 </div>
                                 <div class="metric-details">
-                                    <h3 class="metric-value" id="totalRevenue" data-metric="totalRevenue">Loading...</h3>
-                                    <p class="metric-label">Total Revenue</p>
+                                    <h3 class="metric-value" id="totalRevenue" data-metric="totalRevenue">Yuklanmoqda...</h3>
+                                    <p class="metric-label">Jami daromad</p>
                                     <span class="metric-trend positive" data-growth="revenue">
                                         <i class="las la-arrow-up"></i>
-                                        Loading...
+                                        Yuklanmoqda...
                                     </span>
                                 </div>
                             </div>
@@ -96,11 +96,11 @@
                                     <i class="las la-users"></i>
                                 </div>
                                 <div class="metric-details">
-                                    <h3 class="metric-value" id="activeUsers" data-metric="activeUsers">Loading...</h3>
-                                    <p class="metric-label">Active Users</p>
+                                    <h3 class="metric-value" id="activeUsers" data-metric="activeUsers">Yuklanmoqda...</h3>
+                                    <p class="metric-label">Faol foydalanuvchilar</p>
                                     <span class="metric-trend positive" data-growth="users">
                                         <i class="las la-arrow-up"></i>
-                                        Loading...
+                                        Yuklanmoqda...
                                     </span>
                                 </div>
                             </div>
@@ -113,11 +113,11 @@
                                     <i class="las la-shopping-cart"></i>
                                 </div>
                                 <div class="metric-details">
-                                    <h3 class="metric-value" id="orderVolume" data-metric="totalOrders">Loading...</h3>
-                                    <p class="metric-label">Total Orders</p>
+                                    <h3 class="metric-value" id="orderVolume" data-metric="totalOrders">Yuklanmoqda...</h3>
+                                    <p class="metric-label">Jami buyurtmalar</p>
                                     <span class="metric-trend positive" data-growth="orders">
                                         <i class="las la-arrow-up"></i>
-                                        Loading...
+                                        Yuklanmoqda...
                                     </span>
                                 </div>
                             </div>
@@ -130,11 +130,11 @@
                                     <i class="las la-percentage"></i>
                                 </div>
                                 <div class="metric-details">
-                                    <h3 class="metric-value" id="conversionRate" data-metric="conversionRate">Loading...</h3>
-                                    <p class="metric-label">Conversion Rate</p>
+                                    <h3 class="metric-value" id="conversionRate" data-metric="conversionRate">Yuklanmoqda...</h3>
+                                    <p class="metric-label">Konversiya darajasi</p>
                                     <span class="metric-trend positive" data-growth="conversion">
                                         <i class="las la-arrow-up"></i>
-                                        Loading...
+                                        Yuklanmoqda...
                                     </span>
                                 </div>
                             </div>
@@ -147,14 +147,14 @@
                         <div class="col-span-2">
                             <div class="chart-container animate-fade-in">
                                 <div class="chart-header">
-                                    <h3 class="chart-title">Revenue Analytics</h3>
+                                    <h3 class="chart-title">Daromad analitikasi</h3>
                                     <div class="chart-actions">
                                         <div class="chart-filters">
-                                            <button class="filter-btn active" data-filter="revenue">Revenue</button>
-                                            <button class="filter-btn" data-filter="orders">Orders</button>
-                                            <button class="filter-btn" data-filter="users">Users</button>
+                                            <button class="filter-btn active" data-filter="revenue">Daromad</button>
+                                            <button class="filter-btn" data-filter="orders">Buyurtmalar</button>
+                                            <button class="filter-btn" data-filter="users">Foydalanuvchilar</button>
                                         </div>
-                                        <button class="btn-icon btn-sm" title="Fullscreen">
+                                        <button class="btn-icon btn-sm" title="To\'liq ekran">
                                             <i class="las la-expand"></i>
                                         </button>
                                     </div>
@@ -169,9 +169,9 @@
                         <div class="col-span-1">
                             <div class="chart-container animate-fade-in">
                                 <div class="chart-header">
-                                    <h3 class="chart-title">User Activity</h3>
+                                    <h3 class="chart-title">Foydalanuvchi faolligi</h3>
                                     <div class="chart-actions">
-                                        <button class="btn-icon btn-sm" title="Settings">
+                                        <button class="btn-icon btn-sm" title="Sozlamalar">
                                             <i class="las la-cog"></i>
                                         </button>
                                     </div>
@@ -188,9 +188,9 @@
                         <!-- Product Performance Chart -->
                         <div class="chart-container animate-fade-in">
                             <div class="chart-header">
-                                <h3 class="chart-title">Product Performance</h3>
+                                <h3 class="chart-title">Mahsulot ishlashi</h3>
                                 <div class="chart-actions">
-                                    <button class="btn-icon btn-sm" title="Settings">
+                                    <button class="btn-icon btn-sm" title="Sozlamalar">
                                         <i class="las la-cog"></i>
                                     </button>
                                 </div>
@@ -203,9 +203,9 @@
                         <!-- Geographic Distribution Chart -->
                         <div class="chart-container animate-fade-in">
                             <div class="chart-header">
-                                <h3 class="chart-title">Geographic Distribution</h3>
+                                <h3 class="chart-title">Geografik taqsimot</h3>
                                 <div class="chart-actions">
-                                    <button class="btn-icon btn-sm" title="Settings">
+                                    <button class="btn-icon btn-sm" title="Sozlamalar">
                                         <i class="las la-cog"></i>
                                     </button>
                                 </div>
@@ -223,10 +223,10 @@
                             <div class="table-header">
                                 <h3 class="table-title">
                                     <i class="las la-trophy"></i>
-                                    Top Performing Products
+                                    Eng yaxshi ishlayotgan mahsulotlar
                                 </h3>
                                 <div class="table-actions">
-                                    <button class="btn-icon btn-sm" title="View All">
+                                    <button class="btn-icon btn-sm" title="Barchasini ko'rish">
                                         <i class="las la-external-link-alt"></i>
                                     </button>
                                 </div>
@@ -235,17 +235,17 @@
                                 <table class="analytics-table">
                                     <thead>
                                         <tr>
-                                            <th>Product</th>
-                                            <th>Revenue</th>
-                                            <th>Orders</th>
-                                            <th>Growth</th>
+                                            <th>Mahsulot</th>
+                                            <th>Daromad</th>
+                                            <th>Buyurtmalar</th>
+                                            <th>O'sish</th>
                                         </tr>
                                     </thead>
                                     <tbody id="topProductsTableBody">
                                         <tr>
                                             <td colspan="4" class="text-center">
                                                 <div class="loading-skeleton" style="height: 20px; margin: 10px 0;"></div>
-                                                <small class="text-muted">Loading product data...</small>
+                                                <small class="text-muted">Mahsulot ma'lumotlari yuklanmoqda...</small>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -258,10 +258,10 @@
                             <div class="table-header">
                                 <h3 class="table-title">
                                     <i class="las la-globe"></i>
-                                    Geographic Distribution
+                                    Geografik taqsimot
                                 </h3>
                                 <div class="table-actions">
-                                    <button class="btn-icon btn-sm" title="View Map">
+                                    <button class="btn-icon btn-sm" title="Xaritani ko'rish">
                                         <i class="las la-map"></i>
                                     </button>
                                 </div>
@@ -270,17 +270,17 @@
                                 <table class="analytics-table">
                                     <thead>
                                         <tr>
-                                            <th>Country</th>
-                                            <th>Users</th>
-                                            <th>Revenue</th>
-                                            <th>Share</th>
+                                            <th>Mamlakat</th>
+                                            <th>Foydalanuvchilar</th>
+                                            <th>Daromad</th>
+                                            <th>Ulush</th>
                                         </tr>
                                     </thead>
                                     <tbody id="geographicTableBody">
                                         <tr>
                                             <td colspan="4" class="text-center">
                                                 <div class="loading-skeleton" style="height: 20px; margin: 10px 0;"></div>
-                                                <small class="text-muted">Loading geographic data...</small>
+                                                <small class="text-muted">Geografik ma'lumotlar yuklanmoqda...</small>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -294,16 +294,16 @@
                         <div class="activities-header">
                             <h3 class="activities-title">
                                 <i class="las la-bolt"></i>
-                                Real-time Activities
+                                Real-time faoliyat
                                 <span class="live-indicator">
                                     <span class="live-dot"></span>
-                                    LIVE
+                                    JONLI
                                 </span>
                             </h3>
                             <div class="activities-actions">
                                 <button class="btn btn-sm btn-ghost" onclick="pauseRealtime()">
                                     <i class="las la-pause"></i>
-                                    Pause
+                                    To'xtatish
                                 </button>
                             </div>
                         </div>
@@ -314,11 +314,11 @@
                                 </div>
                                 <div class="activity-content">
                                     <div class="activity-text">
-                                        Loading real-time activities...
+                                        Real-time faoliyat yuklanmoqda...
                                     </div>
                                     <div class="activity-meta">
-                                        <span class="activity-badge info">LOADING</span>
-                                        <span class="activity-time">Just now</span>
+                                        <span class="activity-badge info">YUKLANMOQDA</span>
+                                        <span class="activity-time">Hozir</span>
                                     </div>
                                 </div>
                             </div>

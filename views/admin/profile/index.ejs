@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
-    <title>Admin Profile - SLEX Admin</title>
+    <title>Admin Profili - SLEX Admin</title>
        
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
@@ -1325,12 +1325,12 @@
 <body class="admin-layout theme-transition" data-theme="light">
 
 <%- include('../partials/header', { 
-        title: 'Admin Profile - SLEX Admin',
+        title: 'Admin Profili - SLEX Admin',
         lng: typeof currentLang !== 'undefined' ? currentLang : 'uz',
     admin: admin, 
         user: user,
         breadcrumb: [
-            { title: 'Profile', url: '/admin/profile' }
+            { title: 'Profil', url: '/admin/profile' }
         ]
 }) %>
 
@@ -1377,7 +1377,7 @@
                                 <% if (typeof admin !== 'undefined' && admin.name) { %>
                                     <%= admin.name %>
                                 <% } else { %>
-                                    Admin User
+                                    Admin Foydalanuvchi
                                 <% } %>
                             </h1>
                             <p class="profile-title" id="profileTitle">
@@ -1433,11 +1433,11 @@
                     <div class="profile-actions">
                         <button class="btn" onclick="exportProfile()">
                             <i class="las la-download"></i>
-                            Export Profile
+                            Profilni Eksport Qilish
                         </button>
                         <button class="btn" onclick="refreshProfile()">
                             <i class="las la-sync-alt"></i>
-                            Refresh
+                            Yangilash
                         </button>
                             </div>
                             </div>
@@ -1524,7 +1524,7 @@
                                         <select class="form-control" id="role" name="role" disabled style="background: none;">
                                             <option value="super_admin" <%= typeof admin !== 'undefined' && admin.role === 'super_admin' ? 'selected' : '' %>>Super Administrator</option>
                                             <option value="admin" <%= typeof admin !== 'undefined' && admin.role === 'admin' ? 'selected' : '' %>>Administrator</option>
-                                            <option value="moderator" <%= typeof admin !== 'undefined' && admin.role === 'moderator' ? 'selected' : '' %>>Moderator</option>
+                                            <option value="moderator" <%= typeof admin !== 'undefined' && admin.role === 'Moderator' ? 'selected' : '' %>>Moderator</option>
                                         </select>
                                         </div>
                                     </div>
@@ -2008,7 +2008,7 @@
             }
             
             performSearch(query) {
-                console.log(`🔍 Searching for: ${query}`);
+                console.log(`🔍 Qidirilmoqda: ${query}`);
                 // In a real app, implement actual search functionality
                 this.showToast(`Searching for "${query}"`, 'info');
             }
@@ -2169,7 +2169,7 @@
             }
             
             async init() {
-                console.log('🚀 Initializing Professional Admin Profile Manager...');
+                console.log('🚀 Professional Admin Profil Boshqaruvchisi ishga tushirilmoqda...');
                 this.setupNavigation();
                 await this.loadInitialData();
                 console.log('✅ Admin Profile Manager initialized successfully');

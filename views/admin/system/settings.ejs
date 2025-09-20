@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
-    <title>System Settings - SLEX Admin</title>
+    <title>Tizim sozlamalari - SLEX Admin</title>
        
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
@@ -19,17 +19,17 @@
     <link rel="stylesheet" href="/assets/css/fontawesome-all.min.css">
     <link rel="stylesheet" href="/assets/css/line-awesome.min.css">
     
-    <!-- Core Admin CSS -->
+    <!-- Asosiy Admin CSS -->
     <link rel="stylesheet" href="/admin/css/admin-dashboard.css">
     
-    <!-- Professional Settings Styles -->
+    <!-- Professional Settings stillari -->
     <style>
         /* ======================================
-           PROFESSIONAL SETTINGS PAGE STYLES
-           Senior Software Engineer Implementation
+           PROFESSIONAL SETTINGS SAHIFA STILLARI
+           Senior Software Engineer amalga oshirish
            ====================================== */
         
-        /* Settings Container */
+        /* Settings konteyneri */
         .settings-container {
             background: var(--bg-card);
             border-radius: 12px;
@@ -38,7 +38,7 @@
             border: 1px solid var(--border-color);
         }
         
-        /* Settings Header */
+        /* Settings sarlavhasi */
         .settings-header {
             background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
             color: white;
@@ -106,7 +106,7 @@
             transform: translateY(-1px);
         }
         
-        /* Settings Navigation */
+        /* Settings navigatsiyasi */
         .settings-nav {
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
@@ -160,7 +160,7 @@
             font-size: 1rem;
         }
         
-        /* Settings Content */
+        /* Settings kontenti */
         .settings-content {
             padding: 2rem;
         }
@@ -190,7 +190,7 @@
             line-height: 1.5;
         }
         
-        /* Settings Groups */
+        /* Settings guruhlari */
         .settings-group {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -218,7 +218,7 @@
             margin: 0.25rem 0 0 0;
         }
         
-        /* Setting Items */
+        /* Setting elementlari */
         .setting-item {
             padding: 1.5rem;
             border-bottom: 1px solid var(--border-light);
@@ -257,7 +257,7 @@
             min-width: 200px;
         }
         
-        /* Form Controls */
+        /* Form boshqaruvlari */
         .form-control {
             width: 100%;
             padding: 0.5rem 0.75rem;
@@ -283,7 +283,7 @@
             padding-right: 2.5rem;
         }
         
-        /* Toggle Switch */
+        /* Toggle kaliti */
         .toggle-switch {
             position: relative;
             display: inline-block;
@@ -404,7 +404,7 @@
             color: var(--text-primary);
         }
         
-        /* Responsive Design */
+        /* Responsive dizayn */
         @media (max-width: 768px) {
             .settings-header {
                 padding: 1.5rem;
@@ -432,7 +432,7 @@
             }
         }
         
-        /* Dark Theme Support */
+        /* Qorong'u tema qo'llab-quvvatlash */
         [data-theme="dark"] .settings-header {
             background: linear-gradient(135deg, var(--color-primary) 0%, #1e40af 100%);
         }
@@ -447,7 +447,7 @@
             background: var(--bg-secondary);
         }
         
-        /* Animation */
+        /* Animatsiya */
         .animate-fade-in {
             animation: fadeIn 0.3s ease-in-out;
         }
@@ -457,7 +457,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* Loading State */
+        /* Yuklash holati */
         .loading-state {
             display: flex;
             flex-direction: column;
@@ -473,7 +473,7 @@
             color: var(--color-primary);
         }
         
-        /* Success State */
+        /* Muvaffaqiyat holati */
         .save-indicator {
             position: fixed;
             bottom: 2rem;
@@ -497,13 +497,13 @@
 <body class="admin-layout theme-transition" data-theme="light">
 
     <%- include('../partials/header', { 
-        title: 'System Settings - SLEX Admin',
+        title: 'Tizim sozlamalari - SLEX Admin',
         lng: typeof currentLang !== 'undefined' ? currentLang : 'uz',
         admin: admin, 
         user: user,
         breadcrumb: [
-            { title: 'System', url: '/admin' },
-            { title: 'Settings' }
+            { title: 'Tizim', url: '/admin' },
+            { title: 'Sozlamalar' }
         ]
     }) %>
 
@@ -513,106 +513,106 @@
         currentPage: 'settings'
     }) %>
     
-    <!-- Main Content -->
+    <!-- Asosiy kontent -->
     <div class="admin-main">
         <div class="admin-content">
             
-            <!-- Professional Settings Container -->
+            <!-- Professional Settings konteyneri -->
             <div class="settings-container animate-fade-in">
                 
-                <!-- Settings Header -->
+                <!-- Settings sarlavhasi -->
                 <div class="settings-header">
                     <div class="settings-header-content">
                         <h1 class="settings-title">
                             <i class="las la-cogs"></i>
-                            System Settings
+                            Tizim sozlamalari
                         </h1>
                         <p class="settings-subtitle">
-                            Configure platform settings, security parameters, and system preferences
+                            Platforma sozlamalari, xavfsizlik parametrlari va tizim imkoniyatlarini sozlash
                         </p>
                     </div>
                     <div class="settings-actions">
                         <button class="btn" onclick="resetAllSettings()">
                             <i class="las la-undo"></i>
-                            Reset to Defaults
+                            Standartga qaytarish
                         </button>
                         <button class="btn" onclick="exportSettings()">
                             <i class="las la-download"></i>
-                            Export Configuration
+                            Konfiguratsiyani eksport qilish
                         </button>
                         <button class="btn" onclick="saveAllSettings()">
                             <i class="las la-save"></i>
-                            Save All Changes
+                            Barcha o'zgarishlarni saqlash
                         </button>
                     </div>
                 </div>
                 
-                <!-- Settings Navigation -->
+                <!-- Settings navigatsiyasi -->
                 <nav class="settings-nav">
                     <ul class="settings-nav-list">
                         <li class="settings-nav-item">
                             <a href="#general" class="settings-nav-link active" data-section="general">
                                 <i class="las la-cog settings-nav-icon"></i>
-                                <span>General</span>
+                                <span>Umumiy</span>
                             </a>
                         </li>
                         <li class="settings-nav-item">
                             <a href="#security" class="settings-nav-link" data-section="security">
                                 <i class="las la-shield-alt settings-nav-icon"></i>
-                                <span>Security</span>
+                                <span>Xavfsizlik</span>
                             </a>
                         </li>
                         <li class="settings-nav-item">
                             <a href="#notifications" class="settings-nav-link" data-section="notifications">
                                 <i class="las la-bell settings-nav-icon"></i>
-                                <span>Notifications</span>
+                                <span>Bildirishnomalar</span>
                             </a>
                         </li>
                         <li class="settings-nav-item">
                             <a href="#integrations" class="settings-nav-link" data-section="integrations">
                                 <i class="las la-plug settings-nav-icon"></i>
-                                <span>Integrations</span>
+                                <span>Integratsiyalar</span>
                             </a>
                         </li>
                         <li class="settings-nav-item">
                             <a href="#advanced" class="settings-nav-link" data-section="advanced">
                                 <i class="las la-tools settings-nav-icon"></i>
-                                <span>Advanced</span>
+                                <span>Kengaytirilgan</span>
                             </a>
                         </li>
                     </ul>
                 </nav>
                 
-                <!-- Settings Content -->
+                <!-- Settings kontenti -->
                 <div class="settings-content">
                     
-                    <!-- General Settings -->
+                    <!-- Umumiy sozlamalar -->
                     <div class="settings-section active" id="general-section">
                         <h2 class="section-title">
                             <i class="las la-cog"></i>
-                            General Settings
+                            Umumiy sozlamalar
                         </h2>
                         <p class="section-description">
-                            Basic platform configuration and general preferences
+                            Asosiy platforma konfiguratsiyasi va umumiy imkoniyatlar
                         </p>
                         
                         <div class="settings-group">
                             <div class="group-header">
-                                <h3 class="group-title">Platform Information</h3>
-                                <p class="group-description">Basic platform identification and branding</p>
+                                <h3 class="group-title">Platforma ma'lumotlari</h3>
+                                <p class="group-description">Asosiy platforma identifikatsiyasi va brending</p>
                             </div>
                             
                             <div class="setting-item">
                                 <div class="setting-info">
                                     <label class="setting-label">
-                                        Platform Name
+                                        Platforma nomi
                                         <span class="badge badge-required">
                                             <i class="las la-asterisk"></i>
-                                            Required
+                                            Majburiy
                                         </span>
                                     </label>
                                     <p class="setting-description">
-                                        The name of your B2B marketplace platform that will be displayed throughout the application
+                                        Ilovada ko'rsatiladigan B2B marketplace platformangizning nomi
                                     </p>
                                 </div>
                                 <div class="setting-control">
@@ -622,21 +622,21 @@
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Platform Description</label>
+                                    <label class="setting-label">Platforma tavsifi</label>
                                     <p class="setting-description">
-                                        A brief description of your platform for meta tags and branding
+                                        Meta teglar va brending uchun platformangizning qisqa tavsifi
                                     </p>
                                 </div>
                                 <div class="setting-control">
-                                    <textarea class="form-control" rows="2" data-setting="platform_description">Professional B2B marketplace connecting manufacturers, distributors, and buyers</textarea>
+                                    <textarea class="form-control" rows="2" data-setting="platform_description">Ishlab chiqaruvchilar, distribyutorlar va xaridorlarni bog'lovchi professional B2B marketplace</textarea>
                                 </div>
                             </div>
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Contact Email</label>
+                                    <label class="setting-label">Aloqa email</label>
                                     <p class="setting-description">
-                                        Main contact email for support and inquiries
+                                        Qo'llab-quvvatlash va so'rovlar uchun asosiy aloqa email
                                     </p>
                                 </div>
                                 <div class="setting-control">
@@ -647,81 +647,81 @@
                         
                         <div class="settings-group">
                             <div class="group-header">
-                                <h3 class="group-title">Regional Settings</h3>
-                                <p class="group-description">Localization and regional preferences</p>
+                                <h3 class="group-title">Mintaqaviy sozlamalar</h3>
+                                <p class="group-description">Mahalliylashtirish va mintaqaviy imkoniyatlar</p>
                             </div>
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Default Language</label>
+                                    <label class="setting-label">Standart til</label>
                                     <p class="setting-description">
-                                        Default language for new users and system messages
+                                        Yangi foydalanuvchilar va tizim xabarlari uchun standart til
                                     </p>
                                 </div>
                                 <div class="setting-control">
                                     <select class="form-control form-select" data-setting="default_language">
                                         <option value="uz">Uzbek (O'zbek)</option>
                                         <option value="ru">Russian (Русский)</option>
-                                        <option value="en">English</option>
+                                        <option value="en">Ingliz tili</option>
                                     </select>
                                 </div>
                             </div>
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Default Currency</label>
+                                    <label class="setting-label">Standart valyuta</label>
                                     <p class="setting-description">
-                                        Primary currency for transactions and pricing
+                                        Tranzaksiyalar va narxlash uchun asosiy valyuta
                                     </p>
                                 </div>
                                 <div class="setting-control">
                                     <select class="form-control form-select" data-setting="default_currency">
-                                        <option value="USD">USD - US Dollar</option>
+                                        <option value="USD">USD - AQSH dollari</option>
                                         <option value="UZS">UZS - Uzbek Som</option>
-                                        <option value="EUR">EUR - Euro</option>
+                                        <option value="EUR">EUR - Yevro</option>
                                     </select>
                                 </div>
                             </div>
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Timezone</label>
+                                    <label class="setting-label">Vaqt zonasi</label>
                                     <p class="setting-description">
-                                        System timezone for dates and scheduling
+                                        Sana va rejalashtirish uchun tizim vaqt zonasi
                                     </p>
                                 </div>
                                 <div class="setting-control">
                                     <select class="form-control form-select" data-setting="timezone">
                                         <option value="Asia/Tashkent" selected>Asia/Tashkent (UTC+5)</option>
                                         <option value="UTC">UTC</option>
-                                        <option value="Europe/Moscow">Europe/Moscow (UTC+3)</option>
+                                        <option value="Europe/Moscow">Yevropa/Moskva (UTC+3)</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Security Settings -->
+                    <!-- Xavfsizlik sozlamalari -->
                     <div class="settings-section" id="security-section">
                         <h2 class="section-title">
                             <i class="las la-shield-alt"></i>
-                            Security Settings
+                            Xavfsizlik sozlamalari
                         </h2>
                         <p class="section-description">
-                            Authentication, authorization, and security policies
+                            Autentifikatsiya, avtorizatsiya va xavfsizlik siyosatlari
                         </p>
                         
                         <div class="settings-group">
                             <div class="group-header">
-                                <h3 class="group-title">Authentication</h3>
-                                <p class="group-description">User authentication and session management</p>
+                                <h3 class="group-title">Autentifikatsiya</h3>
+                                <p class="group-description">Foydalanuvchi autentifikatsiyasi va sessiya boshqaruvi</p>
                             </div>
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Session Timeout (minutes)</label>
+                                    <label class="setting-label">Sessiya vaqti (daqiqa)</label>
                                     <p class="setting-description">
-                                        Automatic logout after inactivity period
+                                        Faoliyatsizlik davridan keyin avtomatik chiqish
                                     </p>
                                 </div>
                                 <div class="setting-control">
@@ -731,9 +731,9 @@
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Require Email Verification</label>
+                                    <label class="setting-label">Email tasdiqlashni talab qilish</label>
                                     <p class="setting-description">
-                                        New users must verify their email before accessing the platform
+                                        Yangi foydalanuvchilar platformaga kirishdan oldin emailni tasdiqlashlari kerak
                                     </p>
                                 </div>
                                 <div class="setting-control">
@@ -746,9 +746,9 @@
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Enable Two-Factor Authentication</label>
+                                    <label class="setting-label">Ikki bosqichli autentifikatsiyani yoqish</label>
                                     <p class="setting-description">
-                                        Allow users to enable 2FA for enhanced security
+                                        Kengaytirilgan xavfsizlik uchun foydalanuvchilarga 2FA yoqish imkonini berish
                                     </p>
                                 </div>
                                 <div class="setting-control">
@@ -762,15 +762,15 @@
                         
                         <div class="settings-group">
                             <div class="group-header">
-                                <h3 class="group-title">Password Policy</h3>
-                                <p class="group-description">Password strength and requirements</p>
+                                <h3 class="group-title">Parol siyosati</h3>
+                                <p class="group-description">Parol kuchliligi va talablari</p>
                             </div>
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Minimum Password Length</label>
+                                    <label class="setting-label">Minimal parol uzunligi</label>
                                     <p class="setting-description">
-                                        Minimum number of characters required for passwords
+                                        Parollar uchun talab qilinadigan minimal belgilar soni
                                     </p>
                                 </div>
                                 <div class="setting-control">
@@ -780,9 +780,9 @@
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Require Special Characters</label>
+                                    <label class="setting-label">Maxsus belgilarni talab qilish</label>
                                     <p class="setting-description">
-                                        Passwords must contain at least one special character
+                                        Parollar kamida bitta maxsus belgi o'z ichiga olishi kerak
                                     </p>
                                 </div>
                                 <div class="setting-control">
@@ -795,27 +795,27 @@
                         </div>
                     </div>
                     
-                    <!-- Notification Settings -->
+                    <!-- Bildirishnoma sozlamalari -->
                     <div class="settings-section" id="notifications-section">
                         <h2 class="section-title">
                             <i class="las la-bell"></i>
-                            Notification Settings
+                            Bildirishnoma sozlamalari
                         </h2>
                         <p class="section-description">
-                            Email notifications, alerts, and communication preferences
+                            Email bildirishnomalari, ogohlantirishlar va aloqa imkoniyatlari
                         </p>
                         
                         <div class="settings-group">
                             <div class="group-header">
-                                <h3 class="group-title">Email Notifications</h3>
-                                <p class="group-description">Control which email notifications are sent to users</p>
+                                <h3 class="group-title">Email bildirishnomalari</h3>
+                                <p class="group-description">Foydalanuvchilarga qaysi email bildirishnomalari yuborilishini boshqarish</p>
                             </div>
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Welcome Email</label>
+                                    <label class="setting-label">Xush kelibsiz email</label>
                                     <p class="setting-description">
-                                        Send welcome email to new users after registration
+                                        Ro'yxatdan o'tgandan keyin yangi foydalanuvchilarga xush kelibsiz email yuborish
                                     </p>
                                 </div>
                                 <div class="setting-control">
@@ -828,9 +828,9 @@
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Order Notifications</label>
+                                    <label class="setting-label">Buyurtma bildirishnomalari</label>
                                     <p class="setting-description">
-                                        Notify users about order status changes and updates
+                                        Foydalanuvchilarni buyurtma holati o'zgarishlari va yangilanishlar haqida xabardor qilish
                                     </p>
                                 </div>
                                 <div class="setting-control">
@@ -843,27 +843,27 @@
                         </div>
                     </div>
                     
-                    <!-- Integration Settings -->
+                    <!-- Integratsiya sozlamalari -->
                     <div class="settings-section" id="integrations-section">
                         <h2 class="section-title">
                             <i class="las la-plug"></i>
-                            Integration Settings
+                            Integratsiya sozlamalari
                         </h2>
                         <p class="section-description">
-                            Third-party service integrations and API configurations
+                            Uchinchi tomon xizmatlari integratsiyalari va API konfiguratsiyalari
                         </p>
                         
                         <div class="settings-group">
                             <div class="group-header">
-                                <h3 class="group-title">Payment Gateways</h3>
-                                <p class="group-description">Configure payment processing services</p>
+                                <h3 class="group-title">To'lov shlyuzlari</h3>
+                                <p class="group-description">To'lov qayta ishlash xizmatlarini sozlash</p>
                             </div>
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Enable PayPal</label>
+                                    <label class="setting-label">PayPal ni yoqish</label>
                                     <p class="setting-description">
-                                        Allow payments through PayPal gateway
+                                        PayPal shlyuzi orqali to'lovlarni ruxsat berish
                                     </p>
                                 </div>
                                 <div class="setting-control">
@@ -876,9 +876,9 @@
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">Enable Click (Uzbekistan)</label>
+                                    <label class="setting-label">Click (O'zbekiston) ni yoqish</label>
                                     <p class="setting-description">
-                                        Allow payments through Click payment system
+                                        Click to'lov tizimi orqali to'lovlarni ruxsat berish
                                     </p>
                                 </div>
                                 <div class="setting-control">
@@ -891,33 +891,33 @@
                         </div>
                     </div>
                     
-                    <!-- Advanced Settings -->
+                    <!-- Kengaytirilgan sozlamalar -->
                     <div class="settings-section" id="advanced-section">
                         <h2 class="section-title">
                             <i class="las la-tools"></i>
-                            Advanced Settings
+                            Kengaytirilgan sozlamalar
                         </h2>
                         <p class="section-description">
-                            Advanced system parameters and developer options
+                            Kengaytirilgan tizim parametrlari va dasturchi imkoniyatlari
                         </p>
                         
                         <div class="settings-group">
                             <div class="group-header">
-                                <h3 class="group-title">System Configuration</h3>
-                                <p class="group-description">Low-level system settings</p>
+                                <h3 class="group-title">Tizim konfiguratsiyasi</h3>
+                                <p class="group-description">Past darajali tizim sozlamalari</p>
                             </div>
                             
                             <div class="setting-item">
                                 <div class="setting-info">
                                     <label class="setting-label">
-                                        Debug Mode
+                                        Debug rejimi
                                         <span class="badge badge-restart">
                                             <i class="las la-power-off"></i>
-                                            Requires Restart
+                                            Qayta ishga tushirish kerak
                                         </span>
                                     </label>
                                     <p class="setting-description">
-                                        Enable detailed logging and error reporting (development only)
+                                        Batafsil log va xato hisobotini yoqish (faqat ishlab chiqish uchun)
                                     </p>
                                 </div>
                                 <div class="setting-control">
@@ -930,9 +930,9 @@
                             
                             <div class="setting-item">
                                 <div class="setting-info">
-                                    <label class="setting-label">API Rate Limit (requests/minute)</label>
+                                    <label class="setting-label">API tezlik chegarasi (so'rov/daqiqa)</label>
                                     <p class="setting-description">
-                                        Maximum API requests per minute per user
+                                        Har bir foydalanuvchi uchun daqiqasiga maksimal API so'rovlari
                                     </p>
                                 </div>
                                 <div class="setting-control">
@@ -948,19 +948,19 @@
         </div>
     </div>
     
-    <!-- Save Success Indicator -->
+    <!-- Saqlash muvaffaqiyat ko'rsatkichi -->
     <div class="save-indicator" id="saveIndicator">
         <i class="las la-check-circle"></i>
-        Settings saved successfully!
+        Sozlamalar muvaffaqiyatli saqlandi!
     </div>
 
-    <!-- Scripts -->
+    <!-- Skriptlar -->
     <script src="/assets/js/jquery-3.7.1.min.js"></script>
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
     <script src="/admin/js/dashboard.js"></script>
 
     <script>
-        // Professional Settings Management
+        // Professional Settings boshqaruvi
         class SettingsManager {
             constructor() {
                 this.unsavedChanges = new Map();
@@ -1011,11 +1011,11 @@
             
             updateSetting(key, value) {
                 this.unsavedChanges.set(key, value);
-                console.log(`Setting updated: ${key} = ${value}`);
+                console.log(`Sozlama yangilandi: ${key} = ${value}`);
             }
             
             setupAutoSave() {
-                // Auto-save every 30 seconds if there are changes
+                // Agar o'zgarishlar bo'lsa, har 30 soniyada avtomatik saqlash
                 setInterval(() => {
                     if (this.unsavedChanges.size > 0) {
                         this.saveSettings();
@@ -1041,12 +1041,12 @@
                     if (response.ok) {
                         this.unsavedChanges.clear();
                         this.showSaveSuccess();
-                        console.log('Settings saved successfully');
+                        console.log('Sozlamalar muvaffaqiyatli saqlandi');
                     } else {
-                        console.error('Failed to save settings');
+                        console.error('Sozlamalarni saqlashda xatolik');
                     }
                 } catch (error) {
-                    console.error('Error saving settings:', error);
+                    console.error('Sozlamalarni saqlashda xatolik:', error);
                 }
             }
             
@@ -1067,25 +1067,25 @@
         };
         
         window.resetAllSettings = function() {
-            if (confirm('Are you sure you want to reset all settings to their default values?')) {
-                console.log('Resetting all settings to defaults...');
-                // Implementation would call backend API
+            if (confirm('Barcha sozlamalarni standart qiymatlariga qaytarishni xohlaysizmi?')) {
+                console.log('Barcha sozlamalarni standartga qaytarish...');
+                // Amalga oshirish backend API ni chaqiradi
             }
         };
         
         window.exportSettings = function() {
-            console.log('Exporting settings configuration...');
-            // Implementation would generate and download config file
+            console.log('Sozlamalar konfiguratsiyasini eksport qilish...');
+            // Amalga oshirish konfiguratsiya faylini yaratadi va yuklab oladi
         };
         
-        // Initialize when DOM is ready
+        // DOM tayyor bo'lganda ishga tushirish
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🔧 Professional Settings page initialized');
+            console.log('🔧 Professional Settings sahifasi ishga tushirildi');
             
-            // Initialize settings manager
+            // Settings boshqaruvchisini ishga tushirish
             window.settingsManager = new SettingsManager();
             
-            // Initialize theme system
+            // Tema tizimini ishga tushirish
             if (typeof initializeThemeSystem === 'function') {
                 initializeThemeSystem();
             }

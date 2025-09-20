@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
-    <title>Product Management - SLEX Admin Dashboard</title>
+    <title>Mahsulotlar boshqaruvi - SLEX Admin Dashboard</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/images/logo/favicon.png">
@@ -44,13 +44,13 @@
 <body class="admin-layout theme-transition">
 
     <%- include('../partials/header', { 
-        title: 'Product Management - SLEX Admin Dashboard',
+        title: 'Mahsulotlar boshqaruvi - SLEX Admin Dashboard',
         lng: typeof currentLang !== 'undefined' ? currentLang : 'uz',
         admin: admin, 
         user: user,
         breadcrumb: [
-            { title: 'Dashboard', url: '/admin' },
-            { title: 'Products' }
+            { title: 'Boshqaruv paneli', url: '/admin' },
+            { title: 'Mahsulotlar' }
         ]
     }) %>
 
@@ -74,24 +74,24 @@
                         <div class="page-title-section">
                             <h1 class="page-title">
                                 <i class="las la-boxes text-primary"></i>
-                                Product Management
+                                Mahsulotlar boshqaruvi
                             </h1>
                             <p class="page-subtitle">
-                                Comprehensive product catalog management with advanced inventory control, performance analytics, and bulk operations
+                                Mahsulotlar katalogini boshqarish, avvalgi stok holatini boshqarish, ishlash tahlilini boshqarish va massiv amallarni boshqarish
                             </p>
                         </div>
                         <div class="page-actions">
                             <button class="btn btn-outline-primary" onclick="exportProducts()">
                                 <i class="las la-download"></i>
-                                Export Data
+                                Ma'lumotlarni eksport qilish
                             </button>
                             <button class="btn btn-outline-secondary" onclick="refreshData()">
                                 <i class="las la-sync-alt"></i>
-                                Refresh
+                                Yangilash
                             </button>
                             <button class="btn btn-primary" onclick="openCreateProductModal()">
                                 <i class="las la-plus"></i>
-                                Add Product
+                                Mahsulot qo'shish
                             </button>
                         </div>
                     </div>
@@ -106,7 +106,7 @@
                             </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="totalProductsCount"><%= statistics?.total || 0 %></div>
-                                <div class="stat-label">Total Products</div>
+                                <div class="stat-label">Jami mahsulotlar</div>
                                 <div class="stat-trend positive">
                                     <i class="las la-arrow-up"></i>
                                     +8%
@@ -122,7 +122,7 @@
                             </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="activeProductsCount"><%= statistics?.statusCounts?.active || 0 %></div>
-                                <div class="stat-label">Active Products</div>
+                                <div class="stat-label">Faol mahsulotlar</div>
                                 <div class="stat-trend positive">
                                     <i class="las la-arrow-up"></i>
                                     +12%
@@ -138,7 +138,7 @@
                             </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="lowStockCount"><%= statistics?.stockStats?.lowStock || 0 %></div>
-                                <div class="stat-label">Low Stock Items</div>
+                                <div class="stat-label">Kam qoldiq mahsulotlar</div>
                                 <div class="stat-trend negative">
                                     <i class="las la-arrow-down"></i>
                                     -3%
@@ -154,7 +154,7 @@
                             </div>
                             <div class="stat-details">
                                 <div class="stat-value" id="totalValue">$<%= statistics?.totalValue ? Math.round(statistics.totalValue).toLocaleString() : '0' %></div>
-                                <div class="stat-label">Total Inventory Value</div>
+                                <div class="stat-label">Jami ombor qiymati</div>
                                 <div class="stat-trend positive">
                                     <i class="las la-arrow-up"></i>
                                     +8%
@@ -171,27 +171,27 @@
                     <div class="tabs-navigation">
                         <button class="tab-item active" data-status="" data-tab="all">
                             <i class="las la-list"></i>
-                            All Products
+                            Barcha mahsulotlar
                             <span class="tab-badge" id="allProductsTab"><%= statistics?.total || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="active" data-tab="active">
                             <i class="las la-check-circle"></i>
-                            Active
+                            Faol
                             <span class="tab-badge success" id="activeProductsTab"><%= statistics?.statusCounts?.active || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="draft" data-tab="draft">
                             <i class="las la-edit"></i>
-                            Draft
+                            Qoralama
                             <span class="tab-badge secondary" id="draftProductsTab"><%= statistics?.statusCounts?.draft || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="inactive" data-tab="inactive">
                             <i class="las la-pause"></i>
-                            Inactive
+                            Faol emas
                             <span class="tab-badge warning" id="inactiveProductsTab"><%= statistics?.statusCounts?.inactive || 0 %></span>
                         </button>
                         <button class="tab-item" data-status="discontinued" data-tab="discontinued">
                             <i class="las la-ban"></i>
-                            Discontinued
+                            To'xtatilgan
                             <span class="tab-badge danger" id="discontinuedProductsTab"><%= statistics?.statusCounts?.discontinued || 0 %></span>
                         </button>
                     </div>
@@ -201,50 +201,50 @@
                         <div class="filters-header">
                             <h3 class="filters-title">
                                 <i class="las la-filter"></i>
-                                Advanced Filters
+                                Kengaytirilgan filtrlash
                             </h3>
                             <div class="filter-actions">
                                 <button class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()">
                                     <i class="las la-times"></i>
-                                    Clear
+                                    Tozalash
                                 </button>
                                 <button class="btn btn-primary btn-sm" onclick="applyFilters()">
                                     <i class="las la-search"></i>
-                                    Search
+                                    Qidirish
                                 </button>
                             </div>
                         </div>
                         
                         <div class="filters-grid">
                             <div class="filter-group">
-                                <label class="filter-label">Search Products</label>
+                                <label class="filter-label">Mahsulotlarni qidirish</label>
                                 <div class="search-input">
                                     <i class="las la-search search-icon"></i>
-                                    <input type="text" class="filter-input" id="searchInput" placeholder="Product name, description, manufacturer...">
+                                    <input type="text" class="filter-input" id="searchInput" placeholder="Mahsulot nomi, tavsifi, ishlab chiqaruvchi...">
                                 </div>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Category</label>
+                                <label class="filter-label">Kategoriya</label>
                                 <select class="filter-input" id="categoryFilter">
-                                    <option value="">All Categories</option>
-                                    <option value="food_beverages">Food & Beverages</option>
-                                    <option value="textiles_clothing">Textiles & Clothing</option>
-                                    <option value="electronics">Electronics</option>
-                                    <option value="machinery_equipment">Machinery & Equipment</option>
-                                    <option value="chemicals">Chemicals</option>
-                                    <option value="agriculture">Agriculture</option>
-                                    <option value="construction_materials">Construction Materials</option>
-                                    <option value="automotive">Automotive</option>
-                                    <option value="pharmaceuticals">Pharmaceuticals</option>
-                                    <option value="other">Other</option>
+                                    <option value="">Barcha kategoriyalar</option>
+                                    <option value="food_beverages">Oziq-ovqat va ichimliklar</option>
+                                    <option value="textiles_clothing">To'qimachilik va kiyim</option>
+                                    <option value="electronics">Elektronika</option>
+                                    <option value="machinery_equipment">Mashina va uskunalar</option>
+                                    <option value="chemicals">Kimyoviy mahsulotlar</option>
+                                    <option value="agriculture">Qishloq xo'jaligi</option>
+                                    <option value="construction_materials">Qurilish materiallari</option>
+                                    <option value="automotive">Avtomobil</option>
+                                    <option value="pharmaceuticals">Farmatsevtika</option>
+                                    <option value="other">Boshqa</option>
                                 </select>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Manufacturer Country</label>
+                                <label class="filter-label">Ishlab chiqaruvchi mamlakat</label>
                                 <select class="filter-input" id="countryFilter">
-                                    <option value="">All Countries</option>
+                                    <option value="">Barcha mamlakatlar</option>
                                     <option value="Uzbekistan">Uzbekistan</option>
                                     <option value="Kazakhstan">Kazakhstan</option>
                                     <option value="China">China</option>
@@ -256,9 +256,9 @@
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Price Range (USD)</label>
+                                <label class="filter-label">Narx diapazoni (USD)</label>
                                 <select class="filter-input" id="priceRangeFilter">
-                                    <option value="">All Prices</option>
+                                    <option value="">Barcha narxlar</option>
                                     <option value="0-100">$0 - $100</option>
                                     <option value="100-500">$100 - $500</option>
                                     <option value="500-1000">$500 - $1,000</option>
@@ -268,24 +268,24 @@
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Stock Status</label>
+                                <label class="filter-label">Stok holati</label>
                                 <select class="filter-input" id="stockStatusFilter">
-                                    <option value="">All Stock Levels</option>
-                                    <option value="in_stock">In Stock</option>
-                                    <option value="low_stock">Low Stock</option>
-                                    <option value="out_of_stock">Out of Stock</option>
+                                    <option value="">Barcha stoklar</option>
+                                    <option value="in_stock">Omborda</option>
+                                    <option value="low_stock">Kam qoldiq</option>
+                                    <option value="out_of_stock">Omborda yo'q</option>
                                 </select>
                             </div>
                             
                             <div class="filter-group">
-                                <label class="filter-label">Date Added</label>
+                                <label class="filter-label">Qo'shilgan sana</label>
                                 <select class="filter-input" id="dateRangeFilter">
-                                    <option value="">All Time</option>
-                                    <option value="today">Today</option>
-                                    <option value="week">This Week</option>
-                                    <option value="month">This Month</option>
-                                    <option value="quarter">This Quarter</option>
-                                    <option value="year">This Year</option>
+                                    <option value="">Barcha vaqt</option>
+                                    <option value="today">Bugun</option>
+                                    <option value="week">Bu hafta</option>
+                                    <option value="month">Bu oy</option>
+                                    <option value="quarter">Bu chorak</option>
+                                    <option value="year">Bu yil</option>
                                 </select>
                             </div>
                         </div>
@@ -296,27 +296,27 @@
                         <div class="table-header">
                             <div class="table-title">
                                 <i class="las la-table"></i>
-                                Products Catalog
-                                <span class="result-count" id="tableResultsCount">(0 results)</span>
+                                Mahsulotlar katalogi
+                                <span class="result-count" id="tableResultsCount">(0 natija)</span>
                             </div>
                             
                             <div class="bulk-actions hidden" id="bulkActions">
-                                <span class="selected-count" id="selectedCount">0 selected</span>
+                                <span class="selected-count" id="selectedCount">0 tanlangan</span>
                                 <button class="btn btn-success btn-sm" onclick="bulkActivateProducts()" id="bulkActivateBtn">
                                     <i class="las la-check"></i>
-                                    Activate
+                                    Faollashtirish
                                 </button>
                                 <button class="btn btn-warning btn-sm" onclick="bulkPromoteProducts()" id="bulkPromoteBtn">
                                     <i class="las la-star"></i>
-                                    Promote
+                                    Targ'ib qilish
                                 </button>
                                 <button class="btn btn-info btn-sm" onclick="bulkExportProducts()" id="bulkExportBtn">
                                     <i class="las la-download"></i>
-                                    Export
+                                    Eksport
                                 </button>
                                 <button class="btn btn-danger btn-sm" onclick="bulkDeleteProducts()" id="bulkDeleteBtn">
                                     <i class="las la-trash"></i>
-                                    Delete
+                                    O'chirish
                                 </button>
                             </div>
                         </div>
@@ -337,7 +337,7 @@
                                             </th>
                                             <th class="th-product" data-column="product" onclick="sortTable('name')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Product Information</span>
+                                                    <span class="th-label">Mahsulot ma'lumotlari</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -345,17 +345,17 @@
                                             </th>
                                             <th class="th-manufacturer" data-column="manufacturer">
                                                 <div class="th-content">
-                                                    <span class="th-label">Manufacturer</span>
+                                                    <span class="th-label">Ishlab chiqaruvchi</span>
                                                 </div>
                                             </th>
                                             <th class="th-business" data-column="business">
                                                 <div class="th-content">
-                                                    <span class="th-label">Business Details</span>
+                                                    <span class="th-label">Biznes tafsilotlari</span>
                                                 </div>
                                             </th>
                                             <th class="th-pricing" data-column="pricing" onclick="sortTable('price')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Pricing & Stock</span>
+                                                    <span class="th-label">Narx va qoldiq</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -363,7 +363,7 @@
                                             </th>
                                             <th class="th-status" data-column="status" onclick="sortTable('status')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Status</span>
+                                                    <span class="th-label">Holat</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -371,12 +371,12 @@
                                             </th>
                                             <th class="th-metrics" data-column="metrics">
                                                 <div class="th-content">
-                                                    <span class="th-label">Performance</span>
+                                                    <span class="th-label">Ishlash</span>
                                                 </div>
                                             </th>
                                             <th class="th-date" data-column="date" onclick="sortTable('createdAt')">
                                                 <div class="th-content sortable">
-                                                    <span class="th-label">Added</span>
+                                                    <span class="th-label">Qo'shilgan</span>
                                                     <span class="sort-indicator">
                                                         <i class="las la-sort sort-icon"></i>
                                                     </span>
@@ -384,7 +384,7 @@
                                             </th>
                                             <th class="th-actions" data-column="actions">
                                                 <div class="th-content">
-                                                    <span class="th-label">Actions</span>
+                                                    <span class="th-label">Amallar</span>
                                                 </div>
                                             </th>
                                         </tr>
@@ -404,7 +404,7 @@
                             <div class="table-loading-overlay" id="tableLoadingOverlay">
                                 <div class="loading-content">
                                     <div class="modern-spinner"></div>
-                                    <p class="loading-text">Loading products...</p>
+                                    <p class="loading-text">Mahsulotlar yuklanmoqda...</p>
                                 </div>
                             </div>
 
@@ -414,11 +414,11 @@
                                     <div class="empty-state-icon">
                                         <i class="las la-boxes"></i>
                                     </div>
-                                    <h3 class="empty-state-title">No Products Found</h3>
-                                    <p class="empty-state-description">No products match your current filter criteria.</p>
+                                    <h3 class="empty-state-title">Mahsulotlar topilmadi</h3>
+                                    <p class="empty-state-description">Hozirgi filtr mezonlaringizga mos mahsulotlar yo'q.</p>
                                     <button class="btn btn-primary" onclick="clearAllFilters()">
                                         <i class="las la-refresh"></i>
-                                        Reset Filters
+                                        Filtrlarni tozalash
                                     </button>
                                 </div>
                             </div>
@@ -428,7 +428,7 @@
                     <!-- Pagination Section -->
                     <div class="pagination-section" id="paginationSection">
                         <div class="pagination-info">
-                            Showing <span id="paginationStart">0</span>-<span id="paginationEnd">0</span> of <span id="paginationTotal">0</span> products
+                            <span id="paginationStart">0</span>-<span id="paginationEnd">0</span> ko'rsatilmoqda (jami <span id="paginationTotal">0</span> ta mahsulot)
                         </div>
                         <div class="pagination-controls" id="paginationControls">
                             <!-- Pagination buttons will be generated here -->
@@ -443,9 +443,9 @@
     <div class="loading-overlay d-none" id="loadingOverlay">
         <div class="loading-content">
             <div class="spinner-border text-primary mb-3" role="status">
-                <span class="visually-hidden">Loading...</span>
+                <span class="visually-hidden">Yuklanmoqda...</span>
             </div>
-            <div class="loading-text" id="loadingText">Processing...</div>
+            <div class="loading-text" id="loadingText">Qayta ishlanmoqda...</div>
         </div>
     </div>
 

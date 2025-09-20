@@ -37,14 +37,14 @@ class OrdersManagement {
      * Initialize the Orders Management System
      */
     init() {
-        if (window.DEBUG_MODE) console.log('Initializing Orders Management System...');
+        if (window.DEBUG_MODE) console.log('Buyurtmalar boshqaruvi tizimi ishga tushirilmoqda...');
         
         this.bindEvents();
         this.loadStatistics();
         this.loadOrders();
         this.setupRealTimeUpdates();
         
-        if (window.DEBUG_MODE) console.log('Orders Management System initialized successfully');
+        if (window.DEBUG_MODE) console.log('Buyurtmalar boshqaruvi tizimi muvaffaqiyatli ishga tushirildi');
     }
     
     /**
@@ -175,7 +175,7 @@ class OrdersManagement {
                 ...this.filters
             });
             
-            if (window.DEBUG_MODE) console.log('Loading orders with params:', Object.fromEntries(params));
+            if (window.DEBUG_MODE) console.log('Buyurtmalar yuklanmoqda, parametrlar:', Object.fromEntries(params));
             
             const response = await fetch(`${this.endpoints.orders}?${params}`);
             
@@ -185,7 +185,7 @@ class OrdersManagement {
             
             const data = await response.json();
             
-            if (window.DEBUG_MODE) console.log('Orders loaded successfully:', {
+            if (window.DEBUG_MODE) console.log('Buyurtmalar muvaffaqiyatli yuklandi:', {
                 total: data.total,
                 orders: data.orders?.length || 0,
                 page: data.page
@@ -197,8 +197,8 @@ class OrdersManagement {
             this.updateResultsCount(data.total || 0);
             
         } catch (error) {
-            console.error('Error loading orders:', error);
-            this.showError('Failed to load orders. Please try again.');
+            console.error('Buyurtmalarni yuklashda xatolik:', error);
+            this.showError('Buyurtmalarni yuklashda xatolik. Qayta urinib ko\'ring.');
             this.renderEmptyState();
         } finally {
             this.showTableLoading(false);
@@ -221,10 +221,10 @@ class OrdersManagement {
             this.renderStatistics(data);
             this.updateTabBadges(data.statusCounts || {});
             
-            console.log('Statistics loaded:', data);
+            console.log('Statistika yuklandi:', data);
             
         } catch (error) {
-            console.error('Error loading statistics:', error);
+            console.error('Statistikani yuklashda xatolik:', error);
         }
     }
     
@@ -254,7 +254,7 @@ class OrdersManagement {
         // Bind row events
         this.bindOrderRowEvents();
         
-        if (window.DEBUG_MODE) console.log(`Rendered ${this.orders.length} orders`);
+        if (window.DEBUG_MODE) console.log(`${this.orders.length} ta buyurtma ko'rsatildi`);
     }
     
     /**
@@ -434,9 +434,9 @@ class OrdersManagement {
                 actions.push(`
                     <button class="action-btn success ${buttonSize}" 
                             onclick="window.ordersManager.quickStatusChange('${order._id}', 'confirmed')"
-                            title="Confirm Order">
+                            title="Buyurtmani tasdiqlash">
                         <i class="las la-check"></i>
-                        ${isMobile ? ' Confirm' : ''}
+                        ${isMobile ? ' Tasdiqlash' : ''}
                     </button>
                 `);
                 break;
@@ -446,9 +446,9 @@ class OrdersManagement {
                 actions.push(`
                     <button class="action-btn primary ${buttonSize}" 
                             onclick="window.ordersManager.quickStatusChange('${order._id}', 'shipped')"
-                            title="Mark as Shipped">
+                            title="Yuborilgan deb belgilash">
                         <i class="las la-shipping-fast"></i>
-                        ${isMobile ? ' Ship' : ''}
+                        ${isMobile ? ' Yuborish' : ''}
                     </button>
                 `);
                 break;
@@ -457,9 +457,9 @@ class OrdersManagement {
                 actions.push(`
                     <button class="action-btn success ${buttonSize}" 
                             onclick="window.ordersManager.quickStatusChange('${order._id}', 'completed')"
-                            title="Mark as Completed">
+                            title="Tugallangan deb belgilash">
                         <i class="las la-check-double"></i>
-                        ${isMobile ? ' Complete' : ''}
+                        ${isMobile ? ' Tugallash' : ''}
                     </button>
                 `);
                 break;
@@ -470,9 +470,9 @@ class OrdersManagement {
             <div class="dropdown">
                 <button class="action-btn ${buttonSize}" 
                         onclick="window.ordersManager.showOrderActions('${order._id}')"
-                        title="More Actions">
+                        title="Ko'proq amallar">
                     <i class="las la-ellipsis-v"></i>
-                    ${isMobile ? ' More' : ''}
+                    ${isMobile ? ' Ko\'proq' : ''}
                 </button>
             </div>
         `);
@@ -514,12 +514,12 @@ class OrdersManagement {
      */
     formatStatus(status) {
         const statusMap = {
-            'pending': 'Pending',
-            'confirmed': 'Confirmed',
-            'processing': 'Processing',
-            'shipped': 'Shipped',
-            'completed': 'Completed',
-            'cancelled': 'Cancelled'
+            'pending': 'Kutilmoqda',
+            'confirmed': 'Tasdiqlangan',
+            'processing': 'Jarayonda',
+            'shipped': 'Yuborilgan',
+            'completed': 'Tugallangan',
+            'cancelled': 'Bekor qilingan'
         };
         return statusMap[status] || status;
     }
@@ -529,12 +529,12 @@ class OrdersManagement {
      */
     formatPaymentStatus(status) {
         const statusMap = {
-            'pending': 'Pending',
-            'partial': 'Partial',
-            'paid': 'Paid',
-            'overdue': 'Overdue'
+            'pending': 'Kutilmoqda',
+            'partial': 'Qisman',
+            'paid': 'To\'langan',
+            'overdue': 'Muddati o\'tgan'
         };
-        return statusMap[status] || 'Pending';
+        return statusMap[status] || 'Kutilmoqda';
     }
     
     /**
@@ -542,13 +542,13 @@ class OrdersManagement {
      */
     formatPaymentMethod(method) {
         const methodMap = {
-            'bank_transfer': 'Bank Transfer',
-            'letter_of_credit': 'Letter of Credit',
-            'cash_on_delivery': 'Cash on Delivery',
+            'bank_transfer': 'Bank o\'tkazmasi',
+            'letter_of_credit': 'Kredit xati',
+            'cash_on_delivery': 'Yetkazib berishda naqd pul',
             'escrow': 'Escrow',
-            'crypto': 'Cryptocurrency'
+            'crypto': 'Kriptovalyuta'
         };
-        return methodMap[method] || 'Bank Transfer';
+        return methodMap[method] || 'Bank o\'tkazmasi';
     }
     
     /**
@@ -973,11 +973,11 @@ class OrdersManagement {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             
-            console.log('Orders exported successfully');
+            console.log('Buyurtmalar muvaffaqiyatli eksport qilindi');
             
         } catch (error) {
-            console.error('Export error:', error);
-            this.showError('Failed to export orders. Please try again.');
+            console.error('Eksport xatoligi:', error);
+            this.showError('Buyurtmalarni eksport qilishda xatolik. Qayta urinib ko\'ring.');
         }
     }
     
@@ -989,17 +989,17 @@ class OrdersManagement {
             const response = await fetch(this.endpoints.orderDetails.replace(':id', orderId));
             
             if (!response.ok) {
-                throw new Error('Failed to load order details');
+                throw new Error('Buyurtma tafsilotlarini yuklashda xatolik');
             }
             
             const order = await response.json();
             this.renderOrderDetailsModal(order);
             
-            console.log('Order details loaded:', orderId);
+            console.log('Buyurtma tafsilotlari yuklandi:', orderId);
             
         } catch (error) {
-            console.error('Error loading order details:', error);
-            this.showError('Failed to load order details.');
+            console.error('Buyurtma tafsilotlarini yuklashda xatolik:', error);
+            this.showError('Buyurtma tafsilotlarini yuklashda xatolik.');
         }
     }
     
@@ -1021,17 +1021,17 @@ class OrdersManagement {
             });
             
             if (!response.ok) {
-                throw new Error('Failed to update order status');
+                throw new Error('Buyurtma holatini yangilashda xatolik');
             }
             
             // Refresh data to show updated status
             this.refreshData();
             
-            console.log(`Order ${orderId} status changed to ${newStatus}`);
+            console.log(`Buyurtma ${orderId} holati ${newStatus} ga o'zgartirildi`);
             
         } catch (error) {
-            console.error('Error updating order status:', error);
-            this.showError('Failed to update order status.');
+            console.error('Buyurtma holatini yangilashda xatolik:', error);
+            this.showError('Buyurtma holatini yangilashda xatolik.');
         }
     }
     
@@ -1040,7 +1040,7 @@ class OrdersManagement {
      */
     async bulkAction(action) {
         if (this.selectedOrders.size === 0) {
-            this.showError('Please select orders first.');
+            this.showError('Avval buyurtmalarni tanlang.');
             return;
         }
         
@@ -1068,11 +1068,11 @@ class OrdersManagement {
             this.selectedOrders.clear();
             this.refreshData();
             
-            console.log(`Bulk action ${action} completed:`, result);
+            console.log(`Ommaviy amal ${action} tugallandi:`, result);
             
         } catch (error) {
-            console.error('Bulk action error:', error);
-            this.showError(`Failed to ${action} selected orders.`);
+            console.error('Ommaviy amal xatoligi:', error);
+            this.showError(`Tanlangan buyurtmalarni ${action} qilishda xatolik.`);
         }
     }
     
@@ -1081,7 +1081,7 @@ class OrdersManagement {
      */
     async bulkExport() {
         if (this.selectedOrders.size === 0) {
-            this.showError('Please select orders first.');
+            this.showError('Avval buyurtmalarni tanlang.');
             return;
         }
         
@@ -1108,11 +1108,11 @@ class OrdersManagement {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             
-            console.log('Selected orders exported successfully');
+            console.log('Tanlangan buyurtmalar muvaffaqiyatli eksport qilindi');
             
         } catch (error) {
-            console.error('Export error:', error);
-            this.showError('Failed to export selected orders.');
+            console.error('Eksport xatoligi:', error);
+            this.showError('Tanlangan buyurtmalarni eksport qilishda xatolik.');
         }
     }
     
@@ -1197,41 +1197,41 @@ class OrdersManagement {
      * Placeholder methods for modal functionality
      */
     renderOrderDetailsModal(order) {
-        if (window.DEBUG_MODE) console.log('Order details modal would show here:', order);
+        if (window.DEBUG_MODE) console.log('Buyurtma tafsilotlari modali bu yerda ko\'rsatiladi:', order);
         // For now, show order details in a simple alert
         // This should be replaced with proper modal implementation
         const details = `
-Order: ${order.orderNumber || 'N/A'}
-Status: ${order.status || 'N/A'}
-Total: $${(order.totalAmount || 0).toLocaleString()}
-Items: ${order.items?.length || 0}
-Created: ${order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
+Buyurtma: ${order.orderNumber || 'N/A'}
+Holat: ${order.status || 'N/A'}
+Jami: $${(order.totalAmount || 0).toLocaleString()}
+Elementlar: ${order.items?.length || 0}
+Yaratilgan: ${order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
         `.trim();
         
         alert(details);
     }
     
     showOrderActions(orderId) {
-        if (window.DEBUG_MODE) console.log('Order actions dropdown would show here for:', orderId);
+        if (window.DEBUG_MODE) console.log('Buyurtma amallari dropdown bu yerda ko\'rsatiladi:', orderId);
         // Temporary implementation - should be replaced with dropdown menu
         const actions = [
-            'View Details',
-            'Change Status', 
-            'Add Note',
-            'Print Invoice',
-            'Download PDF'
+            'Tafsilotlarni ko\'rish',
+            'Holatni o\'zgartirish', 
+            'Eslatma qo\'shish',
+            'Hisob-fakturani chop etish',
+            'PDF yuklab olish'
         ];
         
-        const action = prompt('Select action:\n' + actions.map((a, i) => `${i+1}. ${a}`).join('\n'));
+        const action = prompt('Amalni tanlang:\n' + actions.map((a, i) => `${i+1}. ${a}`).join('\n'));
         if (action) {
-            this.showSuccess(`Action "${actions[parseInt(action)-1]}" selected for order ${orderId}`);
+            this.showSuccess(`"${actions[parseInt(action)-1]}" amali ${orderId} buyurtmasi uchun tanlandi`);
         }
     }
     
     showCreateModal() {
-        if (window.DEBUG_MODE) console.log('Create order modal would show here');
+        if (window.DEBUG_MODE) console.log('Buyurtma yaratish modali bu yerda ko\'rsatiladi');
         // Temporary implementation
-        const confirm = window.confirm('Create new order?\n\nNote: This will redirect to order creation page.');
+        const confirm = window.confirm('Yangi buyurtma yaratish?\n\nEslatma: Bu sizni buyurtma yaratish sahifasiga yo\'naltiradi.');
         if (confirm) {
             window.location.href = '/admin/orders/create';
         }

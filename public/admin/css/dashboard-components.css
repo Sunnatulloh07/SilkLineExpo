@@ -2334,12 +2334,6 @@
   margin: 0;
 }
 
-.activity-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-}
 
 /* Activity Buttons Styling */
 .btn-filter,
@@ -2506,10 +2500,6 @@
     align-items: flex-start;
   }
   
-  .activity-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
   
   .btn-filter,
   .btn-view-all {
