@@ -109,31 +109,42 @@
                   <option value=""><%= t('manufacturer.products.edit.form.selectCategory') %></option>
                   <% categories.forEach(function(cat) { %>
                     <%
-                      // Professional ObjectId comparison fix - Senior Software Engineer Logic
                       let isSelected = false;
                       if (product.category) {
                         if (typeof product.category === 'object' && product.category._id) {
-                          // Product category is populated object
                           isSelected = product.category._id.toString() === cat._id.toString();
                         } else if (typeof product.category === 'string') {
-                          // Product category is string ID
                           isSelected = product.category.toString() === cat._id.toString();
                         } else {
-                          // Direct ObjectId comparison
                           isSelected = product.category.toString() === cat._id.toString();
                         }
                       }
+                      
+                      const isDisabled = !cat.canAddProducts && !isSelected;
+                      const statusBadge = cat.status === 'inactive' ? ' 🔴 Nofaol' : 
+                                         cat.status === 'draft' ? ' 📝 Qoralama' : '';
+                      const tooltipText = isDisabled ? 
+                        'Bu kategoriya ' + (cat.status === 'inactive' ? 'nofaol' : 'qoralama') + '. Mahsulot qo\'shish uchun kategoriya faol bo\'lishi kerak.' :
+                        cat.description || '';
                     %>
                     <option value="<%= cat._id %>" 
                             <%= isSelected ? 'selected' : '' %>
+                            <%= isDisabled ? 'disabled' : '' %>
                             data-level="<%= cat.level || 0 %>"
+                            data-status="<%= cat.status %>"
+                            data-can-add-products="<%= cat.canAddProducts %>"
                             data-category-name="<%= cat.displayName || cat.name %>"
-                            <% if (cat.description) { %>title="<%= cat.description %>"<% } %>>
-                      <%= cat.displayName || cat.name %>
+                            <% if (tooltipText) { %>title="<%= tooltipText %>"<% } %>>
+                      <%= cat.name %><%= statusBadge %><%= isSelected && isDisabled ? ' (joriy)' : '' %>
                     </option>
                   <% }) %>
                 </select>
                 <div class="validation-message"></div>
+                <small class="form-hint">
+                  <i class="fas fa-info-circle"></i>
+                  Faqat faol kategoriyalarga o'zgartirish mumkin. 
+                  Joriy kategoriya nofaol bo'lsa, uni faol kategoriyaga o'zgartirishingiz tavsiya etiladi.
+                </small>
               </div>
               
               <div class="form-group">

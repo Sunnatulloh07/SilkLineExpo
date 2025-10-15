@@ -157,6 +157,29 @@ class CategoryController {
   }
 
   /**
+   * Get category by ID
+   */
+  async getCategoryById(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { categoryId } = req.params;
+
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+
+      const result = await CategoryService.getCategoryById(adminId, categoryId);
+
+      this.sendSuccess(res, result.data, result.message);
+    } catch (error) {
+      this.logger.error('Error in getCategoryById:', error);
+      this.handleAPIError(res, error, 'Failed to get category');
+    }
+  }
+
+  /**
    * Update category
    */
   async updateCategory(req, res) {
@@ -326,9 +349,17 @@ class CategoryController {
   // ===============================================
 
   static getCategoryValidationRules() {
-    const { param } = require('express-validator');
+    const { param, body } = require('express-validator');
     return [
-      param('categoryId').isMongoId().withMessage('Invalid category ID format')
+      param('categoryId')
+        .isMongoId()
+        .withMessage('Invalid category ID format')
+        .customSanitizer(value => value.trim())
+        .escape(),
+      body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
+      body('isVisible').optional().isBoolean().withMessage('isVisible must be a boolean'),
+      body('status').optional().isIn(['active', 'inactive', 'draft']).withMessage('Status must be active, inactive, or draft'),
+      body('forceDelete').optional().isBoolean().withMessage('forceDelete must be a boolean')
     ];
   }
 
@@ -336,6 +367,7 @@ class CategoryController {
     const { body } = require('express-validator');
     return [
       body('name')
+        .optional()
         .trim()
         .isLength({ min: 2, max: 100 })
         .withMessage('Category name must be between 2 and 100 characters'),
@@ -345,10 +377,10 @@ class CategoryController {
         .matches(/^[a-z0-9-_]+$/)
         .withMessage('Slug can only contain lowercase letters, numbers, hyphens and underscores'),
       body('description')
-        .notEmpty()
+        .optional()
         .trim()
         .isLength({ min: 10, max: 1000 })
-        .withMessage('Description is required and must be between 10 and 1000 characters'),
+        .withMessage('Description must be between 10 and 1000 characters'),
       body('icon')
         .optional()
         .trim()
@@ -370,7 +402,20 @@ class CategoryController {
       body('isFeatured')
         .optional()
         .isBoolean()
-        .withMessage('isFeatured must be a boolean value')
+        .withMessage('isFeatured must be a boolean value'),
+      // Multi-language validation - Uzbek is required
+      body('translations.uz.name')
+        .trim()
+        .notEmpty()
+        .withMessage('O\'zbek tilida kategoriya nomi majburiy')
+        .isLength({ min: 2, max: 100 })
+        .withMessage('Kategoriya nomi 2-100 belgi oralig\'ida bo\'lishi kerak'),
+      body('translations.uz.description')
+        .trim()
+        .notEmpty()
+        .withMessage('O\'zbek tilida kategoriya tavsifi majburiy')
+        .isLength({ min: 10, max: 1000 })
+        .withMessage('Kategoriya tavsifi 10-1000 belgi oralig\'ida bo\'lishi kerak')
     ];
   }
 
@@ -401,7 +446,7 @@ class CategoryController {
         .isMongoId()
         .withMessage('Invalid category ID format'),
       body('action')
-        .isIn(['activate', 'deactivate', 'feature', 'unfeature', 'archive'])
+        .isIn(['activate', 'deactivate'])
         .withMessage('Invalid bulk action')
     ];
   }
@@ -483,6 +528,188 @@ class CategoryController {
     );
 
     return [csvHeaders, ...csvRows].join('\n');
+  }
+
+  /**
+   * Toggle category status (active/inactive)
+   */
+  async toggleCategoryStatus(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { categoryId } = req.params;
+
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+
+      const result = await CategoryService.toggleCategoryStatus(adminId, categoryId);
+
+      this.sendSuccess(res, result.data, result.message);
+    } catch (error) {
+      this.logger.error('Error in toggleCategoryStatus:', error);
+      this.handleAPIError(res, error, 'Failed to toggle category status');
+    }
+  }
+
+  /**
+   * Toggle category visibility (visible/hidden)
+   */
+  async toggleCategoryVisibility(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { categoryId } = req.params;
+
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+
+      const result = await CategoryService.toggleCategoryVisibility(adminId, categoryId);
+
+      this.sendSuccess(res, result.data, result.message);
+    } catch (error) {
+      this.logger.error('Error in toggleCategoryVisibility:', error);
+      this.handleAPIError(res, error, 'Failed to toggle category visibility');
+    }
+  }
+
+  /**
+   * Toggle category main status (active/inactive/draft)
+   */
+  async toggleCategoryMainStatus(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { categoryId } = req.params;
+
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+
+      const result = await CategoryService.toggleCategoryMainStatus(adminId, categoryId);
+
+      this.sendSuccess(res, result.data, result.message);
+    } catch (error) {
+      this.logger.error('Error in toggleCategoryMainStatus:', error);
+      this.handleAPIError(res, error, 'Failed to toggle category main status');
+    }
+  }
+
+  /**
+   * Get category deletion safety info
+   */
+  async getCategoryDeletionInfo(req, res) {
+    try {
+      const { categoryId } = req.params;
+
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+
+      const result = await CategoryService.getCategoryDeletionInfo(categoryId);
+
+      this.sendSuccess(res, result.data, result.message);
+    } catch (error) {
+      this.logger.error('Error in getCategoryDeletionInfo:', error);
+      this.handleAPIError(res, error, 'Failed to get category deletion info');
+    }
+  }
+
+  /**
+   * Delete category with safety checks
+   */
+  async deleteCategory(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { categoryId } = req.params;
+      const { forceDelete = false } = req.body;
+
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+
+      const result = await CategoryService.deleteCategory(adminId, categoryId, forceDelete);
+
+      this.sendSuccess(res, result.data, result.message);
+    } catch (error) {
+      this.logger.error('Error in deleteCategory:', error);
+      this.handleAPIError(res, error, 'Failed to delete category');
+    }
+  }
+
+  /**
+   * Restore soft deleted category
+   */
+  async restoreCategory(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { categoryId } = req.params;
+
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+
+      const result = await CategoryService.restoreCategory(adminId, categoryId);
+
+      this.sendSuccess(res, result.data, result.message);
+    } catch (error) {
+      this.logger.error('Error in restoreCategory:', error);
+      this.handleAPIError(res, error, 'Failed to restore category');
+    }
+  }
+
+  /**
+   * Permanently delete category
+   */
+  async permanentDeleteCategory(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { categoryId } = req.params;
+
+      // Validate request
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return this.sendValidationError(res, errors);
+      }
+
+      const result = await CategoryService.permanentDeleteCategory(adminId, categoryId);
+
+      this.sendSuccess(res, result.data, result.message);
+    } catch (error) {
+      this.logger.error('Error in permanentDeleteCategory:', error);
+      this.handleAPIError(res, error, 'Failed to permanently delete category');
+    }
+  }
+
+  /**
+   * Get soft deleted categories
+   */
+  async getSoftDeletedCategories(req, res) {
+    try {
+      const adminId = req.user.userId;
+      const { page = 1, limit = 10, search = '' } = req.query;
+
+      const result = await CategoryService.getSoftDeletedCategories(adminId, {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        search
+      });
+
+      this.sendSuccess(res, result.data, result.message);
+    } catch (error) {
+      this.logger.error('Error in getSoftDeletedCategories:', error);
+      this.handleAPIError(res, error, 'Failed to get soft deleted categories');
+    }
   }
 }
 

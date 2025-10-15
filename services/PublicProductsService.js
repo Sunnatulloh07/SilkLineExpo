@@ -992,10 +992,10 @@ class PublicProductsService {
         pipeline.push(this.precompiledPipelines.get('manufacturerLookup'));
         pipeline.push(this.precompiledPipelines.get('categoryLookup'));
 
-        // Filter by supplier status - only show products from active suppliers
         pipeline.push({
             $match: {
-                'manufacturerInfo.status': 'active'
+                'manufacturerInfo.status': 'active',
+                'categoryInfo.status': 'active'
             }
         });
 

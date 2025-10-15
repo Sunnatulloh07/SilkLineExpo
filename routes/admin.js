@@ -91,10 +91,18 @@ const boundMethods = {
   showCategories: CategoryController.showCategories.bind(CategoryController),
   getAllCategoriesAPI: CategoryController.getAllCategoriesAPI.bind(CategoryController),
   getCategoryStatistics: CategoryController.getCategoryStatistics.bind(CategoryController),
+  getCategoryById: CategoryController.getCategoryById.bind(CategoryController),
   createCategory: CategoryController.createCategory.bind(CategoryController),
   updateCategory: CategoryController.updateCategory.bind(CategoryController),
   deleteCategory: CategoryController.deleteCategory.bind(CategoryController),
   bulkUpdateCategories: CategoryController.bulkUpdateCategories.bind(CategoryController),
+  toggleCategoryStatus: CategoryController.toggleCategoryStatus.bind(CategoryController),
+  toggleCategoryVisibility: CategoryController.toggleCategoryVisibility.bind(CategoryController),
+  toggleCategoryMainStatus: CategoryController.toggleCategoryMainStatus.bind(CategoryController),
+  getCategoryDeletionInfo: CategoryController.getCategoryDeletionInfo.bind(CategoryController),
+  restoreCategory: CategoryController.restoreCategory.bind(CategoryController),
+  permanentDeleteCategory: CategoryController.permanentDeleteCategory.bind(CategoryController),
+  getSoftDeletedCategories: CategoryController.getSoftDeletedCategories.bind(CategoryController),
   exportCategories: CategoryController.exportCategories.bind(CategoryController),
   getCategoryAnalytics: CategoryController.getCategoryAnalytics.bind(CategoryController),
 
@@ -242,6 +250,51 @@ router.get('/api/companies', boundMethods.getAllCompaniesAPI);
 // Category Management APIs with validation
 router.get('/api/categories', boundMethods.getAllCategoriesAPI);
 router.get('/api/categories/statistics', boundMethods.getCategoryStatistics);
+
+// Soft deleted categories management - MUST come before /:categoryId route
+router.get('/api/categories/deleted', 
+  authenticate, 
+  adminOnly, 
+  enhancedAdminOnly,
+  boundMethods.getSoftDeletedCategories
+);
+
+router.get('/api/categories/:categoryId', 
+  // Rate limiting for category API
+  (req, res, next) => {
+    // Simple rate limiting - in production use express-rate-limit
+    const clientId = req.ip || req.connection.remoteAddress;
+    const now = Date.now();
+    const windowMs = 60 * 1000; // 1 minute
+    const maxRequests = 30; // 30 requests per minute
+    
+    if (!global.rateLimitStore) {
+      global.rateLimitStore = new Map();
+    }
+    
+    const clientData = global.rateLimitStore.get(clientId) || { count: 0, resetTime: now + windowMs };
+    
+    if (now > clientData.resetTime) {
+      clientData.count = 0;
+      clientData.resetTime = now + windowMs;
+    }
+    
+    if (clientData.count >= maxRequests) {
+      return res.status(429).json({
+        success: false,
+        message: 'Too many requests. Please try again later.',
+        retryAfter: Math.ceil((clientData.resetTime - now) / 1000)
+      });
+    }
+    
+    clientData.count++;
+    global.rateLimitStore.set(clientId, clientData);
+    next();
+  },
+  CategoryControllerClass.getCategoryValidationRules(), 
+  handleValidationErrors,
+  boundMethods.getCategoryById
+);
 router.post('/api/categories', 
   CategoryControllerClass.getCreateCategoryValidationRules(), 
   handleValidationErrors,
@@ -252,17 +305,58 @@ router.put('/api/categories/:categoryId',
   handleValidationErrors,
   boundMethods.updateCategory
 );
-router.delete('/api/categories/:categoryId', 
-  CategoryControllerClass.getCategoryValidationRules(), 
-  handleValidationErrors,
-  boundMethods.deleteCategory
-);
 router.post('/api/categories/bulk', 
   CategoryControllerClass.getBulkCategoryValidationRules(), 
   handleValidationErrors,
   boundMethods.bulkUpdateCategories
 );
 router.get('/api/categories/export', boundMethods.exportCategories);
+router.patch('/api/categories/:categoryId/status', 
+  CategoryControllerClass.getCategoryValidationRules(), 
+  handleValidationErrors,
+  boundMethods.toggleCategoryStatus
+);
+router.patch('/api/categories/:categoryId/visibility', 
+  CategoryControllerClass.getCategoryValidationRules(), 
+  handleValidationErrors,
+  boundMethods.toggleCategoryVisibility
+);
+router.patch('/api/categories/:categoryId/main-status', 
+  CategoryControllerClass.getCategoryValidationRules(), 
+  handleValidationErrors,
+  boundMethods.toggleCategoryMainStatus
+);
+
+// Category deletion routes
+router.get('/api/categories/:categoryId/deletion-info', 
+  CategoryControllerClass.getCategoryValidationRules(), 
+  handleValidationErrors,
+  boundMethods.getCategoryDeletionInfo
+);
+router.delete('/api/categories/:categoryId', 
+  CategoryControllerClass.getCategoryValidationRules(), 
+  handleValidationErrors,
+  boundMethods.deleteCategory
+);
+
+// Category restore and permanent delete routes
+router.post('/api/categories/:categoryId/restore', 
+  authenticate, 
+  adminOnly, 
+  enhancedAdminOnly,
+  CategoryControllerClass.getCategoryValidationRules(), 
+  handleValidationErrors,
+  boundMethods.restoreCategory
+);
+router.delete('/api/categories/:categoryId/permanent', 
+  authenticate, 
+  adminOnly, 
+  enhancedAdminOnly,
+  CategoryControllerClass.getCategoryValidationRules(), 
+  handleValidationErrors,
+  boundMethods.permanentDeleteCategory
+);
+
 router.get('/api/categories/:categoryId/analytics', 
   CategoryControllerClass.getCategoryValidationRules(), 
   handleValidationErrors,

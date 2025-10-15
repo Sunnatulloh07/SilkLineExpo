@@ -114,15 +114,31 @@
                 <select id="category" name="category" class="form-select" required>
                   <option value=""><%= t('manufacturer.products.add.form.selectCategory') %></option>
                   <% categories.forEach(function(cat) { %>
+                    <%
+                      const isDisabled = !cat.canAddProducts;
+                      const statusBadge = cat.status === 'inactive' ? ' 🔴 Nofaol' : 
+                                         cat.status === 'draft' ? ' 📝 Qoralama' : '';
+                      const tooltipText = isDisabled ? 
+                        'Bu kategoriya ' + (cat.status === 'inactive' ? 'nofaol' : 'qoralama') + '. Mahsulot qo\'shish uchun kategoriya faol bo\'lishi kerak.' :
+                        cat.description || '';
+                    %>
                     <option value="<%= cat._id %>" 
+                            <%= isDisabled ? 'disabled' : '' %>
                             data-level="<%= cat.level || 0 %>"
+                            data-status="<%= cat.status %>"
+                            data-can-add-products="<%= cat.canAddProducts %>"
                             data-category-name="<%= cat.displayName || cat.name %>"
-                            <% if (cat.description) { %>title="<%= cat.description %>"<% } %>>
-                      <%= cat.displayName || cat.name %>
+                            <% if (tooltipText) { %>title="<%= tooltipText %>"<% } %>>
+                      <%= cat.name %><%= statusBadge %>
                     </option>
                   <% }) %>
                 </select>
                 <div class="validation-message"></div>
+                <small class="form-hint">
+                  <i class="fas fa-info-circle"></i>
+                  Faqat faol kategoriyalarga mahsulot qo'shish mumkin. 
+                  🔴 Nofaol va 📝 Qoralama kategoriyalar tanlashga ochilmaydi.
+                </small>
               </div>
               
               <div class="form-group">
@@ -1822,6 +1838,24 @@
                 field.addEventListener('blur', () => this.validateField(field));
                 field.addEventListener('input', () => this.clearFieldError(field));
             });
+            
+            const categorySelect = document.getElementById('category');
+            if (categorySelect) {
+                categorySelect.addEventListener('change', (e) => {
+                    const selectedOption = e.target.selectedOptions[0];
+                    const canAddProducts = selectedOption?.getAttribute('data-can-add-products');
+                    const status = selectedOption?.getAttribute('data-status');
+                    
+                    if (canAddProducts === 'false' || (status && status !== 'active')) {
+                        this.showToast('error', 
+                            'Bu kategoriyaga mahsulot qo\'shib bo\'lmaydi. Faqat faol kategoriyalarni tanlang.', 
+                            3000
+                        );
+                        e.target.value = '';
+                        return false;
+                    }
+                });
+            }
         }
     
         /**
@@ -5187,6 +5221,32 @@
   font-size: 0.75rem;
   color: var(--text-muted);
   line-height: 1.4;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.form-select option[disabled] {
+  color: #999;
+  background-color: #f5f5f5;
+  font-style: italic;
+  cursor: not-allowed;
+}
+
+.form-select option[data-status="inactive"] {
+  color: #ef4444;
+  opacity: 0.6;
+}
+
+.form-select option[data-status="draft"] {
+  color: #f59e0b;
+  opacity: 0.6;
+}
+
+.form-select option[data-status="active"]:not([disabled]) {
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .validation-message {

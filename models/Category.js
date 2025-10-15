@@ -69,6 +69,40 @@ const categorySchema = new mongoose.Schema({
     }
   },
 
+  // Multi-language SEO Support
+  seoTranslations: {
+    uz: {
+      metaTitle: { type: String, trim: true, maxlength: 60, default: '' },
+      metaDescription: { type: String, trim: true, maxlength: 160, default: '' },
+      metaKeywords: { type: [String], default: [] }
+    },
+    en: {
+      metaTitle: { type: String, trim: true, maxlength: 60, default: '' },
+      metaDescription: { type: String, trim: true, maxlength: 160, default: '' },
+      metaKeywords: { type: [String], default: [] }
+    },
+    ru: {
+      metaTitle: { type: String, trim: true, maxlength: 60, default: '' },
+      metaDescription: { type: String, trim: true, maxlength: 160, default: '' },
+      metaKeywords: { type: [String], default: [] }
+    },
+    tr: {
+      metaTitle: { type: String, trim: true, maxlength: 60, default: '' },
+      metaDescription: { type: String, trim: true, maxlength: 160, default: '' },
+      metaKeywords: { type: [String], default: [] }
+    },
+    fa: {
+      metaTitle: { type: String, trim: true, maxlength: 60, default: '' },
+      metaDescription: { type: String, trim: true, maxlength: 160, default: '' },
+      metaKeywords: { type: [String], default: [] }
+    },
+    zh: {
+      metaTitle: { type: String, trim: true, maxlength: 60, default: '' },
+      metaDescription: { type: String, trim: true, maxlength: 160, default: '' },
+      metaKeywords: { type: [String], default: [] }
+    }
+  },
+
   
   // Visual Representation
   icon: {
@@ -129,7 +163,6 @@ const categorySchema = new mongoose.Schema({
   settings: {
     isActive: { type: Boolean, default: true },
     isVisible: { type: Boolean, default: true },
-    isFeatured: { type: Boolean, default: false },
     allowProducts: { type: Boolean, default: true },
     requireApproval: { type: Boolean, default: false },
     sortOrder: { type: Number, default: 0 },
@@ -174,8 +207,27 @@ const categorySchema = new mongoose.Schema({
   // Administrative Fields
   status: {
     type: String,
-    enum: ['active', 'inactive', 'draft', 'archived'],
+    enum: ['active', 'inactive', 'draft', 'deleted'],
     default: 'active',
+    index: true
+  },
+  
+  // Soft Delete Fields
+  deletedAt: {
+    type: Date,
+    default: null
+  },
+  
+  deletedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  
+  // System Fields
+  isSystemDefault: {
+    type: Boolean,
+    default: false,
     index: true
   },
   
@@ -207,7 +259,13 @@ const categorySchema = new mongoose.Schema({
   auditLog: [{
     action: {
       type: String,
-      enum: ['created', 'updated', 'activated', 'deactivated', 'archived', 'deleted'],
+      enum: [
+        'created', 'updated', 'deleted',
+        'activated', 'deactivated', 
+        'made_visible', 'made_hidden',
+        'featured', 'unfeatured',
+        'archived', 'restored'
+      ],
       required: true
     },
     performedBy: {
@@ -216,6 +274,10 @@ const categorySchema = new mongoose.Schema({
       required: true
     },
     performedAt: {
+      type: Date,
+      default: Date.now
+    },
+    timestamp: {
       type: Date,
       default: Date.now
     },
@@ -244,7 +306,7 @@ categorySchema.index({ createdAt: -1 });
 categorySchema.index({ updatedAt: -1 });
 // Additional indexes for better query performance  
 categorySchema.index({ level: 1, 'settings.sortOrder': 1 });
-categorySchema.index({ status: 1, 'settings.isFeatured': -1 });
+categorySchema.index({ status: 1, 'settings.isActive': -1 });
 categorySchema.index({ createdBy: 1, status: 1 });
 
 // Virtual Fields
@@ -430,6 +492,30 @@ categorySchema.methods.addAuditLog = function(action, performedBy, changes = {},
     reason,
     performedAt: new Date()
   });
+};
+
+categorySchema.methods.canAddProducts = function() {
+  if (this.status !== 'active') {
+    return {
+      allowed: false,
+      reason: `Bu kategoriya ${this.status} holatida. Faqat faol kategoriyalarga mahsulot qo'shish mumkin.`
+    };
+  }
+  
+  if (this.settings?.allowProducts === false) {
+    return {
+      allowed: false,
+      reason: 'Bu kategoriyaga mahsulot qo\'shish taqiqlangan.'
+    };
+  }
+  
+  return { allowed: true, reason: 'OK' };
+};
+
+categorySchema.methods.isPubliclyVisible = function() {
+  if (this.status !== 'active') return false;
+  if (!this.settings) return true;
+  return this.settings.isVisible !== false;
 };
 
 // Post-save Middleware - Update parent category metrics

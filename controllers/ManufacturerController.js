@@ -244,10 +244,9 @@ class ManufacturerController {
             const manufacturerId = req.user.userId;
             const lng = this.getLanguagePreference(req);
             
-                       // Get categories for the form
             let categories = [], unreadMessages;
             try {
-                categories = await this.manufacturerService.getActiveCategories();
+                categories = await this.manufacturerService.getAllCategoriesWithStatus();
             } catch (error) {
                 categories = [];
             }
@@ -305,7 +304,7 @@ class ManufacturerController {
             try {
                 const [product, categoriesResult, analyticsResult, unreadMessagesResult] = await Promise.all([
                     this.manufacturerService.getProductById(productId, manufacturerId),
-                    this.manufacturerService.getActiveCategories(),
+                    this.manufacturerService.getAllCategoriesWithStatus(),
                     this.manufacturerService.getProductAnalytics(productId, manufacturerId),
                     this.manufacturerService.getUnreadMessagesCount(manufacturerId)
                 ]);

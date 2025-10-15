@@ -187,10 +187,10 @@
                             Faol emas
                             <span class="tab-badge warning" id="inactiveCategoriesTab"><%= statistics?.overview?.inactive || 0 %></span>
                         </button>
-                        <button class="tab-item" data-level="0" data-tab="root">
-                            <i class="las la-sitemap"></i>
-                            Asosiy kategoriyalar
-                            <span class="tab-badge info" id="rootCategoriesTab">0</span>
+                        <button class="tab-item" data-status="deleted" data-tab="deleted">
+                            <i class="las la-trash"></i>
+                            O'chirilgan
+                            <span class="tab-badge danger" id="deletedCategoriesTab"><%= statistics?.overview?.deleted || 0 %></span>
                         </button>
                     </div>
 
@@ -222,35 +222,7 @@
                                 </div>
                             </div>
                             
-                            <div class="filter-group">
-                                <label class="filter-label">Kategoriya darajasi</label>
-                                <select class="filter-input" id="levelFilter">
-                                    <option value="">Barcha darajalar</option>
-                                    <option value="0">Asosiy kategoriyalar (0-darajali)</option>
-                                    <option value="1">1-darajali</option>
-                                    <option value="2">2-darajali</option>
-                                    <option value="3">3-darajali</option>
-                                    <option value="4">4-darajali</option>
-                                    <option value="5">5-darajali</option>
-                                </select>
-                            </div>
                             
-                            <div class="filter-group">
-                                <label class="filter-label">Ota kategoriya</label>
-                                <select class="filter-input" id="parentCategoryFilter">
-                                    <option value="">Barcha kategoriyalar</option>
-                                    <!-- Populated dynamically -->
-                                </select>
-                            </div>
-                            
-                            <div class="filter-group">
-                                <label class="filter-label">Tavsiya etilgan holat</label>
-                                <select class="filter-input" id="featuredFilter">
-                                    <option value="">Barcha kategoriyalar</option>
-                                    <option value="true">Faqat tavsiya etilgan</option>
-                                    <option value="false">Tavsiya etilmagan</option>
-                                </select>
-                            </div>
                             
                             <div class="filter-group">
                                 <label class="filter-label">Mahsulot soni</label>
@@ -308,6 +280,11 @@
                             </div>
                         </div>
                         
+                        <!-- Soft Deleted Categories Container -->
+                        <div class="soft-deleted-categories-container" id="softDeletedCategoriesContainer" style="display: none;">
+                            <!-- Soft deleted categories will be loaded here -->
+                        </div>
+
                         <div class="professional-table-container" id="tableContainer">
                             <!-- Desktop Table View -->
                             <div class="desktop-table-view">
@@ -504,6 +481,12 @@
     function bulkExportCategories() {
         if (window.categoriesManager) {
             window.categoriesManager.bulkExport();
+        }
+    }
+
+    function toggleSelectAllDeleted(checked) {
+        if (window.categoriesManager) {
+            window.categoriesManager.toggleSelectAllDeleted(checked);
         }
     }
 

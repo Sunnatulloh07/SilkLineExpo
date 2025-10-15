@@ -20,10 +20,10 @@ class CategoriesManagement {
         this.pageSize = 25;
         this.totalPages = 1;
         this.totalItems = 0;
+        this.isCreatingModal = false; // Flag to prevent duplicate modal creation
         this.filters = {
             status: '',
             search: '',
-            featured: '',
             productCount: '',
             dateRange: '',
             sortBy: 'createdAt',
@@ -31,9 +31,11 @@ class CategoriesManagement {
         };
         this.selectedCategories = new Set();
         this.categories = [];
+        this.softDeletedCategories = [];
         this.statistics = {};
         this.isLoading = false;
         this.sortState = {};
+        this.dropdownManagerSetup = false; // Flag to prevent duplicate dropdown setup
         
         // API endpoints
         this.endpoints = {
@@ -41,7 +43,8 @@ class CategoriesManagement {
             statistics: '/admin/api/categories/statistics',
             bulk: '/admin/api/categories/bulk',
             export: '/admin/api/categories/export',
-            analytics: '/admin/api/categories/{id}/analytics'
+            analytics: '/admin/api/categories/{id}/analytics',
+            deleted: '/admin/api/categories/deleted'
         };
 
         // Initialize DOM elements
@@ -62,9 +65,6 @@ class CategoriesManagement {
         
         // Filters
         this.searchInput = document.getElementById('searchInput');
-        this.levelFilter = document.getElementById('levelFilter');
-        this.parentCategoryFilter = document.getElementById('parentCategoryFilter');
-        this.featuredFilter = document.getElementById('featuredFilter');
         this.productCountFilter = document.getElementById('productCountFilter');
         this.dateRangeFilter = document.getElementById('dateRangeFilter');
         
@@ -91,7 +91,6 @@ class CategoriesManagement {
         this.activeCategoriesTab = document.getElementById('activeCategoriesTab');
         this.draftCategoriesTab = document.getElementById('draftCategoriesTab');
         this.inactiveCategoriesTab = document.getElementById('inactiveCategoriesTab');
-        this.rootCategoriesTab = document.getElementById('rootCategoriesTab');
         this.tableResultsCount = document.getElementById('tableResultsCount');
     }
 
@@ -102,10 +101,8 @@ class CategoriesManagement {
         try {
             
             await this.setupEventListeners();
-            await this.loadParentCategories();
             await this.loadInitialData();
             this.setupThemeListener(); // Add theme listener setup
-            this.setupDropdownManager(); // Professional dropdown management
             
         } catch (error) {
             console.error('❌ Error initializing Categories Management:', error);
@@ -114,9 +111,39 @@ class CategoriesManagement {
     }
 
     /**
+     * Remove existing event listeners to prevent duplicates
+     */
+    removeEventListeners() {
+        // Remove all event listeners from elements
+        const elements = [
+            this.searchInput,
+            this.productCountFilter,
+            this.dateRangeFilter,
+            this.selectAllCheckbox
+        ];
+        
+        elements.forEach(element => {
+            if (element) {
+                // Clone element to remove all event listeners
+                const newElement = element.cloneNode(true);
+                element.parentNode.replaceChild(newElement, element);
+            }
+        });
+        
+        // Remove tab event listeners
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            const newTab = tab.cloneNode(true);
+            tab.parentNode.replaceChild(newTab, tab);
+        });
+    }
+
+    /**
      * Setup event listeners
      */
     async setupEventListeners() {
+        // Remove existing event listeners first
+        this.removeEventListeners();
+        
         // Search input with debounce
         if (this.searchInput) {
             this.searchInput.addEventListener('input', this.debounce(() => {
@@ -127,9 +154,6 @@ class CategoriesManagement {
 
         // Filter dropdowns
         const filterElements = [
-            { element: this.levelFilter, key: 'level' },
-            { element: this.parentCategoryFilter, key: 'parentCategory' },
-            { element: this.featuredFilter, key: 'featured' },
             { element: this.productCountFilter, key: 'productCount' },
             { element: this.dateRangeFilter, key: 'dateRange' }
         ];
@@ -163,7 +187,21 @@ class CategoriesManagement {
             this.handleResponsiveView();
         }, 250));
 
+        // Setup dropdown event listeners
+        this.setupDropdownEventListeners();
+
         this.handleResponsiveView();
+    }
+
+    /**
+     * Setup dropdown event listeners
+     */
+    setupDropdownEventListeners() {
+        // Remove existing dropdown listeners first
+        this.removeDropdownListeners();
+        
+        // Setup professional dropdown management
+        this.setupDropdownManager();
     }
 
     /**
@@ -180,14 +218,29 @@ class CategoriesManagement {
 
         // Update filters based on tab
         const status = clickedTab.dataset.status;
-        const level = clickedTab.dataset.level;
+        const tabType = clickedTab.dataset.tab;
+
+        // Handle deleted tab specially
+        if (tabType === 'deleted') {
+            this.showSoftDeletedCategories();
+            return;
+        }
+
+        // Handle all categories tab specially
+        if (tabType === 'all') {
+            this.showAllCategories();
+            return;
+        }
+
+        // Hide soft deleted container and show main table
+        const softDeletedContainer = document.getElementById('softDeletedCategoriesContainer');
+        const tableContainer = document.getElementById('tableContainer');
+        
+        if (softDeletedContainer) softDeletedContainer.style.display = 'none';
+        if (tableContainer) tableContainer.style.display = 'block';
 
         if (status !== undefined) {
             this.filters.status = status;
-            this.filters.level = '';
-        } else if (level !== undefined) {
-            this.filters.level = level;
-            this.filters.status = '';
         }
 
         this.applyFilters();
@@ -230,6 +283,9 @@ class CategoriesManagement {
                 this.categories = response.data.categories;
                 this.updatePaginationInfo(response.data.pagination);
                 this.renderCategories();
+                
+                // Update deleted categories count
+                await this.updateDeletedCategoriesCount();
                 this.updateResultsCount();
             } else {
                 throw new Error(response.error || 'Kategoriyalarni yuklashda xatolik');
@@ -300,10 +356,6 @@ class CategoriesManagement {
         if (this.inactiveCategoriesTab) {
             this.inactiveCategoriesTab.textContent = stats.inactive || 0;
         }
-        if (this.rootCategoriesTab) {
-            const rootCount = this.statistics.levelDistribution?.find(level => level.level === 0)?.count || 0;
-            this.rootCategoriesTab.textContent = rootCount;
-        }
     }
 
     /**
@@ -361,25 +413,17 @@ class CategoriesManagement {
                             <div class="category-name-container">
                                 <h4 class="category-name">${this.escapeHtml(category.name || 'N/A')}</h4>
                                 <div class="category-badges">
-                                    ${category.settings?.isFeatured ? '<span class="badge badge-featured"><i class="las la-star"></i>Taniqli</span>' : ''}
                                     ${category.status === 'active' ? '<span class="badge badge-success">Faol</span>' : 
                                       category.status === 'inactive' ? '<span class="badge badge-warning">Nofaol</span>' : 
-                                      category.status === 'draft' ? '<span class="badge badge-secondary">Loyiha</span>' : 
-                                      '<span class="badge badge-danger">Arxivlangan</span>'}
+                                      '<span class="badge badge-secondary">Loyiha</span>'}
                                 </div>
                             </div>
                             <p class="category-description">${this.escapeHtml(category.shortDescription || category.description || '').substring(0, 100)}${(category.description?.length > 100) ? '...' : ''}</p>
                             <div class="category-meta">
                                 <span class="meta-item">
                                     <i class="las la-tag"></i>
-                                    Slug: ${category.slug}
+                                    Slug: ${this.escapeHtml(category.slug)}
                                 </span>
-                                ${category.parentCategoryName ? `
-                                    <span class="meta-item">
-                                        <i class="las la-sitemap"></i>
-                                        Ota: ${category.parentCategoryName}
-                                    </span>
-                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -462,36 +506,40 @@ class CategoriesManagement {
                 </td>
                 <td class="td-actions">
                     <div class="action-buttons">
-                        <button class="btn-action btn-view" onclick="window.categoriesManager.viewCategory('${category._id}')" title="Tafsilotlarni ko'rish">
-                            <i class="las la-eye"></i>
-                        </button>
-                        <button class="btn-action btn-edit" onclick="window.categoriesManager.editCategory('${category._id}')" title="Kategoriyani tahrirlash">
-                            <i class="las la-edit"></i>
-                        </button>
-                        <button class="btn-action btn-analytics" onclick="window.categoriesManager.viewAnalytics('${category._id}')" title="Analitikani ko'rish">
-                            <i class="las la-chart-bar"></i>
-                        </button>
                         <div class="category-dropdown" data-category-id="${category._id}">
-                            <button class="btn-action btn-more" data-dropdown-trigger="${category._id}" title="Ko'proq amallar">
+                            <button class="btn-action btn-more" data-dropdown-trigger="${category._id}" title="Amallar">
                                 <i class="las la-ellipsis-v"></i>
                             </button>
                             <ul class="category-dropdown-menu" data-dropdown-menu="${category._id}">
-                                <li><a class="dropdown-item" href="#" data-action="toggle-status" data-category-id="${category._id}">
+                                <li><a class="dropdown-item" href="#" data-action="edit" data-category-id="${category._id}">
+                                    <i class="las la-edit"></i>
+                                    Tahrirlash
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" data-action="analytics" data-category-id="${category._id}">
+                                    <i class="las la-chart-bar"></i>
+                                    Analitika
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" data-action="toggle-active" data-category-id="${category._id}">
                                     <i class="las ${category.settings?.isActive ? 'la-pause' : 'la-play'}"></i>
                                     ${category.settings?.isActive ? 'Deaktivlashtirish' : 'Faollashtirish'}
                                 </a></li>
-                                <li><a class="dropdown-item" href="#" data-action="toggle-feature" data-category-id="${category._id}">
-                                    <i class="las ${category.settings?.isFeatured ? 'la-star-o' : 'la-star'}"></i>
-                                    ${category.settings?.isFeatured ? 'Taniqli qilmaslik' : 'Taniqli qilish'}
+                                <li><a class="dropdown-item" href="#" data-action="toggle-visibility" data-category-id="${category._id}">
+                                    <i class="las ${category.settings?.isVisible ? 'la-eye-slash' : 'la-eye'}"></i>
+                                    ${category.settings?.isVisible ? 'Yashirish' : 'Ko\'rsatish'}
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" data-action="toggle-main-status" data-category-id="${category._id}">
+                                    <i class="las ${category.status === 'active' ? 'la-pause-circle' : 'la-play-circle'}"></i>
+                                    ${category.status === 'active' ? 'To\'xtatish' : 'Faollashtirish'}
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="#" data-action="duplicate" data-category-id="${category._id}">
                                     <i class="las la-copy"></i>
                                     Nusxalash
                                 </a></li>
-                                <li><a class="dropdown-item text-danger" href="#" data-action="archive" data-category-id="${category._id}">
-                                    <i class="las la-archive"></i>
-                                    Arxivlash
+                                <li><a class="dropdown-item danger" href="#" data-action="delete" data-category-id="${category._id}">
+                                    <i class="las la-trash"></i>
+                                    O'chirish
                                 </a></li>
                             </ul>
                         </div>
@@ -533,7 +581,6 @@ class CategoriesManagement {
                         <div class="category-title">
                             <h4 class="category-name">${this.escapeHtml(category.name || 'N/A')}</h4>
                             <div class="category-badges">
-                                ${category.settings?.isFeatured ? '<span class="badge badge-featured"><i class="las la-star"></i>Taniqli</span>' : ''}
                             </div>
                         </div>
                     </div>
@@ -541,10 +588,6 @@ class CategoriesManagement {
                     <p class="category-description">${this.escapeHtml(category.shortDescription || category.description || '').substring(0, 80)}${(category.description?.length > 80) ? '...' : ''}</p>
                     
                     <div class="category-stats">
-                        <div class="stat-item">
-                            <i class="las la-layer-group"></i>
-                            <span>Daraja ${category.level}</span>
-                        </div>
                         <div class="stat-item">
                             <i class="las la-boxes"></i>
                             <span>${category.productStats?.total || 0} Mahsulot</span>
@@ -568,17 +611,13 @@ class CategoriesManagement {
                 </div>
                 
                 <div class="card-actions">
-                    <button class="btn btn-sm btn-outline-primary" onclick="window.categoriesManager.viewCategory('${category._id}')">
-                        <i class="las la-eye"></i>
-                        View
-                    </button>
                     <button class="btn btn-sm btn-outline-secondary" onclick="window.categoriesManager.editCategory('${category._id}')">
                         <i class="las la-edit"></i>
-                        Edit
+                        Tahrirlash
                     </button>
                     <button class="btn btn-sm btn-outline-info" onclick="window.categoriesManager.viewAnalytics('${category._id}')">
                         <i class="las la-chart-bar"></i>
-                        Analytics
+                        Analitika
                     </button>
                 </div>
             </div>
@@ -714,7 +753,6 @@ class CategoriesManagement {
         this.filters = {
             status: '',
             search: '',
-            featured: '',
             productCount: '',
             dateRange: '',
             sortBy: 'createdAt',
@@ -723,9 +761,6 @@ class CategoriesManagement {
         
         // Reset form elements
         if (this.searchInput) this.searchInput.value = '';
-        if (this.levelFilter) this.levelFilter.value = '';
-        if (this.parentCategoryFilter) this.parentCategoryFilter.value = '';
-        if (this.featuredFilter) this.featuredFilter.value = '';
         if (this.productCountFilter) this.productCountFilter.value = '';
         if (this.dateRangeFilter) this.dateRangeFilter.value = '';
         
@@ -862,18 +897,41 @@ class CategoriesManagement {
     }
 
     /**
+     * Update deleted categories count in tab
+     */
+    async updateDeletedCategoriesCount() {
+        try {
+            // Use statistics endpoint instead of separate API call for better performance
+            const response = await this.makeRequest(this.endpoints.statistics, {
+                method: 'GET'
+            });
+
+            if (response.success && response.data?.overview?.deleted !== undefined) {
+                const deletedCount = response.data.overview.deleted;
+                const deletedTab = document.getElementById('deletedCategoriesTab');
+                if (deletedTab) {
+                    deletedTab.textContent = deletedCount;
+                }
+            }
+        } catch (error) {
+            console.error('Error updating deleted categories count:', error);
+        }
+    }
+
+    /**
      * Category action methods
      */
-    async viewCategory(categoryId) {
-        // Implementation for viewing category details
-        this.showNotification('Kategoriya tafsilotlari ko\'rinishi - amalga oshirilishi kerak', 'info');
-    }
 
     async editCategory(categoryId) {
         try {
+            // Check if modal is already being created
+            if (this.isCreatingModal) {
+                return;
+            }
+            
             await this.showEditModal(categoryId);
         } catch (error) {
-            console.error('Error opening edit modal:', error);
+            console.error('❌ Error in editCategory:', error);
             this.showError('Kategoriya tahrirlash modali ochishda xatolik');
         }
     }
@@ -891,57 +949,1448 @@ class CategoriesManagement {
         }
     }
 
-    async toggleCategoryStatus(categoryId) {
+    async toggleCategoryActive(categoryId) {
         try {
-            const category = this.categories.find(c => c._id === categoryId);
-            if (!category) return;
+            // Validate categoryId
+            if (!categoryId || !categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+                this.showError('Noto\'g\'ri kategoriya ID');
+                return;
+            }
 
-            const action = category.settings?.isActive ? 'deactivate' : 'activate';
-            
-            const response = await this.makeRequest(`${this.endpoints.bulk}`, {
-                method: 'POST',
+            const category = this.categories.find(c => c._id === categoryId);
+            if (!category) {
+                this.showError('Kategoriya topilmadi');
+                return;
+            }
+
+            const currentStatus = category.settings?.isActive;
+            const newStatus = !currentStatus;
+            const actionText = newStatus ? 'faollashtirildi' : 'deaktivlashtirildi';
+
+            // Find and update the toggle button to show loading state
+            const toggleButton = document.querySelector(`[data-action="toggle-status"][data-category-id="${categoryId}"]`);
+            if (toggleButton) {
+                const originalContent = toggleButton.innerHTML;
+                toggleButton.innerHTML = '<i class="las la-spinner la-spin"></i> Yangilanmoqda...';
+                toggleButton.style.pointerEvents = 'none';
+                toggleButton.style.opacity = '0.6';
+            }
+
+            // Call the new dedicated toggle status API
+            const response = await this.makeRequest(`${this.endpoints.categories}/${categoryId}/status`, {
+                method: 'PATCH',
                 body: JSON.stringify({
-                    categoryIds: [categoryId],
-                    action: action,
-                    reason: `Category ${action}d by admin`
+                    isActive: newStatus
                 })
             });
 
             if (response.success) {
-                this.showNotification(`Kategoriya muvaffaqiyatli ${action} qilindi`, 'success');
+                this.showNotification(`Kategoriya muvaffaqiyatli ${actionText}`, 'success');
+                
+                // Update local data immediately for better UX
+                category.settings.isActive = newStatus;
+                
+                // Refresh the table to show updated status
                 await this.loadCategories();
                 await this.loadStatistics();
+            } else {
+                throw new Error(response.message || 'Kategoriya holatini yangilashda xatolik');
             }
         } catch (error) {
             console.error('Error toggling category status:', error);
-            this.showError('Kategoriya holatini yangilashda xatolik');
+            
+            // Handle different types of errors
+            let errorMessage = 'Kategoriya holatini yangilashda xatolik';
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                errorMessage = 'Internet aloqasi xatoligi. Qayta urinib ko\'ring';
+            } else if (error.message.includes('404')) {
+                errorMessage = 'Kategoriya topilmadi';
+            } else if (error.message.includes('403')) {
+                errorMessage = 'Bu kategoriyani o\'zgartirish uchun ruxsat yo\'q';
+            } else if (error.message.includes('500')) {
+                errorMessage = 'Server xatoligi. Qayta urinib ko\'ring';
+            } else if (error.message.includes('Too many updates')) {
+                errorMessage = 'Juda ko\'p o\'zgarishlar. Biroz kutib, qayta urinib ko\'ring';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            this.showError(errorMessage);
+            
+            // Restore button state on error
+            const toggleButton = document.querySelector(`[data-action="toggle-active"][data-category-id="${categoryId}"]`);
+            if (toggleButton) {
+                const category = this.categories.find(c => c._id === categoryId);
+                if (category) {
+                    const isActive = category.settings?.isActive;
+                    toggleButton.innerHTML = `
+                        <i class="las ${isActive ? 'la-pause' : 'la-play'}"></i>
+                        ${isActive ? 'Deaktivlashtirish' : 'Faollashtirish'}
+                    `;
+                }
+                toggleButton.style.pointerEvents = 'auto';
+                toggleButton.style.opacity = '1';
+            }
         }
     }
 
-    async toggleFeatureStatus(categoryId) {
-        try {
-            const category = this.categories.find(c => c._id === categoryId);
-            if (!category) return;
 
-            const action = category.settings?.isFeatured ? 'unfeature' : 'feature';
-            
-            const response = await this.makeRequest(`${this.endpoints.bulk}`, {
-                method: 'POST',
+    async toggleCategoryVisibility(categoryId) {
+        try {
+            // Validate categoryId
+            if (!categoryId || !categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+                this.showError('Noto\'g\'ri kategoriya ID');
+                return;
+            }
+
+            const category = this.categories.find(c => c._id === categoryId);
+            if (!category) {
+                this.showError('Kategoriya topilmadi');
+                return;
+            }
+
+            const currentVisibility = category.settings?.isVisible ?? true;
+            const newVisibility = !currentVisibility;
+            const actionText = newVisibility ? 'ko\'rsatildi' : 'yashirildi';
+
+            // Find and update the toggle button to show loading state
+            const toggleButton = document.querySelector(`[data-action="toggle-visibility"][data-category-id="${categoryId}"]`);
+            if (toggleButton) {
+                const originalContent = toggleButton.innerHTML;
+                toggleButton.innerHTML = '<i class="las la-spinner la-spin"></i> Yangilanmoqda...';
+                toggleButton.style.pointerEvents = 'none';
+                toggleButton.style.opacity = '0.6';
+            }
+
+            // Call the visibility toggle API
+            const response = await this.makeRequest(`${this.endpoints.categories}/${categoryId}/visibility`, {
+                method: 'PATCH',
                 body: JSON.stringify({
-                    categoryIds: [categoryId],
-                    action: action,
-                    reason: `Category ${action}d by admin`
+                    isVisible: newVisibility
                 })
             });
 
             if (response.success) {
-                this.showNotification(`Kategoriya muvaffaqiyatli ${action} qilindi`, 'success');
+                this.showNotification(`Kategoriya muvaffaqiyatli ${actionText}`, 'success');
+                
+                // Update local data immediately for better UX
+                category.settings.isVisible = newVisibility;
+                
+                // Refresh the table to show updated status
                 await this.loadCategories();
                 await this.loadStatistics();
+            } else {
+                throw new Error(response.message || 'Kategoriya ko\'rinishini yangilashda xatolik');
             }
         } catch (error) {
-            console.error('Error toggling feature status:', error);
-            this.showError('Taniqli holatini yangilashda xatolik');
+            console.error('Error toggling category visibility:', error);
+            
+            // Handle different types of errors
+            let errorMessage = 'Kategoriya ko\'rinishini yangilashda xatolik';
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                errorMessage = 'Internet aloqasi xatoligi. Qayta urinib ko\'ring';
+            } else if (error.message.includes('404')) {
+                errorMessage = 'Kategoriya topilmadi';
+            } else if (error.message.includes('403')) {
+                errorMessage = 'Bu kategoriyani o\'zgartirish uchun ruxsat yo\'q';
+            } else if (error.message.includes('500')) {
+                errorMessage = 'Server xatoligi. Qayta urinib ko\'ring';
+            } else if (error.message.includes('Too many updates')) {
+                errorMessage = 'Juda ko\'p o\'zgarishlar. Biroz kutib, qayta urinib ko\'ring';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            this.showError(errorMessage);
+            
+            // Restore button state on error
+            const toggleButton = document.querySelector(`[data-action="toggle-visibility"][data-category-id="${categoryId}"]`);
+            if (toggleButton) {
+                const category = this.categories.find(c => c._id === categoryId);
+                if (category) {
+                    const isVisible = category.settings?.isVisible ?? true;
+                    toggleButton.innerHTML = `
+                        <i class="las ${isVisible ? 'la-eye-slash' : 'la-eye'}"></i>
+                        ${isVisible ? 'Yashirish' : 'Ko\'rsatish'}
+                    `;
+                }
+                toggleButton.style.pointerEvents = 'auto';
+                toggleButton.style.opacity = '1';
+            }
+        }
+    }
+
+    async toggleCategoryMainStatus(categoryId) {
+        try {
+            // Validate categoryId
+            if (!categoryId || !categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+                this.showError('Noto\'g\'ri kategoriya ID');
+                return;
+            }
+
+            const category = this.categories.find(c => c._id === categoryId);
+            if (!category) {
+                this.showError('Kategoriya topilmadi');
+                return;
+            }
+
+            const currentStatus = category.status;
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+            const actionText = newStatus === 'active' ? 'faollashtirildi' : 'to\'xtatildi';
+
+            // Find and update the toggle button to show loading state
+            const toggleButton = document.querySelector(`[data-action="toggle-main-status"][data-category-id="${categoryId}"]`);
+            if (toggleButton) {
+                const originalContent = toggleButton.innerHTML;
+                toggleButton.innerHTML = '<i class="las la-spinner la-spin"></i> Yangilanmoqda...';
+                toggleButton.style.pointerEvents = 'none';
+                toggleButton.style.opacity = '0.6';
+            }
+
+            // Call the main status toggle API
+            const response = await this.makeRequest(`${this.endpoints.categories}/${categoryId}/main-status`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            });
+
+            if (response.success) {
+                this.showNotification(`Kategoriya asosiy holati muvaffaqiyatli ${actionText}`, 'success');
+                
+                // Update local data immediately for better UX
+                category.status = newStatus;
+                
+                // Refresh the table to show updated status
+                await this.loadCategories();
+                await this.loadStatistics();
+            } else {
+                throw new Error(response.message || 'Kategoriya asosiy holatini yangilashda xatolik');
+            }
+        } catch (error) {
+            console.error('Error toggling category main status:', error);
+            
+            // Handle different types of errors
+            let errorMessage = 'Kategoriya asosiy holatini yangilashda xatolik';
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                errorMessage = 'Internet aloqasi xatoligi. Qayta urinib ko\'ring';
+            } else if (error.message.includes('404')) {
+                errorMessage = 'Kategoriya topilmadi';
+            } else if (error.message.includes('403')) {
+                errorMessage = 'Bu kategoriyani o\'zgartirish uchun ruxsat yo\'q';
+            } else if (error.message.includes('500')) {
+                errorMessage = 'Server xatoligi. Qayta urinib ko\'ring';
+            } else if (error.message.includes('Too many updates')) {
+                errorMessage = 'Juda ko\'p o\'zgarishlar. Biroz kutib, qayta urinib ko\'ring';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            this.showError(errorMessage);
+            
+            // Restore button state on error
+            const toggleButton = document.querySelector(`[data-action="toggle-main-status"][data-category-id="${categoryId}"]`);
+            if (toggleButton) {
+                const category = this.categories.find(c => c._id === categoryId);
+                if (category) {
+                    const status = category.status;
+                    toggleButton.innerHTML = `
+                        <i class="las ${status === 'active' ? 'la-pause-circle' : 'la-play-circle'}"></i>
+                        ${status === 'active' ? 'To\'xtatish' : 'Faollashtirish'}
+                    `;
+                }
+                toggleButton.style.pointerEvents = 'auto';
+                toggleButton.style.opacity = '1';
+            }
+        }
+    }
+
+    /**
+     * Delete category with safety checks
+     * Senior Software Engineer Implementation
+     */
+    async deleteCategory(categoryId) {
+        try {
+            // Validate categoryId
+            if (!categoryId || !categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+                this.showError('Noto\'g\'ri kategoriya ID');
+                return;
+            }
+
+            const category = this.categories.find(c => c._id === categoryId);
+            if (!category) {
+                this.showError('Kategoriya topilmadi');
+                return;
+            }
+
+            // Get deletion safety info first
+            this.showNotification('Kategoriya o\'chirish xavfsizligi tekshirilmoqda...', 'info');
+            
+            const safetyInfo = await this.getCategoryDeletionInfo(categoryId);
+            
+            if (!safetyInfo.success) {
+                throw new Error(safetyInfo.message || 'Xavfsizlik ma\'lumotlarini olishda xatolik');
+            }
+
+            const { canDelete, warnings, productCount, childCount, isSystemDefault } = safetyInfo.data;
+
+            // Show confirmation modal with safety info
+            const confirmed = await this.showDeleteConfirmationModal(category, {
+                canDelete,
+                warnings,
+                productCount,
+                childCount,
+                isSystemDefault
+            });
+
+            if (!confirmed) {
+                return; // User cancelled
+            }
+
+            // Perform deletion
+            const deleteButton = document.querySelector(`[data-action="delete"][data-category-id="${categoryId}"]`);
+            if (deleteButton) {
+                const originalContent = deleteButton.innerHTML;
+                deleteButton.innerHTML = '<i class="las la-spinner la-spin"></i> O\'chirilmoqda...';
+                deleteButton.style.pointerEvents = 'none';
+                deleteButton.style.opacity = '0.6';
+            }
+
+            const response = await this.makeRequest(`${this.endpoints.categories}/${categoryId}`, {
+                method: 'DELETE',
+                body: JSON.stringify({
+                    forceDelete: !canDelete // Force delete if not safe
+                })
+            });
+
+            if (response.success) {
+                this.showNotification(`Kategoriya "${this.escapeHtml(category.name)}" muvaffaqiyatli o'chirildi`, 'success');
+                
+                // Remove from local data
+                this.categories = this.categories.filter(c => c._id !== categoryId);
+                
+                // Refresh data
+                await this.loadCategories();
+                await this.loadStatistics();
+            } else {
+                throw new Error(response.message || 'Kategoriyani o\'chirishda xatolik');
+            }
+
+        } catch (error) {
+            console.error('Error deleting category:', error);
+            
+            // Handle different types of errors
+            let errorMessage = 'Kategoriyani o\'chirishda xatolik';
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                errorMessage = 'Internet aloqasi xatoligi. Qayta urinib ko\'ring';
+            } else if (error.message.includes('404')) {
+                errorMessage = 'Kategoriya topilmadi';
+            } else if (error.message.includes('403')) {
+                errorMessage = 'Bu kategoriyani o\'chirish uchun ruxsat yo\'q';
+            } else if (error.message.includes('500')) {
+                errorMessage = 'Server xatoligi. Qayta urinib ko\'ring';
+            } else if (error.message.includes('Cannot delete category')) {
+                errorMessage = error.message; // Show specific safety error
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            this.showError(errorMessage);
+            
+            // Restore button state on error
+            const deleteButton = document.querySelector(`[data-action="delete"][data-category-id="${categoryId}"]`);
+            if (deleteButton) {
+                deleteButton.innerHTML = '<i class="las la-trash"></i> O\'chirish';
+                deleteButton.style.pointerEvents = 'auto';
+                deleteButton.style.opacity = '1';
+            }
+        }
+    }
+
+    /**
+     * Get category deletion safety info
+     */
+    async getCategoryDeletionInfo(categoryId) {
+        try {
+            const response = await this.makeRequest(`${this.endpoints.categories}/${categoryId}/deletion-info`, {
+                method: 'GET'
+            });
+
+            return response;
+        } catch (error) {
+            console.error('Error getting deletion info:', error);
+            return {
+                success: false,
+                message: error.message || 'Xavfsizlik ma\'lumotlarini olishda xatolik'
+            };
+        }
+    }
+
+    /**
+     * Show delete confirmation modal with safety info
+     */
+    async showDeleteConfirmationModal(category, safetyInfo) {
+        return new Promise((resolve) => {
+            const { canDelete, warnings, productCount, childCount, isSystemDefault } = safetyInfo;
+            
+            const modal = document.createElement('div');
+            modal.className = 'professional-modal-overlay';
+            modal.innerHTML = `
+                <div class="professional-modal" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">
+                            <i class="las la-exclamation-triangle text-warning"></i>
+                            Kategoriyani o'chirish
+                        </h3>
+                        <button class="modal-close" onclick="this.closest('.professional-modal-overlay').remove()">
+                            <i class="las la-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="alert alert-warning">
+                            <strong>Ogohlantirish:</strong> Bu amalni bekor qilib bo'lmaydi!
+                        </div>
+                        
+                        <div class="category-info">
+                            <h4>Kategoriya ma'lumotlari:</h4>
+                            <p><strong>Nomi:</strong> ${this.escapeHtml(category.name)}</p>
+                            <p><strong>Slug:</strong> ${this.escapeHtml(category.slug)}</p>
+                            <p><strong>Holat:</strong> ${category.status}</p>
+                        </div>
+                        
+                        ${!canDelete ? `
+                            <div class="alert alert-danger">
+                                <h5><i class="las la-ban"></i> O'chirish mumkin emas!</h5>
+                                <ul class="mb-0">
+                                    ${warnings.map(warning => `<li>${warning}</li>`).join('')}
+                                </ul>
+                            </div>
+                            
+                            <div class="force-delete-warning">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="forceDeleteCheckbox">
+                                    <span class="checkmark"></span>
+                                    <strong>Majburiy o'chirish</strong> - Barcha bog'liq ma'lumotlar bilan birga o'chirish
+                                </label>
+                                <small class="text-muted">Bu kategoriyada ${productCount} ta mahsulot va ${childCount} ta kichik kategoriya mavjud.</small>
+                            </div>
+                        ` : `
+                            <div class="alert alert-info">
+                                <i class="las la-info-circle"></i>
+                                Bu kategoriya xavfsiz o'chirilishi mumkin.
+                            </div>
+                        `}
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="this.closest('.professional-modal-overlay').remove(); window.deleteConfirmationResult = false;">
+                            Bekor qilish
+                        </button>
+                        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                            <i class="las la-trash"></i>
+                            ${canDelete ? 'O\'chirish' : 'Majburiy o\'chirish'}
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Show modal
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+
+            // Handle confirm button
+            const confirmBtn = modal.querySelector('#confirmDeleteBtn');
+            const forceDeleteCheckbox = modal.querySelector('#forceDeleteCheckbox');
+            
+            confirmBtn.addEventListener('click', () => {
+                if (!canDelete && forceDeleteCheckbox && !forceDeleteCheckbox.checked) {
+                    this.showError('Majburiy o\'chirish uchun checkbox\'ni belgilang');
+                    return;
+                }
+                
+                modal.remove();
+                window.deleteConfirmationResult = true;
+            });
+
+            // Handle close button
+            modal.querySelector('.modal-close').addEventListener('click', () => {
+                modal.remove();
+                window.deleteConfirmationResult = false;
+            });
+
+            // Handle overlay click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                    window.deleteConfirmationResult = false;
+                }
+            });
+
+            // Wait for result
+            const checkResult = () => {
+                if (window.deleteConfirmationResult !== undefined) {
+                    const result = window.deleteConfirmationResult;
+                    delete window.deleteConfirmationResult;
+                    resolve(result);
+                } else {
+                    setTimeout(checkResult, 100);
+                }
+            };
+            checkResult();
+        });
+    }
+
+    /**
+     * Load soft deleted categories
+     */
+    async loadSoftDeletedCategories() {
+        try {
+            this.isLoading = true;
+            
+            const response = await this.makeRequest(`${this.endpoints.deleted}?page=1&limit=50`, {
+                method: 'GET'
+            });
+
+            if (response.success) {
+                this.softDeletedCategories = response.data.categories;
+                this.renderSoftDeletedCategories();
+            } else {
+                throw new Error(response.message || 'Soft deleted categories yuklashda xatolik');
+            }
+        } catch (error) {
+            console.error('Error loading soft deleted categories:', error);
+            this.showNotification('Soft deleted categories yuklashda xatolik', 'error');
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    /**
+     * Show all categories (active, inactive, and soft deleted)
+     */
+    async showAllCategories() {
+        // Show main table
+        const tableContainer = document.getElementById('tableContainer');
+        const softDeletedContainer = document.getElementById('softDeletedCategoriesContainer');
+        
+        if (tableContainer) tableContainer.style.display = 'block';
+        if (softDeletedContainer) softDeletedContainer.style.display = 'none';
+
+        // Load all categories (including soft deleted)
+        await this.loadAllCategories();
+    }
+
+    /**
+     * Load all categories including soft deleted
+     */
+    async loadAllCategories() {
+        try {
+            this.isLoading = true;
+            
+            // Load regular categories
+            await this.loadCategories();
+            
+            // Load soft deleted categories
+            await this.loadSoftDeletedCategories();
+            
+            // Combine both lists
+            this.allCategories = [...this.categories, ...this.softDeletedCategories];
+            
+            // Render combined list
+            this.renderAllCategories();
+            
+        } catch (error) {
+            console.error('Error loading all categories:', error);
+            this.showNotification('Barcha kategoriyalarni yuklashda xatolik', 'error');
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    /**
+     * Render all categories (active, inactive, and soft deleted)
+     */
+    renderAllCategories() {
+        if (!this.allCategories || this.allCategories.length === 0) {
+            this.renderEmptyState();
+            return;
+        }
+
+        this.hideEmptyState();
+        
+        // Render desktop table
+        if (this.categoriesTableBody) {
+            this.categoriesTableBody.innerHTML = this.allCategories.map(category => 
+                this.renderAllCategoryRow(category)
+            ).join('');
+        }
+
+        // Render mobile cards
+        if (this.mobileCardsView) {
+            this.mobileCardsView.innerHTML = this.allCategories.map(category => 
+                this.renderAllCategoryCard(category)
+            ).join('');
+        }
+
+        this.updateBulkActionsVisibility();
+    }
+
+    /**
+     * Render single category row for all categories view
+     */
+    renderAllCategoryRow(category) {
+        const isSelected = this.selectedCategories.has(category._id);
+        const isDeleted = category.status === 'deleted';
+        
+        return `
+            <tr class="table-row ${isSelected ? 'selected' : ''}" data-category-id="${category._id}">
+                <td class="td-select">
+                    <label class="modern-checkbox">
+                        <input type="checkbox" ${isSelected ? 'checked' : ''} 
+                               onchange="window.categoriesManager.toggleCategorySelection('${category._id}', this.checked)">
+                        <span class="checkbox-mark"></span>
+                    </label>
+                </td>
+                <td class="td-category">
+                    <div class="category-info-cell">
+                        <div class="category-visual">
+                            <div class="category-icon" style="background-color: ${category.color || '#3B82F6'}">
+                                <i class="${category.icon || 'las la-folder'}"></i>
+                            </div>
+                            ${category.image?.url ? `<img src="${category.image.url}" alt="${category.image.alt || category.name}" class="category-thumbnail">` : ''}
+                        </div>
+                        <div class="category-details">
+                            <div class="category-name-container">
+                                <h4 class="category-name">${this.escapeHtml(category.name || 'N/A')}</h4>
+                                <div class="category-badges">
+                                    ${isDeleted ? '<span class="badge badge-danger">O\'chirilgan</span>' :
+                                      category.status === 'active' ? '<span class="badge badge-success">Faol</span>' : 
+                                      category.status === 'inactive' ? '<span class="badge badge-warning">Nofaol</span>' : 
+                                      '<span class="badge badge-secondary">Loyiha</span>'}
+                                </div>
+                            </div>
+                            <p class="category-description">${this.escapeHtml(category.shortDescription || category.description || '').substring(0, 100)}${(category.description?.length > 100) ? '...' : ''}</p>
+                            <div class="category-meta">
+                                <span class="meta-item">
+                                    <i class="las la-tag"></i>
+                                    Slug: ${this.escapeHtml(category.slug)}
+                                </span>
+                                ${isDeleted ? `
+                                    <span class="meta-item">
+                                        <i class="las la-calendar-times"></i>
+                                        O'chirilgan: ${this.formatDate(category.deletedAt)}
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td class="td-products">
+                    <div class="products-analytics">
+                        <div class="product-counts">
+                            <div class="count-item primary">
+                                <span class="count-value">${category.productStats?.total || category.metrics?.totalProducts || 0}</span>
+                                <span class="count-label">Jami mahsulotlar</span>
+                            </div>
+                            <div class="count-item success">
+                                <span class="count-value">${category.productStats?.active || 0}</span>
+                                <span class="count-label">Faol</span>
+                            </div>
+                        </div>
+                        <div class="analytics-chart">
+                            <div class="mini-progress">
+                                <div class="progress-bar" style="width: ${(category.productStats?.total || category.metrics?.totalProducts || 0) > 0 ? ((category.productStats?.active || 0) / (category.productStats?.total || category.metrics?.totalProducts || 1) * 100) : 0}%"></div>
+                            </div>
+                            <span class="progress-label">
+                                ${(category.productStats?.total || category.metrics?.totalProducts || 0) > 0 ? Math.round((category.productStats?.active || 0) / (category.productStats?.total || category.metrics?.totalProducts || 1) * 100) : 0}% Faol
+                            </span>
+                        </div>
+                    </div>
+                </td>
+                <td class="td-business">
+                    <div class="business-metrics">
+                        <div class="revenue-info">
+                            <span class="revenue-value">$${(category.productStats?.revenue || category.metrics?.totalRevenue || 0).toLocaleString()}</span>
+                            <span class="revenue-label">Jami daromad</span>
+                        </div>
+                        <div class="business-stats">
+                            <div class="stat-row">
+                                <i class="las la-chart-line text-success"></i>
+                                <span>O'sish: +${category.metrics?.monthlyGrowth || 0}%</span>
+                            </div>
+                            <div class="stat-row">
+                                <i class="las la-star text-warning"></i>
+                                <span>Ball: ${category.metrics?.popularityScore || 0}/100</span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td class="td-status">
+                    <div class="status-info">
+                        <span class="status-badge status-${category.status}">
+                            ${this.getStatusIcon(category.status)}
+                            ${isDeleted ? 'O\'chirilgan' : this.capitalizeFirst(category.status)}
+                        </span>
+                        <div class="status-details">
+                            ${!isDeleted ? `
+                                <span class="detail-item ${category.settings?.isActive ? 'text-success' : 'text-muted'}">
+                                    <i class="las ${category.settings?.isActive ? 'la-check-circle' : 'la-times-circle'}"></i>
+                                    ${category.settings?.isActive ? 'Faol' : 'Nofaol'}
+                                </span>
+                                <span class="detail-item ${category.settings?.isVisible ? 'text-info' : 'text-muted'}">
+                                    <i class="las ${category.settings?.isVisible ? 'la-eye' : 'la-eye-slash'}"></i>
+                                    ${category.settings?.isVisible ? 'Ko\'rinadi' : 'Yashirin'}
+                                </span>
+                            ` : `
+                                <span class="detail-item text-danger">
+                                    <i class="las la-trash"></i>
+                                    O'chirilgan
+                                </span>
+                            `}
+                        </div>
+                    </div>
+                </td>
+                <td class="td-date">
+                    <div class="date-info">
+                        <div class="created-date">
+                            <span class="date-value">${this.formatDate(isDeleted ? category.deletedAt : category.createdAt)}</span>
+                            <span class="date-label">${isDeleted ? 'Deleted' : 'Created'}</span>
+                        </div>
+                        <div class="date-details">
+                            <span class="detail-item">
+                                <i class="las la-user"></i>
+                                ${isDeleted ? (category.deletedBy?.name || 'Noma\'lum') : (category.creatorName || 'Noma\'lum')}
+                            </span>
+                            <span class="detail-item">
+                                <i class="las la-clock"></i>
+                                ${this.getRelativeTime(isDeleted ? category.deletedAt : category.createdAt)}
+                            </span>
+                        </div>
+                    </div>
+                </td>
+                <td class="td-actions">
+                    <div class="action-buttons">
+                        <div class="category-dropdown" data-category-id="${category._id}">
+                            <button class="btn-action btn-more" data-dropdown-trigger="${category._id}" title="Amallar">
+                                <i class="las la-ellipsis-v"></i>
+                            </button>
+                            <ul class="category-dropdown-menu" data-dropdown-menu="${category._id}">
+                                ${isDeleted ? `
+                                    <li><a class="dropdown-item" href="#" data-action="restore" data-category-id="${category._id}">
+                                        <i class="las la-undo"></i>
+                                        Qayta tiklash
+                                    </a></li>
+                                    <li><a class="dropdown-item danger" href="#" data-action="permanent-delete" data-category-id="${category._id}">
+                                        <i class="las la-trash-alt"></i>
+                                        Butunlay o'chirish
+                                    </a></li>
+                                ` : `
+                                    <li><a class="dropdown-item" href="#" data-action="edit" data-category-id="${category._id}">
+                                        <i class="las la-edit"></i>
+                                        Tahrirlash
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" data-action="analytics" data-category-id="${category._id}">
+                                        <i class="las la-chart-bar"></i>
+                                        Analitika
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" data-action="toggle-active" data-category-id="${category._id}">
+                                        <i class="las ${category.settings?.isActive ? 'la-pause' : 'la-play'}"></i>
+                                        ${category.settings?.isActive ? 'Deaktivlashtirish' : 'Faollashtirish'}
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" data-action="toggle-visibility" data-category-id="${category._id}">
+                                        <i class="las ${category.settings?.isVisible ? 'la-eye-slash' : 'la-eye'}"></i>
+                                        ${category.settings?.isVisible ? 'Yashirish' : 'Ko\'rsatish'}
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" data-action="toggle-main-status" data-category-id="${category._id}">
+                                        <i class="las ${category.status === 'active' ? 'la-pause-circle' : 'la-play-circle'}"></i>
+                                        ${category.status === 'active' ? 'To\'xtatish' : 'Faollashtirish'}
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" data-action="duplicate" data-category-id="${category._id}">
+                                        <i class="las la-copy"></i>
+                                        Nusxalash
+                                    </a></li>
+                                    <li><a class="dropdown-item danger" href="#" data-action="delete" data-category-id="${category._id}">
+                                        <i class="las la-trash"></i>
+                                        O'chirish
+                                    </a></li>
+                                `}
+                            </ul>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    /**
+     * Render single category card for all categories view (mobile)
+     */
+    renderAllCategoryCard(category) {
+        const isSelected = this.selectedCategories.has(category._id);
+        const isDeleted = category.status === 'deleted';
+        
+        return `
+            <div class="category-card ${isSelected ? 'selected' : ''}" data-category-id="${category._id}">
+                <div class="card-header">
+                    <div class="category-visual">
+                        <div class="category-icon" style="background-color: ${category.color || '#3B82F6'}">
+                            <i class="${category.icon || 'las la-folder'}"></i>
+                        </div>
+                        ${category.image?.url ? `<img src="${category.image.url}" alt="${category.image.alt || category.name}" class="category-thumbnail">` : ''}
+                    </div>
+                    <div class="category-info">
+                        <h4 class="category-name">${this.escapeHtml(category.name || 'N/A')}</h4>
+                        <div class="category-badges">
+                            ${isDeleted ? '<span class="badge badge-danger">O\'chirilgan</span>' :
+                              category.status === 'active' ? '<span class="badge badge-success">Faol</span>' : 
+                              category.status === 'inactive' ? '<span class="badge badge-warning">Nofaol</span>' : 
+                              '<span class="badge badge-secondary">Loyiha</span>'}
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <label class="modern-checkbox">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} 
+                                   onchange="window.categoriesManager.toggleCategorySelection('${category._id}', this.checked)">
+                            <span class="checkbox-mark"></span>
+                        </label>
+                        <div class="category-dropdown" data-category-id="${category._id}">
+                            <button class="btn-action btn-more" data-dropdown-trigger="${category._id}" title="Amallar">
+                                <i class="las la-ellipsis-v"></i>
+                            </button>
+                            <ul class="category-dropdown-menu" data-dropdown-menu="${category._id}">
+                                ${isDeleted ? `
+                                    <li><a class="dropdown-item" href="#" data-action="restore" data-category-id="${category._id}">
+                                        <i class="las la-undo"></i>
+                                        Qayta tiklash
+                                    </a></li>
+                                    <li><a class="dropdown-item danger" href="#" data-action="permanent-delete" data-category-id="${category._id}">
+                                        <i class="las la-trash-alt"></i>
+                                        Butunlay o'chirish
+                                    </a></li>
+                                ` : `
+                                    <li><a class="dropdown-item" href="#" data-action="edit" data-category-id="${category._id}">
+                                        <i class="las la-edit"></i>
+                                        Tahrirlash
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" data-action="analytics" data-category-id="${category._id}">
+                                        <i class="las la-chart-bar"></i>
+                                        Analitika
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" data-action="toggle-active" data-category-id="${category._id}">
+                                        <i class="las ${category.settings?.isActive ? 'la-pause' : 'la-play'}"></i>
+                                        ${category.settings?.isActive ? 'Deaktivlashtirish' : 'Faollashtirish'}
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" data-action="toggle-visibility" data-category-id="${category._id}">
+                                        <i class="las ${category.settings?.isVisible ? 'la-eye-slash' : 'la-eye'}"></i>
+                                        ${category.settings?.isVisible ? 'Yashirish' : 'Ko\'rsatish'}
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" data-action="toggle-main-status" data-category-id="${category._id}">
+                                        <i class="las ${category.status === 'active' ? 'la-pause-circle' : 'la-play-circle'}"></i>
+                                        ${category.status === 'active' ? 'To\'xtatish' : 'Faollashtirish'}
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" data-action="duplicate" data-category-id="${category._id}">
+                                        <i class="las la-copy"></i>
+                                        Nusxalash
+                                    </a></li>
+                                    <li><a class="dropdown-item danger" href="#" data-action="delete" data-category-id="${category._id}">
+                                        <i class="las la-trash"></i>
+                                        O'chirish
+                                    </a></li>
+                                `}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="category-description">${this.escapeHtml(category.shortDescription || category.description || '').substring(0, 150)}${(category.description?.length > 150) ? '...' : ''}</p>
+                    <div class="category-meta">
+                        <span class="meta-item">
+                            <i class="las la-tag"></i>
+                            Slug: ${this.escapeHtml(category.slug)}
+                        </span>
+                        ${isDeleted ? `
+                            <span class="meta-item">
+                                <i class="las la-calendar-times"></i>
+                                O'chirilgan: ${this.formatDate(category.deletedAt)}
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-value">${category.productStats?.total || category.metrics?.totalProducts || 0}</span>
+                            <span class="stat-label">Mahsulotlar</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">$${(category.productStats?.revenue || category.metrics?.totalRevenue || 0).toLocaleString()}</span>
+                            <span class="stat-label">Daromad</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${this.formatDate(isDeleted ? category.deletedAt : category.createdAt)}</span>
+                            <span class="stat-label">${isDeleted ? 'O\'chirilgan' : 'Yaratilgan'}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Show soft deleted categories
+     */
+    async showSoftDeletedCategories() {
+        // Hide main table and show soft deleted container
+        const tableContainer = document.getElementById('tableContainer');
+        const softDeletedContainer = document.getElementById('softDeletedCategoriesContainer');
+        
+        if (tableContainer) tableContainer.style.display = 'none';
+        if (softDeletedContainer) softDeletedContainer.style.display = 'block';
+
+        // Load soft deleted categories
+        await this.loadSoftDeletedCategories();
+    }
+
+    /**
+     * Render soft deleted categories in professional table format
+     */
+    renderSoftDeletedCategories() {
+        const container = document.getElementById('softDeletedCategoriesContainer');
+        if (!container) return;
+
+        if (!this.softDeletedCategories || this.softDeletedCategories.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="las la-trash-restore"></i>
+                    <h3>O'chirilgan kategoriyalar yo'q</h3>
+                    <p>Hozircha o'chirilgan kategoriyalar mavjud emas</p>
+                </div>
+            `;
+            return;
+        }
+
+        const categoriesHTML = this.softDeletedCategories.map(category => `
+            <tr class="table-row" data-category-id="${category._id}">
+                <td class="td-select">
+                    <div class="td-content">
+                        <label class="modern-checkbox">
+                            <input type="checkbox" class="category-checkbox" value="${category._id}"
+                                   onchange="window.categoriesManager.toggleCategorySelection('${category._id}', this.checked)">
+                            <span class="checkbox-mark"></span>
+                        </label>
+                    </div>
+                </td>
+                <td class="td-category">
+                    <div class="category-info-cell">
+                        <div class="category-visual">
+                            <div class="category-icon" style="background-color: ${category.color || '#3B82F6'}">
+                                <i class="${category.icon || 'las la-folder'}"></i>
+                            </div>
+                            ${category.image?.url ? `<img src="${category.image.url}" alt="${category.image.alt || category.name}" class="category-thumbnail">` : ''}
+                        </div>
+                        <div class="category-details">
+                            <div class="category-name-container">
+                                <h4 class="category-name">${this.escapeHtml(category.name || 'N/A')}</h4>
+                                <div class="category-badges">
+                                    <span class="badge badge-danger">O'chirilgan</span>
+                                </div>
+                            </div>
+                            <p class="category-description">${this.escapeHtml(category.shortDescription || category.description || '').substring(0, 100)}${(category.description?.length > 100) ? '...' : ''}</p>
+                            <div class="category-meta">
+                                <span class="meta-item">
+                                    <i class="las la-tag"></i>
+                                    Slug: ${this.escapeHtml(category.slug)}
+                                </span>
+                                <span class="meta-item">
+                                    <i class="las la-calendar-times"></i>
+                                    O'chirilgan: ${this.formatDate(category.deletedAt)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td class="td-products">
+                    <div class="products-analytics">
+                        <div class="product-counts">
+                            <div class="count-item primary">
+                                <span class="count-value">${category.productStats?.total || category.metrics?.totalProducts || 0}</span>
+                                <span class="count-label">Jami mahsulotlar</span>
+                            </div>
+                            <div class="count-item success">
+                                <span class="count-value">${category.productStats?.active || 0}</span>
+                                <span class="count-label">Faol</span>
+                            </div>
+                        </div>
+                        <div class="analytics-chart">
+                            <div class="mini-progress">
+                                <div class="progress-bar" style="width: ${(category.productStats?.total || category.metrics?.totalProducts || 0) > 0 ? ((category.productStats?.active || 0) / (category.productStats?.total || category.metrics?.totalProducts || 1) * 100) : 0}%"></div>
+                            </div>
+                            <span class="progress-label">
+                                ${(category.productStats?.total || category.metrics?.totalProducts || 0) > 0 ? Math.round((category.productStats?.active || 0) / (category.productStats?.total || category.metrics?.totalProducts || 1) * 100) : 0}% Faol
+                            </span>
+                        </div>
+                    </div>
+                </td>
+                <td class="td-business">
+                    <div class="business-metrics">
+                        <div class="metric-item">
+                            <span class="metric-label">Daromad:</span>
+                            <span class="metric-value">$${(category.metrics?.totalRevenue || 0).toLocaleString()}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Mahsulotlar:</span>
+                            <span class="metric-value">${category.metrics?.totalProducts || 0}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">O'rtacha narx:</span>
+                            <span class="metric-value">$${((category.metrics?.totalRevenue || 0) / Math.max(category.metrics?.totalProducts || 1, 1)).toFixed(2)}</span>
+                        </div>
+                    </div>
+                </td>
+                <td class="td-status">
+                    <div class="status-info">
+                        <span class="status-badge status-deleted">
+                            <i class="las la-trash"></i>
+                            O'chirilgan
+                        </span>
+                        <div class="status-details">
+                            <small class="text-muted">
+                                ${this.formatDate(category.deletedAt)}
+                            </small>
+                        </div>
+                    </div>
+                </td>
+                <td class="td-date">
+                    <div class="date-info">
+                        <span class="date-primary">${this.formatDate(category.createdAt)}</span>
+                        <small class="text-muted">
+                            ${this.getRelativeTime(category.createdAt)}
+                        </small>
+                    </div>
+                </td>
+                <td class="td-actions">
+                    <div class="action-buttons">
+                        <div class="category-dropdown" data-category-id="${category._id}">
+                            <button class="btn-action btn-more" data-dropdown-trigger="${category._id}" title="Amallar">
+                                <i class="las la-ellipsis-v"></i>
+                            </button>
+                            <ul class="category-dropdown-menu" data-dropdown-menu="${category._id}">
+                                <li><a class="dropdown-item" href="#" data-action="restore" data-category-id="${category._id}">
+                                    <i class="las la-undo"></i>
+                                    Qayta tiklash
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item danger" href="#" data-action="permanent-delete" data-category-id="${category._id}">
+                                    <i class="las la-trash-alt"></i>
+                                    Butunlay o'chirish
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+        container.innerHTML = `
+            <div class="professional-table-container">
+                <div class="desktop-table-view">
+                    <table class="professional-categories-table">
+                        <thead class="table-header-sticky">
+                            <tr class="header-row">
+                                <th class="th-select" data-column="select">
+                                    <div class="th-content">
+                                        <label class="modern-checkbox">
+                                            <input type="checkbox" id="selectAllDeletedCheckbox" onchange="toggleSelectAllDeleted(this.checked)">
+                                            <span class="checkbox-mark"></span>
+                                        </label>
+                                    </div>
+                                </th>
+                                <th class="th-category" data-column="category" onclick="sortTable('name')">
+                                    <div class="th-content sortable">
+                                        <span class="th-label">Kategoriya ma'lumotlari</span>
+                                        <span class="sort-indicator">
+                                            <i class="las la-sort sort-icon"></i>
+                                        </span>
+                                    </div>
+                                </th>
+                                <th class="th-products" data-column="products" onclick="sortTable('metrics.totalProducts')">
+                                    <div class="th-content sortable">
+                                        <span class="th-label">Mahsulotlar va analitika</span>
+                                        <span class="sort-indicator">
+                                            <i class="las la-sort sort-icon"></i>
+                                        </span>
+                                    </div>
+                                </th>
+                                <th class="th-business" data-column="business">
+                                    <div class="th-content">
+                                        <span class="th-label">Biznes ko'rsatkichlari</span>
+                                    </div>
+                                </th>
+                                <th class="th-status" data-column="status" onclick="sortTable('status')">
+                                    <div class="th-content sortable">
+                                        <span class="th-label">Holat</span>
+                                        <span class="sort-indicator">
+                                            <i class="las la-sort sort-icon"></i>
+                                        </span>
+                                    </div>
+                                </th>
+                                <th class="th-date" data-column="date" onclick="sortTable('createdAt')">
+                                    <div class="th-content sortable">
+                                        <span class="th-label">Yaratilgan</span>
+                                        <span class="sort-indicator">
+                                            <i class="las la-sort sort-icon"></i>
+                                        </span>
+                                    </div>
+                                </th>
+                                <th class="th-actions" data-column="actions">
+                                    <div class="th-content">
+                                        <span class="th-label">Amallar</span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-body">
+                            ${categoriesHTML}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Restore soft deleted category
+     */
+    async restoreCategory(categoryId) {
+        try {
+            // Validate categoryId
+            if (!categoryId || !categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+                this.showError('Noto\'g\'ri kategoriya ID');
+                return;
+            }
+
+            const category = this.softDeletedCategories?.find(c => c._id === categoryId);
+            if (!category) {
+                this.showError('Kategoriya topilmadi');
+                return;
+            }
+
+            // Show confirmation
+            const confirmed = await this.showRestoreConfirmationModal(category);
+            if (!confirmed) {
+                return;
+            }
+
+            // Show loading state
+            this.showNotification('Kategoriya qayta tiklanmoqda...', 'info');
+
+            const response = await this.makeRequest(`${this.endpoints.categories}/${categoryId}/restore`, {
+                method: 'POST'
+            });
+
+            if (response.success) {
+                this.showNotification(`Kategoriya "${this.escapeHtml(category.name)}" muvaffaqiyatli qayta tiklandi`, 'success');
+                
+                // Remove from soft deleted list
+                this.softDeletedCategories = this.softDeletedCategories.filter(c => c._id !== categoryId);
+                this.renderSoftDeletedCategories();
+                
+                // Refresh main categories
+                await this.loadCategories();
+                await this.loadStatistics();
+            } else {
+                throw new Error(response.message || 'Kategoriyani qayta tiklashda xatolik');
+            }
+
+        } catch (error) {
+            console.error('Error restoring category:', error);
+            
+            let errorMessage = 'Kategoriyani qayta tiklashda xatolik';
+            if (error.message.includes('already exists')) {
+                errorMessage = 'Bu nom yoki slug bilan kategoriya allaqachon mavjud';
+            } else if (error.message.includes('not deleted')) {
+                errorMessage = 'Bu kategoriya o\'chirilmagan';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            this.showError(errorMessage);
+        }
+    }
+
+    /**
+     * Permanently delete category
+     */
+    async permanentDeleteCategory(categoryId) {
+        try {
+            // Validate categoryId
+            if (!categoryId || !categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+                this.showError('Noto\'g\'ri kategoriya ID');
+                return;
+            }
+
+            const category = this.softDeletedCategories?.find(c => c._id === categoryId);
+            if (!category) {
+                this.showError('Kategoriya topilmadi');
+                return;
+            }
+
+            // Show confirmation
+            const confirmed = await this.showPermanentDeleteConfirmationModal(category);
+            if (!confirmed) {
+                return;
+            }
+
+            // Show loading state
+            this.showNotification('Kategoriya butunlay o\'chirilmoqda...', 'info');
+
+            const response = await this.makeRequest(`${this.endpoints.categories}/${categoryId}/permanent`, {
+                method: 'DELETE'
+            });
+
+            if (response.success) {
+                this.showNotification(`Kategoriya "${this.escapeHtml(category.name)}" butunlay o'chirildi`, 'success');
+                
+                // Remove from soft deleted list
+                this.softDeletedCategories = this.softDeletedCategories.filter(c => c._id !== categoryId);
+                this.renderSoftDeletedCategories();
+                
+                // Refresh statistics
+                await this.loadStatistics();
+            } else {
+                throw new Error(response.message || 'Kategoriyani butunlay o\'chirishda xatolik');
+            }
+
+        } catch (error) {
+            console.error('Error permanently deleting category:', error);
+            
+            let errorMessage = 'Kategoriyani butunlay o\'chirishda xatolik';
+            if (error.message.includes('products associated')) {
+                errorMessage = 'Bu kategoriyada hali mahsulotlar mavjud. Avval mahsulotlarni boshqaring';
+            } else if (error.message.includes('not deleted')) {
+                errorMessage = 'Faqat o\'chirilgan kategoriyalar butunlay o\'chirilishi mumkin';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            this.showError(errorMessage);
+        }
+    }
+
+    /**
+     * Show restore confirmation modal
+     */
+    async showRestoreConfirmationModal(category) {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.className = 'professional-modal-overlay';
+            modal.innerHTML = `
+                <div class="professional-modal" style="max-width: 450px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">
+                            <i class="las la-undo text-success"></i>
+                            Kategoriyani qayta tiklash
+                        </h3>
+                        <button class="modal-close" onclick="this.closest('.professional-modal-overlay').remove()">
+                            <i class="las la-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="las la-info-circle"></i>
+                            Bu kategoriya qayta tiklanadi va faol holatga qaytariladi.
+                        </div>
+                        
+                        <div class="category-info">
+                            <h4>Kategoriya ma'lumotlari:</h4>
+                            <p><strong>Nomi:</strong> ${this.escapeHtml(category.name)}</p>
+                            <p><strong>Slug:</strong> ${this.escapeHtml(category.slug)}</p>
+                            <p><strong>O'chirilgan:</strong> ${this.formatDate(category.deletedAt)}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="this.closest('.professional-modal-overlay').remove(); window.restoreConfirmationResult = false;">
+                            Bekor qilish
+                        </button>
+                        <button type="button" class="btn btn-success" id="confirmRestoreBtn">
+                            <i class="las la-undo"></i>
+                            Qayta tiklash
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Show modal
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+
+            // Handle confirm button
+            const confirmBtn = modal.querySelector('#confirmRestoreBtn');
+            confirmBtn.addEventListener('click', () => {
+                modal.remove();
+                window.restoreConfirmationResult = true;
+            });
+
+            // Handle close button
+            modal.querySelector('.modal-close').addEventListener('click', () => {
+                modal.remove();
+                window.restoreConfirmationResult = false;
+            });
+
+            // Handle overlay click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                    window.restoreConfirmationResult = false;
+                }
+            });
+
+            // Wait for result
+            const checkResult = () => {
+                if (window.restoreConfirmationResult !== undefined) {
+                    const result = window.restoreConfirmationResult;
+                    delete window.restoreConfirmationResult;
+                    resolve(result);
+                } else {
+                    setTimeout(checkResult, 100);
+                }
+            };
+            checkResult();
+        });
+    }
+
+    /**
+     * Show permanent delete confirmation modal
+     */
+    async showPermanentDeleteConfirmationModal(category) {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.className = 'professional-modal-overlay';
+            modal.innerHTML = `
+                <div class="professional-modal" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">
+                            <i class="las la-exclamation-triangle text-danger"></i>
+                            Butunlay o'chirish
+                        </h3>
+                        <button class="modal-close" onclick="this.closest('.professional-modal-overlay').remove()">
+                            <i class="las la-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="alert alert-danger">
+                            <strong>DIQQAT:</strong> Bu amalni bekor qilib bo'lmaydi!
+                        </div>
+                        
+                        <div class="category-info">
+                            <h4>Kategoriya ma'lumotlari:</h4>
+                            <p><strong>Nomi:</strong> ${this.escapeHtml(category.name)}</p>
+                            <p><strong>Slug:</strong> ${this.escapeHtml(category.slug)}</p>
+                            <p><strong>O'chirilgan:</strong> ${this.formatDate(category.deletedAt)}</p>
+                        </div>
+                        
+                        <div class="permanent-delete-warning">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="permanentDeleteCheckbox">
+                                <span class="checkmark"></span>
+                                <strong>Men tushundim</strong> - Bu kategoriya butunlay o'chiriladi va qayta tiklab bo'lmaydi
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="this.closest('.professional-modal-overlay').remove(); window.permanentDeleteConfirmationResult = false;">
+                            Bekor qilish
+                        </button>
+                        <button type="button" class="btn btn-danger" id="confirmPermanentDeleteBtn">
+                            <i class="las la-trash-alt"></i>
+                            Butunlay o'chirish
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Show modal
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+
+            // Handle confirm button
+            const confirmBtn = modal.querySelector('#confirmPermanentDeleteBtn');
+            const permanentDeleteCheckbox = modal.querySelector('#permanentDeleteCheckbox');
+            
+            confirmBtn.addEventListener('click', () => {
+                if (!permanentDeleteCheckbox.checked) {
+                    this.showError('Tasdiqlash uchun checkbox\'ni belgilang');
+                    return;
+                }
+                
+                modal.remove();
+                window.permanentDeleteConfirmationResult = true;
+            });
+
+            // Handle close button
+            modal.querySelector('.modal-close').addEventListener('click', () => {
+                modal.remove();
+                window.permanentDeleteConfirmationResult = false;
+            });
+
+            // Handle overlay click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                    window.permanentDeleteConfirmationResult = false;
+                }
+            });
+
+            // Wait for result
+            const checkResult = () => {
+                if (window.permanentDeleteConfirmationResult !== undefined) {
+                    const result = window.permanentDeleteConfirmationResult;
+                    delete window.permanentDeleteConfirmationResult;
+                    resolve(result);
+                } else {
+                    setTimeout(checkResult, 100);
+                }
+            };
+            checkResult();
+        });
+    }
+
+    /**
+     * Toggle select all for soft deleted categories
+     */
+    toggleSelectAllDeleted(checked) {
+        const checkboxes = document.querySelectorAll('#softDeletedCategoriesContainer .category-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = checked;
+        });
+        
+        // Update selected categories set
+        if (checked) {
+            checkboxes.forEach(checkbox => {
+                this.selectedCategories.add(checkbox.value);
+            });
+        } else {
+            checkboxes.forEach(checkbox => {
+                this.selectedCategories.delete(checkbox.value);
+            });
         }
     }
 
@@ -949,29 +2398,6 @@ class CategoriesManagement {
         this.showNotification('Kategoriya nusxalash - amalga oshirilishi kerak', 'info');
     }
 
-    async archiveCategory(categoryId) {
-        if (!confirm('Bu kategoriyani arxivlashni xohlaysizmi?')) return;
-
-        try {
-            const response = await this.makeRequest(`${this.endpoints.bulk}`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    categoryIds: [categoryId],
-                    action: 'archive',
-                    reason: 'Kategoriya admin tomonidan arxivlandi'
-                })
-            });
-
-            if (response.success) {
-                this.showNotification('Kategoriya muvaffaqiyatli arxivlandi', 'success');
-                await this.loadCategories();
-                await this.loadStatistics();
-            }
-        } catch (error) {
-            console.error('Error archiving category:', error);
-            this.showError('Kategoriyani arxivlashda xatolik');
-        }
-    }
 
     /**
      * Bulk operations
@@ -1034,10 +2460,41 @@ class CategoriesManagement {
     }
 
     /**
+     * Remove existing modals to prevent duplicates
+     */
+    removeExistingModals() {
+        // Remove all possible modal variations
+        const existingModals = document.querySelectorAll('.professional-modal-overlay, .professional-modal, .modal-overlay, .modal');
+        existingModals.forEach(modal => {
+            modal.remove();
+        });
+        
+        // Also remove any modal-related elements
+        const modalElements = document.querySelectorAll('[data-modal-type]');
+        modalElements.forEach(element => {
+            element.remove();
+        });
+        
+        // Wait a bit to ensure DOM is updated
+        return new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+
+    /**
      * Modal operations
      */
     async showCreateModal() {
         try {
+            // Check if modal is already being created
+            if (this.isCreatingModal) {
+                return;
+            }
+            
+            this.isCreatingModal = true;
+            
+            // Remove any existing modals first
+            await this.removeExistingModals();
+            
             // Create and show modal
             const modal = this.createCategoryModal();
             document.body.appendChild(modal);
@@ -1051,11 +2508,13 @@ class CategoriesManagement {
             // Show modal with animation
             setTimeout(() => {
                 modal.classList.add('show');
+                this.isCreatingModal = false;
             }, 10);
             
         } catch (error) {
             console.error('❌ Error opening create modal:', error);
             this.showError('Kategoriya yaratish modali ochishda xatolik');
+            this.isCreatingModal = false;
         }
     }
 
@@ -1064,11 +2523,22 @@ class CategoriesManagement {
      */
     async showEditModal(categoryId) {
         try {
-            // Load category data
+            // Check if modal is already being created
+            if (this.isCreatingModal) {
+                return;
+            }
+            
+            this.isCreatingModal = true;
+            
+            // Remove any existing modals first
+            await this.removeExistingModals();
+            
+            // Load category data with proper error handling
             const categoryData = await this.loadCategoryData(categoryId);
             
             // Create and show modal with category data
             const modal = this.createCategoryModal(categoryData);
+            
             document.body.appendChild(modal);
             
             // Initialize modal functionality
@@ -1080,11 +2550,26 @@ class CategoriesManagement {
             // Show modal with animation
             setTimeout(() => {
                 modal.classList.add('show');
+                this.isCreatingModal = false;
             }, 10);
             
         } catch (error) {
             console.error('❌ Error opening edit modal:', error);
-            this.showError('Kategoriya tahrirlash modali ochishda xatolik');
+            
+            // Provide specific error messages based on error type
+            let errorMessage = 'Kategoriya tahrirlash modali ochishda xatolik';
+            if (error.message.includes('404')) {
+                errorMessage = 'Kategoriya topilmadi';
+            } else if (error.message.includes('403')) {
+                errorMessage = 'Bu kategoriyani tahrirlash uchun ruxsat yo\'q';
+            } else if (error.message.includes('500')) {
+                errorMessage = 'Server xatoligi. Qayta urinib ko\'ring';
+            } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+                errorMessage = 'Internet aloqasi xatoligi. Qayta urinib ko\'ring';
+            }
+            
+            this.showError(errorMessage);
+            this.isCreatingModal = false;
         }
     }
 
@@ -1093,15 +2578,48 @@ class CategoriesManagement {
      */
     async loadCategoryData(categoryId) {
         try {
-            const response = await fetch(`${this.endpoints.categories}/${categoryId}`);
+            // Get CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            
+            // Get auth token from localStorage or cookies
+            const authToken = localStorage.getItem('adminToken') || this.getCookie('adminToken');
+            
+            const response = await fetch(`${this.endpoints.categories}/${categoryId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                    'Authorization': authToken ? `Bearer ${authToken}` : '',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+            
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const errorText = await response.text();
+                let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                } catch (e) {
+                    // Use default error message if JSON parsing fails
+                }
+                
+                throw new Error(errorMessage);
             }
             
             const result = await response.json();
-            return result.data || result;
+            
+           // Validate response structure
+            if (!result || (result.success === false)) {
+                throw new Error(result.message || 'Invalid response format');
+            }
+            
+            const categoryData = result.data || result;
+            
+            return categoryData;
         } catch (error) {
-            console.error('Error loading category data:', error);
             throw error;
         }
     }
@@ -1310,6 +2828,20 @@ class CategoriesManagement {
                 margin-top: 4px;
             }
             
+            .field-error {
+                color: var(--color-danger, #ef4444);
+                font-size: 12px;
+                margin-top: 4px;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+            
+            .field-error::before {
+                content: '⚠️';
+                font-size: 10px;
+            }
+            
             /* Color Picker */
             .color-input-group {
                 display: flex;
@@ -1338,12 +2870,36 @@ class CategoriesManagement {
                 gap: 12px;
             }
             
+            .toggle-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                cursor: pointer;
+                padding: 8px;
+                border-radius: 8px;
+                transition: background-color 0.2s ease;
+                pointer-events: auto;
+                user-select: none;
+            }
+            
+            .toggle-item:hover {
+                background-color: var(--bg-secondary, #f8fafc);
+            }
+            
             .toggle-label {
                 display: flex;
                 align-items: center;
                 gap: 12px;
                 cursor: pointer;
-                width: 100%;
+                flex: 1;
+                pointer-events: auto;
+                user-select: none;
+            }
+            
+            .toggle-slider {
+                pointer-events: auto;
+                cursor: pointer;
+                flex-shrink: 0;
             }
             
             .toggle-input {
@@ -1511,6 +3067,63 @@ class CategoriesManagement {
                 background: var(--bg-primary, #ffffff);
             }
             
+            /* Language Selector Styles */
+            .language-selector-wrapper {
+                margin-bottom: 24px;
+                padding: 16px;
+                background: var(--bg-secondary, #f8fafc);
+                border-radius: 8px;
+                border: 1px solid var(--border-color, #e5e7eb);
+            }
+
+            .language-select {
+                font-size: 16px;
+                font-weight: 500;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 12px center;
+                padding-right: 40px;
+            }
+
+            .lang-fields {
+                animation: fadeIn 0.3s ease;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .multi-lang-fields {
+                margin-bottom: 24px;
+            }
+
+            .seo-section {
+                margin-top: 24px;
+                padding-top: 24px;
+                border-top: 1px solid var(--border-color, #e5e7eb);
+            }
+
+            .seo-section .section-title {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-secondary, #6b7280);
+                margin-bottom: 16px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .seo-section .section-title i {
+                font-size: 18px;
+            }
+
             @media (max-width: 768px) {
                 .professional-modal {
                     width: 95%;
@@ -1544,8 +3157,9 @@ class CategoriesManagement {
         const title = isEditMode ? 'Kategoriyani tahrirlash' : 'Yangi kategoriya yaratish';
         const subtitle = isEditMode ? 'Mavjud kategoriya ma\'lumotlarini yangilang' : 'Marketplaceingiz uchun to\'liq kategoriya tuzilmasini yarating';
         
+        
         return `
-            <div class="professional-modal" data-modal-type="${modalType}" data-category-id="${categoryData?.id || ''}">
+            <div class="professional-modal" data-modal-type="${modalType}" data-category-id="${categoryData?._id || categoryData?.id || ''}">
                 ${this.generateModalHeader(title, subtitle)}
                 
 
@@ -1604,85 +3218,207 @@ class CategoriesManagement {
         return `
             <div class="form-content">
                 <div class="form-fields">
-                    <div class="form-group">
-                        <label for="categoryName" class="form-label required">
-                            Kategoriya nomi
-                        </label>
-                        <input type="text" id="categoryName" name="name" class="form-input" 
-                               placeholder="masalan, Elektronika, Oziq-ovqat va ichimliklar" 
-                               value="${categoryData?.name || ''}"
-                               required>
-                        <div class="field-help">Kategoriyangizni ifodalovchi aniq va tavsiflovchi nom tanlang</div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="categorySlug" class="form-label">
-                            URL slug
-                        </label>
-                        <input type="text" id="categorySlug" name="slug" class="form-input" 
-                               placeholder="nomdan-avtomatik-yaratiladi" 
-                               value="${categoryData?.slug || ''}"
-                               readonly>
-                        <div class="field-help">URL uchun mos versiya nomdan avtomatik yaratiladi</div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="categoryDescription" class="form-label required">
-                            Tavsif
-                        </label>
-                        <textarea id="categoryDescription" name="description" class="form-textarea bg-transparent" 
-                                  placeholder="Foydalanuvchilarga ushbu kategoriyaga qaysi mahsulotlar tegishli ekanligini tushunishga yordam beradigan to'liq tavsif kiriting..."
-                                  rows="4" required>${categoryData?.description || ''}</textarea>
-                        <div class="field-help">SEO va foydalanuvchi tushunishi uchun batafsil tavsif</div>
-                    </div>
-                    
-            
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="categoryIcon" class="form-label">
-                                Kategoriya ikonkasi
-                        </label>
-                            <input type="text" id="categoryIcon" name="icon" class="form-input" 
-                                   value="${categoryData?.icon || 'las la-folder'}" 
-                                   placeholder="las la-folder">
-                            <div class="field-help">Line Awesome ikonka klassi</div>
-                    </div>
-                    
-                        <div class="form-group">
-                            <label for="categoryColor" class="form-label">
-                                Brend rangi
-                        </label>
-                            <div class="color-input-group">
-                                <input type="color" id="categoryColor" name="color" class="color-picker" 
-                                       value="${categoryData?.color || '#3B82F6'}">
-                                <input type="text" id="categoryColorText" class="form-input" 
-                                       value="${categoryData?.color || '#3B82F6'}">
-                            </div>
-                            <div class="field-help">Kategoriya identifikatsiyasi uchun rang</div>
-                    </div>
-                </div>
-                
-                    <div class="form-group">
+                    <!-- Language Selector -->
+                    <div class="language-selector-wrapper">
                         <label class="form-label">
-                            Kategoriya holati
+                            <i class="las la-language"></i> Til tanlash
                         </label>
-                        <div class="toggle-group">
-                            <div class="toggle-item">
-                                <input type="checkbox" id="isActive" name="isActive" class="toggle-input" 
-                                       ${categoryData?.settings?.isActive !== false ? 'checked' : ''}>
-                                <label for="isActive" class="toggle-label">
-                                    <span class="toggle-slider"></span>
-                                    <span class="toggle-text">
-                                        <strong>Faol holat</strong>
-                                        <small>Kategoriya faol va ishlaydi</small>
-                                    </span>
-                                </label>
-                            </div>
+                        <select id="languageSelector" class="form-select language-select">
+                            <option value="uz" selected>🇺🇿 O'zbek tili</option>
+                            <option value="en">🇬🇧 English</option>
+                            <option value="ru">🇷🇺 Русский</option>
+                            <option value="tr">🇹🇷 Türkçe</option>
+                            <option value="fa">🇮🇷 فارسی</option>
+                            <option value="zh">🇨🇳 中文</option>
+                        </select>
+                        <div class="field-help">
+                            <i class="las la-info-circle"></i>
+                            O'zbek tili majburiy, qolgan tillar ixtiyoriy
                         </div>
+                    </div>
+
+                    <!-- Multi-language fields container -->
+                    <div class="multi-lang-fields">
+                        ${this.generateLanguageFields('uz', categoryData, true)}
+                        ${this.generateLanguageFields('en', categoryData, false)}
+                        ${this.generateLanguageFields('ru', categoryData, false)}
+                        ${this.generateLanguageFields('tr', categoryData, false)}
+                        ${this.generateLanguageFields('fa', categoryData, false)}
+                        ${this.generateLanguageFields('zh', categoryData, false)}
+                    </div>
+                    
+                    <!-- Non-translatable fields -->
+                    ${this.generateNonTranslatableFields(categoryData)}
+                </div>
+            </div>
         `;
     }
 
+    generateLanguageFields(lang, categoryData, isRequired) {
+        const langNames = {
+            uz: "O'zbek",
+            en: 'English',
+            ru: 'Русский',
+            tr: 'Türkçe',
+            fa: 'فارسی',
+            zh: '中文'
+        };
+        
+        // Debug: Log full categoryData and SEO data
+        console.log(`🔍 Full categoryData for modal:`, categoryData);
+        console.log(`🔍 Translations for ${lang}:`, categoryData?.translations?.[lang]);
+        console.log(`🔍 SEO Translations for ${lang}:`, categoryData?.seoTranslations?.[lang]);
+        
+        // Get SEO values with proper escaping
+        const metaTitle = categoryData?.seoTranslations?.[lang]?.metaTitle || '';
+        const metaDesc = categoryData?.seoTranslations?.[lang]?.metaDescription || '';
+        const keywords = categoryData?.seoTranslations?.[lang]?.metaKeywords || [];
+        const keywordsStr = Array.isArray(keywords) ? keywords.join(', ') : '';
+        
+        console.log(`📋 Meta Title (${lang}):`, metaTitle);
+        console.log(`📝 Meta Desc (${lang}):`, metaDesc);
+        console.log(`🔑 Keywords (${lang}):`, keywordsStr);
+        
+        return `
+            <div class="lang-fields" data-lang="${lang}" style="display: ${lang === 'uz' ? 'block' : 'none'}">
+                <div class="form-group">
+                    <label class="form-label ${isRequired ? 'required' : ''}">
+                        Kategoriya nomi (${langNames[lang]})
+                    </label>
+                    <input type="text" name="translations[${lang}][name]" 
+                           class="form-input lang-name-input" 
+                           data-lang="${lang}"
+                           ${isRequired ? 'required' : ''}
+                           value="${categoryData?.translations?.[lang]?.name || ''}"
+                           placeholder="Kategoriya nomini kiriting">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label ${isRequired ? 'required' : ''}">
+                        Tavsif (${langNames[lang]})
+                    </label>
+                    <textarea name="translations[${lang}][description]" 
+                              class="form-textarea"
+                              ${isRequired ? 'required' : ''}
+                              rows="4"
+                              placeholder="Kategoriya tavsifini kiriting">${categoryData?.translations?.[lang]?.description || ''}</textarea>
+                </div>
+
+                <div class="seo-section" style="background: #f9fafb; padding: 16px; border-radius: 8px; margin-top: 20px;">
+                    <h4 class="section-title" style="color: #1f2937; font-weight: 600; margin-bottom: 16px;">
+                        <i class="las la-search" style="color: #3b82f6;"></i> SEO Ma'lumotlari (${langNames[lang]})
+                    </h4>
+                    
+                    <div class="form-group">
+                        <label class="form-label">📋 Meta sarlavha</label>
+                        <input type="text" name="seoTranslations[${lang}][metaTitle]"
+                               class="form-input seo-meta-title" 
+                               maxlength="60"
+                               value="${this.escapeHtml(metaTitle)}"
+                               data-lang="${lang}"
+                               placeholder="SEO uchun sahifa sarlavhasi (masalan: Eng yaxshi mahsulotlar)">
+                        <div class="field-help">SEO uchun sahifa sarlavhasi (60 belgigacha)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">📝 Meta tavsif</label>
+                        <textarea name="seoTranslations[${lang}][metaDescription]"
+                                  class="form-textarea seo-meta-desc" 
+                                  rows="3" 
+                                  maxlength="160"
+                                  data-lang="${lang}"
+                                  placeholder="Qidiruv natijalarida ko'rsatiladigan tavsif">${this.escapeHtml(metaDesc)}</textarea>
+                        <div class="field-help">Qidiruv natijalarida ko'rsatiladigan tavsif (160 belgigacha)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">🔑 Kalit so'zlar</label>
+                        <input type="text" name="seoTranslations[${lang}][keywords]"
+                               class="form-input seo-keywords"
+                               value="${this.escapeHtml(keywordsStr)}"
+                               data-lang="${lang}"
+                               placeholder="kategoriya, mahsulot, kalit so'z">
+                        <div class="field-help">Vergul bilan ajratilgan kalit so'zlar</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    generateNonTranslatableFields(categoryData) {
+        return `
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="categoryIcon" class="form-label">
+                        Kategoriya ikonkasi
+                    </label>
+                    <input type="text" id="categoryIcon" name="icon" class="form-input" 
+                           value="${categoryData?.icon || 'las la-folder'}" 
+                           placeholder="las la-folder">
+                    <div class="field-help">Line Awesome ikonka klassi</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="categoryColor" class="form-label">
+                        Brend rangi
+                    </label>
+                    <div class="color-input-group">
+                        <input type="color" id="categoryColor" name="color" class="color-picker" 
+                               value="${categoryData?.color || '#3B82F6'}">
+                        <input type="text" id="categoryColorText" class="form-input" 
+                               value="${categoryData?.color || '#3B82F6'}">
+                    </div>
+                    <div class="field-help">Kategoriya identifikatsiyasi uchun rang</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    Kategoriya holati
+                </label>
+                <div class="toggle-group">
+                    <div class="toggle-item">
+                        <input type="checkbox" id="isActive" name="isActive" class="toggle-input" 
+                               ${(categoryData?.settings?.isActive === true || categoryData?.settings?.isActive === undefined) ? 'checked' : ''} 
+                               value="true">
+                        <span class="toggle-slider"></span>
+                        <label for="isActive" class="toggle-label">
+                            <span class="toggle-text">
+                                <strong>Faol holat</strong>
+                                <small>Kategoriya faol va ishlaydi</small>
+                            </span>
+                        </label>
+                    </div>
+                    
+                    <div class="toggle-item">
+                        <input type="checkbox" id="isVisible" name="isVisible" class="toggle-input" 
+                               ${(categoryData?.settings?.isVisible === true || categoryData?.settings?.isVisible === undefined) ? 'checked' : ''} 
+                               value="true">
+                        <span class="toggle-slider"></span>
+                        <label for="isVisible" class="toggle-label">
+                            <span class="toggle-text">
+                                <strong>Ko'rinish</strong>
+                                <small>Foydalanuvchilar uchun ko'rinadi</small>
+                            </span>
+                        </label>
+                    </div>
+                    
+                    <div class="toggle-item">
+                        <input type="checkbox" id="mainStatus" name="mainStatus" class="toggle-input" 
+                               ${(categoryData?.status === 'active' || categoryData?.status === undefined) ? 'checked' : ''} 
+                               value="active">
+                        <span class="toggle-slider"></span>
+                        <label for="mainStatus" class="toggle-label">
+                            <span class="toggle-text">
+                                <strong>Asosiy holat</strong>
+                                <small>Kategoriya asosiy holati (active/inactive)</small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
     /**
      * Generate professional modal footer
@@ -1716,40 +3452,6 @@ class CategoriesManagement {
         `;
     }
 
-    /**
-     * Generate parent category options with professional formatting
-     */
-    generateParentCategoryOptions() {
-        if (!this.parentCategories || this.parentCategories.length === 0) {
-            return '<option value="" disabled style="color: #999; font-style: italic;">📂 Ota kategoriya mavjud emas</option>';
-        }
-        
-        return this.parentCategories.map(category => {
-            const level = category.level || 0;
-            const indent = '  '.repeat(level);
-            const levelIcon = this.getCategoryLevelIcon(level);
-            const statusIcon = category.status === 'active' ? '✅' : '⚠️';
-            
-            return `<option value="${category._id}" data-level="${level}">
-                ${indent}${levelIcon} ${category.name} ${statusIcon}
-            </option>`;
-        }).join('');
-    }
-
-    /**
-     * Get appropriate icon for category level
-     */
-    getCategoryLevelIcon(level) {
-        const icons = {
-            0: '🏠', // Root
-            1: '📁', // Level 1
-            2: '📂', // Level 2
-            3: '🗂️', // Level 3
-            4: '🏷️', // Level 4
-            5: '🔖'  // Level 5
-        };
-        return icons[level] || '📄';
-    }
 
     /**
      * Generate multi-language form sections
@@ -1783,19 +3485,94 @@ class CategoriesManagement {
         `).join('');
     }
 
+    initializeLanguageSwitcher(modal) {
+        const selector = modal.querySelector('#languageSelector');
+        const langFields = modal.querySelectorAll('.lang-fields');
+        
+        if (!selector) return;
+        
+        selector.addEventListener('change', (e) => {
+            const selectedLang = e.target.value;
+            
+            langFields.forEach(field => {
+                field.style.display = field.dataset.lang === selectedLang ? 'block' : 'none';
+            });
+        });
+    }
+
+    parseMultiLanguageFormData(formData) {
+        const data = {
+            translations: {},
+            seoTranslations: {},
+            settings: {}
+        };
+        
+        const langs = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
+        
+        langs.forEach(lang => {
+            const name = formData.get(`translations[${lang}][name]`);
+            const desc = formData.get(`translations[${lang}][description]`);
+            
+            console.log(`🔍 Parsing ${lang} - name: "${name}", desc: "${desc}"`);
+            
+            // Always create translations object for consistency
+            if (name || desc) {
+                data.translations[lang] = {
+                    name: name || '',
+                    description: desc || ''
+                };
+            }
+            
+            const metaTitle = formData.get(`seoTranslations[${lang}][metaTitle]`);
+            const metaDesc = formData.get(`seoTranslations[${lang}][metaDescription]`);
+            const keywords = formData.get(`seoTranslations[${lang}][keywords]`);
+            
+            // Always create seoTranslations object, even if values are empty
+            // This ensures all fields are present in the database
+            data.seoTranslations[lang] = {
+                metaTitle: metaTitle || '',
+                metaDescription: metaDesc || '',
+                metaKeywords: keywords ? keywords.split(',').map(k => k.trim()).filter(k => k) : []
+            };
+            
+            console.log(`💾 Parsing SEO for ${lang}:`, {
+                metaTitle: metaTitle || '(empty)',
+                metaDescription: metaDesc || '(empty)',
+                keywords: keywords || '(empty)'
+            });
+        });
+        
+        data.icon = formData.get('icon');
+        data.color = formData.get('color');
+        data.settings.isActive = formData.get('isActive') === 'true';
+        data.settings.isVisible = formData.get('isVisible') === 'true';
+        
+        const mainStatus = formData.get('mainStatus');
+        if (mainStatus) {
+            data.status = mainStatus === 'active' ? 'active' : 'inactive';
+        }
+        
+        console.log('✅ Final seoTranslations:', data.seoTranslations);
+        
+        return data;
+    }
+
     /**
      * Initialize modal features and event listeners
      */
     initializeModalFeatures(modal) {
-        
-        // Setup ESC key to close modal
-        this.setupModalKeyboardEvents(modal);
-        
-        // Setup modal close events
-        this.setupModalCloseEvents(modal);
+        try {
+            // Setup ESC key to close modal
+            this.setupModalKeyboardEvents(modal);
+            
+            // Setup modal close events
+            this.setupModalCloseEvents(modal);
         
         // Auto-generate slug from name
         this.setupSlugGeneration(modal);
+        
+        // Setup language switcher
+        this.initializeLanguageSwitcher(modal);
         
         // Setup language tabs
         this.setupLanguageTabs(modal);
@@ -1812,7 +3589,13 @@ class CategoriesManagement {
         // Setup form submission
         this.setupFormSubmission(modal);
         
-        
+            // Setup toggle switches
+            this.setupToggleSwitches(modal);
+            
+        } catch (error) {
+            console.error('❌ Error initializing modal features:', error);
+            throw error;
+        }
     }
 
     /**
@@ -1902,13 +3685,18 @@ class CategoriesManagement {
      * Setup automatic slug generation
      */
     setupSlugGeneration(modal) {
-        const nameInput = modal.querySelector('#categoryName');
-        const slugInput = modal.querySelector('#categorySlug');
+        const nameInput = modal.querySelector('input[name="translations[uz][name]"]');
+        const oldNameInput = modal.querySelector('#categoryName');
         
-        if (nameInput && slugInput) {
+        if (nameInput) {
             nameInput.addEventListener('input', (e) => {
                 const slug = this.generateSlug(e.target.value);
-                slugInput.value = slug;
+                console.log('Generated slug from Uzbek name:', slug);
+            });
+        } else if (oldNameInput) {
+            oldNameInput.addEventListener('input', (e) => {
+                const slug = this.generateSlug(e.target.value);
+                console.log('Generated slug from old name:', slug);
             });
         }
     }
@@ -1987,7 +3775,11 @@ class CategoriesManagement {
      * Setup form validation
      */
     setupFormValidation(modal) {
-        const form = modal.querySelector('#createCategoryForm');
+        const form = modal.querySelector('#createCategoryForm') || modal.querySelector('#editCategoryForm');
+        if (!form) {
+            console.warn('Form not found in modal');
+            return;
+        }
         const requiredFields = form.querySelectorAll('[required]');
         
         requiredFields.forEach(field => {
@@ -2007,20 +3799,27 @@ class CategoriesManagement {
      * Validate individual field
      */
     validateField(field) {
-        const value = field.value.trim();
+        // Handle different field types properly
+        let value = '';
+        if (field.type === 'textarea') {
+            value = field.value.trim().replace(/\n\s*/g, ' ').trim();
+        } else {
+            value = field.value.trim();
+        }
+        
         let isValid = true;
         let errorMessage = '';
         
         if (field.hasAttribute('required') && !value) {
             isValid = false;
-            errorMessage = `${this.getFieldLabel(field)} is required`;
+            errorMessage = `${this.getFieldLabel(field)} majburiy`;
         } else if (field.type === 'email' && value && !this.isValidEmail(value)) {
             isValid = false;
             errorMessage = 'To\'g\'ri email manzilini kiriting';
         } else if (field.name === 'slug' && value && !this.isValidSlug(value)) {
             isValid = false;
             errorMessage = 'Slug can only contain lowercase letters, numbers, and hyphens';
-        } else if (field.maxLength && value.length > field.maxLength) {
+        } else if (field.maxLength && field.maxLength > 0 && value.length > field.maxLength) {
             isValid = false;
             errorMessage = `Maximum ${field.maxLength} characters allowed`;
         }
@@ -2032,6 +3831,19 @@ class CategoriesManagement {
         }
         
         return isValid;
+    }
+
+    /**
+     * Get field label for validation messages
+     */
+    getFieldLabel(field) {
+        const label = field.closest('.form-group')?.querySelector('.form-label');
+        if (label) {
+            return label.textContent.replace('*', '').trim();
+        }
+        
+        // Fallback to field name or id
+        return field.name || field.id || 'Maydon';
     }
 
     /**
@@ -2081,7 +3893,7 @@ class CategoriesManagement {
         
         if (createForm) {
             createForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
+            e.preventDefault();
                 await this.handleCategoryCreation(createForm, modal);
             });
         }
@@ -2092,6 +3904,38 @@ class CategoriesManagement {
                 await this.handleCategoryUpdate(editForm, modal);
             });
         }
+    }
+
+    /**
+     * Setup toggle switches functionality
+     * Professional implementation with proper event handling
+     */
+    setupToggleSwitches(modal) {
+        const toggleItems = modal.querySelectorAll('.toggle-item');
+        
+        toggleItems.forEach((toggleItem) => {
+            const toggleInput = toggleItem.querySelector('.toggle-input');
+            const toggleLabel = toggleItem.querySelector('.toggle-label');
+            
+            if (toggleInput && toggleLabel) {
+                // Unified click handler for toggle functionality
+                const handleToggleClick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Toggle the checkbox state
+                    toggleInput.checked = !toggleInput.checked;
+                    
+                    // Trigger change event for form validation
+                    const changeEvent = new Event('change', { bubbles: true });
+                    toggleInput.dispatchEvent(changeEvent);
+                };
+                
+                // Add click handlers to both toggle item and label
+                toggleItem.addEventListener('click', handleToggleClick);
+                toggleLabel.addEventListener('click', handleToggleClick);
+            }
+        });
     }
 
     /**
@@ -2112,6 +3956,10 @@ class CategoriesManagement {
             const formData = this.collectFormData(form);
             const categoryId = modal.querySelector('[data-category-id]').getAttribute('data-category-id');
             
+            // Debug: Log update data
+            console.log('📤 Updating category:', categoryId);
+            console.log('📋 Update data:', JSON.stringify(formData, null, 2));
+            
             // Submit to backend
             const response = await fetch(`${this.endpoints.categories}/${categoryId}`, {
                 method: 'PUT',
@@ -2124,6 +3972,8 @@ class CategoriesManagement {
             
             const result = await response.json();
             
+            console.log('📥 Update response:', result);
+            
             if (result.success) {
                 // Success - close modal and refresh table
                 modal.remove();
@@ -2135,11 +3985,15 @@ class CategoriesManagement {
                 
             } else {
                 // Handle validation errors
+                console.error('❌ Update validation errors:', result);
+                if (result.message) {
+                    this.showError(result.message);
+                }
                 this.handleServerErrors(result, form);
             }
             
         } catch (error) {
-            console.error('Error updating category:', error);
+            console.error('❌ Error updating category:', error);
             this.showError('Kategoriyani yangilashda xatolik. Qayta urinib ko\'ring.');
         } finally {
             this.setModalLoadingState(false);
@@ -2164,6 +4018,9 @@ class CategoriesManagement {
             // Collect form data
             const formData = this.collectFormData(form);
             
+            // Debug: Log data being sent
+            console.log('📤 Sending category data:', JSON.stringify(formData, null, 2));
+            
             // Submit to backend
             const response = await fetch(this.endpoints.categories, {
                 method: 'POST',
@@ -2176,6 +4033,8 @@ class CategoriesManagement {
             
             const result = await response.json();
             
+            console.log('📥 Backend response:', result);
+            
             if (result.success) {
                 // Success - close modal and refresh table
                 modal.remove();
@@ -2187,6 +4046,18 @@ class CategoriesManagement {
                 
             } else {
                 // Handle validation errors
+                console.error('❌ Backend validation errors:', result);
+                console.error('❌ Error details:', result.details || result.errors);
+                
+                if (result.details && Array.isArray(result.details)) {
+                    result.details.forEach(detail => {
+                        console.error(`   - ${detail.field || detail.param}: ${detail.message || detail.msg}`);
+                    });
+                }
+                
+                if (result.message) {
+                    this.showError(result.message);
+                }
                 this.handleServerErrors(result, form);
             }
             
@@ -2210,7 +4081,6 @@ class CategoriesManagement {
                 isValid = false;
             }
         });
-        
         return isValid;
     }
 
@@ -2219,15 +4089,37 @@ class CategoriesManagement {
      */
     collectFormData(form) {
         const formData = new FormData(form);
+        
+        const uzName = formData.get('translations[uz][name]');
+        const uzDesc = formData.get('translations[uz][description]');
+        
+        if (!uzName || !uzName.trim()) {
+            this.showError('O\'zbek tilida kategoriya nomi majburiy');
+            const langSelector = form.querySelector('#languageSelector');
+            if (langSelector) langSelector.value = 'uz';
+            form.querySelectorAll('.lang-fields').forEach(field => {
+                field.style.display = field.dataset.lang === 'uz' ? 'block' : 'none';
+            });
+            throw new Error('Uzbek name is required');
+        }
+        
+        if (!uzDesc || !uzDesc.trim()) {
+            this.showError('O\'zbek tilida kategoriya tavsifi majburiy');
+            const langSelector = form.querySelector('#languageSelector');
+            if (langSelector) langSelector.value = 'uz';
+            form.querySelectorAll('.lang-fields').forEach(field => {
+                field.style.display = field.dataset.lang === 'uz' ? 'block' : 'none';
+            });
+            throw new Error('Uzbek description is required');
+        }
+        
+        const multiLangData = this.parseMultiLanguageFormData(formData);
         const data = {};
         
-        // Basic fields
         for (const [key, value] of formData.entries()) {
             if (key.includes('.')) {
-                // Handle nested fields (translations)
                 this.setNestedValue(data, key, value);
             } else if (key === 'allowedCompanyTypes') {
-                // Handle multiple select
                 if (!data[key]) data[key] = [];
                 data[key].push(value);
             } else {
@@ -2235,7 +4127,6 @@ class CategoriesManagement {
             }
         }
         
-        // Handle checkboxes
         const checkboxes = form.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(checkbox => {
             const value = checkbox.checked;
@@ -2246,7 +4137,20 @@ class CategoriesManagement {
             }
         });
         
-        // Structure data according to schema
+        data.translations = multiLangData.translations;
+        data.seoTranslations = multiLangData.seoTranslations;
+        
+        console.log('📦 Collected data before structuring:', {
+            translations: data.translations,
+            hasUzName: !!data.translations?.uz?.name,
+            hasUzDesc: !!data.translations?.uz?.description
+        });
+        
+        // Auto-generate slug from Uzbek name if not provided
+        if (!data.slug || !data.slug.trim()) {
+            data.slug = this.generateSlug(uzName);
+        }
+        
         return this.structureCategoryData(data);
     }
 
@@ -2271,34 +4175,61 @@ class CategoriesManagement {
      * Structure data according to Category schema
      */
     structureCategoryData(data) {
-        return {
-            // Basic Information
-            name: data.name,
+        console.log('🔧 structureCategoryData input:', data);
+        console.log('🔧 data.translations:', data.translations);
+        
+        const uzName = data.translations?.uz?.name || '';
+        const uzDescription = data.translations?.uz?.description || '';
+        
+        console.log('🔧 Extracted uzName:', uzName);
+        console.log('🔧 Extracted uzDescription:', uzDescription);
+        
+        // Determine boolean values (handle checkbox true/false and checkbox checked/unchecked)
+        const isActiveValue = data.isActive === true || data.isActive === 'true';
+        const isVisibleValue = data.isVisible === true || data.isVisible === 'true';
+        const isFeaturedValue = data.isFeatured === true || data.isFeatured === 'true';
+        
+        console.log('🔧 Before structuring - seoTranslations:', data.seoTranslations);
+        
+        const structuredData = {
+            // Basic Information (required by backend validation)
+            name: uzName,
+            description: uzDescription,
             slug: data.slug,
-            description: data.description,
             
             // Visual
             icon: data.icon || 'las la-folder',
             color: data.color || '#3B82F6',
             
-            // Multi-language
+            // Boolean flags at root level (for backend validation)
+            isActive: isActiveValue,
+            isVisible: isVisibleValue,
+            isFeatured: isFeaturedValue,
+            
+            // Multi-language (full translations object)
             translations: data.translations || {},
             
-            // SEO
+            // Multi-language SEO
+            seoTranslations: data.seoTranslations || {},
+            
+            // SEO (legacy/default SEO fields)
             seo: {
-                metaTitle: data.metaTitle || '',
-                metaDescription: data.metaDescription || '',
-                metaKeywords: data.metaKeywords ? data.metaKeywords.split(',').map(k => k.trim()) : []
+                metaTitle: data.seoTranslations?.uz?.metaTitle || data.metaTitle || '',
+                metaDescription: data.seoTranslations?.uz?.metaDescription || data.metaDescription || '',
+                metaKeywords: data.seoTranslations?.uz?.metaKeywords || (data.metaKeywords ? data.metaKeywords.split(',').map(k => k.trim()) : [])
             },
             
-            // Settings
+            // Settings (also include for backwards compatibility)
             settings: {
-                isActive: data.isActive !== false, // Default to true
-                isVisible: data.isVisible !== false, // Default to true
-                isFeatured: data.isFeatured || false,
-                allowProducts: data.allowProducts !== false, // Default to true
+                isActive: isActiveValue,
+                isVisible: isVisibleValue,
+                isFeatured: isFeaturedValue,
+                allowProducts: data.allowProducts !== false,
                 sortOrder: parseInt(data.sortOrder) || 0
             },
+            
+            // Main Status
+            status: data.mainStatus ? 'active' : 'inactive',
             
             // Business Rules
             businessRules: {
@@ -2306,17 +4237,26 @@ class CategoriesManagement {
                 minimumOrderQuantity: parseInt(data.minimumOrderQuantity) || 1
             }
         };
+        
+        console.log('✅ Final structured data seoTranslations:', structuredData.seoTranslations);
+        console.log('✅ Final structured data seo (legacy):', structuredData.seo);
+        
+        return structuredData;
     }
 
     /**
      * Set modal loading state
      */
     setModalLoadingState(loading) {
-        const btn = document.querySelector('#createCategoryBtn');
-        const btnText = btn?.querySelector('.btn-text');
-        const btnLoading = btn?.querySelector('.btn-loading');
+        const createBtn = document.querySelector('#createCategoryBtn');
+        const updateBtn = document.querySelector('#updateCategoryBtn');
         
-        if (btn && btnText && btnLoading) {
+        [createBtn, updateBtn].forEach(btn => {
+            if (btn) {
+                const btnText = btn.querySelector('.btn-text');
+                const btnLoading = btn.querySelector('.btn-loading');
+                
+                if (btnText && btnLoading) {
             btn.disabled = loading;
             
             if (loading) {
@@ -2327,6 +4267,8 @@ class CategoriesManagement {
                 btnLoading.classList.add('d-none');
             }
         }
+            }
+        });
     }
 
     /**
@@ -2423,28 +4365,45 @@ class CategoriesManagement {
     }
 
     showNotification(message, type = 'info') {
-        // Create or update notification
-        let notification = document.getElementById('categories-notification');
-        if (!notification) {
-            notification = document.createElement('div');
-            notification.id = 'categories-notification';
-            notification.className = 'toast-notification';
-            document.body.appendChild(notification);
-        }
+        // Remove existing notifications to prevent memory leaks
+        const existingNotifications = document.querySelectorAll('.toast-notification');
+        existingNotifications.forEach(notification => {
+            notification.remove();
+        });
 
-        notification.className = `toast-notification toast-${type} show`;
+        // Create new notification with unique ID
+        const notificationId = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const notification = document.createElement('div');
+        notification.id = notificationId;
+        notification.className = `toast-notification toast-${type}`;
+        
         notification.innerHTML = `
             <div class="toast-content">
                 <i class="las la-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
+                <span>${this.escapeHtml(message)}</span>
             </div>
-            <button class="toast-close" onclick="this.parentElement.classList.remove('show')">
+            <button class="toast-close" onclick="this.closest('.toast-notification').remove()">
                 <i class="las la-times"></i>
             </button>
         `;
 
+        document.body.appendChild(notification);
+
+        // Show with animation
         setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification && notification.parentNode) {
             notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification && notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300); // Wait for animation to complete
+            }
         }, 5000);
     }
 
@@ -2453,15 +4412,44 @@ class CategoriesManagement {
     }
 
     /**
+     * Get cookie value by name
+     */
+    getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
+
+    /**
+     * Get cookie value by name
+     */
+    getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
+
+    /**
      * API helper methods
      */
     async makeRequest(url, options = {}) {
+        // Get CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        
+        // Get auth token from localStorage or cookies
+        const authToken = localStorage.getItem('adminToken') || this.getCookie('adminToken');
+        
         const defaultOptions = {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken,
+                'Authorization': authToken ? `Bearer ${authToken}` : '',
                 'X-Requested-With': 'XMLHttpRequest'
-            }
+            },
+            credentials: 'same-origin'
         };
 
         // Merge headers properly to avoid overwriting
@@ -2597,6 +4585,10 @@ class CategoriesManagement {
      * Setup professional dropdown management with proper event delegation
      */
     setupDropdownManager() {
+        // Only setup once to avoid duplicate event listeners
+        if (this.dropdownManagerSetup) {
+            return;
+        }
         
         this.activeDropdown = null;
         this.dropdownState = new Map();
@@ -2610,14 +4602,21 @@ class CategoriesManagement {
         // Setup outside click handler
         this.setupOutsideClickHandler();
         
+        // Mark as setup
+        this.dropdownManagerSetup = true;
     }
 
     /**
      * Setup dropdown event delegation with senior engineer approach
      */
     setupDropdownDelegation() {
+        // Remove existing event listener first
+        if (this.dropdownClickHandler) {
+            document.removeEventListener('click', this.dropdownClickHandler);
+        }
+        
         // Professional event delegation for dropdown triggers
-        document.addEventListener('click', (e) => {
+        this.dropdownClickHandler = (e) => {
             const trigger = e.target.closest('[data-dropdown-trigger]');
             if (trigger) {
                 e.preventDefault();
@@ -2644,7 +4643,10 @@ class CategoriesManagement {
                 this.executeDropdownAction(action, categoryId);
                 return;
             }
-        });
+        };
+        
+        // Add the event listener with higher priority (capture mode)
+        document.addEventListener('click', this.dropdownClickHandler, true);
     }
 
     /**
@@ -2712,6 +4714,7 @@ class CategoriesManagement {
 
     /**
      * Close specific dropdown with cleanup
+     * ENHANCED: Better cleanup including parent row class and inline styles
      */
     closeDropdown(categoryId) {
         try {
@@ -2721,11 +4724,23 @@ class CategoriesManagement {
             if (dropdownMenu) {
                 dropdownMenu.classList.remove('show', 'dropdown-menu-animated');
                 dropdownMenu.setAttribute('aria-hidden', 'true');
+                
+                // ENHANCED: Clear inline positioning styles (for fixed positioning)
+                dropdownMenu.style.top = '';
+                dropdownMenu.style.left = '';
+                dropdownMenu.style.right = '';
+                dropdownMenu.style.bottom = '';
             }
             
             if (trigger) {
                 trigger.classList.remove('dropdown-active');
                 trigger.setAttribute('aria-expanded', 'false');
+                
+                // ENHANCED: Clean up parent row class
+                const parentRow = trigger.closest('tr');
+                if (parentRow) {
+                    parentRow.classList.remove('has-active-dropdown');
+                }
             }
             
             // Clean up state
@@ -2741,24 +4756,45 @@ class CategoriesManagement {
 
     /**
      * Close all dropdowns - professional cleanup
+     * ENHANCED: Complete cleanup including parent rows and inline styles
      */
     closeAllDropdowns() {
         try {
             // Close all category dropdowns
             document.querySelectorAll('.category-dropdown-menu.show').forEach(menu => {
+                // Remove focus from any focused element inside the dropdown
+                const focusedElement = menu.querySelector(':focus');
+                if (focusedElement) {
+                    focusedElement.blur();
+                }
+                
                 menu.classList.remove('show', 'dropdown-menu-animated');
                 menu.setAttribute('aria-hidden', 'true');
+                
+                // ENHANCED: Clear inline positioning styles (for fixed positioning)
+                menu.style.top = '';
+                menu.style.left = '';
+                menu.style.right = '';
+                menu.style.bottom = '';
             });
             
             // Clean up all triggers
             document.querySelectorAll('[data-dropdown-trigger]').forEach(trigger => {
                 trigger.classList.remove('dropdown-active');
                 trigger.setAttribute('aria-expanded', 'false');
+                
+                // ENHANCED: Clean up parent row class
+                const parentRow = trigger.closest('tr');
+                if (parentRow) {
+                    parentRow.classList.remove('has-active-dropdown');
+                }
             });
             
             // Reset state
             this.activeDropdown = null;
-            this.dropdownState.clear();
+            if (this.dropdownState && typeof this.dropdownState.clear === 'function') {
+                this.dropdownState.clear();
+            }
             
         } catch (error) {
             console.error('❌ Close all dropdowns error:', error);
@@ -2767,31 +4803,75 @@ class CategoriesManagement {
 
     /**
      * Professional dropdown positioning with viewport detection
+     * ENHANCED: FIXED positioning to escape ALL parent overflow constraints
      */
     positionDropdown(dropdownMenu, trigger) {
         try {
+            // Get trigger position relative to viewport (for fixed positioning)
             const rect = trigger.getBoundingClientRect();
-            const menuRect = dropdownMenu.getBoundingClientRect();
             const viewport = {
                 width: window.innerWidth,
                 height: window.innerHeight
             };
             
-            // Reset positioning classes
-            dropdownMenu.classList.remove('dropdown-up', 'dropdown-left', 'dropdown-right');
+            // Force browser reflow to get accurate menu dimensions
+            dropdownMenu.style.display = 'block';
+            const menuRect = dropdownMenu.getBoundingClientRect();
+            dropdownMenu.style.display = '';
             
-            // Check if dropdown fits below trigger
-            const fitsBelow = rect.bottom + menuRect.height <= viewport.height - 20;
-            const fitsRight = rect.right + menuRect.width <= viewport.width - 20;
+            // Menu dimensions with padding
+            const menuWidth = 200; // min-width from CSS
+            const menuHeight = menuRect.height || 300; // fallback estimate
+            
+            // Reset positioning classes
+            dropdownMenu.classList.remove('dropdown-up');
+            
+            // Calculate positions with intelligent viewport detection
+            const buffer = 20; // Safety margin from viewport edge
+            
+            // VERTICAL POSITIONING
+            let top = rect.bottom + 4; // Default: below trigger
+            const fitsBelow = rect.bottom + menuHeight <= viewport.height - buffer;
             
             if (!fitsBelow) {
+                // Position above if doesn't fit below
+                top = rect.top - menuHeight - 4;
                 dropdownMenu.classList.add('dropdown-up');
+                
+                // If doesn't fit above either, position at top of viewport
+                if (top < buffer) {
+                    top = buffer;
+                    dropdownMenu.classList.remove('dropdown-up');
+                }
             }
             
-            if (!fitsRight) {
-                dropdownMenu.classList.add('dropdown-right');
+            // HORIZONTAL POSITIONING
+            let left = rect.right - menuWidth; // Default: align to right edge of trigger
+            
+            // Check if fits on right side
+            if (left < buffer) {
+                // Align to left edge of trigger if doesn't fit
+                left = rect.left;
+                
+                // If still doesn't fit, align to viewport edge
+                if (left + menuWidth > viewport.width - buffer) {
+                    left = viewport.width - menuWidth - buffer;
+                }
             }
             
+            // Apply fixed positioning via inline styles
+            dropdownMenu.style.top = `${top}px`;
+            dropdownMenu.style.left = `${left}px`;
+            dropdownMenu.style.right = 'auto'; // Override CSS
+            dropdownMenu.style.bottom = 'auto'; // Override CSS
+            
+            // Add parent row class for visual indication
+            const parentRow = trigger.closest('tr');
+            if (parentRow) {
+                parentRow.classList.add('has-active-dropdown');
+            }
+            
+            console.log('✅ Dropdown positioned:', { top, left, viewport, menuSize: { width: menuWidth, height: menuHeight } });
             
         } catch (error) {
             console.error('❌ Dropdown positioning error:', error);
@@ -2800,6 +4880,7 @@ class CategoriesManagement {
 
     /**
      * Setup outside click handler for professional UX
+     * ENHANCED: Added scroll listener for fixed positioning
      */
     setupOutsideClickHandler() {
         document.addEventListener('click', (e) => {
@@ -2823,6 +4904,34 @@ class CategoriesManagement {
                 if (trigger) trigger.focus();
             }
         });
+        
+        // ENHANCED: Close dropdowns on scroll (for fixed positioning)
+        let scrollTimeout;
+        const handleScroll = () => {
+            // Debounce scroll events for performance
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                // Close dropdowns when scrolling (fixed position may become misaligned)
+                if (this.activeDropdown) {
+                    this.closeAllDropdowns();
+                }
+            }, 100);
+        };
+        
+        // Listen to all scroll events (window and table container)
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        
+        // Also listen to table scroll
+        const tableContainer = document.querySelector('.desktop-table-view');
+        if (tableContainer) {
+            tableContainer.addEventListener('scroll', handleScroll, { passive: true });
+        }
+        
+        // Listen to admin content scroll
+        const adminContent = document.querySelector('.admin-content');
+        if (adminContent) {
+            adminContent.addEventListener('scroll', handleScroll, { passive: true });
+        }
     }
 
     /**
@@ -2857,28 +4966,68 @@ class CategoriesManagement {
      */
     executeDropdownAction(action, categoryId) {
         try {
+            // Check if action is already being executed
+            const actionKey = `${action}_${categoryId}`;
+            if (window.executingActions && window.executingActions.has(actionKey)) {
+                return;
+            }
+            
+            // Initialize executing actions set if not exists
+            if (!window.executingActions) {
+                window.executingActions = new Set();
+            }
+            
+            // Add action to executing set
+            window.executingActions.add(actionKey);
             
             switch (action) {
-                case 'toggle-status':
-                    this.toggleCategoryStatus(categoryId);
+                case 'edit':
+                    this.editCategory(categoryId);
                     break;
-                case 'toggle-feature':
-                    this.toggleFeatureStatus(categoryId);
+                case 'analytics':
+                    this.viewAnalytics(categoryId);
+                    break;
+                case 'toggle-active':
+                    this.toggleCategoryActive(categoryId);
+                    break;
+                case 'toggle-visibility':
+                    this.toggleCategoryVisibility(categoryId);
+                    break;
+                case 'toggle-main-status':
+                    this.toggleCategoryMainStatus(categoryId);
                     break;
                 case 'duplicate':
                     this.duplicateCategory(categoryId);
                     break;
-                case 'archive':
-                    this.archiveCategory(categoryId);
+                case 'delete':
+                    this.deleteCategory(categoryId);
+                    break;
+                case 'restore':
+                    this.restoreCategory(categoryId);
+                    break;
+                case 'permanent-delete':
+                    this.permanentDeleteCategory(categoryId);
                     break;
                 default:
                     console.warn(`⚠️ Unknown dropdown action: ${action}`);
                     this.showError(`Unknown action: ${action}`);
             }
             
+            // Remove action from executing set after completion
+            setTimeout(() => {
+                if (window.executingActions) {
+                    window.executingActions.delete(actionKey);
+                }
+            }, 1000); // Wait 1 second before allowing same action again
+            
         } catch (error) {
             console.error(`❌ Error executing action ${action}:`, error);
             this.showError(`Failed to execute ${action}`);
+            
+            // Remove action from executing set on error
+            if (window.executingActions) {
+                window.executingActions.delete(actionKey);
+            }
         }
     }
 
@@ -2886,13 +5035,30 @@ class CategoriesManagement {
      * Remove existing dropdown listeners to prevent duplicates
      */
     removeDropdownListeners() {
-        // Clean up any existing listeners
-        const existingTriggers = document.querySelectorAll('[data-dropdown-trigger]');
-        existingTriggers.forEach(trigger => {
-            // Clone node to remove all event listeners
-            const newTrigger = trigger.cloneNode(true);
-            trigger.parentNode.replaceChild(newTrigger, trigger);
-        });
+        // Remove document-level event listener
+        if (this.dropdownClickHandler) {
+            document.removeEventListener('click', this.dropdownClickHandler, true);
+            this.dropdownClickHandler = null;
+        }
+        
+        // Remove outside click handler
+        if (this.outsideClickHandler) {
+            document.removeEventListener('click', this.outsideClickHandler, true);
+            this.outsideClickHandler = null;
+        }
+        
+        // Close all open dropdowns
+        this.closeAllDropdowns();
+    }
+
+    /**
+     * Escape HTML to prevent XSS attacks
+     */
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 }
 
@@ -2901,6 +5067,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof CategoriesManagement !== 'undefined') {
         window.categoriesManager = new CategoriesManagement();
         window.categoriesManager.init();
+        
+        // Global function for EJS onclick
+        window.openCreateCategoryModal = function() {
+            if (window.categoriesManager) {
+                // Check if modal is already being created
+                if (window.categoriesManager.isCreatingModal) {
+                    return;
+                }
+                window.categoriesManager.showCreateModal();
+            } else {
+                console.error('❌ categoriesManager not found');
+            }
+        };
     }
 });
 

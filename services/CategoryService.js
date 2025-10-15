@@ -161,6 +161,7 @@ class CategoryService {
     try {
       const [
         totalCategories,
+        deletedCategories,
         statusStats,
         levelStats,
         recentCategories,
@@ -169,6 +170,9 @@ class CategoryService {
       ] = await Promise.all([
         // Total categories count
         Category.countDocuments(),
+        
+        // Deleted categories count
+        Category.countDocuments({ status: 'deleted' }),
         
         // Status distribution
         Category.aggregate([
@@ -250,7 +254,7 @@ class CategoryService {
             active: statusCounts.active || 0,
             inactive: statusCounts.inactive || 0,
             draft: statusCounts.draft || 0,
-            archived: statusCounts.archived || 0,
+            deleted: deletedCategories,
             recentlyAdded: recentCategories
           },
           statusDistribution: Object.entries(statusCounts).map(([status, count]) => ({
@@ -280,13 +284,96 @@ class CategoryService {
   }
 
   /**
+   * Get category by ID
+   */
+  static async getCategoryById(adminId, categoryId) {
+    try {
+      // Validate input parameters
+      if (!adminId || !categoryId) {
+        throw new Error('Admin ID and Category ID are required');
+      }
+
+      // Check if category exists and is not soft deleted
+      const category = await Category.findOne({
+        _id: categoryId,
+        // Exclude soft deleted categories if you have a deletedAt field
+        // deletedAt: { $exists: false }
+      }).select('-__v -auditLog'); // Exclude version and audit log for performance
+      
+      if (!category) {
+        throw new Error('Category not found or has been deleted');
+      }
+
+      // Ensure seoTranslations has all required fields with defaults
+      const ensureSeoTranslations = (seoTranslations) => {
+        const langs = ['uz', 'en', 'ru', 'tr', 'fa', 'zh'];
+        const result = {};
+        
+        langs.forEach(lang => {
+          result[lang] = {
+            metaTitle: seoTranslations?.[lang]?.metaTitle || '',
+            metaDescription: seoTranslations?.[lang]?.metaDescription || '',
+            metaKeywords: seoTranslations?.[lang]?.metaKeywords || []
+          };
+        });
+        
+        return result;
+      };
+
+      // Sanitize sensitive data
+      const sanitizedCategory = {
+        _id: category._id,
+        name: category.name,
+        slug: category.slug,
+        description: category.description,
+        icon: category.icon,
+        color: category.color,
+        image: category.image,
+        banner: category.banner,
+        translations: category.translations || {},
+        seoTranslations: ensureSeoTranslations(category.seoTranslations),
+        metrics: category.metrics,
+        seo: category.seo,
+        settings: category.settings,
+        businessRules: category.businessRules,
+        content: category.content,
+        status: category.status,
+        createdAt: category.createdAt,
+        updatedAt: category.updatedAt,
+        createdBy: category.createdBy,
+        lastModifiedBy: category.lastModifiedBy
+      };
+
+      return {
+        success: true,
+        message: 'Category retrieved successfully',
+        data: sanitizedCategory
+      };
+    } catch (error) {
+      console.error('❌ Error in getCategoryById:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Create new category
    */
   static async createCategory(adminId, categoryData) {
     try {
+      console.log('📥 Received categoryData:', JSON.stringify(categoryData, null, 2));
+      
+      // Validate Uzbek translations (mandatory)
+      if (!categoryData.translations?.uz?.name || !categoryData.translations?.uz?.description) {
+        throw new Error('O\'zbek tilida kategoriya nomi va tavsif majburiy');
+      }
+
+      // Use Uzbek translation as base name and description if not provided
+      const baseName = categoryData.name || categoryData.translations.uz.name;
+      const baseDescription = categoryData.description || categoryData.translations.uz.description;
+
       // Generate slug if not provided
       if (!categoryData.slug) {
-        categoryData.slug = categoryData.name
+        categoryData.slug = baseName
           .toLowerCase()
           .replace(/[^a-z0-9\s-]/g, '')
           .replace(/\s+/g, '-')
@@ -303,14 +390,17 @@ class CategoryService {
       }
       categoryData.slug = finalSlug;
 
-      // Create category with simplified structure
+      console.log('💾 Saving seoTranslations:', categoryData.seoTranslations);
+
+      // Create category with multi-language support
       const category = new Category({
-        name: categoryData.name,
+        name: baseName,
         slug: finalSlug,
-        description: categoryData.description,
+        description: baseDescription,
         icon: categoryData.icon || 'las la-folder',
         color: categoryData.color || '#3B82F6',
         translations: categoryData.translations || {},
+        seoTranslations: categoryData.seoTranslations || {},
         seo: categoryData.seo || {},
         settings: {
           isActive: categoryData.settings?.isActive !== false,
@@ -330,6 +420,10 @@ class CategoryService {
       category.addAuditLog('created', adminId, categoryData, 'Category created by admin');
 
       await category.save();
+      
+      console.log('✅ Category saved with seoTranslations:', category.seoTranslations);
+      
+      this.clearCategoryCache();
 
       return {
         success: true,
@@ -377,9 +471,8 @@ class CategoryService {
       category.addAuditLog('updated', adminId, changes, 'Category updated by admin');
 
       await category.save();
-
-      // Update metrics
       await category.updateMetrics();
+      this.clearCategoryCache();
 
       return {
         success: true,
@@ -418,11 +511,8 @@ class CategoryService {
       category.addAuditLog('deleted', adminId, {}, reason);
       await category.save();
 
-      // Soft delete by changing status
-      category.status = 'archived';
-      category.settings.isActive = false;
-      category.settings.isVisible = false;
-      await category.save();
+      await Category.findByIdAndDelete(categoryId);
+      this.clearCategoryCache();
 
       return {
         success: true,
@@ -486,26 +576,6 @@ class CategoryService {
           updateFields = { 
             status: 'inactive',
             'settings.isActive': false,
-            lastModifiedBy: adminId
-          };
-          break;
-        case 'feature':
-          updateFields = { 
-            'settings.isFeatured': true,
-            lastModifiedBy: adminId
-          };
-          break;
-        case 'unfeature':
-          updateFields = { 
-            'settings.isFeatured': false,
-            lastModifiedBy: adminId
-          };
-          break;
-        case 'archive':
-          updateFields = { 
-            status: 'archived',
-            'settings.isActive': false,
-            'settings.isVisible': false,
             lastModifiedBy: adminId
           };
           break;
@@ -758,6 +828,742 @@ class CategoryService {
     }
 
     return filter;
+  }
+
+  /**
+   * Toggle category status (active/inactive)
+   */
+  static async toggleCategoryStatus(adminId, categoryId) {
+    try {
+      // Validate input parameters
+      if (!adminId || !categoryId) {
+        throw new Error('Admin ID and Category ID are required');
+      }
+
+      // Validate MongoDB ObjectId format
+      if (!categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new Error('Invalid category ID format');
+      }
+
+      // Check if category exists
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        throw new Error('Category not found');
+      }
+
+      // Check if admin has permission to modify this category
+      // (You can add more sophisticated permission checks here)
+      
+      // Rate limiting check (optional - you can implement more sophisticated rate limiting)
+      const recentUpdates = category.auditLog?.filter(log => 
+        log.performedBy === adminId && 
+        new Date() - new Date(log.performedAt || log.timestamp) < 60000 // 1 minute
+      ) || [];
+      
+      if (recentUpdates.length > 10) {
+        throw new Error('Too many updates in a short time. Please wait before trying again.');
+      }
+
+      // Debug logging (remove in production)
+      console.log('🔧 Current category settings:', category.settings);
+      console.log('🔧 Current isActive status:', category.settings?.isActive);
+
+      // Toggle the status - handle undefined settings
+      const currentStatus = category.settings?.isActive ?? true; // Default to true if undefined
+      const newStatus = !currentStatus;
+      
+      console.log('🔧 Toggling from', currentStatus, 'to', newStatus);
+      
+      // Update category status - ensure settings object exists
+      const updateQuery = {
+        $set: {
+          'settings.isActive': newStatus
+        },
+        $push: {
+          auditLog: {
+            action: newStatus ? 'activated' : 'deactivated',
+            performedBy: adminId,
+            performedAt: new Date(),
+            reason: `Category ${newStatus ? 'activated' : 'deactivated'} by admin`
+          }
+        } 
+      };
+
+      // If settings object doesn't exist, create it
+      if (!category.settings) {
+        updateQuery.$set.settings = {
+          isActive: newStatus,
+          isVisible: true,
+          allowProducts: true,
+          requireApproval: false,
+          sortOrder: 0
+        };
+      }
+
+      const updatedCategory = await Category.findByIdAndUpdate(
+        categoryId,
+        updateQuery,
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedCategory) {
+        throw new Error('Failed to update category status');
+      }
+
+      console.log('🔧 Updated category settings:', updatedCategory.settings);
+      console.log('🔧 Updated isActive status:', updatedCategory.settings.isActive);
+
+      return {
+        success: true,
+        data: {
+          categoryId: updatedCategory._id,
+          isActive: updatedCategory.settings.isActive,
+          status: updatedCategory.settings.isActive ? 'active' : 'inactive'
+        },
+        message: `Category ${newStatus ? 'activated' : 'deactivated'} successfully`
+      };
+
+    } catch (error) {
+      console.error('Error in toggleCategoryStatus:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Toggle category visibility (visible/hidden)
+   */
+  static async toggleCategoryVisibility(adminId, categoryId) {
+    try {
+      // Validate input parameters
+      if (!adminId || !categoryId) {
+        throw new Error('Admin ID and Category ID are required');
+      }
+
+      // Validate MongoDB ObjectId format
+      if (!categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new Error('Invalid category ID format');
+      }
+
+      // Check if category exists
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        throw new Error('Category not found');
+      }
+
+      // Check if admin has permission to modify this category
+      
+      // Rate limiting check
+      const recentUpdates = category.auditLog?.filter(log => 
+        log.performedBy === adminId && 
+        new Date() - new Date(log.performedAt || log.timestamp) < 60000 // 1 minute
+      ) || [];
+      
+      if (recentUpdates.length > 10) {
+        throw new Error('Too many updates in a short time. Please wait before trying again.');
+      }
+
+      console.log('🔧 Current category visibility:', category.settings?.isVisible);
+
+      // Toggle the visibility - handle undefined settings
+      const currentVisibility = category.settings?.isVisible ?? true; // Default to true if undefined
+      const newVisibility = !currentVisibility;
+      
+      console.log('🔧 Toggling visibility from', currentVisibility, 'to', newVisibility);
+      
+      // Update category visibility - ensure settings object exists
+      const updateQuery = {
+        $set: {
+          'settings.isVisible': newVisibility
+        },
+        $push: {
+          auditLog: {
+            action: newVisibility ? 'made_visible' : 'made_hidden',
+            performedBy: adminId,
+            performedAt: new Date(),
+            reason: `Category ${newVisibility ? 'made visible' : 'made hidden'} by admin`
+          }
+        }
+      };
+
+      // If settings object doesn't exist, create it
+      if (!category.settings) {
+        updateQuery.$set.settings = {
+          isActive: true,
+          isVisible: newVisibility,
+          allowProducts: true,
+          requireApproval: false,
+          sortOrder: 0
+        };
+      }
+
+      const updatedCategory = await Category.findByIdAndUpdate(
+        categoryId,
+        updateQuery,
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedCategory) {
+        throw new Error('Failed to update category visibility');
+      }
+
+      console.log('🔧 Updated category visibility:', updatedCategory.settings.isVisible);
+
+      return {
+        success: true,
+        data: {
+          categoryId: updatedCategory._id,
+          isVisible: updatedCategory.settings.isVisible,
+          visibility: updatedCategory.settings.isVisible ? 'visible' : 'hidden'
+        },
+        message: `Category ${newVisibility ? 'made visible' : 'made hidden'} successfully`
+      };
+
+    } catch (error) {
+      console.error('Error in toggleCategoryVisibility:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Toggle category main status (active/inactive/draft)
+   */
+  static async toggleCategoryMainStatus(adminId, categoryId) {
+    try {
+      // Validate input parameters
+      if (!adminId || !categoryId) {
+        throw new Error('Admin ID and Category ID are required');
+      }
+
+      // Validate MongoDB ObjectId format
+      if (!categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new Error('Invalid category ID format');
+      }
+
+      // Check if category exists
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        throw new Error('Category not found');
+      }
+
+      // Check if admin has permission to modify this category
+      
+      // Rate limiting check
+      const recentUpdates = category.auditLog?.filter(log => 
+        log.performedBy === adminId && 
+        new Date() - new Date(log.performedAt || log.timestamp) < 60000 // 1 minute
+      ) || [];
+      
+      if (recentUpdates.length > 10) {
+        throw new Error('Too many updates in a short time. Please wait before trying again.');
+      }
+
+      const currentStatus = category.status;
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+      
+      const updateQuery = {
+        $set: {
+          status: newStatus
+        },
+        $push: {
+          auditLog: {
+            action: newStatus === 'active' ? 'activated' : 'deactivated',
+            performedBy: adminId,
+            performedAt: new Date(),
+            reason: `Category main status ${newStatus === 'active' ? 'activated' : 'deactivated'} by admin`
+          }
+        }
+      };
+
+      const updatedCategory = await Category.findByIdAndUpdate(
+        categoryId,
+        updateQuery,
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedCategory) {
+        throw new Error('Failed to update category main status');
+      }
+
+      this.clearCategoryCache();
+
+      if (newStatus === 'inactive') {
+        try {
+          const Product = mongoose.model('Product');
+          const affectedCount = await Product.countDocuments({ 
+            category: categoryId,
+            status: { $ne: 'deleted' }
+          });
+          
+          if (affectedCount > 0) {
+            console.log(`Category inactive: ${affectedCount} products affected`);
+          }
+        } catch (notifyError) {
+          console.warn('Notification warning:', notifyError.message);
+        }
+      }
+
+      return {
+        success: true,
+        data: {
+          categoryId: updatedCategory._id,
+          status: updatedCategory.status
+        },
+        message: `Category ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`
+      };
+
+    } catch (error) {
+      console.error('Error in toggleCategoryMainStatus:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete category with safety checks
+   * Senior Software Engineer Implementation
+   */
+  static async deleteCategory(adminId, categoryId, forceDelete = false) {
+    try {
+      // Validate input parameters
+      if (!adminId || !categoryId) {
+        throw new Error('Admin ID and Category ID are required');
+      }
+
+      // Validate MongoDB ObjectId format
+      if (!categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new Error('Invalid category ID format');
+      }
+
+      // Check if category exists
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        throw new Error('Category not found');
+      }
+
+      // Safety Check 1: Check if category has products
+      const productCount = await Product.countDocuments({ 
+        category: categoryId,
+        status: { $ne: 'deleted' }
+      });
+
+      if (productCount > 0 && !forceDelete) {
+        throw new Error(`Cannot delete category. It contains ${productCount} active products. Please move or delete all products first.`);
+      }
+
+      // Safety Check 2: Check if category has child categories
+      const childCount = await Category.countDocuments({ 
+        parentCategory: categoryId,
+        status: { $ne: 'deleted' }
+      });
+
+      if (childCount > 0 && !forceDelete) {
+        throw new Error(`Cannot delete category. It has ${childCount} child categories. Please delete or move child categories first.`);
+      }
+
+      // Safety Check 3: Check if category is system default
+      if (category.isSystemDefault && !forceDelete) {
+        throw new Error('Cannot delete system default category');
+      }
+
+
+      // Always perform soft delete first (professional approach)
+      const updateQuery = {
+        $set: {
+          status: 'deleted',
+          deletedAt: new Date(),
+          deletedBy: adminId
+        },
+        $push: {
+          auditLog: {
+            action: 'deleted',
+            performedBy: adminId,
+            performedAt: new Date(),
+            reason: forceDelete ? 'Force deleted by admin' : 'Deleted by admin',
+            metadata: {
+              productCount,
+              childCount,
+              forceDelete
+            }
+          }
+        }
+      };
+
+      // Soft delete the category
+      const updatedCategory = await Category.findByIdAndUpdate(
+        categoryId,
+        updateQuery,
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedCategory) {
+        throw new Error('Failed to delete category');
+      }
+
+      this.clearCategoryCache();
+
+      return {
+        success: true,
+        data: {
+          categoryId: updatedCategory._id,
+          name: updatedCategory.name,
+          status: updatedCategory.status,
+          deletedAt: updatedCategory.deletedAt,
+          deletedBy: updatedCategory.deletedBy,
+          forceDelete: false
+        },
+        message: `Category "${category.name}" deleted successfully. It can be restored from the deleted categories tab.`
+      };
+
+    } catch (error) {
+      console.error('Error in deleteCategory:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get category deletion safety info
+   */
+  static async getCategoryDeletionInfo(categoryId) {
+    try {
+      // Validate input parameters
+      if (!categoryId) {
+        throw new Error('Category ID is required');
+      }
+
+      // Validate MongoDB ObjectId format
+      if (!categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new Error('Invalid category ID format');
+      }
+
+      // Check if category exists
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        throw new Error('Category not found');
+      }
+
+      // Get product count
+      const productCount = await Product.countDocuments({ 
+        category: categoryId,
+        status: { $ne: 'deleted' }
+      });
+
+      // Get child categories count
+      const childCount = await Category.countDocuments({ 
+        parentCategory: categoryId,
+        status: { $ne: 'deleted' }
+      });
+
+      // Check if it's system default
+      const isSystemDefault = category.isSystemDefault || false;
+
+      return {
+        success: true,
+        data: {
+          categoryId: category._id,
+          name: category.name,
+          productCount,
+          childCount,
+          isSystemDefault,
+          canDelete: productCount === 0 && childCount === 0 && !isSystemDefault,
+          warnings: [
+            ...(productCount > 0 ? [`Contains ${productCount} products`] : []),
+            ...(childCount > 0 ? [`Has ${childCount} child categories`] : []),
+            ...(isSystemDefault ? ['System default category'] : [])
+          ]
+        }
+      };
+
+    } catch (error) {
+      console.error('Error in getCategoryDeletionInfo:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Restore soft deleted category
+   * Senior Software Engineer Implementation
+   */
+  static async restoreCategory(adminId, categoryId) {
+    try {
+      // Validate input parameters
+      if (!adminId || !categoryId) {
+        throw new Error('Admin ID and Category ID are required');
+      }
+
+      // Validate MongoDB ObjectId format
+      if (!categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new Error('Invalid category ID format');
+      }
+
+      // Check if category exists and is soft deleted
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        throw new Error('Category not found');
+      }
+
+      if (category.status !== 'deleted') {
+        throw new Error('Category is not deleted. Only deleted categories can be restored.');
+      }
+
+      // Check if category name/slug conflicts with existing active categories
+      const existingCategory = await Category.findOne({
+        _id: { $ne: categoryId },
+        status: { $ne: 'deleted' },
+        $or: [
+          { name: { $regex: new RegExp(`^${category.name}$`, 'i') } },
+          { slug: { $regex: new RegExp(`^${category.slug}$`, 'i') } }
+        ]
+      });
+
+      if (existingCategory) {
+        throw new Error(`Cannot restore category. A category with name "${category.name}" or slug "${category.slug}" already exists.`);
+      }
+
+      // Log the restoration attempt
+      console.log(`🔧 Admin ${adminId} attempting to restore category: ${category.name} (${categoryId})`);
+
+      // Restore the category
+      const updateQuery = {
+        $set: {
+          status: 'active',
+          deletedAt: null,
+          deletedBy: null
+        },
+        $push: {
+          auditLog: {
+            action: 'restored',
+            performedBy: adminId,
+            performedAt: new Date(),
+            reason: 'Category restored by admin'
+          }
+        }
+      };
+
+      const restoredCategory = await Category.findByIdAndUpdate(
+        categoryId,
+        updateQuery,
+        { new: true, runValidators: true }
+      );
+
+      if (!restoredCategory) {
+        throw new Error('Failed to restore category');
+      }
+
+      console.log(`🔧 Category restored: ${category.name}`);
+
+      return {
+        success: true,
+        data: {
+          categoryId: restoredCategory._id,
+          name: restoredCategory.name,
+          status: restoredCategory.status,
+          restoredAt: new Date()
+        },
+        message: `Category "${category.name}" restored successfully`
+      };
+
+    } catch (error) {
+      console.error('Error in restoreCategory:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Permanently delete category (hard delete)
+   * Senior Software Engineer Implementation
+   */
+  static async permanentDeleteCategory(adminId, categoryId) {
+    try {
+      // Validate input parameters
+      if (!adminId || !categoryId) {
+        throw new Error('Admin ID and Category ID are required');
+      }
+
+      // Validate MongoDB ObjectId format
+      if (!categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new Error('Invalid category ID format');
+      }
+
+      // Check if category exists
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        throw new Error('Category not found');
+      }
+
+      // Additional safety check: Only allow permanent delete for soft deleted categories
+      if (category.status !== 'deleted') {
+        throw new Error('Only soft deleted categories can be permanently deleted. Please delete the category first.');
+      }
+
+      // Final safety check: Check if category has products (even soft deleted ones)
+      const productCount = await Product.countDocuments({ 
+        category: categoryId
+      });
+
+      if (productCount > 0) {
+        throw new Error(`Cannot permanently delete category. It still has ${productCount} products associated with it. Please handle the products first.`);
+      }
+
+      // Log the permanent deletion attempt
+      console.log(`🔧 Admin ${adminId} attempting to permanently delete category: ${category.name} (${categoryId})`);
+      console.log(`🔧 Product count: ${productCount}`);
+
+      // Store category info for audit before deletion
+      const categoryInfo = {
+        _id: category._id,
+        name: category.name,
+        slug: category.slug,
+        deletedAt: category.deletedAt,
+        deletedBy: category.deletedBy
+      };
+
+      // Permanently delete the category
+      const deletedCategory = await Category.findByIdAndDelete(categoryId);
+
+      if (!deletedCategory) {
+        throw new Error('Failed to permanently delete category');
+      }
+
+      console.log(`🔧 Category permanently deleted: ${categoryInfo.name}`);
+
+      return {
+        success: true,
+        data: {
+          categoryId: deletedCategory._id,
+          name: categoryInfo.name,
+          permanentlyDeletedAt: new Date()
+        },
+        message: `Category "${categoryInfo.name}" permanently deleted from database`
+      };
+
+    } catch (error) {
+      console.error('Error in permanentDeleteCategory:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get soft deleted categories
+   */
+  static async getSoftDeletedCategories(adminId, options = {}) {
+    try {
+      // Validate adminId
+      if (!adminId) {
+        throw new Error('Admin ID is required');
+      }
+
+      const { page = 1, limit = 10, search = '' } = options;
+      const skip = (page - 1) * limit;
+
+      // Build query for soft deleted categories
+      const query = {
+        status: 'deleted'
+      };
+
+      // Add search functionality
+      if (search) {
+        query.$or = [
+          { name: { $regex: search, $options: 'i' } },
+          { slug: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } }
+        ];
+      }
+
+      // Get soft deleted categories with pagination
+      const categories = await Category.find(query)
+        .populate('deletedBy', 'name email')
+        .populate('createdBy', 'name email')
+        .sort({ deletedAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+
+      // Add product statistics for each category
+      for (let category of categories) {
+        try {
+          // Get product count for this category
+          const productCount = await Product.countDocuments({ 
+            category: category._id,
+            status: { $ne: 'deleted' }
+          });
+          
+          const activeProductCount = await Product.countDocuments({ 
+            category: category._id,
+            status: 'active'
+          });
+
+          // Get total revenue for this category
+          const revenueResult = await Product.aggregate([
+            { $match: { category: category._id, status: 'active' } },
+            { $group: { _id: null, totalRevenue: { $sum: '$price' } } }
+          ]);
+
+          const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
+
+          // Add calculated fields
+          category.productStats = {
+            total: productCount,
+            active: activeProductCount,
+            inactive: productCount - activeProductCount,
+            revenue: totalRevenue
+          };
+
+          category.metrics = {
+            totalProducts: productCount,
+            totalRevenue: totalRevenue,
+            averagePrice: productCount > 0 ? totalRevenue / productCount : 0
+          };
+        } catch (error) {
+          console.error(`Error calculating stats for category ${category._id}:`, error);
+          // Set default values
+          category.productStats = {
+            total: 0,
+            active: 0,
+            inactive: 0,
+            revenue: 0
+          };
+          category.metrics = {
+            totalProducts: 0,
+            totalRevenue: 0,
+            averagePrice: 0
+          };
+        }
+      }
+
+      // Get total count
+      const totalCount = await Category.countDocuments(query);
+
+      return {
+        success: true,
+        data: {
+          categories,
+          pagination: {
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / limit),
+            totalCount,
+            hasNext: page < Math.ceil(totalCount / limit),
+            hasPrev: page > 1
+          }
+        },
+        message: `Found ${totalCount} soft deleted categories`
+      };
+
+    } catch (error) {
+      console.error('Error in getSoftDeletedCategories:', error);
+      throw error;
+    }
+  }
+
+  static clearCategoryCache() {
+    try {
+      const ManufacturerService = require('./ManufacturerService');
+      const service = new ManufacturerService();
+      if (service.cache) {
+        service.cache.delete('active_categories');
+        service.cache.delete('all_categories_with_status');
+      }
+    } catch (error) {
+      console.warn('Cache clear warning:', error.message);
+    }
   }
 }
 

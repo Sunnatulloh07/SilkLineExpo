@@ -3334,7 +3334,11 @@ class ManufacturerService {
     }
     
     if (productData.category && ObjectId.isValid(productData.category)) {
-      sanitized.category = new ObjectId(productData.category);
+      const Category = mongoose.model('Category');
+      const category = await Category.findById(productData.category).lean();
+      if (category) {
+        sanitized.category = new ObjectId(productData.category);
+      }
     }
     
     // Pricing - only validate if provided, set defaults for draft
@@ -3439,6 +3443,21 @@ class ManufacturerService {
       throw new Error('Valid category must be selected');
     }
     sanitized.category = new ObjectId(productData.category);
+    
+    const Category = mongoose.model('Category');
+    const category = await Category.findById(sanitized.category).lean();
+    
+    if (!category) {
+      throw new Error('Tanlangan kategoriya topilmadi yoki o\'chirilgan');
+    }
+    
+    if (category.status !== 'active') {
+      throw new Error(`Bu kategoriya ${category.status} holatida. Faqat faol kategoriyalarga mahsulot qo'shish mumkin.`);
+    }
+    
+    if (category.settings?.allowProducts === false) {
+      throw new Error('Bu kategoriyaga mahsulot qo\'shish taqiqlangan.');
+    }
     
     // Optional fields with defaults
     sanitized.shortDescription = productData.shortDescription?.trim() || '';
@@ -9686,6 +9705,52 @@ class ManufacturerService {
 
             return categories;
         } catch (error) {
+            return [];
+        }
+    }
+    
+    async getAllCategoriesWithStatus() {
+        try {
+            const cacheKey = 'all_categories_with_status';
+            
+            if (this.cache.has(cacheKey)) {
+                const cached = this.cache.get(cacheKey);
+                if (Date.now() - cached.timestamp < this.cacheTimeout) {
+                    return cached.data;
+                }
+            }
+
+            const categories = await Category.find({ status: { $ne: 'deleted' } })
+                .select('name slug parentCategory description status settings')
+                .sort({ name: 1 })
+                .lean();
+            
+            const statusOrder = { active: 0, inactive: 1, draft: 2 };
+            const sorted = categories.sort((a, b) => {
+                const orderDiff = statusOrder[a.status] - statusOrder[b.status];
+                return orderDiff !== 0 ? orderDiff : a.name.localeCompare(b.name);
+            });
+            
+            const categoriesWithFlags = sorted.map(cat => {
+                const statusLabels = { inactive: 'Nofaol', draft: 'Qoralama' };
+                return {
+                    ...cat,
+                    isActive: cat.status === 'active',
+                    isInactive: cat.status === 'inactive',
+                    isDraft: cat.status === 'draft',
+                    canAddProducts: cat.status === 'active' && cat.settings?.allowProducts !== false,
+                    displayName: cat.name + (statusLabels[cat.status] ? ` (${statusLabels[cat.status]})` : '')
+                };
+            });
+
+            this.cache.set(cacheKey, {
+                data: categoriesWithFlags,
+                timestamp: Date.now()
+            });
+
+            return categoriesWithFlags;
+        } catch (error) {
+            console.error('Error in getAllCategoriesWithStatus:', error);
             return [];
         }
     }
