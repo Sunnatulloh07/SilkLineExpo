@@ -9,7 +9,15 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed": "node scripts/comprehensive-seeder.js",
     "seed-real": "node scripts/seed-real-data.js",
-    "create-admin": "node scripts/create-super-admin.js"
+    "create-admin": "node scripts/create-super-admin.js",
+    "build": "echo 'No build step required for Node.js'",
+    "docker:build": "docker build -t slex-platform .",
+    "docker:up": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:down": "docker-compose -f docker-compose.prod.yml down",
+    "docker:logs": "docker-compose -f docker-compose.prod.yml logs -f",
+    "docker:restart": "docker-compose -f docker-compose.prod.yml restart",
+    "prod:deploy": "npm run docker:build && npm run docker:up",
+    "prod:update": "git pull && npm run docker:build && npm run docker:restart"
   },
   "keywords": [
     "b2b",
