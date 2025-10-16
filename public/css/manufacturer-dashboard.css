@@ -39,6 +39,54 @@
   --header-height: 64px;
 }
 
+/* Product Header - Edit Page Styling */
+.product-header {
+  background: var(--gradient-primary, linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)) !important;
+  color: white !important;
+  padding: 2rem !important;
+  border-radius: 16px !important;
+  margin-bottom: 2rem !important;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.product-header::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="0.5" fill="%23ffffff" fill-opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') !important;
+  opacity: 0.3 !important;
+}
+
+.product-header .header-content {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.product-header .page-title {
+  color: rgba(255, 255, 255, 0.95) !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+  margin: 0 0 0.5rem 0 !important;
+}
+
+.product-header .page-subtitle {
+  color: rgba(255, 255, 255, 0.8) !important;
+  margin: 0 !important;
+}
+
+/* Dark Mode Product Header */
+[data-theme="dark"] .product-header {
+  background: linear-gradient(135deg, #1e40af, #7c3aed) !important;
+}
+
+[data-theme="dark"] .product-header::before {
+  opacity: 0.2 !important;
+}
+
 /* Message Dropdown Styles */
 .messages-dropdown {
   width: 380px;

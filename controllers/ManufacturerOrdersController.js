@@ -297,8 +297,7 @@ class ManufacturerOrdersController {
                             sku: 'IND-EQ-001-PRO',
                             description: 'Professional grade industrial equipment designed for high-performance manufacturing environments with advanced safety features.',
                             images: [
-                                { url: '/img/product-logo/almas1.jpg', alt: 'Industrial Equipment A', isPrimary: true },
-                                { url: '/img/product-logo/almas2.jpg', alt: 'Industrial Equipment A - Side view', isPrimary: false }
+                                { url: '/assets/images/thumbs/product-placeholder.png', alt: 'Product Image', isPrimary: true }
                             ],
                             category: { 
                                 _id: '507f1f77bcf86cd799439001',
@@ -325,8 +324,7 @@ class ManufacturerOrdersController {
                             sku: 'MFG-TL-002-SET',
                             description: 'Complete set of premium manufacturing tools designed for precision work in industrial environments.',
                             images: [
-                                { url: '/img/product-logo/hamroh1.jpg', alt: 'Manufacturing Tools', isPrimary: true },
-                                { url: '/img/product-logo/hamroh2.jpg', alt: 'Manufacturing Tools - Detail view', isPrimary: false }
+                                { url: '/assets/images/thumbs/product-placeholder.png', alt: 'Product Image', isPrimary: true }
                             ],
                             category: { 
                                 _id: '507f1f77bcf86cd799439002',
@@ -353,8 +351,7 @@ class ManufacturerOrdersController {
                             sku: 'SFT-EQ-003-KIT',
                             description: 'Comprehensive safety equipment bundle including protective gear and monitoring devices for industrial safety.',
                             images: [
-                                { url: '/img/product-logo/qozon1.jpg', alt: 'Safety Equipment', isPrimary: true },
-                                { url: '/img/product-logo/qozon2.jpg', alt: 'Safety Equipment - Kit view', isPrimary: false }
+                                { url: '/assets/images/thumbs/product-placeholder.png', alt: 'Product Image', isPrimary: true }
                             ],
                             category: { 
                                 _id: '507f1f77bcf86cd799439003',
@@ -381,7 +378,7 @@ class ManufacturerOrdersController {
                             sku: 'CTL-SYS-004-ADV',
                             description: 'State-of-the-art control systems for industrial automation with remote monitoring capabilities.',
                             images: [
-                                { url: '/img/product-logo/sany1.webp', alt: 'Automation System', isPrimary: true }
+                                { url: '/assets/images/thumbs/product-placeholder.png', alt: 'Product Image', isPrimary: true }
                             ],
                             category: { 
                                 _id: '507f1f77bcf86cd799439004',

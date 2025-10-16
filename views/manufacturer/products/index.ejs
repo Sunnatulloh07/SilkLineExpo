@@ -584,10 +584,10 @@
                             <i class="fas fa-edit"></i>
                           </button>
                           <div class="table-more-actions">
-                            <button class="table-action-btn dropdown-toggle" data-product-id="<%= product._id %>" title="<%= t('manufacturer.products.actions.moreActions') %>">
+                            <button class="table-action-btn dropdown-toggle" data-dropdown-trigger="<%= product._id %>" title="<%= t('manufacturer.products.actions.moreActions') %>">
                               <i class="fas fa-ellipsis-v"></i>
                             </button>
-                            <div class="table-more-menu hidden">
+                            <div class="table-more-menu" data-dropdown-menu="<%= product._id %>">
                               <!-- Marketplace Actions -->
                               <% if (product.visibility === 'public') { %>
                                 <button class="table-more-item warning" data-action="unpublish" data-product-id="<%= product._id %>">

@@ -600,12 +600,12 @@
             case 'publish':
                 event.preventDefault();
                 event.stopPropagation();
-                handleMarketplaceToggle(productId, 'publish');
+                handleDirectPublish(productId, 'publish');
                 break;
             case 'unpublish':
                 event.preventDefault();
                 event.stopPropagation();
-                handleMarketplaceToggle(productId, 'unpublish');
+                handleDirectPublish(productId, 'unpublish');
                 break;
             case 'duplicate':
                 event.preventDefault();
@@ -1224,10 +1224,10 @@
                     handleProductAnalytics(productId);
                     break;
                 case 'publish':
-                    handleMarketplaceToggle(productId, 'publish');
+                    handleDirectPublish(productId, 'publish');
                     break;
                 case 'unpublish':
-                    handleMarketplaceToggle(productId, 'unpublish');
+                    handleDirectPublish(productId, 'unpublish');
                     break;
                 case 'delete':
                     handleDeleteProduct(productId);
@@ -2535,79 +2535,323 @@
     }
 
     /**
-     * Handle dropdown toggle with advanced logic - ENHANCED
+     * CATEGORIES STYLE DROPDOWN SYSTEM
+     * Based on working categories page implementation
      */
-    function handleDropdownToggle(event, toggleButton) {
-        const timer = PerformanceMonitor.startTimer('dropdownOperations');
-        
-        try {
-            event.preventDefault();
-            event.stopPropagation();
-
-
-            // Validate inputs
-            if (!toggleButton) {
-                throw new Error('Toggle button is required');
-            }
-
-            // Find the dropdown container and menu
-            const dropdownContainer = toggleButton.closest('.table-more-actions');
-            if (!dropdownContainer) {
-                throw new Error('Dropdown container not found - check HTML structure');
-            }
-
-            const dropdownMenu = dropdownContainer.querySelector('.table-more-menu');
-            if (!dropdownMenu) {
-                throw new Error('Dropdown menu not found - check HTML structure');
-            }
-
-            const productId = toggleButton.dataset.productId;
-            if (!productId) {
-                logger.warn('⚠️ Product ID not found on toggle button');
-            }
+    
+    /**
+     * Categories Style Dropdown Manager
+     */
+    class CategoriesStyleDropdownManager {
+        constructor() {
+            this.activeDropdown = null;
+            this.isInitialized = false;
+            this.dropdownState = new Map();
+            this.dropdownClickHandler = null;
             
-
-            // Close all other dropdowns first
-            closeAllDropdowns(dropdownMenu);
-
-            // Toggle current dropdown with animation
-            const isHidden = dropdownMenu.classList.contains('hidden');
-            
-            if (isHidden) {
-                // Open dropdown with proper sequence
-                dropdownMenu.classList.remove('hidden');
-                
-                // Force reflow for animation
-                dropdownMenu.offsetHeight;
-                
-                dropdownMenu.classList.add('dropdown-open');
-                toggleButton.classList.add('dropdown-active');
-                
-                // Position dropdown outside container
-                positionEnhancedDropdown(dropdownMenu, toggleButton);
-                
-                // Add accessibility attributes
-                toggleButton.setAttribute('aria-expanded', 'true');
-                dropdownMenu.setAttribute('aria-hidden', 'false');
-                
-                // Focus management for keyboard accessibility
-                const firstItem = dropdownMenu.querySelector('.table-more-item');
-                if (firstItem) {
-                    firstItem.focus();
-                }
-                
-            } else {
-                // Close dropdown
-                closeDropdown(dropdownMenu, toggleButton);
-            }
-            
-        } catch (error) {
-            ErrorBoundary.handleError(error, 'dropdown');
-        } finally {
-            timer.end();
+            this.init();
         }
         
-        return true; // Dropdown action was handled
+        /**
+         * Initialize dropdown system
+         */
+        init() {
+            if (this.isInitialized) return;
+            
+            this.setupDropdownDelegation();
+            this.setupOutsideClickHandler();
+            this.isInitialized = true;
+            
+            console.log('🚀 Categories Style Dropdown System initialized');
+        }
+        
+        /**
+         * Setup dropdown event delegation (Categories style)
+         */
+        setupDropdownDelegation() {
+            // Remove existing event listener first
+            if (this.dropdownClickHandler) {
+                document.removeEventListener('click', this.dropdownClickHandler);
+            }
+            
+            // Professional event delegation for dropdown triggers
+            this.dropdownClickHandler = (e) => {
+                const trigger = e.target.closest('[data-dropdown-trigger]');
+                if (trigger) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const productId = trigger.getAttribute('data-dropdown-trigger');
+                    this.toggleDropdown(productId, trigger);
+                    return;
+                }
+                
+                // Handle dropdown item clicks
+                const dropdownItem = e.target.closest('[data-action]');
+                if (dropdownItem && dropdownItem.hasAttribute('data-product-id')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const action = dropdownItem.getAttribute('data-action');
+                    const productId = dropdownItem.getAttribute('data-product-id');
+                    
+                    // Close dropdown before executing action
+                    this.closeAllDropdowns();
+                    
+                    // Execute the action
+                    this.executeDropdownAction(action, productId);
+                    return;
+                }
+            };
+            
+            // Add the event listener with higher priority (capture mode)
+            document.addEventListener('click', this.dropdownClickHandler, true);
+            
+            console.log('✅ Categories style dropdown events bound');
+        }
+        
+        /**
+         * Setup outside click handler
+         */
+        setupOutsideClickHandler() {
+            // Store handlers as class properties for cleanup
+            this.scrollHandler = () => {
+                if (this.activeDropdown) {
+                    this.closeAllDropdowns();
+                }
+            };
+            
+            this.resizeHandler = () => {
+                if (this.activeDropdown) {
+                    this.closeAllDropdowns();
+                }
+            };
+            
+            document.addEventListener('click', (e) => {
+                if (this.activeDropdown && !e.target.closest('.table-more-actions')) {
+                    this.closeAllDropdowns();
+                }
+            });
+            
+            // Add scroll event handler
+            window.addEventListener('scroll', this.scrollHandler, { passive: true });
+            
+            // Add resize event handler
+            window.addEventListener('resize', this.resizeHandler, { passive: true });
+            
+            console.log('✅ Scroll and resize handlers added');
+        }
+        
+        /**
+         * Toggle dropdown (Categories style)
+         */
+        toggleDropdown(productId, trigger) {
+            try {
+                if (!productId || !trigger) {
+                    console.error('❌ Invalid dropdown toggle parameters:', { productId, trigger });
+                    return;
+                }
+                
+                const dropdownMenu = document.querySelector(`[data-dropdown-menu="${productId}"]`);
+                if (!dropdownMenu) {
+                    console.error(`❌ Dropdown menu not found for product: ${productId}`);
+                    return;
+                }
+                
+                const isCurrentlyOpen = this.activeDropdown === productId;
+                
+                // If it's currently open, close it
+                if (isCurrentlyOpen) {
+                    this.closeAllDropdowns();
+                    return;
+                }
+                
+                // Close all other dropdowns first
+                this.closeAllDropdowns();
+                
+                // Open this dropdown
+                setTimeout(() => {
+                    this.openDropdown(productId, dropdownMenu, trigger);
+                }, 10);
+                
+            } catch (error) {
+                console.error('❌ Dropdown toggle error:', error);
+                this.closeAllDropdowns();
+            }
+        }
+        
+        /**
+         * Open dropdown (Categories style)
+         */
+        openDropdown(productId, dropdownMenu, trigger) {
+            try {
+                // Set as active
+                this.activeDropdown = productId;
+                
+                // Remove hidden class first
+                dropdownMenu.classList.remove('hidden');
+                
+                // Add show class
+                dropdownMenu.classList.add('show');
+                trigger.classList.add('active');
+                
+                // Set ARIA attributes
+                trigger.setAttribute('aria-expanded', 'true');
+                dropdownMenu.setAttribute('aria-hidden', 'false');
+                
+                // Debug logging
+                console.log('🔍 Dropdown Debug:', {
+                    productId: productId,
+                    dropdownMenu: dropdownMenu,
+                    hasShowClass: dropdownMenu.classList.contains('show'),
+                    hasHiddenClass: dropdownMenu.classList.contains('hidden'),
+                    computedStyle: {
+                        display: window.getComputedStyle(dropdownMenu).display,
+                        visibility: window.getComputedStyle(dropdownMenu).visibility,
+                        opacity: window.getComputedStyle(dropdownMenu).opacity,
+                        transform: window.getComputedStyle(dropdownMenu).transform
+                    }
+                });
+                
+                // Position dropdown
+                this.positionDropdown(dropdownMenu, trigger);
+                
+                console.log('✅ Categories style dropdown opened');
+                
+            } catch (error) {
+                console.error('❌ Dropdown open error:', error);
+            }
+        }
+        
+        /**
+         * Close all dropdowns
+         */
+        closeAllDropdowns() {
+            if (this.activeDropdown) {
+                const dropdownMenu = document.querySelector(`[data-dropdown-menu="${this.activeDropdown}"]`);
+                const trigger = document.querySelector(`[data-dropdown-trigger="${this.activeDropdown}"]`);
+                
+                if (dropdownMenu) {
+                    dropdownMenu.classList.remove('show');
+                    dropdownMenu.classList.add('hidden'); // Add hidden class
+                    dropdownMenu.setAttribute('aria-hidden', 'true');
+                }
+                
+                if (trigger) {
+                    trigger.classList.remove('active');
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+                
+                // Clear active dropdown immediately
+                this.activeDropdown = null;
+                console.log('❌ Categories style dropdown closed');
+            }
+        }
+        
+        /**
+         * Position dropdown (Professional Smart Positioning)
+         */
+        positionDropdown(dropdownMenu, trigger) {
+            const triggerRect = trigger.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            // Approximate dropdown dimensions
+            const dropdownWidth = 200; // min-width from CSS
+            const dropdownHeight = 300; // approximate max height
+            
+            // Calculate available space
+            const spaceBelow = viewportHeight - triggerRect.bottom;
+            const spaceAbove = triggerRect.top;
+            const spaceRight = viewportWidth - triggerRect.right;
+            const spaceLeft = triggerRect.left;
+            
+            // Determine vertical position
+            let top, bottom;
+            if (spaceBelow >= dropdownHeight || spaceBelow > spaceAbove) {
+                // Open below
+                top = triggerRect.bottom + 4;
+                bottom = 'auto';
+            } else {
+                // Open above
+                top = 'auto';
+                bottom = viewportHeight - triggerRect.top + 4;
+            }
+            
+            // Determine horizontal position
+            let left, right;
+            if (spaceRight >= dropdownWidth) {
+                // Align to right edge
+                right = spaceRight;
+                left = 'auto';
+            } else if (spaceLeft >= dropdownWidth) {
+                // Align to left edge
+                left = spaceLeft - dropdownWidth;
+                right = 'auto';
+            } else {
+                // Center horizontally
+                left = Math.max(10, triggerRect.left - (dropdownWidth - triggerRect.width) / 2);
+                right = 'auto';
+            }
+            
+            // Apply positioning
+            dropdownMenu.style.top = top !== 'auto' ? `${top}px` : 'auto';
+            dropdownMenu.style.bottom = bottom !== 'auto' ? `${bottom}px` : 'auto';
+            dropdownMenu.style.left = left !== 'auto' ? `${left}px` : 'auto';
+            dropdownMenu.style.right = right !== 'auto' ? `${right}px` : 'auto';
+            
+            console.log('📍 Smart Dropdown Positioning:', {
+                triggerRect: triggerRect,
+                viewport: { width: viewportWidth, height: viewportHeight },
+                spaces: { below: spaceBelow, above: spaceAbove, right: spaceRight, left: spaceLeft },
+                position: { top, bottom, left, right },
+                dropdownSize: { width: dropdownWidth, height: dropdownHeight }
+            });
+        }
+        
+        /**
+         * Execute dropdown action
+         */
+        executeDropdownAction(action, productId) {
+            console.log(`🎯 Executing action: ${action} for product: ${productId}`);
+            
+            // Execute action using existing handler
+            if (typeof executeProductAction === 'function') {
+                executeProductAction(action, productId);
+                console.log(`✅ Action ${action} executed successfully`);
+            } else {
+                console.error('❌ executeProductAction function not found');
+                showToast('Amalni bajarishda xatolik yuz berdi', 'error');
+            }
+        }
+        
+        /**
+         * Destroy dropdown system
+         */
+        destroy() {
+            this.closeAllDropdowns();
+            if (this.dropdownClickHandler) {
+                document.removeEventListener('click', this.dropdownClickHandler, true);
+            }
+            
+            // Remove scroll and resize listeners
+            window.removeEventListener('scroll', this.scrollHandler);
+            window.removeEventListener('resize', this.resizeHandler);
+            
+            this.isInitialized = false;
+            console.log('🗑️ Categories style dropdown system destroyed');
+        }
+    }
+    
+    // Initialize categories style dropdown manager
+    const categoriesStyleDropdownManager = new CategoriesStyleDropdownManager();
+    
+    /**
+     * Legacy function for compatibility
+     */
+    function handleDropdownToggle(event, toggleButton) {
+        // This function is now handled by CategoriesStyleDropdownManager
+        console.log('⚠️ Using legacy dropdown handler - consider updating');
     }
 
     /**
@@ -2643,10 +2887,17 @@
      */
     function closeAllDropdowns(exceptMenu = null) {
         document.querySelectorAll('.table-more-menu, .card-more-menu').forEach(menu => {
-            if (menu !== exceptMenu && !menu.classList.contains('hidden')) {
+            if (menu !== exceptMenu) {
+                menu.classList.remove('dropdown-open');
+                menu.classList.add('hidden');
+                
                 const container = menu.closest('.table-more-actions, .card-more-actions');
                 const toggle = container?.querySelector('.dropdown-toggle, .card-more-toggle');
-                closeDropdown(menu, toggle);
+                if (toggle) {
+                    toggle.classList.remove('dropdown-active');
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
+                menu.setAttribute('aria-hidden', 'true');
             }
         });
     }
@@ -2684,34 +2935,12 @@
     function positionEnhancedDropdown(dropdown, toggleBtn) {
         if (!dropdown || !toggleBtn) return;
 
-        // Get button position
-        const btnRect = toggleBtn.getBoundingClientRect();
-        const dropdownRect = dropdown.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        const viewportWidth = window.innerWidth;
-
-        // Calculate optimal position
-        let top = btnRect.bottom + 5;
-        let left = btnRect.right - 200; // dropdown min-width is 200px
-
-        // Adjust if dropdown goes below viewport
-        if (top + dropdownRect.height > viewportHeight) {
-            top = btnRect.top - dropdownRect.height - 5;
-        }
-
-        // Adjust if dropdown goes outside left edge
-        if (left < 10) {
-            left = 10;
-        }
-
-        // Adjust if dropdown goes outside right edge
-        if (left + 200 > viewportWidth - 10) {
-            left = viewportWidth - 210;
-        }
-
-        // Apply position
-        dropdown.style.top = `${top}px`;
-        dropdown.style.left = `${left}px`;
+        // Simple absolute positioning - CSS handles the rest
+        dropdown.style.position = 'absolute';
+        dropdown.style.top = '100%';
+        dropdown.style.right = '0';
+        dropdown.style.left = 'auto';
+        dropdown.style.bottom = 'auto';
     }
 
     /**
@@ -2771,10 +3000,10 @@
                     handleProductAnalytics(productId);
                     break;
                 case 'publish':
-                    showMarketplaceModal(productId);
+                    handleDirectPublish(productId, 'publish');
                     break;
                 case 'unpublish':
-                    handleMarketplaceToggle(productId, 'unpublish');
+                    handleDirectPublish(productId, 'unpublish');
                     break;
                 case 'duplicate':
                     showDuplicateModal(productId);
@@ -2808,6 +3037,76 @@
      */
     function handleProductAnalytics(productId) {
         window.location.href = `/manufacturer/analytics?product=${productId}`;
+    }
+
+    /**
+     * Handle direct publish/unpublish without modal
+     */
+    async function handleDirectPublish(productId, action) {
+        console.log(`🚀 Direct ${action} for product: ${productId}`);
+        
+        try {
+            const actionText = action === 'publish' ? 'sotuvga chiqarish' : 'sotuvdan olib tashlash';
+            const confirmText = action === 'publish' 
+                ? 'Mahsulotni sotuvga chiqarishni xohlaysizmi?' 
+                : 'Mahsulotni sotuvdan olib tashlashni xohlaysizmi?';
+            
+            // Simple confirmation
+            if (!confirm(confirmText)) {
+                console.log(`❌ User cancelled ${action}`);
+                return;
+            }
+            
+            console.log(`✅ User confirmed ${action}`);
+            
+            // Show loading toast
+            showToast(`Mahsulot ${actionText}moqda...`, 'info');
+            
+            // Make API call
+            console.log(`📡 Making API call to /api/manufacturer/products/${productId}/marketplace`);
+            
+            const response = await fetch(`/api/manufacturer/products/${productId}/marketplace`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getCookie('accessToken')}`
+                },
+                body: JSON.stringify({
+                    action: action,
+                    visibility: action === 'publish' ? 'public' : 'private'
+                })
+            });
+            
+            console.log(`📡 API Response status: ${response.status}`);
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Failed to ${action} product`);
+            }
+            
+            const result = await response.json();
+            console.log(`✅ API Response:`, result);
+            
+            // Show success message
+            const successText = action === 'publish' 
+                ? 'Mahsulot muvaffaqiyatli sotuvga chiqarildi!' 
+                : 'Mahsulot muvaffaqiyatli sotuvdan olib tashlandi!';
+            
+            showToast(successText, 'success');
+            
+            // Refresh page to show updated status
+            setTimeout(() => {
+                console.log(`🔄 Refreshing page after ${action}`);
+                window.location.reload();
+            }, 1000);
+            
+        } catch (error) {
+            console.error(`❌ Error ${action}ing product:`, error);
+            const errorText = action === 'publish' 
+                ? 'Mahsulotni sotuvga chiqarishda xatolik yuz berdi' 
+                : 'Mahsulotni sotuvdan olib tashlashda xatolik yuz berdi';
+            showToast(errorText, 'error');
+        }
     }
 
     /**
@@ -3906,7 +4205,7 @@
         // Test dropdown toggle
         const firstToggle = document.querySelector('.dropdown-toggle');
         if (firstToggle) {
-            firstToggle.click();
+        firstToggle.click();
         } else {
             logger.warn('❌ No dropdown toggle found for testing');
         }

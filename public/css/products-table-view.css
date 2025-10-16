@@ -1,8 +1,3 @@
-/**
- * Professional Products Table View
- * Enterprise B2B Data Management Interface
- * SLEX Platform - Advanced Table Design
- */
 
 /* ===== PROFESSIONAL TABLE CONTAINER ===== */
 .products-table-container {
@@ -10,8 +5,10 @@
   border: 1px solid var(--border-primary);
   border-radius: 16px;
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  overflow: visible; /* ✅ Dropdown'lar uchun visible qildik */
   margin-bottom: var(--space-8);
+  position: relative; /* ✅ Positioning context */
+  z-index: 1; /* ✅ Lower z-index than dropdown */
 }
 
 .products-table-header {
@@ -42,6 +39,8 @@
 .products-table-wrapper {
   overflow-x: auto;
   overflow-y: visible;
+  position: relative; /* ✅ Dropdown positioning uchun */
+  z-index: 1; /* ✅ Lower z-index than dropdown */
 }
 
 .products-table {
@@ -437,44 +436,7 @@
   position: relative;
 }
 
-/* Professional Dropdown Styling */
-.dropdown-toggle {
-  position: relative;
-  transition: all 0.2s ease;
-}
-
-.table-more-menu {
-  position: fixed;
-  top: auto;
-  right: auto;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-primary);
-  border-radius: 8px;
-  box-shadow: var(--shadow-lg);
-  z-index: 9999;
-  min-width: 200px;
-  overflow: hidden;
-  margin-top: var(--space-1);
-  transform: translateY(-10px);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.2s ease;
-  max-height: 0;
-}
-
-.table-more-menu.dropdown-open {
-  transform: translateY(0) !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  max-height: 400px !important;
-}
-
-.table-more-menu.hidden {
-  transform: translateY(-10px) !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-  max-height: 0 !important;
-}
+/* ===== OLD DROPDOWN SYSTEM REMOVED ===== */
 
 .table-more-item {
   display: flex;
@@ -617,11 +579,211 @@
   }
 }
 
+/* ===== NEW PROFESSIONAL DROPDOWN SYSTEM ===== */
+
+/* Dropdown Toggle Button */
+.dropdown-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-muted);
+}
+
+.dropdown-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.dropdown-toggle:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.dropdown-toggle.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Dropdown Menu Container */
+.table-more-menu {
+  position: fixed; /* ✅ Fixed positioning for better z-index control */
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 9999; /* ✅ Ultra high z-index */
+  
+  /* Dimensions */
+  min-width: 200px;
+  max-width: 250px;
+  
+  /* Styling */
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  
+  /* Animation */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px) scale(0.95);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Hide by default */
+  pointer-events: none;
+  display: none; /* ✅ Explicitly hide by default */
+}
+
+/* Show dropdown - Higher specificity */
+.table-more-menu.show {
+  display: block !important; /* ✅ Show dropdown */
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) scale(1) !important;
+  pointer-events: auto !important;
+  border: 2px solid green !important; /* Debug border */
+  z-index: 9999 !important; /* Ultra high z-index */
+}
+
+/* Ultra high specificity for show state */
+div.table-more-menu.show,
+.table-more-actions .table-more-menu.show {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) scale(1) !important;
+  pointer-events: auto !important;
+  border: 2px solid green !important;
+}
+
+/* Maximum specificity for show state */
+html body div.table-more-menu.show {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) scale(1) !important;
+  pointer-events: auto !important;
+  border: 2px solid green !important;
+}
+
+/* Dropdown Items */
+.table-more-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  text-decoration: none;
+}
+
+.table-more-item:hover {
+  background: #f9fafb;
+}
+
+.table-more-item:focus {
+  outline: none;
+  background: #f3f4f6;
+}
+
+.table-more-item.danger {
+  color: #dc2626;
+}
+
+.table-more-item.danger:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.table-more-item.success {
+  color: #059669;
+}
+
+.table-more-item.success:hover {
+  background: #f0fdf4;
+  color: #047857;
+}
+
+.table-more-item.warning {
+  color: #d97706;
+}
+
+.table-more-item.warning:hover {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+/* Dropdown Divider */
+.dropdown-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 4px 0;
+}
+
+/* Dropdown Item Icons */
+.table-more-item i {
+  width: 16px;
+  height: 16px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .table-more-menu {
+    right: -10px;
+    min-width: 180px;
+  }
+  
+  .table-more-item {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}
+
+/* Hide dropdown - Lower specificity */
+.table-more-menu.hidden {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: translateY(-8px) scale(0.95) !important;
+  pointer-events: none !important;
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+.table-more-menu {
+  will-change: transform, opacity;
+}
+
+.table-more-item {
+  will-change: background-color;
+}
+
 @media (max-width: 768px) {
   .products-table-header {
     flex-direction: column;
     gap: var(--space-4);
     align-items: stretch;
+  }
+  
+  /* Mobile dropdown positioning */
+  .table-more-menu {
+    right: -10px;
+    min-width: 180px;
   }
   
   .products-table-actions {

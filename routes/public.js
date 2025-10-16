@@ -31,7 +31,7 @@ const data = require('../public/data.json');
  * Priority: 1) High rating + high views, 2) High rating only, 3) Any active marketplace products
  * @returns {Array} Top products array (up to 20 items)
  */
-async function getTopProductsForHomepage() {
+async function  getTopProductsForHomepage() {
   try {
     
     // Debug: Check total products first
@@ -44,28 +44,17 @@ async function getTopProductsForHomepage() {
       publishedAt: { $exists: true, $ne: null } 
     });
     
-    // Base filter for marketplace products (include products without publishedAt for backward compatibility)
+    console.log('🏠 getTopProductsForHomepage: Database stats:', {
+      totalProducts,
+      activeProducts,
+      publicProducts,
+      publishedProducts
+    });
+    
+    // Base filter for marketplace products - show all active public products regardless of publish status
     const marketplaceFilter = {
       status: 'active',
-      visibility: 'public',
-      $or: [
-        // Products with publishedAt and not unpublished (new publishing system)
-        {
-          publishedAt: { $exists: true, $ne: null },
-          unpublishedAt: { $exists: false }
-        },
-        {
-          publishedAt: { $exists: true, $ne: null },
-          unpublishedAt: null
-        },
-        // Products without publishedAt but active and public (legacy products)
-        {
-          publishedAt: { $exists: false }
-        },
-        {
-          publishedAt: null
-        }
-      ]
+      visibility: 'public'
     };
     
     // Step 1: Try to get products with high rating AND high views (only from active suppliers)
@@ -74,30 +63,8 @@ async function getTopProductsForHomepage() {
         $match: {
           status: 'active',
           visibility: 'public',
-      averageRating: { $gte: 4.0 },      // Rating 4.0+
-      'analytics.views': { $gte: 100 }    // At least 100 views
-        }
-      },
-      {
-        $match: {
-          $or: [
-            // Products with publishedAt and not unpublished (new publishing system)
-            {
-              publishedAt: { $exists: true, $ne: null },
-              unpublishedAt: { $exists: false }
-            },
-            {
-              publishedAt: { $exists: true, $ne: null },
-              unpublishedAt: null
-            },
-            // Products without publishedAt but active and public (legacy products)
-            {
-              publishedAt: { $exists: false }
-            },
-            {
-              publishedAt: null
-            }
-          ]
+          averageRating: { $gte: 4.0 },      // Rating 4.0+
+          'analytics.views': { $gte: 100 }    // At least 100 views
         }
       },
       {
@@ -174,28 +141,6 @@ async function getTopProductsForHomepage() {
         }
       },
       {
-        $match: {
-          $or: [
-            // Products with publishedAt and not unpublished (new publishing system)
-            {
-              publishedAt: { $exists: true, $ne: null },
-              unpublishedAt: { $exists: false }
-            },
-            {
-              publishedAt: { $exists: true, $ne: null },
-              unpublishedAt: null
-            },
-            // Products without publishedAt but active and public (legacy products)
-            {
-              publishedAt: { $exists: false }
-            },
-            {
-              publishedAt: null
-            }
-          ]
-        }
-      },
-      {
         $lookup: {
           from: 'users',
           localField: 'manufacturer',
@@ -267,28 +212,6 @@ async function getTopProductsForHomepage() {
           status: 'active',
           visibility: 'public',
       'inventory.availableStock': { $gt: 0 }  // In stock
-        }
-      },
-      {
-        $match: {
-          $or: [
-            // Products with publishedAt and not unpublished (new publishing system)
-            {
-              publishedAt: { $exists: true, $ne: null },
-              unpublishedAt: { $exists: false }
-            },
-            {
-              publishedAt: { $exists: true, $ne: null },
-              unpublishedAt: null
-            },
-            // Products without publishedAt but active and public (legacy products)
-            {
-              publishedAt: { $exists: false }
-            },
-            {
-              publishedAt: null
-            }
-          ]
         }
       },
       {
@@ -441,9 +364,11 @@ async function getTopProductsForHomepage() {
       return anyActiveProducts.slice(0, 20);
     }
     
+    console.log('🏠 getTopProductsForHomepage: Final result:', allMarketplaceProducts?.length || 0, 'products');
     return allMarketplaceProducts;
     
   } catch (error) {
+    console.error('🏠 getTopProductsForHomepage: Error:', error);
     return [];
   }
 }
@@ -454,54 +379,18 @@ router.get('/', async (req, res) => {
     // Get top products for homepage
     let topProducts = await getTopProductsForHomepage();
     
-    // If no products found from database, use sample data as fallback
-    if (!topProducts || topProducts.length === 0) {
-      topProducts = [
-        {
-          _id: 'sample1',
-          name: 'Candy Almatiniskiy suviner',
-          pricing: { basePrice: 7 },
-          images: [{ url: '/img/product-logo/raxat-candies.jpg', isPrimary: true }],
-          manufacturer: { companyName: 'Raxat' },
-          averageRating: 4.8,
-          totalReviews: 156,
-          analytics: { views: 1200, orders: 89 },
-          isFeatured: true
-        },
-        {
-          _id: 'sample2', 
-          name: 'Set of chocolates raxat',
-          pricing: { basePrice: 8 },
-          images: [{ url: '/img/product-logo/raxat-choco.jpg', isPrimary: true }],
-          manufacturer: { companyName: 'Raxat' },
-          averageRating: 4.9,
-          totalReviews: 203,
-          analytics: { views: 1500, orders: 112 },
-          isFeatured: false
-        },
-        {
-          _id: 'sample3',
-          name: 'Crystal Glasses Set',
-          pricing: { basePrice: 25 },
-          images: [{ url: '/img/product-logo/almas1.jpg', isPrimary: true }],
-          manufacturer: { companyName: 'Almas' },
-          averageRating: 4.6,
-          totalReviews: 98,
-          analytics: { views: 890, orders: 56 },
-          isFeatured: false
-        },
-        {
-          _id: 'sample4',
-          name: 'Smart TV 55 inch',
-          pricing: { basePrice: 599 },
-          images: [{ url: '/img/product-logo/artel-tv.png', isPrimary: true }],
-          manufacturer: { companyName: 'Artel' },
-          averageRating: 4.7,
-          totalReviews: 267,
-          analytics: { views: 2100, orders: 78 },
-          isFeatured: true
-        }
-      ];
+    // Debug: Log product loading results
+    console.log('🏠 Homepage: Products loaded from database:', topProducts?.length || 0);
+    
+    if (topProducts && topProducts.length > 0) {
+      console.log('🏠 Homepage: Sample product:', {
+        id: topProducts[0]._id,
+        name: topProducts[0].name,
+        manufacturer: topProducts[0].manufacturer?.companyName,
+        price: topProducts[0].pricing?.basePrice
+      });
+    } else {
+      console.log('🏠 Homepage: No products found in database');
     }
     
     res.render('pages/index', { 
@@ -510,25 +399,11 @@ router.get('/', async (req, res) => {
       topProducts: topProducts
     });
   } catch (error) {
-    // Fallback with sample products
-    const fallbackProducts = [
-      {
-        _id: 'fallback1',
-        name: 'Sample Product',
-        pricing: { basePrice: 10 },
-        images: [{ url: '/assets/images/thumbs/product-placeholder.png', isPrimary: true }],
-        manufacturer: { companyName: 'Sample Company' },
-        averageRating: 4.0,
-        totalReviews: 50,
-        analytics: { views: 500, orders: 25 },
-        isFeatured: false
-      }
-    ];
-    
+    console.error('🏠 Homepage: Error loading products:', error);
     res.render('pages/index', { 
       title: (res.locals.t('nav.home') || 'Home') + ' - Silk Line Expo',
       data: data,
-      topProducts: fallbackProducts
+      topProducts: []
     });
   }
 });
@@ -555,28 +430,10 @@ router.get('/all-product', async (req, res) => {
 
 
 
-    // Base filter for marketplace products (include products without publishedAt for backward compatibility)
+    // Base filter for marketplace products - show all active public products regardless of publish status
     const marketplaceFilter = {
       status: 'active',
-      visibility: 'public',
-      $or: [
-        // Products with publishedAt and not unpublished (new publishing system)
-        {
-          publishedAt: { $exists: true, $ne: null },
-          unpublishedAt: { $exists: false }
-        },
-        {
-          publishedAt: { $exists: true, $ne: null },
-          unpublishedAt: null
-        },
-        // Products without publishedAt but active and public (legacy products)
-        {
-          publishedAt: { $exists: false }
-        },
-        {
-          publishedAt: null
-        }
-      ]
+      visibility: 'public'
     };
 
     // Dynamic filters
@@ -634,28 +491,6 @@ router.get('/all-product', async (req, res) => {
           } : {}),
           // Add rating filter
           ...(typeof rating === 'number' && { averageRating: { $gte: rating } })
-        }
-      },
-      {
-        $match: {
-          $or: [
-            // Products with publishedAt and not unpublished (new publishing system)
-            {
-              publishedAt: { $exists: true, $ne: null },
-              unpublishedAt: { $exists: false }
-            },
-            {
-              publishedAt: { $exists: true, $ne: null },
-              unpublishedAt: null
-            },
-            // Products without publishedAt but active and public (legacy products)
-            {
-              publishedAt: { $exists: false }
-            },
-            {
-              publishedAt: null
-            }
-          ]
         }
       },
       {
@@ -742,8 +577,22 @@ router.get('/all-product', async (req, res) => {
 
     // Fetch products
     const products = await Product.aggregate(pipeline);
-    
 
+    // Debug: Log product loading results
+    console.log('🛍️ All Products: Products loaded from database:', products?.length || 0);
+    console.log('🛍️ All Products: Total products in database:', total);
+    console.log('🛍️ All Products: Page:', page, 'Limit:', limit, 'Total Pages:', Math.max(Math.ceil(total / limit), 1));
+
+    if (products && products.length > 0) {
+      console.log('🛍️ All Products: Sample product:', {
+        id: products[0]._id,
+        name: products[0].name,
+        manufacturer: products[0].manufacturer?.companyName,
+        price: products[0].pricing?.basePrice
+      });
+    } else {
+      console.log('🛍️ All Products: No products found in database');
+    }
     
     // Render template
     res.render('pages/all-product', { 
@@ -759,13 +608,14 @@ router.get('/all-product', async (req, res) => {
       currentFilters: { search, category, manufacturer, priceMin, priceMax, rating, sort }
     });
   } catch (error) {
-  res.render('pages/all-product', { 
-    title: (res.locals.t('products.allProducts') || 'All Products') + ' - Silk Line Expo',
+    console.error('🛍️ All Products: Error loading products:', error);
+    res.render('pages/all-product', { 
+      title: (res.locals.t('products.allProducts') || 'All Products') + ' - Silk Line Expo',
       data: data,
       marketplaceProducts: [],
       pagination: { total: 0, page: 1, limit: 12, totalPages: 1 },
       currentFilters: {}
-  });
+    });
   }
 });
 
