@@ -6152,7 +6152,7 @@ class ManufacturerService {
     /**
      * Get product categories for dropdown
      */
-    async getProductCategories() {
+    async getProductCategories(language = 'uz') {
         try {
             
             const Category = require('../models/Category');
@@ -6162,10 +6162,9 @@ class ManufacturerService {
             const categories = await Category.find({
                 status: 'active',
                 'settings.isActive': true,
-                'settings.isVisible': true,
-                'settings.allowProducts': true
+                'settings.isVisible': true
             })
-            .select('name description icon level parentCategory path settings.sortOrder')
+            .select('name description icon level parentCategory path settings translations status')
             .sort({ 
                 level: 1, 
                 'settings.sortOrder': 1, 
@@ -6174,12 +6173,11 @@ class ManufacturerService {
             .lean();
 
             // Build hierarchical structure for dropdown with proper indentation
-            const hierarchicalCategories = this.buildCategoryHierarchy(categories);
+            const hierarchicalCategories = this.buildCategoryHierarchy(categories, language);
 
- return hierarchicalCategories;
+            return hierarchicalCategories;
 
         } catch (error) {
- 
             // Enhanced fallback categories with proper ObjectIds
             const mongoose = require('mongoose');
             const fallbackCategories = [
@@ -6227,7 +6225,7 @@ class ManufacturerService {
     /**
      * Build hierarchical category structure for dropdown display - Senior Software Engineer Implementation
      */
-    buildCategoryHierarchy(categories) {
+    buildCategoryHierarchy(categories, language = 'uz') {
         try {
             const result = [];
             
@@ -6240,17 +6238,27 @@ class ManufacturerService {
             // Build hierarchy with proper indentation for dropdown
             sortedCategories.forEach(category => {
                 const indent = '  '.repeat(category.level || 0); // 2 spaces per level
-                const displayName = `${indent}${category.name}`;
+                
+                // Get localized name
+                let localizedName = category.name;
+                if (category.translations && category.translations[language] && category.translations[language].name) {
+                    localizedName = category.translations[language].name;
+                }
+                
+                const displayName = `${indent}${localizedName}`;
                 
                 result.push({
                     _id: category._id,
-                    name: category.name,
+                    name: localizedName, // Use localized name
                     displayName: displayName,
                     description: category.description,
                     icon: category.icon,
                     level: category.level || 0,
                     parentCategory: category.parentCategory,
-                    path: category.path
+                    path: category.path,
+                    translations: category.translations || {},
+                    canAddProducts: category.status === 'active' && (category.settings?.allowProducts !== false),
+                    status: category.status
                 });
             });
             
@@ -6264,7 +6272,9 @@ class ManufacturerService {
                 displayName: cat.name,
                 description: cat.description,
                 icon: cat.icon,
-                level: cat.level || 0
+                level: cat.level || 0,
+                canAddProducts: cat.status === 'active' && (cat.settings?.allowProducts !== false),
+                status: cat.status
             }));
         }
     }
@@ -7080,9 +7090,10 @@ class ManufacturerService {
             // Query active categories
             const categories = await Category.find({
                 status: 'active',
-                'settings.isActive': true
+                'settings.isActive': true,
+                'settings.isVisible': true
             })
-            .select('name description slug settings')
+            .select('name description slug settings translations')
             .sort({ name: 1 })
             .lean();
 
@@ -9721,7 +9732,7 @@ class ManufacturerService {
             }
 
             const categories = await Category.find({ status: { $ne: 'deleted' } })
-                .select('name slug parentCategory description status settings')
+                .select('name slug parentCategory description status settings translations')
                 .sort({ name: 1 })
                 .lean();
             
@@ -9738,7 +9749,7 @@ class ManufacturerService {
                     isActive: cat.status === 'active',
                     isInactive: cat.status === 'inactive',
                     isDraft: cat.status === 'draft',
-                    canAddProducts: cat.status === 'active' && cat.settings?.allowProducts !== false,
+                    canAddProducts: cat.status === 'active' && (cat.settings?.allowProducts !== false),
                     displayName: cat.name + (statusLabels[cat.status] ? ` (${statusLabels[cat.status]})` : '')
                 };
             });

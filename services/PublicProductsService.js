@@ -90,9 +90,9 @@ class PublicProductsService {
      * Get all available categories with product counts
      * @returns {Array} All categories (including those without products)
      */
-    async getCategories() {
+    async getCategories(language = 'uz') {
         try {
-            const cacheKey = 'all_categories_with_counts';
+            const cacheKey = `all_categories_with_counts_${language}`;
             const cached = this._getFromCache(cacheKey);
             if (cached) return cached;
 
@@ -103,7 +103,7 @@ class PublicProductsService {
                 status: 'active',
                 'settings.isActive': true,
                 'settings.isVisible': true
-            }).sort({ 'settings.sortOrder': 1, name: 1 }).lean();
+            }).select('name description slug settings translations').sort({ 'settings.sortOrder': 1, name: 1 }).lean();
 
             // Step 2: Get product counts for each category (only from active suppliers)
             const categoryProductCounts = await Product.aggregate([
@@ -160,9 +160,15 @@ class PublicProductsService {
                     minPrice: 0
                 };
 
+                // Get localized name
+                let localizedName = category.name;
+                if (category.translations && category.translations[language] && category.translations[language].name) {
+                    localizedName = category.translations[language].name;
+                }
+
                 return {
                     _id: category._id,
-                    name: category.name,
+                    name: localizedName, // Use localized name
                     slug: category.slug,
                     description: category.description,
                     shortDescription: category.shortDescription,

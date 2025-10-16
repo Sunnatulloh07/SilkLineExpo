@@ -1851,7 +1851,13 @@
                       <td class="item-category-cell">
                         <span class="category-badge">
                           <i class="fas fa-tag"></i>
-                          <%= item.product?.category?.name || item.product?.category || 'Kategoriya' %>
+                          <% 
+                            let categoryName = item.product?.category?.name || item.product?.category || 'Kategoriya';
+                            if (typeof item.product?.category === 'object' && item.product.category.translations && item.product.category.translations[req.language] && item.product.category.translations[req.language].name) {
+                              categoryName = item.product.category.translations[req.language].name;
+                            }
+                          %>
+                          <%= categoryName %>
                         </span>
                       </td>
                       

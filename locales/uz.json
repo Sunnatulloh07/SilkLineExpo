@@ -4670,6 +4670,21 @@
             "productDescriptionMaxLength": "Mahsulot tavsifi 2000 ta belgidan oshmasligi kerak",
             "categoryRequired": "Kategoriya tanlash majburiy",
             "subcategoryInvalid": "Kategoriya tanlanmagan holda subkategoriya tanlash mumkin emas",
+            "categoryTooltips": {
+              "inactive": "Bu kategoriya nofaol. Mahsulot qo'shish uchun kategoriya faol bo'lishi kerak.",
+              "draft": "Bu kategoriya qoralama. Mahsulot qo'shish uchun kategoriya faol bo'lishi kerak.",
+              "notAllowed": "Bu kategoriyaga mahsulot qo'shishga ruxsat berilmagan. Mahsulot qo'shish uchun kategoriya faol bo'lishi kerak.",
+              "statusBadges": {
+                "inactive": "🔴 Nofaol",
+                "draft": "📝 Qoralama"
+              }
+            },
+            "categoryValidation": {
+              "notAllowed": "Bu kategoriyaga mahsulot qo'shib bo'lmaydi. Faqat faol va mahsulot qo'shishga ruxsat berilgan kategoriyalarni tanlang."
+            },
+            "categoryHint": "Faqat faol kategoriyalarga mahsulot qo'shish mumkin. 🔴 Nofaol va 📝 Qoralama kategoriyalar tanlashga ochilmaydi.",
+            "categoryEditHint": "Faqat faol kategoriyalarga o'zgartirish mumkin. Joriy kategoriya nofaol bo'lsa, uni faol kategoriyaga o'zgartirishingiz tavsiya etiladi.",
+            "currentCategory": "joriy",
             "basePriceRequired": "Asosiy narx majburiy",
             "basePriceInvalid": "Asosiy narx 0 dan katta raqam bo'lishi kerak",
             "basePriceMax": "Asosiy narx 1,000,000 dan oshmasligi kerak",

@@ -99,7 +99,8 @@ class PublicProductsController {
      */
     async getCategories(req, res) {
         try {
-             const categories = await this.service.getCategories();
+            const language = req.query.lang || req.headers['accept-language']?.split(',')[0]?.split('-')[0] || 'uz';
+            const categories = await this.service.getCategories(language);
 
             res.status(200).json({
                 success: true,

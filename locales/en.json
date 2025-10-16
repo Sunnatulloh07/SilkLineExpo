@@ -4700,6 +4700,21 @@
           "productDescriptionMaxLength": "Product description must not exceed 2000 characters",
           "categoryRequired": "Category is required",
           "subcategoryInvalid": "Cannot select subcategory without category",
+          "categoryTooltips": {
+            "inactive": "This category is inactive. Category must be active to add products.",
+            "draft": "This category is in draft. Category must be active to add products.",
+            "notAllowed": "Adding products to this category is not allowed. Category must be active to add products.",
+            "statusBadges": {
+              "inactive": "🔴 Inactive",
+              "draft": "📝 Draft"
+            }
+          },
+          "categoryValidation": {
+            "notAllowed": "Cannot add products to this category. Please select only active categories with product addition permission."
+          },
+          "categoryHint": "Products can only be added to active categories. 🔴 Inactive and 📝 Draft categories are not available for selection.",
+          "categoryEditHint": "Changes can only be made to active categories. If the current category is inactive, it is recommended to change it to an active category.",
+          "currentCategory": "current",
           "basePriceRequired": "Base price is required",
           "basePriceInvalid": "Base price must be greater than 0",
           "basePriceMax": "Base price must not exceed 1,000,000",

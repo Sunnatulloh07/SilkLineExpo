@@ -43,16 +43,23 @@ class FileService {
       const uniqueFilename = this.generateUniqueFilename(file.originalname);
       const finalPath = path.join(this.logoDir, uniqueFilename);
 
-      // Move file to final location using copy + unlink instead of rename
-      // This fixes EXDEV: cross-device link not permitted error in Docker
-      await fs.copyFile(file.path, finalPath);
-      await fs.unlink(file.path);
+      // Read file content and write directly to final location
+      // This avoids cross-device link issues in Docker
+      const fileContent = await fs.readFile(file.path);
+      await fs.writeFile(finalPath, fileContent);
+      
+      // Clean up temporary file
+      try {
+        await fs.unlink(file.path);
+      } catch (unlinkError) {
+        console.warn('⚠️ Could not delete temp file:', file.path);
+      }
 
-      // Verify file was moved successfully
+      // Verify file was written successfully
       try {
         await fs.access(finalPath);
       } catch (accessError) {
-        throw new Error('File upload failed - file not accessible after move');
+        throw new Error('File upload failed - file not accessible after write');
       }
 
       // Generate thumbnail (optional)

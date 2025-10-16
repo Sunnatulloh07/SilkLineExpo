@@ -1732,7 +1732,8 @@ class ManufacturerController {
             if (!product) {
                  
                 // Professional approach: render edit page with error message instead of error view
-                const fallbackCategories = await this.manufacturerService.getProductCategories() || [];
+                const lng = this.getLanguagePreference(req);
+                const fallbackCategories = await this.manufacturerService.getProductCategories(lng) || [];
                 
                 return res.render('manufacturer/products/edit', {
                     title: 'Mahsulotni tahrirlash',
@@ -1787,13 +1788,12 @@ class ManufacturerController {
                 });
             }
             
-            // Get categories for dropdown
-            const categories = await this.manufacturerService.getProductCategories();
+            // Get categories for dropdown with language support
+            const lng = this.getLanguagePreference(req);
+            const categories = await this.manufacturerService.getProductCategories(lng);
             
             // Get product analytics for context
             const productAnalytics = await this.manufacturerService.getProductAnalytics(productId);
-            
-            const lng = this.getLanguagePreference(req);
             
             res.render('manufacturer/products/edit', {
                 title: 'Mahsulotni tahrirlash',
@@ -1812,8 +1812,9 @@ class ManufacturerController {
             
             // Professional fallback: render page with empty data instead of error page
             try {
-                // Get basic categories for fallback
-                const fallbackCategories = await this.manufacturerService.getProductCategories() || [];
+                // Get basic categories for fallback with language support
+                const lng = this.getLanguagePreference(req);
+                const fallbackCategories = await this.manufacturerService.getProductCategories(lng) || [];
                 
                 res.render('manufacturer/products/edit', {
                     title: 'Mahsulotni tahrirlash',
@@ -1884,10 +1885,9 @@ class ManufacturerController {
         try {
             const manufacturerId = req.user.userId;
               
-            // Get categories for dropdown
-            const categories = await this.manufacturerService.getProductCategories();
-            
+            // Get categories for dropdown with language support
             const lng = this.getLanguagePreference(req);
+            const categories = await this.manufacturerService.getProductCategories(lng);
             
             res.render('manufacturer/products/add', {
                 title: 'Yangi mahsulot qo\'shish',

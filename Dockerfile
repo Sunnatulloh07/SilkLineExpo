@@ -13,11 +13,10 @@ RUN npm ci --only=production
 # Copy application code
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p public/uploads logs
-
-# Set proper permissions
+# Create necessary directories and set permissions
+RUN mkdir -p public/uploads/logos public/uploads/buyers public/uploads/products public/uploads/attachments public/uploads/messages logs temp
 RUN chown -R node:node /app
+RUN chmod -R 777 public/uploads logs temp
 USER node
 
 # Expose port

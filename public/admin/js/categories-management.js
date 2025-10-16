@@ -3404,6 +3404,19 @@ class CategoriesManagement {
                     </div>
                     
                     <div class="toggle-item">
+                        <input type="checkbox" id="allowProducts" name="allowProducts" class="toggle-input" 
+                               ${(categoryData?.settings?.allowProducts === true || categoryData?.settings?.allowProducts === undefined) ? 'checked' : ''} 
+                               value="true">
+                        <span class="toggle-slider"></span>
+                        <label for="allowProducts" class="toggle-label">
+                            <span class="toggle-text">
+                                <strong>Mahsulot qo'shish</strong>
+                                <small>Bu kategoriyaga mahsulot qo'shishga ruxsat</small>
+                            </span>
+                        </label>
+                    </div>
+                    
+                    <div class="toggle-item">
                         <input type="checkbox" id="mainStatus" name="mainStatus" class="toggle-input" 
                                ${(categoryData?.status === 'active' || categoryData?.status === undefined) ? 'checked' : ''} 
                                value="active">

@@ -121,10 +121,12 @@
                       }
                       
                       const isDisabled = !cat.canAddProducts && !isSelected;
-                      const statusBadge = cat.status === 'inactive' ? ' 🔴 Nofaol' : 
-                                         cat.status === 'draft' ? ' 📝 Qoralama' : '';
+                      const statusBadge = cat.status === 'inactive' ? t('manufacturer.products.edit.form.categoryTooltips.statusBadges.inactive') : 
+                                            cat.status === 'draft' ? t('manufacturer.products.edit.form.categoryTooltips.statusBadges.draft') : '';
                       const tooltipText = isDisabled ? 
-                        'Bu kategoriya ' + (cat.status === 'inactive' ? 'nofaol' : 'qoralama') + '. Mahsulot qo\'shish uchun kategoriya faol bo\'lishi kerak.' :
+                        (cat.status === 'inactive' ? t('manufacturer.products.edit.form.categoryTooltips.inactive') : 
+                         cat.status === 'draft' ? t('manufacturer.products.edit.form.categoryTooltips.draft') : 
+                         t('manufacturer.products.edit.form.categoryTooltips.notAllowed')) :
                         cat.description || '';
                     %>
                     <option value="<%= cat._id %>" 
@@ -135,15 +137,14 @@
                             data-can-add-products="<%= cat.canAddProducts %>"
                             data-category-name="<%= cat.displayName || cat.name %>"
                             <% if (tooltipText) { %>title="<%= tooltipText %>"<% } %>>
-                      <%= cat.name %><%= statusBadge %><%= isSelected && isDisabled ? ' (joriy)' : '' %>
+                      <%= cat.name %><%= statusBadge %><%= isSelected && isDisabled ? ' (' + t('manufacturer.products.edit.form.currentCategory') + ')' : '' %>
                     </option>
                   <% }) %>
                 </select>
                 <div class="validation-message"></div>
                 <small class="form-hint">
                   <i class="fas fa-info-circle"></i>
-                  Faqat faol kategoriyalarga o'zgartirish mumkin. 
-                  Joriy kategoriya nofaol bo'lsa, uni faol kategoriyaga o'zgartirishingiz tavsiya etiladi.
+                  <%= t('manufacturer.products.edit.form.categoryEditHint') %>
                 </small>
               </div>
               

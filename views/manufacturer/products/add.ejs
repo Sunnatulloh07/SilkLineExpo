@@ -116,10 +116,12 @@
                   <% categories.forEach(function(cat) { %>
                     <%
                       const isDisabled = !cat.canAddProducts;
-                      const statusBadge = cat.status === 'inactive' ? ' 🔴 Nofaol' : 
-                                         cat.status === 'draft' ? ' 📝 Qoralama' : '';
+                      const statusBadge = cat.status === 'inactive' ? t('manufacturer.products.add.form.categoryTooltips.statusBadges.inactive') : 
+                                         cat.status === 'draft' ? t('manufacturer.products.add.form.categoryTooltips.statusBadges.draft') : '';
                       const tooltipText = isDisabled ? 
-                        'Bu kategoriya ' + (cat.status === 'inactive' ? 'nofaol' : 'qoralama') + '. Mahsulot qo\'shish uchun kategoriya faol bo\'lishi kerak.' :
+                        (cat.status === 'inactive' ? t('manufacturer.products.add.form.categoryTooltips.inactive') : 
+                         cat.status === 'draft' ? t('manufacturer.products.add.form.categoryTooltips.draft') : 
+                         t('manufacturer.products.add.form.categoryTooltips.notAllowed')) :
                         cat.description || '';
                     %>
                     <option value="<%= cat._id %>" 
@@ -136,8 +138,7 @@
                 <div class="validation-message"></div>
                 <small class="form-hint">
                   <i class="fas fa-info-circle"></i>
-                  Faqat faol kategoriyalarga mahsulot qo'shish mumkin. 
-                  🔴 Nofaol va 📝 Qoralama kategoriyalar tanlashga ochilmaydi.
+                  <%= t('manufacturer.products.add.validation.categoryHint') %>
                 </small>
               </div>
               
@@ -1848,7 +1849,7 @@
                     
                     if (canAddProducts === 'false' || (status && status !== 'active')) {
                         this.showToast('error', 
-                            'Bu kategoriyaga mahsulot qo\'shib bo\'lmaydi. Faqat faol kategoriyalarni tanlang.', 
+                            '<%= t("manufacturer.products.add.form.categoryValidation.notAllowed") %>', 
                             3000
                         );
                         e.target.value = '';
@@ -5195,7 +5196,6 @@
 .form-input,
 .form-select,
 .form-textarea {
-  padding: 0.875rem 1rem;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 0.875rem;
