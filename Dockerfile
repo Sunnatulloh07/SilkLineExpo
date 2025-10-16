@@ -1,46 +1,31 @@
-# Multi-stage build for production
-FROM node:18-alpine AS builder
+# Use Node.js 22 Alpine image
+FROM node:22-alpine
 
 # Set working directory
 WORKDIR /app
 
 # Copy package files
-COPY package.json yarn.lock ./
+COPY package.json package-lock.json ./
 
 # Install dependencies
-RUN yarn install --frozen-lockfile --production
+RUN npm ci --only=production
 
-# Copy source code
+# Copy application code
 COPY . .
 
-# Remove dev dependencies and clean up
-RUN yarn install --production && yarn cache clean
-
-# Production stage
-FROM node:18-alpine AS production
-
-# Create app user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S slex -u 1001
-
-# Set working directory
-WORKDIR /app
-
-# Copy built application
-COPY --from=builder --chown=slex:nodejs /app .
-
 # Create necessary directories
-RUN mkdir -p public/uploads && chown -R slex:nodejs public/uploads
+RUN mkdir -p public/uploads logs
 
-# Switch to non-root user
-USER slex
+# Set proper permissions
+RUN chown -R node:node /app
+USER node
 
 # Expose port
 EXPOSE 3005
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3005/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3005/health || exit 1
 
 # Start application
-CMD ["node", "app.js"]
+CMD ["npm", "start"]

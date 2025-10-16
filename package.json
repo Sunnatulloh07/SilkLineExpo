@@ -10,6 +10,7 @@
     "seed": "node scripts/comprehensive-seeder.js",
     "seed-real": "node scripts/seed-real-data.js",
     "create-admin": "node scripts/create-super-admin.js",
+    "seed:categories": "node scripts/category-seeder.js",
     "build": "echo 'No build step required for Node.js'",
     "docker:build": "docker build -t slex-platform .",
     "docker:up": "docker-compose -f docker-compose.prod.yml up -d",

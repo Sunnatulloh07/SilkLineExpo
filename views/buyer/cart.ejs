@@ -184,6 +184,10 @@
                               let categoryName = 'Unknown Category';
                               if (typeof item.productId.category === 'object' && item.productId.category.name) {
                                 categoryName = item.productId.category.name;
+                                // Check for translations
+                                if (item.productId.category.translations && item.productId.category.translations[req.language] && item.productId.category.translations[req.language].name) {
+                                  categoryName = item.productId.category.translations[req.language].name;
+                                }
                               } else if (typeof item.productId.category === 'string' && item.productId.category.length < 50) {
                                 categoryName = item.productId.category;
                               }

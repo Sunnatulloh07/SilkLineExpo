@@ -4300,7 +4300,15 @@
                   <div class="info-table-row">
                     <div class="info-table-label"><%= t('productDetails.category') %></div>
                     <div class="info-table-value">
-                      <span class="category-name"><%= product.category.name || product.category %></span>
+                      <span class="category-name">
+                        <% 
+                          let categoryName = product.category.name || product.category;
+                          if (typeof product.category === 'object' && product.category.translations && product.category.translations[req.language] && product.category.translations[req.language].name) {
+                            categoryName = product.category.translations[req.language].name;
+                          }
+                        %>
+                        <%= categoryName %>
+                      </span>
                     </div>
               </div>
                 <% } %>
@@ -4754,10 +4762,16 @@
                     <div class="card-icon" style="margin-left: 12px;">
                         <i class="fas fa-folder"></i>
                     </div>
-                    <div class="card-content" style="display: flex; align-items: center; justify-content: space-between;">
+                      <div class="card-content" style="display: flex; align-items: center; justify-content: space-between;">
                       <div class="card-title"><%= t('productDetails.category') %></div>
                       <div class="category-name">
-                        <%= product.category.name || product.category %>
+                        <% 
+                          let categoryName = product.category.name || product.category;
+                          if (typeof product.category === 'object' && product.category.translations && product.category.translations[req.language] && product.category.translations[req.language].name) {
+                            categoryName = product.category.translations[req.language].name;
+                          }
+                        %>
+                        <%= categoryName %>
                     </div>
                       </div>
                     </div>

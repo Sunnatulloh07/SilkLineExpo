@@ -198,6 +198,14 @@ class PublicProductsService {
                 _id: null,
                 name: 'All Categories',
                 slug: 'all',
+                translations: {
+                    uz: { name: 'Barcha Kategoriyalar' },
+                    en: { name: 'All Categories' },
+                    ru: { name: 'Все Категории' },
+                    tr: { name: 'Tüm Kategoriler' },
+                    fa: { name: 'همه دسته‌بندی‌ها' },
+                    zh: { name: '所有类别' }
+                },
                 productCount: totalProducts,
                 avgPrice: sortedCategories.reduce((sum, c) => sum + (c.avgPrice * c.productCount), 0) / totalProducts || 0,
                 maxPrice: Math.max(...sortedCategories.map(c => c.maxPrice).filter(p => p > 0)) || 0,

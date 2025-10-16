@@ -65,18 +65,18 @@ class SuperAdminSeeder {
     console.log("👑 Creating Super Admin...");
 
     const superAdmin = {
-      _id: "60c72b2f9b1e8c001c8e4d5a", // Fixed ID to match routes/admin.js
-      name: "Super Admin",
-      email: "admin@slex.uz",
-      password: "admin123",
-      role: "super_admin",
-      status: "active",
-      permissions: {
-        canApproveUsers: true,
-        canManageAdmins: true,
-        canViewReports: true,
-        canManageContent: true,
-        canManageSystem: true,
+        _id: "60c72b2f9b1e8c001c8e4d5a", // Fixed ID to match routes/admin.js
+        name: "Super Admin",
+        email: "admin@slex.uz",
+        password: "admin123",
+        role: "super_admin",
+        status: "active",
+        permissions: {
+          canApproveUsers: true,
+          canManageAdmins: true,
+          canViewReports: true,
+          canManageContent: true,
+          canManageSystem: true,
       },
     };
 
@@ -87,7 +87,7 @@ class SuperAdminSeeder {
   async run() {
     try {
       console.log("🚀 Starting Super Admin Seeder...");
-      
+
       await this.connect();
       await this.clearDatabase();
       await this.seedSuperAdmin();

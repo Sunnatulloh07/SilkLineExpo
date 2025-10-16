@@ -246,7 +246,13 @@
                       <div class="product-category-desc">
                         <div class="product-category">
                           <i class="fas fa-tag"></i>
-                          <%= typeof product.category === 'string' ? product.category : (product.category && product.category.name ? product.category.name : (product.category && product.category._id ? product.category._id : t('manufacturer.marketplace.featuredProducts.noCategory'))) %>
+                          <% 
+                            let categoryName = typeof product.category === 'string' ? product.category : (product.category && product.category.name ? product.category.name : (product.category && product.category._id ? product.category._id : t('manufacturer.marketplace.featuredProducts.noCategory')));
+                            if (typeof product.category === 'object' && product.category.translations && product.category.translations[req.language] && product.category.translations[req.language].name) {
+                              categoryName = product.category.translations[req.language].name;
+                            }
+                          %>
+                          <%= categoryName %>
                         </div>
                       </div>
 

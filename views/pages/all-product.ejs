@@ -451,14 +451,25 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       const params = new URLSearchParams(window.location.search);
       const activeVal = params.get(type);
+      
+      // Get current language from HTML lang attribute or default to 'uz'
+      const currentLang = document.documentElement.lang || 'uz';
+      
       items.forEach((item) => {
         const li = document.createElement('li');
         li.className = 'filter-sidebar-list__item';
         const value = type === 'category' ? (item.slug || item._id || item.name) : (item._id || item.value || item.name);
         const count = (item.productCount ?? item.count ?? item.total ?? 0);
         const isActive = activeVal && String(activeVal) === String(value);
+        
+        // Get localized name for categories
+        let displayName = item.name || item.companyName;
+        if (type === 'category' && item.translations && item.translations[currentLang] && item.translations[currentLang].name) {
+          displayName = item.translations[currentLang].name;
+        }
+        
         li.innerHTML = `<a href="/all-product?${type}=${encodeURIComponent(value)}" class="filter-sidebar-list__text ${isActive ? 'active' : ''}">
-          <span>${item.name || item.companyName}</span>
+          <span>${displayName}</span>
           <span class="qty">${count.toLocaleString()}</span>
         </a>`;
         el.appendChild(li);
