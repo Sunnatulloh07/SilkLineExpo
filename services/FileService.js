@@ -43,8 +43,10 @@ class FileService {
       const uniqueFilename = this.generateUniqueFilename(file.originalname);
       const finalPath = path.join(this.logoDir, uniqueFilename);
 
-      // Move file to final location
-      await fs.rename(file.path, finalPath);
+      // Move file to final location using copy + unlink instead of rename
+      // This fixes EXDEV: cross-device link not permitted error in Docker
+      await fs.copyFile(file.path, finalPath);
+      await fs.unlink(file.path);
 
       // Verify file was moved successfully
       try {
